@@ -1,0 +1,305 @@
+// ============================================
+// Layout - Shell, sidebar, container
+// ============================================
+
+@use "variables" as *;
+
+html,
+body {
+    height: 100%;
+    overflow: hidden;
+}
+
+.app-shell {
+    display: flex;
+    height: 100vh;
+    height: 100dvh;
+    overflow: hidden;
+}
+
+.app-sidebar {
+    position: relative;
+    z-index: 30;
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 0;
+    width: var(--sidebar-width);
+    min-height: 0;
+    height: 100%;
+    overflow: hidden;
+    background-color: color-mix(in srgb, var(--color-surface) 94%, transparent);
+    border-right: var(--border-width) solid var(--color-border);
+    backdrop-filter: blur(16px);
+}
+
+.sidebar-brand {
+    display: block;
+    flex-shrink: 0;
+    padding: 0.875rem var(--spacing-md) 0.75rem;
+    font-size: var(--h4-size);
+    font-weight: var(--font-weight-bold);
+    letter-spacing: -0.03em;
+    color: var(--color-text);
+    border-bottom: var(--border-width) solid var(--color-border);
+}
+
+.sidebar-nav {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding: 0.625rem var(--spacing-sm) 0.75rem;
+}
+
+.sidebar-group {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+}
+
+.sidebar-group-label {
+    margin: 0 0 2px;
+    padding: 0 var(--spacing-sm);
+    font-size: 0.625rem;
+    font-weight: var(--font-weight-semibold);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--color-text-muted);
+}
+
+.sidebar-link {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    min-height: 1.75rem;
+    padding: 0.1875rem var(--spacing-sm);
+    color: var(--color-text);
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-medium);
+    line-height: 1.25;
+    transition:
+        background-color var(--transition-normal),
+        color var(--transition-normal),
+        opacity var(--transition-normal);
+
+    &:hover {
+        color: var(--color-text);
+        background-color: var(--color-surface-hover);
+    }
+
+    &.active {
+        color: var(--color-text);
+        background-color: var(--color-surface-raised);
+        box-shadow: inset 2px 0 0 var(--color-primary);
+    }
+}
+
+.sidebar-link-icon {
+    flex-shrink: 0;
+    width: 1.25rem;
+    text-align: center;
+    font-size: 0.9375rem;
+    line-height: 1;
+}
+
+.sidebar-link-label {
+    flex: 1;
+    min-width: 0;
+}
+
+.sidebar-link-soon {
+    flex-shrink: 0;
+    font-size: 0.625rem;
+    font-weight: var(--font-weight-medium);
+    letter-spacing: 0.02em;
+    text-transform: lowercase;
+    color: var(--color-text-muted);
+    opacity: 0.7;
+}
+
+.sidebar-link-new {
+    flex-shrink: 0;
+    padding: 0.0625rem 0.3125rem;
+    font-size: 0.5625rem;
+    font-weight: var(--font-weight-bold);
+    letter-spacing: 0.08em;
+    line-height: 1.3;
+    text-transform: uppercase;
+    color: var(--color-on-accent);
+    background-color: var(--color-primary);
+}
+
+.sidebar-link--soon {
+    color: var(--color-text-muted);
+    opacity: 0.38;
+    filter: grayscale(1);
+    cursor: default;
+
+    &:hover {
+        color: var(--color-text-muted);
+        background-color: transparent;
+        opacity: 0.38;
+    }
+}
+
+.app-content {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    overflow-x: hidden;
+    overflow-y: auto;
+}
+
+// Calculator tables keep overflow visible so thead can stick to this pane.
+// Wide tables then scroll horizontally here (same scrollport as vertical).
+body.calc-page .app-content {
+    overflow-x: auto;
+}
+
+.app-topbar {
+    display: none;
+    position: sticky;
+    top: 0;
+    left: 0;
+    z-index: 20;
+    align-items: center;
+    gap: var(--spacing-sm);
+    height: var(--topbar-height);
+    padding: 0 var(--spacing-md);
+    background-color: color-mix(in srgb, var(--color-surface) 92%, transparent);
+    border-bottom: var(--border-width) solid var(--color-border);
+    backdrop-filter: blur(16px);
+}
+
+.app-brand {
+    font-size: var(--h4-size);
+    font-weight: var(--font-weight-bold);
+    letter-spacing: -0.03em;
+    color: var(--color-text);
+}
+
+.sidebar-toggler {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.25rem;
+    height: 2.25rem;
+    border: var(--border-width) solid var(--color-border);
+    background-color: transparent;
+    cursor: pointer;
+}
+
+.sidebar-toggler-icon {
+    display: block;
+    width: 18px;
+    height: 18px;
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba(255,255,255,0.75)' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e");
+}
+
+.app-sidebar-backdrop {
+    display: none;
+}
+
+body.app-sidebar-open {
+    overflow: hidden;
+}
+
+@media (max-width: 767px) {
+    .app-topbar {
+        display: flex;
+    }
+
+    .app-sidebar {
+        position: fixed;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        transform: translateX(-100%);
+        transition: transform var(--transition-normal);
+        box-shadow: var(--shadow-lg);
+    }
+
+    .app-sidebar.is-open {
+        transform: none;
+    }
+
+    .app-sidebar-backdrop {
+        display: block;
+        position: fixed;
+        inset: 0;
+        z-index: 25;
+        background-color: rgba(12, 12, 14, 0.55);
+        backdrop-filter: blur(4px);
+
+        &[hidden] {
+            display: none;
+        }
+    }
+}
+
+// ---------- Container ----------
+.container {
+    width: 100%;
+    max-width: 1200px;
+    margin-left: auto;
+    margin-right: auto;
+    padding-left: var(--spacing-lg);
+    padding-right: var(--spacing-lg);
+}
+
+.container-fluid {
+    width: 100%;
+    padding-left: var(--spacing-md);
+    padding-right: var(--spacing-md);
+}
+
+.container--db {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    max-width: min(100% - 2 * var(--spacing-md), 1320px);
+    padding-left: var(--spacing-md);
+    padding-right: var(--spacing-md);
+
+    @media (min-width: 1600px) {
+        max-width: min(100% - 2 * var(--spacing-lg), 1480px);
+    }
+
+    @media (max-width: 576px) {
+        flex: none;
+        display: block;
+        min-height: 0;
+    }
+}
+
+// ---------- Ana içerik ----------
+main {
+    flex: 1 0 auto;
+    padding-top: clamp(24px, 5vw, 40px);
+    padding-bottom: clamp(4rem, 8vh, 6rem);
+}
+
+main:has(.container--db) {
+    flex: 1 1 auto;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    padding-bottom: var(--spacing-md);
+    overflow: hidden;
+
+    @media (max-width: 576px) {
+        display: block;
+        overflow: visible;
+        padding-bottom: clamp(4rem, 8vh, 6rem);
+    }
+}
+
+.pb-3 {
+    padding-bottom: var(--spacing-md);
+}

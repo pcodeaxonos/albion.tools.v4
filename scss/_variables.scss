@@ -1,0 +1,98 @@
+// ============================================
+// Albion Tools - CSS Custom Properties
+// ============================================
+
+:root {
+    --color-bg: #161618;
+    --color-surface: #222225;
+    --color-surface-raised: #2a2a2e;
+    --color-surface-hover: #323238;
+    --color-primary: #e8c36a;
+    --color-primary-dark: #d4ad4e;
+    --color-primary-light: #f5d78c;
+    --color-secondary: #9a9aa4;
+    --color-success: #6dce86;
+    --color-danger: #ee6f70;
+    --color-info: #6eb8e8;
+    --color-warning: #f0b84a;
+    --color-text: #f2f2f4;
+    --color-text-muted: #9898a0;
+    --color-border: #3a3a40;
+    --color-border-strong: #5c5c66;
+    --color-white: #ffffff;
+    --color-on-accent: #1a1610;
+    --color-focus-ring: var(--color-primary);
+    --focus-outline-width: 2px;
+    --focus-outline-offset: calc(-1 * var(--focus-outline-width));
+
+    --sidebar-width: 15.5rem;
+    --topbar-height: 3.25rem;
+    --navbar-height: 0px;
+    --calc-toolbar-height: 0px;
+    --font-family-base: 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    --font-family-mono: 'IBM Plex Mono', ui-monospace, monospace;
+    --font-size-base: 0.9375rem;
+    --font-size-sm: 0.8125rem;
+    --font-size-lg: 1.0625rem;
+    --line-height-base: 1.5;
+
+    --h1-size: 1.875rem;
+    --h2-size: 1.5rem;
+    --h3-size: 1.1875rem;
+    --h4-size: 1.0625rem;
+
+    --spacing-xs: 4px;
+    --spacing-sm: 8px;
+    --spacing-md: 16px;
+    --spacing-lg: 24px;
+    --spacing-xl: 40px;
+
+    --radius-sm: 0;
+    --radius-md: 0;
+    --radius-lg: 0;
+    --radius-full: 0;
+
+    --border-width: 1px;
+    --border-color: var(--color-border);
+
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.24);
+    --shadow-md: 0 10px 30px rgba(0, 0, 0, 0.22);
+    --shadow-lg: 0 20px 50px rgba(0, 0, 0, 0.3);
+
+    --input-height: 3.25rem;
+    --input-height-sm: 1.75rem;
+    --floating-label-inset: 0.875rem;
+    --floating-label-float-size: 0.625rem;
+    --floating-label-pad: 0.375rem;
+    --floating-label-scale: calc(var(--floating-label-float-size) / var(--font-size-base));
+    --floating-label-color: color-mix(in srgb, var(--color-text-muted) 88%, transparent);
+    --floating-label-color-filled: color-mix(in srgb, var(--color-text-muted) 52%, transparent);
+    --switch-width: 2.5rem;
+    --switch-height: 1.375rem;
+    --switch-thumb: 1rem;
+    --switch-inset: 0.125rem;
+    --select-min-width: 8rem;
+    --select-min-width-sm: 6.5rem;
+
+    --breakpoint-sm: 576px;
+    --breakpoint-md: 768px;
+    --breakpoint-lg: 992px;
+    --breakpoint-xl: 1200px;
+    --breakpoint-xxl: 1400px;
+
+    --font-weight-normal: 400;
+    --font-weight-medium: 500;
+    --font-weight-semibold: 600;
+    --font-weight-bold: 700;
+
+    --transition-fast: 0.15s ease-in-out;
+    --transition-normal: 0.2s ease-in-out;
+    --transition-slow: 0.3s ease-in-out;
+    --transition-shadow: 0.2s ease;
+}
+
+@media (max-width: 767px) {
+    :root {
+        --navbar-height: var(--topbar-height);
+    }
+}

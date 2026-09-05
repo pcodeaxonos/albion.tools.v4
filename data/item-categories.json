@@ -1,0 +1,4440 @@
+[
+  {
+    "id": 1,
+    "slug": "weapons",
+    "level": "category",
+    "parentSlug": "",
+    "sortValue": 1000000
+  },
+  {
+    "id": 2,
+    "slug": "bow",
+    "level": "subcategory",
+    "parentSlug": "weapons",
+    "sortValue": 10000
+  },
+  {
+    "id": 3,
+    "slug": "bow_bow",
+    "level": "subcategory2",
+    "parentSlug": "bow",
+    "sortValue": 100
+  },
+  {
+    "id": 4,
+    "slug": "bow_longbow",
+    "level": "subcategory2",
+    "parentSlug": "bow",
+    "sortValue": 200
+  },
+  {
+    "id": 5,
+    "slug": "bow_warbow",
+    "level": "subcategory2",
+    "parentSlug": "bow",
+    "sortValue": 300
+  },
+  {
+    "id": 6,
+    "slug": "bow_undead",
+    "level": "subcategory2",
+    "parentSlug": "bow",
+    "sortValue": 400
+  },
+  {
+    "id": 7,
+    "slug": "bow_hell",
+    "level": "subcategory2",
+    "parentSlug": "bow",
+    "sortValue": 500
+  },
+  {
+    "id": 8,
+    "slug": "bow_keeper",
+    "level": "subcategory2",
+    "parentSlug": "bow",
+    "sortValue": 600
+  },
+  {
+    "id": 9,
+    "slug": "bow_avalon",
+    "level": "subcategory2",
+    "parentSlug": "bow",
+    "sortValue": 700
+  },
+  {
+    "id": 10,
+    "slug": "bow_crystal",
+    "level": "subcategory2",
+    "parentSlug": "bow",
+    "sortValue": 800
+  },
+  {
+    "id": 11,
+    "slug": "crossbow",
+    "level": "subcategory",
+    "parentSlug": "weapons",
+    "sortValue": 20000
+  },
+  {
+    "id": 12,
+    "slug": "crossbow_crossbow",
+    "level": "subcategory2",
+    "parentSlug": "crossbow",
+    "sortValue": 100
+  },
+  {
+    "id": 13,
+    "slug": "crossbow_crossbowlarge",
+    "level": "subcategory2",
+    "parentSlug": "crossbow",
+    "sortValue": 200
+  },
+  {
+    "id": 14,
+    "slug": "crossbow_1hcrossbow",
+    "level": "subcategory2",
+    "parentSlug": "crossbow",
+    "sortValue": 300
+  },
+  {
+    "id": 15,
+    "slug": "crossbow_undead",
+    "level": "subcategory2",
+    "parentSlug": "crossbow",
+    "sortValue": 400
+  },
+  {
+    "id": 16,
+    "slug": "crossbow_hell",
+    "level": "subcategory2",
+    "parentSlug": "crossbow",
+    "sortValue": 500
+  },
+  {
+    "id": 17,
+    "slug": "crossbow_morgana",
+    "level": "subcategory2",
+    "parentSlug": "crossbow",
+    "sortValue": 600
+  },
+  {
+    "id": 18,
+    "slug": "crossbow_avalon",
+    "level": "subcategory2",
+    "parentSlug": "crossbow",
+    "sortValue": 700
+  },
+  {
+    "id": 19,
+    "slug": "crossbow_crystal",
+    "level": "subcategory2",
+    "parentSlug": "crossbow",
+    "sortValue": 800
+  },
+  {
+    "id": 20,
+    "slug": "axe",
+    "level": "subcategory",
+    "parentSlug": "weapons",
+    "sortValue": 30000
+  },
+  {
+    "id": 21,
+    "slug": "axe_main_axe",
+    "level": "subcategory2",
+    "parentSlug": "axe",
+    "sortValue": 100
+  },
+  {
+    "id": 22,
+    "slug": "axe_2h_axe",
+    "level": "subcategory2",
+    "parentSlug": "axe",
+    "sortValue": 200
+  },
+  {
+    "id": 23,
+    "slug": "axe_halberd",
+    "level": "subcategory2",
+    "parentSlug": "axe",
+    "sortValue": 300
+  },
+  {
+    "id": 24,
+    "slug": "axe_morgana",
+    "level": "subcategory2",
+    "parentSlug": "axe",
+    "sortValue": 400
+  },
+  {
+    "id": 25,
+    "slug": "axe_hell",
+    "level": "subcategory2",
+    "parentSlug": "axe",
+    "sortValue": 500
+  },
+  {
+    "id": 26,
+    "slug": "axe_keeper",
+    "level": "subcategory2",
+    "parentSlug": "axe",
+    "sortValue": 600
+  },
+  {
+    "id": 27,
+    "slug": "axe_avalon",
+    "level": "subcategory2",
+    "parentSlug": "axe",
+    "sortValue": 700
+  },
+  {
+    "id": 28,
+    "slug": "axe_crystal",
+    "level": "subcategory2",
+    "parentSlug": "axe",
+    "sortValue": 800
+  },
+  {
+    "id": 29,
+    "slug": "dagger",
+    "level": "subcategory",
+    "parentSlug": "weapons",
+    "sortValue": 40000
+  },
+  {
+    "id": 30,
+    "slug": "dagger_dagger",
+    "level": "subcategory2",
+    "parentSlug": "dagger",
+    "sortValue": 100
+  },
+  {
+    "id": 31,
+    "slug": "dagger_daggerpair",
+    "level": "subcategory2",
+    "parentSlug": "dagger",
+    "sortValue": 200
+  },
+  {
+    "id": 32,
+    "slug": "dagger_clawpair",
+    "level": "subcategory2",
+    "parentSlug": "dagger",
+    "sortValue": 300
+  },
+  {
+    "id": 33,
+    "slug": "dagger_morgana",
+    "level": "subcategory2",
+    "parentSlug": "dagger",
+    "sortValue": 400
+  },
+  {
+    "id": 34,
+    "slug": "dagger_hell",
+    "level": "subcategory2",
+    "parentSlug": "dagger",
+    "sortValue": 500
+  },
+  {
+    "id": 35,
+    "slug": "dagger_undead",
+    "level": "subcategory2",
+    "parentSlug": "dagger",
+    "sortValue": 600
+  },
+  {
+    "id": 36,
+    "slug": "dagger_avalon",
+    "level": "subcategory2",
+    "parentSlug": "dagger",
+    "sortValue": 700
+  },
+  {
+    "id": 37,
+    "slug": "dagger_crystal",
+    "level": "subcategory2",
+    "parentSlug": "dagger",
+    "sortValue": 800
+  },
+  {
+    "id": 38,
+    "slug": "hammer",
+    "level": "subcategory",
+    "parentSlug": "weapons",
+    "sortValue": 50000
+  },
+  {
+    "id": 39,
+    "slug": "hammer_main_hammer",
+    "level": "subcategory2",
+    "parentSlug": "hammer",
+    "sortValue": 100
+  },
+  {
+    "id": 40,
+    "slug": "hammer_2h_hammer",
+    "level": "subcategory2",
+    "parentSlug": "hammer",
+    "sortValue": 200
+  },
+  {
+    "id": 41,
+    "slug": "hammer_polehammer",
+    "level": "subcategory2",
+    "parentSlug": "hammer",
+    "sortValue": 300
+  },
+  {
+    "id": 42,
+    "slug": "hammer_undead",
+    "level": "subcategory2",
+    "parentSlug": "hammer",
+    "sortValue": 400
+  },
+  {
+    "id": 43,
+    "slug": "hammer_hell",
+    "level": "subcategory2",
+    "parentSlug": "hammer",
+    "sortValue": 500
+  },
+  {
+    "id": 44,
+    "slug": "hammer_keeper",
+    "level": "subcategory2",
+    "parentSlug": "hammer",
+    "sortValue": 600
+  },
+  {
+    "id": 45,
+    "slug": "hammer_avalon",
+    "level": "subcategory2",
+    "parentSlug": "hammer",
+    "sortValue": 700
+  },
+  {
+    "id": 46,
+    "slug": "hammer_crystal",
+    "level": "subcategory2",
+    "parentSlug": "hammer",
+    "sortValue": 800
+  },
+  {
+    "id": 47,
+    "slug": "knuckles",
+    "level": "subcategory",
+    "parentSlug": "weapons",
+    "sortValue": 60000
+  },
+  {
+    "id": 48,
+    "slug": "knuckles_set1",
+    "level": "subcategory2",
+    "parentSlug": "knuckles",
+    "sortValue": 100
+  },
+  {
+    "id": 49,
+    "slug": "knuckles_set2",
+    "level": "subcategory2",
+    "parentSlug": "knuckles",
+    "sortValue": 200
+  },
+  {
+    "id": 50,
+    "slug": "knuckles_set3",
+    "level": "subcategory2",
+    "parentSlug": "knuckles",
+    "sortValue": 300
+  },
+  {
+    "id": 51,
+    "slug": "knuckles_keeper",
+    "level": "subcategory2",
+    "parentSlug": "knuckles",
+    "sortValue": 400
+  },
+  {
+    "id": 52,
+    "slug": "knuckles_hell",
+    "level": "subcategory2",
+    "parentSlug": "knuckles",
+    "sortValue": 500
+  },
+  {
+    "id": 53,
+    "slug": "knuckles_morgana",
+    "level": "subcategory2",
+    "parentSlug": "knuckles",
+    "sortValue": 600
+  },
+  {
+    "id": 54,
+    "slug": "knuckles_avalon",
+    "level": "subcategory2",
+    "parentSlug": "knuckles",
+    "sortValue": 700
+  },
+  {
+    "id": 55,
+    "slug": "knuckles_crystal",
+    "level": "subcategory2",
+    "parentSlug": "knuckles",
+    "sortValue": 800
+  },
+  {
+    "id": 56,
+    "slug": "knuckles_gauntlets",
+    "level": "subcategory2",
+    "parentSlug": "knuckles",
+    "sortValue": 900
+  },
+  {
+    "id": 57,
+    "slug": "mace",
+    "level": "subcategory",
+    "parentSlug": "weapons",
+    "sortValue": 70000
+  },
+  {
+    "id": 58,
+    "slug": "mace_main_mace",
+    "level": "subcategory2",
+    "parentSlug": "mace",
+    "sortValue": 100
+  },
+  {
+    "id": 59,
+    "slug": "mace_2h_mace",
+    "level": "subcategory2",
+    "parentSlug": "mace",
+    "sortValue": 200
+  },
+  {
+    "id": 60,
+    "slug": "mace_flail",
+    "level": "subcategory2",
+    "parentSlug": "mace",
+    "sortValue": 300
+  },
+  {
+    "id": 61,
+    "slug": "mace_keeper",
+    "level": "subcategory2",
+    "parentSlug": "mace",
+    "sortValue": 400
+  },
+  {
+    "id": 62,
+    "slug": "mace_hell",
+    "level": "subcategory2",
+    "parentSlug": "mace",
+    "sortValue": 500
+  },
+  {
+    "id": 63,
+    "slug": "mace_morgana",
+    "level": "subcategory2",
+    "parentSlug": "mace",
+    "sortValue": 600
+  },
+  {
+    "id": 64,
+    "slug": "mace_avalon",
+    "level": "subcategory2",
+    "parentSlug": "mace",
+    "sortValue": 700
+  },
+  {
+    "id": 65,
+    "slug": "mace_crystal",
+    "level": "subcategory2",
+    "parentSlug": "mace",
+    "sortValue": 800
+  },
+  {
+    "id": 66,
+    "slug": "quarterstaff",
+    "level": "subcategory",
+    "parentSlug": "weapons",
+    "sortValue": 80000
+  },
+  {
+    "id": 67,
+    "slug": "quarterstaff_quarterstaff",
+    "level": "subcategory2",
+    "parentSlug": "quarterstaff",
+    "sortValue": 100
+  },
+  {
+    "id": 68,
+    "slug": "quarterstaff_ironcladedstaff",
+    "level": "subcategory2",
+    "parentSlug": "quarterstaff",
+    "sortValue": 200
+  },
+  {
+    "id": 69,
+    "slug": "quarterstaff_doublebladedstaff",
+    "level": "subcategory2",
+    "parentSlug": "quarterstaff",
+    "sortValue": 300
+  },
+  {
+    "id": 70,
+    "slug": "quarterstaff_morgana",
+    "level": "subcategory2",
+    "parentSlug": "quarterstaff",
+    "sortValue": 400
+  },
+  {
+    "id": 71,
+    "slug": "quarterstaff_hell",
+    "level": "subcategory2",
+    "parentSlug": "quarterstaff",
+    "sortValue": 500
+  },
+  {
+    "id": 72,
+    "slug": "quarterstaff_keeper",
+    "level": "subcategory2",
+    "parentSlug": "quarterstaff",
+    "sortValue": 600
+  },
+  {
+    "id": 73,
+    "slug": "quarterstaff_avalon",
+    "level": "subcategory2",
+    "parentSlug": "quarterstaff",
+    "sortValue": 700
+  },
+  {
+    "id": 74,
+    "slug": "quarterstaff_crystal",
+    "level": "subcategory2",
+    "parentSlug": "quarterstaff",
+    "sortValue": 800
+  },
+  {
+    "id": 75,
+    "slug": "spear",
+    "level": "subcategory",
+    "parentSlug": "weapons",
+    "sortValue": 90000
+  },
+  {
+    "id": 76,
+    "slug": "spear_main_spear",
+    "level": "subcategory2",
+    "parentSlug": "spear",
+    "sortValue": 100
+  },
+  {
+    "id": 77,
+    "slug": "spear_2h_spear",
+    "level": "subcategory2",
+    "parentSlug": "spear",
+    "sortValue": 200
+  },
+  {
+    "id": 78,
+    "slug": "spear_glaive",
+    "level": "subcategory2",
+    "parentSlug": "spear",
+    "sortValue": 300
+  },
+  {
+    "id": 79,
+    "slug": "spear_keeper",
+    "level": "subcategory2",
+    "parentSlug": "spear",
+    "sortValue": 400
+  },
+  {
+    "id": 80,
+    "slug": "spear_hell",
+    "level": "subcategory2",
+    "parentSlug": "spear",
+    "sortValue": 500
+  },
+  {
+    "id": 81,
+    "slug": "spear_undead",
+    "level": "subcategory2",
+    "parentSlug": "spear",
+    "sortValue": 600
+  },
+  {
+    "id": 82,
+    "slug": "spear_avalon",
+    "level": "subcategory2",
+    "parentSlug": "spear",
+    "sortValue": 700
+  },
+  {
+    "id": 83,
+    "slug": "spear_crystal",
+    "level": "subcategory2",
+    "parentSlug": "spear",
+    "sortValue": 800
+  },
+  {
+    "id": 84,
+    "slug": "sword",
+    "level": "subcategory",
+    "parentSlug": "weapons",
+    "sortValue": 100000
+  },
+  {
+    "id": 85,
+    "slug": "sword_sword",
+    "level": "subcategory2",
+    "parentSlug": "sword",
+    "sortValue": 100
+  },
+  {
+    "id": 86,
+    "slug": "sword_claymore",
+    "level": "subcategory2",
+    "parentSlug": "sword",
+    "sortValue": 200
+  },
+  {
+    "id": 87,
+    "slug": "sword_dualsword",
+    "level": "subcategory2",
+    "parentSlug": "sword",
+    "sortValue": 300
+  },
+  {
+    "id": 88,
+    "slug": "sword_morgana",
+    "level": "subcategory2",
+    "parentSlug": "sword",
+    "sortValue": 400
+  },
+  {
+    "id": 89,
+    "slug": "sword_hell",
+    "level": "subcategory2",
+    "parentSlug": "sword",
+    "sortValue": 500
+  },
+  {
+    "id": 90,
+    "slug": "sword_undead",
+    "level": "subcategory2",
+    "parentSlug": "sword",
+    "sortValue": 600
+  },
+  {
+    "id": 91,
+    "slug": "sword_avalon",
+    "level": "subcategory2",
+    "parentSlug": "sword",
+    "sortValue": 700
+  },
+  {
+    "id": 92,
+    "slug": "sword_crystal",
+    "level": "subcategory2",
+    "parentSlug": "sword",
+    "sortValue": 800
+  },
+  {
+    "id": 93,
+    "slug": "arcanestaff",
+    "level": "subcategory",
+    "parentSlug": "weapons",
+    "sortValue": 110000
+  },
+  {
+    "id": 94,
+    "slug": "arcanestaff_main_arcanestaff",
+    "level": "subcategory2",
+    "parentSlug": "arcanestaff",
+    "sortValue": 100
+  },
+  {
+    "id": 95,
+    "slug": "arcanestaff_2h_arcanestaff",
+    "level": "subcategory2",
+    "parentSlug": "arcanestaff",
+    "sortValue": 200
+  },
+  {
+    "id": 96,
+    "slug": "arcanestaff_enigmaticstaff",
+    "level": "subcategory2",
+    "parentSlug": "arcanestaff",
+    "sortValue": 300
+  },
+  {
+    "id": 97,
+    "slug": "arcanestaff_undead",
+    "level": "subcategory2",
+    "parentSlug": "arcanestaff",
+    "sortValue": 400
+  },
+  {
+    "id": 98,
+    "slug": "arcanestaff_hell",
+    "level": "subcategory2",
+    "parentSlug": "arcanestaff",
+    "sortValue": 500
+  },
+  {
+    "id": 99,
+    "slug": "arcanestaff_morgana",
+    "level": "subcategory2",
+    "parentSlug": "arcanestaff",
+    "sortValue": 600
+  },
+  {
+    "id": 100,
+    "slug": "arcanestaff_avalon",
+    "level": "subcategory2",
+    "parentSlug": "arcanestaff",
+    "sortValue": 700
+  },
+  {
+    "id": 101,
+    "slug": "arcanestaff_crystal",
+    "level": "subcategory2",
+    "parentSlug": "arcanestaff",
+    "sortValue": 800
+  },
+  {
+    "id": 102,
+    "slug": "cursestaff",
+    "level": "subcategory",
+    "parentSlug": "weapons",
+    "sortValue": 120000
+  },
+  {
+    "id": 103,
+    "slug": "cursestaff_main_cursedstaff",
+    "level": "subcategory2",
+    "parentSlug": "cursestaff",
+    "sortValue": 100
+  },
+  {
+    "id": 104,
+    "slug": "cursestaff_2h_cursedstaff",
+    "level": "subcategory2",
+    "parentSlug": "cursestaff",
+    "sortValue": 200
+  },
+  {
+    "id": 105,
+    "slug": "cursestaff_demonicstaff",
+    "level": "subcategory2",
+    "parentSlug": "cursestaff",
+    "sortValue": 300
+  },
+  {
+    "id": 106,
+    "slug": "cursestaff_undead",
+    "level": "subcategory2",
+    "parentSlug": "cursestaff",
+    "sortValue": 400
+  },
+  {
+    "id": 107,
+    "slug": "cursestaff_hell",
+    "level": "subcategory2",
+    "parentSlug": "cursestaff",
+    "sortValue": 500
+  },
+  {
+    "id": 108,
+    "slug": "cursestaff_morgana",
+    "level": "subcategory2",
+    "parentSlug": "cursestaff",
+    "sortValue": 600
+  },
+  {
+    "id": 109,
+    "slug": "cursestaff_avalon",
+    "level": "subcategory2",
+    "parentSlug": "cursestaff",
+    "sortValue": 700
+  },
+  {
+    "id": 110,
+    "slug": "cursestaff_crystal",
+    "level": "subcategory2",
+    "parentSlug": "cursestaff",
+    "sortValue": 800
+  },
+  {
+    "id": 111,
+    "slug": "firestaff",
+    "level": "subcategory",
+    "parentSlug": "weapons",
+    "sortValue": 130000
+  },
+  {
+    "id": 112,
+    "slug": "firestaff_main_firestaff",
+    "level": "subcategory2",
+    "parentSlug": "firestaff",
+    "sortValue": 100
+  },
+  {
+    "id": 113,
+    "slug": "firestaff_2h_firestaff",
+    "level": "subcategory2",
+    "parentSlug": "firestaff",
+    "sortValue": 200
+  },
+  {
+    "id": 114,
+    "slug": "firestaff_infernostaff",
+    "level": "subcategory2",
+    "parentSlug": "firestaff",
+    "sortValue": 300
+  },
+  {
+    "id": 115,
+    "slug": "firestaff_keeper",
+    "level": "subcategory2",
+    "parentSlug": "firestaff",
+    "sortValue": 400
+  },
+  {
+    "id": 116,
+    "slug": "firestaff_hell",
+    "level": "subcategory2",
+    "parentSlug": "firestaff",
+    "sortValue": 500
+  },
+  {
+    "id": 117,
+    "slug": "firestaff_morgana",
+    "level": "subcategory2",
+    "parentSlug": "firestaff",
+    "sortValue": 600
+  },
+  {
+    "id": 118,
+    "slug": "firestaff_avalon",
+    "level": "subcategory2",
+    "parentSlug": "firestaff",
+    "sortValue": 700
+  },
+  {
+    "id": 119,
+    "slug": "firestaff_crystal",
+    "level": "subcategory2",
+    "parentSlug": "firestaff",
+    "sortValue": 800
+  },
+  {
+    "id": 120,
+    "slug": "froststaff",
+    "level": "subcategory",
+    "parentSlug": "weapons",
+    "sortValue": 140000
+  },
+  {
+    "id": 121,
+    "slug": "froststaff_main_froststaff",
+    "level": "subcategory2",
+    "parentSlug": "froststaff",
+    "sortValue": 100
+  },
+  {
+    "id": 122,
+    "slug": "froststaff_2h_froststaff",
+    "level": "subcategory2",
+    "parentSlug": "froststaff",
+    "sortValue": 200
+  },
+  {
+    "id": 123,
+    "slug": "froststaff_glacialstaff",
+    "level": "subcategory2",
+    "parentSlug": "froststaff",
+    "sortValue": 300
+  },
+  {
+    "id": 124,
+    "slug": "froststaff_keeper",
+    "level": "subcategory2",
+    "parentSlug": "froststaff",
+    "sortValue": 400
+  },
+  {
+    "id": 125,
+    "slug": "froststaff_hell",
+    "level": "subcategory2",
+    "parentSlug": "froststaff",
+    "sortValue": 500
+  },
+  {
+    "id": 126,
+    "slug": "froststaff_undead",
+    "level": "subcategory2",
+    "parentSlug": "froststaff",
+    "sortValue": 600
+  },
+  {
+    "id": 127,
+    "slug": "froststaff_avalon",
+    "level": "subcategory2",
+    "parentSlug": "froststaff",
+    "sortValue": 700
+  },
+  {
+    "id": 128,
+    "slug": "froststaff_crystal",
+    "level": "subcategory2",
+    "parentSlug": "froststaff",
+    "sortValue": 800
+  },
+  {
+    "id": 129,
+    "slug": "holystaff",
+    "level": "subcategory",
+    "parentSlug": "weapons",
+    "sortValue": 150000
+  },
+  {
+    "id": 130,
+    "slug": "holystaff_main_holystaff",
+    "level": "subcategory2",
+    "parentSlug": "holystaff",
+    "sortValue": 100
+  },
+  {
+    "id": 131,
+    "slug": "holystaff_2h_holystaff",
+    "level": "subcategory2",
+    "parentSlug": "holystaff",
+    "sortValue": 200
+  },
+  {
+    "id": 132,
+    "slug": "holystaff_divinestaff",
+    "level": "subcategory2",
+    "parentSlug": "holystaff",
+    "sortValue": 300
+  },
+  {
+    "id": 133,
+    "slug": "holystaff_morgana",
+    "level": "subcategory2",
+    "parentSlug": "holystaff",
+    "sortValue": 400
+  },
+  {
+    "id": 134,
+    "slug": "holystaff_hell",
+    "level": "subcategory2",
+    "parentSlug": "holystaff",
+    "sortValue": 500
+  },
+  {
+    "id": 135,
+    "slug": "holystaff_undead",
+    "level": "subcategory2",
+    "parentSlug": "holystaff",
+    "sortValue": 600
+  },
+  {
+    "id": 136,
+    "slug": "holystaff_avalon",
+    "level": "subcategory2",
+    "parentSlug": "holystaff",
+    "sortValue": 700
+  },
+  {
+    "id": 137,
+    "slug": "holystaff_crystal",
+    "level": "subcategory2",
+    "parentSlug": "holystaff",
+    "sortValue": 800
+  },
+  {
+    "id": 138,
+    "slug": "naturestaff",
+    "level": "subcategory",
+    "parentSlug": "weapons",
+    "sortValue": 160000
+  },
+  {
+    "id": 139,
+    "slug": "naturestaff_main_naturestaff",
+    "level": "subcategory2",
+    "parentSlug": "naturestaff",
+    "sortValue": 100
+  },
+  {
+    "id": 140,
+    "slug": "naturestaff_2h_naturestaff",
+    "level": "subcategory2",
+    "parentSlug": "naturestaff",
+    "sortValue": 200
+  },
+  {
+    "id": 141,
+    "slug": "naturestaff_wildstaff",
+    "level": "subcategory2",
+    "parentSlug": "naturestaff",
+    "sortValue": 300
+  },
+  {
+    "id": 142,
+    "slug": "naturestaff_main_keeper",
+    "level": "subcategory2",
+    "parentSlug": "naturestaff",
+    "sortValue": 400
+  },
+  {
+    "id": 143,
+    "slug": "naturestaff_hell",
+    "level": "subcategory2",
+    "parentSlug": "naturestaff",
+    "sortValue": 500
+  },
+  {
+    "id": 144,
+    "slug": "naturestaff_2h_keeper",
+    "level": "subcategory2",
+    "parentSlug": "naturestaff",
+    "sortValue": 600
+  },
+  {
+    "id": 145,
+    "slug": "naturestaff_avalon",
+    "level": "subcategory2",
+    "parentSlug": "naturestaff",
+    "sortValue": 700
+  },
+  {
+    "id": 146,
+    "slug": "naturestaff_crystal",
+    "level": "subcategory2",
+    "parentSlug": "naturestaff",
+    "sortValue": 800
+  },
+  {
+    "id": 147,
+    "slug": "shapeshifterstaff",
+    "level": "subcategory",
+    "parentSlug": "weapons",
+    "sortValue": 170000
+  },
+  {
+    "id": 148,
+    "slug": "shapeshifterstaff_set1",
+    "level": "subcategory2",
+    "parentSlug": "shapeshifterstaff",
+    "sortValue": 100
+  },
+  {
+    "id": 149,
+    "slug": "shapeshifterstaff_set2",
+    "level": "subcategory2",
+    "parentSlug": "shapeshifterstaff",
+    "sortValue": 200
+  },
+  {
+    "id": 150,
+    "slug": "shapeshifterstaff_set3",
+    "level": "subcategory2",
+    "parentSlug": "shapeshifterstaff",
+    "sortValue": 300
+  },
+  {
+    "id": 151,
+    "slug": "shapeshifterstaff_morgana",
+    "level": "subcategory2",
+    "parentSlug": "shapeshifterstaff",
+    "sortValue": 400
+  },
+  {
+    "id": 152,
+    "slug": "shapeshifterstaff_hell",
+    "level": "subcategory2",
+    "parentSlug": "shapeshifterstaff",
+    "sortValue": 500
+  },
+  {
+    "id": 153,
+    "slug": "shapeshifterstaff_keeper",
+    "level": "subcategory2",
+    "parentSlug": "shapeshifterstaff",
+    "sortValue": 600
+  },
+  {
+    "id": 154,
+    "slug": "shapeshifterstaff_avalon",
+    "level": "subcategory2",
+    "parentSlug": "shapeshifterstaff",
+    "sortValue": 700
+  },
+  {
+    "id": 155,
+    "slug": "shapeshifterstaff_crystal",
+    "level": "subcategory2",
+    "parentSlug": "shapeshifterstaff",
+    "sortValue": 800
+  },
+  {
+    "id": 156,
+    "slug": "other",
+    "level": "subcategory",
+    "parentSlug": "weapons",
+    "sortValue": 180000
+  },
+  {
+    "id": 157,
+    "slug": "armors",
+    "level": "category",
+    "parentSlug": "",
+    "sortValue": 2000000
+  },
+  {
+    "id": 158,
+    "slug": "cloth_armor",
+    "level": "subcategory",
+    "parentSlug": "armors",
+    "sortValue": 10000
+  },
+  {
+    "id": 159,
+    "slug": "armors_cloth_set1",
+    "level": "subcategory2",
+    "parentSlug": "cloth_armor",
+    "sortValue": 100
+  },
+  {
+    "id": 160,
+    "slug": "armors_cloth_set2",
+    "level": "subcategory2",
+    "parentSlug": "cloth_armor",
+    "sortValue": 200
+  },
+  {
+    "id": 161,
+    "slug": "armors_cloth_set3",
+    "level": "subcategory2",
+    "parentSlug": "cloth_armor",
+    "sortValue": 300
+  },
+  {
+    "id": 162,
+    "slug": "armors_cloth_keeper",
+    "level": "subcategory2",
+    "parentSlug": "cloth_armor",
+    "sortValue": 400
+  },
+  {
+    "id": 163,
+    "slug": "armors_cloth_royal",
+    "level": "subcategory2",
+    "parentSlug": "cloth_armor",
+    "sortValue": 500
+  },
+  {
+    "id": 164,
+    "slug": "armors_cloth_hell",
+    "level": "subcategory2",
+    "parentSlug": "cloth_armor",
+    "sortValue": 600
+  },
+  {
+    "id": 165,
+    "slug": "armors_cloth_morgana",
+    "level": "subcategory2",
+    "parentSlug": "cloth_armor",
+    "sortValue": 700
+  },
+  {
+    "id": 166,
+    "slug": "armors_cloth_fey",
+    "level": "subcategory2",
+    "parentSlug": "cloth_armor",
+    "sortValue": 800
+  },
+  {
+    "id": 167,
+    "slug": "armors_cloth_avalon",
+    "level": "subcategory2",
+    "parentSlug": "cloth_armor",
+    "sortValue": 900
+  },
+  {
+    "id": 168,
+    "slug": "leather_armor",
+    "level": "subcategory",
+    "parentSlug": "armors",
+    "sortValue": 20000
+  },
+  {
+    "id": 169,
+    "slug": "armors_leather_set1",
+    "level": "subcategory2",
+    "parentSlug": "leather_armor",
+    "sortValue": 100
+  },
+  {
+    "id": 170,
+    "slug": "armors_leather_set2",
+    "level": "subcategory2",
+    "parentSlug": "leather_armor",
+    "sortValue": 200
+  },
+  {
+    "id": 171,
+    "slug": "armors_leather_set3",
+    "level": "subcategory2",
+    "parentSlug": "leather_armor",
+    "sortValue": 300
+  },
+  {
+    "id": 172,
+    "slug": "armors_leather_morgana",
+    "level": "subcategory2",
+    "parentSlug": "leather_armor",
+    "sortValue": 400
+  },
+  {
+    "id": 173,
+    "slug": "armors_leather_royal",
+    "level": "subcategory2",
+    "parentSlug": "leather_armor",
+    "sortValue": 500
+  },
+  {
+    "id": 174,
+    "slug": "armors_leather_hell",
+    "level": "subcategory2",
+    "parentSlug": "leather_armor",
+    "sortValue": 600
+  },
+  {
+    "id": 175,
+    "slug": "armors_leather_undead",
+    "level": "subcategory2",
+    "parentSlug": "leather_armor",
+    "sortValue": 700
+  },
+  {
+    "id": 176,
+    "slug": "armors_leather_fey",
+    "level": "subcategory2",
+    "parentSlug": "leather_armor",
+    "sortValue": 800
+  },
+  {
+    "id": 177,
+    "slug": "armors_leather_avalon",
+    "level": "subcategory2",
+    "parentSlug": "leather_armor",
+    "sortValue": 900
+  },
+  {
+    "id": 178,
+    "slug": "plate_armor",
+    "level": "subcategory",
+    "parentSlug": "armors",
+    "sortValue": 30000
+  },
+  {
+    "id": 179,
+    "slug": "armors_plate_set1",
+    "level": "subcategory2",
+    "parentSlug": "plate_armor",
+    "sortValue": 100
+  },
+  {
+    "id": 180,
+    "slug": "armors_plate_set2",
+    "level": "subcategory2",
+    "parentSlug": "plate_armor",
+    "sortValue": 200
+  },
+  {
+    "id": 181,
+    "slug": "armors_plate_set3",
+    "level": "subcategory2",
+    "parentSlug": "plate_armor",
+    "sortValue": 300
+  },
+  {
+    "id": 182,
+    "slug": "armors_plate_undead",
+    "level": "subcategory2",
+    "parentSlug": "plate_armor",
+    "sortValue": 400
+  },
+  {
+    "id": 183,
+    "slug": "armors_plate_royal",
+    "level": "subcategory2",
+    "parentSlug": "plate_armor",
+    "sortValue": 500
+  },
+  {
+    "id": 184,
+    "slug": "armors_plate_hell",
+    "level": "subcategory2",
+    "parentSlug": "plate_armor",
+    "sortValue": 600
+  },
+  {
+    "id": 185,
+    "slug": "armors_plate_keeper",
+    "level": "subcategory2",
+    "parentSlug": "plate_armor",
+    "sortValue": 700
+  },
+  {
+    "id": 186,
+    "slug": "armors_plate_fey",
+    "level": "subcategory2",
+    "parentSlug": "plate_armor",
+    "sortValue": 800
+  },
+  {
+    "id": 187,
+    "slug": "armors_plate_avalon",
+    "level": "subcategory2",
+    "parentSlug": "plate_armor",
+    "sortValue": 900
+  },
+  {
+    "id": 188,
+    "slug": "other",
+    "level": "subcategory",
+    "parentSlug": "armors",
+    "sortValue": 40000
+  },
+  {
+    "id": 189,
+    "slug": "head",
+    "level": "category",
+    "parentSlug": "",
+    "sortValue": 3000000
+  },
+  {
+    "id": 190,
+    "slug": "cloth_helmet",
+    "level": "subcategory",
+    "parentSlug": "head",
+    "sortValue": 10000
+  },
+  {
+    "id": 191,
+    "slug": "head_cloth_set1",
+    "level": "subcategory2",
+    "parentSlug": "cloth_helmet",
+    "sortValue": 100
+  },
+  {
+    "id": 192,
+    "slug": "head_cloth_set2",
+    "level": "subcategory2",
+    "parentSlug": "cloth_helmet",
+    "sortValue": 200
+  },
+  {
+    "id": 193,
+    "slug": "head_cloth_set3",
+    "level": "subcategory2",
+    "parentSlug": "cloth_helmet",
+    "sortValue": 300
+  },
+  {
+    "id": 194,
+    "slug": "head_cloth_keeper",
+    "level": "subcategory2",
+    "parentSlug": "cloth_helmet",
+    "sortValue": 400
+  },
+  {
+    "id": 195,
+    "slug": "head_cloth_royal",
+    "level": "subcategory2",
+    "parentSlug": "cloth_helmet",
+    "sortValue": 500
+  },
+  {
+    "id": 196,
+    "slug": "head_cloth_hell",
+    "level": "subcategory2",
+    "parentSlug": "cloth_helmet",
+    "sortValue": 600
+  },
+  {
+    "id": 197,
+    "slug": "head_cloth_morgana",
+    "level": "subcategory2",
+    "parentSlug": "cloth_helmet",
+    "sortValue": 700
+  },
+  {
+    "id": 198,
+    "slug": "head_cloth_fey",
+    "level": "subcategory2",
+    "parentSlug": "cloth_helmet",
+    "sortValue": 800
+  },
+  {
+    "id": 199,
+    "slug": "head_cloth_avalon",
+    "level": "subcategory2",
+    "parentSlug": "cloth_helmet",
+    "sortValue": 900
+  },
+  {
+    "id": 200,
+    "slug": "leather_helmet",
+    "level": "subcategory",
+    "parentSlug": "head",
+    "sortValue": 20000
+  },
+  {
+    "id": 201,
+    "slug": "head_leather_set1",
+    "level": "subcategory2",
+    "parentSlug": "leather_helmet",
+    "sortValue": 100
+  },
+  {
+    "id": 202,
+    "slug": "head_leather_set2",
+    "level": "subcategory2",
+    "parentSlug": "leather_helmet",
+    "sortValue": 200
+  },
+  {
+    "id": 203,
+    "slug": "head_leather_set3",
+    "level": "subcategory2",
+    "parentSlug": "leather_helmet",
+    "sortValue": 300
+  },
+  {
+    "id": 204,
+    "slug": "head_leather_morgana",
+    "level": "subcategory2",
+    "parentSlug": "leather_helmet",
+    "sortValue": 400
+  },
+  {
+    "id": 205,
+    "slug": "head_leather_royal",
+    "level": "subcategory2",
+    "parentSlug": "leather_helmet",
+    "sortValue": 500
+  },
+  {
+    "id": 206,
+    "slug": "head_leather_hell",
+    "level": "subcategory2",
+    "parentSlug": "leather_helmet",
+    "sortValue": 600
+  },
+  {
+    "id": 207,
+    "slug": "head_leather_undead",
+    "level": "subcategory2",
+    "parentSlug": "leather_helmet",
+    "sortValue": 700
+  },
+  {
+    "id": 208,
+    "slug": "head_leather_fey",
+    "level": "subcategory2",
+    "parentSlug": "leather_helmet",
+    "sortValue": 800
+  },
+  {
+    "id": 209,
+    "slug": "head_leather_avalon",
+    "level": "subcategory2",
+    "parentSlug": "leather_helmet",
+    "sortValue": 900
+  },
+  {
+    "id": 210,
+    "slug": "plate_helmet",
+    "level": "subcategory",
+    "parentSlug": "head",
+    "sortValue": 30000
+  },
+  {
+    "id": 211,
+    "slug": "head_plate_set1",
+    "level": "subcategory2",
+    "parentSlug": "plate_helmet",
+    "sortValue": 100
+  },
+  {
+    "id": 212,
+    "slug": "head_plate_set2",
+    "level": "subcategory2",
+    "parentSlug": "plate_helmet",
+    "sortValue": 200
+  },
+  {
+    "id": 213,
+    "slug": "head_plate_set3",
+    "level": "subcategory2",
+    "parentSlug": "plate_helmet",
+    "sortValue": 300
+  },
+  {
+    "id": 214,
+    "slug": "head_plate_undead",
+    "level": "subcategory2",
+    "parentSlug": "plate_helmet",
+    "sortValue": 400
+  },
+  {
+    "id": 215,
+    "slug": "head_plate_royal",
+    "level": "subcategory2",
+    "parentSlug": "plate_helmet",
+    "sortValue": 500
+  },
+  {
+    "id": 216,
+    "slug": "head_plate_hell",
+    "level": "subcategory2",
+    "parentSlug": "plate_helmet",
+    "sortValue": 600
+  },
+  {
+    "id": 217,
+    "slug": "head_plate_keeper",
+    "level": "subcategory2",
+    "parentSlug": "plate_helmet",
+    "sortValue": 700
+  },
+  {
+    "id": 218,
+    "slug": "head_plate_fey",
+    "level": "subcategory2",
+    "parentSlug": "plate_helmet",
+    "sortValue": 800
+  },
+  {
+    "id": 219,
+    "slug": "head_plate_avalon",
+    "level": "subcategory2",
+    "parentSlug": "plate_helmet",
+    "sortValue": 900
+  },
+  {
+    "id": 220,
+    "slug": "other",
+    "level": "subcategory",
+    "parentSlug": "head",
+    "sortValue": 40000
+  },
+  {
+    "id": 221,
+    "slug": "shoes",
+    "level": "category",
+    "parentSlug": "",
+    "sortValue": 4000000
+  },
+  {
+    "id": 222,
+    "slug": "cloth_shoes",
+    "level": "subcategory",
+    "parentSlug": "shoes",
+    "sortValue": 10000
+  },
+  {
+    "id": 223,
+    "slug": "shoes_cloth_set1",
+    "level": "subcategory2",
+    "parentSlug": "cloth_shoes",
+    "sortValue": 100
+  },
+  {
+    "id": 224,
+    "slug": "shoes_cloth_set2",
+    "level": "subcategory2",
+    "parentSlug": "cloth_shoes",
+    "sortValue": 200
+  },
+  {
+    "id": 225,
+    "slug": "shoes_cloth_set3",
+    "level": "subcategory2",
+    "parentSlug": "cloth_shoes",
+    "sortValue": 300
+  },
+  {
+    "id": 226,
+    "slug": "shoes_cloth_keeper",
+    "level": "subcategory2",
+    "parentSlug": "cloth_shoes",
+    "sortValue": 400
+  },
+  {
+    "id": 227,
+    "slug": "shoes_cloth_royal",
+    "level": "subcategory2",
+    "parentSlug": "cloth_shoes",
+    "sortValue": 500
+  },
+  {
+    "id": 228,
+    "slug": "shoes_cloth_hell",
+    "level": "subcategory2",
+    "parentSlug": "cloth_shoes",
+    "sortValue": 600
+  },
+  {
+    "id": 229,
+    "slug": "shoes_cloth_morgana",
+    "level": "subcategory2",
+    "parentSlug": "cloth_shoes",
+    "sortValue": 700
+  },
+  {
+    "id": 230,
+    "slug": "shoes_cloth_fey",
+    "level": "subcategory2",
+    "parentSlug": "cloth_shoes",
+    "sortValue": 800
+  },
+  {
+    "id": 231,
+    "slug": "shoes_cloth_avalon",
+    "level": "subcategory2",
+    "parentSlug": "cloth_shoes",
+    "sortValue": 900
+  },
+  {
+    "id": 232,
+    "slug": "leather_shoes",
+    "level": "subcategory",
+    "parentSlug": "shoes",
+    "sortValue": 20000
+  },
+  {
+    "id": 233,
+    "slug": "shoes_leather_set1",
+    "level": "subcategory2",
+    "parentSlug": "leather_shoes",
+    "sortValue": 100
+  },
+  {
+    "id": 234,
+    "slug": "shoes_leather_set2",
+    "level": "subcategory2",
+    "parentSlug": "leather_shoes",
+    "sortValue": 200
+  },
+  {
+    "id": 235,
+    "slug": "shoes_leather_set3",
+    "level": "subcategory2",
+    "parentSlug": "leather_shoes",
+    "sortValue": 300
+  },
+  {
+    "id": 236,
+    "slug": "shoes_leather_morgana",
+    "level": "subcategory2",
+    "parentSlug": "leather_shoes",
+    "sortValue": 400
+  },
+  {
+    "id": 237,
+    "slug": "shoes_leather_royal",
+    "level": "subcategory2",
+    "parentSlug": "leather_shoes",
+    "sortValue": 500
+  },
+  {
+    "id": 238,
+    "slug": "shoes_leather_hell",
+    "level": "subcategory2",
+    "parentSlug": "leather_shoes",
+    "sortValue": 600
+  },
+  {
+    "id": 239,
+    "slug": "shoes_leather_undead",
+    "level": "subcategory2",
+    "parentSlug": "leather_shoes",
+    "sortValue": 700
+  },
+  {
+    "id": 240,
+    "slug": "shoes_leather_fey",
+    "level": "subcategory2",
+    "parentSlug": "leather_shoes",
+    "sortValue": 800
+  },
+  {
+    "id": 241,
+    "slug": "shoes_leather_avalon",
+    "level": "subcategory2",
+    "parentSlug": "leather_shoes",
+    "sortValue": 900
+  },
+  {
+    "id": 242,
+    "slug": "plate_shoes",
+    "level": "subcategory",
+    "parentSlug": "shoes",
+    "sortValue": 30000
+  },
+  {
+    "id": 243,
+    "slug": "shoes_plate_set1",
+    "level": "subcategory2",
+    "parentSlug": "plate_shoes",
+    "sortValue": 100
+  },
+  {
+    "id": 244,
+    "slug": "shoes_plate_set2",
+    "level": "subcategory2",
+    "parentSlug": "plate_shoes",
+    "sortValue": 200
+  },
+  {
+    "id": 245,
+    "slug": "shoes_plate_set3",
+    "level": "subcategory2",
+    "parentSlug": "plate_shoes",
+    "sortValue": 300
+  },
+  {
+    "id": 246,
+    "slug": "shoes_plate_undead",
+    "level": "subcategory2",
+    "parentSlug": "plate_shoes",
+    "sortValue": 400
+  },
+  {
+    "id": 247,
+    "slug": "shoes_plate_royal",
+    "level": "subcategory2",
+    "parentSlug": "plate_shoes",
+    "sortValue": 500
+  },
+  {
+    "id": 248,
+    "slug": "shoes_plate_hell",
+    "level": "subcategory2",
+    "parentSlug": "plate_shoes",
+    "sortValue": 600
+  },
+  {
+    "id": 249,
+    "slug": "shoes_plate_keeper",
+    "level": "subcategory2",
+    "parentSlug": "plate_shoes",
+    "sortValue": 700
+  },
+  {
+    "id": 250,
+    "slug": "shoes_plate_fey",
+    "level": "subcategory2",
+    "parentSlug": "plate_shoes",
+    "sortValue": 800
+  },
+  {
+    "id": 251,
+    "slug": "shoes_plate_avalon",
+    "level": "subcategory2",
+    "parentSlug": "plate_shoes",
+    "sortValue": 900
+  },
+  {
+    "id": 252,
+    "slug": "other",
+    "level": "subcategory",
+    "parentSlug": "shoes",
+    "sortValue": 40000
+  },
+  {
+    "id": 253,
+    "slug": "offhands",
+    "level": "category",
+    "parentSlug": "",
+    "sortValue": 5000000
+  },
+  {
+    "id": 254,
+    "slug": "booktype",
+    "level": "subcategory",
+    "parentSlug": "offhands",
+    "sortValue": 10000
+  },
+  {
+    "id": 255,
+    "slug": "booktype_book",
+    "level": "subcategory2",
+    "parentSlug": "booktype",
+    "sortValue": 100
+  },
+  {
+    "id": 256,
+    "slug": "booktype_morgana",
+    "level": "subcategory2",
+    "parentSlug": "booktype",
+    "sortValue": 200
+  },
+  {
+    "id": 257,
+    "slug": "booktype_hellsskull",
+    "level": "subcategory2",
+    "parentSlug": "booktype",
+    "sortValue": 300
+  },
+  {
+    "id": 258,
+    "slug": "booktype_keeper",
+    "level": "subcategory2",
+    "parentSlug": "booktype",
+    "sortValue": 400
+  },
+  {
+    "id": 259,
+    "slug": "booktype_avalon",
+    "level": "subcategory2",
+    "parentSlug": "booktype",
+    "sortValue": 500
+  },
+  {
+    "id": 260,
+    "slug": "booktype_crystal",
+    "level": "subcategory2",
+    "parentSlug": "booktype",
+    "sortValue": 600
+  },
+  {
+    "id": 261,
+    "slug": "torchtype",
+    "level": "subcategory",
+    "parentSlug": "offhands",
+    "sortValue": 20000
+  },
+  {
+    "id": 262,
+    "slug": "torchtype_torch",
+    "level": "subcategory2",
+    "parentSlug": "torchtype",
+    "sortValue": 100
+  },
+  {
+    "id": 263,
+    "slug": "torchtype_keeperhorn",
+    "level": "subcategory2",
+    "parentSlug": "torchtype",
+    "sortValue": 200
+  },
+  {
+    "id": 264,
+    "slug": "torchtype_hell",
+    "level": "subcategory2",
+    "parentSlug": "torchtype",
+    "sortValue": 300
+  },
+  {
+    "id": 265,
+    "slug": "torchtype_undead",
+    "level": "subcategory2",
+    "parentSlug": "torchtype",
+    "sortValue": 400
+  },
+  {
+    "id": 266,
+    "slug": "torchtype_avalon",
+    "level": "subcategory2",
+    "parentSlug": "torchtype",
+    "sortValue": 500
+  },
+  {
+    "id": 267,
+    "slug": "torchtype_crystal",
+    "level": "subcategory2",
+    "parentSlug": "torchtype",
+    "sortValue": 600
+  },
+  {
+    "id": 268,
+    "slug": "shieldtype",
+    "level": "subcategory",
+    "parentSlug": "offhands",
+    "sortValue": 30000
+  },
+  {
+    "id": 269,
+    "slug": "shieldtype_shield",
+    "level": "subcategory2",
+    "parentSlug": "shieldtype",
+    "sortValue": 100
+  },
+  {
+    "id": 270,
+    "slug": "shieldtype_undead",
+    "level": "subcategory2",
+    "parentSlug": "shieldtype",
+    "sortValue": 200
+  },
+  {
+    "id": 271,
+    "slug": "shieldtype_hell",
+    "level": "subcategory2",
+    "parentSlug": "shieldtype",
+    "sortValue": 300
+  },
+  {
+    "id": 272,
+    "slug": "shieldtype_morgana",
+    "level": "subcategory2",
+    "parentSlug": "shieldtype",
+    "sortValue": 400
+  },
+  {
+    "id": 273,
+    "slug": "shieldtype_avalon",
+    "level": "subcategory2",
+    "parentSlug": "shieldtype",
+    "sortValue": 500
+  },
+  {
+    "id": 274,
+    "slug": "shieldtype_crystal",
+    "level": "subcategory2",
+    "parentSlug": "shieldtype",
+    "sortValue": 600
+  },
+  {
+    "id": 275,
+    "slug": "other",
+    "level": "subcategory",
+    "parentSlug": "offhands",
+    "sortValue": 40000
+  },
+  {
+    "id": 276,
+    "slug": "capes",
+    "level": "category",
+    "parentSlug": "",
+    "sortValue": 6000000
+  },
+  {
+    "id": 277,
+    "slug": "accessoires_capes_capes",
+    "level": "subcategory",
+    "parentSlug": "capes",
+    "sortValue": 10000
+  },
+  {
+    "id": 278,
+    "slug": "accessoires_capes_bridgewatch",
+    "level": "subcategory",
+    "parentSlug": "capes",
+    "sortValue": 20000
+  },
+  {
+    "id": 279,
+    "slug": "accessoires_capes_fortsterling",
+    "level": "subcategory",
+    "parentSlug": "capes",
+    "sortValue": 30000
+  },
+  {
+    "id": 280,
+    "slug": "accessoires_capes_lymhurst",
+    "level": "subcategory",
+    "parentSlug": "capes",
+    "sortValue": 40000
+  },
+  {
+    "id": 281,
+    "slug": "accessoires_capes_martlock",
+    "level": "subcategory",
+    "parentSlug": "capes",
+    "sortValue": 50000
+  },
+  {
+    "id": 282,
+    "slug": "accessoires_capes_thetford",
+    "level": "subcategory",
+    "parentSlug": "capes",
+    "sortValue": 60000
+  },
+  {
+    "id": 283,
+    "slug": "accessoires_capes_caerleon",
+    "level": "subcategory",
+    "parentSlug": "capes",
+    "sortValue": 70000
+  },
+  {
+    "id": 284,
+    "slug": "accessoires_capes_brecilien",
+    "level": "subcategory",
+    "parentSlug": "capes",
+    "sortValue": 80000
+  },
+  {
+    "id": 285,
+    "slug": "accessoires_capes_heretic",
+    "level": "subcategory",
+    "parentSlug": "capes",
+    "sortValue": 90000
+  },
+  {
+    "id": 286,
+    "slug": "accessoires_capes_undead",
+    "level": "subcategory",
+    "parentSlug": "capes",
+    "sortValue": 100000
+  },
+  {
+    "id": 287,
+    "slug": "accessoires_capes_keeper",
+    "level": "subcategory",
+    "parentSlug": "capes",
+    "sortValue": 110000
+  },
+  {
+    "id": 288,
+    "slug": "accessoires_capes_morgana",
+    "level": "subcategory",
+    "parentSlug": "capes",
+    "sortValue": 120000
+  },
+  {
+    "id": 289,
+    "slug": "accessoires_capes_avalon",
+    "level": "subcategory",
+    "parentSlug": "capes",
+    "sortValue": 130000
+  },
+  {
+    "id": 290,
+    "slug": "accessoires_capes_demon",
+    "level": "subcategory",
+    "parentSlug": "capes",
+    "sortValue": 140000
+  },
+  {
+    "id": 291,
+    "slug": "accessoires_capes_smuggler",
+    "level": "subcategory",
+    "parentSlug": "capes",
+    "sortValue": 150000
+  },
+  {
+    "id": 292,
+    "slug": "other",
+    "level": "subcategory",
+    "parentSlug": "capes",
+    "sortValue": 160000
+  },
+  {
+    "id": 293,
+    "slug": "bags",
+    "level": "category",
+    "parentSlug": "",
+    "sortValue": 7000000
+  },
+  {
+    "id": 294,
+    "slug": "bags",
+    "level": "subcategory",
+    "parentSlug": "bags",
+    "sortValue": 10000
+  },
+  {
+    "id": 295,
+    "slug": "satchels",
+    "level": "subcategory",
+    "parentSlug": "bags",
+    "sortValue": 20000
+  },
+  {
+    "id": 296,
+    "slug": "other",
+    "level": "subcategory",
+    "parentSlug": "bags",
+    "sortValue": 30000
+  },
+  {
+    "id": 297,
+    "slug": "mounts",
+    "level": "category",
+    "parentSlug": "",
+    "sortValue": 8000000
+  },
+  {
+    "id": 298,
+    "slug": "basemounts",
+    "level": "subcategory",
+    "parentSlug": "mounts",
+    "sortValue": 10000
+  },
+  {
+    "id": 299,
+    "slug": "horse",
+    "level": "subcategory2",
+    "parentSlug": "basemounts",
+    "sortValue": 100
+  },
+  {
+    "id": 300,
+    "slug": "armoredhorse",
+    "level": "subcategory2",
+    "parentSlug": "basemounts",
+    "sortValue": 200
+  },
+  {
+    "id": 301,
+    "slug": "ox",
+    "level": "subcategory2",
+    "parentSlug": "basemounts",
+    "sortValue": 300
+  },
+  {
+    "id": 302,
+    "slug": "ram",
+    "level": "subcategory2",
+    "parentSlug": "basemounts",
+    "sortValue": 400
+  },
+  {
+    "id": 303,
+    "slug": "direwolf",
+    "level": "subcategory2",
+    "parentSlug": "basemounts",
+    "sortValue": 500
+  },
+  {
+    "id": 304,
+    "slug": "stag",
+    "level": "subcategory2",
+    "parentSlug": "basemounts",
+    "sortValue": 600
+  },
+  {
+    "id": 305,
+    "slug": "cougar",
+    "level": "subcategory2",
+    "parentSlug": "basemounts",
+    "sortValue": 700
+  },
+  {
+    "id": 306,
+    "slug": "direboar",
+    "level": "subcategory2",
+    "parentSlug": "basemounts",
+    "sortValue": 800
+  },
+  {
+    "id": 307,
+    "slug": "direbear",
+    "level": "subcategory2",
+    "parentSlug": "basemounts",
+    "sortValue": 900
+  },
+  {
+    "id": 308,
+    "slug": "swampdragon",
+    "level": "subcategory2",
+    "parentSlug": "basemounts",
+    "sortValue": 1000
+  },
+  {
+    "id": 309,
+    "slug": "donkey",
+    "level": "subcategory2",
+    "parentSlug": "basemounts",
+    "sortValue": 1100
+  },
+  {
+    "id": 310,
+    "slug": "mammoth",
+    "level": "subcategory2",
+    "parentSlug": "basemounts",
+    "sortValue": 1200
+  },
+  {
+    "id": 311,
+    "slug": "moabird",
+    "level": "subcategory2",
+    "parentSlug": "basemounts",
+    "sortValue": 1300
+  },
+  {
+    "id": 312,
+    "slug": "raremounts",
+    "level": "subcategory",
+    "parentSlug": "mounts",
+    "sortValue": 20000
+  },
+  {
+    "id": 313,
+    "slug": "horse",
+    "level": "subcategory2",
+    "parentSlug": "raremounts",
+    "sortValue": 100
+  },
+  {
+    "id": 314,
+    "slug": "armoredhorse",
+    "level": "subcategory2",
+    "parentSlug": "raremounts",
+    "sortValue": 200
+  },
+  {
+    "id": 315,
+    "slug": "ram",
+    "level": "subcategory2",
+    "parentSlug": "raremounts",
+    "sortValue": 300
+  },
+  {
+    "id": 316,
+    "slug": "direwolf",
+    "level": "subcategory2",
+    "parentSlug": "raremounts",
+    "sortValue": 400
+  },
+  {
+    "id": 317,
+    "slug": "stag",
+    "level": "subcategory2",
+    "parentSlug": "raremounts",
+    "sortValue": 600
+  },
+  {
+    "id": 318,
+    "slug": "cougar",
+    "level": "subcategory2",
+    "parentSlug": "raremounts",
+    "sortValue": 700
+  },
+  {
+    "id": 319,
+    "slug": "direboar",
+    "level": "subcategory2",
+    "parentSlug": "raremounts",
+    "sortValue": 800
+  },
+  {
+    "id": 320,
+    "slug": "direbear",
+    "level": "subcategory2",
+    "parentSlug": "raremounts",
+    "sortValue": 900
+  },
+  {
+    "id": 321,
+    "slug": "swampdragon",
+    "level": "subcategory2",
+    "parentSlug": "raremounts",
+    "sortValue": 1000
+  },
+  {
+    "id": 322,
+    "slug": "donkey",
+    "level": "subcategory2",
+    "parentSlug": "raremounts",
+    "sortValue": 1100
+  },
+  {
+    "id": 323,
+    "slug": "bat",
+    "level": "subcategory2",
+    "parentSlug": "raremounts",
+    "sortValue": 1200
+  },
+  {
+    "id": 324,
+    "slug": "moabird",
+    "level": "subcategory2",
+    "parentSlug": "raremounts",
+    "sortValue": 1300
+  },
+  {
+    "id": 325,
+    "slug": "owl",
+    "level": "subcategory2",
+    "parentSlug": "raremounts",
+    "sortValue": 1400
+  },
+  {
+    "id": 326,
+    "slug": "rabbit",
+    "level": "subcategory2",
+    "parentSlug": "raremounts",
+    "sortValue": 1500
+  },
+  {
+    "id": 327,
+    "slug": "raven",
+    "level": "subcategory2",
+    "parentSlug": "raremounts",
+    "sortValue": 1600
+  },
+  {
+    "id": 328,
+    "slug": "spider",
+    "level": "subcategory2",
+    "parentSlug": "raremounts",
+    "sortValue": 1700
+  },
+  {
+    "id": 329,
+    "slug": "toad",
+    "level": "subcategory2",
+    "parentSlug": "raremounts",
+    "sortValue": 1800
+  },
+  {
+    "id": 330,
+    "slug": "battle_mount",
+    "level": "subcategory",
+    "parentSlug": "mounts",
+    "sortValue": 30000
+  },
+  {
+    "id": 331,
+    "slug": "bastion",
+    "level": "subcategory2",
+    "parentSlug": "battle_mount",
+    "sortValue": 100
+  },
+  {
+    "id": 332,
+    "slug": "beetle",
+    "level": "subcategory2",
+    "parentSlug": "battle_mount",
+    "sortValue": 200
+  },
+  {
+    "id": 333,
+    "slug": "behemenoth",
+    "level": "subcategory2",
+    "parentSlug": "battle_mount",
+    "sortValue": 300
+  },
+  {
+    "id": 334,
+    "slug": "chariot",
+    "level": "subcategory2",
+    "parentSlug": "battle_mount",
+    "sortValue": 400
+  },
+  {
+    "id": 335,
+    "slug": "eagle",
+    "level": "subcategory2",
+    "parentSlug": "battle_mount",
+    "sortValue": 500
+  },
+  {
+    "id": 336,
+    "slug": "ent",
+    "level": "subcategory2",
+    "parentSlug": "battle_mount",
+    "sortValue": 600
+  },
+  {
+    "id": 337,
+    "slug": "juggernaut",
+    "level": "subcategory2",
+    "parentSlug": "battle_mount",
+    "sortValue": 700
+  },
+  {
+    "id": 338,
+    "slug": "mammoth",
+    "level": "subcategory2",
+    "parentSlug": "battle_mount",
+    "sortValue": 800
+  },
+  {
+    "id": 339,
+    "slug": "rhino",
+    "level": "subcategory2",
+    "parentSlug": "battle_mount",
+    "sortValue": 900
+  },
+  {
+    "id": 340,
+    "slug": "siegeballista",
+    "level": "subcategory2",
+    "parentSlug": "battle_mount",
+    "sortValue": 1000
+  },
+  {
+    "id": 341,
+    "slug": "spider",
+    "level": "subcategory2",
+    "parentSlug": "battle_mount",
+    "sortValue": 1100
+  },
+  {
+    "id": 342,
+    "slug": "swampdragon",
+    "level": "subcategory2",
+    "parentSlug": "battle_mount",
+    "sortValue": 1200
+  },
+  {
+    "id": 343,
+    "slug": "tankbeetle",
+    "level": "subcategory2",
+    "parentSlug": "battle_mount",
+    "sortValue": 1300
+  },
+  {
+    "id": 344,
+    "slug": "consumables",
+    "level": "category",
+    "parentSlug": "",
+    "sortValue": 9000000
+  },
+  {
+    "id": 345,
+    "slug": "food",
+    "level": "subcategory",
+    "parentSlug": "consumables",
+    "sortValue": 10000
+  },
+  {
+    "id": 346,
+    "slug": "soups",
+    "level": "subcategory2",
+    "parentSlug": "food",
+    "sortValue": 200
+  },
+  {
+    "id": 347,
+    "slug": "salads",
+    "level": "subcategory2",
+    "parentSlug": "food",
+    "sortValue": 300
+  },
+  {
+    "id": 348,
+    "slug": "pies",
+    "level": "subcategory2",
+    "parentSlug": "food",
+    "sortValue": 400
+  },
+  {
+    "id": 349,
+    "slug": "roasts",
+    "level": "subcategory2",
+    "parentSlug": "food",
+    "sortValue": 500
+  },
+  {
+    "id": 350,
+    "slug": "omelettes",
+    "level": "subcategory2",
+    "parentSlug": "food",
+    "sortValue": 600
+  },
+  {
+    "id": 351,
+    "slug": "stews",
+    "level": "subcategory2",
+    "parentSlug": "food",
+    "sortValue": 700
+  },
+  {
+    "id": 352,
+    "slug": "sandwiches",
+    "level": "subcategory2",
+    "parentSlug": "food",
+    "sortValue": 800
+  },
+  {
+    "id": 353,
+    "slug": "grilledfish",
+    "level": "subcategory2",
+    "parentSlug": "food",
+    "sortValue": 900
+  },
+  {
+    "id": 354,
+    "slug": "event",
+    "level": "subcategory2",
+    "parentSlug": "food",
+    "sortValue": 1000
+  },
+  {
+    "id": 355,
+    "slug": "potions",
+    "level": "subcategory",
+    "parentSlug": "consumables",
+    "sortValue": 20000
+  },
+  {
+    "id": 356,
+    "slug": "heal",
+    "level": "subcategory2",
+    "parentSlug": "potions",
+    "sortValue": 200
+  },
+  {
+    "id": 357,
+    "slug": "energy",
+    "level": "subcategory2",
+    "parentSlug": "potions",
+    "sortValue": 300
+  },
+  {
+    "id": 358,
+    "slug": "gigantify",
+    "level": "subcategory2",
+    "parentSlug": "potions",
+    "sortValue": 400
+  },
+  {
+    "id": 359,
+    "slug": "resistance",
+    "level": "subcategory2",
+    "parentSlug": "potions",
+    "sortValue": 500
+  },
+  {
+    "id": 360,
+    "slug": "slowfield",
+    "level": "subcategory2",
+    "parentSlug": "potions",
+    "sortValue": 600
+  },
+  {
+    "id": 361,
+    "slug": "poison",
+    "level": "subcategory2",
+    "parentSlug": "potions",
+    "sortValue": 700
+  },
+  {
+    "id": 362,
+    "slug": "invisibility",
+    "level": "subcategory2",
+    "parentSlug": "potions",
+    "sortValue": 800
+  },
+  {
+    "id": 363,
+    "slug": "calming",
+    "level": "subcategory2",
+    "parentSlug": "potions",
+    "sortValue": 900
+  },
+  {
+    "id": 364,
+    "slug": "cleanse",
+    "level": "subcategory2",
+    "parentSlug": "potions",
+    "sortValue": 1000
+  },
+  {
+    "id": 365,
+    "slug": "acid",
+    "level": "subcategory2",
+    "parentSlug": "potions",
+    "sortValue": 1100
+  },
+  {
+    "id": 366,
+    "slug": "berserk",
+    "level": "subcategory2",
+    "parentSlug": "potions",
+    "sortValue": 1200
+  },
+  {
+    "id": 367,
+    "slug": "lava",
+    "level": "subcategory2",
+    "parentSlug": "potions",
+    "sortValue": 1300
+  },
+  {
+    "id": 368,
+    "slug": "gather",
+    "level": "subcategory2",
+    "parentSlug": "potions",
+    "sortValue": 1400
+  },
+  {
+    "id": 369,
+    "slug": "tornado",
+    "level": "subcategory2",
+    "parentSlug": "potions",
+    "sortValue": 1400
+  },
+  {
+    "id": 370,
+    "slug": "focus",
+    "level": "subcategory2",
+    "parentSlug": "potions",
+    "sortValue": 1500
+  },
+  {
+    "id": 371,
+    "slug": "event",
+    "level": "subcategory2",
+    "parentSlug": "potions",
+    "sortValue": 1600
+  },
+  {
+    "id": 372,
+    "slug": "other",
+    "level": "subcategory2",
+    "parentSlug": "potions",
+    "sortValue": 2000
+  },
+  {
+    "id": 373,
+    "slug": "tomes",
+    "level": "subcategory",
+    "parentSlug": "consumables",
+    "sortValue": 30000
+  },
+  {
+    "id": 374,
+    "slug": "fame",
+    "level": "subcategory2",
+    "parentSlug": "tomes",
+    "sortValue": 100
+  },
+  {
+    "id": 375,
+    "slug": "fiber",
+    "level": "subcategory2",
+    "parentSlug": "tomes",
+    "sortValue": 200
+  },
+  {
+    "id": 376,
+    "slug": "hide",
+    "level": "subcategory2",
+    "parentSlug": "tomes",
+    "sortValue": 300
+  },
+  {
+    "id": 377,
+    "slug": "ore",
+    "level": "subcategory2",
+    "parentSlug": "tomes",
+    "sortValue": 400
+  },
+  {
+    "id": 378,
+    "slug": "rock",
+    "level": "subcategory2",
+    "parentSlug": "tomes",
+    "sortValue": 500
+  },
+  {
+    "id": 379,
+    "slug": "wood",
+    "level": "subcategory2",
+    "parentSlug": "tomes",
+    "sortValue": 600
+  },
+  {
+    "id": 380,
+    "slug": "learningpoints",
+    "level": "subcategory2",
+    "parentSlug": "tomes",
+    "sortValue": 300
+  },
+  {
+    "id": 381,
+    "slug": "other",
+    "level": "subcategory",
+    "parentSlug": "consumables",
+    "sortValue": 40000
+  },
+  {
+    "id": 382,
+    "slug": "repairpowder",
+    "level": "subcategory2",
+    "parentSlug": "other",
+    "sortValue": 100
+  },
+  {
+    "id": 383,
+    "slug": "firework",
+    "level": "subcategory2",
+    "parentSlug": "other",
+    "sortValue": 200
+  },
+  {
+    "id": 384,
+    "slug": "other",
+    "level": "subcategory2",
+    "parentSlug": "other",
+    "sortValue": 300
+  },
+  {
+    "id": 385,
+    "slug": "silverbag",
+    "level": "subcategory",
+    "parentSlug": "consumables",
+    "sortValue": 70000
+  },
+  {
+    "id": 386,
+    "slug": "gathering",
+    "level": "category",
+    "parentSlug": "",
+    "sortValue": 10000000
+  },
+  {
+    "id": 387,
+    "slug": "fish",
+    "level": "subcategory",
+    "parentSlug": "gathering",
+    "sortValue": 10000
+  },
+  {
+    "id": 388,
+    "slug": "fishingrods",
+    "level": "subcategory2",
+    "parentSlug": "fish",
+    "sortValue": 100
+  },
+  {
+    "id": 389,
+    "slug": "gathering_armor",
+    "level": "subcategory2",
+    "parentSlug": "fish",
+    "sortValue": 200
+  },
+  {
+    "id": 390,
+    "slug": "gathering_head",
+    "level": "subcategory2",
+    "parentSlug": "fish",
+    "sortValue": 300
+  },
+  {
+    "id": 391,
+    "slug": "gathering_shoes",
+    "level": "subcategory2",
+    "parentSlug": "fish",
+    "sortValue": 400
+  },
+  {
+    "id": 392,
+    "slug": "gathering_capes",
+    "level": "subcategory2",
+    "parentSlug": "fish",
+    "sortValue": 500
+  },
+  {
+    "id": 393,
+    "slug": "bait",
+    "level": "subcategory2",
+    "parentSlug": "fish",
+    "sortValue": 600
+  },
+  {
+    "id": 394,
+    "slug": "fiber",
+    "level": "subcategory",
+    "parentSlug": "gathering",
+    "sortValue": 20000
+  },
+  {
+    "id": 395,
+    "slug": "sickle",
+    "level": "subcategory2",
+    "parentSlug": "fiber",
+    "sortValue": 100
+  },
+  {
+    "id": 396,
+    "slug": "gathering_armor",
+    "level": "subcategory2",
+    "parentSlug": "fiber",
+    "sortValue": 200
+  },
+  {
+    "id": 397,
+    "slug": "gathering_head",
+    "level": "subcategory2",
+    "parentSlug": "fiber",
+    "sortValue": 300
+  },
+  {
+    "id": 398,
+    "slug": "gathering_shoes",
+    "level": "subcategory2",
+    "parentSlug": "fiber",
+    "sortValue": 400
+  },
+  {
+    "id": 399,
+    "slug": "gathering_capes",
+    "level": "subcategory2",
+    "parentSlug": "fiber",
+    "sortValue": 500
+  },
+  {
+    "id": 400,
+    "slug": "hide",
+    "level": "subcategory",
+    "parentSlug": "gathering",
+    "sortValue": 30000
+  },
+  {
+    "id": 401,
+    "slug": "knifes",
+    "level": "subcategory2",
+    "parentSlug": "hide",
+    "sortValue": 100
+  },
+  {
+    "id": 402,
+    "slug": "gathering_armor",
+    "level": "subcategory2",
+    "parentSlug": "hide",
+    "sortValue": 200
+  },
+  {
+    "id": 403,
+    "slug": "gathering_head",
+    "level": "subcategory2",
+    "parentSlug": "hide",
+    "sortValue": 300
+  },
+  {
+    "id": 404,
+    "slug": "gathering_shoes",
+    "level": "subcategory2",
+    "parentSlug": "hide",
+    "sortValue": 400
+  },
+  {
+    "id": 405,
+    "slug": "gathering_capes",
+    "level": "subcategory2",
+    "parentSlug": "hide",
+    "sortValue": 500
+  },
+  {
+    "id": 406,
+    "slug": "ore",
+    "level": "subcategory",
+    "parentSlug": "gathering",
+    "sortValue": 40000
+  },
+  {
+    "id": 407,
+    "slug": "picks",
+    "level": "subcategory2",
+    "parentSlug": "ore",
+    "sortValue": 100
+  },
+  {
+    "id": 408,
+    "slug": "gathering_armor",
+    "level": "subcategory2",
+    "parentSlug": "ore",
+    "sortValue": 200
+  },
+  {
+    "id": 409,
+    "slug": "gathering_head",
+    "level": "subcategory2",
+    "parentSlug": "ore",
+    "sortValue": 300
+  },
+  {
+    "id": 410,
+    "slug": "gathering_shoes",
+    "level": "subcategory2",
+    "parentSlug": "ore",
+    "sortValue": 400
+  },
+  {
+    "id": 411,
+    "slug": "gathering_capes",
+    "level": "subcategory2",
+    "parentSlug": "ore",
+    "sortValue": 500
+  },
+  {
+    "id": 412,
+    "slug": "rock",
+    "level": "subcategory",
+    "parentSlug": "gathering",
+    "sortValue": 50000
+  },
+  {
+    "id": 413,
+    "slug": "hammer",
+    "level": "subcategory2",
+    "parentSlug": "rock",
+    "sortValue": 100
+  },
+  {
+    "id": 414,
+    "slug": "gathering_armor",
+    "level": "subcategory2",
+    "parentSlug": "rock",
+    "sortValue": 200
+  },
+  {
+    "id": 415,
+    "slug": "gathering_head",
+    "level": "subcategory2",
+    "parentSlug": "rock",
+    "sortValue": 300
+  },
+  {
+    "id": 416,
+    "slug": "gathering_shoes",
+    "level": "subcategory2",
+    "parentSlug": "rock",
+    "sortValue": 400
+  },
+  {
+    "id": 417,
+    "slug": "gathering_capes",
+    "level": "subcategory2",
+    "parentSlug": "rock",
+    "sortValue": 500
+  },
+  {
+    "id": 418,
+    "slug": "wood",
+    "level": "subcategory",
+    "parentSlug": "gathering",
+    "sortValue": 60000
+  },
+  {
+    "id": 419,
+    "slug": "axes",
+    "level": "subcategory2",
+    "parentSlug": "wood",
+    "sortValue": 100
+  },
+  {
+    "id": 420,
+    "slug": "gathering_armor",
+    "level": "subcategory2",
+    "parentSlug": "wood",
+    "sortValue": 200
+  },
+  {
+    "id": 421,
+    "slug": "gathering_head",
+    "level": "subcategory2",
+    "parentSlug": "wood",
+    "sortValue": 300
+  },
+  {
+    "id": 422,
+    "slug": "gathering_shoes",
+    "level": "subcategory2",
+    "parentSlug": "wood",
+    "sortValue": 400
+  },
+  {
+    "id": 423,
+    "slug": "gathering_capes",
+    "level": "subcategory2",
+    "parentSlug": "wood",
+    "sortValue": 500
+  },
+  {
+    "id": 424,
+    "slug": "tracking",
+    "level": "subcategory",
+    "parentSlug": "gathering",
+    "sortValue": 70000
+  },
+  {
+    "id": 425,
+    "slug": "toolkit",
+    "level": "subcategory2",
+    "parentSlug": "tracking",
+    "sortValue": 100
+  },
+  {
+    "id": 426,
+    "slug": "crafting",
+    "level": "category",
+    "parentSlug": "",
+    "sortValue": 11000000
+  },
+  {
+    "id": 427,
+    "slug": "resources",
+    "level": "subcategory",
+    "parentSlug": "crafting",
+    "sortValue": 10000
+  },
+  {
+    "id": 428,
+    "slug": "fiber",
+    "level": "subcategory2",
+    "parentSlug": "resources",
+    "sortValue": 100
+  },
+  {
+    "id": 429,
+    "slug": "hide",
+    "level": "subcategory2",
+    "parentSlug": "resources",
+    "sortValue": 200
+  },
+  {
+    "id": 430,
+    "slug": "ore",
+    "level": "subcategory2",
+    "parentSlug": "resources",
+    "sortValue": 300
+  },
+  {
+    "id": 431,
+    "slug": "rock",
+    "level": "subcategory2",
+    "parentSlug": "resources",
+    "sortValue": 400
+  },
+  {
+    "id": 432,
+    "slug": "wood",
+    "level": "subcategory2",
+    "parentSlug": "resources",
+    "sortValue": 500
+  },
+  {
+    "id": 433,
+    "slug": "refinedresources",
+    "level": "subcategory",
+    "parentSlug": "crafting",
+    "sortValue": 20000
+  },
+  {
+    "id": 434,
+    "slug": "cloth",
+    "level": "subcategory2",
+    "parentSlug": "refinedresources",
+    "sortValue": 100
+  },
+  {
+    "id": 435,
+    "slug": "leather",
+    "level": "subcategory2",
+    "parentSlug": "refinedresources",
+    "sortValue": 200
+  },
+  {
+    "id": 436,
+    "slug": "metalbars",
+    "level": "subcategory2",
+    "parentSlug": "refinedresources",
+    "sortValue": 300
+  },
+  {
+    "id": 437,
+    "slug": "stoneblock",
+    "level": "subcategory2",
+    "parentSlug": "refinedresources",
+    "sortValue": 400
+  },
+  {
+    "id": 438,
+    "slug": "planks",
+    "level": "subcategory2",
+    "parentSlug": "refinedresources",
+    "sortValue": 500
+  },
+  {
+    "id": 439,
+    "slug": "tokens",
+    "level": "subcategory",
+    "parentSlug": "crafting",
+    "sortValue": 90000
+  },
+  {
+    "id": 440,
+    "slug": "mountupgrades",
+    "level": "subcategory2",
+    "parentSlug": "tokens",
+    "sortValue": 200
+  },
+  {
+    "id": 441,
+    "slug": "royalsigils",
+    "level": "subcategory2",
+    "parentSlug": "tokens",
+    "sortValue": 300
+  },
+  {
+    "id": 442,
+    "slug": "other",
+    "level": "subcategory2",
+    "parentSlug": "tokens",
+    "sortValue": 500
+  },
+  {
+    "id": 443,
+    "slug": "cityresources",
+    "level": "subcategory",
+    "parentSlug": "crafting",
+    "sortValue": 100000
+  },
+  {
+    "id": 444,
+    "slug": "beastheart",
+    "level": "subcategory2",
+    "parentSlug": "cityresources",
+    "sortValue": 100
+  },
+  {
+    "id": 445,
+    "slug": "treeheart",
+    "level": "subcategory2",
+    "parentSlug": "cityresources",
+    "sortValue": 200
+  },
+  {
+    "id": 446,
+    "slug": "mountainheart",
+    "level": "subcategory2",
+    "parentSlug": "cityresources",
+    "sortValue": 300
+  },
+  {
+    "id": 447,
+    "slug": "rockheart",
+    "level": "subcategory2",
+    "parentSlug": "cityresources",
+    "sortValue": 400
+  },
+  {
+    "id": 448,
+    "slug": "vineheart",
+    "level": "subcategory2",
+    "parentSlug": "cityresources",
+    "sortValue": 500
+  },
+  {
+    "id": 449,
+    "slug": "blackheart",
+    "level": "subcategory2",
+    "parentSlug": "cityresources",
+    "sortValue": 600
+  },
+  {
+    "id": 450,
+    "slug": "fish",
+    "level": "subcategory",
+    "parentSlug": "crafting",
+    "sortValue": 120000
+  },
+  {
+    "id": 451,
+    "slug": "common",
+    "level": "subcategory2",
+    "parentSlug": "fish",
+    "sortValue": 100
+  },
+  {
+    "id": 452,
+    "slug": "rare",
+    "level": "subcategory2",
+    "parentSlug": "fish",
+    "sortValue": 200
+  },
+  {
+    "id": 453,
+    "slug": "other",
+    "level": "subcategory2",
+    "parentSlug": "fish",
+    "sortValue": 300
+  },
+  {
+    "id": 454,
+    "slug": "alchemy",
+    "level": "subcategory",
+    "parentSlug": "crafting",
+    "sortValue": 130000
+  },
+  {
+    "id": 455,
+    "slug": "remains_panther",
+    "level": "subcategory2",
+    "parentSlug": "alchemy",
+    "sortValue": 100
+  },
+  {
+    "id": 456,
+    "slug": "remains_ent",
+    "level": "subcategory2",
+    "parentSlug": "alchemy",
+    "sortValue": 200
+  },
+  {
+    "id": 457,
+    "slug": "remains_direbear",
+    "level": "subcategory2",
+    "parentSlug": "alchemy",
+    "sortValue": 300
+  },
+  {
+    "id": 458,
+    "slug": "remains_werewolf",
+    "level": "subcategory2",
+    "parentSlug": "alchemy",
+    "sortValue": 400
+  },
+  {
+    "id": 459,
+    "slug": "remains_imp",
+    "level": "subcategory2",
+    "parentSlug": "alchemy",
+    "sortValue": 500
+  },
+  {
+    "id": 460,
+    "slug": "remains_elemental",
+    "level": "subcategory2",
+    "parentSlug": "alchemy",
+    "sortValue": 600
+  },
+  {
+    "id": 461,
+    "slug": "remains_eagle",
+    "level": "subcategory2",
+    "parentSlug": "alchemy",
+    "sortValue": 700
+  },
+  {
+    "id": 462,
+    "slug": "remains",
+    "level": "subcategory2",
+    "parentSlug": "alchemy",
+    "sortValue": 800
+  },
+  {
+    "id": 463,
+    "slug": "extract",
+    "level": "subcategory2",
+    "parentSlug": "alchemy",
+    "sortValue": 900
+  },
+  {
+    "id": 464,
+    "slug": "essence",
+    "level": "subcategory2",
+    "parentSlug": "alchemy",
+    "sortValue": 1000
+  },
+  {
+    "id": 465,
+    "slug": "artefacts",
+    "level": "category",
+    "parentSlug": "",
+    "sortValue": 12000000
+  },
+  {
+    "id": 466,
+    "slug": "weapons",
+    "level": "subcategory",
+    "parentSlug": "artefacts",
+    "sortValue": 30000
+  },
+  {
+    "id": 467,
+    "slug": "bow",
+    "level": "subcategory2",
+    "parentSlug": "weapons",
+    "sortValue": 100
+  },
+  {
+    "id": 468,
+    "slug": "crossbow",
+    "level": "subcategory2",
+    "parentSlug": "weapons",
+    "sortValue": 200
+  },
+  {
+    "id": 469,
+    "slug": "axe",
+    "level": "subcategory2",
+    "parentSlug": "weapons",
+    "sortValue": 300
+  },
+  {
+    "id": 470,
+    "slug": "dagger",
+    "level": "subcategory2",
+    "parentSlug": "weapons",
+    "sortValue": 400
+  },
+  {
+    "id": 471,
+    "slug": "hammer",
+    "level": "subcategory2",
+    "parentSlug": "weapons",
+    "sortValue": 500
+  },
+  {
+    "id": 472,
+    "slug": "knuckles",
+    "level": "subcategory2",
+    "parentSlug": "weapons",
+    "sortValue": 600
+  },
+  {
+    "id": 473,
+    "slug": "mace",
+    "level": "subcategory2",
+    "parentSlug": "weapons",
+    "sortValue": 700
+  },
+  {
+    "id": 474,
+    "slug": "quarterstaff",
+    "level": "subcategory2",
+    "parentSlug": "weapons",
+    "sortValue": 800
+  },
+  {
+    "id": 475,
+    "slug": "spear",
+    "level": "subcategory2",
+    "parentSlug": "weapons",
+    "sortValue": 900
+  },
+  {
+    "id": 476,
+    "slug": "sword",
+    "level": "subcategory2",
+    "parentSlug": "weapons",
+    "sortValue": 1000
+  },
+  {
+    "id": 477,
+    "slug": "arcanestaff",
+    "level": "subcategory2",
+    "parentSlug": "weapons",
+    "sortValue": 1100
+  },
+  {
+    "id": 478,
+    "slug": "cursestaff",
+    "level": "subcategory2",
+    "parentSlug": "weapons",
+    "sortValue": 1200
+  },
+  {
+    "id": 479,
+    "slug": "firestaff",
+    "level": "subcategory2",
+    "parentSlug": "weapons",
+    "sortValue": 1300
+  },
+  {
+    "id": 480,
+    "slug": "froststaff",
+    "level": "subcategory2",
+    "parentSlug": "weapons",
+    "sortValue": 1400
+  },
+  {
+    "id": 481,
+    "slug": "holystaff",
+    "level": "subcategory2",
+    "parentSlug": "weapons",
+    "sortValue": 1500
+  },
+  {
+    "id": 482,
+    "slug": "naturestaff",
+    "level": "subcategory2",
+    "parentSlug": "weapons",
+    "sortValue": 1600
+  },
+  {
+    "id": 483,
+    "slug": "shapeshifterstaff",
+    "level": "subcategory2",
+    "parentSlug": "weapons",
+    "sortValue": 1700
+  },
+  {
+    "id": 484,
+    "slug": "armors",
+    "level": "subcategory",
+    "parentSlug": "artefacts",
+    "sortValue": 40000
+  },
+  {
+    "id": 485,
+    "slug": "cloth_armor",
+    "level": "subcategory2",
+    "parentSlug": "armors",
+    "sortValue": 100
+  },
+  {
+    "id": 486,
+    "slug": "leather_armor",
+    "level": "subcategory2",
+    "parentSlug": "armors",
+    "sortValue": 200
+  },
+  {
+    "id": 487,
+    "slug": "plate_armor",
+    "level": "subcategory2",
+    "parentSlug": "armors",
+    "sortValue": 300
+  },
+  {
+    "id": 488,
+    "slug": "head",
+    "level": "subcategory",
+    "parentSlug": "artefacts",
+    "sortValue": 50000
+  },
+  {
+    "id": 489,
+    "slug": "cloth_helmet",
+    "level": "subcategory2",
+    "parentSlug": "head",
+    "sortValue": 100
+  },
+  {
+    "id": 490,
+    "slug": "leather_helmet",
+    "level": "subcategory2",
+    "parentSlug": "head",
+    "sortValue": 200
+  },
+  {
+    "id": 491,
+    "slug": "plate_helmet",
+    "level": "subcategory2",
+    "parentSlug": "head",
+    "sortValue": 300
+  },
+  {
+    "id": 492,
+    "slug": "shoes",
+    "level": "subcategory",
+    "parentSlug": "artefacts",
+    "sortValue": 60000
+  },
+  {
+    "id": 493,
+    "slug": "cloth_shoes",
+    "level": "subcategory2",
+    "parentSlug": "shoes",
+    "sortValue": 100
+  },
+  {
+    "id": 494,
+    "slug": "leather_shoes",
+    "level": "subcategory2",
+    "parentSlug": "shoes",
+    "sortValue": 200
+  },
+  {
+    "id": 495,
+    "slug": "plate_shoes",
+    "level": "subcategory2",
+    "parentSlug": "shoes",
+    "sortValue": 300
+  },
+  {
+    "id": 496,
+    "slug": "offhands",
+    "level": "subcategory",
+    "parentSlug": "artefacts",
+    "sortValue": 70000
+  },
+  {
+    "id": 497,
+    "slug": "booktype",
+    "level": "subcategory2",
+    "parentSlug": "offhands",
+    "sortValue": 100
+  },
+  {
+    "id": 498,
+    "slug": "torchtype",
+    "level": "subcategory2",
+    "parentSlug": "offhands",
+    "sortValue": 200
+  },
+  {
+    "id": 499,
+    "slug": "shieldtype",
+    "level": "subcategory2",
+    "parentSlug": "offhands",
+    "sortValue": 300
+  },
+  {
+    "id": 500,
+    "slug": "fragments",
+    "level": "subcategory",
+    "parentSlug": "artefacts",
+    "sortValue": 80000
+  },
+  {
+    "id": 501,
+    "slug": "runes",
+    "level": "subcategory2",
+    "parentSlug": "fragments",
+    "sortValue": 100
+  },
+  {
+    "id": 502,
+    "slug": "souls",
+    "level": "subcategory2",
+    "parentSlug": "fragments",
+    "sortValue": 200
+  },
+  {
+    "id": 503,
+    "slug": "relics",
+    "level": "subcategory2",
+    "parentSlug": "fragments",
+    "sortValue": 300
+  },
+  {
+    "id": 504,
+    "slug": "avalonianshards",
+    "level": "subcategory2",
+    "parentSlug": "fragments",
+    "sortValue": 400
+  },
+  {
+    "id": 505,
+    "slug": "crystalshards",
+    "level": "subcategory2",
+    "parentSlug": "fragments",
+    "sortValue": 500
+  },
+  {
+    "id": 506,
+    "slug": "capes",
+    "level": "subcategory",
+    "parentSlug": "artefacts",
+    "sortValue": 90000
+  },
+  {
+    "id": 507,
+    "slug": "tokens_capes_bridgewatch",
+    "level": "subcategory2",
+    "parentSlug": "capes",
+    "sortValue": 100
+  },
+  {
+    "id": 508,
+    "slug": "tokens_capes_fortsterling",
+    "level": "subcategory2",
+    "parentSlug": "capes",
+    "sortValue": 200
+  },
+  {
+    "id": 509,
+    "slug": "tokens_capes_lymhurst",
+    "level": "subcategory2",
+    "parentSlug": "capes",
+    "sortValue": 300
+  },
+  {
+    "id": 510,
+    "slug": "tokens_capes_martlock",
+    "level": "subcategory2",
+    "parentSlug": "capes",
+    "sortValue": 400
+  },
+  {
+    "id": 511,
+    "slug": "tokens_capes_thetford",
+    "level": "subcategory2",
+    "parentSlug": "capes",
+    "sortValue": 500
+  },
+  {
+    "id": 512,
+    "slug": "tokens_capes_caerleon",
+    "level": "subcategory2",
+    "parentSlug": "capes",
+    "sortValue": 600
+  },
+  {
+    "id": 513,
+    "slug": "tokens_capes_brecilien",
+    "level": "subcategory2",
+    "parentSlug": "capes",
+    "sortValue": 700
+  },
+  {
+    "id": 514,
+    "slug": "tokens_capes_heretics",
+    "level": "subcategory2",
+    "parentSlug": "capes",
+    "sortValue": 800
+  },
+  {
+    "id": 515,
+    "slug": "tokens_capes_undead",
+    "level": "subcategory2",
+    "parentSlug": "capes",
+    "sortValue": 900
+  },
+  {
+    "id": 516,
+    "slug": "tokens_capes_keeper",
+    "level": "subcategory2",
+    "parentSlug": "capes",
+    "sortValue": 1000
+  },
+  {
+    "id": 517,
+    "slug": "tokens_capes_morgana",
+    "level": "subcategory2",
+    "parentSlug": "capes",
+    "sortValue": 1100
+  },
+  {
+    "id": 518,
+    "slug": "tokens_capes_demon",
+    "level": "subcategory2",
+    "parentSlug": "capes",
+    "sortValue": 1200
+  },
+  {
+    "id": 519,
+    "slug": "tokens_capes_avalon",
+    "level": "subcategory2",
+    "parentSlug": "capes",
+    "sortValue": 1300
+  },
+  {
+    "id": 520,
+    "slug": "tokens_capes_smuggler",
+    "level": "subcategory2",
+    "parentSlug": "capes",
+    "sortValue": 1400
+  },
+  {
+    "id": 521,
+    "slug": "favor",
+    "level": "subcategory",
+    "parentSlug": "artefacts",
+    "sortValue": 100000
+  },
+  {
+    "id": 522,
+    "slug": "farming",
+    "level": "category",
+    "parentSlug": "",
+    "sortValue": 13000000
+  },
+  {
+    "id": 523,
+    "slug": "farm",
+    "level": "subcategory",
+    "parentSlug": "farming",
+    "sortValue": 10000
+  },
+  {
+    "id": 524,
+    "slug": "seeds",
+    "level": "subcategory2",
+    "parentSlug": "farm",
+    "sortValue": 100
+  },
+  {
+    "id": 525,
+    "slug": "plants",
+    "level": "subcategory2",
+    "parentSlug": "farm",
+    "sortValue": 200
+  },
+  {
+    "id": 526,
+    "slug": "herbgarden",
+    "level": "subcategory",
+    "parentSlug": "farming",
+    "sortValue": 20000
+  },
+  {
+    "id": 527,
+    "slug": "seeds",
+    "level": "subcategory2",
+    "parentSlug": "herbgarden",
+    "sortValue": 100
+  },
+  {
+    "id": 528,
+    "slug": "herbs",
+    "level": "subcategory2",
+    "parentSlug": "herbgarden",
+    "sortValue": 200
+  },
+  {
+    "id": 529,
+    "slug": "pasture",
+    "level": "subcategory",
+    "parentSlug": "farming",
+    "sortValue": 30000
+  },
+  {
+    "id": 530,
+    "slug": "babys",
+    "level": "subcategory2",
+    "parentSlug": "pasture",
+    "sortValue": 100
+  },
+  {
+    "id": 531,
+    "slug": "animals",
+    "level": "subcategory2",
+    "parentSlug": "pasture",
+    "sortValue": 200
+  },
+  {
+    "id": 532,
+    "slug": "egg",
+    "level": "subcategory2",
+    "parentSlug": "pasture",
+    "sortValue": 300
+  },
+  {
+    "id": 533,
+    "slug": "milk",
+    "level": "subcategory2",
+    "parentSlug": "pasture",
+    "sortValue": 400
+  },
+  {
+    "id": 534,
+    "slug": "kennel",
+    "level": "subcategory",
+    "parentSlug": "farming",
+    "sortValue": 40000
+  },
+  {
+    "id": 535,
+    "slug": "babys",
+    "level": "subcategory2",
+    "parentSlug": "kennel",
+    "sortValue": 100
+  },
+  {
+    "id": 536,
+    "slug": "animals",
+    "level": "subcategory2",
+    "parentSlug": "kennel",
+    "sortValue": 200
+  },
+  {
+    "id": 537,
+    "slug": "farmingproducts",
+    "level": "subcategory",
+    "parentSlug": "farming",
+    "sortValue": 50000
+  },
+  {
+    "id": 538,
+    "slug": "alcohol",
+    "level": "subcategory2",
+    "parentSlug": "farmingproducts",
+    "sortValue": 100
+  },
+  {
+    "id": 539,
+    "slug": "bread",
+    "level": "subcategory2",
+    "parentSlug": "farmingproducts",
+    "sortValue": 200
+  },
+  {
+    "id": 540,
+    "slug": "butter",
+    "level": "subcategory2",
+    "parentSlug": "farmingproducts",
+    "sortValue": 300
+  },
+  {
+    "id": 541,
+    "slug": "flour",
+    "level": "subcategory2",
+    "parentSlug": "farmingproducts",
+    "sortValue": 400
+  },
+  {
+    "id": 542,
+    "slug": "meat",
+    "level": "subcategory2",
+    "parentSlug": "farmingproducts",
+    "sortValue": 500
+  },
+  {
+    "id": 543,
+    "slug": "furniture",
+    "level": "category",
+    "parentSlug": "",
+    "sortValue": 14000000
+  },
+  {
+    "id": 544,
+    "slug": "repairkit",
+    "level": "subcategory",
+    "parentSlug": "furniture",
+    "sortValue": 10000
+  },
+  {
+    "id": 545,
+    "slug": "chest",
+    "level": "subcategory",
+    "parentSlug": "furniture",
+    "sortValue": 20000
+  },
+  {
+    "id": 546,
+    "slug": "house",
+    "level": "subcategory2",
+    "parentSlug": "chest",
+    "sortValue": 100
+  },
+  {
+    "id": 547,
+    "slug": "world",
+    "level": "subcategory2",
+    "parentSlug": "chest",
+    "sortValue": 200
+  },
+  {
+    "id": 548,
+    "slug": "house",
+    "level": "subcategory",
+    "parentSlug": "furniture",
+    "sortValue": 30000
+  },
+  {
+    "id": 549,
+    "slug": "island",
+    "level": "subcategory",
+    "parentSlug": "furniture",
+    "sortValue": 40000
+  },
+  {
+    "id": 550,
+    "slug": "world",
+    "level": "subcategory",
+    "parentSlug": "furniture",
+    "sortValue": 50000
+  },
+  {
+    "id": 551,
+    "slug": "banner",
+    "level": "subcategory2",
+    "parentSlug": "world",
+    "sortValue": 100
+  },
+  {
+    "id": 552,
+    "slug": "statue",
+    "level": "subcategory2",
+    "parentSlug": "world",
+    "sortValue": 200
+  },
+  {
+    "id": 553,
+    "slug": "other",
+    "level": "subcategory2",
+    "parentSlug": "world",
+    "sortValue": 300
+  },
+  {
+    "id": 554,
+    "slug": "other",
+    "level": "subcategory",
+    "parentSlug": "furniture",
+    "sortValue": 60000
+  },
+  {
+    "id": 555,
+    "slug": "vanity",
+    "level": "category",
+    "parentSlug": "",
+    "sortValue": 15000000
+  },
+  {
+    "id": 556,
+    "slug": "avatar",
+    "level": "subcategory",
+    "parentSlug": "vanity",
+    "sortValue": 10000
+  },
+  {
+    "id": 557,
+    "slug": "journal",
+    "level": "subcategory2",
+    "parentSlug": "avatar",
+    "sortValue": 100
+  },
+  {
+    "id": 558,
+    "slug": "adventurerchallenge",
+    "level": "subcategory2",
+    "parentSlug": "avatar",
+    "sortValue": 200
+  },
+  {
+    "id": 559,
+    "slug": "gvgseason",
+    "level": "subcategory2",
+    "parentSlug": "avatar",
+    "sortValue": 300
+  },
+  {
+    "id": 560,
+    "slug": "anniversary",
+    "level": "subcategory2",
+    "parentSlug": "avatar",
+    "sortValue": 400
+  },
+  {
+    "id": 561,
+    "slug": "other",
+    "level": "subcategory2",
+    "parentSlug": "avatar",
+    "sortValue": 500
+  },
+  {
+    "id": 562,
+    "slug": "avatarring",
+    "level": "subcategory",
+    "parentSlug": "vanity",
+    "sortValue": 20000
+  },
+  {
+    "id": 563,
+    "slug": "journal",
+    "level": "subcategory2",
+    "parentSlug": "avatarring",
+    "sortValue": 100
+  },
+  {
+    "id": 564,
+    "slug": "adventurerchallenge",
+    "level": "subcategory2",
+    "parentSlug": "avatarring",
+    "sortValue": 200
+  },
+  {
+    "id": 565,
+    "slug": "gvgseason",
+    "level": "subcategory2",
+    "parentSlug": "avatarring",
+    "sortValue": 300
+  },
+  {
+    "id": 566,
+    "slug": "anniversary",
+    "level": "subcategory2",
+    "parentSlug": "avatarring",
+    "sortValue": 400
+  },
+  {
+    "id": 567,
+    "slug": "other",
+    "level": "subcategory2",
+    "parentSlug": "avatarring",
+    "sortValue": 500
+  },
+  {
+    "id": 568,
+    "slug": "mounts",
+    "level": "subcategory",
+    "parentSlug": "vanity",
+    "sortValue": 30000
+  },
+  {
+    "id": 569,
+    "slug": "horse",
+    "level": "subcategory2",
+    "parentSlug": "mounts",
+    "sortValue": 100
+  },
+  {
+    "id": 570,
+    "slug": "armoredhorse",
+    "level": "subcategory2",
+    "parentSlug": "mounts",
+    "sortValue": 200
+  },
+  {
+    "id": 571,
+    "slug": "ox",
+    "level": "subcategory2",
+    "parentSlug": "mounts",
+    "sortValue": 300
+  },
+  {
+    "id": 572,
+    "slug": "direwolf",
+    "level": "subcategory2",
+    "parentSlug": "mounts",
+    "sortValue": 400
+  },
+  {
+    "id": 573,
+    "slug": "giantstag",
+    "level": "subcategory2",
+    "parentSlug": "mounts",
+    "sortValue": 500
+  },
+  {
+    "id": 574,
+    "slug": "cougar",
+    "level": "subcategory2",
+    "parentSlug": "mounts",
+    "sortValue": 600
+  },
+  {
+    "id": 575,
+    "slug": "direboar",
+    "level": "subcategory2",
+    "parentSlug": "mounts",
+    "sortValue": 700
+  },
+  {
+    "id": 576,
+    "slug": "direbear",
+    "level": "subcategory2",
+    "parentSlug": "mounts",
+    "sortValue": 800
+  },
+  {
+    "id": 577,
+    "slug": "lizard",
+    "level": "subcategory2",
+    "parentSlug": "mounts",
+    "sortValue": 900
+  },
+  {
+    "id": 578,
+    "slug": "donkey",
+    "level": "subcategory2",
+    "parentSlug": "mounts",
+    "sortValue": 1000
+  },
+  {
+    "id": 579,
+    "slug": "mammoth",
+    "level": "subcategory2",
+    "parentSlug": "mounts",
+    "sortValue": 1100
+  },
+  {
+    "id": 580,
+    "slug": "weapons",
+    "level": "subcategory",
+    "parentSlug": "vanity",
+    "sortValue": 40000
+  },
+  {
+    "id": 581,
+    "slug": "armors",
+    "level": "subcategory",
+    "parentSlug": "vanity",
+    "sortValue": 50000
+  },
+  {
+    "id": 582,
+    "slug": "head",
+    "level": "subcategory",
+    "parentSlug": "vanity",
+    "sortValue": 60000
+  },
+  {
+    "id": 583,
+    "slug": "shoes",
+    "level": "subcategory",
+    "parentSlug": "vanity",
+    "sortValue": 70000
+  },
+  {
+    "id": 584,
+    "slug": "offhands",
+    "level": "subcategory",
+    "parentSlug": "vanity",
+    "sortValue": 80000
+  },
+  {
+    "id": 585,
+    "slug": "capes",
+    "level": "subcategory",
+    "parentSlug": "vanity",
+    "sortValue": 90000
+  },
+  {
+    "id": 586,
+    "slug": "killemotes",
+    "level": "subcategory",
+    "parentSlug": "vanity",
+    "sortValue": 100000
+  },
+  {
+    "id": 587,
+    "slug": "other",
+    "level": "category",
+    "parentSlug": "",
+    "sortValue": 16000000
+  },
+  {
+    "id": 588,
+    "slug": "lootitem",
+    "level": "subcategory",
+    "parentSlug": "other",
+    "sortValue": 10000
+  },
+  {
+    "id": 589,
+    "slug": "guilds",
+    "level": "subcategory",
+    "parentSlug": "other",
+    "sortValue": 20000
+  },
+  {
+    "id": 590,
+    "slug": "hideout",
+    "level": "subcategory2",
+    "parentSlug": "guilds",
+    "sortValue": 100
+  },
+  {
+    "id": 591,
+    "slug": "siegehammer",
+    "level": "subcategory2",
+    "parentSlug": "guilds",
+    "sortValue": 200
+  },
+  {
+    "id": 592,
+    "slug": "siegebanners",
+    "level": "subcategory2",
+    "parentSlug": "guilds",
+    "sortValue": 300
+  },
+  {
+    "id": 593,
+    "slug": "labourers",
+    "level": "subcategory",
+    "parentSlug": "other",
+    "sortValue": 30000
+  },
+  {
+    "id": 594,
+    "slug": "journals",
+    "level": "subcategory2",
+    "parentSlug": "labourers",
+    "sortValue": 100
+  },
+  {
+    "id": 595,
+    "slug": "trophies",
+    "level": "subcategory2",
+    "parentSlug": "labourers",
+    "sortValue": 200
+  },
+  {
+    "id": 596,
+    "slug": "contracts",
+    "level": "subcategory2",
+    "parentSlug": "labourers",
+    "sortValue": 300
+  },
+  {
+    "id": 597,
+    "slug": "beds",
+    "level": "subcategory2",
+    "parentSlug": "labourers",
+    "sortValue": 400
+  },
+  {
+    "id": 598,
+    "slug": "tables",
+    "level": "subcategory2",
+    "parentSlug": "labourers",
+    "sortValue": 500
+  },
+  {
+    "id": 599,
+    "slug": "tokens",
+    "level": "subcategory",
+    "parentSlug": "other",
+    "sortValue": 40000
+  },
+  {
+    "id": 600,
+    "slug": "vanity",
+    "level": "subcategory2",
+    "parentSlug": "tokens",
+    "sortValue": 100
+  },
+  {
+    "id": 601,
+    "slug": "crystalleague",
+    "level": "subcategory2",
+    "parentSlug": "tokens",
+    "sortValue": 200
+  },
+  {
+    "id": 602,
+    "slug": "anchors",
+    "level": "subcategory2",
+    "parentSlug": "tokens",
+    "sortValue": 300
+  },
+  {
+    "id": 603,
+    "slug": "other",
+    "level": "subcategory2",
+    "parentSlug": "tokens",
+    "sortValue": 400
+  },
+  {
+    "id": 604,
+    "slug": "luxurygoods",
+    "level": "subcategory",
+    "parentSlug": "other",
+    "sortValue": 50000
+  },
+  {
+    "id": 605,
+    "slug": "bridgewatch",
+    "level": "subcategory2",
+    "parentSlug": "luxurygoods",
+    "sortValue": 100
+  },
+  {
+    "id": 606,
+    "slug": "fortsterling",
+    "level": "subcategory2",
+    "parentSlug": "luxurygoods",
+    "sortValue": 200
+  },
+  {
+    "id": 607,
+    "slug": "lymhurst",
+    "level": "subcategory2",
+    "parentSlug": "luxurygoods",
+    "sortValue": 300
+  },
+  {
+    "id": 608,
+    "slug": "martlock",
+    "level": "subcategory2",
+    "parentSlug": "luxurygoods",
+    "sortValue": 400
+  },
+  {
+    "id": 609,
+    "slug": "thetford",
+    "level": "subcategory2",
+    "parentSlug": "luxurygoods",
+    "sortValue": 500
+  },
+  {
+    "id": 610,
+    "slug": "caerleon",
+    "level": "subcategory2",
+    "parentSlug": "luxurygoods",
+    "sortValue": 600
+  },
+  {
+    "id": 611,
+    "slug": "any",
+    "level": "subcategory2",
+    "parentSlug": "luxurygoods",
+    "sortValue": 700
+  },
+  {
+    "id": 612,
+    "slug": "maps",
+    "level": "subcategory",
+    "parentSlug": "other",
+    "sortValue": 60000
+  },
+  {
+    "id": 613,
+    "slug": "randomdungeons",
+    "level": "subcategory2",
+    "parentSlug": "maps",
+    "sortValue": 100
+  },
+  {
+    "id": 614,
+    "slug": "corrupteddungeons",
+    "level": "subcategory2",
+    "parentSlug": "maps",
+    "sortValue": 200
+  },
+  {
+    "id": 615,
+    "slug": "hellgates",
+    "level": "subcategory2",
+    "parentSlug": "maps",
+    "sortValue": 300
+  },
+  {
+    "id": 616,
+    "slug": "other",
+    "level": "subcategory2",
+    "parentSlug": "maps",
+    "sortValue": 400
+  },
+  {
+    "id": 617,
+    "slug": "hardcoreexpeditions",
+    "level": "subcategory",
+    "parentSlug": "other",
+    "sortValue": 70000
+  },
+  {
+    "id": 618,
+    "slug": "event",
+    "level": "subcategory2",
+    "parentSlug": "hardcoreexpeditions",
+    "sortValue": 100
+  },
+  {
+    "id": 619,
+    "slug": "fishybusiness",
+    "level": "subcategory2",
+    "parentSlug": "hardcoreexpeditions",
+    "sortValue": 200
+  },
+  {
+    "id": 620,
+    "slug": "fistfulofsilver",
+    "level": "subcategory2",
+    "parentSlug": "hardcoreexpeditions",
+    "sortValue": 300
+  },
+  {
+    "id": 621,
+    "slug": "lumbercamp",
+    "level": "subcategory2",
+    "parentSlug": "hardcoreexpeditions",
+    "sortValue": 400
+  },
+  {
+    "id": 622,
+    "slug": "mushroom",
+    "level": "subcategory2",
+    "parentSlug": "hardcoreexpeditions",
+    "sortValue": 500
+  },
+  {
+    "id": 623,
+    "slug": "recruitment",
+    "level": "subcategory2",
+    "parentSlug": "hardcoreexpeditions",
+    "sortValue": 600
+  },
+  {
+    "id": 624,
+    "slug": "sewerscrypt",
+    "level": "subcategory2",
+    "parentSlug": "hardcoreexpeditions",
+    "sortValue": 700
+  },
+  {
+    "id": 625,
+    "slug": "stonewars",
+    "level": "subcategory2",
+    "parentSlug": "hardcoreexpeditions",
+    "sortValue": 800
+  },
+  {
+    "id": 626,
+    "slug": "threesisters",
+    "level": "subcategory2",
+    "parentSlug": "hardcoreexpeditions",
+    "sortValue": 900
+  },
+  {
+    "id": 627,
+    "slug": "torturer",
+    "level": "subcategory2",
+    "parentSlug": "hardcoreexpeditions",
+    "sortValue": 1000
+  },
+  {
+    "id": 628,
+    "slug": "eternalbattle",
+    "level": "subcategory2",
+    "parentSlug": "hardcoreexpeditions",
+    "sortValue": 1100
+  },
+  {
+    "id": 629,
+    "slug": "questitems",
+    "level": "subcategory",
+    "parentSlug": "other",
+    "sortValue": 80000
+  },
+  {
+    "id": 630,
+    "slug": "cities",
+    "level": "subcategory2",
+    "parentSlug": "questitems",
+    "sortValue": 100
+  },
+  {
+    "id": 631,
+    "slug": "other",
+    "level": "subcategory2",
+    "parentSlug": "questitems",
+    "sortValue": 200
+  },
+  {
+    "id": 632,
+    "slug": "killtrophy",
+    "level": "subcategory",
+    "parentSlug": "other",
+    "sortValue": 100000
+  },
+  {
+    "id": 633,
+    "slug": "trash",
+    "level": "subcategory",
+    "parentSlug": "other",
+    "sortValue": 110000
+  },
+  {
+    "id": 634,
+    "slug": "other",
+    "level": "subcategory",
+    "parentSlug": "other",
+    "sortValue": 120000
+  }
+]

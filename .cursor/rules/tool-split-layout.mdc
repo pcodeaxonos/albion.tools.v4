@@ -1,0 +1,23 @@
+---
+description: Tool pages put selections on the left and results on the right
+alwaysApply: true
+---
+
+# Tool split layout
+
+Pages with filters/form plus a table or result use `.tool-split`.
+
+- Left `.tool-split-controls`: month, type, sides, form fields, submit
+- Right `.tool-split-result`: log, table, calculated output
+- Do not put those controls in a full-width `.calc-toolbar`
+- Desktop (992px+): left column is sticky so inputs stay usable while results scroll
+- Below 992px: stack controls above results
+- Table headers still use `.calc-table` + `bindCalcSticky` (no `data-calc-toolbar`)
+
+```html
+<section class="tool-hero">...</section>
+<div class="tool-split">
+  <div class="tool-split-controls">...</div>
+  <div class="tool-split-result">...</div>
+</div>
+```

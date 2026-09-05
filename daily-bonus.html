@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+
+<html lang="tr">
+
+<head>
+
+    <meta charset="utf-8">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Günlük Bonus - Albion Tools</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+    <link rel="stylesheet" href="css/site.css">
+    <link rel="icon" type="image/png" href="favicon.png?v=2">
+    <link rel="apple-touch-icon" href="favicon.png?v=2">
+
+</head>
+
+<body>
+
+    <div id="page-loader" class="page-loader" hidden aria-hidden="true" aria-live="polite">
+        <div class="page-loader__inner">
+            <div class="loader-sigil" aria-hidden="true">
+                <svg class="loader-sigil__svg" viewBox="0 0 72 72" fill="none">
+                    <g class="loader-sigil__orbit loader-sigil__orbit--outer">
+                        <circle class="loader-sigil__gold" cx="36" cy="36" r="30" stroke-width="1.2"></circle>
+                        <path class="loader-sigil__gold" stroke-width="1.6" d="M36 4v6M36 62v6M4 36h6M62 36h6"></path>
+                        <path class="loader-sigil__gold" stroke-width="1.1" d="M14.4 14.4l4.2 4.2M53.4 53.4l4.2 4.2M53.4 14.4l4.2-4.2M14.4 57.6l4.2-4.2"></path>
+                    </g>
+                    <g class="loader-sigil__orbit loader-sigil__orbit--runes">
+                        <circle class="loader-sigil__gold" cx="36" cy="36" r="24" stroke-width="1" stroke-dasharray="1.6 5.2"></circle>
+                    </g>
+                    <g class="loader-sigil__orbit loader-sigil__orbit--inner">
+                        <circle class="loader-sigil__silver" cx="36" cy="36" r="16" stroke-width="1.15" stroke-dasharray="22 10" stroke-linecap="square"></circle>
+                    </g>
+                    <path class="loader-sigil__gem" d="M36 24 L46 36 L36 48 L26 36 Z"></path>
+                </svg>
+            </div>
+            <p class="loader-message" hidden></p>
+        </div>
+    </div>
+
+    <div class="app-shell">
+        <aside id="appSidebar" class="app-sidebar" aria-label="Site menüsü"></aside>
+
+        <div class="app-content">
+            <header class="app-topbar">
+                <button type="button" class="sidebar-toggler" aria-controls="appSidebar" aria-expanded="false" aria-label="Menüyü aç">
+                    <span class="sidebar-toggler-icon"></span>
+                </button>
+                <a class="app-brand" href="index.html">Albion Tools</a>
+            </header>
+
+            <main role="main">
+                <div class="container">
+                    <div id="dailyBonus"></div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+
+
+    <script type="module" src="js/daily-bonus.js"></script>
+
+</body>
+
+</html>
