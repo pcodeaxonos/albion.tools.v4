@@ -1185,9 +1185,10 @@ a.tool-card {
 .carleon-note,
 .ava-note,
 .enchant-note,
+.enchant-standard-note,
 .faction-note,
 .farming-note {
-    margin: 0 0 var(--spacing-md);
+    margin: var(--spacing-md) 0 0;
     color: var(--color-text-muted);
     font-size: var(--font-size-sm);
 

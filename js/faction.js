@@ -597,11 +597,6 @@ function renderOutput() {
 
     return `
         <div id="factionResult">
-            ${renderBonusNote()}
-            <p class="faction-note">${escapeHtml(cityLabel(state.city))} · malzeme ${escapeHtml(matNote)} · satış ${escapeHtml(itemNote)}.
-                Satış/puan net (vergi sonrası). Cape ₺/puan = (net satış − düz cape maliyeti) / crest puanı.
-                Elle yazılan fiyat API’nin yerine geçer. Kırmızı fiyat API’de yok; hesap da kırmızı kalır.${stamp ? ` · ${stamp}` : ''}</p>
-
             <section class="faction-section">
                 <h2>Puan değeri</h2>
                 ${renderVendorTable()}
@@ -612,6 +607,11 @@ function renderOutput() {
                 ${renderCapeMats()}
                 ${renderCapeTable()}
             </section>
+
+            ${renderBonusNote()}
+            <p class="faction-note">${escapeHtml(cityLabel(state.city))} · malzeme ${escapeHtml(matNote)} · satış ${escapeHtml(itemNote)}.
+                Satış/puan net (vergi sonrası). Cape ₺/puan = (net satış − düz cape maliyeti) / crest puanı.
+                Elle yazılan fiyat API’nin yerine geçer. Kırmızı fiyat API’de yok; hesap da kırmızı kalır.${stamp ? ` · ${stamp}` : ''}</p>
         </div>
     `;
 }

@@ -378,10 +378,10 @@ function renderOutput() {
 
     return `
         <div id="carleonResult">
-            ${renderBonusNote()}
             ${renderMatStrip()}
-            <p class="carleon-note">Malzeme ${escapeHtml(matNote)} · satış ${escapeHtml(itemNote)}. Elle yazılan alış/satış API’nin yerine geçer; kırmızı fiyat API’de yok, hesap da kırmızı kalır.</p>
             ${renderTable()}
+            ${renderBonusNote()}
+            <p class="carleon-note">Malzeme ${escapeHtml(matNote)} · satış ${escapeHtml(itemNote)}. Elle yazılan alış/satış API’nin yerine geçer; kırmızı fiyat API’de yok, hesap da kırmızı kalır.</p>
         </div>
     `;
 }

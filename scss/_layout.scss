@@ -200,6 +200,10 @@ body.calc-page .app-content {
         --status-dot: var(--color-success);
     }
 
+    &[data-state='info'] {
+        --status-dot: var(--color-info);
+    }
+
     &[data-state='warn'] {
         --status-dot: var(--color-warning);
     }

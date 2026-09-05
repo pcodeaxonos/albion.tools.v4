@@ -133,36 +133,59 @@ export function sessionAdcState(hub, packets = true) {
         );
     }
 
-    if (clientAt && clientAge <= LIVE_MS) {
+    if (hub.adcProcess === false) {
+        const last = marketAt ? ` · son emir ${relativeTime(marketAt)}` : '';
         return step(
             'adc',
-            'warn',
+            err,
             'Albion Data Client',
-            `ADC hub’a bağlı, bu oturumda konumlu emir yok (son sinyal ${relativeTime(clientAt)})`,
-            ZONE_FIX,
-            'location'
+            `ADC kapalı${last}`,
+            'start.bat ile ADC’yi aç. Zone geç, marketi yenile.',
+            'dead'
         );
     }
 
     if (marketAt) {
         return step(
             'adc',
-            err,
+            'info',
             'Albion Data Client',
-            `Sessiz · son emir ${relativeTime(marketAt)}`,
-            'ADC’yi kapatıp start.bat ile yeniden aç. Zone geç, marketi yenile.',
-            'stale'
+            `Beklemede · son emir ${relativeTime(marketAt)}`,
+            'Marketi açınca taze paket gelir.',
+            'idle'
         );
     }
 
     if (cachedOrders > 0) {
         return step(
             'adc',
+            'info',
+            'Albion Data Client',
+            `Beklemede · ${cachedOrders} sipariş önbellekte`,
+            'Marketi açınca taze paket gelir.',
+            'idle'
+        );
+    }
+
+    if (clientAt && clientAge <= LIVE_MS) {
+        return step(
+            'adc',
+            'info',
+            'Albion Data Client',
+            `Beklemede · ADC bağlı, bu oturumda emir yok (son sinyal ${relativeTime(clientAt)})`,
+            'Marketi açınca taze paket gelir.',
+            'idle'
+        );
+    }
+
+    if (hub.adcProcess === true) {
+        return step(
+            'adc',
             'warn',
             'Albion Data Client',
-            `Eski kitap · ${cachedOrders} sipariş önbellekte, bu oturumda taze emir yok`,
+            'ADC açık ama bu oturumda market paketi yok',
             ZONE_FIX,
-            'stale-cache'
+            'missing'
         );
     }
 
@@ -197,14 +220,11 @@ async function probe() {
         const cities = Array.isArray(hub.cities) && hub.cities.length > 0
             ? hub.cities.join(', ')
             : 'şehir yok';
-        const live = Boolean(hub.sessionMarketAt);
         steps.push(step(
             'hub',
             'ok',
             'Fiyat hub :3001',
-            live
-                ? `${orders} sipariş · ${cities}`
-                : `${orders} sipariş önbellekte · bu oturumda taze emir yok`,
+            `${orders} sipariş · ${cities}`,
             null
         ));
     } catch {
@@ -225,11 +245,22 @@ async function probe() {
 
     if (packets) {
         const hubOk = steps.find((item) => item.id === 'hub')?.state === 'ok';
-        const adcOk = steps.find((item) => item.id === 'adc')?.state === 'ok';
+        const adc = steps.find((item) => item.id === 'adc');
+        const adcOk = adc?.state === 'ok';
         if (hubOk && adcOk) {
             steps.push(step('tools', 'ok', 'Tool fiyatları', 'Yerel kitaptan okunuyor', null));
+        } else if (hubOk && adc?.code === 'idle') {
+            const last = hub?.sessionMarketAt ? relativeTime(hub.sessionMarketAt) : null;
+            steps.push(step(
+                'tools',
+                'info',
+                'Tool fiyatları',
+                last
+                    ? `Önbellekteki fiyatlar kullanılıyor · son emir ${last}`
+                    : 'Önbellekteki fiyatlar kullanılıyor',
+                'Marketi aç veya eksik fiyatı elle gir.'
+            ));
         } else if (hubOk) {
-            const adc = steps.find((item) => item.id === 'adc');
             const cached = (hub?.orders ?? 0) > 0;
             steps.push(step(
                 'tools',
@@ -238,8 +269,8 @@ async function probe() {
                 cached
                     ? 'Önbellekteki eski fiyatlar duruyor — taze paket yok'
                     : 'Hub açık, taze emir yok — kırmızı alanlar boş kalır',
-                adc?.code === 'location' || adc?.code === 'stale-cache'
-                    ? ZONE_FIX
+                adc?.code === 'location' || adc?.code === 'dead'
+                    ? (adc.fix || ZONE_FIX)
                     : 'Marketi aç veya eksik fiyatı elle gir.'
             ));
         } else {
@@ -289,20 +320,27 @@ async function probe() {
 }
 
 function rank(steps) {
-    if (steps.some((step) => step.state === 'err')) {
+    if (steps.some((item) => item.state === 'err')) {
         return 'err';
     }
-    if (steps.some((step) => step.state === 'warn')) {
+    if (steps.some((item) => item.state === 'warn')) {
         return 'warn';
+    }
+    if (steps.some((item) => item.code === 'idle')) {
+        return 'info';
     }
     return 'ok';
 }
 
 function summaryText(report) {
-    const blocked = report.steps.find((step) => step.state === 'err')
-        ?? report.steps.find((step) => step.state === 'warn');
+    const blocked = report.steps.find((item) => item.state === 'err')
+        ?? report.steps.find((item) => item.state === 'warn')
+        ?? report.steps.find((item) => item.code === 'idle');
     if (!blocked) {
         return report.packets ? 'Paket hattı çalışıyor' : 'AODP API çalışıyor';
+    }
+    if (blocked.code === 'idle') {
+        return blocked.detail;
     }
     return blocked.fix ? `${blocked.title}: ${blocked.fix}` : `${blocked.title}: ${blocked.detail}`;
 }
@@ -312,14 +350,20 @@ function summaryShort(report) {
     if (adc?.code === 'location') {
         return 'Konum yok';
     }
-    if (adc?.code === 'stale-cache') {
-        return 'Eski kitap';
+    if (adc?.code === 'dead') {
+        return 'ADC kapalı';
+    }
+    if (adc?.code === 'idle') {
+        return 'Beklemede';
     }
     if (report.worst === 'ok') {
         return report.packets ? 'Paketler canlı' : 'API canlı';
     }
     if (report.worst === 'warn') {
         return 'Dikkat';
+    }
+    if (report.worst === 'info') {
+        return 'Beklemede';
     }
     return 'Tıkanma';
 }

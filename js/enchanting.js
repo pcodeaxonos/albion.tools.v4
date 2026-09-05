@@ -405,11 +405,11 @@ function renderOutput() {
                     ${itemIconHtml(slot.icon, { className: 'item-icon enchant-head-icon' })}
                     ${escapeHtml(slot.label)}
                 </h2>
-                <p>${slot.qty} rune / soul / relic · ${escapeHtml(cityLabel(state.city))} ${escapeHtml(hint)}${stamp ? ` · ${stamp}` : ''}. Elle yazılan malzeme fiyatı API’nin yerine geçer. Kırmızı fiyat API’de yok; maliyet de kırmızı kalır.</p>
-                <p class="enchant-standard-note">Vurgu: ${escapeHtml(standardHighlightNote(state.enchantPower))}. 0 → hedef yolları daha koyu. <a href="settings.html">Ayarlardan değiştir</a></p>
             </div>
             ${renderMatStrip()}
             ${renderTable()}
+            <p class="enchant-note">${slot.qty} rune / soul / relic · ${escapeHtml(cityLabel(state.city))} ${escapeHtml(hint)}${stamp ? ` · ${stamp}` : ''}. Elle yazılan malzeme fiyatı API’nin yerine geçer. Kırmızı fiyat API’de yok; maliyet de kırmızı kalır.</p>
+            <p class="enchant-standard-note">Vurgu: ${escapeHtml(standardHighlightNote(state.enchantPower))}. 0 → hedef yolları daha koyu. <a href="settings.html">Ayarlardan değiştir</a></p>
         </div>
     `;
 }

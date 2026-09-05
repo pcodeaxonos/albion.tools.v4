@@ -1911,6 +1911,9 @@ body.calc-page .app-content {
 .app-status[data-state=ok] {
   --status-dot: var(--color-success);
 }
+.app-status[data-state=info] {
+  --status-dot: var(--color-info);
+}
 .app-status[data-state=warn] {
   --status-dot: var(--color-warning);
 }
@@ -3362,15 +3365,17 @@ a.tool-card:hover {
 .carleon-note,
 .ava-note,
 .enchant-note,
+.enchant-standard-note,
 .faction-note,
 .farming-note {
-  margin: 0 0 var(--spacing-md);
+  margin: var(--spacing-md) 0 0;
   color: var(--color-text-muted);
   font-size: var(--font-size-sm);
 }
 .carleon-note a,
 .ava-note a,
 .enchant-note a,
+.enchant-standard-note a,
 .faction-note a,
 .farming-note a {
   color: var(--color-primary);

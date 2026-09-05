@@ -479,14 +479,16 @@ async function refreshHubStatus(container) {
             ? data.cities.join(', ')
             : '—';
         status.classList.remove('is-down', 'is-up', 'is-warn');
-        if (adc.state === 'ok') {
+        if (adc.state === 'ok' || adc.code === 'idle') {
             status.classList.add('is-up');
         } else {
             status.classList.add('is-warn');
         }
         status.textContent = adc.state === 'ok'
             ? `Hub açık · son emir ${when} · ${data.orders ?? 0} sipariş · ${cities}`
-            : `${adc.detail}. ${adc.fix || ''}`.trim();
+            : adc.code === 'idle'
+                ? `Hub açık · beklemede · son emir ${when} · ${data.orders ?? 0} sipariş · ${cities}`
+                : `${adc.detail}. ${adc.fix || ''}`.trim();
     } catch {
         status.classList.remove('is-up');
         status.classList.add('is-down');

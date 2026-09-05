@@ -92,6 +92,8 @@ export const TOOLS = [
         title: 'Refining',
         description: 'Ore / logs refine maliyeti, return rate ve kâr.',
         icon: '🔥',
+        href: 'refining.html',
+        addedAt: '2026-09-05',
         group: 'Üretim',
         frequent: true
     },

@@ -6,10 +6,12 @@
  * serves the same /api/v2/stats/prices shape the tools already call.
  */
 
+import { execFile } from 'node:child_process';
 import { createServer } from 'node:http';
 import { readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { promisify } from 'node:util';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(__dirname, '..');
@@ -24,6 +26,9 @@ const LOCAL_DATA_CLOCK_KEY = LOCAL_DATA_PREFIX + '_syncClock';
 const LOCAL_DATA_MAX_BYTES = 50 * 1024 * 1024;
 const LOCATIONS_PATH = join(ROOT, 'data', 'locations.json');
 const ORDER_TTL_MS = 6 * 60 * 60 * 1000;
+const ADC_IMAGE = 'albiondata-client.exe';
+const ADC_PROCESS_TTL_MS = 4000;
+const execFileAsync = promisify(execFile);
 const SILVER_SCALE = 10000;
 const EMPTY_DATE = '0001-01-01T00:00:00';
 const CITY_NAMES = new Set([
@@ -54,6 +59,7 @@ let lastCities = [];
 let unknownLocations = [];
 let persistTimer = null;
 let localDataSnapshot = null;
+let adcProcessCache = { at: 0, running: null };
 const sseClients = new Set();
 
 loadCache();
@@ -103,7 +109,7 @@ async function route(req, res, url, path) {
 
     if (req.method === 'GET' && (path === '/' || path === '/api/v2/stats/status')) {
         pruneExpired();
-        sendJson(res, 200, statusPayload());
+        sendJson(res, 200, statusPayload(await adcProcessRunning()));
         return;
     }
 
@@ -185,7 +191,7 @@ function isMarketOrdersPath(path) {
     );
 }
 
-function statusPayload() {
+function statusPayload(adcProcess = null) {
     let orderCount = 0;
     const cities = new Set();
     for (const book of books.values()) {
@@ -205,6 +211,7 @@ function statusPayload() {
         sessionMarketAt,
         sessionClientAt,
         sessionDroppedMarketAt,
+        adcProcess,
         lastItems,
         lastCities,
         unknownLocations,
@@ -213,6 +220,37 @@ function statusPayload() {
         orders: orderCount,
         cities: [...cities].sort()
     };
+}
+
+async function adcProcessRunning() {
+    const now = Date.now();
+    if (now - adcProcessCache.at < ADC_PROCESS_TTL_MS) {
+        return adcProcessCache.running;
+    }
+
+    let running = null;
+    try {
+        if (process.platform === 'win32') {
+            const { stdout } = await execFileAsync(
+                'tasklist',
+                ['/FI', `IMAGENAME eq ${ADC_IMAGE}`, '/FO', 'CSV', '/NH'],
+                { windowsHide: true, timeout: 2500 }
+            );
+            running = String(stdout).toLowerCase().includes('albiondata-client.exe');
+        } else {
+            try {
+                await execFileAsync('pgrep', ['-f', 'albiondata-client'], { timeout: 2500 });
+                running = true;
+            } catch (error) {
+                running = error && error.code === 1 ? false : null;
+            }
+        }
+    } catch {
+        running = null;
+    }
+
+    adcProcessCache = { at: now, running };
+    return running;
 }
 
 function noteClient(path) {

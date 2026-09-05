@@ -13,11 +13,15 @@ Pages with filters/form plus a table or result use `.tool-split`.
 - Desktop (992px+): left column is sticky so inputs stay usable while results scroll
 - Below 992px: stack controls above results
 - Table headers still use `.calc-table` + `bindCalcSticky` (no `data-calc-toolbar`)
+- Fee / RR / senaryo / “en kârlı” / timestamp notes go **below** the table or result, not above. Price cards and filters stay above.
 
 ```html
 <section class="tool-hero">...</section>
 <div class="tool-split">
   <div class="tool-split-controls">...</div>
-  <div class="tool-split-result">...</div>
+  <div class="tool-split-result">
+    <!-- table or result -->
+    <p class="farming-note">...</p>
+  </div>
 </div>
 ```

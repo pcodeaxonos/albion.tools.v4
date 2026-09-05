@@ -523,11 +523,11 @@ function renderOutput() {
 
     return `
         <div id="avaResult">
-            ${renderBonusNote()}
             ${renderEnergyCard()}
             ${renderTierMats()}
-            <p class="ava-note">Malzeme şehir ortalaması · ${escapeHtml(matNote)}. Satış ${escapeHtml(cityLabel(state.city))} · ${escapeHtml(itemNote)}. Elle yazılan alış/satış API’nin yerine geçer. Kırmızı fiyat API’de yok; hesap da kırmızı kalır.</p>
             ${renderTable()}
+            ${renderBonusNote()}
+            <p class="ava-note">Malzeme şehir ortalaması · ${escapeHtml(matNote)}. Satış ${escapeHtml(cityLabel(state.city))} · ${escapeHtml(itemNote)}. Elle yazılan alış/satış API’nin yerine geçer. Kırmızı fiyat API’de yok; hesap da kırmızı kalır.</p>
         </div>
     `;
 }

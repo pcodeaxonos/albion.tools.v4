@@ -639,13 +639,13 @@ function renderOutput() {
 
     return `
         <div id="farmingResult">
+            ${renderTable()}
             <p class="farming-note">
                 ${escapeHtml(cityLabel(state.city))} · tohum ${escapeHtml(seedNote)} · hasat ${escapeHtml(plantNote)}.
                 Birim = net tohum / verim. Fark = birim − hasat alış; negatifse üret, değilse al.
                 Tohum işareti NPC fiyatına göre.${focusNote}
                 Elle yazılan fiyat API’nin yerine geçer. Kırmızı fiyat API’de yok; hesap da kırmızı kalır, elle doldur.${stamp ? ` ${stamp}` : ''}
             </p>
-            ${renderTable()}
         </div>
     `;
 }
