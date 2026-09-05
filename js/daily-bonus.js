@@ -4,6 +4,9 @@ import { initFloatingLabels } from './forms.js';
 import { initStore, getAll, createRow, updateRow, deleteRow } from './db/store.js';
 import { getBonusFamilies, getBonusFamilyLabel } from './bonus-families.js';
 import { addDays, bonusDayIso, bonusWindowLabel } from './bonus-day.js';
+import { bonusCityLabel, cityHintText } from './bonus-cities.js';
+import { todayCraftBonuses } from './craft-bonus.js';
+import { refreshTodayBonusChip, renderTodaySlotsHtml, todayWindowLabel } from './today-bonus.js';
 import { showPageLoader, hidePageLoader } from './loader.js';
 import { initTableSort, sortHeaderHtml } from './table-sort.js';
 import { bindCalcSticky } from './calc-sticky.js';
@@ -119,6 +122,20 @@ function setFormMessage(container, text, kind = 'info') {
     el.className = kind === 'error' ? 'alert alert-info' : 'alert alert-info';
 }
 
+function updateSlotCityHints(container) {
+    ['1', '2'].forEach((slot) => {
+        const key = container.querySelector(`#slot${slot}FamilyKey`)?.value;
+        const hint = container.querySelector(`#slot${slot}City`);
+        if (!hint) {
+            return;
+        }
+
+        const text = key ? cityHintText(key) : '';
+        hint.hidden = !text;
+        hint.textContent = text;
+    });
+}
+
 function updateRepeatPreview(container) {
     const date = container.querySelector('#bonusDate')?.value;
     const slot1 = container.querySelector('#slot1FamilyKey')?.value;
@@ -187,6 +204,7 @@ function fillForm(container, row, presetDate = null) {
 
     initFloatingLabels(container);
     updateRepeatPreview(container);
+    updateSlotCityHints(container);
     updateLogHighlights(container);
 }
 
@@ -218,7 +236,11 @@ function logRowClasses(row, highlightKeys) {
 
 function familyCell(familyKey, highlightKeys) {
     const hit = highlightKeys.includes(familyKey) ? ' is-bonus-hit' : '';
-    return `<td class="bonus-log-family${hit}" data-family-key="${escapeHtml(familyKey)}">${escapeHtml(getBonusFamilyLabel(familyKey))}</td>`;
+    const city = bonusCityLabel(familyKey);
+    const cityHtml = city
+        ? `<span class="bonus-log-city">${escapeHtml(city)}</span>`
+        : '';
+    return `<td class="bonus-log-family${hit}" data-family-key="${escapeHtml(familyKey)}"><span class="bonus-log-family-name">${escapeHtml(getBonusFamilyLabel(familyKey))}</span>${cityHtml}</td>`;
 }
 
 function updateLogHighlights(container) {
@@ -353,6 +375,26 @@ function renderLogTable(month, highlightKeys = []) {
     `;
 }
 
+function renderTodayBand() {
+    const bonuses = todayCraftBonuses();
+    const slots = renderTodaySlotsHtml(bonuses, 'Bugün kayıt yok — iki bonusu seçip kaydet.');
+    return `
+        <section class="bonus-today" aria-label="Bugünün bonus şehirleri">
+            <p class="bonus-today-window">${escapeHtml(todayWindowLabel())}</p>
+            ${slots}
+        </section>
+    `;
+}
+
+function refreshTodayBand(container) {
+    const host = container.querySelector('.bonus-today');
+    if (!host) {
+        return;
+    }
+
+    host.outerHTML = renderTodayBand();
+}
+
 function renderPage(container) {
     const families = getBonusFamilies().families;
     const monthInput = state.month;
@@ -364,6 +406,8 @@ function renderPage(container) {
             <h1>Günlük Bonus</h1>
             <p>Her gün iki craft / refine bonusu. Gün 13:00’te yenilenir. Oyun API’sinden gelmez; buraya kaydedilir. Unutulan günler boş bırakılabilir.</p>
         </section>
+
+        ${renderTodayBand()}
 
         <div class="tool-split">
             <div class="tool-split-controls">
@@ -386,17 +430,23 @@ function renderPage(container) {
                         </div>
                         <div class="bonus-repeat" id="bonusRepeatPreview"></div>
                         <div class="bonus-slots">
-                            <div class="form-floating bonus-slot-family">
-                                <select class="form-select" id="slot1FamilyKey" name="slot1FamilyKey" required>
-                                    ${renderFamilyOptions('')}
-                                </select>
-                                <label for="slot1FamilyKey">Bonus 1</label>
+                            <div class="bonus-slot-block">
+                                <div class="form-floating bonus-slot-family">
+                                    <select class="form-select" id="slot1FamilyKey" name="slot1FamilyKey" required>
+                                        ${renderFamilyOptions('')}
+                                    </select>
+                                    <label for="slot1FamilyKey">Bonus 1</label>
+                                </div>
+                                <p class="bonus-slot-city" id="slot1City" hidden></p>
                             </div>
-                            <div class="form-floating bonus-slot-family">
-                                <select class="form-select" id="slot2FamilyKey" name="slot2FamilyKey" required>
-                                    ${renderFamilyOptions('')}
-                                </select>
-                                <label for="slot2FamilyKey">Bonus 2</label>
+                            <div class="bonus-slot-block">
+                                <div class="form-floating bonus-slot-family">
+                                    <select class="form-select" id="slot2FamilyKey" name="slot2FamilyKey" required>
+                                        ${renderFamilyOptions('')}
+                                    </select>
+                                    <label for="slot2FamilyKey">Bonus 2</label>
+                                </div>
+                                <p class="bonus-slot-city" id="slot2City" hidden></p>
                             </div>
                             <div class="form-floating bonus-slot-rate">
                                 <select class="form-select" id="slot1Rate" name="slot1Rate" required>
@@ -459,6 +509,7 @@ function bindPage(container) {
     ['slot1FamilyKey', 'slot2FamilyKey'].forEach((id) => {
         container.querySelector(`#${id}`)?.addEventListener('change', () => {
             updateRepeatPreview(container);
+            updateSlotCityHints(container);
             updateLogHighlights(container);
         });
     });
@@ -483,6 +534,8 @@ function bindPage(container) {
         setFormMessage(container, 'Kayıt silindi.');
         fillForm(container, null);
         refreshLog(container);
+        refreshTodayBand(container);
+        refreshTodayBonusChip();
         promptTodayIfMissing(container);
     });
 
@@ -572,7 +625,10 @@ function saveEntry(container) {
 
     initFloatingLabels(container);
     updateRepeatPreview(container);
+    updateSlotCityHints(container);
     refreshLog(container);
+    refreshTodayBand(container);
+    refreshTodayBonusChip();
 }
 
 async function init() {

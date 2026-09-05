@@ -15,6 +15,8 @@
 }
 
 html {
+    // 16px until 1440px so laptops stay compact; ~18px at 1920px, cap 19px
+    font-size: 16px;
     -webkit-text-size-adjust: 100%;
     -moz-text-size-adjust: 100%;
     text-size-adjust: 100%;
@@ -23,6 +25,10 @@ html {
     line-height: var(--line-height-base);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+
+    @media (min-width: 1440px) {
+        font-size: clamp(16px, 0.4vw + 10.24px, 19px);
+    }
 }
 
 body {

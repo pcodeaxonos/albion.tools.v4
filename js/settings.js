@@ -25,7 +25,8 @@ export const DEFAULT_SETTINGS = {
     sellPriceSide: 'sell',
     enchantPower: 7,
     dataSync: true,
-    islandCities: []
+    islandCities: [],
+    refineFollowSpecialty: false
 };
 
 export function normalizeIslandCities(value) {
@@ -104,7 +105,8 @@ export function getSettings() {
             sellPriceSide: normalizePriceSide(parsed.sellPriceSide, DEFAULT_SETTINGS.sellPriceSide),
             enchantPower: normalizeEnchantPower(parsed.enchantPower),
             dataSync: parsed.dataSync !== false,
-            islandCities: normalizeIslandCities(parsed.islandCities)
+            islandCities: normalizeIslandCities(parsed.islandCities),
+            refineFollowSpecialty: parsed.refineFollowSpecialty === true
         };
     } catch {
         return { ...DEFAULT_SETTINGS };
@@ -125,6 +127,7 @@ export function saveSettings(partial) {
     next.enchantPower = normalizeEnchantPower(next.enchantPower);
     next.dataSync = next.dataSync !== false;
     next.islandCities = normalizeIslandCities(next.islandCities);
+    next.refineFollowSpecialty = Boolean(next.refineFollowSpecialty);
     localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
     return next;
 }

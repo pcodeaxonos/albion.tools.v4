@@ -84,6 +84,14 @@ function renderPage(container, cities) {
                         <span class="settings-fee-meta" id="settingFeeNote">${escapeHtml(feeMetaText(settings.premium))}</span>
                     </span>
                 </label>
+                <label class="form-check">
+                    <input class="form-check-input" type="checkbox" id="settingRefineFollowSpecialty"
+                        ${settings.refineFollowSpecialty ? 'checked' : ''}>
+                    <span class="form-check-label">
+                        Refine şehri hammaddeyle değişsin
+                        <span class="settings-fee-meta">Ore → Thetford, hide → Martlock. Kapalıysa işle şehri senin seçtiğin yerde kalır.</span>
+                    </span>
+                </label>
                 <div class="form-floating">
                     <select class="form-select is-filled" id="settingPriceSource">
                         ${renderPriceSourceOptions(settings.priceSource)}
@@ -200,6 +208,7 @@ function persist(container) {
         buyPriceSide: selectedSide(container, 'buy', 'buy'),
         sellPriceSide: selectedSide(container, 'sell', 'sell'),
         enchantPower: container.querySelector('#settingEnchantPower')?.value,
+        refineFollowSpecialty: Boolean(container.querySelector('#settingRefineFollowSpecialty')?.checked),
         ...(islandCities !== null ? { islandCities } : {})
     });
 
@@ -254,6 +263,7 @@ function bindPage(container) {
     });
 
     container.querySelector('#settingPremium')?.addEventListener('change', () => persist(container));
+    container.querySelector('#settingRefineFollowSpecialty')?.addEventListener('change', () => persist(container));
     container.querySelector('#settingPriceSource')?.addEventListener('change', () => persist(container));
     container.querySelector('#settingServer')?.addEventListener('change', () => persist(container));
     container.querySelector('#settingEnchantPower')?.addEventListener('change', () => persist(container));

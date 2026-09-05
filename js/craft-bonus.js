@@ -1,6 +1,8 @@
 import { escapeHtml } from './utils.js';
 import { getAll } from './db/store.js';
 import { bonusDayIso } from './bonus-day.js';
+import { getBonusFamilyLabel } from './bonus-families.js';
+import { bonusFamilyMeta } from './bonus-cities.js';
 
 export const CRAFT_BONUS_RATES = [0, 10, 20];
 
@@ -27,7 +29,16 @@ export function todayCraftBonuses() {
     return [
         { key: row.slot1FamilyKey, rate: Number(row.slot1Rate) },
         { key: row.slot2FamilyKey, rate: Number(row.slot2Rate) }
-    ].filter((bonus) => bonus.key && Number.isFinite(bonus.rate));
+    ]
+        .filter((bonus) => bonus.key && Number.isFinite(bonus.rate))
+        .map((bonus) => {
+            const meta = bonusFamilyMeta(bonus.key);
+            return {
+                ...bonus,
+                label: getBonusFamilyLabel(bonus.key),
+                ...meta
+            };
+        });
 }
 
 export function defaultCraftBonusRate(familyKeys) {

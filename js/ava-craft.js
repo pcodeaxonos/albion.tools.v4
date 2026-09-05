@@ -24,6 +24,21 @@ import { SETUP_FEE, purchaseCost, saleProceeds, salesTaxRate, placesOrder } from
 import { bindCalcSticky } from './calc-sticky.js';
 import { bindLivePrices } from './price-live.js';
 import { loadCities } from './cities.js';
+import {
+    bindCalcExplain,
+    refreshCalcExplain,
+    calcExplainShell,
+    explainNum,
+    explainOp,
+    explainStep,
+    explainChips,
+    explainFlow,
+    explainSaleSteps,
+    explainProfitFoot,
+    explainPanelHtml,
+    explainEmptyHtml,
+    explainHint
+} from './calc-explain.js';
 
 const CITY_PRODUCTION = 18;
 const FAMILY_KEY = 'gathering/tool';
@@ -448,6 +463,215 @@ function profitClass(profit) {
     return '';
 }
 
+function bestExplainKey(list) {
+    let best = null;
+    for (const row of list) {
+        if (row.profit == null) {
+            continue;
+        }
+        if (best == null || row.profit > best.profit) {
+            best = row;
+        }
+    }
+    return best?.item.id ?? list[0]?.item.id ?? null;
+}
+
+function renderAvaExplain(key, { hovered } = {}) {
+    const row = rows().find((item) => item.item.id === key);
+    if (!row) {
+        return explainEmptyHtml('Satır bulunamadı.');
+    }
+
+    const bonus = productionBonus();
+    const rr = row.rr;
+    const keep = 1 - rr;
+    const matSetup = placesOrder('buy', state.matSide);
+    const tax = salesTax();
+    const sellSetup = row.quote?.setup ?? placesOrder('sell', state.itemSide);
+    const plank = matQuote(`plank-${row.item.tier}`);
+    const bar = matQuote(`bar-${row.item.tier}`);
+    const energy = matQuote('energy');
+    const plankTotal = plank ? plank.price * row.item.recipe.plank : null;
+    const barTotal = bar ? bar.price * row.item.recipe.bar : null;
+    const energyTotal = energy ? energy.price * row.item.recipe.energy : null;
+    const refined = row.parts?.refined ?? null;
+    const afterRr = refined != null ? refined * keep : null;
+    const withToken = afterRr != null && energyTotal != null ? afterRr + energyTotal : null;
+    const toolIcon = itemIconHtml(row.item.uniqueName, { className: 'item-icon calc-explain-icon' });
+    const plankIcon = itemIconHtml(plankId(row.item.tier), { className: 'item-icon calc-explain-icon' });
+    const barIcon = itemIconHtml(barId(row.item.tier), { className: 'item-icon calc-explain-icon' });
+    const energyIcon = itemIconHtml(ENERGY_ID, { className: 'item-icon calc-explain-icon' });
+    const chips = [{ label: 'şehir', value: CITY_PRODUCTION, tone: 'city', title: 'Üretim şehri taban bonusu' }];
+    if (state.bonusRate) {
+        chips.push({ label: 'bonus', value: state.bonusRate, tone: 'bonus', title: 'Günlük gathering tool bonusu' });
+    }
+
+    const matLines = [
+        explainStep({
+            icon: plankIcon,
+            label: `T${row.item.tier} Plank`,
+            note: 'Tarifteki plank adedi × birim alış',
+            formula: [
+                explainNum(row.item.recipe.plank, { kind: 'qty', cap: 'adet' }),
+                explainOp('×'),
+                explainNum(plank?.price, { tone: 'price', cap: 'birim fiyat' })
+            ],
+            result: plankTotal,
+            resultKind: 'cost',
+            resultCap: 'plank tutarı'
+        }),
+        explainStep({
+            icon: barIcon,
+            label: `T${row.item.tier} Bar`,
+            note: 'Tarifteki bar adedi × birim alış',
+            formula: [
+                explainNum(row.item.recipe.bar, { kind: 'qty', cap: 'adet' }),
+                explainOp('×'),
+                explainNum(bar?.price, { tone: 'price', cap: 'birim fiyat' })
+            ],
+            result: barTotal,
+            resultKind: 'cost',
+            resultCap: 'bar tutarı'
+        }),
+        explainStep({
+            label: 'İşlenmiş toplam',
+            note: 'Plank + bar; enerji hariç (enerji iade almaz)',
+            formula: [
+                explainNum(plankTotal, { tone: 'cost', cap: 'plank' }),
+                explainOp('+'),
+                explainNum(barTotal, { tone: 'cost', cap: 'bar' })
+            ],
+            result: refined,
+            resultKind: 'cost',
+            resultCap: 'işlenmiş'
+        }),
+        explainStep({
+            label: 'İade sonrası',
+            note: `İşlenmiş malzemenin ${formatPct(rr)}’si geri döner; ödediğin pay ${formatPct(keep)}`,
+            formula: [
+                explainNum(refined, { tone: 'cost', cap: 'işlenmiş' }),
+                explainOp('×'),
+                explainNum(keep, { kind: 'pct', tone: 'rr', cap: 'ödenen pay' })
+            ],
+            result: afterRr,
+            resultKind: 'cost',
+            resultCap: 'ödenen'
+        }),
+        explainStep({
+            icon: energyIcon,
+            label: 'Avalonian Energy',
+            note: 'Enerji token’ı return rate almaz',
+            formula: [
+                explainNum(row.item.recipe.energy, { kind: 'qty', cap: 'adet' }),
+                explainOp('×'),
+                explainNum(energy?.price, { tone: 'price', cap: 'birim fiyat' })
+            ],
+            result: energyTotal,
+            resultKind: 'cost',
+            resultCap: 'enerji'
+        }),
+        explainStep({
+            label: 'Ara toplam',
+            note: 'İade sonrası işlenmiş + enerji',
+            formula: [
+                explainNum(afterRr, { tone: 'cost', cap: 'ödenen' }),
+                explainOp('+'),
+                explainNum(energyTotal, { tone: 'cost', cap: 'enerji' })
+            ],
+            result: withToken,
+            resultKind: 'cost',
+            resultCap: 'ara toplam'
+        }),
+        matSetup
+            ? explainStep({
+                label: 'Alış komisyonu',
+                note: 'Buy emri koyunca %2,5 setup fee',
+                formula: [
+                    explainNum(withToken, { tone: 'cost', cap: 'ara toplam' }),
+                    explainOp('×'),
+                    explainNum(1 + SETUP_FEE, { kind: 'factor', tone: 'fee', cap: 'setup' })
+                ],
+                result: row.cost,
+                resultKind: 'cost',
+                resultCap: 'maliyet'
+            })
+            : explainStep({
+                label: 'Alış komisyonu',
+                note: 'Anında alış; setup fee yok',
+                result: row.cost,
+                resultKind: 'cost',
+                resultCap: 'maliyet'
+            })
+    ];
+
+    return explainPanelHtml({
+        icon: toolIcon,
+        title: `T${row.item.tier} ${row.item.label}`,
+        hint: explainHint(hovered),
+        flow: explainFlow([
+            { icon: toolIcon, label: 'Maliyet', value: row.cost, tone: 'cost' },
+            { label: 'Net satış', value: row.sell, tone: 'sell' },
+            {
+                label: row.profit < 0 ? 'Zarar' : 'Kâr',
+                value: row.profit,
+                tone: row.profit < 0 ? 'loss' : 'profit',
+                signed: true
+            }
+        ]),
+        groups: [
+            {
+                title: `İade  ${formatPct(rr)}`,
+                tone: 'rr',
+                intro: explainChips(chips),
+                lines: [
+                    explainStep({
+                        label: 'İade oranı',
+                        note: 'bonus / (100 + bonus) — yalnız plank ve bar; enerji hariç',
+                        formula: [
+                            explainNum(bonus, { kind: 'qty', tone: 'bonus', cap: 'bonus' }),
+                            explainOp('/'),
+                            explainNum(100 + bonus, { kind: 'qty', cap: 'taban' })
+                        ],
+                        result: rr,
+                        resultKind: 'rr',
+                        resultCap: 'iade'
+                    })
+                ]
+            },
+            { title: 'Malzeme maliyeti', tone: 'cost', lines: matLines },
+            {
+                title: 'Satış',
+                tone: 'sell',
+                lines: explainSaleSteps({
+                    price: row.quote?.price,
+                    tax,
+                    setup: sellSetup,
+                    sell: row.sell,
+                    label: cityLabel(state.city),
+                    icon: toolIcon
+                })
+            }
+        ],
+        footer: explainProfitFoot({
+            sell: row.sell,
+            cost: row.cost,
+            profit: row.profit,
+            pct: row.pct
+        })
+    });
+}
+
+function bindExplain(container) {
+    bindCalcExplain({
+        panel: container.querySelector('#avaExplain'),
+        table: container.querySelector('.ava-table'),
+        rowKey: (tr) => tr.dataset.itemId,
+        keys: () => rows().map((row) => row.item.id),
+        defaultKey: () => bestExplainKey(rows()),
+        render: (key, meta) => renderAvaExplain(key, meta)
+    });
+}
+
 function renderTable() {
     const body = rows().map((row) => {
         const bonusMark = state.bonusRate
@@ -526,6 +750,7 @@ function renderOutput() {
             ${renderEnergyCard()}
             ${renderTierMats()}
             ${renderTable()}
+            ${calcExplainShell('avaExplain')}
             ${renderBonusNote()}
             <p class="ava-note">Malzeme şehir ortalaması · ${escapeHtml(matNote)}. Satış ${escapeHtml(cityLabel(state.city))} · ${escapeHtml(itemNote)}. Elle yazılan alış/satış API’nin yerine geçer. Kırmızı fiyat API’de yok; hesap da kırmızı kalır.</p>
         </div>
@@ -588,6 +813,8 @@ function refreshCalc(container) {
             }
         }
     }
+
+    refreshCalcExplain(container.querySelector('#avaExplain'));
 
     MATS.forEach((mat) => {
         const card = container.querySelector(`[data-mat-card="${mat.key}"]`);
@@ -659,6 +886,7 @@ function refreshOutput(container) {
     bindAvaSort(container);
     bindPriceInputs(container);
     bindCalcSticky(container);
+    bindExplain(container);
 }
 
 function renderPage(container) {
@@ -711,6 +939,7 @@ function renderPage(container) {
     bindAvaSort(container);
     bindPriceInputs(container);
     bindCalcSticky(container);
+    bindExplain(container);
 }
 
 function bindPage(container) {

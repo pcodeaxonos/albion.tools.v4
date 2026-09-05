@@ -4,6 +4,8 @@ import { getFrequentTools } from './usage.js';
 import { getAll, getRowCount } from './db/store.js';
 import { getTableNames, getTable } from './db/schema.js';
 import { showAreaLoader, hideAreaLoader, yieldToMain } from './loader.js';
+import { todayCraftBonuses } from './craft-bonus.js';
+import { renderTodaySlotsHtml, todayWindowLabel } from './today-bonus.js';
 
 export async function renderDashboard(container) {
     container.innerHTML = `
@@ -11,6 +13,11 @@ export async function renderDashboard(container) {
             <h1>Albion Tools</h1>
             <p>Albion Online oyuncuları için market, craft ve karlılık araçları.</p>
         </section>
+
+        <a class="dashboard-today" href="daily-bonus.html">
+            <span class="dashboard-today-kicker">Bugün · ${escapeHtml(todayWindowLabel())}</span>
+            ${renderTodaySlotsHtml(todayCraftBonuses(), 'Bugün kayıt yok.')}
+        </a>
 
         <section class="dashboard-stats" aria-label="Veritabanı özeti" aria-busy="true">
             <div class="dashboard-stat">

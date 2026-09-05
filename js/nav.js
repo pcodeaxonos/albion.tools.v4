@@ -3,6 +3,7 @@ import { PAGES, getToolGroups, isNewTool } from './tools.js';
 import { recordCurrentToolVisit } from './usage.js';
 import { bootLocalDataSync } from './local-data.js';
 import { initPipelineStatus } from './pipeline-status.js';
+import { initTodayBonusChip } from './today-bonus.js';
 
 await bootLocalDataSync();
 
@@ -121,6 +122,7 @@ export function initNav() {
 
     sidebar.innerHTML = renderSidebarMarkup();
     initPipelineStatus();
+    initTodayBonusChip();
 
     const toggler = document.querySelector('.sidebar-toggler');
     const backdrop = ensureBackdrop();

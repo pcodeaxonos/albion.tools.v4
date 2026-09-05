@@ -24,6 +24,21 @@ import { SETUP_FEE, purchaseCost, saleProceeds, salesTaxRate, placesOrder } from
 import { bindCalcSticky } from './calc-sticky.js';
 import { loadCities } from './cities.js';
 import { bindLivePrices } from './price-live.js';
+import {
+    bindCalcExplain,
+    refreshCalcExplain,
+    calcExplainShell,
+    explainNum,
+    explainOp,
+    explainStep,
+    explainChips,
+    explainFlow,
+    explainSaleSteps,
+    explainProfitFoot,
+    explainPanelHtml,
+    explainEmptyHtml,
+    explainHint
+} from './calc-explain.js';
 
 const CITY_PRODUCTION = 18;
 const FAMILY_KEY = 'category/capes';
@@ -374,7 +389,7 @@ function capeRows() {
             ? perPoint(sell - capeOnly, item.points)
             : null;
 
-        return { item, outQuote, rr, cost, sell, profit, pct, pointValue };
+        return { item, outQuote, capeQuote, crestQuote, capeRaw, crestRaw, capeOnly, rr, cost, sell, profit, pct, pointValue };
     });
 }
 
@@ -426,6 +441,344 @@ function profitClass(profit) {
         return ' is-loss';
     }
     return '';
+}
+
+function bestVendorKey(list) {
+    let best = null;
+    for (const row of list) {
+        if (row.sellPoint == null) {
+            continue;
+        }
+        if (best == null || row.sellPoint > best.sellPoint) {
+            best = row;
+        }
+    }
+    return best?.item.id ?? list[0]?.item.id ?? null;
+}
+
+function bestCapeKey(list) {
+    let best = null;
+    for (const row of list) {
+        if (row.profit == null) {
+            continue;
+        }
+        if (best == null || row.profit > best.profit) {
+            best = row;
+        }
+    }
+    return best?.item.id ?? list[0]?.item.id ?? null;
+}
+
+function explainIcon(uniqueName) {
+    return itemIconHtml(uniqueName, { className: 'item-icon calc-explain-icon' });
+}
+
+function renderVendorExplain(key, { hovered } = {}) {
+    const row = vendorRows().find((item) => item.item.id === key);
+    if (!row) {
+        return explainEmptyHtml('Satır bulunamadı.');
+    }
+
+    const tax = salesTaxRate(state.premium);
+    const sellSetup = row.sellQuote?.setup ?? placesOrder('sell', state.itemSide);
+    const buySetup = row.buyQuote?.setup ?? placesOrder('buy', state.matSide);
+    const sellNet = row.sellQuote
+        ? saleProceeds(row.sellQuote.price, { premium: state.premium, setup: sellSetup })
+        : null;
+    const buyNet = row.buyQuote
+        ? purchaseCost(row.buyQuote.price, { setup: buySetup })
+        : null;
+    const itemIcon = explainIcon(row.item.uniqueName);
+
+    const buyLines = [
+        explainStep({
+            icon: itemIcon,
+            label: 'Alış fiyatı',
+            note: 'Piyasada görünen alış; komisyon henüz yok',
+            result: row.buyQuote?.price,
+            resultKind: 'price',
+            resultCap: 'alış fiyatı'
+        })
+    ];
+    if (buySetup) {
+        buyLines.push(explainStep({
+            label: 'Alış komisyonu',
+            note: 'Buy emri koyunca %2,5 setup fee',
+            formula: [
+                explainNum(row.buyQuote?.price, { tone: 'price', cap: 'alış fiyatı' }),
+                explainOp('×'),
+                explainNum(1 + SETUP_FEE, { kind: 'factor', tone: 'fee', cap: 'setup' })
+            ],
+            result: buyNet,
+            resultKind: 'cost',
+            resultCap: 'ödenen'
+        }));
+    } else {
+        buyLines.push(explainStep({
+            label: 'Alış komisyonu',
+            note: 'Anında alış; setup fee yok',
+            result: buyNet,
+            resultKind: 'cost',
+            resultCap: 'ödenen'
+        }));
+    }
+    buyLines.push(explainStep({
+        label: 'Alış / puan',
+        note: 'Bir faction puanına kaç gümüş ödüyorsun',
+        formula: [
+            explainNum(buyNet, { tone: 'cost', cap: 'ödenen' }),
+            explainOp('/'),
+            explainNum(row.item.points, { kind: 'qty', cap: 'puan' })
+        ],
+        result: row.buyPoint,
+        resultKind: 'cost',
+        resultCap: 'gümüş / puan'
+    }));
+
+    return explainPanelHtml({
+        icon: itemIcon,
+        title: itemLabel(row.item.uniqueName, row.item.label),
+        hint: explainHint(hovered),
+        flow: explainFlow([
+            { icon: itemIcon, label: 'Satış / puan', value: row.sellPoint, tone: 'sell' },
+            { label: 'Alış / puan', value: row.buyPoint, tone: 'cost' }
+        ]),
+        groups: [
+            {
+                title: 'Satış / puan',
+                tone: 'sell',
+                lines: [
+                    explainStep({
+                        label: 'Faction puanı',
+                        note: 'Vendor’dan almak için gereken puan',
+                        result: row.item.points,
+                        resultKind: 'qty',
+                        resultCap: 'puan'
+                    }),
+                    ...explainSaleSteps({
+                        price: row.sellQuote?.price,
+                        tax,
+                        setup: sellSetup,
+                        sell: sellNet,
+                        label: 'Satış fiyatı',
+                        icon: itemIcon
+                    }),
+                    explainStep({
+                        label: 'Satış / puan',
+                        note: 'Bir faction puanına kaç gümüş kalıyor',
+                        formula: [
+                            explainNum(sellNet, { tone: 'sell', cap: 'net satış' }),
+                            explainOp('/'),
+                            explainNum(row.item.points, { kind: 'qty', cap: 'puan' })
+                        ],
+                        result: row.sellPoint,
+                        resultKind: 'sell',
+                        resultCap: 'gümüş / puan'
+                    })
+                ]
+            },
+            { title: 'Alış / puan', tone: 'buy', lines: buyLines }
+        ]
+    });
+}
+
+function renderCapeExplain(key, { hovered } = {}) {
+    const row = capeRows().find((item) => item.item.id === key);
+    if (!row) {
+        return explainEmptyHtml('Satır bulunamadı.');
+    }
+
+    const bonus = productionBonus();
+    const rr = row.rr;
+    const keep = 1 - rr;
+    const matSetup = placesOrder('buy', state.matSide);
+    const tax = salesTaxRate(state.premium);
+    const sellSetup = row.outQuote?.setup ?? placesOrder('sell', state.itemSide);
+    const combined = row.capeRaw != null && row.crestRaw != null ? row.capeRaw + row.crestRaw : null;
+    const capeIcon = explainIcon(row.item.capeMat);
+    const crestIcon = explainIcon(row.item.crest);
+    const outIcon = explainIcon(row.item.uniqueName);
+    const chips = [{
+        label: 'şehir',
+        value: CITY_PRODUCTION,
+        tone: 'city',
+        title: 'Üretim şehri taban bonusu'
+    }];
+    if (state.bonusRate) {
+        chips.push({
+            label: 'bonus',
+            value: state.bonusRate,
+            tone: 'bonus',
+            title: 'Günlük cape craft bonusu'
+        });
+    }
+
+    const matLines = [
+        explainStep({
+            icon: capeIcon,
+            label: 'Düz cape',
+            note: 'Crest takılmadan önceki cape alış fiyatı',
+            result: row.capeQuote?.price,
+            resultKind: 'price',
+            resultCap: 'cape fiyatı'
+        }),
+        explainStep({
+            label: 'İade sonrası cape',
+            note: `Yalnız düz cape iade alır (${formatPct(rr)}); ödediğin pay ${formatPct(keep)}`,
+            formula: [
+                explainNum(row.capeQuote?.price, { tone: 'price', cap: 'cape fiyatı' }),
+                explainOp('×'),
+                explainNum(keep, { kind: 'pct', tone: 'rr', cap: 'ödenen pay' })
+            ],
+            result: row.capeRaw,
+            resultKind: 'cost',
+            resultCap: 'ödenen cape'
+        }),
+        explainStep({
+            icon: crestIcon,
+            label: 'Crest',
+            note: 'Crest return rate almaz',
+            result: row.crestQuote?.price,
+            resultKind: 'price',
+            resultCap: 'crest fiyatı'
+        }),
+        explainStep({
+            label: 'Ham toplam',
+            note: 'İade sonrası cape + crest',
+            formula: [
+                explainNum(row.capeRaw, { tone: 'cost', cap: 'ödenen cape' }),
+                explainOp('+'),
+                explainNum(row.crestRaw, { tone: 'price', cap: 'crest' })
+            ],
+            result: combined,
+            resultKind: 'cost',
+            resultCap: 'ham toplam'
+        }),
+        matSetup
+            ? explainStep({
+                label: 'Alış komisyonu',
+                note: 'Buy emri koyunca toplamın %2,5’i setup fee',
+                formula: [
+                    explainNum(combined, { tone: 'cost', cap: 'ham toplam' }),
+                    explainOp('×'),
+                    explainNum(1 + SETUP_FEE, { kind: 'factor', tone: 'fee', cap: 'setup' })
+                ],
+                result: row.cost,
+                resultKind: 'cost',
+                resultCap: 'maliyet'
+            })
+            : explainStep({
+                label: 'Alış komisyonu',
+                note: 'Anında alış; setup fee yok',
+                result: row.cost,
+                resultKind: 'cost',
+                resultCap: 'maliyet'
+            })
+    ];
+
+    return explainPanelHtml({
+        icon: outIcon,
+        title: row.item.label,
+        hint: explainHint(hovered),
+        flow: explainFlow([
+            { icon: outIcon, label: 'Maliyet', value: row.cost, tone: 'cost' },
+            { label: 'Net satış', value: row.sell, tone: 'sell' },
+            {
+                label: row.profit < 0 ? 'Zarar' : 'Kâr',
+                value: row.profit,
+                tone: row.profit < 0 ? 'loss' : 'profit',
+                signed: true
+            }
+        ]),
+        groups: [
+            {
+                title: `İade  ${formatPct(rr)}  ·  yalnız düz cape`,
+                tone: 'rr',
+                intro: explainChips(chips),
+                lines: [
+                    explainStep({
+                        label: 'İade oranı',
+                        note: 'bonus / (100 + bonus) — yalnız düz cape; crest hariç',
+                        formula: [
+                            explainNum(bonus, { kind: 'qty', tone: 'bonus', cap: 'bonus' }),
+                            explainOp('/'),
+                            explainNum(100 + bonus, { kind: 'qty', cap: 'taban' })
+                        ],
+                        result: rr,
+                        resultKind: 'rr',
+                        resultCap: 'iade'
+                    })
+                ]
+            },
+            { title: 'Craft maliyeti', tone: 'cost', lines: matLines },
+            {
+                title: 'Satış',
+                tone: 'sell',
+                lines: explainSaleSteps({
+                    price: row.outQuote?.price,
+                    tax,
+                    setup: sellSetup,
+                    sell: row.sell,
+                    label: cityLabel(state.city),
+                    icon: outIcon
+                })
+            },
+            {
+                title: 'Crest puan değeri',
+                tone: 'point',
+                lines: [
+                    explainStep({
+                        icon: capeIcon,
+                        label: 'Düz cape maliyeti',
+                        note: 'İade ve alış komisyonu sonrası, crest hariç',
+                        result: row.capeOnly,
+                        resultKind: 'cost',
+                        resultCap: 'cape maliyeti'
+                    }),
+                    explainStep({
+                        icon: crestIcon,
+                        label: 'Crest / puan',
+                        note: '(net satış − cape maliyeti) ÷ faction puanı',
+                        formula: [
+                            explainNum(row.sell, { tone: 'sell', cap: 'net satış' }),
+                            explainOp('−'),
+                            explainNum(row.capeOnly, { tone: 'cost', cap: 'cape maliyeti' }),
+                            explainOp('/'),
+                            explainNum(row.item.points, { kind: 'qty', cap: 'puan' })
+                        ],
+                        result: row.pointValue,
+                        resultKind: 'sell',
+                        resultCap: 'gümüş / puan'
+                    })
+                ]
+            }
+        ],
+        footer: explainProfitFoot({
+            sell: row.sell,
+            cost: row.cost,
+            profit: row.profit,
+            pct: row.pct
+        })
+    });
+}
+
+function bindExplain(container) {
+    bindCalcExplain({
+        panel: container.querySelector('#factionVendorExplain'),
+        table: container.querySelector('[data-faction-table="vendor"]'),
+        rowKey: (tr) => tr.dataset.vendorId,
+        keys: () => vendorRows().map((row) => row.item.id),
+        defaultKey: () => bestVendorKey(vendorRows()),
+        render: (key, meta) => renderVendorExplain(key, meta)
+    });
+    bindCalcExplain({
+        panel: container.querySelector('#factionCapeExplain'),
+        table: container.querySelector('[data-faction-table="cape"]'),
+        rowKey: (tr) => tr.dataset.capeId,
+        keys: () => capeRows().map((row) => row.item.id),
+        defaultKey: () => bestCapeKey(capeRows()),
+        render: (key, meta) => renderCapeExplain(key, meta)
+    });
 }
 
 function renderCapeMats() {
@@ -600,12 +953,14 @@ function renderOutput() {
             <section class="faction-section">
                 <h2>Puan değeri</h2>
                 ${renderVendorTable()}
+                ${calcExplainShell('factionVendorExplain')}
             </section>
 
             <section class="faction-section">
                 <h2>Faction cape</h2>
                 ${renderCapeMats()}
                 ${renderCapeTable()}
+                ${calcExplainShell('factionCapeExplain')}
             </section>
 
             ${renderBonusNote()}
@@ -715,6 +1070,8 @@ function refreshCalc(container) {
             });
         }
     });
+    refreshCalcExplain(container.querySelector('#factionVendorExplain'));
+    refreshCalcExplain(container.querySelector('#factionCapeExplain'));
 }
 
 function bindPriceInputs(container) {
@@ -756,6 +1113,7 @@ function refreshOutput(container) {
     bindFactionSort(container);
     bindPriceInputs(container);
     bindCalcSticky(container);
+    bindExplain(container);
 }
 
 function renderPage(container) {
@@ -808,6 +1166,7 @@ function renderPage(container) {
     bindFactionSort(container);
     bindPriceInputs(container);
     bindCalcSticky(container);
+    bindExplain(container);
 }
 
 function bindPage(container) {

@@ -7,7 +7,7 @@ import { defaultCraftBonusRate, normalizeCraftBonusRate, todayCraftBonuses, craf
 import { getSettings } from './settings.js';
 import { fetchPrices, indexPrices, cityRow, priceRefreshActionsHtml, bindPriceRefresh, priceLoaderMessage, applyPriceLoadMode } from './market.js';
 import { itemIconHtml, itemLabel } from './item-icon.js';
-import { showPageLoader, hidePageLoader } from './loader.js';
+import { showPageLoader, hidePageLoader, showAreaLoader, hideAreaLoader } from './loader.js';
 import { initFloatingLabels } from './forms.js';
 import { initTableSort, parseSortNumber, sortHeaderHtml } from './table-sort.js';
 import {
@@ -23,7 +23,23 @@ import {
 import { SETUP_FEE, purchaseCost, saleProceeds, salesTaxRate, placesOrder, feeMetaText } from './market-fees.js';
 import { bindCalcSticky } from './calc-sticky.js';
 import { loadActiveCities } from './cities.js';
+import { bonusCityApiName } from './bonus-cities.js';
 import { bindLivePrices } from './price-live.js';
+import {
+    bindCalcExplain,
+    refreshCalcExplain,
+    calcExplainShell,
+    explainNum,
+    explainOp,
+    explainStep,
+    explainChips,
+    explainFlow,
+    explainSaleSteps,
+    explainProfitFoot,
+    explainPanelHtml,
+    explainEmptyHtml,
+    explainHint
+} from './calc-explain.js';
 
 const CITY_PRODUCTION = 18;
 const CITY_RESOURCE = 40;
@@ -34,11 +50,11 @@ const RAW_QTY = { 2: 1, 3: 2, 4: 2, 5: 3, 6: 4, 7: 5, 8: 5 };
 const LOWER_QTY = { 2: 0, 3: 1, 4: 1, 5: 1, 6: 1, 7: 1, 8: 1 };
 
 const FAMILIES = [
-    { id: 'ore', label: 'Ore', hamWord: 'ore', outWord: 'Bar', raw: 'ORE', out: 'METALBAR', bonusKey: 'resources/ore', city: 'Martlock' },
-    { id: 'wood', label: 'Wood', hamWord: 'odun', outWord: 'Plank', raw: 'WOOD', out: 'PLANKS', bonusKey: 'resources/wood', city: 'Fort Sterling' },
-    { id: 'hide', label: 'Hide', hamWord: 'hide', outWord: 'Leather', raw: 'HIDE', out: 'LEATHER', bonusKey: 'resources/hide', city: 'Lymhurst' },
-    { id: 'fiber', label: 'Fiber', hamWord: 'fiber', outWord: 'Cloth', raw: 'FIBER', out: 'CLOTH', bonusKey: 'resources/fiber', city: 'Thetford' },
-    { id: 'stone', label: 'Stone', hamWord: 'taş', outWord: 'Block', raw: 'ROCK', out: 'STONEBLOCK', bonusKey: 'resources/rock', city: 'Bridgewatch' }
+    { id: 'ore', label: 'Ore', hamWord: 'ore', outWord: 'Bar', raw: 'ORE', out: 'METALBAR', bonusKey: 'resources/ore' },
+    { id: 'wood', label: 'Wood', hamWord: 'odun', outWord: 'Plank', raw: 'WOOD', out: 'PLANKS', bonusKey: 'resources/wood' },
+    { id: 'hide', label: 'Hide', hamWord: 'hide', outWord: 'Leather', raw: 'HIDE', out: 'LEATHER', bonusKey: 'resources/hide' },
+    { id: 'fiber', label: 'Fiber', hamWord: 'fiber', outWord: 'Cloth', raw: 'FIBER', out: 'CLOTH', bonusKey: 'resources/fiber' },
+    { id: 'stone', label: 'Stone', hamWord: 'taş', outWord: 'Block', raw: 'ROCK', out: 'STONEBLOCK', bonusKey: 'resources/rock' }
 ];
 
 const state = {
@@ -65,6 +81,10 @@ const state = {
 
 function currentFamily() {
     return FAMILIES.find((family) => family.id === state.family) ?? FAMILIES[0];
+}
+
+function familyCity(family = currentFamily()) {
+    return bonusCityApiName(family.bonusKey);
 }
 
 function resourceId(stem, tier, enchant) {
@@ -153,7 +173,7 @@ function cityLabel(apiName) {
 }
 
 function hasCityBonus() {
-    return state.refineCity === currentFamily().city;
+    return state.refineCity === familyCity();
 }
 
 function productionBonus() {
@@ -234,7 +254,7 @@ function readPrefs(cities) {
     try {
         const raw = localStorage.getItem(PREFS_STORAGE_KEY);
         if (!raw) {
-            return;
+            return false;
         }
         const parsed = JSON.parse(raw);
         if (FAMILIES.some((family) => family.id === parsed.family)) {
@@ -251,13 +271,13 @@ function readPrefs(cities) {
         const pick = (value, fallback) => (
             cities.some((city) => city.marketApiName === value) ? value : fallback
         );
-        const specialty = cities.find((city) => city.marketApiName === currentFamily().city);
-        const fallback = specialty?.marketApiName ?? cities[0]?.marketApiName ?? 'Martlock';
+        const fallback = specialtyCityName(cities);
         state.buyCity = pick(parsed.buyCity, fallback);
-        state.refineCity = pick(parsed.refineCity, state.buyCity);
+        state.refineCity = pick(parsed.refineCity, fallback);
         state.sellCity = pick(parsed.sellCity, state.buyCity);
+        return true;
     } catch {
-        /* ignore */
+        return false;
     }
 }
 
@@ -277,17 +297,34 @@ function savePrefs() {
     }
 }
 
-function applyFamilyCityDefaults(cities) {
-    const specialty = cities.find((city) => city.marketApiName === currentFamily().city);
-    const fallback = specialty?.marketApiName ?? cities[0]?.marketApiName ?? 'Martlock';
+function specialtyCityName(cities) {
+    const specialty = cities.find((city) => city.marketApiName === familyCity());
+    return specialty?.marketApiName ?? cities[0]?.marketApiName ?? 'Martlock';
+}
+
+function applyFamilyCityDefaults(cities, { preferSpecialty = false } = {}) {
+    const fallback = specialtyCityName(cities);
+    if (preferSpecialty) {
+        state.buyCity = fallback;
+        state.refineCity = fallback;
+        state.sellCity = fallback;
+        return;
+    }
     if (!cities.some((city) => city.marketApiName === state.buyCity)) {
         state.buyCity = fallback;
     }
     if (!cities.some((city) => city.marketApiName === state.refineCity)) {
-        state.refineCity = state.buyCity;
+        state.refineCity = fallback;
     }
     if (!cities.some((city) => city.marketApiName === state.sellCity)) {
         state.sellCity = state.buyCity;
+    }
+}
+
+function applyRefineCityForFamily(cities) {
+    const specialty = specialtyCityName(cities);
+    if (cities.some((city) => city.marketApiName === specialty)) {
+        state.refineCity = specialty;
     }
 }
 
@@ -400,6 +437,267 @@ function profitClass(profit) {
     return '';
 }
 
+function chainNodes(tier, enchant) {
+    const nodes = [];
+    let currentTier = tier;
+    let currentEnchant = enchant;
+    while (true) {
+        nodes.push({ tier: currentTier, enchant: currentEnchant, bought: false });
+        const lower = lowerSpec(currentTier, currentEnchant);
+        if (!lower || LOWER_QTY[currentTier] === 0) {
+            break;
+        }
+        if (state.chain !== 'full') {
+            nodes.push({ tier: lower.tier, enchant: lower.enchant, bought: true });
+            break;
+        }
+        currentTier = lower.tier;
+        currentEnchant = lower.enchant;
+    }
+    return nodes;
+}
+
+function explainIcon(uniqueName) {
+    return itemIconHtml(uniqueName, { className: 'item-icon calc-explain-icon' });
+}
+
+function explainChainLines(row) {
+    const family = currentFamily();
+    const rr = row.rr;
+    const keep = 1 - rr;
+    const cache = new Map();
+    const lines = [];
+
+    for (const node of [...chainNodes(row.tier, row.enchant)].reverse()) {
+        if (node.bought) {
+            const id = resourceId(family.out, node.tier, node.enchant);
+            const quote = quoteLower(id);
+            const net = quote ? purchaseCost(quote.price, { setup: quote.setup }) : null;
+            lines.push(explainStep({
+                icon: explainIcon(id),
+                label: `Alt ${itemDisplayName(id, node.enchant)}`,
+                note: 'Bu kademeyi piyasadan alıyorsun; burada işlemiyorsun',
+                formula: quote?.setup
+                    ? [
+                        explainNum(quote?.price, { tone: 'price', cap: 'birim fiyat' }),
+                        explainOp('×'),
+                        explainNum(1 + SETUP_FEE, { kind: 'factor', tone: 'fee', cap: 'setup' })
+                    ]
+                    : [explainNum(quote?.price, { tone: 'price', cap: 'birim fiyat' })],
+                result: net,
+                resultKind: 'cost',
+                resultCap: 'alt maliyet'
+            }));
+            continue;
+        }
+
+        const outId = resourceId(family.out, node.tier, node.enchant);
+        const rawId = resourceId(family.raw, node.tier, node.enchant);
+        const rawQuote = quoteRaw(rawId);
+        const hamNet = rawQuote ? purchaseCost(rawQuote.price, { setup: rawQuote.setup }) : null;
+        const rawQty = RAW_QTY[node.tier];
+        const lowerQty = LOWER_QTY[node.tier];
+        const hamBook = rawQuote ? rawQty * rawQuote.price : null;
+        const hamWithFee = hamNet != null ? rawQty * hamNet : null;
+        const hamPart = hamNet != null ? rawQty * hamNet * keep : null;
+        const cost = computeCost(node.tier, node.enchant, cache);
+        const lower = lowerSpec(node.tier, node.enchant);
+        let altNet = 0;
+        if (lowerQty > 0 && lower) {
+            if (state.chain === 'full') {
+                altNet = computeCost(lower.tier, lower.enchant, cache);
+            } else {
+                const lowerId = resourceId(family.out, lower.tier, lower.enchant);
+                const lowerQuote = quoteLower(lowerId);
+                altNet = lowerQuote ? purchaseCost(lowerQuote.price, { setup: lowerQuote.setup }) : null;
+            }
+        }
+
+        lines.push(explainStep({
+            icon: explainIcon(rawId),
+            label: `T${node.tier} ${family.hamWord}`,
+            note: 'Tarifteki ham madde adedi × birim alış',
+            formula: [
+                explainNum(rawQty, { kind: 'qty', cap: 'adet' }),
+                explainOp('×'),
+                explainNum(rawQuote?.price, { tone: 'price', cap: 'birim fiyat' })
+            ],
+            result: hamBook,
+            resultKind: 'cost',
+            resultCap: 'ham tutarı'
+        }));
+        if (rawQuote?.setup) {
+            lines.push(explainStep({
+                label: 'Alış komisyonu',
+                note: 'Buy emri koyunca %2,5 setup fee',
+                formula: [
+                    explainNum(hamBook, { tone: 'cost', cap: 'ham tutarı' }),
+                    explainOp('×'),
+                    explainNum(1 + SETUP_FEE, { kind: 'factor', tone: 'fee', cap: 'setup' })
+                ],
+                result: hamWithFee,
+                resultKind: 'cost',
+                resultCap: 'ham + setup'
+            }));
+        }
+        lines.push(explainStep({
+            label: 'İade sonrası',
+            note: `Ham maddenin ${formatPct(rr)}’si istasyona geri döner; ödediğin pay ${formatPct(keep)}`,
+            formula: [
+                explainNum(hamWithFee ?? hamBook, {
+                    tone: 'cost',
+                    cap: rawQuote?.setup ? 'ham + setup' : 'ham tutarı'
+                }),
+                explainOp('×'),
+                explainNum(keep, { kind: 'pct', tone: 'rr', cap: 'ödenen pay' })
+            ],
+            result: hamPart,
+            resultKind: 'cost',
+            resultCap: 'ödenen ham'
+        }));
+        if (lowerQty > 0) {
+            lines.push(explainStep({
+                icon: explainIcon(outId),
+                label: itemDisplayName(outId, node.enchant),
+                note: 'Ödenen ham + alt kademe maliyeti',
+                formula: [
+                    explainNum(hamPart, { tone: 'cost', cap: 'ödenen ham' }),
+                    explainOp('+'),
+                    explainNum(lowerQty, { kind: 'qty', cap: 'alt adet' }),
+                    explainOp('×'),
+                    explainNum(altNet, { tone: 'cost', cap: 'alt birim' })
+                ],
+                result: cost,
+                resultKind: 'cost',
+                resultCap: 'maliyet'
+            }));
+        } else {
+            lines.push(explainStep({
+                icon: explainIcon(outId),
+                label: itemDisplayName(outId, node.enchant),
+                note: 'Alt kademe yok; maliyet yalnız ham madde',
+                result: cost,
+                resultKind: 'cost',
+                resultCap: 'maliyet'
+            }));
+        }
+    }
+
+    return lines;
+}
+
+function renderRefiningExplain(key, { hovered } = {}) {
+    const row = rows().find((item) => item.id === key);
+    if (!row) {
+        return explainEmptyHtml('Satır bulunamadı.');
+    }
+
+    const bonus = productionBonus();
+    const rr = row.rr;
+    const tax = salesTaxRate(state.premium);
+    const sellSetup = row.outQuote?.setup ?? placesOrder('sell', state.itemSide);
+    const outIcon = explainIcon(row.outId);
+    const chips = [{
+        label: 'şehir',
+        value: CITY_PRODUCTION,
+        tone: 'city',
+        title: 'Her şehir istasyonunda taban üretim bonusu'
+    }];
+    if (hasCityBonus()) {
+        chips.push({
+            label: 'uzman',
+            value: CITY_RESOURCE,
+            tone: 'spec',
+            title: `Bu hammadde ${cityLabel(familyCity())} uzmanı; işle şehri orasıysa +40`
+        });
+    }
+    if (state.bonusRate) {
+        chips.push({
+            label: 'bonus',
+            value: state.bonusRate,
+            tone: 'bonus',
+            title: 'Günlük craft / refine bonusu'
+        });
+    }
+    if (state.focus) {
+        chips.push({
+            label: 'focus',
+            value: FOCUS_PRODUCTION,
+            tone: 'focus',
+            title: 'Focus kullanınca ek üretim bonusu'
+        });
+    }
+
+    const chainTitle = state.chain === 'full' ? 'Maliyet · tam zincir' : 'Maliyet · alt kademe piyasadan';
+
+    return explainPanelHtml({
+        icon: outIcon,
+        title: itemDisplayName(row.outId, row.enchant),
+        hint: explainHint(hovered),
+        flow: explainFlow([
+            { icon: outIcon, label: 'Maliyet', value: row.cost, tone: 'cost' },
+            { label: 'Net satış', value: row.sell, tone: 'sell' },
+            {
+                label: row.profit < 0 ? 'Zarar' : 'Kâr',
+                value: row.profit,
+                tone: row.profit < 0 ? 'loss' : 'profit',
+                signed: true
+            }
+        ]),
+        groups: [
+            {
+                title: `İade  ${formatPct(rr)}`,
+                tone: 'rr',
+                intro: explainChips(chips),
+                lines: [
+                    explainStep({
+                        label: 'İade oranı',
+                        note: 'bonus / (100 + bonus) — istasyona geri gelen ham madde payı',
+                        formula: [
+                            explainNum(bonus, { kind: 'qty', tone: 'bonus', cap: 'bonus' }),
+                            explainOp('/'),
+                            explainNum(100 + bonus, { kind: 'qty', cap: 'taban' })
+                        ],
+                        result: rr,
+                        resultKind: 'rr',
+                        resultCap: 'iade'
+                    })
+                ]
+            },
+            { title: chainTitle, tone: 'cost', lines: explainChainLines(row) },
+            {
+                title: 'Satış',
+                tone: 'sell',
+                lines: explainSaleSteps({
+                    price: row.outQuote?.price,
+                    tax,
+                    setup: sellSetup,
+                    sell: row.sell,
+                    label: cityLabel(state.sellCity),
+                    icon: outIcon
+                })
+            }
+        ],
+        footer: explainProfitFoot({
+            sell: row.sell,
+            cost: row.cost,
+            profit: row.profit,
+            pct: row.pct
+        })
+    });
+}
+
+function bindExplain(container) {
+    bindCalcExplain({
+        panel: container.querySelector('#refiningExplain'),
+        table: container.querySelector('.farming-table'),
+        rowKey: (tr) => tr.dataset.itemId,
+        keys: () => rows().map((row) => row.id),
+        defaultKey: () => bestRow(rows())?.id ?? rows()[0]?.id ?? null,
+        render: (key, meta) => renderRefiningExplain(key, meta)
+    });
+}
+
 function priceFieldHtml({ id, label, value, manual, missing, dataAttr }) {
     const filled = String(value ?? '').length > 0 ? ' is-filled' : '';
     const title = priceFieldTitle({ manual, missing });
@@ -430,7 +728,7 @@ function renderCityOptions(selected) {
     const family = currentFamily();
     return state.cities.map((city) => {
         const isSelected = city.marketApiName === selected ? ' selected' : '';
-        const bonus = city.marketApiName === family.city ? ' · +40' : '';
+        const bonus = city.marketApiName === familyCity(family) ? ' · +40' : '';
         return `<option value="${escapeHtml(city.marketApiName)}"${isSelected}>${escapeHtml(city.displayName)}${bonus}</option>`;
     }).join('');
 }
@@ -590,6 +888,7 @@ function renderOutput() {
     return `
         <div id="refiningResult">
             ${renderTable(list)}
+            ${calcExplainShell('refiningExplain')}
             ${renderSummary(list)}
             ${renderScenario()}
             ${renderBonusNote()}
@@ -686,6 +985,7 @@ function renderPage(container) {
     bindRefiningSort(container);
     bindPriceInputs(container);
     bindCalcSticky(container);
+    bindExplain(container);
 }
 
 function bindRefiningSort(container) {
@@ -770,6 +1070,8 @@ function refreshCalc(container) {
             summary.replaceWith(next);
         }
     }
+
+    refreshCalcExplain(container.querySelector('#refiningExplain'));
 }
 
 function bindPriceInputs(container) {
@@ -815,6 +1117,50 @@ function bindPriceInputs(container) {
     container.querySelectorAll('[data-out-id]').forEach((input) => bindField(input, 'out'));
 }
 
+function syncToggleGroup(container, attr, selected) {
+    const value = String(selected);
+    container.querySelectorAll(`[${attr}]`).forEach((button) => {
+        const pressed = button.getAttribute(attr) === value;
+        button.classList.toggle('is-active', pressed);
+        button.setAttribute('aria-pressed', pressed ? 'true' : 'false');
+    });
+}
+
+function syncCitySelects(container) {
+    const selected = {
+        refiningBuyCity: state.buyCity,
+        refiningRefineCity: state.refineCity,
+        refiningSellCity: state.sellCity
+    };
+    for (const [id, value] of Object.entries(selected)) {
+        const select = container.querySelector(`#${id}`);
+        if (select) {
+            select.innerHTML = renderCityOptions(value);
+        }
+    }
+}
+
+function applyControls(container) {
+    syncToggleGroup(container, 'data-family', state.family);
+    syncToggleGroup(container, 'data-enchant', state.enchant);
+    syncToggleGroup(container, 'data-chain', state.chain);
+    syncToggleGroup(container, 'data-focus', state.focus ? '1' : '0');
+    syncToggleGroup(container, 'data-premium', state.premium ? '1' : '0');
+    syncToggleGroup(container, 'data-bonus-rate', state.bonusRate);
+    container.querySelectorAll('[data-price-for]').forEach((button) => {
+        const current = button.dataset.priceFor === 'item' ? state.itemSide : state.rawSide;
+        const pressed = button.dataset.priceSide === current;
+        button.classList.toggle('is-active', pressed);
+        button.setAttribute('aria-pressed', pressed ? 'true' : 'false');
+    });
+    syncCitySelects(container);
+}
+
+function refreshView(container) {
+    applyControls(container);
+    refreshOutput(container);
+}
+
 function bindCitySelect(container, id, assign) {
     container.querySelector(id)?.addEventListener('change', (event) => {
         const value = event.target.value;
@@ -823,7 +1169,7 @@ function bindCitySelect(container, id, assign) {
         }
         assign(value);
         savePrefs();
-        renderPage(container);
+        refreshView(container);
     });
 }
 
@@ -831,52 +1177,75 @@ function bindPage(container) {
     container.querySelectorAll('[data-family]').forEach((button) => {
         button.addEventListener('click', () => {
             const next = FAMILIES.find((family) => family.id === button.dataset.family);
-            if (!next) {
+            if (!next || next.id === state.family) {
                 return;
             }
             state.family = next.id;
+            if (getSettings().refineFollowSpecialty) {
+                applyRefineCityForFamily(state.cities);
+            }
             state.bonusRate = defaultCraftBonusRate([next.bonusKey]);
             savePrefs();
-            renderPage(container);
-            loadPrices(container);
+            applyControls(container);
+            loadPrices(container, { showLoader: false, areaLoader: true });
         });
     });
 
     container.querySelectorAll('[data-enchant]').forEach((button) => {
         button.addEventListener('click', () => {
-            state.enchant = Number(button.dataset.enchant) || 0;
+            const enchant = Number(button.dataset.enchant) || 0;
+            if (enchant === state.enchant) {
+                return;
+            }
+            state.enchant = enchant;
             savePrefs();
-            renderPage(container);
+            refreshView(container);
         });
     });
 
     container.querySelectorAll('[data-chain]').forEach((button) => {
         button.addEventListener('click', () => {
-            state.chain = button.dataset.chain === 'full' ? 'full' : 'market';
+            const chain = button.dataset.chain === 'full' ? 'full' : 'market';
+            if (chain === state.chain) {
+                return;
+            }
+            state.chain = chain;
             savePrefs();
-            renderPage(container);
+            refreshView(container);
         });
     });
 
     container.querySelectorAll('[data-focus]').forEach((button) => {
         button.addEventListener('click', () => {
-            state.focus = button.dataset.focus === '1';
+            const focus = button.dataset.focus === '1';
+            if (focus === state.focus) {
+                return;
+            }
+            state.focus = focus;
             savePrefs();
-            renderPage(container);
+            refreshView(container);
         });
     });
 
     container.querySelectorAll('[data-premium]').forEach((button) => {
         button.addEventListener('click', () => {
-            state.premium = button.dataset.premium === '1';
-            renderPage(container);
+            const premium = button.dataset.premium === '1';
+            if (premium === state.premium) {
+                return;
+            }
+            state.premium = premium;
+            refreshView(container);
         });
     });
 
     container.querySelectorAll('[data-bonus-rate]').forEach((button) => {
         button.addEventListener('click', () => {
-            state.bonusRate = normalizeCraftBonusRate(button.dataset.bonusRate);
-            renderPage(container);
+            const rate = normalizeCraftBonusRate(button.dataset.bonusRate);
+            if (rate === state.bonusRate) {
+                return;
+            }
+            state.bonusRate = rate;
+            refreshView(container);
         });
     });
 
@@ -884,11 +1253,17 @@ function bindPage(container) {
         button.addEventListener('click', () => {
             const side = button.dataset.priceSide === 'sell' ? 'sell' : 'buy';
             if (button.dataset.priceFor === 'item') {
+                if (state.itemSide === side) {
+                    return;
+                }
                 state.itemSide = side;
             } else {
+                if (state.rawSide === side) {
+                    return;
+                }
                 state.rawSide = side;
             }
-            renderPage(container);
+            refreshView(container);
         });
     });
 
@@ -920,13 +1295,17 @@ function refreshOutput(container) {
     bindRefiningSort(container);
     bindPriceInputs(container);
     bindCalcSticky(container);
+    bindExplain(container);
 }
 
-async function loadPrices(container, { showLoader = true, source } = {}) {
+async function loadPrices(container, { showLoader = true, source, areaLoader = false } = {}) {
     applyPriceLoadMode(state, { source, showLoader });
     state.error = null;
+    const area = areaLoader ? container.querySelector('.tool-split-result') : null;
     if (showLoader) {
         showPageLoader(priceLoaderMessage(source, 'Şehir fiyatları alınıyor…'));
+    } else if (area) {
+        showAreaLoader(area, priceLoaderMessage(source, 'Şehir fiyatları alınıyor…'));
     }
 
     try {
@@ -944,6 +1323,9 @@ async function loadPrices(container, { showLoader = true, source } = {}) {
     } finally {
         if (showLoader) {
             hidePageLoader();
+        }
+        if (area) {
+            hideAreaLoader(area);
         }
         if (container.querySelector('#refiningResult')) {
             refreshOutput(container);
@@ -969,8 +1351,8 @@ async function init() {
     try {
         await initStore();
         state.cities = loadActiveCities();
-        readPrefs(state.cities);
-        applyFamilyCityDefaults(state.cities);
+        const hadPrefs = readPrefs(state.cities);
+        applyFamilyCityDefaults(state.cities, { preferSpecialty: !hadPrefs });
         state.bonusRate = defaultCraftBonusRate([currentFamily().bonusKey]);
         renderPage(container);
         await loadPrices(container, { showLoader: false });

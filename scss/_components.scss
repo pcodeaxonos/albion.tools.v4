@@ -688,10 +688,11 @@ input[type="month"].form-control {
     }
 
     .table-sort-btn {
-        display: inline-flex;
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
         align-items: center;
         justify-content: flex-start;
-        gap: 0.35rem;
+        column-gap: 0.35rem;
         width: 100%;
         margin: 0;
         padding: 0;
@@ -734,8 +735,11 @@ input[type="month"].form-control {
 
     th.num .table-sort-btn,
     th.text-end .table-sort-btn,
-    th.carleon-num .table-sort-btn {
-        justify-content: flex-end;
+    th.carleon-num .table-sort-btn,
+    th.farming-num .table-sort-btn,
+    th.ava-num .table-sort-btn,
+    th.enchant-num .table-sort-btn {
+        text-align: right;
     }
 
     tbody tr {
