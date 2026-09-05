@@ -66,11 +66,13 @@ export function bindCalcSticky(root, toolbar = root?.querySelector('[data-calc-t
         pinObservers.splice(0).forEach((observer) => observer.disconnect());
 
         const navbarHeight = readPx(document.documentElement, '--navbar-height');
+        const statusHeight = readPx(document.documentElement, '--status-bar-height');
+        const chromeTop = navbarHeight + statusHeight;
         let toolbarHeight = 0;
 
         if (toolbar) {
             const toolbarSentinel = ensureSentinel(toolbar, 'data-calc-toolbar-sentinel');
-            pinObservers.push(observePinned(toolbarSentinel, toolbar, scrollRoot, navbarHeight));
+            pinObservers.push(observePinned(toolbarSentinel, toolbar, scrollRoot, chromeTop));
             toolbarHeight = Math.ceil(toolbar.getBoundingClientRect().height);
         }
 
@@ -78,7 +80,7 @@ export function bindCalcSticky(root, toolbar = root?.querySelector('[data-calc-t
 
         root.querySelectorAll('.calc-table').forEach((table) => {
             const sentinel = ensureSentinel(table, 'data-calc-thead-sentinel');
-            pinObservers.push(observePinned(sentinel, table, scrollRoot, navbarHeight + toolbarHeight));
+            pinObservers.push(observePinned(sentinel, table, scrollRoot, chromeTop + toolbarHeight));
         });
     };
 

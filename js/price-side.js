@@ -58,6 +58,73 @@ export function priceSideHint(side, intent) {
     return side === 'sell' ? 'sell −1' : 'buy';
 }
 
+export function priceFieldClass({ manual, missing }) {
+    if (manual) {
+        return ' is-manual';
+    }
+    return missing ? ' is-missing' : '';
+}
+
+export function priceFieldTitle({ manual, missing }) {
+    return !manual && missing ? 'Fiyat yok — elle girebilirsin' : '';
+}
+
+export function priceInputValue(manualRaw, fetchedPrice) {
+    if (manualRaw != null) {
+        return manualRaw;
+    }
+    if (!Number.isFinite(fetchedPrice)) {
+        return '';
+    }
+    return Math.round(fetchedPrice).toLocaleString('tr-TR');
+}
+
+function setPriceInputDisplay(input, value) {
+    const next = value == null ? '' : String(value);
+    input.value = next;
+    input.classList.toggle('is-filled', next.length > 0);
+}
+
+export function applyPriceFieldState(field, { manual, missing, displayValue } = {}) {
+    if (!field) {
+        return;
+    }
+    const isManual = Boolean(manual);
+    const isMissing = Boolean(missing) && !isManual;
+    field.classList.toggle('is-manual', isManual);
+    field.classList.toggle('is-missing', isMissing);
+    const title = priceFieldTitle({ manual: isManual, missing: isMissing });
+    if (title) {
+        field.title = title;
+    } else {
+        field.removeAttribute('title');
+    }
+
+    const input = field.querySelector('.form-control');
+    if (!input || isManual) {
+        return;
+    }
+
+    if (displayValue !== undefined) {
+        setPriceInputDisplay(input, displayValue);
+        return;
+    }
+
+    if (isMissing) {
+        setPriceInputDisplay(input, '');
+    }
+}
+
+export function incompleteClass(value) {
+    if (value == null || value === '') {
+        return ' is-missing';
+    }
+    if (typeof value === 'number' && !Number.isFinite(value)) {
+        return ' is-missing';
+    }
+    return '';
+}
+
 export function priceSideToggleHtml(name, selected) {
     return PRICE_SIDES.map((side) => {
         const pressed = side === selected;

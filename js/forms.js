@@ -30,6 +30,17 @@ export function initFloatingLabels(root = document) {
         syncFilledState(field);
         field.addEventListener('input', () => syncFilledState(field));
         field.addEventListener('change', () => syncFilledState(field));
+
+        const wrap = field.closest('.form-floating');
+        if (wrap && wrap.dataset.floatingFocusBound !== 'on') {
+            wrap.dataset.floatingFocusBound = 'on';
+            wrap.addEventListener('focusin', () => wrap.classList.add('is-focused'));
+            wrap.addEventListener('focusout', (event) => {
+                if (!wrap.contains(event.relatedTarget)) {
+                    wrap.classList.remove('is-focused');
+                }
+            });
+        }
     });
 }
 

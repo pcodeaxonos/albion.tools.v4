@@ -9,9 +9,17 @@ export function normalizeCraftBonusRate(value) {
     return CRAFT_BONUS_RATES.includes(rate) ? rate : 0;
 }
 
-export function todayCraftBonuses() {
+export function todayDailyBonusRow() {
     const today = bonusDayIso();
-    const row = getAll('dailyBonuses').find((entry) => entry.date === today);
+    return getAll('dailyBonuses').find((entry) => entry.date === today) ?? null;
+}
+
+export function hasTodayDailyBonus() {
+    return todayDailyBonusRow() != null;
+}
+
+export function todayCraftBonuses() {
+    const row = todayDailyBonusRow();
     if (!row) {
         return [];
     }

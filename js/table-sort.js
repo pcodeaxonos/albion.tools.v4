@@ -99,11 +99,12 @@ export function compareSortValues(a, b, type, direction) {
 }
 
 export function sortHeaderHtml(label, options = {}) {
-    const { key, type = 'text', className = '', direction = null } = options;
+    const { key, type = 'text', className = '', direction = null, title = '' } = options;
     const classes = className ? ` class="${escapeHtml(className)}"` : '';
     const aria = direction === 'desc' ? 'descending' : direction === 'asc' ? 'ascending' : 'none';
+    const titleAttr = title ? ` title="${escapeHtml(title)}"` : '';
 
-    return `<th${classes} data-sort="${escapeHtml(type)}" data-sort-key="${escapeHtml(key)}" aria-sort="${aria}"><button type="button" class="table-sort-btn">${escapeHtml(label)}</button></th>`;
+    return `<th${classes} data-sort="${escapeHtml(type)}" data-sort-key="${escapeHtml(key)}" aria-sort="${aria}"${titleAttr}><button type="button" class="table-sort-btn"${titleAttr}>${escapeHtml(label)}</button></th>`;
 }
 
 export function applyHeaderSortState(table, key, direction) {

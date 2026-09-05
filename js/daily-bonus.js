@@ -85,6 +85,22 @@ function findByDate(date) {
     return getAll(TABLE).find((row) => row.date === date) ?? null;
 }
 
+function todayEntryPrompt(today) {
+    return `Veri gir: ${bonusWindowLabel(today)} için günlük bonus kaydı yok. İki bonusu seçip kaydet.`;
+}
+
+function promptTodayIfMissing(container) {
+    const today = bonusDayIso();
+    if (findByDate(today) || toYearMonth(today) !== state.month) {
+        return;
+    }
+
+    fillForm(container, null, today);
+    setFormMessage(container, todayEntryPrompt(today));
+    container.querySelector('#bonusForm')?.scrollIntoView({ block: 'nearest' });
+    container.querySelector('#slot1FamilyKey')?.focus();
+}
+
 function setFormMessage(container, text, kind = 'info') {
     const el = container.querySelector('#bonusFormMessage');
     if (!el) {
@@ -285,6 +301,10 @@ function renderLogTable(month, highlightKeys = []) {
         `;
     }
 
+    const emptyMonthNote = rows.length === 0 && getAll(TABLE).length > 0
+        ? `<div class="alert alert-info">Bu ayda kayıtlı bonus yok. Günlük bonus oyundan çekilmez; buraya sen yazarsın. Kayıtlı günler için ay seçiciden başka aya geç.</div>`
+        : '';
+
     const filtering = highlightKeys.length > 0 ? ' is-filtering' : '';
     const sort = state.sort;
     const body = dates.slice().reverse().flatMap((date) => {
@@ -312,17 +332,18 @@ function renderLogTable(month, highlightKeys = []) {
     }).join('');
 
     return `
+        ${emptyMonthNote}
         <div class="table-responsive calc-table-wrap">
             <table class="table table-striped bonus-log-table calc-table${filtering}">
                 <thead>
                     <tr>
-                        ${sortHeaderHtml('Tarih', { key: 'date', type: 'date', direction: sort.key === 'date' ? sort.direction : null })}
-                        ${sortHeaderHtml('Bonus 1', { key: 'slot1', type: 'text', direction: sort.key === 'slot1' ? sort.direction : null })}
-                        ${sortHeaderHtml('%', { key: 'rate1', type: 'number', className: 'num', direction: sort.key === 'rate1' ? sort.direction : null })}
-                        ${sortHeaderHtml('#1', { key: 'count1', type: 'number', className: 'num', direction: sort.key === 'count1' ? sort.direction : null })}
-                        ${sortHeaderHtml('Bonus 2', { key: 'slot2', type: 'text', direction: sort.key === 'slot2' ? sort.direction : null })}
-                        ${sortHeaderHtml('%', { key: 'rate2', type: 'number', className: 'num', direction: sort.key === 'rate2' ? sort.direction : null })}
-                        ${sortHeaderHtml('#2', { key: 'count2', type: 'number', className: 'num', direction: sort.key === 'count2' ? sort.direction : null })}
+                        ${sortHeaderHtml('Tarih', { key: 'date', type: 'date', direction: sort.key === 'date' ? sort.direction : null, title: 'Bonus günü (13:00 – ertesi 13:00)' })}
+                        ${sortHeaderHtml('Bonus 1', { key: 'slot1', type: 'text', direction: sort.key === 'slot1' ? sort.direction : null, title: 'İlk günlük craft bonusu' })}
+                        ${sortHeaderHtml('%', { key: 'rate1', type: 'number', className: 'num', direction: sort.key === 'rate1' ? sort.direction : null, title: 'İlk bonusun oranı' })}
+                        ${sortHeaderHtml('#1', { key: 'count1', type: 'number', className: 'num', direction: sort.key === 'count1' ? sort.direction : null, title: 'Bu ayda 1. bonusun kaçıncı gelişi' })}
+                        ${sortHeaderHtml('Bonus 2', { key: 'slot2', type: 'text', direction: sort.key === 'slot2' ? sort.direction : null, title: 'İkinci günlük craft bonusu' })}
+                        ${sortHeaderHtml('%', { key: 'rate2', type: 'number', className: 'num', direction: sort.key === 'rate2' ? sort.direction : null, title: 'İkinci bonusun oranı' })}
+                        ${sortHeaderHtml('#2', { key: 'count2', type: 'number', className: 'num', direction: sort.key === 'count2' ? sort.direction : null, title: 'Bu ayda 2. bonusun kaçıncı gelişi' })}
                     </tr>
                 </thead>
                 <tbody>${body}</tbody>
@@ -341,7 +362,7 @@ function renderPage(container) {
     container.innerHTML = `
         <section class="bonus-hero">
             <h1>Günlük Bonus</h1>
-            <p>Her gün iki craft / refine bonusu. Gün 13:00’te yenilenir. İsim ve oran seçilir; unutulan günler kayıtsız bırakılabilir.</p>
+            <p>Her gün iki craft / refine bonusu. Gün 13:00’te yenilenir. Oyun API’sinden gelmez; buraya kaydedilir. Unutulan günler boş bırakılabilir.</p>
         </section>
 
         <div class="tool-split">
@@ -357,6 +378,7 @@ function renderPage(container) {
                     ? '<div class="alert alert-info">Bonus aileleri yüklenemedi. Veritabanında itemCategories olmalı.</div>'
                     : `
                 <form class="form-section bonus-form" id="bonusForm">
+                    <div class="alert alert-info" id="bonusFormMessage" hidden></div>
                     <div class="form-grid">
                         <div class="form-floating">
                             <input type="date" class="form-control is-filled" id="bonusDate" name="date" value="${escapeHtml(defaultDate)}" max="${escapeHtml(today)}" placeholder=" " required>
@@ -390,7 +412,6 @@ function renderPage(container) {
                             </div>
                         </div>
                     </div>
-                    <div class="alert alert-info" id="bonusFormMessage" hidden></div>
                     <div class="form-actions">
                         <button type="submit" class="btn btn-primary" id="bonusSubmit">Kaydet</button>
                         <button type="button" class="btn btn-outline-secondary" id="bonusCancelEdit" hidden>Vazgeç</button>
@@ -405,6 +426,7 @@ function renderPage(container) {
 
     bindPage(container);
     fillForm(container, null);
+    promptTodayIfMissing(container);
     bindCalcSticky(container);
 }
 
@@ -450,6 +472,7 @@ function bindPage(container) {
         setFormMessage(container, '');
         fillForm(container, null);
         refreshLog(container);
+        promptTodayIfMissing(container);
     });
 
     container.querySelector('#bonusDelete')?.addEventListener('click', () => {
@@ -460,6 +483,7 @@ function bindPage(container) {
         setFormMessage(container, 'Kayıt silindi.');
         fillForm(container, null);
         refreshLog(container);
+        promptTodayIfMissing(container);
     });
 
     bindLogRows(container);
@@ -562,6 +586,7 @@ async function init() {
 
     try {
         await initStore();
+        state.month = toYearMonth(bonusDayIso());
         renderPage(container);
     } catch (error) {
         console.error(error);

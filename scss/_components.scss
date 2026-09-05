@@ -138,11 +138,8 @@
     line-height: calc(var(--input-height) - (var(--border-width) * 2));
     color: var(--color-text);
     background-color: var(--color-surface);
-    border: var(--border-width) solid var(--color-border);
+    border: var(--border-width) solid var(--input-stroke, var(--color-border));
     border-radius: 0;
-    transition:
-        border-color var(--transition-fast),
-        box-shadow var(--transition-fast);
 
     &::placeholder {
         color: transparent;
@@ -152,7 +149,7 @@
     &:focus-visible {
         outline: var(--focus-outline-width) solid var(--color-focus-ring);
         outline-offset: var(--focus-outline-offset);
-        border-color: var(--color-surface-raised);
+        border-color: var(--input-stroke, var(--color-border));
         background-color: var(--color-surface);
     }
 
@@ -249,11 +246,20 @@ input[type="month"].form-control {
     }
 }
 
-// Floating label — legend-on-border, transform-only motion
+// Floating label — on-border tag that shares the input stroke.
 .form-floating {
     position: relative;
     margin-bottom: 0;
     --field-bg: var(--color-surface);
+    --input-stroke: var(--color-border);
+    --float-tag-bg: var(--color-border);
+    --float-tag-fg: var(--color-text);
+    --float-tag-radius: 0.2rem;
+    --float-tag-pad: 0 0.25rem;
+    --float-timing: 0.12s cubic-bezier(0.4, 0, 0.2, 1);
+    --float-tag-motion: transform var(--float-timing), color var(--float-timing),
+        background-color var(--float-timing);
+    transition: --input-stroke var(--float-timing);
 
     > .form-control,
     > .form-select:not(.autocomplete-native),
@@ -262,7 +268,9 @@ input[type="month"].form-control {
         min-height: var(--input-height);
         padding: 0 var(--floating-label-inset);
         background-color: var(--field-bg);
+        border-color: var(--input-stroke);
         line-height: calc(var(--input-height) - (var(--border-width) * 2));
+        transition: none;
     }
 
     > .autocomplete > .form-control,
@@ -283,17 +291,15 @@ input[type="month"].form-control {
         font-weight: var(--font-weight-medium);
         line-height: 1;
         pointer-events: none;
-        transform: translateY(-50%) scale(1);
+        transform: translateY(-50%);
         transform-origin: left center;
         background-color: transparent;
+        border: 0;
+        border-radius: var(--float-tag-radius);
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
-        transition:
-            transform 0.22s cubic-bezier(0.22, 1, 0.36, 1),
-            color 0.22s cubic-bezier(0.22, 1, 0.36, 1),
-            font-weight 0.18s ease,
-            background-color 0.18s ease;
+        transition: var(--float-tag-motion);
     }
 
     &:has(.form-control:focus) > label,
@@ -303,18 +309,51 @@ input[type="month"].form-control {
     &:has(.autocomplete.is-filled) > label,
     &:has(.autocomplete.is-open) > label,
     &:has(.form-select:not(.autocomplete-native)) > label {
-        background-color: var(--field-bg);
         transform: translateY(calc(-50% - (var(--input-height) / 2))) scale(var(--floating-label-scale));
+        font-weight: var(--font-weight-bold);
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        padding: var(--float-tag-pad);
+        line-height: 1.3;
+        overflow: visible;
+        color: var(--float-tag-fg);
+        background-color: var(--float-tag-bg);
+        border: 0;
     }
 
-    &:has(.form-control:not(:placeholder-shown)) > label,
-    &:has(.form-control.is-filled) > label,
-    &:has(.form-control:disabled) > label,
-    &:has(.autocomplete.is-filled) > label,
-    &:has(.form-select.is-filled) > label {
-        color: var(--floating-label-color-filled);
-        font-weight: var(--font-weight-normal);
+    &.is-manual {
+        --input-stroke: var(--color-primary);
+        --float-tag-bg: var(--color-primary);
+        --float-tag-fg: var(--color-on-accent);
     }
+
+    &.is-missing {
+        --input-stroke: var(--color-danger);
+        --float-tag-bg: var(--color-danger);
+        --float-tag-fg: var(--color-white);
+    }
+
+    &:has(.form-control):is(.is-focused, :focus-within),
+    &:has(.autocomplete.is-open) {
+        --input-stroke: var(--color-primary);
+        --float-tag-bg: var(--color-primary);
+        --float-tag-fg: var(--color-on-accent);
+    }
+}
+
+.float-cut {
+    padding: var(--float-tag-pad);
+    line-height: 1.3;
+    border: 0;
+    border-radius: var(--float-tag-radius);
+    font-size: var(--floating-label-float-size);
+    font-weight: var(--font-weight-bold);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--float-tag-fg);
+    background-color: var(--float-tag-bg);
+    transform: translateY(-50%);
+    transition: none;
 }
 
 .btn-link {
@@ -542,6 +581,10 @@ input[type="month"].form-control {
 }
 
 .autocomplete-option {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 0.75rem;
     padding: 0.5rem 0.75rem;
     font-size: var(--font-size-base);
     line-height: 1.35;
@@ -556,6 +599,27 @@ input[type="month"].form-control {
         color: var(--color-text);
         box-shadow: inset 2px 0 0 var(--color-primary);
     }
+
+    &.is-muted {
+        color: var(--color-text-muted);
+        opacity: 0.45;
+    }
+
+    &.is-muted.is-active,
+    &.is-muted:hover {
+        opacity: 0.78;
+    }
+}
+
+.autocomplete-option-text {
+    min-width: 0;
+}
+
+.autocomplete-option-hint {
+    flex-shrink: 0;
+    font-size: 0.6875rem;
+    font-weight: var(--font-weight-medium);
+    color: var(--color-text-muted);
 }
 
 .autocomplete-hl {

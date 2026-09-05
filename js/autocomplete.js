@@ -342,7 +342,9 @@ function readOptions(select) {
                     value: opt.value,
                     label: opt.textContent.trim(),
                     group,
-                    disabled: opt.disabled
+                    disabled: opt.disabled,
+                    muted: opt.dataset.muted === '1' || opt.dataset.muted === 'true',
+                    hint: (opt.dataset.hint || '').trim()
                 });
             }
         } else if (child.tagName === 'OPTION') {
@@ -350,7 +352,9 @@ function readOptions(select) {
                 value: child.value,
                 label: child.textContent.trim(),
                 group: null,
-                disabled: child.disabled
+                disabled: child.disabled,
+                muted: child.dataset.muted === '1' || child.dataset.muted === 'true',
+                hint: (child.dataset.hint || '').trim()
             });
         }
     }
@@ -543,6 +547,8 @@ function enhanceSelect(select) {
 
         if (q) {
             ranked.sort((a, b) => b.score - a.score || a.index - b.index);
+        } else {
+            ranked.sort((a, b) => Number(a.option.muted) - Number(b.option.muted) || a.index - b.index);
         }
 
         visible = ranked;
@@ -567,10 +573,15 @@ function enhanceSelect(select) {
             }
 
             const selected = option.value === select.value ? ' is-selected' : '';
+            const muted = option.muted ? ' is-muted' : '';
             const optionId = `${menuId}-opt-${visIndex}`;
+            const hint = option.hint
+                ? `<span class="autocomplete-option-hint">${escapeHtml(option.hint)}</span>`
+                : '';
             parts.push(`
-                <div class="autocomplete-option${selected}" role="option" id="${optionId}" data-index="${visIndex}" aria-selected="${option.value === select.value ? 'true' : 'false'}">
-                    ${highlightLabel(option.label, q ? ranges : [])}
+                <div class="autocomplete-option${selected}${muted}" role="option" id="${optionId}" data-index="${visIndex}" aria-selected="${option.value === select.value ? 'true' : 'false'}"${option.hint ? ` aria-label="${escapeHtml(`${option.label}, ${option.hint}`)}"` : ''}>
+                    <span class="autocomplete-option-text">${highlightLabel(option.label, q ? ranges : [])}</span>
+                    ${hint}
                 </div>
             `);
         });
@@ -776,7 +787,7 @@ function enhanceSelect(select) {
         childList: true,
         subtree: true,
         attributes: true,
-        attributeFilter: ['disabled']
+        attributeFilter: ['disabled', 'data-muted', 'data-hint']
     });
 
     syncFromSelect();

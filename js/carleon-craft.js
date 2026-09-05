@@ -5,14 +5,24 @@ import { getBonusFamilyLabel } from './bonus-families.js';
 import { bonusDayIso, bonusWindowLabel } from './bonus-day.js';
 import { defaultCraftBonusRate, normalizeCraftBonusRate, todayCraftBonuses, craftBonusToggleHtml } from './craft-bonus.js';
 import { getSettings } from './settings.js';
-import { fetchPrices, indexPrices, cityRow } from './market.js';
+import { fetchPrices, indexPrices, cityRow, priceRefreshActionsHtml, bindPriceRefresh, priceLoaderMessage, applyPriceLoadMode } from './market.js';
 import { itemIconHtml, itemLabel } from './item-icon.js';
 import { showPageLoader, hidePageLoader } from './loader.js';
 import { initFloatingLabels } from './forms.js';
 import { initTableSort, parseSortNumber, sortHeaderHtml } from './table-sort.js';
-import { quoteFromRow, priceSideHint, priceSideToggleHtml } from './price-side.js';
+import {
+    quoteFromRow,
+    priceSideHint,
+    priceSideToggleHtml,
+    priceFieldClass,
+    priceFieldTitle,
+    priceInputValue,
+    applyPriceFieldState,
+    incompleteClass
+} from './price-side.js';
 import { SETUP_FEE, purchaseCost, saleProceeds, salesTaxRate, placesOrder } from './market-fees.js';
 import { bindCalcSticky } from './calc-sticky.js';
+import { bindLivePrices } from './price-live.js';
 
 const CITY_PRODUCTION = 18;
 
@@ -147,17 +157,11 @@ function itemQuote(id) {
     return fetchedItemQuote(id);
 }
 
-function priceInputValue(manualRaw, fetchedPrice) {
-    if (manualRaw != null) {
-        return manualRaw;
-    }
-    return Number.isFinite(fetchedPrice) ? formatSilver(fetchedPrice) : '';
-}
-
-function priceFieldHtml({ id, label, value, manual, dataAttr }) {
+function priceFieldHtml({ id, label, value, manual, missing, dataAttr }) {
     const filled = String(value ?? '').length > 0 ? ' is-filled' : '';
+    const title = priceFieldTitle({ manual, missing });
     return `
-        <div class="form-floating carleon-price-field${manual ? ' is-manual' : ''}">
+        <div class="form-floating carleon-price-field${priceFieldClass({ manual, missing })}"${title ? ` title="${escapeHtml(title)}"` : ''}>
             <input type="text" class="form-control${filled}" id="${escapeHtml(id)}"
                 ${dataAttr} value="${escapeHtml(value)}" placeholder=" "
                 inputmode="decimal" autocomplete="off" spellcheck="false">
@@ -275,6 +279,7 @@ function renderMatStrip() {
                                 label: 'Alış',
                                 value,
                                 manual: isManualPrice(state.manualMats[mat.key]),
+                                missing: !fetched,
                                 dataAttr: `data-mat-price="${escapeHtml(mat.key)}"`
                             })}
                         </span>
@@ -317,19 +322,20 @@ function renderTable() {
                     </span>
                 </td>
                 <td class="carleon-recipe">${recipeChips(row.item.recipe)}</td>
-                <td class="num carleon-num" data-sort-value="${row.cost ?? ''}">${formatSilver(row.cost)}</td>
+                <td class="num carleon-num${incompleteClass(row.cost)}" data-sort-value="${row.cost ?? ''}">${formatSilver(row.cost)}</td>
                 <td class="num carleon-num carleon-price-cell" data-sort-value="${row.quote?.price ?? ''}">
                     ${priceFieldHtml({
                         id: `itemPrice-${row.item.id}`,
                         label: 'Satış',
                         value: sellValue,
                         manual: isManualPrice(state.manualItems[row.item.id]),
+                        missing: !fetched,
                         dataAttr: `data-item-price="${escapeHtml(row.item.id)}"`
                     })}
                 </td>
-                <td class="num carleon-num" data-sort-value="${row.sell ?? ''}">${formatSilver(row.sell)}</td>
-                <td class="num carleon-num${profitClass(row.profit)}" data-sort-value="${row.profit ?? ''}">${formatSilver(row.profit, { unsigned: true })}</td>
-                <td class="num carleon-num${profitClass(row.profit)}" data-sort-value="${row.pct ?? ''}">${formatPct(row.pct, { unsigned: true })}</td>
+                <td class="num carleon-num${incompleteClass(row.sell)}" data-sort-value="${row.sell ?? ''}">${formatSilver(row.sell)}</td>
+                <td class="num carleon-num${profitClass(row.profit)}${incompleteClass(row.profit)}" data-sort-value="${row.profit ?? ''}">${formatSilver(row.profit, { unsigned: true })}</td>
+                <td class="num carleon-num${profitClass(row.profit)}${incompleteClass(row.pct)}" data-sort-value="${row.pct ?? ''}">${formatPct(row.pct, { unsigned: true })}</td>
             </tr>
         `;
     }).join('');
@@ -341,13 +347,13 @@ function renderTable() {
             <table class="table table-striped carleon-table calc-table">
                 <thead>
                     <tr>
-                        ${sortHeaderHtml('Eşya', { key: 'item', type: 'text', direction: sort.key === 'item' ? sort.direction : null })}
-                        ${sortHeaderHtml('Tarif', { key: 'recipe', type: 'text', direction: sort.key === 'recipe' ? sort.direction : null })}
-                        ${sortHeaderHtml('Maliyet', { key: 'cost', type: 'number', className: 'num carleon-num', direction: sort.key === 'cost' ? sort.direction : null })}
-                        ${sortHeaderHtml('BM', { key: 'bm', type: 'number', className: 'num carleon-num', direction: sort.key === 'bm' ? sort.direction : null })}
-                        ${sortHeaderHtml('Satış', { key: 'sell', type: 'number', className: 'num carleon-num', direction: sort.key === 'sell' ? sort.direction : null })}
-                        ${sortHeaderHtml('Kâr', { key: 'profit', type: 'number', className: 'num carleon-num', direction: sort.key === 'profit' ? sort.direction : null })}
-                        ${sortHeaderHtml('%', { key: 'pct', type: 'number', className: 'num carleon-num', direction: sort.key === 'pct' ? sort.direction : null })}
+                        ${sortHeaderHtml('Eşya', { key: 'item', type: 'text', direction: sort.key === 'item' ? sort.direction : null, title: 'Üretilen Caerleon eşyası' })}
+                        ${sortHeaderHtml('Tarif', { key: 'recipe', type: 'text', direction: sort.key === 'recipe' ? sort.direction : null, title: 'Craft için gereken malzemeler' })}
+                        ${sortHeaderHtml('Maliyet', { key: 'cost', type: 'number', className: 'num carleon-num', direction: sort.key === 'cost' ? sort.direction : null, title: 'RR düşülmüş malzeme maliyeti' })}
+                        ${sortHeaderHtml('BM', { key: 'bm', type: 'number', className: 'num carleon-num', direction: sort.key === 'bm' ? sort.direction : null, title: 'Black Market satış fiyatı' })}
+                        ${sortHeaderHtml('Satış', { key: 'sell', type: 'number', className: 'num carleon-num', direction: sort.key === 'sell' ? sort.direction : null, title: 'Vergi sonrası net satış' })}
+                        ${sortHeaderHtml('Kâr', { key: 'profit', type: 'number', className: 'num carleon-num', direction: sort.key === 'profit' ? sort.direction : null, title: 'Net satış eksi maliyet' })}
+                        ${sortHeaderHtml('%', { key: 'pct', type: 'number', className: 'num carleon-num', direction: sort.key === 'pct' ? sort.direction : null, title: 'Kârın maliyete oranı' })}
                     </tr>
                 </thead>
                 <tbody>${body}</tbody>
@@ -374,7 +380,7 @@ function renderOutput() {
         <div id="carleonResult">
             ${renderBonusNote()}
             ${renderMatStrip()}
-            <p class="carleon-note">Malzeme ${escapeHtml(matNote)} · satış ${escapeHtml(itemNote)}. Elle yazılan alış/satış API’nin yerine geçer; boş bırakınca çekilen fiyat kullanılır.</p>
+            <p class="carleon-note">Malzeme ${escapeHtml(matNote)} · satış ${escapeHtml(itemNote)}. Elle yazılan alış/satış API’nin yerine geçer; kırmızı fiyat API’de yok, hesap da kırmızı kalır.</p>
             ${renderTable()}
         </div>
     `;
@@ -403,20 +409,27 @@ function patchRowCells(tr, row) {
 
     costCell.dataset.sortValue = row.cost ?? '';
     costCell.textContent = formatSilver(row.cost);
+    costCell.className = `num carleon-num${incompleteClass(row.cost)}`;
 
     bmCell.dataset.sortValue = row.quote?.price ?? '';
-    bmCell.querySelector('.carleon-price-field')?.classList.toggle('is-manual', Boolean(row.quote?.manual));
+    const itemFetched = fetchedItemQuote(row.item.id);
+    applyPriceFieldState(bmCell.querySelector('.carleon-price-field'), {
+        manual: Boolean(row.quote?.manual),
+        missing: !itemFetched,
+        displayValue: priceInputValue(state.manualItems[row.item.id], itemFetched?.price)
+    });
 
     sellCell.dataset.sortValue = row.sell ?? '';
     sellCell.textContent = formatSilver(row.sell);
+    sellCell.className = `num carleon-num${incompleteClass(row.sell)}`;
 
     profitCell.dataset.sortValue = row.profit ?? '';
     profitCell.textContent = formatSilver(row.profit, { unsigned: true });
-    profitCell.className = `num carleon-num${profitClass(row.profit)}`;
+    profitCell.className = `num carleon-num${profitClass(row.profit)}${incompleteClass(row.profit)}`;
 
     pctCell.dataset.sortValue = row.pct ?? '';
     pctCell.textContent = formatPct(row.pct, { unsigned: true });
-    pctCell.className = `num carleon-num${profitClass(row.profit)}`;
+    pctCell.className = `num carleon-num${profitClass(row.profit)}${incompleteClass(row.pct)}`;
 }
 
 function refreshCalc(container) {
@@ -439,10 +452,12 @@ function refreshCalc(container) {
         if (meta) {
             meta.textContent = matMetaText(mat);
         }
-        card.querySelector('.carleon-price-field')?.classList.toggle(
-            'is-manual',
-            isManualPrice(state.manualMats[mat.key])
-        );
+        const fetched = fetchedMatQuote(mat.key);
+        applyPriceFieldState(card.querySelector('.carleon-price-field'), {
+            manual: isManualPrice(state.manualMats[mat.key]),
+            missing: !fetched,
+            displayValue: priceInputValue(state.manualMats[mat.key], fetched?.price)
+        });
     });
 }
 
@@ -528,7 +543,7 @@ function renderPage(container) {
                             ${priceSideToggleHtml('item', state.itemSide)}
                         </div>
                     </div>
-                    <button type="button" class="btn btn-outline-secondary" id="carleonRefresh">Fiyatları yenile</button>
+                    ${priceRefreshActionsHtml({ refreshId: 'carleonRefresh', apiId: 'carleonRefreshApi' })}
                 </div>
             </div>
             <div class="tool-split-result">
@@ -570,15 +585,18 @@ function bindPage(container) {
         });
     });
 
-    container.querySelector('#carleonRefresh')?.addEventListener('click', () => {
-        loadPrices(container);
+    bindPriceRefresh(container, {
+        refreshId: 'carleonRefresh',
+        apiId: 'carleonRefreshApi',
+        load: (options) => loadPrices(container, options)
     });
 }
 
-async function loadPrices(container, { showLoader = true } = {}) {
+async function loadPrices(container, { showLoader = true, source } = {}) {
+    applyPriceLoadMode(state, { source, showLoader });
     state.error = null;
     if (showLoader) {
-        showPageLoader('Black Market fiyatları alınıyor…');
+        showPageLoader(priceLoaderMessage(source, 'Black Market fiyatları alınıyor…'));
     }
 
     try {
@@ -586,7 +604,7 @@ async function loadPrices(container, { showLoader = true } = {}) {
             ...MATS.map((mat) => mat.uniqueName),
             ...ITEMS.map((item) => item.uniqueName)
         ];
-        const rows = await fetchPrices(ids);
+        const rows = await fetchPrices(ids, undefined, { source });
         const index = indexPrices(rows);
 
         for (const mat of MATS) {
@@ -633,6 +651,14 @@ async function init() {
         state.bonusRate = defaultCraftBonusRate(ITEMS.map((item) => item.familyKey));
         renderPage(container);
         await loadPrices(container, { showLoader: false });
+        bindLivePrices(() => ({
+            items: [
+                ...MATS.map((mat) => mat.uniqueName),
+                ...ITEMS.map((item) => item.uniqueName)
+            ],
+            cities: ['Caerleon', 'Black Market'],
+            pause: state.livePaused
+        }), () => loadPrices(container, { showLoader: false }));
     } catch (error) {
         console.error(error);
         state.error = 'Sayfa yüklenemedi. Static server ile açın.';

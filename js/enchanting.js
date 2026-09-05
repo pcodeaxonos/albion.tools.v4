@@ -2,13 +2,23 @@ import { escapeHtml } from './utils.js';
 import { initNav } from './nav.js';
 import { initStore } from './db/store.js';
 import { getSettings, enchantPowerCombos, normalizeEnchantPower } from './settings.js';
-import { fetchPrices, indexPrices, cityRow } from './market.js';
+import { fetchPrices, indexPrices, cityRow, priceRefreshActionsHtml, bindPriceRefresh, priceLoaderMessage, applyPriceLoadMode } from './market.js';
 import { itemIconHtml } from './item-icon.js';
 import { showPageLoader, hidePageLoader } from './loader.js';
 import { initFloatingLabels } from './forms.js';
 import { initTableSort, parseSortNumber, sortHeaderHtml } from './table-sort.js';
-import { quoteFromRow, priceSideHint, priceSideToggleHtml } from './price-side.js';
+import {
+    quoteFromRow,
+    priceSideHint,
+    priceSideToggleHtml,
+    priceFieldClass,
+    priceFieldTitle,
+    priceInputValue,
+    applyPriceFieldState,
+    incompleteClass
+} from './price-side.js';
 import { bindCalcSticky } from './calc-sticky.js';
+import { bindLivePrices } from './price-live.js';
 import { loadCities } from './cities.js';
 
 const TIERS = [4, 5, 6, 7, 8];
@@ -248,17 +258,11 @@ function enchantCost(tier, from, to) {
     return total;
 }
 
-function priceInputValue(manualRaw, fetchedPrice) {
-    if (manualRaw != null) {
-        return manualRaw;
-    }
-    return Number.isFinite(fetchedPrice) ? formatSilver(fetchedPrice) : '';
-}
-
-function priceFieldHtml({ id, label, value, manual, dataAttr }) {
+function priceFieldHtml({ id, label, value, manual, missing, dataAttr }) {
     const filled = String(value ?? '').length > 0 ? ' is-filled' : '';
+    const title = priceFieldTitle({ manual, missing });
     return `
-        <div class="form-floating enchant-price-field${manual ? ' is-manual' : ''}">
+        <div class="form-floating enchant-price-field${priceFieldClass({ manual, missing })}"${title ? ` title="${escapeHtml(title)}"` : ''}>
             <input type="text" class="form-control${filled}" id="${escapeHtml(id)}"
                 ${dataAttr} value="${escapeHtml(value)}" placeholder=" "
                 inputmode="decimal" autocomplete="off" spellcheck="false">
@@ -316,6 +320,7 @@ function renderMatStrip() {
                                             label: `T${tier}`,
                                             value: priceInputValue(state.manualMats[key], fetched?.price),
                                             manual: isManualPrice(state.manualMats[key]),
+                                            missing: !fetched,
                                             dataAttr: `data-mat-price="${escapeHtml(key)}"`
                                         })}
                                     </span>
@@ -339,7 +344,7 @@ function renderTable() {
                 <span class="enchant-item-meta">${escapeHtml(slot.label)} · ${slot.qty}</span>
             </td>
             ${TIERS.map((tier) => `
-                <td class="num enchant-num${standardCellClass(tier, row.path, power)}" data-sort-value="${row.costs[tier] ?? ''}">${formatSilver(row.costs[tier])}</td>
+                <td class="num enchant-num${standardCellClass(tier, row.path, power)}${incompleteClass(row.costs[tier])}" data-sort-value="${row.costs[tier] ?? ''}">${formatSilver(row.costs[tier])}</td>
             `).join('')}
         </tr>
     `).join('');
@@ -352,15 +357,19 @@ function renderTable() {
             <table class="table enchant-table calc-table">
                 <thead>
                     <tr>
-                        ${sortHeaderHtml('Yol', { key: 'way', type: 'number', direction: dir('way') })}
+                        ${sortHeaderHtml('Yol', { key: 'way', type: 'number', direction: dir('way'), title: 'Enchant adımı (başlangıç → hedef)' })}
                         ${TIERS.map((tier) => {
                             const enchant = power - tier;
                             const marked = enchant >= 1 && enchant <= 3;
-                            return sortHeaderHtml(marked ? `T${tier}.${enchant}` : `T${tier}`, {
+                            const heading = marked ? `T${tier}.${enchant}` : `T${tier}`;
+                            return sortHeaderHtml(heading, {
                                 key: `t${tier}`,
                                 type: 'number',
                                 className: `num enchant-num${marked ? ' is-standard-col' : ''}`,
-                                direction: dir(`t${tier}`)
+                                direction: dir(`t${tier}`),
+                                title: marked
+                                    ? `Hedef güç ${heading} için bu yolun malzeme maliyeti`
+                                    : `T${tier} eşyayı bu yolla enchant etmenin maliyeti`
                             });
                         }).join('')}
                     </tr>
@@ -396,7 +405,7 @@ function renderOutput() {
                     ${itemIconHtml(slot.icon, { className: 'item-icon enchant-head-icon' })}
                     ${escapeHtml(slot.label)}
                 </h2>
-                <p>${slot.qty} rune / soul / relic · ${escapeHtml(cityLabel(state.city))} ${escapeHtml(hint)}${stamp ? ` · ${stamp}` : ''}. Elle yazılan malzeme fiyatı API’nin yerine geçer.</p>
+                <p>${slot.qty} rune / soul / relic · ${escapeHtml(cityLabel(state.city))} ${escapeHtml(hint)}${stamp ? ` · ${stamp}` : ''}. Elle yazılan malzeme fiyatı API’nin yerine geçer. Kırmızı fiyat API’de yok; maliyet de kırmızı kalır.</p>
                 <p class="enchant-standard-note">Vurgu: ${escapeHtml(standardHighlightNote(state.enchantPower))}. 0 → hedef yolları daha koyu. <a href="settings.html">Ayarlardan değiştir</a></p>
             </div>
             ${renderMatStrip()}
@@ -424,7 +433,7 @@ function patchRowCells(tr, row) {
     TIERS.forEach((tier, index) => {
         const cell = tr.cells[index + 1];
         cell.dataset.sortValue = row.costs[tier] ?? '';
-        cell.className = `num enchant-num${standardCellClass(tier, row.path, state.enchantPower)}`;
+        cell.className = `num enchant-num${standardCellClass(tier, row.path, state.enchantPower)}${incompleteClass(row.costs[tier])}`;
         cell.textContent = formatSilver(row.costs[tier]);
     });
 }
@@ -442,10 +451,12 @@ function refreshCalc(container) {
 
     MATS.forEach((mat) => {
         const card = container.querySelector(`[data-mat-card="${mat.key}"]`);
-        card?.querySelector('.enchant-price-field')?.classList.toggle(
-            'is-manual',
-            isManualPrice(state.manualMats[mat.key])
-        );
+        const fetched = fetchedMatQuote(mat.key);
+        applyPriceFieldState(card?.querySelector('.enchant-price-field'), {
+            manual: isManualPrice(state.manualMats[mat.key]),
+            missing: !fetched,
+            displayValue: priceInputValue(state.manualMats[mat.key], fetched?.price)
+        });
     });
 }
 
@@ -514,7 +525,7 @@ function renderPage(container) {
                         </select>
                         <label for="enchantCity">Şehir</label>
                     </div>
-                    <button type="button" class="btn btn-outline-secondary" id="enchantRefresh">Fiyatları yenile</button>
+                    ${priceRefreshActionsHtml({ refreshId: 'enchantRefresh', apiId: 'enchantRefreshApi' })}
                 </div>
             </div>
             <div class="tool-split-result">
@@ -555,15 +566,18 @@ function bindPage(container) {
         renderPage(container);
     });
 
-    container.querySelector('#enchantRefresh')?.addEventListener('click', () => {
-        loadPrices(container);
+    bindPriceRefresh(container, {
+        refreshId: 'enchantRefresh',
+        apiId: 'enchantRefreshApi',
+        load: (options) => loadPrices(container, options)
     });
 }
 
-async function loadPrices(container, { showLoader = true } = {}) {
+async function loadPrices(container, { showLoader = true, source } = {}) {
+    applyPriceLoadMode(state, { source, showLoader });
     state.error = null;
     if (showLoader) {
-        showPageLoader('Şehir fiyatları alınıyor…');
+        showPageLoader(priceLoaderMessage(source, 'Şehir fiyatları alınıyor…'));
     }
 
     try {
@@ -571,7 +585,7 @@ async function loadPrices(container, { showLoader = true } = {}) {
         if (locations.length === 0) {
             throw new Error('Aktif şehir yok.');
         }
-        const rows = await fetchPrices(MATS.map((mat) => mat.uniqueName), locations);
+        const rows = await fetchPrices(MATS.map((mat) => mat.uniqueName), locations, { source });
         state.priceIndex = indexPrices(rows);
         state.loaded = true;
     } catch (error) {
@@ -609,6 +623,11 @@ async function init() {
         state.city = readSavedCity(state.cities);
         renderPage(container);
         await loadPrices(container, { showLoader: false });
+        bindLivePrices(() => ({
+            items: MATS.map((mat) => mat.uniqueName),
+            cities: [state.city],
+            pause: state.livePaused
+        }), () => loadPrices(container, { showLoader: false }));
     } catch (error) {
         console.error(error);
         state.error = 'Sayfa yüklenemedi. Static server ile açın.';

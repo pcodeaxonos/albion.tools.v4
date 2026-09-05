@@ -1,6 +1,10 @@
 import { escapeHtml } from './utils.js';
 import { PAGES, getToolGroups, isNewTool } from './tools.js';
 import { recordCurrentToolVisit } from './usage.js';
+import { bootLocalDataSync } from './local-data.js';
+import { initPipelineStatus } from './pipeline-status.js';
+
+await bootLocalDataSync();
 
 const SIDEBAR_ID = 'appSidebar';
 const OPEN_CLASS = 'is-open';
@@ -116,6 +120,7 @@ export function initNav() {
     }
 
     sidebar.innerHTML = renderSidebarMarkup();
+    initPipelineStatus();
 
     const toggler = document.querySelector('.sidebar-toggler');
     const backdrop = ensureBackdrop();

@@ -1,16 +1,26 @@
 import { escapeHtml } from './utils.js';
 import { initNav } from './nav.js';
 import { initStore } from './db/store.js';
-import { getSettings } from './settings.js';
-import { fetchPrices, indexPrices, cityRow } from './market.js';
+import { getSettings, cityHasIsland } from './settings.js';
+import { fetchPrices, indexPrices, cityRow, priceRefreshActionsHtml, bindPriceRefresh, priceLoaderMessage, applyPriceLoadMode } from './market.js';
 import { itemIconHtml, itemLabel } from './item-icon.js';
 import { showPageLoader, hidePageLoader } from './loader.js';
 import { initFloatingLabels } from './forms.js';
 import { initTableSort, parseSortNumber, sortHeaderHtml } from './table-sort.js';
-import { quoteFromRow, priceSideHint, priceSideToggleHtml } from './price-side.js';
+import {
+    quoteFromRow,
+    priceSideHint,
+    priceSideToggleHtml,
+    priceFieldClass,
+    priceFieldTitle,
+    priceInputValue,
+    applyPriceFieldState,
+    incompleteClass
+} from './price-side.js';
 import { SETUP_FEE, purchaseCost, placesOrder } from './market-fees.js';
 import { bindCalcSticky } from './calc-sticky.js';
-import { loadCities } from './cities.js';
+import { loadActiveCities } from './cities.js';
+import { bindLivePrices } from './price-live.js';
 
 const CITY_STORAGE_KEY = 'albiontools.v4.farming.city';
 const PREFS_STORAGE_KEY = 'albiontools.v4.farming.prefs';
@@ -302,26 +312,6 @@ function plantQuote(item) {
     return fetchedPlantQuote(item);
 }
 
-function seedPriceForCost(item) {
-    const quote = seedQuote(item);
-    if (quote) {
-        return quote;
-    }
-    if (Number.isFinite(item.vendor) && item.vendor > 0) {
-        return {
-            price: item.vendor,
-            book: item.vendor,
-            date: null,
-            side: 'vendor',
-            intent: 'buy',
-            tick: 0,
-            setup: false,
-            vendor: true
-        };
-    }
-    return null;
-}
-
 function seedMark(usedPrice, vendor) {
     if (!Number.isFinite(usedPrice) || !Number.isFinite(vendor) || vendor <= 0) {
         return null;
@@ -337,12 +327,12 @@ function seedMark(usedPrice, vendor) {
 }
 
 function computeRow(item) {
-    const seed = seedPriceForCost(item);
+    const seed = seedQuote(item);
     const plant = plantQuote(item);
     const qty = harvestQty(item);
     const baseReturn = seedReturnRate(item, false);
     const usedReturn = seedReturnRate(item, state.water);
-    const seedSetup = seed ? placesOrder('buy', seed.side === 'vendor' ? 'sell' : state.seedSide) && !seed.vendor : false;
+    const seedSetup = seed ? seed.setup : false;
     const plantSetup = plant ? plant.setup : false;
     const netSeed = seed ? purchaseCost(seed.price * (1 - usedReturn), { setup: seedSetup }) : null;
     const unit = netSeed != null && qty > 0 ? netSeed / qty : null;
@@ -397,21 +387,16 @@ function bestUnitId(list) {
     return best?.item.id ?? null;
 }
 
-function priceInputValue(manualRaw, fetchedPrice) {
-    if (manualRaw != null) {
-        return manualRaw;
-    }
-    return Number.isFinite(fetchedPrice) ? formatSilver(fetchedPrice) : '';
-}
-
-function priceFieldHtml({ id, label, value, manual, dataAttr }) {
+function priceFieldHtml({ id, label, value, manual, missing, dataAttr, extra = '' }) {
     const filled = String(value ?? '').length > 0 ? ' is-filled' : '';
+    const title = priceFieldTitle({ manual, missing });
     return `
-        <div class="form-floating farming-price-field${manual ? ' is-manual' : ''}">
+        <div class="form-floating farming-price-field${priceFieldClass({ manual, missing })}"${title ? ` title="${escapeHtml(title)}"` : ''}>
             <input type="text" class="form-control${filled}" id="${escapeHtml(id)}"
                 ${dataAttr} value="${escapeHtml(value)}" placeholder=" "
                 inputmode="decimal" autocomplete="off" spellcheck="false">
             <label for="${escapeHtml(id)}">${escapeHtml(label)}</label>
+            ${extra}
         </div>
     `;
 }
@@ -464,10 +449,16 @@ function renderWaterToggle() {
 }
 
 function renderCityOptions() {
-    return state.cities.map((city) => {
-        const selected = city.marketApiName === state.city ? ' selected' : '';
-        return `<option value="${escapeHtml(city.marketApiName)}"${selected}>${escapeHtml(city.displayName)}</option>`;
-    }).join('');
+    return [...state.cities]
+        .sort((a, b) => Number(!cityHasIsland(a.marketApiName)) - Number(!cityHasIsland(b.marketApiName)) || a.id - b.id)
+        .map((city) => {
+            const selected = city.marketApiName === state.city ? ' selected' : '';
+            const muted = cityHasIsland(city.marketApiName)
+                ? ''
+                : ' data-muted="1" data-hint="ada yok"';
+            return `<option value="${escapeHtml(city.marketApiName)}"${selected}${muted}>${escapeHtml(city.displayName)}</option>`;
+        })
+        .join('');
 }
 
 function specFieldsHtml() {
@@ -531,27 +522,28 @@ function renderTable() {
     const bestId = bestUnitId(list);
     const sort = state.sort;
     const dir = (key) => (sort.key === key ? sort.direction : null);
-    const showFocus = state.water;
 
     const body = list.map((row) => {
         const seedFetched = fetchedSeedQuote(row.item);
         const plantFetched = fetchedPlantQuote(row.item);
-        const seedValue = priceInputValue(state.manualSeeds[row.item.id], seedFetched?.price ?? (row.seed?.vendor ? row.seed.price : null));
+        const seedManual = isManualPrice(state.manualSeeds[row.item.id]);
+        const plantManual = isManualPrice(state.manualPlants[row.item.id]);
+        const seedValue = priceInputValue(state.manualSeeds[row.item.id], seedFetched?.price);
         const plantValue = priceInputValue(state.manualPlants[row.item.id], plantFetched?.price);
         const mark = row.mark
-            ? `<span class="farming-seed-mark is-${row.mark.tone}">${escapeHtml(row.mark.label)}</span>`
+            ? `<span class="farming-seed-mark float-cut is-${row.mark.tone}">${escapeHtml(row.mark.label)}</span>`
             : '';
         const bonus = row.bonus ? '<span class="farming-bonus">+10%</span>' : '';
         const best = row.item.id === bestId ? ' is-best' : '';
 
         return `
             <tr data-item-id="${escapeHtml(row.item.id)}" class="${best.trim()}">
-                <td data-sort-value="${escapeHtml(row.item.label)}">
+                <td data-sort-value="${row.item.tier}">
                     <span class="farming-item">
                         ${itemIconHtml(row.item.plantId)}
                         <span>
-                            <span class="farming-item-name">T${row.item.tier} ${escapeHtml(itemLabel(row.item.plantId, row.item.label))}${bonus}</span>
-                            <span class="farming-item-meta">${itemIconHtml(row.item.seedId, { className: 'item-icon farming-seed-icon' })} tohum</span>
+                            <span class="farming-item-name">T${row.item.tier} ${escapeHtml(itemLabel(row.item.plantId, row.item.label))}</span>
+                            <span class="farming-item-meta">${itemIconHtml(row.item.seedId, { className: 'item-icon farming-seed-icon' })} tohum${bonus}</span>
                         </span>
                     </span>
                 </td>
@@ -560,26 +552,28 @@ function renderTable() {
                         id: `seedPrice-${row.item.id}`,
                         label: 'Tohum',
                         value: seedValue,
-                        manual: isManualPrice(state.manualSeeds[row.item.id]),
-                        dataAttr: `data-seed-price="${escapeHtml(row.item.id)}"`
+                        manual: seedManual,
+                        missing: !seedFetched,
+                        dataAttr: `data-seed-price="${escapeHtml(row.item.id)}"`,
+                        extra: mark
                     })}
-                    ${mark}
                 </td>
                 <td class="num farming-num farming-price-cell" data-sort-value="${row.plant?.price ?? ''}">
                     ${priceFieldHtml({
                         id: `plantPrice-${row.item.id}`,
-                        label: 'Hasat alış',
+                        label: 'Hasat',
                         value: plantValue,
-                        manual: isManualPrice(state.manualPlants[row.item.id]),
+                        manual: plantManual,
+                        missing: !plantFetched,
                         dataAttr: `data-plant-price="${escapeHtml(row.item.id)}"`
                     })}
                 </td>
                 <td class="num farming-num" data-sort-value="${row.qty}">${formatQty(row.qty)}</td>
                 <td class="num farming-num" data-sort-value="${row.usedReturn}">${formatPct(row.usedReturn)}</td>
-                <td class="num farming-num" data-sort-value="${row.unit ?? ''}">${formatSilver(row.unit, { digits: 1 })}</td>
-                <td class="num farming-num${deltaClass(row.delta)}" data-sort-value="${row.delta ?? ''}">${formatSilver(row.delta, { digits: 1 })}</td>
-                <td class="farming-verdict${decisionClass(row.decision)}" data-sort-value="${row.decision ?? ''}">${decisionLabel(row.decision)}</td>
-                ${showFocus ? `<td class="num farming-num" data-sort-value="${row.perFocus ?? ''}">${formatSilver(row.perFocus, { digits: 1 })}</td>` : ''}
+                <td class="num farming-num${incompleteClass(row.unit)}" data-sort-value="${row.unit ?? ''}">${formatSilver(row.unit, { digits: 1 })}</td>
+                <td class="num farming-num${deltaClass(row.delta)}${incompleteClass(row.delta)}" data-sort-value="${row.delta ?? ''}">${formatSilver(row.delta, { digits: 1 })}</td>
+                <td class="farming-verdict${decisionClass(row.decision)}${incompleteClass(row.decision)}" data-sort-value="${row.decision ?? ''}">${decisionLabel(row.decision)}</td>
+                <td class="num farming-num${state.water ? incompleteClass(row.perFocus) : ''}" data-sort-value="${row.perFocus ?? ''}">${formatSilver(row.perFocus, { digits: 1 })}</td>
             </tr>
         `;
     }).join('');
@@ -587,17 +581,28 @@ function renderTable() {
     return `
         <div class="table-responsive calc-table-wrap">
             <table class="table table-striped farming-table calc-table">
+                <colgroup>
+                    <col class="farming-col-item">
+                    <col class="farming-col-price">
+                    <col class="farming-col-price">
+                    <col class="farming-col-num">
+                    <col class="farming-col-pct">
+                    <col class="farming-col-num">
+                    <col class="farming-col-num">
+                    <col class="farming-col-verdict">
+                    <col class="farming-col-num">
+                </colgroup>
                 <thead>
                     <tr>
-                        ${sortHeaderHtml('Ürün', { key: 'item', type: 'text', direction: dir('item') })}
-                        ${sortHeaderHtml('Tohum', { key: 'seed', type: 'number', className: 'num farming-num', direction: dir('seed') })}
-                        ${sortHeaderHtml('Hasat alış', { key: 'plant', type: 'number', className: 'num farming-num', direction: dir('plant') })}
-                        ${sortHeaderHtml('Verim', { key: 'qty', type: 'number', className: 'num farming-num', direction: dir('qty') })}
-                        ${sortHeaderHtml('Tohum %', { key: 'seedPct', type: 'number', className: 'num farming-num', direction: dir('seedPct') })}
-                        ${sortHeaderHtml('Birim', { key: 'unit', type: 'number', className: 'num farming-num', direction: dir('unit') })}
-                        ${sortHeaderHtml('Fark', { key: 'delta', type: 'number', className: 'num farming-num', direction: dir('delta') })}
-                        ${sortHeaderHtml('Karar', { key: 'decision', type: 'text', direction: dir('decision') })}
-                        ${showFocus ? sortHeaderHtml('₺/focus', { key: 'focus', type: 'number', className: 'num farming-num', direction: dir('focus') }) : ''}
+                        ${sortHeaderHtml('Ürün', { key: 'item', type: 'number', direction: dir('item'), title: 'Ekin veya ot' })}
+                        ${sortHeaderHtml('Tohum', { key: 'seed', type: 'number', className: 'num farming-num', direction: dir('seed'), title: 'Tohum alış fiyatı' })}
+                        ${sortHeaderHtml('Hasat alış', { key: 'plant', type: 'number', className: 'num farming-num', direction: dir('plant'), title: 'Hasat ürününün piyasa alış fiyatı' })}
+                        ${sortHeaderHtml('Verim', { key: 'qty', type: 'number', className: 'num farming-num', direction: dir('qty'), title: 'Hasat miktarı' })}
+                        ${sortHeaderHtml('Tohum %', { key: 'seedPct', type: 'number', className: 'num farming-num', direction: dir('seedPct'), title: 'Tohumun geri dönme oranı' })}
+                        ${sortHeaderHtml('Birim', { key: 'unit', type: 'number', className: 'num farming-num', direction: dir('unit'), title: 'Bir hasat biriminin üretim maliyeti' })}
+                        ${sortHeaderHtml('Fark', { key: 'delta', type: 'number', className: 'num farming-num', direction: dir('delta'), title: 'Üretim maliyeti eksi piyasa fiyatı' })}
+                        ${sortHeaderHtml('Karar', { key: 'decision', type: 'text', direction: dir('decision'), title: 'Üret veya piyasadan al' })}
+                        ${sortHeaderHtml('₺/focus', { key: 'focus', type: 'number', className: 'num farming-num', direction: dir('focus'), title: 'Sulamada focus başına kazanılan gümüş' })}
                     </tr>
                 </thead>
                 <tbody>${body}</tbody>
@@ -638,7 +643,7 @@ function renderOutput() {
                 ${escapeHtml(cityLabel(state.city))} · tohum ${escapeHtml(seedNote)} · hasat ${escapeHtml(plantNote)}.
                 Birim = net tohum / verim. Fark = birim − hasat alış; negatifse üret, değilse al.
                 Tohum işareti NPC fiyatına göre.${focusNote}
-                Elle yazılan fiyat API’nin yerine geçer.${stamp ? ` ${stamp}` : ''}
+                Elle yazılan fiyat API’nin yerine geçer. Kırmızı fiyat API’de yok; hesap da kırmızı kalır, elle doldur.${stamp ? ` ${stamp}` : ''}
             </p>
             ${renderTable()}
         </div>
@@ -662,6 +667,8 @@ function bindFarmingSort(container) {
 function patchRowCells(tr, row, bestId) {
     tr.classList.toggle('is-best', row.item.id === bestId);
 
+    tr.cells[0].dataset.sortValue = String(row.item.tier);
+
     const seedCell = tr.cells[1];
     const plantCell = tr.cells[2];
     const qtyCell = tr.cells[3];
@@ -672,28 +679,36 @@ function patchRowCells(tr, row, bestId) {
     const focusCell = tr.cells[8];
 
     seedCell.dataset.sortValue = row.seed?.price ?? '';
-    seedCell.querySelector('.farming-price-field')?.classList.toggle(
-        'is-manual',
-        isManualPrice(state.manualSeeds[row.item.id])
-    );
-    let mark = seedCell.querySelector('.farming-seed-mark');
+    const seedFetched = fetchedSeedQuote(row.item);
+    const seedManual = state.manualSeeds[row.item.id];
+    applyPriceFieldState(seedCell.querySelector('.farming-price-field'), {
+        manual: isManualPrice(seedManual),
+        missing: !seedFetched,
+        displayValue: priceInputValue(seedManual, seedFetched?.price)
+    });
+    const seedField = seedCell.querySelector('.farming-price-field');
+    let mark = seedField?.querySelector('.farming-seed-mark');
     if (row.mark) {
-        if (!mark) {
+        if (!mark && seedField) {
             mark = document.createElement('span');
-            mark.className = 'farming-seed-mark';
-            seedCell.append(mark);
+            seedField.append(mark);
         }
-        mark.className = `farming-seed-mark is-${row.mark.tone}`;
-        mark.textContent = row.mark.label;
+        if (mark) {
+            mark.className = `farming-seed-mark float-cut is-${row.mark.tone}`;
+            mark.textContent = row.mark.label;
+        }
     } else if (mark) {
         mark.remove();
     }
 
     plantCell.dataset.sortValue = row.plant?.price ?? '';
-    plantCell.querySelector('.farming-price-field')?.classList.toggle(
-        'is-manual',
-        isManualPrice(state.manualPlants[row.item.id])
-    );
+    const plantFetched = fetchedPlantQuote(row.item);
+    const plantManual = state.manualPlants[row.item.id];
+    applyPriceFieldState(plantCell.querySelector('.farming-price-field'), {
+        manual: isManualPrice(plantManual),
+        missing: !plantFetched,
+        displayValue: priceInputValue(plantManual, plantFetched?.price)
+    });
 
     qtyCell.dataset.sortValue = String(row.qty);
     qtyCell.textContent = formatQty(row.qty);
@@ -703,24 +718,26 @@ function patchRowCells(tr, row, bestId) {
 
     unitCell.dataset.sortValue = row.unit ?? '';
     unitCell.textContent = formatSilver(row.unit, { digits: 1 });
+    unitCell.className = `num farming-num${incompleteClass(row.unit)}`;
 
     deltaCell.dataset.sortValue = row.delta ?? '';
     deltaCell.textContent = formatSilver(row.delta, { digits: 1 });
-    deltaCell.className = `num farming-num${deltaClass(row.delta)}`;
+    deltaCell.className = `num farming-num${deltaClass(row.delta)}${incompleteClass(row.delta)}`;
 
     verdictCell.dataset.sortValue = row.decision ?? '';
     verdictCell.textContent = decisionLabel(row.decision);
-    verdictCell.className = `farming-verdict${decisionClass(row.decision)}`;
+    verdictCell.className = `farming-verdict${decisionClass(row.decision)}${incompleteClass(row.decision)}`;
 
     if (focusCell) {
         focusCell.dataset.sortValue = row.perFocus ?? '';
         focusCell.textContent = formatSilver(row.perFocus, { digits: 1 });
+        focusCell.className = `num farming-num${state.water ? incompleteClass(row.perFocus) : ''}`;
     }
 
     const bonus = tr.querySelector('.farming-bonus');
     if (row.bonus && !bonus) {
-        const name = tr.querySelector('.farming-item-name');
-        name?.insertAdjacentHTML('beforeend', '<span class="farming-bonus">+10%</span>');
+        const meta = tr.querySelector('.farming-item-meta');
+        meta?.insertAdjacentHTML('beforeend', '<span class="farming-bonus">+10%</span>');
     } else if (!row.bonus && bonus) {
         bonus.remove();
     }
@@ -767,8 +784,7 @@ function bindPriceInputs(container) {
                 if (kind === 'seed') {
                     state.manualSeeds[id] = null;
                     const fetched = item ? fetchedSeedQuote(item) : null;
-                    const fallback = fetched?.price ?? item?.vendor;
-                    input.value = Number.isFinite(fallback) ? formatSilver(fallback) : '';
+                    input.value = fetched ? formatSilver(fetched.price) : '';
                 } else {
                     state.manualPlants[id] = null;
                     const fetched = item ? fetchedPlantQuote(item) : null;
@@ -835,7 +851,7 @@ function renderPage(container) {
                         <label for="farmingCity">Şehir</label>
                     </div>
                     ${specFieldsHtml()}
-                    <button type="button" class="btn btn-outline-secondary" id="farmingRefresh">Fiyatları yenile</button>
+                    ${priceRefreshActionsHtml({ refreshId: 'farmingRefresh', apiId: 'farmingRefreshApi' })}
                 </div>
             </div>
             <div class="tool-split-result">
@@ -931,15 +947,18 @@ function bindPage(container) {
         }
     });
 
-    container.querySelector('#farmingRefresh')?.addEventListener('click', () => {
-        loadPrices(container);
+    bindPriceRefresh(container, {
+        refreshId: 'farmingRefresh',
+        apiId: 'farmingRefreshApi',
+        load: (options) => loadPrices(container, options)
     });
 }
 
-async function loadPrices(container, { showLoader = true } = {}) {
+async function loadPrices(container, { showLoader = true, source } = {}) {
+    applyPriceLoadMode(state, { source, showLoader });
     state.error = null;
     if (showLoader) {
-        showPageLoader('Şehir fiyatları alınıyor…');
+        showPageLoader(priceLoaderMessage(source, 'Şehir fiyatları alınıyor…'));
     }
 
     try {
@@ -948,8 +967,8 @@ async function loadPrices(container, { showLoader = true } = {}) {
             throw new Error('Aktif şehir yok.');
         }
         const [seedRows, plantRows] = await Promise.all([
-            fetchPrices(ALL_ITEMS.map((item) => item.seedId), locations),
-            fetchPrices(ALL_ITEMS.map((item) => item.plantId), locations)
+            fetchPrices(ALL_ITEMS.map((item) => item.seedId), locations, { source }),
+            fetchPrices(ALL_ITEMS.map((item) => item.plantId), locations, { source })
         ]);
         state.priceIndex = indexPrices([...seedRows, ...plantRows]);
         state.loaded = true;
@@ -985,10 +1004,15 @@ async function init() {
     showPageLoader('Farming yükleniyor…');
     try {
         await initStore();
-        state.cities = loadCities().filter((city) => city.isActive);
+        state.cities = loadActiveCities();
         state.city = readSavedCity(state.cities);
         renderPage(container);
         await loadPrices(container, { showLoader: false });
+        bindLivePrices(() => ({
+            items: ALL_ITEMS.flatMap((item) => [item.seedId, item.plantId]),
+            cities: [state.city],
+            pause: state.livePaused
+        }), () => loadPrices(container, { showLoader: false }));
     } catch (error) {
         console.error(error);
         state.error = 'Sayfa yüklenemedi. Static server ile açın.';

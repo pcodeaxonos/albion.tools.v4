@@ -1,19 +1,70 @@
-import { getServer } from './settings.js';
+import { getPriceHost, getSettings, getServer, LOCAL_PRICE_HOST } from './settings.js';
 
-export async function fetchPrices(itemIds, locations = ['Black Market', 'Caerleon']) {
+function hostForSource(source) {
+    if (source === 'api') {
+        return getServer().host;
+    }
+    if (source === 'packets') {
+        return LOCAL_PRICE_HOST;
+    }
+    return getPriceHost();
+}
+
+export function priceLoaderMessage(source, fallback = 'Fiyatlar alınıyor…') {
+    return source === 'api' ? 'AODP fiyatları alınıyor…' : fallback;
+}
+
+export function priceRefreshActionsHtml({ refreshId, apiId }) {
+    return `
+        <div class="tool-price-actions">
+            <button type="button" class="btn btn-outline-secondary" id="${refreshId}">Fiyatları yenile</button>
+            <button type="button" class="btn btn-outline-secondary" id="${apiId}" title="AODP’deki fiyatları çeker. Eksik kalanlar için oyunda marketi aç.">Fiyatları API’den çek</button>
+        </div>
+    `;
+}
+
+export function applyPriceLoadMode(state, { source, showLoader = true } = {}) {
+    if (source === 'api') {
+        state.livePaused = true;
+        return;
+    }
+    if (showLoader) {
+        state.livePaused = false;
+    }
+}
+
+export function bindPriceRefresh(container, { refreshId, apiId, load }) {
+    container.querySelector(`#${refreshId}`)?.addEventListener('click', () => {
+        load();
+    });
+    container.querySelector(`#${apiId}`)?.addEventListener('click', () => {
+        load({ source: 'api' });
+    });
+}
+
+export async function fetchPrices(itemIds, locations = ['Black Market', 'Caerleon'], { source } = {}) {
     const ids = [...new Set(itemIds.filter(Boolean))];
     if (ids.length === 0) {
         return [];
     }
 
-    const server = getServer();
     const params = new URLSearchParams({
         locations: locations.join(','),
         qualities: '1'
     });
     const pathIds = ids.map((id) => encodeURIComponent(id)).join(',');
-    const url = `${server.host}/api/v2/stats/prices/${pathIds}?${params}`;
-    const response = await fetch(url);
+    const host = hostForSource(source);
+    const url = `${host}/api/v2/stats/prices/${pathIds}?${params}`;
+
+    let response;
+    try {
+        response = await fetch(url);
+    } catch {
+        if ((source ?? getSettings().priceSource) === 'packets') {
+            throw new Error('Yerel paket sunucusu kapalı. start.bat ile açın veya Ayarlar’dan API’ye dönün.');
+        }
+        throw new Error('Fiyat alınamadı (ağ hatası)');
+    }
 
     if (!response.ok) {
         throw new Error(`Fiyat alınamadı (${response.status})`);

@@ -11,6 +11,12 @@ export function loadCities() {
     return getAll('cities');
 }
 
+export function loadActiveCities() {
+    return loadCities()
+        .filter((city) => city.isActive)
+        .sort((a, b) => a.id - b.id);
+}
+
 export function renderCitiesTable(cities, container) {
     const activeCities = cities
         .filter((city) => city.isActive)

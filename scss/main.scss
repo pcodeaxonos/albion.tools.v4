@@ -200,9 +200,9 @@ a.tool-card {
 }
 
 .calc-toolbar {
-    --calc-float-label-room: calc(var(--floating-label-float-size) / 2 + 0.25rem);
+    --calc-float-label-room: calc(var(--floating-label-float-size) / 2 + 0.5rem);
     position: sticky;
-    top: var(--navbar-height);
+    top: var(--chrome-top);
     z-index: 12;
     overflow: visible;
     background-color: transparent;
@@ -248,6 +248,7 @@ a.tool-card {
 
 // Tool pages: sticky selections left, results right. Stacks below 992px.
 .tool-split {
+    --tool-split-float-room: calc(var(--floating-label-float-size) / 2 + 0.5rem);
     display: grid;
     grid-template-columns: minmax(20rem, 24rem) minmax(0, 1fr);
     gap: var(--spacing-lg);
@@ -256,6 +257,11 @@ a.tool-card {
     @media (max-width: 991px) {
         grid-template-columns: minmax(0, 1fr);
     }
+
+    // Keep thead under the same offset as the sticky left fields.
+    @media (min-width: 992px) {
+        --calc-toolbar-height: var(--tool-split-float-room);
+    }
 }
 
 .tool-split-controls {
@@ -263,15 +269,16 @@ a.tool-card {
     flex-direction: column;
     gap: var(--spacing-md);
     min-width: 0;
+    max-width: 100%;
 
     @media (min-width: 992px) {
         position: sticky;
-        top: var(--navbar-height);
+        top: var(--chrome-top);
         z-index: 12;
-        max-height: calc(100dvh - var(--navbar-height));
+        max-height: calc(100dvh - var(--chrome-top));
         overflow: auto;
         overscroll-behavior: contain;
-        padding-top: calc(var(--floating-label-float-size) / 2 + 0.25rem);
+        padding-top: var(--tool-split-float-room);
         padding-bottom: var(--spacing-md);
         background-color: var(--color-bg);
     }
@@ -339,7 +346,10 @@ a.tool-card {
     .farming-toolbar {
         display: flex;
         flex-direction: column;
+        flex-wrap: nowrap;
         align-items: stretch;
+        min-width: 0;
+        max-width: 100%;
         gap: var(--spacing-sm);
 
         .carleon-type,
@@ -371,6 +381,11 @@ a.tool-card {
 
 .tool-split-result {
     min-width: 0;
+
+    // Same float-label room as the left column so field tops match thead.
+    @media (min-width: 992px) {
+        padding-top: var(--tool-split-float-room);
+    }
 }
 
 .container:has(.tool-split) {
@@ -388,7 +403,7 @@ a.tool-card {
 
     thead th {
         position: sticky;
-        top: calc(var(--navbar-height) + var(--calc-toolbar-height));
+        top: calc(var(--chrome-top) + var(--calc-toolbar-height));
         z-index: 11;
         background-color: var(--color-surface-raised);
         box-shadow: 0 1px 0 transparent;
@@ -905,6 +920,66 @@ a.tool-card {
     max-width: 48rem;
 }
 
+.settings-packet {
+    margin-top: var(--spacing-md);
+    padding: var(--spacing-md);
+    border: var(--border-width) solid var(--color-border);
+    background-color: var(--color-surface-raised);
+}
+
+.settings-packet-status {
+    margin: 0 0 var(--spacing-sm);
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-medium);
+
+    &.is-up {
+        color: var(--color-success);
+    }
+
+    &.is-warn {
+        color: var(--color-warning);
+    }
+
+    &.is-down {
+        color: var(--color-danger);
+    }
+}
+
+.settings-packet-copy,
+.settings-packet-links {
+    margin: 0;
+    font-size: var(--font-size-sm);
+    color: var(--color-text-muted);
+}
+
+.settings-packet-links {
+    margin-top: var(--spacing-sm);
+}
+
+.settings-command {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--spacing-sm);
+    align-items: stretch;
+    margin-top: var(--spacing-sm);
+
+    code {
+        flex: 1 1 16rem;
+        display: flex;
+        align-items: center;
+        padding: 0.625rem 0.75rem;
+        font-family: var(--font-family-mono);
+        font-size: 0.75rem;
+        background-color: var(--color-bg);
+        border: var(--border-width) solid var(--color-border);
+        overflow-x: auto;
+    }
+
+    .btn {
+        min-width: 6.5rem;
+    }
+}
+
 .settings-note {
     margin: var(--spacing-md) 0 0;
 }
@@ -913,6 +988,10 @@ a.tool-card {
     margin: var(--spacing-sm) 0 0;
     font-size: var(--font-size-sm);
     color: var(--color-success);
+
+    &.is-error {
+        color: var(--color-danger);
+    }
 }
 
 .settings-form .form-check {
@@ -949,8 +1028,22 @@ a.tool-card {
     gap: var(--spacing-md) var(--spacing-xl);
     margin-bottom: var(--spacing-lg);
 
-    > .btn {
+    > .btn,
+    > .tool-price-actions {
         margin-left: auto;
+    }
+}
+
+.tool-price-actions {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-sm);
+    width: 100%;
+    flex-basis: 100%;
+
+    .btn {
+        width: 100%;
+        margin-left: 0;
     }
 }
 
@@ -994,6 +1087,84 @@ a.tool-card {
     @media (min-width: 640px) {
         grid-template-columns: repeat(2, minmax(0, 1fr));
     }
+}
+
+.settings-islands {
+    margin-top: var(--spacing-lg);
+    padding-top: var(--spacing-lg);
+    border-top: var(--border-width) solid var(--color-border);
+
+    h2 {
+        margin: 0 0 var(--spacing-sm);
+        font-size: var(--h3-size);
+    }
+}
+
+.settings-island-hint {
+    margin: 0 0 var(--spacing-md);
+    font-size: var(--font-size-sm);
+}
+
+.settings-island-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--spacing-sm);
+
+    @media (min-width: 640px) {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+.settings-form .settings-island-grid .form-check {
+    padding-top: 0.5rem;
+    padding-bottom: 0.5rem;
+}
+
+.settings-data {
+    max-width: 48rem;
+    margin-top: var(--spacing-xl);
+    padding-top: var(--spacing-lg);
+    border-top: var(--border-width) solid var(--color-border);
+
+    h2 {
+        margin: 0 0 var(--spacing-sm);
+        font-size: var(--h3-size);
+    }
+
+    > p {
+        margin: 0 0 var(--spacing-md);
+        color: var(--color-text-muted);
+    }
+
+    .form-check {
+        margin: var(--spacing-md) 0;
+        min-height: auto;
+        align-items: flex-start;
+        padding-top: 0.625rem;
+        padding-bottom: 0.625rem;
+    }
+
+    .form-check-label {
+        display: flex;
+        flex-direction: column;
+        gap: 0.2rem;
+    }
+}
+
+.settings-data-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--spacing-sm);
+
+    .btn {
+        min-width: 8rem;
+    }
+}
+
+.settings-data-meta {
+    margin: var(--spacing-sm) 0 0;
+    font-size: var(--font-size-sm);
+    color: var(--color-text-muted);
 }
 
 .faction-section {
@@ -1106,10 +1277,6 @@ a.tool-card {
     > label {
         font-size: var(--font-size-sm);
     }
-
-    &.is-manual > .form-control {
-        border-color: var(--color-primary);
-    }
 }
 
 .carleon-price-cell,
@@ -1175,10 +1342,16 @@ a.tool-card {
     display: flex;
     align-items: center;
     gap: var(--spacing-sm);
+    min-width: 0;
 
     .item-icon {
         width: 2rem;
         height: 2rem;
+        flex: 0 0 auto;
+    }
+
+    > span {
+        min-width: 0;
     }
 }
 
@@ -1258,6 +1431,24 @@ a.tool-card {
 .farming-num.is-loss,
 .farming-verdict.is-loss {
     color: #ffb4b5;
+}
+
+.carleon-price-field.is-missing,
+.ava-price-field.is-missing,
+.enchant-price-field.is-missing,
+.farming-price-field.is-missing {
+    > .form-control {
+        color: var(--color-danger);
+        background-color: color-mix(in srgb, var(--color-danger) 12%, var(--field-bg));
+    }
+}
+
+.carleon-num.is-missing,
+.ava-num.is-missing,
+.enchant-num.is-missing,
+.farming-num.is-missing,
+.farming-verdict.is-missing {
+    color: var(--color-danger);
 }
 
 .enchant-type-btn {
@@ -1353,10 +1544,6 @@ a.tool-card {
 
     > label {
         font-size: var(--font-size-sm);
-    }
-
-    &.is-manual > .form-control {
-        border-color: var(--color-primary);
     }
 }
 
@@ -1482,9 +1669,46 @@ a.tool-card {
 
 .farming-spec {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
     gap: var(--spacing-sm);
     width: 100%;
+    min-width: 0;
+}
+
+.farming-table {
+    table-layout: fixed;
+    width: 100%;
+
+    th,
+    td {
+        vertical-align: middle;
+    }
+
+    th,
+    th .table-sort-btn {
+        white-space: nowrap;
+        flex-wrap: nowrap;
+    }
+}
+
+.farming-col-item {
+    width: 16%;
+}
+
+.farming-col-price {
+    width: 18%;
+}
+
+.farming-col-num {
+    width: 7.5%;
+}
+
+.farming-col-pct {
+    width: 10%;
+}
+
+.farming-col-verdict {
+    width: 8%;
 }
 
 .farming-price-field {
@@ -1493,9 +1717,10 @@ a.tool-card {
     --floating-label-pad: 0.25rem;
     --floating-label-scale: calc(var(--floating-label-float-size) / var(--font-size-sm));
     width: 100%;
-    min-width: 6.5rem;
+    min-width: 0;
     max-width: none;
     margin-top: 0;
+    overflow: visible;
 
     > .form-control {
         font-family: var(--font-family-mono);
@@ -1506,37 +1731,42 @@ a.tool-card {
 
     > label {
         font-size: var(--font-size-sm);
-    }
-
-    &.is-manual > .form-control {
-        border-color: var(--color-primary);
+        max-width: none;
+        overflow: visible;
+        text-overflow: clip;
     }
 }
 
 .farming-price-cell {
-    width: 8.5rem;
+    overflow: visible;
+    padding-inline: 0.4rem;
 
     .farming-price-field {
-        margin-left: auto;
-        max-width: 8rem;
+        margin-left: 0;
+        max-width: none;
     }
 }
 
 .farming-seed-mark {
-    display: block;
-    margin-top: 0.2rem;
-    font-size: 0.625rem;
-    font-weight: var(--font-weight-semibold);
-    letter-spacing: 0.03em;
+    position: absolute;
+    top: 0;
+    right: 0.35rem;
+    bottom: auto;
+    z-index: 3;
+    margin: 0;
+    font-size: 0.5rem;
     text-transform: uppercase;
-    color: var(--color-text-muted);
+    white-space: nowrap;
+    pointer-events: none;
 
     &.is-cheap {
-        color: var(--color-success);
+        background-color: var(--color-success);
+        color: var(--color-on-accent);
     }
 
     &.is-dear {
-        color: #ffb4b5;
+        background-color: #ffb4b5;
+        color: var(--color-on-accent);
     }
 }
 
@@ -1546,10 +1776,16 @@ a.tool-card {
     vertical-align: -0.1rem;
 }
 
+.farming-item-name {
+    flex-wrap: nowrap;
+    white-space: nowrap;
+}
+
 .farming-item-meta {
     display: flex;
     align-items: center;
     gap: 0.25rem;
+    white-space: nowrap;
 }
 
 .farming-verdict {

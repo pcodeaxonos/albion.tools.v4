@@ -66,6 +66,14 @@ function restorePosition(container) {
 }
 
 function getViewportClipTop() {
+    const status = document.getElementById('appStatus');
+    if (status) {
+        const style = getComputedStyle(status);
+        if (style.display !== 'none') {
+            return Math.max(0, status.getBoundingClientRect().bottom);
+        }
+    }
+
     const bar = document.querySelector('.app-topbar') || document.querySelector('.navbar');
     if (!bar) {
         return 0;
