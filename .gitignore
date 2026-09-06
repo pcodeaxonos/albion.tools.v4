@@ -2,5 +2,8 @@ node_modules/
 .DS_Store
 Thumbs.db
 *.log
+*.log.*
+albiondata-client.log*
+_tmp_xlsm_report/
 .price-hub.json
 .albion-tools-data.json
