@@ -10,6 +10,7 @@ const LIVE_MS = 15 * 60 * 1000;
 const OPEN_KEY = 'albiontools.v4.statusOpen';
 const FRESH_MS = 8000;
 const ZONE_FIX = 'Oyunda bir zone geç (şehir kapısı veya teleport). ADC konum almadan market paketi göndermez; sonra Trading Post’u aç.';
+const INGEST_FIX = 'ADC kamu AODP’ye gidiyor, :3001’e değil. ADC penceresini kapatıp start.bat çalıştır.';
 
 let pollTimer = 0;
 let inFlight = 0;
@@ -183,9 +184,9 @@ export function sessionAdcState(hub, packets = true) {
             'adc',
             'warn',
             'Albion Data Client',
-            'ADC açık ama bu oturumda market paketi yok',
-            ZONE_FIX,
-            'missing'
+            'ADC açık ama hub’a paket düşmedi',
+            INGEST_FIX,
+            'ingest'
         );
     }
 
@@ -269,7 +270,7 @@ async function probe() {
                 cached
                     ? 'Önbellekteki eski fiyatlar duruyor — taze paket yok'
                     : 'Hub açık, taze emir yok — kırmızı alanlar boş kalır',
-                adc?.code === 'location' || adc?.code === 'dead'
+                adc?.code === 'location' || adc?.code === 'dead' || adc?.code === 'ingest'
                     ? (adc.fix || ZONE_FIX)
                     : 'Marketi aç veya eksik fiyatı elle gir.'
             ));
@@ -349,6 +350,9 @@ function summaryShort(report) {
     const adc = report.steps.find((item) => item.id === 'adc');
     if (adc?.code === 'location') {
         return 'Konum yok';
+    }
+    if (adc?.code === 'ingest') {
+        return 'Yanlış ingest';
     }
     if (adc?.code === 'dead') {
         return 'ADC kapalı';

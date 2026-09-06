@@ -135,7 +135,25 @@ export const ITEM_LABELS = {
     T5_MOUNT_ARMORED_HORSE: "Expert's Armored Horse",
     T6_MOUNT_ARMORED_HORSE: "Master's Armored Horse",
     T7_MOUNT_ARMORED_HORSE: "Grandmaster's Armored Horse",
-    T8_MOUNT_ARMORED_HORSE: "Elder's Armored Horse"
+    T8_MOUNT_ARMORED_HORSE: "Elder's Armored Horse",
+    T2_FURNITUREITEM_CHEST: "Novice's Chest",
+    T3_FURNITUREITEM_CHEST: "Journeyman's Chest",
+    T4_FURNITUREITEM_CHEST: "Adept's Chest",
+    T5_FURNITUREITEM_CHEST: "Expert's Chest",
+    T2_FURNITUREITEM_BED: "Novice's Bed",
+    T3_FURNITUREITEM_BED: "Journeyman's Bed",
+    T4_FURNITUREITEM_BED: "Adept's Bed",
+    T5_FURNITUREITEM_BED: "Expert's Bed",
+    T6_FURNITUREITEM_BED: "Master's Bed",
+    T7_FURNITUREITEM_BED: "Grandmaster's Bed",
+    T8_FURNITUREITEM_BED: "Elder's Bed",
+    T2_FURNITUREITEM_TABLE: "Novice's Table",
+    T3_FURNITUREITEM_TABLE: "Journeyman's Table",
+    T4_FURNITUREITEM_TABLE: "Adept's Table",
+    T5_FURNITUREITEM_TABLE: "Expert's Table",
+    T6_FURNITUREITEM_TABLE: "Master's Table",
+    T7_FURNITUREITEM_TABLE: "Grandmaster's Table",
+    T8_FURNITUREITEM_TABLE: "Elder's Table"
 };
 
 export function itemLabel(uniqueName, fallback = uniqueName) {

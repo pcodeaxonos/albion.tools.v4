@@ -107,11 +107,14 @@ export const TOOLS = [
         group: 'Üretim'
     },
     {
-        id: 'chesting',
-        title: 'Chesting',
-        description: 'Şehir ve malzemeye göre sandık craft maliyeti.',
-        icon: '📦',
-        group: 'Üretim'
+        id: 'furniture',
+        title: 'Furniture',
+        description: 'Ada evi dekorasyonu: sandık, yatak ve masa craft maliyeti / kârı.',
+        icon: '🪑',
+        href: 'furniture.html',
+        addedAt: '2026-09-06',
+        group: 'Üretim',
+        frequent: true
     },
     {
         id: 'house',

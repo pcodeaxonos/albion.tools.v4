@@ -1,15 +1,16 @@
 import { escapeHtml } from './utils.js';
 import { initStore } from './db/store.js';
 import { todayCraftBonuses } from './craft-bonus.js';
-import { bonusDayIso, bonusWindowLabel } from './bonus-day.js';
-import { bonusPackLine, bonusStationLine } from './bonus-cities.js';
+import {
+    bonusFamilyMeta,
+    bonusMaterialItemId,
+    bonusPackLine,
+    bonusStationLine
+} from './bonus-cities.js';
+import { itemIconHtml } from './item-icon.js';
 
 const SIDEBAR_ID = 'sidebarToday';
 const TOPBAR_ID = 'topbarToday';
-
-export function todayWindowLabel() {
-    return bonusWindowLabel(bonusDayIso());
-}
 
 function compactPackLine(bonus, { includeCity = true } = {}) {
     return bonusPackLine(bonus, { includeCity });
@@ -20,34 +21,65 @@ export function slotTitle(bonus) {
     return [family, compactPackLine(bonus)].join(' · ');
 }
 
-export function renderTodaySlotCard(bonus) {
-    const city = bonus.cityLabel || 'Şehir yok';
-    const station = bonusStationLine(bonus);
+export function renderMatsHtml(materials, className = 'bonus-mat-icon') {
+    if (!materials?.length) {
+        return '';
+    }
 
-    return `
-        <article class="today-slot" title="${escapeHtml(slotTitle(bonus))}">
-            <p class="today-slot-city">${escapeHtml(city)}</p>
-            <p class="today-slot-family">${escapeHtml(bonus.label)} <span>+${bonus.rate}%</span></p>
-            ${bonus.materialShort ? `<p class="today-slot-pack">${escapeHtml(bonus.materialShort)}</p>` : ''}
-            ${station ? `<p class="today-slot-pack">${escapeHtml(station)}</p>` : ''}
-        </article>
-    `;
+    const icons = materials
+        .map((key) => itemIconHtml(bonusMaterialItemId(key), {
+            size: 32,
+            className: `item-icon ${className}`
+        }))
+        .filter(Boolean)
+        .join('');
+
+    if (!icons) {
+        return '';
+    }
+
+    return `<span class="bonus-mats">${icons}</span>`;
 }
 
-export function renderTodaySlotsHtml(bonuses, emptyText) {
-    if (bonuses.length === 0) {
-        return `<p class="today-slots-empty">${escapeHtml(emptyText)}</p>`;
+export function renderBonusHintHtml(familyKey) {
+    const meta = bonusFamilyMeta(familyKey);
+    if (!meta.cityLabel) {
+        return '';
+    }
+
+    const station = bonusStationLine(meta);
+    return [
+        `<span class="bonus-hint-city">${escapeHtml(meta.cityLabel)}</span>`,
+        renderMatsHtml(meta.materials),
+        station ? `<span class="bonus-hint-station">${escapeHtml(station)}</span>` : ''
+    ].filter(Boolean).join(' ');
+}
+
+function renderPackHtml(bonus) {
+    const mats = renderMatsHtml(bonus.materials);
+    const station = bonusStationLine(bonus);
+    if (!mats && !station) {
+        return '';
     }
 
     return `
-        <div class="today-slots">
-            ${bonuses.map(renderTodaySlotCard).join('')}
-        </div>
+        <span class="sidebar-today-pack">
+            ${mats}
+            ${station ? `<span class="sidebar-today-station">${escapeHtml(station)}</span>` : ''}
+        </span>
     `;
 }
 
 function emptyCopy(compact) {
     return compact ? 'Bonus yok' : 'Kayıt yok';
+}
+
+function citySlug(city) {
+    return String(city || '')
+        .trim()
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-|-$/g, '');
 }
 
 function renderSidebarSlots(bonuses) {
@@ -57,12 +89,17 @@ function renderSidebarSlots(bonuses) {
 
     return bonuses.map((bonus) => {
         const city = bonus.cityLabel || '—';
-        const pack = compactPackLine(bonus, { includeCity: false });
+        const short = bonus.cityShort || city;
+        const slug = citySlug(bonus.city || bonus.cityLabel);
+        const cityAttr = slug ? ` data-city="${escapeHtml(slug)}"` : '';
         return `
-            <span class="sidebar-today-slot" title="${escapeHtml(slotTitle(bonus))}">
-                <span class="sidebar-today-city">${escapeHtml(city)}</span>
-                <span class="sidebar-today-family">${escapeHtml(bonus.label)} +${bonus.rate}%</span>
-                ${pack ? `<span class="sidebar-today-pack">${escapeHtml(pack)}</span>` : ''}
+            <span class="sidebar-today-slot"${cityAttr} title="${escapeHtml(slotTitle(bonus))}">
+                <span class="sidebar-today-city">
+                    <span class="sidebar-today-city-full">${escapeHtml(city)}</span>
+                    <span class="sidebar-today-city-short">${escapeHtml(short)}</span>
+                </span>
+                <span class="sidebar-today-family">${escapeHtml(bonus.label)} <span class="sidebar-today-rate">+${bonus.rate}%</span></span>
+                ${renderPackHtml(bonus)}
             </span>
         `;
     }).join('');

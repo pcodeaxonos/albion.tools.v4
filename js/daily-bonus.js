@@ -4,9 +4,8 @@ import { initFloatingLabels } from './forms.js';
 import { initStore, getAll, createRow, updateRow, deleteRow } from './db/store.js';
 import { getBonusFamilies, getBonusFamilyLabel } from './bonus-families.js';
 import { addDays, bonusDayIso, bonusWindowLabel } from './bonus-day.js';
-import { bonusCityLabel, cityHintText } from './bonus-cities.js';
-import { todayCraftBonuses } from './craft-bonus.js';
-import { refreshTodayBonusChip, renderTodaySlotsHtml, todayWindowLabel } from './today-bonus.js';
+import { bonusCityLabel } from './bonus-cities.js';
+import { refreshTodayBonusChip, renderBonusHintHtml } from './today-bonus.js';
 import { showPageLoader, hidePageLoader } from './loader.js';
 import { initTableSort, sortHeaderHtml } from './table-sort.js';
 import { bindCalcSticky } from './calc-sticky.js';
@@ -130,9 +129,9 @@ function updateSlotCityHints(container) {
             return;
         }
 
-        const text = key ? cityHintText(key) : '';
-        hint.hidden = !text;
-        hint.textContent = text;
+        const html = key ? renderBonusHintHtml(key) : '';
+        hint.hidden = !html;
+        hint.innerHTML = html;
     });
 }
 
@@ -375,26 +374,6 @@ function renderLogTable(month, highlightKeys = []) {
     `;
 }
 
-function renderTodayBand() {
-    const bonuses = todayCraftBonuses();
-    const slots = renderTodaySlotsHtml(bonuses, 'Bugün kayıt yok — iki bonusu seçip kaydet.');
-    return `
-        <section class="bonus-today" aria-label="Bugünün bonus şehirleri">
-            <p class="bonus-today-window">${escapeHtml(todayWindowLabel())}</p>
-            ${slots}
-        </section>
-    `;
-}
-
-function refreshTodayBand(container) {
-    const host = container.querySelector('.bonus-today');
-    if (!host) {
-        return;
-    }
-
-    host.outerHTML = renderTodayBand();
-}
-
 function renderPage(container) {
     const families = getBonusFamilies().families;
     const monthInput = state.month;
@@ -406,8 +385,6 @@ function renderPage(container) {
             <h1>Günlük Bonus</h1>
             <p>Her gün iki craft / refine bonusu. Gün 13:00’te yenilenir. Oyun API’sinden gelmez; buraya kaydedilir. Unutulan günler boş bırakılabilir.</p>
         </section>
-
-        ${renderTodayBand()}
 
         <div class="tool-split">
             <div class="tool-split-controls">
@@ -534,7 +511,6 @@ function bindPage(container) {
         setFormMessage(container, 'Kayıt silindi.');
         fillForm(container, null);
         refreshLog(container);
-        refreshTodayBand(container);
         refreshTodayBonusChip();
         promptTodayIfMissing(container);
     });
@@ -627,7 +603,6 @@ function saveEntry(container) {
     updateRepeatPreview(container);
     updateSlotCityHints(container);
     refreshLog(container);
-    refreshTodayBand(container);
     refreshTodayBonusChip();
 }
 

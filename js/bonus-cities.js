@@ -166,8 +166,24 @@ const FAMILY_MATERIALS = {
     'resources/ore': ['ore']
 };
 
+const MAT_ITEM = {
+    plank: 'T4_PLANKS',
+    bar: 'T4_METALBAR',
+    leather: 'T4_LEATHER',
+    cloth: 'T4_CLOTH',
+    odun: 'T4_WOOD',
+    fiber: 'T4_FIBER',
+    taş: 'T4_ROCK',
+    hide: 'T4_HIDE',
+    ore: 'T4_ORE'
+};
+
 export function bonusCityApiName(familyKey) {
     return FAMILY_CITY[familyKey] ?? null;
+}
+
+export function bonusMaterialItemId(key) {
+    return MAT_ITEM[key] ?? null;
 }
 
 export function bonusCityLabel(familyKey) {
@@ -242,6 +258,7 @@ export function bonusFamilyMeta(familyKey) {
         city: bonusCityApiName(familyKey),
         cityLabel: bonusCityLabel(familyKey),
         cityShort: bonusCityShort(familyKey),
+        materials,
         materialShort,
         materialLabel: materialShort,
         tree: station?.tree ?? '',

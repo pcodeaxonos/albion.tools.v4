@@ -113,7 +113,7 @@ function renderPage(container, cities) {
             </div>
             <div class="settings-packet" id="settingsPacket" ${packets ? '' : 'hidden'}>
                 <p class="settings-packet-status" id="settingsPacketStatus">Yerel hub kontrol ediliyor…</p>
-                <p class="settings-packet-copy">Albion Data Client oyun paketlerini çözer ve bu makinedeki huba gönderir. ADC konumu Join paketinden öğrenir — oyuna girdikten veya client’ı açtıktan sonra bir zone geçmeden market verisi göndermez. Fiyatı istediğin marketi açman gerekir.</p>
+                <p class="settings-packet-copy">Albion Data Client oyun paketlerini çözer ve bu makinedeki huba gönderir. Kısayoldan açılan ADC kamu AODP’ye gider; start.bat client’ı <code>-i http://127.0.0.1:3001</code> ile yeniden açar. ADC konumu Join paketinden öğrenir — zone geçmeden market verisi göndermez. Fiyatı istediğin marketi açman gerekir.</p>
                 <div class="settings-command">
                     <code id="settingsClientCommand">${escapeHtml(CLIENT_COMMAND)}</code>
                     <button type="button" class="btn btn-outline-secondary" id="settingsCopyCommand">Kopyala</button>

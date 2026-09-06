@@ -4,8 +4,6 @@ import { getFrequentTools } from './usage.js';
 import { getAll, getRowCount } from './db/store.js';
 import { getTableNames, getTable } from './db/schema.js';
 import { showAreaLoader, hideAreaLoader, yieldToMain } from './loader.js';
-import { todayCraftBonuses } from './craft-bonus.js';
-import { renderTodaySlotsHtml, todayWindowLabel } from './today-bonus.js';
 
 export async function renderDashboard(container) {
     container.innerHTML = `
@@ -13,11 +11,6 @@ export async function renderDashboard(container) {
             <h1>Albion Tools</h1>
             <p>Albion Online oyuncuları için market, craft ve karlılık araçları.</p>
         </section>
-
-        <a class="dashboard-today" href="daily-bonus.html">
-            <span class="dashboard-today-kicker">Bugün · ${escapeHtml(todayWindowLabel())}</span>
-            ${renderTodaySlotsHtml(todayCraftBonuses(), 'Bugün kayıt yok.')}
-        </a>
 
         <section class="dashboard-stats" aria-label="Veritabanı özeti" aria-busy="true">
             <div class="dashboard-stat">
@@ -43,9 +36,7 @@ export async function renderDashboard(container) {
                 <h2>Sık kullanılanlar</h2>
                 <p class="text-muted">En çok açtığınız araçlar. Tam liste soldaki menüde; yakında olanlar yapı hazır oldukça açılacak.</p>
             </div>
-            <div class="tool-grid tool-grid--frequent">
-                ${getFrequentTools().map(renderToolCard).join('')}
-            </div>
+            <div class="tool-grid tool-grid--frequent"></div>
         </section>
 
         <section class="dashboard-section">
@@ -56,6 +47,8 @@ export async function renderDashboard(container) {
             <div class="db-summary-grid" aria-busy="true"></div>
         </section>
     `;
+
+    bindFrequentGrid(container.querySelector('.tool-grid--frequent'));
 
     const statsSection = container.querySelector('.dashboard-stats');
     const summaryGrid = container.querySelector('.db-summary-grid');
@@ -91,6 +84,64 @@ export async function renderDashboard(container) {
 
     hideAreaLoader(statsSection);
     hideAreaLoader(summaryGrid);
+}
+
+const FREQUENT_ROWS = 2;
+let frequentObserver = null;
+
+function cssLengthToPx(value) {
+    const raw = String(value || '').trim();
+    const amount = Number.parseFloat(raw);
+
+    if (!Number.isFinite(amount)) {
+        return 200;
+    }
+
+    if (raw.endsWith('rem')) {
+        const root = Number.parseFloat(getComputedStyle(document.documentElement).fontSize) || 16;
+        return amount * root;
+    }
+
+    return amount;
+}
+
+function frequentColumnCount(grid) {
+    const styles = getComputedStyle(grid);
+    const gap = cssLengthToPx(styles.columnGap);
+    const min = cssLengthToPx(styles.getPropertyValue('--tool-card-min'));
+    const width = grid.clientWidth;
+
+    if (width <= 0) {
+        return 1;
+    }
+
+    return Math.max(1, Math.floor((width + gap) / (min + gap)));
+}
+
+function bindFrequentGrid(grid) {
+    if (!grid) {
+        return;
+    }
+
+    const paint = () => {
+        const tools = getFrequentTools();
+        const maxCols = Math.max(1, Math.floor(tools.length / FREQUENT_ROWS));
+        const cols = Math.min(frequentColumnCount(grid), maxCols);
+        const key = String(cols);
+
+        if (grid.dataset.cols === key) {
+            return;
+        }
+
+        grid.dataset.cols = key;
+        grid.style.setProperty('--frequent-cols', key);
+        grid.innerHTML = tools.slice(0, cols * FREQUENT_ROWS).map(renderToolCard).join('');
+    };
+
+    frequentObserver?.disconnect();
+    frequentObserver = new ResizeObserver(paint);
+    frequentObserver.observe(grid);
+    paint();
 }
 
 function renderToolCard(tool) {

@@ -1,7 +1,6 @@
 import { TOOLS, getFrequentTools as getStaticFrequentTools } from './tools.js';
 
 const STORAGE_KEY = 'albiontools.v4.usage';
-const FREQUENT_LIMIT = 8;
 
 let recordedThisLoad = false;
 
@@ -71,11 +70,15 @@ function normalizeEntry(entry) {
 
 function getFallbackFrequentTools() {
     const live = liveTools();
-    const frequentLive = getStaticFrequentTools().filter((tool) => tool.href);
+    const frequent = getStaticFrequentTools();
+    const frequentLive = frequent.filter((tool) => tool.href);
     const frequentIds = new Set(frequentLive.map((tool) => tool.id));
     const extraLive = live.filter((tool) => !frequentIds.has(tool.id));
+    const upcomingFrequent = frequent.filter((tool) => !tool.href);
+    const upcomingIds = new Set(upcomingFrequent.map((tool) => tool.id));
+    const extraUpcoming = TOOLS.filter((tool) => !tool.href && !upcomingIds.has(tool.id));
 
-    return [...frequentLive, ...extraLive].slice(0, FREQUENT_LIMIT);
+    return [...frequentLive, ...extraLive, ...upcomingFrequent, ...extraUpcoming];
 }
 
 export function recordCurrentToolVisit() {
@@ -101,7 +104,7 @@ export function recordCurrentToolVisit() {
     writeUsage(usage);
 }
 
-export function getFrequentTools() {
+export function getFrequentTools(limit = Number.POSITIVE_INFINITY) {
     const usage = readUsage();
     const byId = new Map(liveTools().map((tool) => [tool.id, tool]));
 
@@ -120,6 +123,11 @@ export function getFrequentTools() {
 
     const rankedIds = new Set(ranked.map((tool) => tool.id));
     const fillers = getFallbackFrequentTools().filter((tool) => !rankedIds.has(tool.id));
+    const list = [...ranked, ...fillers];
 
-    return [...ranked, ...fillers].slice(0, FREQUENT_LIMIT);
+    if (!Number.isFinite(limit)) {
+        return list;
+    }
+
+    return list.slice(0, Math.max(0, limit));
 }
