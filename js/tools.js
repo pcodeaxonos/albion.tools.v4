@@ -54,6 +54,8 @@ export const TOOLS = [
         title: 'Malzemeler',
         description: 'Şehir bazlı plank / block makas, harcama ve net kâr.',
         icon: '🪵',
+        href: 'malzemeler.html',
+        addedAt: '2026-09-06',
         group: 'Piyasa',
         frequent: true
     },

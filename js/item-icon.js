@@ -118,7 +118,24 @@ export const ITEM_LABELS = {
     T5_TEASEL: 'Dragon Teasel',
     T6_FOXGLOVE: 'Elusive Foxglove',
     T7_MULLEIN: 'Firetouched Mullein',
-    T8_YARROW: 'Ghoul Yarrow'
+    T8_YARROW: 'Ghoul Yarrow',
+    T3_MOUNT_HORSE: "Journeyman's Riding Horse",
+    T4_MOUNT_HORSE: "Adept's Riding Horse",
+    T5_MOUNT_HORSE: "Expert's Riding Horse",
+    T6_MOUNT_HORSE: "Master's Riding Horse",
+    T7_MOUNT_HORSE: "Grandmaster's Riding Horse",
+    T8_MOUNT_HORSE: "Elder's Riding Horse",
+    T2_MOUNT_MULE: "Novice's Mule",
+    T3_MOUNT_OX: "Journeyman's Transport Ox",
+    T4_MOUNT_OX: "Adept's Transport Ox",
+    T5_MOUNT_OX: "Expert's Transport Ox",
+    T6_MOUNT_OX: "Master's Transport Ox",
+    T7_MOUNT_OX: "Grandmaster's Transport Ox",
+    T8_MOUNT_OX: "Elder's Transport Ox",
+    T5_MOUNT_ARMORED_HORSE: "Expert's Armored Horse",
+    T6_MOUNT_ARMORED_HORSE: "Master's Armored Horse",
+    T7_MOUNT_ARMORED_HORSE: "Grandmaster's Armored Horse",
+    T8_MOUNT_ARMORED_HORSE: "Elder's Armored Horse"
 };
 
 export function itemLabel(uniqueName, fallback = uniqueName) {
