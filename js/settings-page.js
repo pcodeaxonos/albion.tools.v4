@@ -77,6 +77,20 @@ function renderIslandCityChecks(cities, islandCities) {
     `;
 }
 
+function settingsSection(id, title, lead, body) {
+    return `
+        <section class="settings-section" id="${id}" aria-labelledby="${id}-title">
+            <header class="settings-section-head">
+                <h2 id="${id}-title">${escapeHtml(title)}</h2>
+                ${lead ? `<p class="settings-section-lead">${lead}</p>` : ''}
+            </header>
+            <div class="settings-section-body">
+                ${body}
+            </div>
+        </section>
+    `;
+}
+
 function renderPage(container, cities) {
     const settings = getSettings();
     const packets = settings.priceSource === 'packets';
@@ -84,113 +98,145 @@ function renderPage(container, cities) {
     container.innerHTML = `
         <section class="settings-hero">
             <h1>Ayarlar</h1>
-            <p>Hesap ve sunucu. Tool’lar bunları varsayılan alır; sayfa içinde geçici seçim yapılabilir.</p>
+            <p>Tool’lar bunları varsayılan alır; sayfa içinde geçici seçim yapılabilir.</p>
         </section>
 
-        <form class="form-section settings-form" id="settingsForm" action="#">
-            <div class="form-grid">
-                <label class="form-check">
-                    <input class="form-check-input" type="checkbox" id="settingPremium"
-                        ${settings.premium ? 'checked' : ''}>
-                    <span class="form-check-label">
-                        Premium
-                        <span class="settings-fee-meta" id="settingFeeNote">${escapeHtml(feeMetaText(settings.premium))}</span>
-                    </span>
-                </label>
-                <label class="form-check">
-                    <input class="form-check-input" type="checkbox" id="settingFarmWater"
-                        ${settings.farmWater ? 'checked' : ''}>
-                    <span class="form-check-label">
-                        Ekin sulama
-                        <span class="settings-fee-meta">Farming, Pasture yemi ve Ada Planlayıcı. Kapalıysa seed return sulamasız. Varsayılan: sulama yok.</span>
-                    </span>
-                </label>
-                <label class="form-check">
-                    <input class="form-check-input" type="checkbox" id="settingRefineFollowSpecialty"
-                        ${settings.refineFollowSpecialty ? 'checked' : ''}>
-                    <span class="form-check-label">
-                        Refine şehri hammaddeyle değişsin
-                        <span class="settings-fee-meta">Ore → Thetford, hide → Martlock. Kapalıysa işle şehri senin seçtiğin yerde kalır.</span>
-                    </span>
-                </label>
-                <div class="form-floating">
-                    <select class="form-select is-filled" id="settingPriceSource">
-                        ${renderPriceSourceOptions(settings.priceSource)}
-                    </select>
-                    <label for="settingPriceSource">Fiyat kaynağı</label>
-                </div>
-                <div class="form-floating">
-                    <select class="form-select is-filled" id="settingServer">
-                        ${renderServerOptions(settings.server)}
-                    </select>
-                    <label for="settingServer">Sunucu</label>
-                </div>
-                <div class="form-floating">
-                    <select class="form-select is-filled" id="settingEnchantPower">
-                        ${renderEnchantPowerOptions(settings.enchantPower)}
-                    </select>
-                    <label for="settingEnchantPower">Standart ayar</label>
-                </div>
-            </div>
-            <div class="settings-packet" id="settingsPacket" ${packets ? '' : 'hidden'}>
-                <p class="settings-packet-status" id="settingsPacketStatus">Yerel hub kontrol ediliyor…</p>
-                <p class="settings-packet-copy">Albion Data Client oyun paketlerini çözer ve bu makinedeki huba gönderir. Kısayoldan açılan ADC kamu AODP’ye gider; start.bat client’ı <code>-i http://127.0.0.1:3001</code> ile yeniden açar. ADC konumu Join paketinden öğrenir — zone geçmeden market verisi göndermez. Fiyatı istediğin marketi açman gerekir.</p>
-                <div class="settings-command">
-                    <code id="settingsClientCommand">${escapeHtml(clientCommand())}</code>
-                    <button type="button" class="btn btn-outline-secondary" id="settingsCopyCommand">Kopyala</button>
-                </div>
-                <p class="settings-packet-links">
-                    <a href="${CLIENT_RELEASES}" target="_blank" rel="noreferrer">Client indir</a>
-                    <span>· start.bat hem siteyi hem fiyat hub’ını açar</span>
-                </p>
-            </div>
-            <div class="settings-sides">
-                <div class="price-side-field">
-                    <span class="price-side-label" id="settingBuySideLabel">Alım</span>
-                    <div class="price-side" role="radiogroup" aria-labelledby="settingBuySideLabel">
-                        ${priceSideToggleHtml('buy', settings.buyPriceSide)}
-                    </div>
-                </div>
-                <div class="price-side-field">
-                    <span class="price-side-label" id="settingSellSideLabel">Satış</span>
-                    <div class="price-side" role="radiogroup" aria-labelledby="settingSellSideLabel">
-                        ${priceSideToggleHtml('sell', settings.sellPriceSide)}
-                    </div>
-                </div>
-            </div>
-            <p class="text-muted settings-note" id="settingsNote">${escapeHtml(sourceNote(settings.priceSource))}</p>
-            <div class="settings-islands">
-                <h2>Ada şehirleri</h2>
-                <p class="text-muted settings-island-hint">Ada kurduğun şehirleri işaretle. Boş bırakırsan hepsi ada sayılır — Farming listesi birden silikleşmez. Ada olmayan şehirler silik görünür, yine seçilebilir.</p>
-                ${renderIslandCityChecks(cities, settings.islandCities)}
-            </div>
-            <p class="settings-status" id="settingsStatus" hidden></p>
-        </form>
+        <div class="settings-layout">
+            <nav class="settings-toc" aria-label="Ayar bölümleri">
+                <p class="settings-toc-label">Bölümler</p>
+                <a href="#settings-genel">Genel</a>
+                <a href="#settings-fiyat">Fiyatlar</a>
+                <a href="#settings-tool">Tool tercihler</a>
+                <a href="#settings-adalar">Ada şehirleri</a>
+                <a href="#settings-veri">Veri</a>
+            </nav>
 
-        <section class="settings-data" id="settingsData">
-            <h2>Veri</h2>
-            <p>Ayarlar, günlük bonuslar, tool tercihleri ve veritabanı tabloları bu tarayıcı origin’inde saklanır. Live Server (:5500) ile yerel sunucu (:3000) ayrı hafızadır.</p>
-            <div class="settings-data-actions">
-                <button type="button" class="btn btn-outline-primary" id="settingsExportData">Dışa aktar</button>
-                <button type="button" class="btn btn-outline-secondary" id="settingsImportData">İçe aktar</button>
-                <input type="file" id="settingsImportFile" accept="application/json,.json" hidden>
+            <div class="settings-main">
+                <form class="settings-form" id="settingsForm" action="#">
+                    ${settingsSection('settings-genel', 'Genel', 'Hesap ve sunucu varsayılanları.', `
+                        <div class="form-grid">
+                            <label class="form-check">
+                                <input class="form-check-input" type="checkbox" id="settingPremium"
+                                    ${settings.premium ? 'checked' : ''}>
+                                <span class="form-check-label">
+                                    Premium
+                                    <span class="settings-fee-meta" id="settingFeeNote">${escapeHtml(feeMetaText(settings.premium))}</span>
+                                </span>
+                            </label>
+                            <div class="form-floating">
+                                <select class="form-select is-filled" id="settingServer">
+                                    ${renderServerOptions(settings.server)}
+                                </select>
+                                <label for="settingServer">Sunucu</label>
+                            </div>
+                            <div class="form-floating">
+                                <select class="form-select is-filled" id="settingEnchantPower">
+                                    ${renderEnchantPowerOptions(settings.enchantPower)}
+                                </select>
+                                <label for="settingEnchantPower">Standart ayar</label>
+                            </div>
+                        </div>
+                        <p class="text-muted settings-note">Standart ayar Enchanting tablosunda aynı IP bandını vurgular (varsayılan 7).</p>
+                    `)}
+
+                    ${settingsSection('settings-fiyat', 'Fiyatlar', 'Kaynak, alım/satış tarafı ve yerel paket hub’ı.', `
+                        <div class="form-grid">
+                            <div class="form-floating">
+                                <select class="form-select is-filled" id="settingPriceSource">
+                                    ${renderPriceSourceOptions(settings.priceSource)}
+                                </select>
+                                <label for="settingPriceSource">Fiyat kaynağı</label>
+                            </div>
+                        </div>
+                        <div class="settings-sides">
+                            <div class="price-side-field">
+                                <span class="price-side-label" id="settingBuySideLabel">Alım</span>
+                                <div class="price-side" role="radiogroup" aria-labelledby="settingBuySideLabel">
+                                    ${priceSideToggleHtml('buy', settings.buyPriceSide)}
+                                </div>
+                            </div>
+                            <div class="price-side-field">
+                                <span class="price-side-label" id="settingSellSideLabel">Satış</span>
+                                <div class="price-side" role="radiogroup" aria-labelledby="settingSellSideLabel">
+                                    ${priceSideToggleHtml('sell', settings.sellPriceSide)}
+                                </div>
+                            </div>
+                        </div>
+                        <p class="text-muted settings-note" id="settingsNote">${escapeHtml(sourceNote(settings.priceSource))}</p>
+                        <div class="settings-packet" id="settingsPacket" ${packets ? '' : 'hidden'}>
+                            <p class="settings-packet-status" id="settingsPacketStatus">Yerel hub kontrol ediliyor…</p>
+                            <p class="settings-packet-copy">Albion Data Client oyun paketlerini çözer ve bu makinedeki huba gönderir. Kısayoldan açılan ADC kamu AODP’ye gider; start.bat client’ı <code>-i http://127.0.0.1:3001</code> ile yeniden açar. ADC konumu Join paketinden öğrenir — zone geçmeden market verisi göndermez. Fiyatı istediğin marketi açman gerekir.</p>
+                            <div class="settings-command">
+                                <code id="settingsClientCommand">${escapeHtml(clientCommand())}</code>
+                                <button type="button" class="btn btn-outline-secondary" id="settingsCopyCommand">Kopyala</button>
+                            </div>
+                            <p class="settings-packet-links">
+                                <a href="${CLIENT_RELEASES}" target="_blank" rel="noreferrer">Client indir</a>
+                                <span>· start.bat hem siteyi hem fiyat hub’ını açar</span>
+                            </p>
+                        </div>
+                    `)}
+
+                    ${settingsSection('settings-tool', 'Tool tercihler', 'Belirli tool’ların varsayılan davranışı.', `
+                        <div class="settings-checks">
+                            <label class="form-check">
+                                <input class="form-check-input" type="checkbox" id="settingFarmWater"
+                                    ${settings.farmWater ? 'checked' : ''}>
+                                <span class="form-check-label">
+                                    Ekin sulama
+                                    <span class="settings-fee-meta">Farming, Pasture yemi ve Ada Planlayıcı. Kapalıysa seed return sulamasız. Varsayılan: sulama yok.</span>
+                                </span>
+                            </label>
+                            <label class="form-check">
+                                <input class="form-check-input" type="checkbox" id="settingRefineFollowSpecialty"
+                                    ${settings.refineFollowSpecialty ? 'checked' : ''}>
+                                <span class="form-check-label">
+                                    Refine şehri hammaddeyle değişsin
+                                    <span class="settings-fee-meta">Ore → Thetford, hide → Martlock. Kapalıysa işle şehri senin seçtiğin yerde kalır.</span>
+                                </span>
+                            </label>
+                        </div>
+                    `)}
+
+                    ${settingsSection('settings-adalar', 'Ada şehirleri', 'Farming ve ada listelerinde yardımcı işaretler.', `
+                        <p class="text-muted settings-island-hint">Ada kurduğun şehirleri işaretle. Boş bırakırsan hepsi ada sayılır — Farming listesi birden silikleşmez. Ada olmayan şehirler silik görünür, yine seçilebilir.</p>
+                        ${renderIslandCityChecks(cities, settings.islandCities)}
+                    `)}
+
+                    <p class="settings-status" id="settingsStatus" hidden></p>
+                </form>
+
+                ${settingsSection('settings-veri', 'Veri', 'Yedekleme ve origin’ler arası eşleme. Live Server (:5500) ile yerel sunucu (:3000) ayrı hafızadır.', `
+                    <div class="settings-subblock">
+                        <h3 class="settings-subblock-title">Yedek</h3>
+                        <p class="settings-subblock-lead">Ayarlar, günlük bonuslar, tool tercihleri ve veritabanı tabloları bu tarayıcı origin’inde saklanır.</p>
+                        <div class="settings-data-actions">
+                            <button type="button" class="btn btn-outline-primary" id="settingsExportData">Dışa aktar</button>
+                            <button type="button" class="btn btn-outline-secondary" id="settingsImportData">İçe aktar</button>
+                            <input type="file" id="settingsImportFile" accept="application/json,.json" hidden>
+                        </div>
+                        <p class="settings-data-meta" id="settingsDataMeta">${escapeHtml(localMetaText())}</p>
+                    </div>
+                    <div class="settings-subblock">
+                        <h3 class="settings-subblock-title">Hub eşleme</h3>
+                        <label class="form-check">
+                            <input class="form-check-input" type="checkbox" id="settingDataSync"
+                                ${settings.dataSync ? 'checked' : ''}>
+                            <span class="form-check-label">
+                                Hub ile otomatik eşle
+                                <span class="settings-fee-meta">start.bat fiyat hub’ını (:3001) açınca 5500 ve 3000 birleşir. Günlük bonuslar silinmez, tarihe göre toplanır.</span>
+                            </span>
+                        </label>
+                        <p class="settings-packet-status" id="settingsDataSyncStatus">Hub kontrol ediliyor…</p>
+                        <div class="settings-data-actions">
+                            <button type="button" class="btn btn-outline-secondary" id="settingsPullData">Hub’dan al</button>
+                            <button type="button" class="btn btn-outline-secondary" id="settingsPushData">Hub’a gönder</button>
+                        </div>
+                    </div>
+                    <p class="settings-status" id="settingsDataStatus" hidden></p>
+                `)}
             </div>
-            <p class="settings-data-meta" id="settingsDataMeta">${escapeHtml(localMetaText())}</p>
-            <label class="form-check">
-                <input class="form-check-input" type="checkbox" id="settingDataSync"
-                    ${settings.dataSync ? 'checked' : ''}>
-                <span class="form-check-label">
-                    Hub ile otomatik eşle
-                    <span class="settings-fee-meta">start.bat fiyat hub’ını (:3001) açınca 5500 ve 3000 birleşir. Günlük bonuslar silinmez, tarihe göre toplanır.</span>
-                </span>
-            </label>
-            <p class="settings-packet-status" id="settingsDataSyncStatus">Hub kontrol ediliyor…</p>
-            <div class="settings-data-actions">
-                <button type="button" class="btn btn-outline-secondary" id="settingsPullData">Hub’dan al</button>
-                <button type="button" class="btn btn-outline-secondary" id="settingsPushData">Hub’a gönder</button>
-            </div>
-            <p class="settings-status" id="settingsDataStatus" hidden></p>
-        </section>
+        </div>
     `;
 
     bindPage(container);
@@ -198,9 +244,9 @@ function renderPage(container, cities) {
 
 function sourceNote(priceSource) {
     if (priceSource === 'packets') {
-        return 'Fiyatlar senin gördüğün market paketlerinden gelir. Sunucu seçimi bu kaynakta kullanılmaz. Alım: buy +1 veya sell. Satış: sell −1 veya buy. Standart ayar Enchanting tablosunda aynı IP bandını vurgular.';
+        return 'Fiyatlar senin gördüğün market paketlerinden gelir. Sunucu seçimi bu kaynakta kullanılmaz. Alım: buy +1 veya sell. Satış: sell −1 veya buy.';
     }
-    return 'Sunucu market API’yi seçer. Alım: buy +1 veya sell fiyatı. Satış: sell −1 veya buy fiyatı. Standart ayar Enchanting tablosunda 4.3 / 5.2 / 6.1 gibi aynı IP bandını vurgular (varsayılan 7).';
+    return 'Sunucu market API’yi seçer. Alım: buy +1 veya sell fiyatı. Satış: sell −1 veya buy fiyatı.';
 }
 
 function selectedSide(container, name, fallback) {
@@ -285,6 +331,7 @@ function bindPage(container) {
     });
 
     container.querySelector('#settingPremium')?.addEventListener('change', () => persist(container));
+    container.querySelector('#settingFarmWater')?.addEventListener('change', () => persist(container));
     container.querySelector('#settingRefineFollowSpecialty')?.addEventListener('change', () => persist(container));
     container.querySelector('#settingPriceSource')?.addEventListener('change', () => persist(container));
     container.querySelector('#settingServer')?.addEventListener('change', () => persist(container));
@@ -326,6 +373,46 @@ function bindPage(container) {
     bindDataSection(container);
     syncHubPolling(container);
     refreshDataSyncStatus(container);
+    bindSettingsToc(container);
+}
+
+function bindSettingsToc(container) {
+    const toc = container.querySelector('.settings-toc');
+    if (!toc) {
+        return;
+    }
+
+    const links = [...toc.querySelectorAll('a[href^="#"]')];
+    const sections = links
+        .map((link) => container.querySelector(link.getAttribute('href')))
+        .filter(Boolean);
+
+    if (sections.length === 0) {
+        return;
+    }
+
+    const setActive = (id) => {
+        links.forEach((link) => {
+            link.classList.toggle('is-active', link.getAttribute('href') === `#${id}`);
+        });
+    };
+
+    setActive(sections[0].id);
+
+    const observer = new IntersectionObserver((entries) => {
+        const visible = entries
+            .filter((entry) => entry.isIntersecting)
+            .sort((a, b) => b.intersectionRatio - a.intersectionRatio);
+        if (visible[0]?.target?.id) {
+            setActive(visible[0].target.id);
+        }
+    }, {
+        root: document.querySelector('.app-content'),
+        rootMargin: '-15% 0px -55% 0px',
+        threshold: [0.1, 0.35, 0.6]
+    });
+
+    sections.forEach((section) => observer.observe(section));
 }
 
 function bindDataSection(container) {
