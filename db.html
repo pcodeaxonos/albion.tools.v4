@@ -49,12 +49,15 @@
                 <div class="container container--db">
                     <div class="db-layout">
                         <aside class="db-sidebar">
-                            <div class="d-flex justify-content-between align-items-center mb-3">
-                                <h1 class="mb-0">Veritabanı</h1>
-                                <button type="button" class="btn btn-sm btn-outline-secondary" id="resetDb" title="Seed verisine sıfırla">Sıfırla</button>
+                            <div class="db-sidebar-chrome">
+                                <div class="db-sidebar-top">
+                                    <h1 class="db-sidebar-title mb-0">Veritabanı</h1>
+                                    <button type="button" class="btn btn-sm btn-outline-secondary" id="resetDb" title="Seed verisine sıfırla">Sıfırla</button>
+                                </div>
+                                <p class="db-sidebar-lead text-muted">Tablo seç · ekle · düzenle · sil · içe/dışa aktar.</p>
                             </div>
-                            <p class="text-muted mb-3">Tablo seç · ekle · düzenle · sil · içe/dışa aktar.</p>
                             <div class="db-table-list" id="dbTableList"></div>
+                            <div class="db-sidebar-form" id="dbSidebarForm" hidden></div>
                         </aside>
 
                         <section class="db-content" id="dbContent">

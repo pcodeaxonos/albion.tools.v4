@@ -31,5 +31,6 @@ export function itemIconHtml(uniqueName, { size = DEFAULT_SIZE, className = 'ite
     }
 
     const alt = itemLabel(uniqueName, getItemByUniqueName(uniqueName)?.localizedName || uniqueName);
-    return `<img class="${escapeHtml(className)}" src="${escapeHtml(itemIconUrl(uniqueName, size))}" alt="${escapeHtml(alt)}" width="36" height="36" loading="lazy" decoding="async" onerror="this.hidden=true">`;
+    const px = Number.isFinite(size) ? Math.min(217, Math.max(1, Math.round(size))) : DEFAULT_SIZE;
+    return `<img class="${escapeHtml(className)}" src="${escapeHtml(itemIconUrl(uniqueName, size))}" alt="${escapeHtml(alt)}" width="${px}" height="${px}" loading="lazy" decoding="async" onerror="this.hidden=true">`;
 }

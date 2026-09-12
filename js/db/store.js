@@ -2,12 +2,13 @@ import { getTable, getTableNames, tables } from './schema.js';
 
 const STORAGE_PREFIX = 'albiontools.v4.';
 const SEED_REVISION_KEY = STORAGE_PREFIX + 'seedRevision';
-const SEED_REVISION = 7;
+const SEED_REVISION = 11;
 const RESEED_TABLES = [
     'items',
     'itemCategories',
     'cities',
     'bonusFamilies',
+    'bonusFamilyMaterials',
     'materialKeys',
     'yieldLadders',
     'yieldLadderSteps',
@@ -139,6 +140,19 @@ export function searchRows(tableName, query) {
 
     return rows.filter((row) =>
         table.columns.some((col) => {
+            if (col.type === 'refs' && col.junction) {
+                const ids = getJunctionChildIds(col, row[table.key]);
+                return ids.some((id) => {
+                    const ref = getAll(col.refTable).find((entry) => Number(entry.id) === Number(id));
+                    if (!ref) {
+                        return false;
+                    }
+                    return [ref.key, ref.label, ref[col.refLabel], id]
+                        .filter((value) => value != null)
+                        .some((value) => String(value).toLowerCase().includes(term));
+                });
+            }
+
             const value = row[col.name];
             return value != null && String(value).toLowerCase().includes(term);
         })
@@ -158,6 +172,13 @@ function coerceValue(column, rawValue) {
         return Number.isNaN(num) ? 0 : num;
     }
 
+    if (column.type === 'refs') {
+        const list = Array.isArray(rawValue) ? rawValue : (rawValue == null ? [] : [rawValue]);
+        return list
+            .map((value) => Number(value))
+            .filter((value) => Number.isFinite(value));
+    }
+
     if (column.type === 'enum') {
         return rawValue;
     }
@@ -169,24 +190,98 @@ function getEditableColumnsFromTable(table) {
     return table.columns.filter((col) => col.editable !== false && col.name !== table.key);
 }
 
+function formValuesForColumn(column, formData) {
+    if (column.type === 'boolean') {
+        return formData.has(column.name);
+    }
+    if (column.type === 'refs') {
+        return coerceValue(column, formData.getAll(column.name));
+    }
+    return coerceValue(column, formData.get(column.name));
+}
+
+function nextAutoId(rows, key) {
+    return rows.reduce((max, row) => Math.max(max, Number(row[key]) || 0), 0) + 1;
+}
+
+export function getJunctionChildIds(column, parentId) {
+    if (!column?.junction || parentId == null || parentId === '') {
+        return [];
+    }
+
+    const { table, parentKey, childKey, sortKey } = column.junction;
+    return getAll(table)
+        .filter((row) => String(row[parentKey]) === String(parentId))
+        .sort((a, b) => (Number(a[sortKey]) || 0) - (Number(b[sortKey]) || 0))
+        .map((row) => Number(row[childKey]))
+        .filter((id) => Number.isFinite(id));
+}
+
+function syncJunctionRows(column, parentId, childIds) {
+    if (!column?.junction) {
+        return;
+    }
+
+    const { table: junctionTable, parentKey, childKey, sortKey } = column.junction;
+    const junction = getTable(junctionTable);
+    if (!junction) {
+        throw new Error(`Junction tablo yok: ${junctionTable}`);
+    }
+
+    const kept = new Set((childIds || []).map(Number).filter(Number.isFinite));
+    const existing = getAll(junctionTable);
+    const others = existing.filter((row) => String(row[parentKey]) !== String(parentId));
+    let nextId = nextAutoId(existing, junction.key);
+    let sortValue = 10;
+    const created = [];
+
+    for (const childId of childIds || []) {
+        const id = Number(childId);
+        if (!Number.isFinite(id) || !kept.has(id)) {
+            continue;
+        }
+        kept.delete(id);
+        created.push({
+            [junction.key]: nextId++,
+            [parentKey]: Number(parentId),
+            [childKey]: id,
+            [sortKey || 'sortValue']: sortValue
+        });
+        sortValue += 10;
+    }
+
+    writeRows(junctionTable, others.concat(created));
+}
+
+function cascadeDeleteJunctions(table, parentId) {
+    for (const column of table.columns) {
+        if (column.type !== 'refs' || !column.junction) {
+            continue;
+        }
+        const { table: junctionTable, parentKey } = column.junction;
+        const rows = getAll(junctionTable).filter((row) => String(row[parentKey]) !== String(parentId));
+        writeRows(junctionTable, rows);
+    }
+}
+
 export function createRow(tableName, formData) {
     const table = getTable(tableName);
     if (!table) throw new Error('Tablo bulunamadı');
 
     const rows = getAll(tableName);
     const record = {};
+    const junctionColumns = [];
 
     if (table.autoKey) {
-        const maxId = rows.reduce((max, row) => Math.max(max, Number(row[table.key]) || 0), 0);
-        record[table.key] = maxId + 1;
+        record[table.key] = nextAutoId(rows, table.key);
     }
 
     for (const column of getEditableColumnsFromTable(table)) {
-        if (column.type === 'boolean') {
-            record[column.name] = formData.has(column.name);
-        } else {
-            record[column.name] = coerceValue(column, formData.get(column.name));
+        if (column.type === 'refs' && column.junction) {
+            junctionColumns.push({ column, ids: formValuesForColumn(column, formData) });
+            continue;
         }
+        record[column.name] = formValuesForColumn(column, formData);
     }
 
     if (!table.autoKey && !record[table.key]) {
@@ -195,6 +290,11 @@ export function createRow(tableName, formData) {
 
     rows.push(record);
     writeRows(tableName, rows);
+
+    for (const entry of junctionColumns) {
+        syncJunctionRows(entry.column, record[table.key], entry.ids);
+    }
+
     return record;
 }
 
@@ -210,17 +310,23 @@ export function updateRow(tableName, id, formData) {
     }
 
     const record = { ...rows[index] };
+    const junctionColumns = [];
 
     for (const column of getEditableColumnsFromTable(table)) {
-        if (column.type === 'boolean') {
-            record[column.name] = formData.has(column.name);
-        } else {
-            record[column.name] = coerceValue(column, formData.get(column.name));
+        if (column.type === 'refs' && column.junction) {
+            junctionColumns.push({ column, ids: formValuesForColumn(column, formData) });
+            continue;
         }
+        record[column.name] = formValuesForColumn(column, formData);
     }
 
     rows[index] = record;
     writeRows(tableName, rows);
+
+    for (const entry of junctionColumns) {
+        syncJunctionRows(entry.column, record[table.key], entry.ids);
+    }
+
     return record;
 }
 
@@ -228,6 +334,7 @@ export function deleteRow(tableName, id) {
     const table = getTable(tableName);
     if (!table) throw new Error('Tablo bulunamadı');
 
+    cascadeDeleteJunctions(table, id);
     const rows = getAll(tableName);
     const filtered = rows.filter((row) => String(row[table.key]) !== String(id));
     writeRows(tableName, filtered);

@@ -16,6 +16,16 @@ import { priceSideToggleHtml } from './price-side.js';
 import { feeMetaText } from './market-fees.js';
 import { escapeHtml } from './utils.js';
 import { sessionAdcState } from './pipeline-status.js';
+import {
+    localDataSummary,
+    formatDataBytes,
+    downloadLocalData,
+    parseLocalDataSnapshot,
+    applyLocalData,
+    syncWithHub,
+    setLocalDataAutoPush,
+    fetchHubDataMeta
+} from './local-data.js';
 
 const CLIENT_RELEASES = 'https://github.com/ao-data/albiondata-client/releases';
 

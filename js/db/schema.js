@@ -92,7 +92,7 @@ export const tables = {
         displayName: 'Bonus aileleri',
         group: 'bonus',
         source: 'curated',
-        description: 'Günlük craft/refine bonus — cityId → cities',
+        description: 'Günlük craft/refine bonus — cityId → cities; malzemeler → bonusFamilyMaterials',
         key: 'id',
         autoKey: true,
         defaultSort: { column: 'sortValue', direction: 'asc' },
@@ -107,10 +107,39 @@ export const tables = {
             { name: 'vendor', type: 'string', label: 'İstasyon' },
             { name: 'journal', type: 'string', label: 'Kitap' },
             { name: 'tree', type: 'string', label: 'Ağaç' },
-            { name: 'materials', type: 'string', label: 'Malzemeler', format: 'materials' },
+            {
+                name: 'materialKeyIds',
+                type: 'refs',
+                refTable: 'materialKeys',
+                refLabel: 'label',
+                label: 'Malzemeler',
+                format: 'materials',
+                junction: {
+                    table: 'bonusFamilyMaterials',
+                    parentKey: 'bonusFamilyId',
+                    childKey: 'materialKeyId',
+                    sortKey: 'sortValue'
+                }
+            },
             { name: 'variants', type: 'string', label: 'Tarifler', format: 'variants' },
             { name: 'notes', type: 'string', label: 'Not' },
             COL.active
+        ]
+    },
+    bonusFamilyMaterials: {
+        displayName: 'Bonus aile malzemeleri',
+        group: 'bonus',
+        source: 'curated',
+        description: 'bonusFamilyId ↔ materialKeyId',
+        key: 'id',
+        autoKey: true,
+        defaultSort: { column: 'sortValue', direction: 'asc' },
+        seedUrl: './data/bonus-family-materials.json',
+        columns: [
+            COL.id,
+            { name: 'bonusFamilyId', type: 'ref', refTable: 'bonusFamilies', refLabel: 'familyKey', label: 'Bonus aile' },
+            { name: 'materialKeyId', type: 'ref', refTable: 'materialKeys', refLabel: 'key', label: 'Malzeme' },
+            { name: 'sortValue', type: 'number', label: 'Sıra' }
         ]
     },
     yieldLadders: {
@@ -545,7 +574,7 @@ export const tables = {
         description: 'plank/bar… → stem + items.id',
         key: 'id',
         autoKey: true,
-        defaultSort: { column: 'key', direction: 'asc' },
+        defaultSort: { column: 'sortValue', direction: 'asc' },
         seedUrl: './data/material-keys.json',
         columns: [
             COL.id,
@@ -553,6 +582,8 @@ export const tables = {
             { name: 'stem', type: 'string', label: 'Stem' },
             { name: 'itemId', type: 'number', label: 'Item id (ikon)' },
             { name: 'label', type: 'string', label: 'Ad' },
+            { name: 'matGroup', type: 'enum', options: ['craft', 'refine', 'other'], label: 'Grup' },
+            { name: 'sortValue', type: 'number', label: 'Sıra' },
             { name: 'appliesRr', type: 'boolean', label: 'RR alır' }
         ]
     },

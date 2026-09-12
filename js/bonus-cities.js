@@ -135,13 +135,30 @@ export function bonusCityShort(familyKey) {
     return city?.shortCode || '';
 }
 
+function familyMaterialKeys(familyKey) {
+    const family = familyRow(familyKey);
+    if (!family) {
+        return [];
+    }
+
+    const links = getAll('bonusFamilyMaterials')
+        .filter((row) => Number(row.bonusFamilyId) === Number(family.id))
+        .sort((a, b) => (Number(a.sortValue) || 0) - (Number(b.sortValue) || 0));
+
+    const byId = new Map(getAll('materialKeys').map((row) => [Number(row.id), row]));
+    return links
+        .map((link) => byId.get(Number(link.materialKeyId)))
+        .filter(Boolean)
+        .map((row) => row.key);
+}
+
 export function bonusFamilyVariants(familyKey) {
     const stored = parseFamilyVariants(familyRow(familyKey)?.variants);
     if (stored.length) {
         return stored;
     }
 
-    const materials = parseMaterials(familyRow(familyKey)?.materials);
+    const materials = familyMaterialKeys(familyKey);
     return materials.length ? [{ label: '', materials }] : [];
 }
 
@@ -151,7 +168,7 @@ export function bonusFamilyMaterials(familyKey) {
         return uniqueMaterials(variants);
     }
 
-    return parseMaterials(familyRow(familyKey)?.materials);
+    return familyMaterialKeys(familyKey);
 }
 
 export function bonusStation(familyKey) {

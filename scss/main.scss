@@ -1200,8 +1200,28 @@ a.tool-card {
     }
 }
 
+.bonus-log-family-main {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    min-width: 0;
+}
+
 .bonus-log-family-name {
-    display: block;
+    display: inline;
+    min-width: 0;
+}
+
+.bonus-log-mat-icon,
+.bonus-preview-mat-icon {
+    width: 1.125rem;
+    height: 1.125rem;
+}
+
+.bonus-repeat .bonus-mats {
+    display: inline-flex;
+    vertical-align: middle;
+    margin-right: 0.25rem;
 }
 
 .bonus-log-city {
@@ -2273,8 +2293,8 @@ a.tool-card {
 .enchant-price-field.is-stale,
 .farming-price-field.is-stale {
     > .form-control {
-        color: var(--color-warning);
-        background-color: color-mix(in srgb, var(--color-warning) 12%, var(--field-bg));
+        color: var(--color-stale);
+        background-color: color-mix(in srgb, var(--color-stale) 12%, var(--field-bg));
     }
 }
 
@@ -2498,8 +2518,26 @@ a.tool-card {
 }
 
 .farming-type-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.35rem;
     min-width: 0;
     padding-inline: 0.75rem;
+
+    &.has-icon {
+        padding-inline: 0.55rem 0.75rem;
+    }
+}
+
+.farming-type-btn-icon {
+    width: 1.25rem;
+    height: 1.25rem;
+    flex-shrink: 0;
+}
+
+.farming-type-btn-label {
+    min-width: 0;
 }
 
 .farming-spec {

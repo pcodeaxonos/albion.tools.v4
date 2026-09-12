@@ -5,7 +5,7 @@ import { initStore, getAll, createRow, updateRow, deleteRow } from './db/store.j
 import { getBonusFamilies, getBonusFamilyLabel } from './bonus-families.js';
 import { addDays, bonusDayIso, bonusWindowLabel } from './bonus-day.js';
 import { bonusCityLabel } from './bonus-cities.js';
-import { refreshTodayBonusChip, renderBonusHintHtml } from './today-bonus.js';
+import { refreshTodayBonusChip } from './today-bonus.js';
 import { showPageLoader, hidePageLoader } from './loader.js';
 import { initTableSort, sortHeaderHtml } from './table-sort.js';
 import { bindCalcSticky } from './calc-sticky.js';
@@ -121,20 +121,6 @@ function setFormMessage(container, text, kind = 'info') {
     el.className = kind === 'error' ? 'alert alert-info' : 'alert alert-info';
 }
 
-function updateSlotCityHints(container) {
-    ['1', '2'].forEach((slot) => {
-        const key = container.querySelector(`#slot${slot}FamilyKey`)?.value;
-        const hint = container.querySelector(`#slot${slot}City`);
-        if (!hint) {
-            return;
-        }
-
-        const html = key ? renderBonusHintHtml(key) : '';
-        hint.hidden = !html;
-        hint.innerHTML = html;
-    });
-}
-
 function updateRepeatPreview(container) {
     const date = container.querySelector('#bonusDate')?.value;
     const slot1 = container.querySelector('#slot1FamilyKey')?.value;
@@ -203,7 +189,6 @@ function fillForm(container, row, presetDate = null) {
 
     initFloatingLabels(container);
     updateRepeatPreview(container);
-    updateSlotCityHints(container);
     updateLogHighlights(container);
 }
 
@@ -239,7 +224,7 @@ function familyCell(familyKey, highlightKeys) {
     const cityHtml = city
         ? `<span class="bonus-log-city">${escapeHtml(city)}</span>`
         : '';
-    return `<td class="bonus-log-family${hit}" data-family-key="${escapeHtml(familyKey)}"><span class="bonus-log-family-name">${escapeHtml(getBonusFamilyLabel(familyKey))}</span>${cityHtml}</td>`;
+    return `<td class="bonus-log-family${hit}" data-family-key="${escapeHtml(familyKey)}"><span class="bonus-log-family-main"><span class="bonus-log-family-name">${escapeHtml(getBonusFamilyLabel(familyKey))}</span></span>${cityHtml}</td>`;
 }
 
 function updateLogHighlights(container) {
@@ -407,23 +392,17 @@ function renderPage(container) {
                         </div>
                         <div class="bonus-repeat" id="bonusRepeatPreview"></div>
                         <div class="bonus-slots">
-                            <div class="bonus-slot-block">
-                                <div class="form-floating bonus-slot-family">
-                                    <select class="form-select" id="slot1FamilyKey" name="slot1FamilyKey" required>
-                                        ${renderFamilyOptions('')}
-                                    </select>
-                                    <label for="slot1FamilyKey">Bonus 1</label>
-                                </div>
-                                <p class="bonus-slot-city" id="slot1City" hidden></p>
+                            <div class="form-floating bonus-slot-family">
+                                <select class="form-select" id="slot1FamilyKey" name="slot1FamilyKey" required>
+                                    ${renderFamilyOptions('')}
+                                </select>
+                                <label for="slot1FamilyKey">Bonus 1</label>
                             </div>
-                            <div class="bonus-slot-block">
-                                <div class="form-floating bonus-slot-family">
-                                    <select class="form-select" id="slot2FamilyKey" name="slot2FamilyKey" required>
-                                        ${renderFamilyOptions('')}
-                                    </select>
-                                    <label for="slot2FamilyKey">Bonus 2</label>
-                                </div>
-                                <p class="bonus-slot-city" id="slot2City" hidden></p>
+                            <div class="form-floating bonus-slot-family">
+                                <select class="form-select" id="slot2FamilyKey" name="slot2FamilyKey" required>
+                                    ${renderFamilyOptions('')}
+                                </select>
+                                <label for="slot2FamilyKey">Bonus 2</label>
                             </div>
                             <div class="form-floating bonus-slot-rate">
                                 <select class="form-select" id="slot1Rate" name="slot1Rate" required>
@@ -486,7 +465,6 @@ function bindPage(container) {
     ['slot1FamilyKey', 'slot2FamilyKey'].forEach((id) => {
         container.querySelector(`#${id}`)?.addEventListener('change', () => {
             updateRepeatPreview(container);
-            updateSlotCityHints(container);
             updateLogHighlights(container);
         });
     });
@@ -601,7 +579,6 @@ function saveEntry(container) {
 
     initFloatingLabels(container);
     updateRepeatPreview(container);
-    updateSlotCityHints(container);
     refreshLog(container);
     refreshTodayBonusChip();
 }

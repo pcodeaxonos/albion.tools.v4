@@ -1186,7 +1186,7 @@ function renderOutput() {
                 Büyütme / besleme yem ×${feedQty()}, kesme et ×${meatQty()}, ürün ×${productQty()}. Domuzda süt yok.
                 Kâr sütunlarında üstte % (maliyete oran), altta gümüş. En iyi = en yüksek %.
                 Yavru işareti NPC fiyatına göre.${focusNote}
-                Elle yazılan fiyat API’nin yerine geçer. Kırmızı fiyat API’de yok; turuncu 6 saatten eski.${stamp ? ` ${stamp}` : ''}
+                Elle yazılan fiyat API’nin yerine geçer. Kırmızı fiyat API’de yok; mavi 6 saatten eski.${stamp ? ` ${stamp}` : ''}
             </p>
         </div>
     `;

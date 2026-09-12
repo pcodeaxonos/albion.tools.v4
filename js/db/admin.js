@@ -24,7 +24,8 @@ import {
     replaceAllRows,
     mergeImportedRows,
     loadSeedRows,
-    tableHasLocalChanges
+    tableHasLocalChanges,
+    getJunctionChildIds
 } from './store.js';
 import { initNav } from '../nav.js';
 import { initFloatingLabels } from '../forms.js';
@@ -37,7 +38,9 @@ import {
 } from '../loader.js';
 import { initTableSort, sortHeaderHtml } from '../table-sort.js';
 import { renderMatsHtml, renderRecipesHtml } from '../today-bonus.js';
-import { parseFamilyVariants } from '../bonus-cities.js';
+import { parseFamilyVariants, bonusMaterialItemId } from '../bonus-cities.js';
+import { itemIconHtml } from '../item-icon.js';
+import { getItemUniqueName } from './relations.js';
 
 const PAGE_SIZE = 25;
 const CODE_CHAR_LIMIT = 20;
@@ -47,7 +50,7 @@ const CODE_COLUMNS = new Set(['uniqueName', 'slug', 'parentSlug', 'index', 'fami
 const state = {
     tableName: null,
     view: 'placeholder',
-    mode: 'create',
+    mode: null,
     editId: null,
     search: '',
     columnFilters: {},
@@ -162,15 +165,12 @@ function renderSidebar() {
                     const active = state.tableName === name ? ' active' : '';
                     const source = getSourceLabel(table.source);
                     return `
-                        <a class="db-table-card${active}" href="#" data-table-name="${escapeHtml(name)}">
-                            <div class="db-table-card-body">
-                                <h4 class="db-table-card-title">${escapeHtml(table.displayName)}</h4>
-                                <div class="text-muted small">${escapeHtml(name)}</div>
-                                <div class="db-table-card-meta">
-                                    <span class="badge bg-secondary">${count}</span>
-                                    <span class="badge db-source-badge db-source-badge--${escapeHtml(table.source || 'curated')}">${escapeHtml(source)}</span>
-                                </div>
-                            </div>
+                        <a class="db-table-card${active}" href="#" data-table-name="${escapeHtml(name)}" title="${escapeHtml(name)}">
+                            <span class="db-table-card-title">${escapeHtml(table.displayName)}</span>
+                            <span class="db-table-card-meta">
+                                <span class="badge bg-secondary">${count}</span>
+                                <span class="badge db-source-badge db-source-badge--${escapeHtml(table.source || 'curated')}">${escapeHtml(source)}</span>
+                            </span>
                         </a>
                     `;
                 }).join('')}
@@ -201,6 +201,8 @@ function bindResetButton() {
             state.tableName = null;
             state.view = 'placeholder';
             state.page = 1;
+            clearFormState();
+            dismissSidebarForm();
             renderSidebar();
             await renderContent();
         } finally {
@@ -210,15 +212,22 @@ function bindResetButton() {
 }
 
 function getContentLoaderMessage() {
-    if (state.view === 'form') {
-        return state.mode === 'edit' ? 'Kayıt yükleniyor…' : 'Form hazırlanıyor…';
-    }
-
     if (state.view === 'table') {
         return 'Tablo yükleniyor…';
     }
 
     return null;
+}
+
+function clearFormState() {
+    state.mode = null;
+    state.editId = null;
+}
+
+function syncTableHash() {
+    const action = state.mode === 'edit' || state.mode === 'create' ? state.mode : null;
+    const id = state.mode === 'edit' ? state.editId : null;
+    setHash(state.tableName, action, id, state.search, state.page);
 }
 
 async function openTable(tableName, search = '', options = {}) {
@@ -228,33 +237,94 @@ async function openTable(tableName, search = '', options = {}) {
 
     state.tableName = tableName;
     state.view = 'table';
+    clearFormState();
+    dismissSidebarForm();
     state.search = search;
     state.columnFilters = {};
     state.page = options.page ?? 1;
     state.sort = resolveDefaultSort(getTable(tableName));
-    setHash(tableName, null, null, search, state.page);
+    syncTableHash();
     renderSidebar();
     await renderContent(options);
 }
 
 async function openCreateForm(tableName, options = {}) {
     state.tableName = tableName;
-    state.view = 'form';
+    state.view = 'table';
     state.mode = 'create';
     state.editId = null;
-    setHash(tableName, 'create');
+    syncTableHash();
     renderSidebar();
-    await renderContent(options);
+    await showInlineForm(options);
 }
 
 async function openEditForm(tableName, id, options = {}) {
     state.tableName = tableName;
-    state.view = 'form';
+    state.view = 'table';
     state.mode = 'edit';
     state.editId = id;
-    setHash(tableName, 'edit', id);
+    syncTableHash();
     renderSidebar();
-    await renderContent(options);
+    await showInlineForm(options);
+}
+
+async function showInlineForm(options = {}) {
+    const container = document.getElementById('dbContent');
+    const hasTable = Boolean(container.querySelector('.db-table-panel'));
+
+    if (!hasTable) {
+        await renderContent(options);
+    }
+
+    mountInlineForm(container);
+}
+
+function mountInlineForm(container) {
+    const sidebar = document.querySelector('.db-sidebar');
+    const host = document.getElementById('dbSidebarForm');
+    if (!sidebar || !host) {
+        return;
+    }
+
+    host.innerHTML = renderFormView();
+    host.hidden = false;
+    sidebar.classList.add('db-sidebar--editing');
+
+    bindFormEvents(host);
+    initFloatingLabels(host);
+    highlightActiveRow(container);
+}
+
+function closeInlineForm(container = document.getElementById('dbContent')) {
+    clearFormState();
+    syncTableHash();
+    dismissSidebarForm();
+    if (container) {
+        highlightActiveRow(container);
+    }
+}
+
+function dismissSidebarForm() {
+    const sidebar = document.querySelector('.db-sidebar');
+    const host = document.getElementById('dbSidebarForm');
+    if (host) {
+        host.innerHTML = '';
+        host.hidden = true;
+    }
+    sidebar?.classList.remove('db-sidebar--editing');
+}
+
+function highlightActiveRow(container) {
+    container.querySelectorAll('.db-data-row.is-editing').forEach((row) => {
+        row.classList.remove('is-editing');
+    });
+
+    if (state.mode !== 'edit' || state.editId == null) {
+        return;
+    }
+
+    const active = container.querySelector(`.db-data-row[data-id="${CSS.escape(String(state.editId))}"]`);
+    active?.classList.add('is-editing');
 }
 
 async function renderContent(options = {}) {
@@ -268,6 +338,7 @@ async function renderContent(options = {}) {
 
     try {
         if (state.view === 'placeholder') {
+            dismissSidebarForm();
             container.innerHTML = `
                 <div class="db-placeholder">
                     <h2>Tablo Seçin</h2>
@@ -277,16 +348,15 @@ async function renderContent(options = {}) {
             return;
         }
 
-        if (state.view === 'form') {
-            container.innerHTML = renderFormView();
-            bindFormEvents(container);
-            return;
-        }
-
         container.innerHTML = renderTableView();
         bindTableEvents(container);
+        if (state.mode === 'edit' || state.mode === 'create') {
+            mountInlineForm(container);
+        } else {
+            dismissSidebarForm();
+        }
         initFloatingLabels(container);
-        setHash(state.tableName, null, null, state.search, state.page);
+        syncTableHash();
     } finally {
         if (showLoader) {
             hideAreaLoader(container);
@@ -399,6 +469,11 @@ function applyColumnFilters(rows, table, filters) {
                 return true;
             }
 
+            if (col.type === 'refs' && col.junction) {
+                const ids = getJunctionChildIds(col, row[table.key]);
+                return ids.some((id) => String(id) === String(filterValue));
+            }
+
             const value = row[colName];
             if (value == null) {
                 return false;
@@ -464,16 +539,14 @@ function renderTableView() {
                     <thead>
                         <tr>
                             ${columns.map((col) => renderDataHeader(col)).join('')}
-                            <th class="text-end">İşlemler</th>
                         </tr>
                         <tr class="db-col-filters">
                             ${columns.map((col) => `<th${columnClassAttr(col)}><div class="db-col-filter-wrap">${renderColumnFilter(col)}</div></th>`).join('')}
-                            <th></th>
                         </tr>
                     </thead>
                     <tbody>
                         ${rows.length === 0
-                            ? `<tr class="db-empty-row"><td colspan="${columns.length + 1}" class="text-muted text-center py-3">Kayıt bulunamadı.</td></tr>`
+                            ? `<tr class="db-empty-row"><td colspan="${columns.length}" class="text-muted text-center py-3">Kayıt bulunamadı.</td></tr>`
                             : rows.map((row) => renderDataRow(table, columns, row)).join('')}
                     </tbody>
                 </table>
@@ -658,6 +731,31 @@ function renderColumnFilter(column) {
         `;
     }
 
+    if ((column.type === 'ref' || column.type === 'refs') && column.refTable) {
+        if (column.refTable === 'materialKeys') {
+            return `
+                <select class="form-select form-select-sm db-col-filter" data-col="${escapeHtml(column.name)}">
+                    ${renderMaterialKeySelectOptions(column, filterValue, { emptyLabel: 'Tümü' })}
+                </select>
+            `;
+        }
+        const rows = getAll(column.refTable).slice().sort((a, b) => {
+            const la = String(a[column.refLabel] ?? a.key ?? a.id);
+            const lb = String(b[column.refLabel] ?? b.key ?? b.id);
+            return la.localeCompare(lb, 'tr', { numeric: true });
+        });
+        return `
+            <select class="form-select form-select-sm db-col-filter" data-col="${escapeHtml(column.name)}">
+                <option value="">Tümü</option>
+                ${rows.map((row) => {
+                    const selected = String(filterValue) === String(row.id) ? ' selected' : '';
+                    const text = column.refLabel ? row[column.refLabel] : (row.key || `#${row.id}`);
+                    return `<option value="${escapeHtml(row.id)}"${selected}>${escapeHtml(text)}</option>`;
+                }).join('')}
+            </select>
+        `;
+    }
+
     return `
         <input type="text" class="form-control form-control-sm db-col-filter" data-col="${escapeHtml(column.name)}" value="${escapeHtml(filterValue)}" placeholder="Filtrele..." autocomplete="off" size="1">
     `;
@@ -740,7 +838,11 @@ function getCellClass(column, value) {
         return 'db-cell-recipes';
     }
 
-    if (column.format === 'materials') {
+    if (column.format === 'materials' || column.type === 'refs') {
+        return 'db-cell-mats';
+    }
+
+    if (column.type === 'ref' && column.refTable === 'materialKeys') {
         return 'db-cell-mats';
     }
 
@@ -755,26 +857,122 @@ function getCellClass(column, value) {
     return isCodeColumn(column, value) ? 'db-cell-code' : 'db-cell-name';
 }
 
+function materialOptionIconAttr(row) {
+    if (!row) {
+        return '';
+    }
+    const uniqueName = bonusMaterialItemId(row.key) || getItemUniqueName(row.itemId);
+    return uniqueName ? ` data-icon="${escapeHtml(uniqueName)}"` : '';
+}
+
+const MATERIAL_GROUPS = [
+    { id: 'craft', label: 'İşlenmiş', columns: 4 },
+    { id: 'refine', label: 'İşlenmemiş', columns: 5 },
+    { id: 'other', label: 'Diğer', columns: 4 }
+];
+
+function sortedMaterialKeys() {
+    return getAll('materialKeys').slice().sort((a, b) =>
+        (Number(a.sortValue) || 0) - (Number(b.sortValue) || 0)
+        || String(a.key || a.label).localeCompare(String(b.key || b.label), 'tr')
+    );
+}
+
+function materialKeyOptionHtml(column, row, selectedValue) {
+    const selected = String(selectedValue ?? '') === String(row.id) ? ' selected' : '';
+    const text = column.refLabel ? String(row[column.refLabel] ?? row.key ?? row.id) : String(row.key || row.id);
+    const iconAttr = materialOptionIconAttr(row);
+    return `<option value="${escapeHtml(row.id)}"${selected}${iconAttr}>${escapeHtml(text)}</option>`;
+}
+
+function renderMaterialKeySelectOptions(column, selectedValue, { emptyLabel = '—' } = {}) {
+    const rows = sortedMaterialKeys();
+    const parts = [`<option value="">${escapeHtml(emptyLabel)}</option>`];
+
+    for (const group of MATERIAL_GROUPS) {
+        const items = rows.filter((row) => (row.matGroup || 'other') === group.id);
+        if (!items.length) {
+            continue;
+        }
+        parts.push(`<optgroup label="${escapeHtml(group.label)}">`);
+        for (const row of items) {
+            parts.push(materialKeyOptionHtml(column, row, selectedValue));
+        }
+        parts.push('</optgroup>');
+    }
+
+    return parts.join('');
+}
+
+function materialKeysFromIds(ids) {
+    const byId = new Map(getAll('materialKeys').map((row) => [Number(row.id), row]));
+    return (ids || [])
+        .map((id) => byId.get(Number(id)))
+        .filter(Boolean)
+        .map((row) => row.key);
+}
+
+function renderMaterialsCell(ids) {
+    const keys = materialKeysFromIds(ids);
+    if (!keys.length) {
+        return '<span class="text-muted">—</span>';
+    }
+
+    const labels = keys
+        .map((key) => {
+            const row = getAll('materialKeys').find((entry) => entry.key === key);
+            return row?.label || key;
+        })
+        .join(', ');
+
+    const icons = renderMatsHtml(keys);
+    if (icons) {
+        return `<span class="db-cell-mats" title="${escapeHtml(labels)}">${icons}</span>`;
+    }
+
+    return escapeHtml(labels);
+}
+
 function renderDataRow(table, columns, row) {
     const id = row[table.key];
+    const isEditing = state.mode === 'edit' && String(state.editId) === String(id);
+    const editingClass = isEditing ? ' is-editing' : '';
+    const deleteBtn = `
+        <button type="button" class="db-row-delete btn-delete" data-id="${escapeHtml(id)}" title="Sil" aria-label="Sil">
+            <svg class="db-row-delete-icon" viewBox="0 0 16 16" width="18" height="18" aria-hidden="true" focusable="false">
+                <path fill="currentColor" d="M6.5 1h3a.5.5 0 0 1 .5.5V3h3.5a.5.5 0 0 1 0 1H2a.5.5 0 0 1 0-1H5.5V1.5a.5.5 0 0 1 .5-.5M3.118 4 3 4.059V13.5A1.5 1.5 0 0 0 4.5 15h7a1.5 1.5 0 0 0 1.5-1.5V4.059L12.882 4zM5 6.5a.5.5 0 0 1 .5-.5h.01a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-.5.5H5.5a.5.5 0 0 1-.5-.5zm3 0a.5.5 0 0 1 .5-.5h.01a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-.5.5H8.5a.5.5 0 0 1-.5-.5zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0z"/>
+            </svg>
+        </button>
+    `;
 
     return `
-        <tr>
-            ${columns.map((col) => {
+        <tr class="db-data-row${editingClass}" data-id="${escapeHtml(id)}" tabindex="0">
+            ${columns.map((col, index) => {
                 const value = row[col.name];
                 const cellClass = getCellClass(col, value);
                 const classAttr = cellClass ? ` class="${cellClass}"` : '';
-                return `<td${classAttr}>${formatCellValue(value, col)}</td>`;
+                return `<td${classAttr}>${index === 0 ? deleteBtn : ''}${formatCellValue(value, col, id, row)}</td>`;
             }).join('')}
-            <td class="text-end text-nowrap">
-                <button type="button" class="btn btn-sm btn-outline-primary btn-edit" data-id="${escapeHtml(id)}">Düzenle</button>
-                <button type="button" class="btn btn-sm btn-outline-danger btn-delete" data-id="${escapeHtml(id)}">Sil</button>
-            </td>
         </tr>
     `;
 }
 
-function formatCellValue(value, column) {
+function formatCellValue(value, column, parentId = null, row = null) {
+    if (column.type === 'refs' && column.junction) {
+        const ids = getJunctionChildIds(column, parentId);
+        if (column.format === 'materials') {
+            return renderMaterialsCell(ids);
+        }
+        if (!ids.length) {
+            return '<span class="text-muted">—</span>';
+        }
+        const labels = ids.map((id) => {
+            const ref = getAll(column.refTable).find((entry) => Number(entry.id) === Number(id));
+            return ref ? (column.refLabel ? ref[column.refLabel] : `#${ref.id}`) : `#${id}`;
+        });
+        return escapeHtml(labels.join(', '));
+    }
+
     if (value == null || value === '') {
         return '<span class="text-muted">—</span>';
     }
@@ -785,11 +983,34 @@ function formatCellValue(value, column) {
             : '<span class="badge bg-secondary">Hayır</span>';
     }
 
-    if (column.type === 'ref' && column.refTable) {
-        const row = getAll(column.refTable).find((entry) => String(entry.id) === String(value));
-        if (row) {
-            const text = column.refLabel ? `${row[column.refLabel]} (#${row.id})` : `#${row.id}`;
+    if (column.type === 'ref' && column.refTable === 'materialKeys') {
+        const refRow = getAll(column.refTable).find((entry) => String(entry.id) === String(value));
+        if (refRow) {
+            const text = column.refLabel ? String(refRow[column.refLabel] ?? refRow.id) : String(refRow.id);
+            const icon = materialIconHtml(refRow);
+            if (icon) {
+                return `<span class="db-cell-mats" title="${escapeHtml(text)}">${icon}</span>`;
+            }
             return escapeHtml(text);
+        }
+    }
+
+    if (column.type === 'ref' && column.refTable) {
+        const refRow = getAll(column.refTable).find((entry) => String(entry.id) === String(value));
+        if (refRow) {
+            const text = column.refLabel ? String(refRow[column.refLabel] ?? refRow.id) : String(refRow.id);
+            return escapeHtml(text);
+        }
+    }
+
+    if (state.tableName === 'materialKeys' && row && (column.name === 'key' || column.name === 'label' || column.name === 'itemId')) {
+        const icon = materialIconHtml(row);
+        const text = escapeHtml(String(value));
+        if (icon && column.name === 'itemId') {
+            return `<span class="db-cell-mats" title="${text}">${icon}<span class="db-cell-mats-id">${text}</span></span>`;
+        }
+        if (icon && column.name === 'key') {
+            return `<span class="db-cell-mats" title="${text}">${icon}<span class="db-cell-mats-text">${text}</span></span>`;
         }
     }
 
@@ -809,10 +1030,9 @@ function formatCellValue(value, column) {
             .split(/[,/·]+/)
             .map((item) => item.trim())
             .filter(Boolean);
-        const icons = renderMatsHtml(keys);
-        if (icons) {
-            return `<span class="db-cell-mats">${icons}<span class="db-cell-mats-text">${escapeHtml(keys.join(', '))}</span></span>`;
-        }
+        return renderMaterialsCell(
+            keys.map((key) => getAll('materialKeys').find((entry) => entry.key === key)?.id).filter(Boolean)
+        );
     }
 
     const str = String(value);
@@ -825,21 +1045,35 @@ function formatCellValue(value, column) {
 }
 
 function bindRowActions(container) {
-    container.querySelectorAll('.btn-edit').forEach((btn) => {
-        btn.addEventListener('click', () => {
-            void openEditForm(state.tableName, btn.dataset.id);
+    container.querySelectorAll('.db-data-table tbody tr.db-data-row[data-id]').forEach((row) => {
+        row.addEventListener('click', (event) => {
+            if (event.target.closest('button, a, input, select, label')) {
+                return;
+            }
+            void openEditForm(state.tableName, row.dataset.id);
+        });
+        row.addEventListener('keydown', (event) => {
+            if (event.key !== 'Enter' && event.key !== ' ') {
+                return;
+            }
+            if (event.target !== row) {
+                return;
+            }
+            event.preventDefault();
+            void openEditForm(state.tableName, row.dataset.id);
         });
     });
 
     container.querySelectorAll('.btn-delete').forEach((btn) => {
-        btn.addEventListener('click', () => {
+        btn.addEventListener('click', (event) => {
+            event.stopPropagation();
             void handleDeleteRow(container, btn.dataset.id);
         });
     });
 }
 
 async function handleDeleteRow(container, id) {
-    if (!confirm('Bu kaydı silmek istediğinize emin misiniz?')) {
+    if (!window.confirm('Bu kaydı silmek istediğine emin misin?')) {
         return;
     }
 
@@ -848,6 +1082,10 @@ async function handleDeleteRow(container, id) {
 
     try {
         deleteRow(state.tableName, id);
+        if (state.mode === 'edit' && String(state.editId) === String(id)) {
+            clearFormState();
+            dismissSidebarForm();
+        }
         renderSidebar();
         await renderContent({ showLoader: false });
     } finally {
@@ -879,13 +1117,14 @@ async function refreshTableBody(container, options = {}) {
         }
 
         if (rows.length === 0) {
-            tbody.innerHTML = `<tr class="db-empty-row"><td colspan="${columns.length + 1}" class="text-muted text-center py-3">Kayıt bulunamadı.</td></tr>`;
+            tbody.innerHTML = `<tr class="db-empty-row"><td colspan="${columns.length}" class="text-muted text-center py-3">Kayıt bulunamadı.</td></tr>`;
         } else {
             tbody.innerHTML = rows.map((row) => renderDataRow(table, columns, row)).join('');
             bindRowActions(container);
+            highlightActiveRow(container);
         }
 
-        setHash(state.tableName, null, null, state.search, state.page);
+        syncTableHash();
         syncPager(container, pagination);
     } finally {
         hideAreaLoader(target);
@@ -1186,26 +1425,26 @@ function renderFormView() {
     const record = isEdit ? getById(state.tableName, state.editId) : null;
 
     if (isEdit && !record) {
-        return '<div class="alert alert-info">Kayıt bulunamadı.</div>';
+        return '<div class="db-inline-form"><div class="alert alert-info mb-0">Kayıt bulunamadı.</div></div>';
     }
 
     const title = isEdit ? 'Kayıt Düzenle' : 'Yeni Kayıt';
 
     return `
-        <div class="d-flex justify-content-between align-items-center mb-3">
-            <div>
-                <h1 class="mb-0">${title} — ${escapeHtml(table.displayName)}</h1>
-                <button type="button" class="small text-muted btn-link" id="btnBack">← Tabloya dön</button>
+        <div class="db-inline-form">
+            <div class="db-inline-form-head">
+                <h2 class="db-inline-form-title">${title}</h2>
+                <button type="button" class="btn btn-sm btn-outline-secondary" id="btnCancel">Kapat</button>
             </div>
+            <form class="form-grid db-inline-form-grid" id="recordForm">
+                ${isEdit ? renderKeyField(table, record) : ''}
+                ${getEditableColumns(table).map((col) => renderField(col, record)).join('')}
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary">${isEdit ? 'Kaydet' : 'Oluştur'}</button>
+                    <button type="button" class="btn btn-outline-secondary" id="btnCancelSecondary">İptal</button>
+                </div>
+            </form>
         </div>
-        <form class="form-section form-grid" id="recordForm">
-            ${isEdit ? renderKeyField(table, record) : ''}
-            ${getEditableColumns(table).map((col) => renderField(col, record)).join('')}
-            <div class="form-actions">
-                <button type="submit" class="btn btn-primary">${isEdit ? 'Kaydet' : 'Oluştur'}</button>
-                <button type="button" class="btn btn-outline-secondary" id="btnCancel">İptal</button>
-            </div>
-        </form>
     `;
 }
 
@@ -1248,6 +1487,14 @@ function renderField(column, record) {
     }
 
     if (column.type === 'ref' && column.refTable) {
+        if (column.refTable === 'materialKeys') {
+            return `
+                <div class="form-floating">
+                    <select class="form-select" name="${escapeHtml(column.name)}" id="field-${escapeHtml(column.name)}">${renderMaterialKeySelectOptions(column, value)}</select>
+                    <label for="field-${escapeHtml(column.name)}">${escapeHtml(label)}</label>
+                </div>
+            `;
+        }
         const rows = getAll(column.refTable).slice().sort((a, b) => {
             const la = String(a[column.refLabel] ?? a.id);
             const lb = String(b[column.refLabel] ?? b.id);
@@ -1257,7 +1504,7 @@ function renderField(column, record) {
             `<option value="">—</option>`,
             ...rows.map((row) => {
                 const selected = String(value ?? '') === String(row.id) ? ' selected' : '';
-                const text = column.refLabel ? `${row[column.refLabel]} (#${row.id})` : `#${row.id}`;
+                const text = column.refLabel ? String(row[column.refLabel] ?? row.id) : String(row.id);
                 return `<option value="${escapeHtml(row.id)}"${selected}>${escapeHtml(text)}</option>`;
             })
         ].join('');
@@ -1267,6 +1514,33 @@ function renderField(column, record) {
                 <select class="form-select" name="${escapeHtml(column.name)}" id="field-${escapeHtml(column.name)}">${options}</select>
                 <label for="field-${escapeHtml(column.name)}">${escapeHtml(label)}</label>
             </div>
+        `;
+    }
+
+    if (column.type === 'refs' && column.refTable) {
+        const selected = new Set(
+            (column.junction && record
+                ? getJunctionChildIds(column, record[getTable(state.tableName).key])
+                : Array.isArray(value) ? value : []
+            ).map(Number)
+        );
+
+        if (column.format === 'materials' && column.refTable === 'materialKeys') {
+            return renderMaterialRefsField(column, label, selected);
+        }
+
+        const rows = getAll(column.refTable).slice().sort((a, b) => {
+            const la = String(a[column.refLabel] ?? a.key ?? a.id);
+            const lb = String(b[column.refLabel] ?? b.key ?? b.id);
+            return la.localeCompare(lb, 'tr', { numeric: true });
+        });
+        const checks = rows.map((row) => renderRefsOption(column, row, selected)).join('');
+
+        return `
+            <fieldset class="db-refs-field">
+                <legend class="db-refs-legend">${escapeHtml(label)}</legend>
+                <div class="db-refs-grid">${checks || '<span class="text-muted">Kayıt yok</span>'}</div>
+            </fieldset>
         `;
     }
 
@@ -1281,19 +1555,63 @@ function renderField(column, record) {
     `;
 }
 
-function bindFormEvents(container) {
-    initFloatingLabels(container);
+function materialIconHtml(row) {
+    const uniqueName = bonusMaterialItemId(row.key) || getItemUniqueName(row.itemId);
+    return itemIconHtml(uniqueName, { size: 28, className: 'item-icon db-refs-mat-icon' }) || '';
+}
 
-    container.querySelector('#btnBack')?.addEventListener('click', () => {
-        void openTable(state.tableName, state.search);
-    });
-    container.querySelector('#btnCancel')?.addEventListener('click', () => {
-        void openTable(state.tableName, state.search);
-    });
+function renderRefsOption(column, row, selected, { withIcon = false } = {}) {
+    const id = `field-${column.name}-${row.id}`;
+    const checked = selected.has(Number(row.id)) ? ' checked' : '';
+    const text = column.refLabel ? String(row[column.refLabel] ?? row.key ?? row.id) : String(row.key || row.id);
+    const icon = withIcon ? materialIconHtml(row) : '';
+    const titleAttr = withIcon ? ` title="${escapeHtml(text)}"` : '';
+    return `
+        <div class="form-check db-refs-option${withIcon ? ' db-refs-option--mat' : ''}"${titleAttr}>
+            <input class="form-check-input" type="checkbox" name="${escapeHtml(column.name)}" id="${escapeHtml(id)}" value="${escapeHtml(row.id)}"${checked}>
+            <label class="form-check-label" for="${escapeHtml(id)}">
+                ${icon}<span class="db-refs-option-text">${escapeHtml(text)}</span>
+            </label>
+        </div>
+    `;
+}
 
-    container.querySelector('#recordForm')?.addEventListener('submit', (event) => {
+function renderMaterialRefsField(column, label, selected) {
+    const rows = sortedMaterialKeys();
+
+    const sections = MATERIAL_GROUPS.map((group) => {
+        const items = rows.filter((row) => (row.matGroup || 'other') === group.id);
+        if (!items.length) {
+            return '';
+        }
+        const checks = items.map((row) => renderRefsOption(column, row, selected, { withIcon: true })).join('');
+        return `
+            <div class="db-refs-group" data-mat-group="${escapeHtml(group.id)}">
+                <div class="db-refs-group-title">${escapeHtml(group.label)}</div>
+                <div class="db-refs-grid db-refs-grid--${escapeHtml(group.id)}">${checks}</div>
+            </div>
+        `;
+    }).filter(Boolean).join('');
+
+    return `
+        <fieldset class="db-refs-field db-refs-field--materials">
+            <legend class="db-refs-legend">${escapeHtml(label)}</legend>
+            ${sections || '<span class="text-muted">Kayıt yok</span>'}
+        </fieldset>
+    `;
+}
+
+function bindFormEvents(root) {
+    const close = () => {
+        closeInlineForm(document.getElementById('dbContent'));
+    };
+
+    root.querySelector('#btnCancel')?.addEventListener('click', close);
+    root.querySelector('#btnCancelSecondary')?.addEventListener('click', close);
+
+    root.querySelector('#recordForm')?.addEventListener('submit', (event) => {
         event.preventDefault();
-        void handleFormSubmit(container, event.target);
+        void handleFormSubmit(document.getElementById('dbContent'), event.target);
     });
 }
 
@@ -1310,8 +1628,8 @@ async function handleFormSubmit(container, form) {
             createRow(state.tableName, formData);
         }
 
-        state.view = 'table';
-        setHash(state.tableName, null, null, state.search, state.page);
+        clearFormState();
+        syncTableHash();
         renderSidebar();
         await renderContent({ showLoader: false });
     } catch (error) {

@@ -1,4 +1,5 @@
 import { escapeHtml } from './utils.js';
+import { itemIconHtml } from './item-icon.js';
 
 const MENU_MAX_HEIGHT = 280;
 const VALUE_DESC = Object.getOwnPropertyDescriptor(HTMLSelectElement.prototype, 'value');
@@ -328,6 +329,34 @@ function highlightLabel(label, ranges) {
     return html;
 }
 
+function readOptionIcons(el) {
+    const multi = String(el.dataset.icons || '')
+        .split(/[,\s]+/)
+        .map((token) => token.trim())
+        .filter(Boolean);
+    if (multi.length) {
+        return multi;
+    }
+    const single = String(el.dataset.icon || '').trim();
+    return single ? [single] : [];
+}
+
+function optionIconsHtml(icons, className = 'autocomplete-option-icon') {
+    if (!icons?.length) {
+        return '';
+    }
+
+    const html = icons
+        .map((uniqueName) => itemIconHtml(uniqueName, {
+            size: 28,
+            className: `item-icon ${className}`
+        }))
+        .filter(Boolean)
+        .join('');
+
+    return html ? `<span class="autocomplete-option-icons">${html}</span>` : '';
+}
+
 function readOptions(select) {
     const options = [];
 
@@ -344,7 +373,8 @@ function readOptions(select) {
                     group,
                     disabled: opt.disabled,
                     muted: opt.dataset.muted === '1' || opt.dataset.muted === 'true',
-                    hint: (opt.dataset.hint || '').trim()
+                    hint: (opt.dataset.hint || '').trim(),
+                    icons: readOptionIcons(opt)
                 });
             }
         } else if (child.tagName === 'OPTION') {
@@ -354,7 +384,8 @@ function readOptions(select) {
                 group: null,
                 disabled: child.disabled,
                 muted: child.dataset.muted === '1' || child.dataset.muted === 'true',
-                hint: (child.dataset.hint || '').trim()
+                hint: (child.dataset.hint || '').trim(),
+                icons: readOptionIcons(child)
             });
         }
     }
@@ -392,6 +423,12 @@ function enhanceSelect(select) {
 
     select.parentNode.insertBefore(wrap, select);
     wrap.appendChild(select);
+
+    const selectedIcons = document.createElement('span');
+    selectedIcons.className = 'autocomplete-selected-icons';
+    selectedIcons.setAttribute('aria-hidden', 'true');
+    selectedIcons.hidden = true;
+    wrap.appendChild(selectedIcons);
 
     const input = document.createElement('input');
     input.type = 'text';
@@ -450,6 +487,15 @@ function enhanceSelect(select) {
         wrap.classList.toggle('is-filled', filled);
     };
 
+    const syncSelectedIcons = () => {
+        const current = options.find((opt) => opt.value === select.value);
+        const icons = current?.icons || [];
+        const html = optionIconsHtml(icons, 'autocomplete-selected-icon');
+        selectedIcons.innerHTML = html;
+        selectedIcons.hidden = !html;
+        wrap.classList.toggle('has-icons', Boolean(html));
+    };
+
     const syncFromSelect = () => {
         if (syncing) {
             return;
@@ -459,6 +505,7 @@ function enhanceSelect(select) {
         query = '';
         syncDisabled();
         syncFilled();
+        syncSelectedIcons();
     };
 
     const closeMenu = () => {
@@ -574,12 +621,15 @@ function enhanceSelect(select) {
 
             const selected = option.value === select.value ? ' is-selected' : '';
             const muted = option.muted ? ' is-muted' : '';
+            const hasIcons = option.icons?.length ? ' has-icons' : '';
             const optionId = `${menuId}-opt-${visIndex}`;
             const hint = option.hint
                 ? `<span class="autocomplete-option-hint">${escapeHtml(option.hint)}</span>`
                 : '';
+            const icons = optionIconsHtml(option.icons);
             parts.push(`
-                <div class="autocomplete-option${selected}${muted}" role="option" id="${optionId}" data-index="${visIndex}" aria-selected="${option.value === select.value ? 'true' : 'false'}"${option.hint ? ` aria-label="${escapeHtml(`${option.label}, ${option.hint}`)}"` : ''}>
+                <div class="autocomplete-option${selected}${muted}${hasIcons}" role="option" id="${optionId}" data-index="${visIndex}" aria-selected="${option.value === select.value ? 'true' : 'false'}"${option.hint ? ` aria-label="${escapeHtml(`${option.label}, ${option.hint}`)}"` : ''}>
+                    ${icons}
                     <span class="autocomplete-option-text">${highlightLabel(option.label, q ? ranges : [])}</span>
                     ${hint}
                 </div>
@@ -620,6 +670,7 @@ function enhanceSelect(select) {
         input.value = selectedLabel(select, options, floating);
         query = '';
         syncFilled();
+        syncSelectedIcons();
         closeMenu();
         select.dispatchEvent(new Event('change', { bubbles: true }));
         select.dispatchEvent(new Event('input', { bubbles: true }));
@@ -777,6 +828,7 @@ function enhanceSelect(select) {
         }
         syncDisabled();
         syncFilled();
+        syncSelectedIcons();
         if (open) {
             renderMenu();
             positionMenu();
@@ -787,7 +839,7 @@ function enhanceSelect(select) {
         childList: true,
         subtree: true,
         attributes: true,
-        attributeFilter: ['disabled', 'data-muted', 'data-hint']
+        attributeFilter: ['disabled', 'data-muted', 'data-hint', 'data-icon', 'data-icons']
     });
 
     syncFromSelect();

@@ -141,7 +141,20 @@ function renderTopbarSlots(bonuses) {
         return escapeHtml(emptyCopy(true));
     }
 
-    return bonuses.map((bonus) => compactPackLine(bonus)).join(' · ');
+    return bonuses.map((bonus) => {
+        const mats = renderRecipesHtml(recipesFromMeta(bonus), {
+            labels: false,
+            className: 'topbar-today-mat-icon',
+            size: 24
+        });
+        const city = bonus.cityShort || bonus.cityLabel || '';
+        const bits = [
+            mats,
+            escapeHtml(`${bonus.label} +${bonus.rate}%`),
+            city ? `<span class="topbar-today-city">${escapeHtml(city)}</span>` : ''
+        ].filter(Boolean);
+        return `<span class="topbar-today-slot">${bits.join(' ')}</span>`;
+    }).join('<span class="topbar-today-sep">·</span>');
 }
 
 function paint() {
@@ -160,7 +173,7 @@ function paint() {
 
     if (topbar) {
         topbar.classList.toggle('is-empty', empty);
-        topbar.textContent = renderTopbarSlots(bonuses);
+        topbar.innerHTML = renderTopbarSlots(bonuses);
         topbar.title = empty
             ? 'Bugün günlük bonus kaydı yok'
             : bonuses.map(slotTitle).join(' · ');

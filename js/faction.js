@@ -914,7 +914,7 @@ function renderOutput() {
             ${renderBonusNote()}
             <p class="faction-note">${escapeHtml(cityLabel(state.city))} · malzeme ${escapeHtml(matNote)} · satış ${escapeHtml(itemNote)}.
                 Satış/puan net (vergi sonrası). Cape gümüş/puan = (net satış − düz cape maliyeti) / crest puanı.
-                Elle yazılan fiyat API’nin yerine geçer. Kırmızı fiyat API’de yok; turuncu 6 saatten eski.${stamp ? ` · ${stamp}` : ''}</p>
+                Elle yazılan fiyat API’nin yerine geçer. Kırmızı fiyat API’de yok; mavi 6 saatten eski.${stamp ? ` · ${stamp}` : ''}</p>
         </div>
     `;
 }

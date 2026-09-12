@@ -301,6 +301,33 @@ body {
     }
 }
 
+.topbar-today-slot {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    vertical-align: middle;
+}
+
+.topbar-today-sep {
+    margin: 0 0.35rem;
+    opacity: 0.55;
+}
+
+.topbar-today-city {
+    opacity: 0.8;
+}
+
+.topbar-today-mat-icon {
+    width: 1rem;
+    height: 1rem;
+}
+
+.topbar-today .bonus-mats,
+.topbar-today .bonus-mat-recipes {
+    display: inline-flex;
+    vertical-align: middle;
+}
+
 .app-content {
     flex: 1;
     min-width: 0;

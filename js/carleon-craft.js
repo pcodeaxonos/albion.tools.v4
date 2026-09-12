@@ -579,7 +579,7 @@ function renderOutput() {
             ${renderTable()}
             ${calcExplainShell('carleonExplain')}
             ${renderBonusNote()}
-            <p class="carleon-note">Malzeme ${escapeHtml(matNote)} · satış ${escapeHtml(itemNote)}. Elle yazılan alış/satış API’nin yerine geçer; kırmızı fiyat API’de yok, turuncu 6 saatten eski.</p>
+            <p class="carleon-note">Malzeme ${escapeHtml(matNote)} · satış ${escapeHtml(itemNote)}. Elle yazılan alış/satış API’nin yerine geçer; kırmızı fiyat API’de yok, mavi 6 saatten eski.</p>
         </div>
     `;
 }

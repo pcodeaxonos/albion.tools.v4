@@ -12,6 +12,8 @@
   --color-danger: #ee6f70;
   --color-info: #6eb8e8;
   --color-warning: #f0b84a;
+  /* Stale prices: reuse info blue so it stays in-palette and clear vs focus gold */
+  --color-stale: var(--color-info);
   --color-text: #f2f2f4;
   --color-text-muted: #9898a0;
   --color-border: #3a3a40;
@@ -658,9 +660,7 @@ input[type=month].form-control {
   --float-tag-radius: 0.2rem;
   --float-tag-pad: 0 0.25rem;
   --float-timing: 0.12s cubic-bezier(0.4, 0, 0.2, 1);
-  --float-tag-motion: transform var(--float-timing), color var(--float-timing),
-      background-color var(--float-timing);
-  transition: --input-stroke var(--float-timing);
+  --float-tag-motion: transform var(--float-timing);
 }
 .form-floating > .form-control,
 .form-floating > .form-select:not(.autocomplete-native),
@@ -677,6 +677,18 @@ input[type=month].form-control {
 .form-floating > input[type=date].form-control,
 .form-floating > input[type=month].form-control {
   padding-right: 2.25rem;
+}
+.form-floating > .autocomplete.has-icons > .form-control {
+  padding-left: 2.125rem;
+}
+.form-floating > .autocomplete.has-icons:has(.autocomplete-selected-icons:not(:empty) .autocomplete-selected-icon:nth-child(2)) > .form-control {
+  padding-left: 3.5rem;
+}
+.form-floating > .autocomplete.has-icons:has(.autocomplete-selected-icons:not(:empty) .autocomplete-selected-icon:nth-child(3)) > .form-control {
+  padding-left: 4.875rem;
+}
+.form-floating > .autocomplete.has-icons:has(.autocomplete-selected-icons:not(:empty) .autocomplete-selected-icon:nth-child(4)) > .form-control {
+  padding-left: 6.25rem;
 }
 .form-floating > label {
   position: absolute;
@@ -718,8 +730,8 @@ input[type=month].form-control {
   --float-tag-fg: var(--color-on-accent);
 }
 .form-floating.is-stale {
-  --input-stroke: var(--color-warning);
-  --float-tag-bg: var(--color-warning);
+  --input-stroke: var(--color-stale);
+  --float-tag-bg: var(--color-stale);
   --float-tag-fg: var(--color-on-accent);
 }
 .form-floating.is-missing {
@@ -861,7 +873,8 @@ input[type=month].form-control {
   }
 }
 .form-grid > .form-check,
-.form-grid > .form-actions {
+.form-grid > .form-actions,
+.form-grid > .db-refs-field {
   grid-column: 1/-1;
 }
 
@@ -1033,13 +1046,16 @@ input[type=month].form-control {
 
 .autocomplete-option {
   display: flex;
-  align-items: baseline;
+  align-items: center;
   justify-content: space-between;
   gap: 0.75rem;
   padding: 0.5rem 0.75rem;
   font-size: var(--font-size-base);
   line-height: 1.35;
   cursor: pointer;
+}
+.autocomplete-option.has-icons {
+  justify-content: flex-start;
 }
 .autocomplete-option.is-active, .autocomplete-option:hover {
   background-color: var(--color-surface-hover);
@@ -1056,12 +1072,67 @@ input[type=month].form-control {
   opacity: 0.78;
 }
 
+.autocomplete-option-icons,
+.autocomplete-selected-icons {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 0.125rem;
+}
+
+.item-icon.autocomplete-option-icon,
+.item-icon.autocomplete-selected-icon {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+
+.autocomplete-selected-icons {
+  position: absolute;
+  top: 50%;
+  left: 0.5rem;
+  z-index: 1;
+  transform: translateY(-50%);
+  pointer-events: none;
+}
+
+.autocomplete.has-icons .autocomplete-input {
+  padding-left: 2.125rem;
+}
+
+.autocomplete.has-icons:has(.autocomplete-selected-icons:not(:empty) .autocomplete-selected-icon:nth-child(2)) .autocomplete-input {
+  padding-left: 3.5rem;
+}
+
+.autocomplete.has-icons:has(.autocomplete-selected-icons:not(:empty) .autocomplete-selected-icon:nth-child(3)) .autocomplete-input {
+  padding-left: 4.875rem;
+}
+
+.autocomplete.has-icons:has(.autocomplete-selected-icons:not(:empty) .autocomplete-selected-icon:nth-child(4)) .autocomplete-input {
+  padding-left: 6.25rem;
+}
+
+.autocomplete--sm .autocomplete-selected-icons {
+  left: 0.3rem;
+}
+
+.autocomplete--sm .item-icon.autocomplete-option-icon,
+.autocomplete--sm .item-icon.autocomplete-selected-icon {
+  width: 1rem;
+  height: 1rem;
+}
+
+.autocomplete--sm.has-icons .autocomplete-input {
+  padding-left: 1.6rem;
+}
+
 .autocomplete-option-text {
   min-width: 0;
+  flex: 1 1 auto;
 }
 
 .autocomplete-option-hint {
   flex-shrink: 0;
+  margin-left: auto;
   font-size: 0.6875rem;
   font-weight: var(--font-weight-medium);
   color: var(--color-text-muted);
@@ -1283,7 +1354,7 @@ input[type=month].form-control {
 
 .db-layout {
   display: grid;
-  grid-template-columns: minmax(240px, 280px) minmax(0, 1fr);
+  grid-template-columns: minmax(300px, 360px) minmax(0, 1fr);
   grid-template-rows: minmax(0, 1fr);
   gap: var(--spacing-md);
   align-items: stretch;
@@ -1302,11 +1373,13 @@ input[type=month].form-control {
 }
 
 .db-sidebar {
+  display: flex;
+  flex-direction: column;
   min-height: 0;
   background-color: var(--color-surface);
   border: var(--border-width) solid var(--color-border);
   border-radius: 0;
-  padding: var(--spacing-md);
+  padding: var(--spacing-sm) var(--spacing-sm) var(--spacing-md);
   overflow-y: auto;
   overscroll-behavior: contain;
   box-shadow: var(--shadow-sm);
@@ -1317,22 +1390,63 @@ input[type=month].form-control {
     overflow: visible;
   }
 }
+.db-sidebar.db-sidebar--editing {
+  overflow: hidden;
+}
+.db-sidebar.db-sidebar--editing .db-sidebar-chrome,
+.db-sidebar.db-sidebar--editing .db-table-list {
+  display: none;
+}
+.db-sidebar.db-sidebar--editing .db-sidebar-form {
+  display: flex;
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+.db-sidebar-chrome {
+  flex-shrink: 0;
+  margin-bottom: var(--spacing-sm);
+}
+
+.db-sidebar-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--spacing-sm);
+  margin-bottom: 0.35rem;
+}
+
+.db-sidebar-title {
+  font-size: 1.15rem;
+}
+
+.db-sidebar-lead {
+  margin: 0;
+  font-size: 0.75rem;
+  line-height: 1.35;
+}
+
+.db-sidebar-form {
+  display: none;
+  flex-direction: column;
+  min-height: 0;
+}
 
 .db-table-list {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-md);
+  gap: 0.65rem;
 }
 
 .db-table-group {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-sm);
+  gap: 0.2rem;
 }
 
 .db-table-group-title {
-  margin: 0;
-  font-size: 0.72rem;
+  margin: 0 0 0.15rem;
+  font-size: 0.68rem;
   font-weight: var(--font-weight-semibold);
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -1340,8 +1454,11 @@ input[type=month].form-control {
 }
 
 .db-table-card {
-  display: block;
-  padding: var(--spacing-md);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.4rem;
+  padding: 0.28rem 0.45rem;
   background-color: var(--color-surface-raised);
   border: var(--border-width) solid var(--color-border);
   border-radius: 0;
@@ -1358,24 +1475,29 @@ input[type=month].form-control {
   background-color: var(--color-surface-hover);
   box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--color-primary) 20%, transparent);
 }
-
-.db-table-card-body {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-xs);
+.db-table-card .badge {
+  font-size: 0.65rem;
+  padding: 0.12rem 0.35rem;
+  line-height: 1.2;
 }
 
 .db-table-card-title {
-  font-size: var(--h4-size);
-  font-weight: var(--font-weight-semibold);
-  margin-bottom: 0;
-  letter-spacing: -0.02em;
+  min-width: 0;
+  margin: 0;
+  font-size: 0.8125rem;
+  font-weight: var(--font-weight-medium);
+  letter-spacing: -0.01em;
+  line-height: 1.25;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .db-table-card-meta {
   display: flex;
-  flex-wrap: wrap;
-  gap: var(--spacing-xs);
+  flex-shrink: 0;
+  flex-wrap: nowrap;
+  gap: 0.2rem;
   align-items: center;
 }
 
@@ -1494,12 +1616,16 @@ input[type=month].form-control {
 .db-data-table td.db-cell-mats {
   white-space: nowrap;
 }
-.db-data-table td.db-cell-mats .bonus-mat-icon {
+.db-data-table td.db-cell-mats .bonus-mat-icon,
+.db-data-table td.db-cell-mats .db-refs-mat-icon {
   width: 1.25rem;
   height: 1.25rem;
 }
-.db-data-table td.db-cell-mats .db-cell-mats-text {
+.db-data-table td.db-cell-mats .db-cell-mats-text,
+.db-data-table td.db-cell-mats .db-cell-mats-id {
   margin-left: 0.35rem;
+}
+.db-data-table td.db-cell-mats .db-cell-mats-id {
   color: var(--color-text-muted);
   font-size: 0.75rem;
 }
@@ -1579,6 +1705,67 @@ input[type=month].form-control {
 .db-data-table tbody tr:hover td,
 .db-data-table tbody tr:hover td:first-child {
   background-color: var(--color-surface-hover);
+}
+.db-data-table tbody tr.db-data-row {
+  cursor: pointer;
+}
+.db-data-table tbody tr.db-data-row:focus-visible {
+  outline: 1px solid var(--color-primary);
+  outline-offset: -1px;
+}
+.db-data-table tbody tr.db-data-row:focus-visible td, .db-data-table tbody tr.db-data-row:focus-visible td:first-child {
+  background-color: var(--color-surface-hover);
+  outline: none;
+}
+.db-data-table tbody tr.db-data-row.is-editing td, .db-data-table tbody tr.db-data-row.is-editing td:first-child {
+  background-color: color-mix(in srgb, var(--color-primary) 14%, var(--color-surface));
+}
+.db-data-table tbody tr.db-data-row td:first-child {
+  padding-left: 2.1rem;
+}
+.db-data-table .db-row-delete {
+  position: absolute;
+  top: 50%;
+  left: 0.2rem;
+  z-index: 3;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.65rem;
+  height: 1.65rem;
+  margin: 0;
+  padding: 0;
+  border: none;
+  border-radius: 0;
+  background: color-mix(in srgb, var(--color-surface) 88%, transparent);
+  color: var(--color-text-muted);
+  line-height: 1;
+  cursor: pointer;
+  opacity: 0;
+  transform: translateY(-50%);
+  transition: opacity 0.12s ease, color 0.12s ease, background-color 0.12s ease;
+}
+.db-data-table .db-row-delete:hover, .db-data-table .db-row-delete:focus-visible {
+  color: var(--color-danger, #c44);
+  background-color: color-mix(in srgb, var(--color-danger, #c44) 14%, var(--color-surface));
+  outline: none;
+  opacity: 1;
+}
+.db-data-table .db-row-delete-icon {
+  display: block;
+  width: 1.15rem;
+  height: 1.15rem;
+  pointer-events: none;
+}
+.db-data-table tbody tr.db-data-row:hover .db-row-delete,
+.db-data-table tbody tr.db-data-row:focus-within .db-row-delete,
+.db-data-table tbody tr.db-data-row.is-editing .db-row-delete {
+  opacity: 1;
+}
+@media (hover: none) {
+  .db-data-table .db-row-delete {
+    opacity: 0.65;
+  }
 }
 .db-data-table .db-col-filters th {
   padding: 0.25rem 0.375rem;
@@ -1677,6 +1864,126 @@ input[type=month].form-control {
   flex: 1 1 auto;
   min-width: 0;
   min-height: 0;
+}
+
+.db-refs-field {
+  margin: 0;
+  padding: var(--spacing-md);
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--radius-md, 0.5rem);
+  background: var(--color-surface, transparent);
+}
+
+.db-refs-legend {
+  float: none;
+  width: auto;
+  margin: 0 0 var(--spacing-sm);
+  padding: 0;
+  font-size: 0.85rem;
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-muted);
+}
+
+.db-refs-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(11rem, 1fr));
+  gap: 0.65rem;
+}
+
+.db-refs-option {
+  margin: 0;
+}
+
+.db-refs-field--materials {
+  display: flex;
+  flex-direction: column;
+  gap: 1.15rem;
+}
+
+.db-refs-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+}
+
+.db-refs-group-title {
+  margin: 0;
+  font-size: 0.72rem;
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+
+.db-refs-grid--craft,
+.db-refs-grid--refine,
+.db-refs-grid--other {
+  grid-template-columns: 1fr;
+  gap: 0.45rem;
+}
+
+.db-refs-option--mat {
+  min-width: 0;
+  gap: 0.65rem;
+}
+
+.db-refs-option--mat .form-check-label {
+  display: inline-flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 0.45rem;
+  min-width: 0;
+  white-space: nowrap;
+}
+
+.db-refs-option-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.db-refs-mat-icon {
+  display: block;
+  flex: 0 0 auto;
+  width: 1.5rem;
+  height: 1.5rem;
+}
+
+.db-inline-form {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+  padding: 0;
+  overflow: auto;
+  overscroll-behavior: contain;
+  border: none;
+  background: transparent;
+}
+
+.db-inline-form-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-sm);
+  margin-bottom: var(--spacing-sm);
+  flex-shrink: 0;
+}
+
+.db-inline-form-title {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: var(--font-weight-semibold);
+}
+
+.db-inline-form-grid {
+  width: 100%;
+  grid-template-columns: 1fr;
+}
+@media (min-width: 640px) {
+  .db-inline-form-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 .db-table-panel > .table-responsive {
@@ -2212,6 +2519,33 @@ body {
 }
 .topbar-today.is-empty {
   opacity: 0.7;
+}
+
+.topbar-today-slot {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  vertical-align: middle;
+}
+
+.topbar-today-sep {
+  margin: 0 0.35rem;
+  opacity: 0.55;
+}
+
+.topbar-today-city {
+  opacity: 0.8;
+}
+
+.topbar-today-mat-icon {
+  width: 1rem;
+  height: 1rem;
+}
+
+.topbar-today .bonus-mats,
+.topbar-today .bonus-mat-recipes {
+  display: inline-flex;
+  vertical-align: middle;
 }
 
 .app-content {
@@ -3814,8 +4148,28 @@ a.tool-card:hover {
   box-shadow: inset 0 -2px 0 var(--color-primary);
 }
 
+.bonus-log-family-main {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  min-width: 0;
+}
+
 .bonus-log-family-name {
-  display: block;
+  display: inline;
+  min-width: 0;
+}
+
+.bonus-log-mat-icon,
+.bonus-preview-mat-icon {
+  width: 1.125rem;
+  height: 1.125rem;
+}
+
+.bonus-repeat .bonus-mats {
+  display: inline-flex;
+  vertical-align: middle;
+  margin-right: 0.25rem;
 }
 
 .bonus-log-city {
@@ -4887,8 +5241,8 @@ a.tool-card:hover {
 .ava-price-field.is-stale > .form-control,
 .enchant-price-field.is-stale > .form-control,
 .farming-price-field.is-stale > .form-control {
-  color: var(--color-warning);
-  background-color: color-mix(in srgb, var(--color-warning) 12%, var(--field-bg));
+  color: var(--color-stale);
+  background-color: color-mix(in srgb, var(--color-stale) 12%, var(--field-bg));
 }
 
 .carleon-num.is-missing,
@@ -5096,8 +5450,25 @@ a.tool-card:hover {
 }
 
 .farming-type-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
   min-width: 0;
   padding-inline: 0.75rem;
+}
+.farming-type-btn.has-icon {
+  padding-inline: 0.55rem 0.75rem;
+}
+
+.farming-type-btn-icon {
+  width: 1.25rem;
+  height: 1.25rem;
+  flex-shrink: 0;
+}
+
+.farming-type-btn-label {
+  min-width: 0;
 }
 
 .farming-spec {

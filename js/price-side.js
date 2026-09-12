@@ -3,7 +3,7 @@ import { placesOrder } from './market-fees.js';
 import { itemIconHtml } from './item-icon.js';
 
 export const PRICE_SIDES = ['buy', 'sell'];
-/** Prices older than this are still shown, but marked stale (orange). */
+/** Prices older than this are still shown, but marked stale (blue). */
 export const PRICE_STALE_MS = 6 * 60 * 60 * 1000;
 
 export function normalizePriceSide(value, fallback = 'buy') {

@@ -718,11 +718,14 @@ function bindExplain(container) {
 function renderToggleGroup(name, options, selected, attr) {
     return options.map((option) => {
         const pressed = option.id === selected;
+        const icon = option.iconId
+            ? itemIconHtml(option.iconId, { size: 28, className: 'item-icon farming-type-btn-icon' })
+            : '';
         return `
-            <button type="button" class="farming-type-btn${pressed ? ' is-active' : ''}"
+            <button type="button" class="farming-type-btn${pressed ? ' is-active' : ''}${icon ? ' has-icon' : ''}"
                 data-${attr}="${escapeHtml(String(option.id))}"
                 aria-pressed="${pressed ? 'true' : 'false'}">
-                ${escapeHtml(option.label)}
+                ${icon}<span class="farming-type-btn-label">${escapeHtml(option.label)}</span>
             </button>
         `;
     }).join('');
@@ -916,7 +919,11 @@ function renderPage(container) {
             <div class="tool-split-controls">
                 <div class="farming-toolbar">
                     <div class="farming-type" role="radiogroup" aria-label="Aile">
-                        ${renderToggleGroup('family', families().map((family) => ({ id: family.id, label: family.label })), state.family, 'family')}
+                        ${renderToggleGroup('family', families().map((family) => ({
+                            id: family.id,
+                            label: family.label,
+                            iconId: `T4_${family.raw}`
+                        })), state.family, 'family')}
                     </div>
                     <div class="farming-type" role="radiogroup" aria-label="Enchant">
                         ${renderToggleGroup('enchant', [

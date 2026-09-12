@@ -708,7 +708,7 @@ function renderOutput() {
             ${calcExplainShell('furnitureExplain')}
             ${renderSummary(list)}
             ${renderBonusNote()}
-            <p class="ava-note">Malzeme ve satış ${escapeHtml(cityLabel(state.city))} · ${escapeHtml(matNote)}. Satış ${escapeHtml(itemNote)}. Elle yazılan alış/satış API’nin yerine geçer. Kırmızı fiyat API’de yok; turuncu 6 saatten eski.${stamp ? ` ${escapeHtml(stamp)}.` : ''}</p>
+            <p class="ava-note">Malzeme ve satış ${escapeHtml(cityLabel(state.city))} · ${escapeHtml(matNote)}. Satış ${escapeHtml(itemNote)}. Elle yazılan alış/satış API’nin yerine geçer. Kırmızı fiyat API’de yok; mavi 6 saatten eski.${stamp ? ` ${escapeHtml(stamp)}.` : ''}</p>
         </div>
     `;
 }

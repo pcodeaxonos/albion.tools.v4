@@ -5,6 +5,8 @@
     "stem": "PLANKS",
     "itemId": 1049,
     "label": "Plank",
+    "matGroup": "craft",
+    "sortValue": 20,
     "appliesRr": true
   },
   {
@@ -13,6 +15,8 @@
     "stem": "METALBAR",
     "itemId": 1083,
     "label": "Bar",
+    "matGroup": "craft",
+    "sortValue": 10,
     "appliesRr": true
   },
   {
@@ -21,6 +25,8 @@
     "stem": "LEATHER",
     "itemId": 1110,
     "label": "Leather",
+    "matGroup": "craft",
+    "sortValue": 40,
     "appliesRr": true
   },
   {
@@ -29,6 +35,8 @@
     "stem": "CLOTH",
     "itemId": 1137,
     "label": "Cloth",
+    "matGroup": "craft",
+    "sortValue": 30,
     "appliesRr": true
   },
   {
@@ -37,6 +45,8 @@
     "stem": "WOOD",
     "itemId": 917,
     "label": "Wood",
+    "matGroup": "refine",
+    "sortValue": 120,
     "appliesRr": true
   },
   {
@@ -45,6 +55,8 @@
     "stem": "FIBER",
     "itemId": 1022,
     "label": "Fiber",
+    "matGroup": "refine",
+    "sortValue": 110,
     "appliesRr": true
   },
   {
@@ -53,6 +65,8 @@
     "stem": "ROCK",
     "itemId": 945,
     "label": "Stone",
+    "matGroup": "refine",
+    "sortValue": 140,
     "appliesRr": true
   },
   {
@@ -61,6 +75,8 @@
     "stem": "HIDE",
     "itemId": 995,
     "label": "Hide",
+    "matGroup": "refine",
+    "sortValue": 130,
     "appliesRr": true
   },
   {
@@ -69,6 +85,8 @@
     "stem": "ORE",
     "itemId": 967,
     "label": "Ore",
+    "matGroup": "refine",
+    "sortValue": 100,
     "appliesRr": true
   },
   {
@@ -77,6 +95,18 @@
     "stem": "",
     "itemId": 248,
     "label": "Avalonian Energy",
+    "matGroup": "other",
+    "sortValue": 200,
     "appliesRr": false
+  },
+  {
+    "id": 11,
+    "key": "block",
+    "stem": "STONEBLOCK",
+    "itemId": 1076,
+    "label": "Block",
+    "matGroup": "craft",
+    "sortValue": 50,
+    "appliesRr": true
   }
 ]

@@ -41,16 +41,16 @@ function familyId(familyKey) {
 }
 
 const materialKeys = [
-    { id: 1, key: 'plank', stem: 'PLANKS', itemId: itemId('T4_PLANKS'), label: 'Plank', appliesRr: true },
-    { id: 2, key: 'bar', stem: 'METALBAR', itemId: itemId('T4_METALBAR'), label: 'Bar', appliesRr: true },
-    { id: 3, key: 'leather', stem: 'LEATHER', itemId: itemId('T4_LEATHER'), label: 'Leather', appliesRr: true },
-    { id: 4, key: 'cloth', stem: 'CLOTH', itemId: itemId('T4_CLOTH'), label: 'Cloth', appliesRr: true },
-    { id: 5, key: 'odun', stem: 'WOOD', itemId: itemId('T4_WOOD'), label: 'Wood', appliesRr: true },
-    { id: 6, key: 'fiber', stem: 'FIBER', itemId: itemId('T4_FIBER'), label: 'Fiber', appliesRr: true },
-    { id: 7, key: 'taş', stem: 'ROCK', itemId: itemId('T4_ROCK'), label: 'Stone', appliesRr: true },
-    { id: 8, key: 'hide', stem: 'HIDE', itemId: itemId('T4_HIDE'), label: 'Hide', appliesRr: true },
-    { id: 9, key: 'ore', stem: 'ORE', itemId: itemId('T4_ORE'), label: 'Ore', appliesRr: true },
-    { id: 10, key: 'energy', stem: '', itemId: itemId('QUESTITEM_TOKEN_AVALON'), label: 'Avalonian Energy', appliesRr: false }
+    { id: 1, key: 'plank', stem: 'PLANKS', itemId: itemId('T4_PLANKS'), label: 'Plank', matGroup: 'craft', sortValue: 20, appliesRr: true },
+    { id: 2, key: 'bar', stem: 'METALBAR', itemId: itemId('T4_METALBAR'), label: 'Bar', matGroup: 'craft', sortValue: 10, appliesRr: true },
+    { id: 3, key: 'leather', stem: 'LEATHER', itemId: itemId('T4_LEATHER'), label: 'Leather', matGroup: 'craft', sortValue: 40, appliesRr: true },
+    { id: 4, key: 'cloth', stem: 'CLOTH', itemId: itemId('T4_CLOTH'), label: 'Cloth', matGroup: 'craft', sortValue: 30, appliesRr: true },
+    { id: 5, key: 'odun', stem: 'WOOD', itemId: itemId('T4_WOOD'), label: 'Wood', matGroup: 'refine', sortValue: 120, appliesRr: true },
+    { id: 6, key: 'fiber', stem: 'FIBER', itemId: itemId('T4_FIBER'), label: 'Fiber', matGroup: 'refine', sortValue: 110, appliesRr: true },
+    { id: 7, key: 'taş', stem: 'ROCK', itemId: itemId('T4_ROCK'), label: 'Stone', matGroup: 'refine', sortValue: 140, appliesRr: true },
+    { id: 8, key: 'hide', stem: 'HIDE', itemId: itemId('T4_HIDE'), label: 'Hide', matGroup: 'refine', sortValue: 130, appliesRr: true },
+    { id: 9, key: 'ore', stem: 'ORE', itemId: itemId('T4_ORE'), label: 'Ore', matGroup: 'refine', sortValue: 100, appliesRr: true },
+    { id: 10, key: 'energy', stem: '', itemId: itemId('QUESTITEM_TOKEN_AVALON'), label: 'Avalonian Energy', matGroup: 'other', sortValue: 200, appliesRr: false }
 ];
 
 const matByKey = new Map(materialKeys.map((row) => [row.key, row]));

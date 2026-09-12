@@ -323,7 +323,9 @@ function renderGroupOptions(selected) {
         <optgroup label="${escapeHtml(family.label)}">
             ${family.groups.map((group) => {
                 const isSelected = group.id === selected ? ' selected' : '';
-                return `<option value="${escapeHtml(group.id)}"${isSelected}>${escapeHtml(group.label)}</option>`;
+                const tier = group.tiers?.[0] ?? 4;
+                const iconId = `T${tier}_${group.stem}`;
+                return `<option value="${escapeHtml(group.id)}" data-icon="${escapeHtml(iconId)}"${isSelected}>${escapeHtml(group.label)}</option>`;
             }).join('')}
         </optgroup>
     `).join('');
