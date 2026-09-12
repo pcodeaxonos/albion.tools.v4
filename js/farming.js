@@ -21,80 +21,38 @@ import { SETUP_FEE, purchaseCost, placesOrder } from './market-fees.js';
 import { bindCalcSticky } from './calc-sticky.js';
 import { loadActiveCities } from './cities.js';
 import { bindLivePrices } from './price-live.js';
+import { getPlants, getEconomyConstant } from './catalog.js';
 
 const CITY_STORAGE_KEY = 'albiontools.v4.farming.city';
 const PREFS_STORAGE_KEY = 'albiontools.v4.farming.prefs';
-const BASE_YIELD = 4.5;
-const PREMIUM_YIELD = 9;
-const CITY_YIELD_BONUS = 0.1;
-const FOCUS_BASE = 1000;
-const YIELD_LADDER = [
-    { seedReturn: 0, waterBonus: 2 },
-    { seedReturn: 0.3333, waterBonus: 1.33 },
-    { seedReturn: 0.6, waterBonus: 0.8 },
-    { seedReturn: 0.7333, waterBonus: 0.53 },
-    { seedReturn: 0.8, waterBonus: 0.4 },
-    { seedReturn: 0.8667, waterBonus: 0.27 },
-    { seedReturn: 0.9111, waterBonus: 0.18 },
-    { seedReturn: 0.9333, waterBonus: 0.13 }
-];
 
-const CROPS = [
-    crop('carrot', 1, 'CARROT', 'Carrots', 2312, ['Lymhurst', 'Brecilien']),
-    crop('bean', 2, 'BEAN', 'Beans', 3468, ['Bridgewatch', 'Brecilien']),
-    crop('wheat', 3, 'WHEAT', 'Sheaf of Wheat', 5780, ['Martlock', 'Brecilien']),
-    crop('turnip', 4, 'TURNIP', 'Turnips', 8670, ['Fort Sterling', 'Brecilien']),
-    crop('cabbage', 5, 'CABBAGE', 'Cabbage', 11560, ['Thetford', 'Brecilien']),
-    crop('potato', 6, 'POTATO', 'Potatoes', 17340, ['Martlock', 'Brecilien']),
-    crop('corn', 7, 'CORN', 'Bundle of Corn', 26010, ['Bridgewatch', 'Brecilien']),
-    crop('pumpkin', 8, 'PUMPKIN', 'Pumpkin', 34680, ['Lymhurst', 'Brecilien'])
-];
-
-const HERBS = [
-    herb('agaric', 2, 'AGARIC', 'Arcane Agaric', 3468, ['Thetford']),
-    herb('comfrey', 3, 'COMFREY', 'Brightleaf Comfrey', 5780, ['Caerleon']),
-    herb('burdock', 4, 'BURDOCK', 'Crenellated Burdock', 8670, ['Lymhurst']),
-    herb('teasel', 5, 'TEASEL', 'Dragon Teasel', 11560, ['Bridgewatch', 'Caerleon']),
-    herb('foxglove', 6, 'FOXGLOVE', 'Elusive Foxglove', 17340, ['Martlock']),
-    herb('mullein', 7, 'MULLEIN', 'Firetouched Mullein', 26010, ['Thetford', 'Caerleon']),
-    herb('yarrow', 8, 'YARROW', 'Ghoul Yarrow', 34680, ['Fort Sterling'])
-];
-
-function crop(key, tier, stem, label, vendor, bonusCities) {
-    const ladder = YIELD_LADDER[tier - 1];
-    return {
-        id: `crop-${key}`,
-        key,
-        kind: 'crop',
-        tier,
-        label,
-        vendor,
-        bonusCities,
-        seedId: `T${tier}_FARM_${stem}_SEED`,
-        plantId: `T${tier}_${stem}`,
-        seedReturn: ladder.seedReturn,
-        waterBonus: ladder.waterBonus
-    };
+function baseYield() {
+    return getEconomyConstant('base_yield', 4.5);
 }
 
-function herb(key, tier, stem, label, vendor, bonusCities) {
-    const ladder = YIELD_LADDER[tier - 1];
-    return {
-        id: `herb-${key}`,
-        key,
-        kind: 'herb',
-        tier,
-        label,
-        vendor,
-        bonusCities,
-        seedId: `T${tier}_FARM_${stem}_SEED`,
-        plantId: `T${tier}_${stem}`,
-        seedReturn: ladder.seedReturn,
-        waterBonus: ladder.waterBonus
-    };
+function premiumYield() {
+    return getEconomyConstant('premium_yield', 9);
 }
 
-const ALL_ITEMS = [...CROPS, ...HERBS];
+function cityYieldBonus() {
+    return getEconomyConstant('city_yield_bonus', 0.1);
+}
+
+function focusBase() {
+    return getEconomyConstant('focus_base', 1000);
+}
+
+function crops() {
+    return getPlants({ kind: 'crop' });
+}
+
+function herbs() {
+    return getPlants({ kind: 'herb' });
+}
+
+function allItems() {
+    return [...crops(), ...herbs()];
+}
 
 const state = {
     premium: true,
@@ -109,15 +67,26 @@ const state = {
     herbGeneral: 0,
     herbSpec: 0,
     priceIndex: null,
-    manualSeeds: Object.fromEntries(ALL_ITEMS.map((item) => [item.id, null])),
-    manualPlants: Object.fromEntries(ALL_ITEMS.map((item) => [item.id, null])),
+    manualSeeds: {},
+    manualPlants: {},
     error: null,
     loaded: false,
     sort: { key: 'unit', direction: 'asc' }
 };
 
+function ensureManualMaps() {
+    for (const item of allItems()) {
+        if (!(item.id in state.manualSeeds)) {
+            state.manualSeeds[item.id] = null;
+        }
+        if (!(item.id in state.manualPlants)) {
+            state.manualPlants[item.id] = null;
+        }
+    }
+}
+
 function currentItems() {
-    return state.kind === 'herb' ? HERBS : CROPS;
+    return state.kind === 'herb' ? herbs() : crops();
 }
 
 function generalSpec() {
@@ -137,7 +106,7 @@ function clampSpec(value) {
 }
 
 function focusCost() {
-    return FOCUS_BASE * (0.5 ** ((generalSpec() + 2 * itemSpec()) / 100));
+    return focusBase() * (0.5 ** ((generalSpec() + 2 * itemSpec()) / 100));
 }
 
 function hasCityBonus(item, city) {
@@ -145,8 +114,8 @@ function hasCityBonus(item, city) {
 }
 
 function harvestQty(item) {
-    const base = state.premium ? PREMIUM_YIELD : BASE_YIELD;
-    return hasCityBonus(item, state.city) ? base * (1 + CITY_YIELD_BONUS) : base;
+    const base = state.premium ? premiumYield() : baseYield();
+    return hasCityBonus(item, state.city) ? base * (1 + cityYieldBonus()) : base;
 }
 
 function seedReturnRate(item, watered) {
@@ -751,7 +720,7 @@ function bindPriceInputs(container) {
 
         input.addEventListener('change', () => {
             const id = kind === 'seed' ? input.dataset.seedPrice : input.dataset.plantPrice;
-            const item = ALL_ITEMS.find((row) => row.id === id);
+            const item = allItems().find((row) => String(row.id) === String(id));
             if (parsePrice(input.value) == null) {
                 if (kind === 'seed') {
                     state.manualSeeds[id] = null;
@@ -928,8 +897,8 @@ async function loadPrices(container, { showLoader = true, source } = {}) {
             throw new Error('Aktif şehir yok.');
         }
         const [seedRows, plantRows] = await Promise.all([
-            fetchPrices(ALL_ITEMS.map((item) => item.seedId), locations, { source }),
-            fetchPrices(ALL_ITEMS.map((item) => item.plantId), locations, { source })
+            fetchPrices(allItems().map((item) => item.seedId), locations, { source }),
+            fetchPrices(allItems().map((item) => item.plantId), locations, { source })
         ]);
         state.priceIndex = indexPrices([...seedRows, ...plantRows]);
         state.loaded = true;
@@ -966,12 +935,13 @@ async function init() {
     showPageLoader('Farming yükleniyor…');
     try {
         await initStore();
+        ensureManualMaps();
         state.cities = loadActiveCities();
         state.city = readSavedCity(state.cities);
         renderPage(container);
         await loadPrices(container, { showLoader: false });
         bindLivePrices(() => ({
-            items: ALL_ITEMS.flatMap((item) => [item.seedId, item.plantId]),
+            items: allItems().flatMap((item) => [item.seedId, item.plantId]),
             cities: [state.city],
             pause: state.livePaused
         }), () => loadPrices(container, { showLoader: false }));

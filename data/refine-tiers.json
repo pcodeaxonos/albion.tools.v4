@@ -1,0 +1,44 @@
+[
+  {
+    "id": 1,
+    "tier": 2,
+    "rawQty": 1,
+    "lowerQty": 0
+  },
+  {
+    "id": 2,
+    "tier": 3,
+    "rawQty": 2,
+    "lowerQty": 1
+  },
+  {
+    "id": 3,
+    "tier": 4,
+    "rawQty": 2,
+    "lowerQty": 1
+  },
+  {
+    "id": 4,
+    "tier": 5,
+    "rawQty": 3,
+    "lowerQty": 1
+  },
+  {
+    "id": 5,
+    "tier": 6,
+    "rawQty": 4,
+    "lowerQty": 1
+  },
+  {
+    "id": 6,
+    "tier": 7,
+    "rawQty": 5,
+    "lowerQty": 1
+  },
+  {
+    "id": 7,
+    "tier": 8,
+    "rawQty": 5,
+    "lowerQty": 1
+  }
+]

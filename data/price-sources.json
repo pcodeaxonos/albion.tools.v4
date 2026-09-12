@@ -1,0 +1,14 @@
+[
+  {
+    "id": 1,
+    "code": "api",
+    "label": "AODP API",
+    "sortValue": 10
+  },
+  {
+    "id": 2,
+    "code": "packets",
+    "label": "Oyundaki paketler",
+    "sortValue": 20
+  }
+]

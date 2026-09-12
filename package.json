@@ -7,6 +7,10 @@
         "css:build": "sass scss/main.scss css/site.css --no-source-map",
         "css:watch": "sass --watch scss/main.scss css/site.css --no-source-map",
         "data:fetch": "node scripts/fetch-game-data.mjs",
+    "data:farm": "node scripts/build-farm-catalog.mjs",
+    "data:craft": "node scripts/build-craft-catalog.mjs",
+    "data:app": "node scripts/build-app-catalog.mjs",
+    "data:build": "node scripts/build-farm-catalog.mjs && node scripts/build-craft-catalog.mjs && node scripts/build-app-catalog.mjs",
         "prices": "node scripts/price-hub.mjs",
         "serve": "npx --yes serve . -p 3000 --no-port-switching"
     },

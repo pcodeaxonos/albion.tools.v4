@@ -38,88 +38,35 @@ import {
     explainEmptyHtml,
     explainHint
 } from './calc-explain.js';
+import { getFactions, getCraftRecipes, cityProductionBonus, getEconomyConstant } from './catalog.js';
 
-const CITY_PRODUCTION = 18;
 const FAMILY_KEY = 'category/capes';
 const CITY_STORAGE_KEY = 'albiontools.v4.faction.city';
 const TIERS = [4, 5, 6, 7, 8];
-const CREST_POINTS = { 4: 400, 5: 2250, 6: 3000, 7: 7500, 8: 15000 };
-const HEART_POINTS = 3000;
-const BABY_POINTS = 3000;
-const ELITE_POINTS = 50000;
 
-const FACTIONS = [
-    {
-        city: 'Bridgewatch',
-        stem: 'BRIDGEWATCH',
-        heartId: 'T1_FACTION_STEPPE_TOKEN_1',
-        heartLabel: 'Beastheart',
-        babyId: 'T5_FARM_MOABIRD_FW_BRIDGEWATCH_BABY',
-        babyLabel: 'Baby Moabird',
-        eliteId: 'T8_FARM_MOABIRD_FW_BRIDGEWATCH_BABY',
-        eliteLabel: 'Baby Elite Terrorbird'
-    },
-    {
-        city: 'Fort Sterling',
-        stem: 'FORTSTERLING',
-        heartId: 'T1_FACTION_HIGHLAND_TOKEN_1',
-        heartLabel: 'Rockheart',
-        babyId: 'T5_FARM_DIREBEAR_FW_FORTSTERLING_BABY',
-        babyLabel: 'Winter Bear Cub',
-        eliteId: 'T8_FARM_DIREBEAR_FW_FORTSTERLING_BABY',
-        eliteLabel: 'Elite Winter Bear Cub'
-    },
-    {
-        city: 'Lymhurst',
-        stem: 'LYMHURST',
-        heartId: 'T1_FACTION_FOREST_TOKEN_1',
-        heartLabel: 'Treeheart',
-        babyId: 'T5_FARM_DIREBOAR_FW_LYMHURST_BABY',
-        babyLabel: 'Wild Boarlet',
-        eliteId: 'T8_FARM_DIREBOAR_FW_LYMHURST_BABY',
-        eliteLabel: 'Elite Wild Boarlet'
-    },
-    {
-        city: 'Martlock',
-        stem: 'MARTLOCK',
-        heartId: 'T1_FACTION_MOUNTAIN_TOKEN_1',
-        heartLabel: 'Mountainheart',
-        babyId: 'T5_FARM_RAM_FW_MARTLOCK_BABY',
-        babyLabel: 'Bighorn Ram Lamb',
-        eliteId: 'T8_FARM_RAM_FW_MARTLOCK_BABY',
-        eliteLabel: 'Elite Bighorn Ram Lamb'
-    },
-    {
-        city: 'Thetford',
-        stem: 'THETFORD',
-        heartId: 'T1_FACTION_SWAMP_TOKEN_1',
-        heartLabel: 'Vineheart',
-        babyId: 'T5_FARM_SWAMPDRAGON_FW_THETFORD_BABY',
-        babyLabel: 'Baby Swamp Salamander',
-        eliteId: 'T8_FARM_SWAMPDRAGON_FW_THETFORD_BABY',
-        eliteLabel: 'Baby Elite Swamp Salamander'
-    },
-    {
-        city: 'Caerleon',
-        stem: 'CAERLEON',
-        heartId: 'T1_FACTION_CAERLEON_TOKEN_1',
-        heartLabel: 'Shadowheart',
-        babyId: 'T5_FARM_GREYWOLF_FW_CAERLEON_BABY',
-        babyLabel: 'Caerleon Greywolf Pup',
-        eliteId: 'T8_FARM_GREYWOLF_FW_CAERLEON_BABY',
-        eliteLabel: 'Elite Greywolf Pup'
-    },
-    {
-        city: 'Brecilien',
-        stem: 'BRECILIEN',
-        heartId: null,
-        heartLabel: null,
-        babyId: 'T5_FARM_OWL_FW_BRECILIEN_BABY',
-        babyLabel: 'Mystic Owlet',
-        eliteId: 'T8_FARM_OWL_FW_BRECILIEN_BABY',
-        eliteLabel: 'Elite Mystic Owlet'
-    }
-];
+function cityProduction() {
+    return cityProductionBonus();
+}
+
+function crestPoints(tier) {
+    return getEconomyConstant(`faction_crest_points_t${tier}`, 0);
+}
+
+function heartPoints() {
+    return getEconomyConstant('faction_heart_points', 3000);
+}
+
+function babyPoints() {
+    return getEconomyConstant('faction_baby_points', 3000);
+}
+
+function elitePoints() {
+    return getEconomyConstant('faction_elite_points', 50000);
+}
+
+function factions() {
+    return getFactions();
+}
 
 function capeId(tier) {
     return `T${tier}_CAPE`;
@@ -135,7 +82,7 @@ function factionCapeId(stem, tier) {
 
 function allUniqueNames() {
     const names = TIERS.map(capeId);
-    for (const faction of FACTIONS) {
+    for (const faction of factions()) {
         for (const tier of TIERS) {
             names.push(crestId(faction.stem, tier), factionCapeId(faction.stem, tier));
         }
@@ -144,7 +91,14 @@ function allUniqueNames() {
         }
         names.push(faction.babyId, faction.eliteId);
     }
-    return [...new Set(names)];
+    // also include craft recipe outputs
+    for (const recipe of getCraftRecipes({ tool: 'faction' })) {
+        names.push(recipe.uniqueName);
+        for (const line of recipe.lines) {
+            names.push(line.uniqueName);
+        }
+    }
+    return [...new Set(names.filter(Boolean))];
 }
 
 const state = {
@@ -163,7 +117,7 @@ const state = {
 };
 
 function currentFaction() {
-    return FACTIONS.find((faction) => faction.city === state.city) ?? FACTIONS[0];
+    return factions().find((faction) => faction.city === state.city) ?? factions()[0];
 }
 
 function vendorItems() {
@@ -172,7 +126,7 @@ function vendorItems() {
         id: `crest-${tier}`,
         uniqueName: crestId(faction.stem, tier),
         label: `T${tier} Crest`,
-        points: CREST_POINTS[tier],
+        points: crestPoints(tier),
         kind: 'crest'
     }));
 
@@ -181,7 +135,7 @@ function vendorItems() {
             id: 'heart',
             uniqueName: faction.heartId,
             label: faction.heartLabel,
-            points: HEART_POINTS,
+            points: heartPoints(),
             kind: 'heart'
         });
     }
@@ -191,14 +145,14 @@ function vendorItems() {
             id: 'baby',
             uniqueName: faction.babyId,
             label: faction.babyLabel,
-            points: BABY_POINTS,
+            points: babyPoints(),
             kind: 'baby'
         },
         {
             id: 'elite',
             uniqueName: faction.eliteId,
             label: faction.eliteLabel,
-            points: ELITE_POINTS,
+            points: elitePoints(),
             kind: 'elite'
         }
     );
@@ -214,7 +168,7 @@ function capeItems() {
         capeMat: capeId(tier),
         crest: crestId(faction.stem, tier),
         label: `T${tier} Cape`,
-        points: CREST_POINTS[tier]
+        points: crestPoints(tier)
     }));
 }
 
@@ -278,7 +232,7 @@ function saveCity(apiName) {
 }
 
 function productionBonus() {
-    return CITY_PRODUCTION + state.bonusRate;
+    return cityProduction() + state.bonusRate;
 }
 
 function returnRate() {
@@ -585,7 +539,7 @@ function renderCapeExplain(key, { hovered } = {}) {
     const outIcon = explainIcon(row.item.uniqueName);
     const chips = [{
         label: 'şehir',
-        value: CITY_PRODUCTION,
+        value: cityProduction(),
         tone: 'city',
         title: 'Üretim şehri taban bonusu'
     }];

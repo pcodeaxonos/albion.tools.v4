@@ -1,0 +1,127 @@
+[
+  {
+    "id": 1,
+    "plantId": 1,
+    "cityId": 3
+  },
+  {
+    "id": 2,
+    "plantId": 1,
+    "cityId": 7
+  },
+  {
+    "id": 3,
+    "plantId": 2,
+    "cityId": 1
+  },
+  {
+    "id": 4,
+    "plantId": 2,
+    "cityId": 7
+  },
+  {
+    "id": 5,
+    "plantId": 3,
+    "cityId": 4
+  },
+  {
+    "id": 6,
+    "plantId": 3,
+    "cityId": 7
+  },
+  {
+    "id": 7,
+    "plantId": 4,
+    "cityId": 2
+  },
+  {
+    "id": 8,
+    "plantId": 4,
+    "cityId": 7
+  },
+  {
+    "id": 9,
+    "plantId": 5,
+    "cityId": 5
+  },
+  {
+    "id": 10,
+    "plantId": 5,
+    "cityId": 7
+  },
+  {
+    "id": 11,
+    "plantId": 6,
+    "cityId": 4
+  },
+  {
+    "id": 12,
+    "plantId": 6,
+    "cityId": 7
+  },
+  {
+    "id": 13,
+    "plantId": 7,
+    "cityId": 1
+  },
+  {
+    "id": 14,
+    "plantId": 7,
+    "cityId": 7
+  },
+  {
+    "id": 15,
+    "plantId": 8,
+    "cityId": 3
+  },
+  {
+    "id": 16,
+    "plantId": 8,
+    "cityId": 7
+  },
+  {
+    "id": 17,
+    "plantId": 9,
+    "cityId": 5
+  },
+  {
+    "id": 18,
+    "plantId": 10,
+    "cityId": 6
+  },
+  {
+    "id": 19,
+    "plantId": 11,
+    "cityId": 3
+  },
+  {
+    "id": 20,
+    "plantId": 12,
+    "cityId": 1
+  },
+  {
+    "id": 21,
+    "plantId": 12,
+    "cityId": 6
+  },
+  {
+    "id": 22,
+    "plantId": 13,
+    "cityId": 4
+  },
+  {
+    "id": 23,
+    "plantId": 14,
+    "cityId": 5
+  },
+  {
+    "id": 24,
+    "plantId": 14,
+    "cityId": 6
+  },
+  {
+    "id": 25,
+    "plantId": 15,
+    "cityId": 2
+  }
+]

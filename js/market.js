@@ -1,4 +1,4 @@
-import { getPriceHost, getSettings, getServer, LOCAL_PRICE_HOST } from './settings.js';
+import { getPriceHost, getSettings, getServer, localPriceHost } from './settings.js';
 import { isStalePriceDate } from './price-side.js';
 
 function hostForSource(source) {
@@ -6,7 +6,7 @@ function hostForSource(source) {
         return getServer().host;
     }
     if (source === 'packets') {
-        return LOCAL_PRICE_HOST;
+        return localPriceHost();
     }
     return getPriceHost();
 }

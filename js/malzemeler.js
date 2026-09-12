@@ -20,21 +20,14 @@ import { SETUP_FEE, purchaseCost, saleProceeds, salesTaxRate, placesOrder, feeMe
 import { bindCalcSticky } from './calc-sticky.js';
 import { loadActiveCities } from './cities.js';
 import { bindLivePrices } from './price-live.js';
+import { getMaterialGroups } from './catalog.js';
 
 const PREFS_STORAGE_KEY = 'albiontools.v4.malzemeler.prefs';
 const DEFAULT_CITY = 'Martlock';
 
-const GROUPS = [
-    { id: 'plank', label: 'Plank', family: 'Malzeme', stem: 'PLANKS', hasEnchant: true, tiers: [2, 3, 4, 5, 6, 7, 8] },
-    { id: 'block', label: 'Block', family: 'Malzeme', stem: 'STONEBLOCK', hasEnchant: true, tiers: [2, 3, 4, 5, 6, 7, 8] },
-    { id: 'bar', label: 'Bar', family: 'Malzeme', stem: 'METALBAR', hasEnchant: true, tiers: [2, 3, 4, 5, 6, 7, 8] },
-    { id: 'leather', label: 'Leather', family: 'Malzeme', stem: 'LEATHER', hasEnchant: true, tiers: [2, 3, 4, 5, 6, 7, 8] },
-    { id: 'cloth', label: 'Cloth', family: 'Malzeme', stem: 'CLOTH', hasEnchant: true, tiers: [2, 3, 4, 5, 6, 7, 8] },
-    { id: 'horse', label: 'Horse', family: 'Binek', stem: 'MOUNT_HORSE', hasEnchant: false, tiers: [3, 4, 5, 6, 7, 8] },
-    { id: 'ox', label: 'Ox', family: 'Binek', stem: 'MOUNT_OX', hasEnchant: false, tiers: [3, 4, 5, 6, 7, 8] },
-    { id: 'armored', label: 'Armored horse', family: 'Binek', stem: 'MOUNT_ARMORED_HORSE', hasEnchant: false, tiers: [5, 6, 7, 8] },
-    { id: 'mule', label: 'Mule', family: 'Binek', stem: 'MOUNT_MULE', hasEnchant: false, tiers: [2] }
-];
+function groups() {
+    return getMaterialGroups();
+}
 
 const state = {
     premium: true,
@@ -55,7 +48,7 @@ const state = {
 };
 
 function currentGroup() {
-    return GROUPS.find((group) => group.id === state.group) ?? GROUPS[0];
+    return groups().find((group) => group.id === state.group) ?? groups()[0];
 }
 
 function resourceId(stem, tier, enchant) {
@@ -197,7 +190,7 @@ function readPrefs(cities) {
             return false;
         }
         const parsed = JSON.parse(raw);
-        if (GROUPS.some((group) => group.id === parsed.group)) {
+        if (groups().some((group) => group.id === parsed.group)) {
             state.group = parsed.group;
         }
         const enchant = Number(parsed.enchant);
@@ -317,7 +310,7 @@ function renderToggleGroup(options, selected, attr) {
 
 function renderGroupOptions(selected) {
     const families = [];
-    for (const group of GROUPS) {
+    for (const group of groups()) {
         let family = families.find((item) => item.label === group.family);
         if (!family) {
             family = { label: group.family, groups: [] };
@@ -739,7 +732,7 @@ function bindCitySelect(container, id, assign) {
 
 function bindPage(container) {
     container.querySelector('#malzemelerGroup')?.addEventListener('change', (event) => {
-        const next = GROUPS.find((group) => group.id === event.target.value);
+        const next = groups().find((group) => group.id === event.target.value);
         if (!next || next.id === state.group) {
             return;
         }

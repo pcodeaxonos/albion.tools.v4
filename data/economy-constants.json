@@ -1,0 +1,182 @@
+[
+  {
+    "id": 1,
+    "key": "base_yield",
+    "value": "4.5",
+    "label": "Base harvest yield (no premium)"
+  },
+  {
+    "id": 2,
+    "key": "premium_yield",
+    "value": "9",
+    "label": "Premium harvest yield"
+  },
+  {
+    "id": 3,
+    "key": "city_yield_bonus",
+    "value": "0.1",
+    "label": "City specialty yield bonus ratio"
+  },
+  {
+    "id": 4,
+    "key": "focus_base",
+    "value": "1000",
+    "label": "Farming focus base cost"
+  },
+  {
+    "id": 5,
+    "key": "meat_qty",
+    "value": "18",
+    "label": "Meat yield per animal"
+  },
+  {
+    "id": 6,
+    "key": "product_qty",
+    "value": "18",
+    "label": "Egg/milk yield per animal"
+  },
+  {
+    "id": 7,
+    "key": "crop_hours",
+    "value": "22",
+    "label": "Crop cycle hours (Albion day)"
+  },
+  {
+    "id": 8,
+    "key": "livestock_hours",
+    "value": "44",
+    "label": "Livestock cycle hours"
+  },
+  {
+    "id": 9,
+    "key": "plant_slots",
+    "value": "9",
+    "label": "Plant slots per farm plot"
+  },
+  {
+    "id": 10,
+    "key": "pasture_pens",
+    "value": "9",
+    "label": "Pens per pasture"
+  },
+  {
+    "id": 11,
+    "key": "kennel_pens",
+    "value": "4",
+    "label": "Pens per kennel"
+  },
+  {
+    "id": 12,
+    "key": "albion_day_hours",
+    "value": "22",
+    "label": "Albion day length (hours)"
+  },
+  {
+    "id": 13,
+    "key": "plan_day_hours",
+    "value": "24",
+    "label": "Planner day length (hours)"
+  },
+  {
+    "id": 14,
+    "key": "city_production",
+    "value": "18",
+    "label": "City craft production bonus %"
+  },
+  {
+    "id": 15,
+    "key": "city_resource",
+    "value": "40",
+    "label": "City resource refine bonus %"
+  },
+  {
+    "id": 16,
+    "key": "focus_production",
+    "value": "59",
+    "label": "Focus refine production bonus %"
+  },
+  {
+    "id": 17,
+    "key": "setup_fee",
+    "value": "0.025",
+    "label": "Market setup fee ratio"
+  },
+  {
+    "id": 18,
+    "key": "tax_premium",
+    "value": "0.04",
+    "label": "Sales tax with premium"
+  },
+  {
+    "id": 19,
+    "key": "tax_free",
+    "value": "0.08",
+    "label": "Sales tax without premium"
+  },
+  {
+    "id": 20,
+    "key": "faction_heart_points",
+    "value": "3000",
+    "label": "Faction heart vendor points"
+  },
+  {
+    "id": 21,
+    "key": "faction_baby_points",
+    "value": "3000",
+    "label": "Faction baby vendor points"
+  },
+  {
+    "id": 22,
+    "key": "faction_elite_points",
+    "value": "50000",
+    "label": "Faction elite vendor points"
+  },
+  {
+    "id": 23,
+    "key": "faction_crest_points_t4",
+    "value": "400",
+    "label": "Faction crest points T4"
+  },
+  {
+    "id": 24,
+    "key": "faction_crest_points_t5",
+    "value": "2250",
+    "label": "Faction crest points T5"
+  },
+  {
+    "id": 25,
+    "key": "faction_crest_points_t6",
+    "value": "3000",
+    "label": "Faction crest points T6"
+  },
+  {
+    "id": 26,
+    "key": "faction_crest_points_t7",
+    "value": "7500",
+    "label": "Faction crest points T7"
+  },
+  {
+    "id": 27,
+    "key": "faction_crest_points_t8",
+    "value": "15000",
+    "label": "Faction crest points T8"
+  },
+  {
+    "id": 28,
+    "key": "local_price_host",
+    "value": "http://127.0.0.1:3001",
+    "label": "Local price hub URL"
+  },
+  {
+    "id": 29,
+    "key": "enchant_powers",
+    "value": "5,6,7,8,9,10,11",
+    "label": "Enchant power options"
+  },
+  {
+    "id": 30,
+    "key": "new_tool_live_count",
+    "value": "2",
+    "label": "How many newest tools show NEW badge"
+  }
+]

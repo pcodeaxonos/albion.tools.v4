@@ -1,0 +1,100 @@
+[
+  {
+    "id": 1,
+    "buildingId": 1,
+    "tier": 2,
+    "wood": 30,
+    "stone": 3
+  },
+  {
+    "id": 2,
+    "buildingId": 1,
+    "tier": 3,
+    "wood": 60,
+    "stone": 6
+  },
+  {
+    "id": 3,
+    "buildingId": 1,
+    "tier": 4,
+    "wood": 120,
+    "stone": 12
+  },
+  {
+    "id": 4,
+    "buildingId": 1,
+    "tier": 5,
+    "wood": 240,
+    "stone": 24
+  },
+  {
+    "id": 5,
+    "buildingId": 1,
+    "tier": 6,
+    "wood": 480,
+    "stone": 48
+  },
+  {
+    "id": 6,
+    "buildingId": 1,
+    "tier": 7,
+    "wood": 960,
+    "stone": 96
+  },
+  {
+    "id": 7,
+    "buildingId": 1,
+    "tier": 8,
+    "wood": 1920,
+    "stone": 192
+  },
+  {
+    "id": 8,
+    "buildingId": 2,
+    "tier": 2,
+    "wood": 150,
+    "stone": 15
+  },
+  {
+    "id": 9,
+    "buildingId": 2,
+    "tier": 3,
+    "wood": 300,
+    "stone": 30
+  },
+  {
+    "id": 10,
+    "buildingId": 2,
+    "tier": 4,
+    "wood": 600,
+    "stone": 60
+  },
+  {
+    "id": 11,
+    "buildingId": 2,
+    "tier": 5,
+    "wood": 1200,
+    "stone": 120
+  },
+  {
+    "id": 12,
+    "buildingId": 2,
+    "tier": 6,
+    "wood": 2400,
+    "stone": 240
+  },
+  {
+    "id": 13,
+    "buildingId": 2,
+    "tier": 7,
+    "wood": 4800,
+    "stone": 480
+  },
+  {
+    "id": 14,
+    "buildingId": 2,
+    "tier": 8,
+    "wood": 9600,
+    "stone": 960
+  }
+]

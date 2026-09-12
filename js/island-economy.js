@@ -1,261 +1,187 @@
 /**
  * Island plot planner: crop / herb / pasture / kennel economics + opportunity-cost feed search.
- * Livestock feed qty uses wiki (18). Mount feed/hours from community breeding tables.
+ * Catalog: plants / animals / economyConstants / islandPlots (relational DB).
  */
 
 import { purchaseCost, saleProceeds } from './market-fees.js';
 import { quoteFromRow } from './price-side.js';
 import { cityRow } from './market.js';
+import {
+    getPlants,
+    getAnimals,
+    getEconomyConstant,
+    getIslandPlotsByLevel
+} from './catalog.js';
 
-export const ISLAND_PLOTS_BY_LEVEL = {
-    1: 1,
-    2: 3,
-    3: 6,
-    4: 9,
-    5: 12,
-    6: 16
-};
+export function islandPlotsByLevel() {
+    return getIslandPlotsByLevel();
+}
 
+/** @deprecated use islandPlotsByLevel() — kept as live object for planners */
+export const ISLAND_PLOTS_BY_LEVEL = new Proxy({}, {
+    get(_target, prop) {
+        if (prop === Symbol.toStringTag) {
+            return 'Object';
+        }
+        if (prop === 'then') {
+            return undefined;
+        }
+        const map = getIslandPlotsByLevel();
+        if (prop === Symbol.iterator) {
+            return undefined;
+        }
+        if (typeof prop === 'string' && prop in Object.prototype) {
+            return undefined;
+        }
+        return map[prop];
+    },
+    ownKeys() {
+        return Object.keys(getIslandPlotsByLevel());
+    },
+    getOwnPropertyDescriptor(_target, prop) {
+        const map = getIslandPlotsByLevel();
+        if (Object.prototype.hasOwnProperty.call(map, prop)) {
+            return { configurable: true, enumerable: true, value: map[prop] };
+        }
+        return undefined;
+    }
+});
+
+export function plantSlots() {
+    return getEconomyConstant('plant_slots', 9);
+}
+
+export function pasturePens() {
+    return getEconomyConstant('pasture_pens', 9);
+}
+
+export function kennelPens() {
+    return getEconomyConstant('kennel_pens', 4);
+}
+
+export function cropHours() {
+    return getEconomyConstant('crop_hours', 22);
+}
+
+export function livestockHours() {
+    return getEconomyConstant('livestock_hours', 44);
+}
+
+export function livestockFeed() {
+    return getAnimals({ kind: 'livestock' })[0]?.feedQtyIsland ?? 18;
+}
+
+export function meatQtyConst() {
+    return getEconomyConstant('meat_qty', 18);
+}
+
+export function productQtyConst() {
+    return getEconomyConstant('product_qty', 18);
+}
+
+export function albionDayHours() {
+    return getEconomyConstant('albion_day_hours', 22);
+}
+
+export function planDayHours() {
+    return getEconomyConstant('plan_day_hours', 24);
+}
+
+/** Compat exports used by island-planner UI text */
 export const PLANT_SLOTS = 9;
 export const PASTURE_PENS = 9;
 export const KENNEL_PENS = 4;
-/** In-game crop cycle (Albion “day”). */
 export const CROP_HOURS = 22;
-/** Livestock base cycle = 2 Albion days. */
 export const LIVESTOCK_HOURS = 44;
 export const LIVESTOCK_FEED = 18;
 export const MEAT_QTY = 18;
 export const PRODUCT_QTY = 18;
-/** Game day length; +2h slack keeps a clean 24h real-day loop. */
 export const ALBION_DAY_HOURS = 22;
 export const PLAN_DAY_HOURS = 24;
 
 /**
  * Convert in-game cycle hours to planning hours (22h → 24h = 1 gün).
- * Fractional days are rounded up: &lt;24 → 1 gün, &lt;48 → 2 gün, …
  */
 export function planCycleHours(albionHours) {
     if (!Number.isFinite(albionHours) || albionHours <= 0) {
         return null;
     }
-    const raw = (albionHours / ALBION_DAY_HOURS) * PLAN_DAY_HOURS;
-    const days = Math.max(1, Math.ceil(raw / PLAN_DAY_HOURS - 1e-9));
-    return days * PLAN_DAY_HOURS;
+    const dayAlbion = albionDayHours();
+    const dayPlan = planDayHours();
+    const raw = (albionHours / dayAlbion) * dayPlan;
+    const days = Math.max(1, Math.ceil(raw / dayPlan - 1e-9));
+    return days * dayPlan;
 }
 
-const BASE_YIELD = 4.5;
-const PREMIUM_YIELD = 9;
-const CITY_YIELD_BONUS = 0.1;
-
-const YIELD_LADDER = [
-    { seedReturn: 0, waterBonus: 2 },
-    { seedReturn: 0.3333, waterBonus: 1.33 },
-    { seedReturn: 0.6, waterBonus: 0.8 },
-    { seedReturn: 0.7333, waterBonus: 0.53 },
-    { seedReturn: 0.8, waterBonus: 0.4 },
-    { seedReturn: 0.8667, waterBonus: 0.27 },
-    { seedReturn: 0.9111, waterBonus: 0.18 },
-    { seedReturn: 0.9333, waterBonus: 0.13 }
-];
-
-/** Non-premium grow hours for riding animals by tier. */
-const MOUNT_HOURS = {
-    3: 44,
-    4: 92,
-    5: 140,
-    6: 188,
-    7: 236,
-    8: 284
-};
-
-/** Total plant/meat units per riding animal cycle. */
-const MOUNT_FEED = {
-    3: 10,
-    4: 20,
-    5: 90,
-    6: 270,
-    7: 810,
-    8: 2430
-};
-
-const FEED_CROPS = {
-    wheat: { stem: 'WHEAT', label: 'Sheaf of Wheat', bonusCities: ['Martlock', 'Brecilien'] },
-    turnip: { stem: 'TURNIP', label: 'Turnips', bonusCities: ['Fort Sterling', 'Brecilien'] },
-    cabbage: { stem: 'CABBAGE', label: 'Cabbage', bonusCities: ['Thetford', 'Brecilien'] },
-    potato: { stem: 'POTATO', label: 'Potatoes', bonusCities: ['Martlock', 'Brecilien'] },
-    corn: { stem: 'CORN', label: 'Bundle of Corn', bonusCities: ['Bridgewatch', 'Brecilien'] },
-    pumpkin: { stem: 'PUMPKIN', label: 'Pumpkin', bonusCities: ['Lymhurst', 'Brecilien'] }
-};
-
-function ladder(tier) {
-    return YIELD_LADDER[Math.min(YIELD_LADDER.length, Math.max(1, tier)) - 1];
+function baseYield() {
+    return getEconomyConstant('base_yield', 4.5);
 }
 
-function crop(key, tier, stem, label, vendor, bonusCities) {
-    const y = ladder(tier);
+function premiumYield() {
+    return getEconomyConstant('premium_yield', 9);
+}
+
+function cityYieldBonus() {
+    return getEconomyConstant('city_yield_bonus', 0.1);
+}
+
+function islandAnimal(row) {
     return {
-        id: `crop-${key}`,
-        key,
-        kind: 'crop',
-        plotType: 'farm',
-        tier,
-        label,
-        vendor,
-        bonusCities,
-        seedId: `T${tier}_FARM_${stem}_SEED`,
-        plantId: `T${tier}_${stem}`,
-        seedReturn: y.seedReturn,
-        waterBonus: y.waterBonus
+        ...row,
+        feedQty: row.feedQtyIsland
     };
 }
 
-function herb(key, tier, stem, label, vendor, bonusCities) {
-    const y = ladder(tier);
-    return {
-        id: `herb-${key}`,
-        key,
-        kind: 'herb',
-        plotType: 'herb',
-        tier,
-        label,
-        vendor,
-        bonusCities,
-        seedId: `T${tier}_FARM_${stem}_SEED`,
-        plantId: `T${tier}_${stem}`,
-        seedReturn: y.seedReturn,
-        waterBonus: y.waterBonus
-    };
+export function listCrops() {
+    return getPlants({ kind: 'crop' });
 }
 
-function livestock(key, tier, stem, label, vendor, feedKey, productStem, bonusCities) {
-    const y = ladder(tier);
-    const feed = FEED_CROPS[feedKey];
-    return {
-        id: `livestock-${key}`,
-        key,
-        kind: 'livestock',
-        plotType: 'pasture',
-        pens: PASTURE_PENS,
-        tier,
-        label,
-        vendor,
-        baseHours: LIVESTOCK_HOURS,
-        feedQty: LIVESTOCK_FEED,
-        feedDiet: 'plants',
-        feedKey,
-        feedFixed: true,
-        seedReturn: y.seedReturn,
-        waterBonus: y.waterBonus,
-        babyId: `T${tier}_FARM_${stem}_BABY`,
-        grownId: `T${tier}_FARM_${stem}_GROWN`,
-        meatId: `T${tier}_MEAT`,
-        productId: productStem ? `T${tier}_${productStem}` : null,
-        feedSeedId: `T${tier}_FARM_${feed.stem}_SEED`,
-        feedPlantId: `T${tier}_${feed.stem}`,
-        feedLabel: feed.label,
-        feedBonusCities: feed.bonusCities,
-        /** Local production bonus: +10% butcher / milk-egg yield on this island city. */
-        bonusCities: bonusCities ?? []
-    };
+export function listHerbs() {
+    return getPlants({ kind: 'herb' });
 }
 
-function mount(key, tier, stem, label, plotType, feedDiet, vendor, seedReturn, waterBonus) {
-    return {
-        id: `mount-${key}-t${tier}`,
-        key: `${key}-t${tier}`,
-        kind: 'mount',
-        plotType,
-        pens: plotType === 'kennel' ? KENNEL_PENS : PASTURE_PENS,
-        tier,
-        label: `${label} T${tier}`,
-        vendor: vendor ?? null,
-        baseHours: MOUNT_HOURS[tier],
-        feedQty: MOUNT_FEED[tier],
-        feedDiet,
-        feedFixed: false,
-        seedReturn,
-        waterBonus,
-        babyId: `T${tier}_FARM_${stem}_BABY`,
-        grownId: `T${tier}_FARM_${stem}_GROWN`,
-        meatId: null,
-        productId: null,
-        feedSeedId: null,
-        feedPlantId: null,
-        feedLabel: feedDiet === 'meat' ? 'Meat' : 'Plants',
-        feedBonusCities: [],
-        bonusCities: []
-    };
+export function listLivestock() {
+    return getAnimals({ kind: 'livestock' }).map(islandAnimal);
 }
 
-export const CROPS = [
-    crop('carrot', 1, 'CARROT', 'Carrots', 2312, ['Lymhurst', 'Brecilien']),
-    crop('bean', 2, 'BEAN', 'Beans', 3468, ['Bridgewatch', 'Brecilien']),
-    crop('wheat', 3, 'WHEAT', 'Sheaf of Wheat', 5780, ['Martlock', 'Brecilien']),
-    crop('turnip', 4, 'TURNIP', 'Turnips', 8670, ['Fort Sterling', 'Brecilien']),
-    crop('cabbage', 5, 'CABBAGE', 'Cabbage', 11560, ['Thetford', 'Brecilien']),
-    crop('potato', 6, 'POTATO', 'Potatoes', 17340, ['Martlock', 'Brecilien']),
-    crop('corn', 7, 'CORN', 'Bundle of Corn', 26010, ['Bridgewatch', 'Brecilien']),
-    crop('pumpkin', 8, 'PUMPKIN', 'Pumpkin', 34680, ['Lymhurst', 'Brecilien'])
-];
+export function listPastureMounts() {
+    return getAnimals({ kind: 'mount', plotType: 'pasture' }).map(islandAnimal);
+}
 
-export const HERBS = [
-    herb('agaric', 2, 'AGARIC', 'Arcane Agaric', 3468, ['Thetford']),
-    herb('comfrey', 3, 'COMFREY', 'Brightleaf Comfrey', 5780, ['Caerleon']),
-    herb('burdock', 4, 'BURDOCK', 'Crenellated Burdock', 8670, ['Lymhurst']),
-    herb('teasel', 5, 'TEASEL', 'Dragon Teasel', 11560, ['Bridgewatch', 'Caerleon']),
-    herb('foxglove', 6, 'FOXGLOVE', 'Elusive Foxglove', 17340, ['Martlock']),
-    herb('mullein', 7, 'MULLEIN', 'Firetouched Mullein', 26010, ['Thetford', 'Caerleon']),
-    herb('yarrow', 8, 'YARROW', 'Ghoul Yarrow', 34680, ['Fort Sterling'])
-];
+export function listKennelMounts() {
+    return getAnimals({ kind: 'mount', plotType: 'kennel' }).map(islandAnimal);
+}
 
-export const LIVESTOCK = [
-    livestock('chicken', 3, 'CHICKEN', 'Chicken', 5780, 'wheat', 'EGG', ['Fort Sterling']),
-    livestock('goat', 4, 'GOAT', 'Goat', 8670, 'turnip', 'MILK', ['Bridgewatch']),
-    livestock('goose', 5, 'GOOSE', 'Goose', 11560, 'cabbage', 'EGG', ['Lymhurst']),
-    livestock('sheep', 6, 'SHEEP', 'Sheep', 17340, 'potato', 'MILK', ['Fort Sterling']),
-    livestock('pig', 7, 'PIG', 'Pig', 26010, 'corn', null, ['Thetford']),
-    livestock('cow', 8, 'COW', 'Cow', 34680, 'pumpkin', 'MILK', ['Martlock'])
-];
+export function listAllAnimals() {
+    return getAnimals().map(islandAnimal);
+}
 
-const HORSE_YIELD = [
-    { t: 3, sr: 0.84, wb: 0.2 },
-    { t: 4, sr: 0.7867, wb: 0.1333 },
-    { t: 5, sr: 0.7867, wb: 0.0889 },
-    { t: 6, sr: 0.814, wb: 0.0593 },
-    { t: 7, sr: 0.842, wb: 0.0395 },
-    { t: 8, sr: 0.8736, wb: 0.0263 }
-];
+export function listAllPlants() {
+    return getPlants();
+}
 
-export const PASTURE_MOUNTS = HORSE_YIELD.flatMap(({ t, sr, wb }) => [
-    mount('horse', t, 'HORSE', 'Horse', 'pasture', 'plants', null, sr, wb),
-    mount('ox', t, 'OX', 'Ox', 'pasture', 'plants', null, sr, wb)
-]);
-
-/** Common kennel mounts (meat diet). Island feed self-sufficiency skipped for meat. */
-export const KENNEL_MOUNTS = [
-    mount('swiftclaw', 5, 'COUGAR', 'Swiftclaw', 'kennel', 'meat', null, 0, 0.1),
-    mount('direwolf', 6, 'DIREWOLF', 'Direwolf', 'kennel', 'meat', null, 0, 0.08),
-    mount('direboar', 7, 'DIREBOAR', 'Direboar', 'kennel', 'meat', null, 0, 0.06),
-    mount('direbear', 8, 'DIREBEAR', 'Direbear', 'kennel', 'meat', null, 0, 0.05),
-    mount('swampdragon', 7, 'SWAMPDRAGON', 'Swamp Dragon', 'kennel', 'meat', null, 0, 0.06),
-    mount('mammoth', 8, 'MAMMOTH', 'Mammoth', 'kennel', 'meat', null, 0, 0.05)
-];
-
-export const ALL_ANIMALS = [...LIVESTOCK, ...PASTURE_MOUNTS, ...KENNEL_MOUNTS];
-export const ALL_PLANTS = [...CROPS, ...HERBS];
+/** Compat aliases — always live arrays from DB */
+export const CROPS = listCrops;
+export const HERBS = listHerbs;
+export const LIVESTOCK = listLivestock;
+export const PASTURE_MOUNTS = listPastureMounts;
+export const KENNEL_MOUNTS = listKennelMounts;
+export const ALL_ANIMALS = listAllAnimals;
+export const ALL_PLANTS = listAllPlants;
 
 export function plotsForLevel(level) {
-    const n = ISLAND_PLOTS_BY_LEVEL[level];
-    return Number.isFinite(n) ? n : ISLAND_PLOTS_BY_LEVEL[6];
+    const map = islandPlotsByLevel();
+    const n = map[level];
+    return Number.isFinite(n) ? n : map[6];
 }
 
 export function allPriceItemIds() {
     const ids = new Set();
-    for (const item of ALL_PLANTS) {
+    for (const item of listAllPlants()) {
         ids.add(item.seedId);
         ids.add(item.plantId);
     }
-    for (const item of ALL_ANIMALS) {
+    for (const item of listAllAnimals()) {
         ids.add(item.babyId);
         ids.add(item.grownId);
         if (item.meatId) {
@@ -289,8 +215,8 @@ function hasBonus(bonusCities, city) {
 }
 
 function harvestPerSeed(plant, islandCity, premium) {
-    const base = premium ? PREMIUM_YIELD : BASE_YIELD;
-    return hasBonus(plant.bonusCities, islandCity) ? base * (1 + CITY_YIELD_BONUS) : base;
+    const base = premium ? premiumYield() : baseYield();
+    return hasBonus(plant.bonusCities, islandCity) ? base * (1 + cityYieldBonus()) : base;
 }
 
 function seedReturnRate(item, watered) {
@@ -314,8 +240,9 @@ function perDay(profit, hours) {
     if (!Number.isFinite(profit) || !Number.isFinite(hours) || hours <= 0) {
         return null;
     }
-    return (profit / hours) * PLAN_DAY_HOURS;
+    return (profit / hours) * planDayHours();
 }
+
 
 function cycleMetrics(profit, cost, hours) {
     const safeCost = Number.isFinite(cost) ? cost : null;
@@ -355,7 +282,7 @@ function plantGrowUnitCost(plant, ctx) {
 
 function plantPlotYield(plant, ctx) {
     const qty = harvestPerSeed(plant, ctx.islandCity, ctx.premium);
-    return PLANT_SLOTS * qty;
+    return plantSlots() * qty;
 }
 
 function cropSellActivity(plant, ctx) {
@@ -368,7 +295,7 @@ function cropSellActivity(plant, ctx) {
     const seedCost = grow.unit * yieldPlot;
     const revenue = saleProceeds(sell.price, { premium: ctx.premium, setup: sell.setup }) * yieldPlot;
     const profit = revenue - seedCost;
-    const hours = planCycleHours(CROP_HOURS);
+    const hours = planCycleHours(cropHours());
     const metrics = cycleMetrics(profit, seedCost, hours);
     if (metrics.perDay == null) {
         return null;
@@ -390,10 +317,7 @@ function cropSellActivity(plant, ctx) {
 
 function resolveFeedCrop(animal, feedCropOverride) {
     if (animal.feedFixed && animal.feedKey) {
-        const key = animal.feedKey;
-        const meta = FEED_CROPS[key];
-        const tier = animal.tier;
-        return CROPS.find((c) => c.key === key) ?? crop(key, tier, meta.stem, meta.label, 0, meta.bonusCities);
+        return listCrops().find((crop) => crop.key === animal.feedKey) ?? null;
     }
     return feedCropOverride ?? null;
 }
@@ -453,13 +377,13 @@ function hasAnimalCityBonus(animal, city) {
 }
 
 function butcherQty(animal, ctx) {
-    const base = MEAT_QTY;
-    return hasAnimalCityBonus(animal, ctx.islandCity) ? base * (1 + CITY_YIELD_BONUS) : base;
+    const base = meatQtyConst();
+    return hasAnimalCityBonus(animal, ctx.islandCity) ? base * (1 + cityYieldBonus()) : base;
 }
 
 function productQty(animal, ctx) {
-    const base = PRODUCT_QTY;
-    return hasAnimalCityBonus(animal, ctx.islandCity) ? base * (1 + CITY_YIELD_BONUS) : base;
+    const base = productQtyConst();
+    return hasAnimalCityBonus(animal, ctx.islandCity) ? base * (1 + cityYieldBonus()) : base;
 }
 
 function animalPathProfits(animal, feedUnit, ctx) {
@@ -572,7 +496,7 @@ function animalActivityFromPath(animal, path, feed, feedCrop, ctx) {
 
 function animalMarketActivities(animal, ctx) {
     const feedCrops = animal.feedDiet === 'plants' && !animal.feedFixed
-        ? CROPS
+        ? listCrops()
         : [resolveFeedCrop(animal, null)].filter(Boolean);
 
     if (animal.feedDiet === 'meat') {
@@ -614,13 +538,13 @@ function animalMarketActivities(animal, ctx) {
 
 function standaloneActivities(ctx) {
     const list = [];
-    for (const plant of ALL_PLANTS) {
+    for (const plant of listAllPlants()) {
         const act = cropSellActivity(plant, ctx);
         if (act) {
             list.push(act);
         }
     }
-    for (const animal of ALL_ANIMALS) {
+    for (const animal of listAllAnimals()) {
         list.push(...animalMarketActivities(animal, ctx));
     }
     list.sort((a, b) => b.perDay - a.perDay);
@@ -665,7 +589,7 @@ function bestStandaloneFill(n, activities, excludeIds = new Set()) {
 
 function farmSupplyPerCycle(feedCrop, animalAlbionHours, ctx) {
     const yieldPlot = plantPlotYield(feedCrop, ctx);
-    return yieldPlot * (animalAlbionHours / CROP_HOURS);
+    return yieldPlot * (animalAlbionHours / cropHours());
 }
 
 function blendedAnimalPlotProfit(animal, pathId, islandUnit, marketUnit, islandShare, ctx) {
@@ -752,7 +676,7 @@ function searchIslandFeedPlan(animal, pathId, feedCrop, n, marketBaselinePerDay,
 
             const rest = n - a - f;
             const fill = bestStandaloneFill(rest, standalones);
-            total += (fill.total / PLAN_DAY_HOURS) * hours;
+            total += (fill.total / planDayHours()) * hours;
 
             const totalDay = perDay(total, hours);
             if (totalDay == null) {
@@ -915,13 +839,13 @@ export function optimizeIsland(options) {
         vsMarket: 0
     };
 
-    for (const animal of ALL_ANIMALS) {
+    for (const animal of listAllAnimals()) {
         if (animal.feedDiet === 'meat') {
             continue;
         }
         const feedCrops = animal.feedFixed
             ? [resolveFeedCrop(animal, null)].filter(Boolean)
-            : CROPS;
+            : listCrops();
 
         const marketFeed = marketFeedUnit(animal, feedCrops[0] ?? null, ctx);
         if (!marketFeed) {

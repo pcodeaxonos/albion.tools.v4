@@ -1,0 +1,38 @@
+[
+  {
+    "id": 1,
+    "code": "light",
+    "label": "helmet · boot · cape · offhand",
+    "short": "Helmet / off",
+    "qty": 96,
+    "iconItemId": 3389,
+    "sortValue": 10
+  },
+  {
+    "id": 2,
+    "code": "armor",
+    "label": "armor · bag",
+    "short": "Armor / bag",
+    "qty": 192,
+    "iconItemId": 3416,
+    "sortValue": 20
+  },
+  {
+    "id": 3,
+    "code": "one",
+    "label": "1H weapon",
+    "short": "1H",
+    "qty": 288,
+    "iconItemId": 8479,
+    "sortValue": 30
+  },
+  {
+    "id": 4,
+    "code": "two",
+    "label": "2H weapon",
+    "short": "2H",
+    "qty": 384,
+    "iconItemId": 6245,
+    "sortValue": 40
+  }
+]

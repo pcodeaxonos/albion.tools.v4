@@ -5,10 +5,10 @@ import {
     saveSettings,
     SERVERS,
     PRICE_SOURCES,
-    LOCAL_PRICE_HOST,
     ENCHANT_POWERS,
     enchantPowerLabel,
-    cityHasIsland
+    cityHasIsland,
+    localPriceHost
 } from './settings.js';
 import { initStore } from './db/store.js';
 import { loadActiveCities } from './cities.js';
@@ -17,8 +17,11 @@ import { feeMetaText } from './market-fees.js';
 import { escapeHtml } from './utils.js';
 import { sessionAdcState } from './pipeline-status.js';
 
-const CLIENT_COMMAND = `albiondata-client.exe -i ${LOCAL_PRICE_HOST}`;
 const CLIENT_RELEASES = 'https://github.com/ao-data/albiondata-client/releases';
+
+function clientCommand() {
+    return `albiondata-client.exe -i ${localPriceHost()}`;
+}
 
 let hubPollTimer = 0;
 
@@ -123,7 +126,7 @@ function renderPage(container, cities) {
                 <p class="settings-packet-status" id="settingsPacketStatus">Yerel hub kontrol ediliyor…</p>
                 <p class="settings-packet-copy">Albion Data Client oyun paketlerini çözer ve bu makinedeki huba gönderir. Kısayoldan açılan ADC kamu AODP’ye gider; start.bat client’ı <code>-i http://127.0.0.1:3001</code> ile yeniden açar. ADC konumu Join paketinden öğrenir — zone geçmeden market verisi göndermez. Fiyatı istediğin marketi açman gerekir.</p>
                 <div class="settings-command">
-                    <code id="settingsClientCommand">${escapeHtml(CLIENT_COMMAND)}</code>
+                    <code id="settingsClientCommand">${escapeHtml(clientCommand())}</code>
                     <button type="button" class="btn btn-outline-secondary" id="settingsCopyCommand">Kopyala</button>
                 </div>
                 <p class="settings-packet-links">
@@ -283,7 +286,7 @@ function bindPage(container) {
     container.querySelector('#settingsCopyCommand')?.addEventListener('click', async () => {
         const button = container.querySelector('#settingsCopyCommand');
         try {
-            await navigator.clipboard.writeText(CLIENT_COMMAND);
+            await navigator.clipboard.writeText(clientCommand());
             if (button) {
                 button.textContent = 'Kopyalandı';
                 setTimeout(() => {
@@ -485,7 +488,7 @@ async function refreshHubStatus(container) {
     }
 
     try {
-        const response = await fetch(`${LOCAL_PRICE_HOST}/api/v2/stats/status`);
+        const response = await fetch(`${localPriceHost()}/api/v2/stats/status`);
         if (!response.ok) {
             throw new Error('bad status');
         }

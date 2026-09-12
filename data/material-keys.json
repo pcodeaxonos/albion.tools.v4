@@ -1,0 +1,82 @@
+[
+  {
+    "id": 1,
+    "key": "plank",
+    "stem": "PLANKS",
+    "itemId": 1049,
+    "label": "Plank",
+    "appliesRr": true
+  },
+  {
+    "id": 2,
+    "key": "bar",
+    "stem": "METALBAR",
+    "itemId": 1083,
+    "label": "Bar",
+    "appliesRr": true
+  },
+  {
+    "id": 3,
+    "key": "leather",
+    "stem": "LEATHER",
+    "itemId": 1110,
+    "label": "Leather",
+    "appliesRr": true
+  },
+  {
+    "id": 4,
+    "key": "cloth",
+    "stem": "CLOTH",
+    "itemId": 1137,
+    "label": "Cloth",
+    "appliesRr": true
+  },
+  {
+    "id": 5,
+    "key": "odun",
+    "stem": "WOOD",
+    "itemId": 917,
+    "label": "Wood",
+    "appliesRr": true
+  },
+  {
+    "id": 6,
+    "key": "fiber",
+    "stem": "FIBER",
+    "itemId": 1022,
+    "label": "Fiber",
+    "appliesRr": true
+  },
+  {
+    "id": 7,
+    "key": "taş",
+    "stem": "ROCK",
+    "itemId": 945,
+    "label": "Stone",
+    "appliesRr": true
+  },
+  {
+    "id": 8,
+    "key": "hide",
+    "stem": "HIDE",
+    "itemId": 995,
+    "label": "Hide",
+    "appliesRr": true
+  },
+  {
+    "id": 9,
+    "key": "ore",
+    "stem": "ORE",
+    "itemId": 967,
+    "label": "Ore",
+    "appliesRr": true
+  },
+  {
+    "id": 10,
+    "key": "energy",
+    "stem": "",
+    "itemId": 248,
+    "label": "Avalonian Energy",
+    "appliesRr": false
+  }
+]

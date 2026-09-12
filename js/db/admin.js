@@ -4,7 +4,10 @@ import {
     getTableNames,
     getEditableColumns,
     getDisplayColumns,
-    getColumnLabel
+    getColumnLabel,
+    getSourceLabel,
+    TABLE_GROUPS,
+    tables
 } from './schema.js';
 import {
     initStore,
@@ -15,7 +18,13 @@ import {
     createRow,
     updateRow,
     deleteRow,
-    resetAllTables
+    resetAllTables,
+    reseedTable,
+    exportTableJson,
+    replaceAllRows,
+    mergeImportedRows,
+    loadSeedRows,
+    tableHasLocalChanges
 } from './store.js';
 import { initNav } from '../nav.js';
 import { initFloatingLabels } from '../forms.js';
@@ -126,22 +135,50 @@ function setHash(tableName, action, id, search, page) {
 function renderSidebar() {
     const list = document.getElementById('dbTableList');
     const names = getTableNames();
+    const byGroup = new Map(TABLE_GROUPS.map((group) => [group.id, []]));
 
-    list.innerHTML = names.map((name) => {
+    for (const name of names) {
         const table = getTable(name);
-        const count = getRowCount(name);
-        const active = state.tableName === name ? ' active' : '';
+        const groupId = table.group || 'game';
+        if (!byGroup.has(groupId)) {
+            byGroup.set(groupId, []);
+        }
+        byGroup.get(groupId).push(name);
+    }
 
-        return `
-            <a class="db-table-card${active}" href="#" data-table-name="${escapeHtml(name)}">
-                <div class="db-table-card-body">
-                    <h4 class="db-table-card-title">${escapeHtml(table.displayName)}</h4>
-                    <div class="text-muted small">${escapeHtml(name)}</div>
-                    <span class="badge bg-secondary">${count} kayıt</span>
-                </div>
-            </a>
-        `;
-    }).join('');
+    const sections = [];
+    for (const group of TABLE_GROUPS) {
+        const groupTables = byGroup.get(group.id) || [];
+        if (groupTables.length === 0) {
+            continue;
+        }
+
+        sections.push(`
+            <div class="db-table-group">
+                <h3 class="db-table-group-title">${escapeHtml(group.label)}</h3>
+                ${groupTables.map((name) => {
+                    const table = tables[name];
+                    const count = getRowCount(name);
+                    const active = state.tableName === name ? ' active' : '';
+                    const source = getSourceLabel(table.source);
+                    return `
+                        <a class="db-table-card${active}" href="#" data-table-name="${escapeHtml(name)}">
+                            <div class="db-table-card-body">
+                                <h4 class="db-table-card-title">${escapeHtml(table.displayName)}</h4>
+                                <div class="text-muted small">${escapeHtml(name)}</div>
+                                <div class="db-table-card-meta">
+                                    <span class="badge bg-secondary">${count}</span>
+                                    <span class="badge db-source-badge db-source-badge--${escapeHtml(table.source || 'curated')}">${escapeHtml(source)}</span>
+                                </div>
+                            </div>
+                        </a>
+                    `;
+                }).join('')}
+            </div>
+        `);
+    }
+
+    list.innerHTML = sections.join('');
 
     list.querySelectorAll('.db-table-card').forEach((card) => {
         card.addEventListener('click', (event) => {
@@ -234,7 +271,7 @@ async function renderContent(options = {}) {
             container.innerHTML = `
                 <div class="db-placeholder">
                     <h2>Tablo Seçin</h2>
-                    <p class="text-muted">Soldaki listeden bir tablo seçerek içeriğini görüntüleyin.</p>
+                    <p class="text-muted">Soldaki gruplardan bir tablo seçin. Her tabloda ekleme, silme, düzenleme, JSON içe/dışa aktarma ve seed’e dönüş var.</p>
                 </div>
             `;
             return;
@@ -372,7 +409,7 @@ function applyColumnFilters(rows, table, filters) {
                 return boolVal === filterValue;
             }
 
-            if (col.type === 'enum' || col.match === 'exact') {
+            if (col.type === 'enum' || col.type === 'ref' || col.match === 'exact') {
                 return String(value) === filterValue;
             }
 
@@ -385,14 +422,28 @@ function renderTableView() {
     const table = getTable(state.tableName);
     const { rows, pagination } = getPageRows(getFilteredRows());
     const columns = getDisplayColumns(table);
+    const source = getSourceLabel(table.source);
+    const description = table.description
+        ? `<p class="db-table-desc text-muted mb-0">${escapeHtml(table.description)}</p>`
+        : '';
 
     const header = `
-        <div class="d-flex justify-content-between align-items-center mb-3">
-            <div>
+        <div class="db-table-header mb-3">
+            <div class="db-table-header-text">
                 <h1 class="mb-0">${escapeHtml(table.displayName)}</h1>
-                <span class="small text-muted">${escapeHtml(state.tableName)}</span>
+                <div class="db-table-header-meta">
+                    <span class="small text-muted">${escapeHtml(state.tableName)}</span>
+                    <span class="badge db-source-badge db-source-badge--${escapeHtml(table.source || 'curated')}">${escapeHtml(source)}</span>
+                </div>
+                ${description}
             </div>
-            <button type="button" class="btn btn-success" id="btnCreate">+ Yeni Kayıt</button>
+            <div class="db-table-actions">
+                <button type="button" class="btn btn-success" id="btnCreate">+ Yeni</button>
+                <button type="button" class="btn btn-outline-secondary" id="btnExport" title="JSON indir">Dışa aktar</button>
+                <button type="button" class="btn btn-outline-secondary" id="btnImport" title="JSON yükle">İçe aktar</button>
+                <button type="button" class="btn btn-outline-secondary" id="btnReseed" title="Seed dosyasından yenile">Seed’e dön</button>
+                <input type="file" id="importFile" accept="application/json,.json" hidden>
+            </div>
         </div>
     `;
 
@@ -734,6 +785,14 @@ function formatCellValue(value, column) {
             : '<span class="badge bg-secondary">Hayır</span>';
     }
 
+    if (column.type === 'ref' && column.refTable) {
+        const row = getAll(column.refTable).find((entry) => String(entry.id) === String(value));
+        if (row) {
+            const text = column.refLabel ? `${row[column.refLabel]} (#${row.id})` : `#${row.id}`;
+            return escapeHtml(text);
+        }
+    }
+
     if (column.type === 'number') {
         return escapeHtml(value);
     }
@@ -869,6 +928,26 @@ function bindTableEvents(container) {
         void openCreateForm(state.tableName);
     });
 
+    container.querySelector('#btnExport')?.addEventListener('click', () => {
+        downloadTableJson(state.tableName);
+    });
+
+    container.querySelector('#btnImport')?.addEventListener('click', () => {
+        container.querySelector('#importFile')?.click();
+    });
+
+    container.querySelector('#importFile')?.addEventListener('change', (event) => {
+        const file = event.target.files?.[0];
+        event.target.value = '';
+        if (file) {
+            void handleImportFile(container, file);
+        }
+    });
+
+    container.querySelector('#btnReseed')?.addEventListener('click', () => {
+        void handleReseedTable(container);
+    });
+
     const searchInput = container.querySelector('#dbSearchInput');
     if (searchInput) {
         const debouncedSearch = debounce((value) => {
@@ -897,6 +976,112 @@ function bindTableEvents(container) {
     bindPagerEvents(container);
     bindSortEvents(container);
     bindRowActions(container);
+}
+
+function downloadTableJson(tableName) {
+    const blob = new Blob([exportTableJson(tableName)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `${tableName}.json`;
+    link.click();
+    URL.revokeObjectURL(url);
+}
+
+async function handleReseedTable(container) {
+    const table = getTable(state.tableName);
+    if (!table?.seedUrl) {
+        alert('Bu tablonun seed dosyası yok.');
+        return;
+    }
+
+    try {
+        const seedRows = await loadSeedRows(state.tableName);
+        if (tableHasLocalChanges(state.tableName, seedRows)) {
+            const ok = confirm(
+                `"${table.displayName}" yerel değişiklik içeriyor.\n\nSeed dosyasına dönmek tüm yerel kayıtları siler. Devam edilsin mi?`
+            );
+            if (!ok) {
+                return;
+            }
+        } else if (!confirm(`"${table.displayName}" seed dosyasından yenilensin mi?`)) {
+            return;
+        }
+    } catch (error) {
+        alert(error.message);
+        return;
+    }
+
+    showAreaLoader(container, 'Seed yükleniyor…');
+    await yieldToMain();
+
+    try {
+        await reseedTable(state.tableName);
+        renderSidebar();
+        await openTable(state.tableName, state.search, { showLoader: false });
+    } catch (error) {
+        alert(error.message);
+    } finally {
+        hideAreaLoader(container);
+    }
+}
+
+async function handleImportFile(container, file) {
+    let rows;
+    try {
+        const text = await file.text();
+        rows = JSON.parse(text);
+        if (!Array.isArray(rows)) {
+            throw new Error('JSON bir dizi olmalı');
+        }
+    } catch (error) {
+        alert(`JSON okunamadı: ${error.message}`);
+        return;
+    }
+
+    const table = getTable(state.tableName);
+    const localCount = getRowCount(state.tableName);
+    let mode = 'replace';
+
+    if (localCount > 0) {
+        const choice = window.prompt(
+            `"${table.displayName}" içinde ${localCount} kayıt var.\n\n` +
+            `Nasıl içe aktarılsın?\n` +
+            `• replace — hepsini sil, dosyadakileri yaz\n` +
+            `• merge — aynı id’leri güncelle, yenileri ekle\n` +
+            `• cancel — iptal\n`,
+            'merge'
+        );
+
+        if (!choice || choice.trim().toLowerCase() === 'cancel') {
+            return;
+        }
+
+        mode = choice.trim().toLowerCase();
+        if (mode !== 'replace' && mode !== 'merge') {
+            alert('Geçersiz seçim. replace, merge veya cancel yazın.');
+            return;
+        }
+    }
+
+    showAreaLoader(container, 'İçe aktarılıyor…');
+    await yieldToMain();
+
+    try {
+        if (mode === 'merge') {
+            const result = mergeImportedRows(state.tableName, rows);
+            alert(`Birleştirildi: ${result.added} yeni, ${result.updated} güncellendi (${result.total} toplam).`);
+        } else {
+            replaceAllRows(state.tableName, rows);
+            alert(`Değiştirildi: ${rows.length} kayıt.`);
+        }
+        renderSidebar();
+        await openTable(state.tableName, state.search, { showLoader: false });
+    } catch (error) {
+        alert(error.message);
+    } finally {
+        hideAreaLoader(container);
+    }
 }
 
 function bindSortEvents(container) {
@@ -1038,7 +1223,8 @@ function renderField(column, record) {
     const label = getColumnLabel(column);
 
     if (column.type === 'boolean') {
-        const checked = value ? ' checked' : '';
+        const defaultOn = !record && (column.name === 'isActive' || column.name === 'isEquipable');
+        const checked = (value ?? defaultOn) ? ' checked' : '';
         return `
             <div class="form-check">
                 <input class="form-check-input" type="checkbox" name="${escapeHtml(column.name)}" id="field-${escapeHtml(column.name)}" value="true"${checked}>
@@ -1052,6 +1238,29 @@ function renderField(column, record) {
             const selected = value === opt ? ' selected' : '';
             return `<option value="${escapeHtml(opt)}"${selected}>${escapeHtml(opt)}</option>`;
         }).join('');
+
+        return `
+            <div class="form-floating">
+                <select class="form-select" name="${escapeHtml(column.name)}" id="field-${escapeHtml(column.name)}">${options}</select>
+                <label for="field-${escapeHtml(column.name)}">${escapeHtml(label)}</label>
+            </div>
+        `;
+    }
+
+    if (column.type === 'ref' && column.refTable) {
+        const rows = getAll(column.refTable).slice().sort((a, b) => {
+            const la = String(a[column.refLabel] ?? a.id);
+            const lb = String(b[column.refLabel] ?? b.id);
+            return la.localeCompare(lb, 'tr', { numeric: true });
+        });
+        const options = [
+            `<option value="">—</option>`,
+            ...rows.map((row) => {
+                const selected = String(value ?? '') === String(row.id) ? ' selected' : '';
+                const text = column.refLabel ? `${row[column.refLabel]} (#${row.id})` : `#${row.id}`;
+                return `<option value="${escapeHtml(row.id)}"${selected}>${escapeHtml(text)}</option>`;
+            })
+        ].join('');
 
         return `
             <div class="form-floating">

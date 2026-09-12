@@ -1,0 +1,29 @@
+[
+  {
+    "id": 1,
+    "fromEnchant": 0,
+    "toEnchant": 1,
+    "kind": "rune",
+    "label": "Rune",
+    "itemType": "RUNE",
+    "sortValue": 10
+  },
+  {
+    "id": 2,
+    "fromEnchant": 1,
+    "toEnchant": 2,
+    "kind": "soul",
+    "label": "Soul",
+    "itemType": "SOUL",
+    "sortValue": 20
+  },
+  {
+    "id": 3,
+    "fromEnchant": 2,
+    "toEnchant": 3,
+    "kind": "relic",
+    "label": "Relic",
+    "itemType": "RELIC",
+    "sortValue": 30
+  }
+]

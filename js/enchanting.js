@@ -1,4 +1,4 @@
-import { escapeHtml } from './utils.js';
+﻿import { escapeHtml } from './utils.js';
 import { initNav } from './nav.js';
 import { initStore } from './db/store.js';
 import { getSettings, enchantPowerCombos, normalizeEnchantPower } from './settings.js';
@@ -19,64 +19,33 @@ import {
 import { bindCalcSticky } from './calc-sticky.js';
 import { bindLivePrices } from './price-live.js';
 import { loadCities } from './cities.js';
+import { getEnchantSlots, getEnchantSteps, getEnchantPaths } from './catalog.js';
 
 const TIERS = [4, 5, 6, 7, 8];
 const CITY_STORAGE_KEY = 'albiontools.v4.enchanting.city';
 const SLOT_STORAGE_KEY = 'albiontools.v4.enchanting.slot';
 
-const SLOTS = [
-    {
-        id: 'light',
-        label: 'helmet · boot · cape · offhand',
-        short: 'Helmet / off',
-        qty: 96,
-        icon: 'T4_HEAD_PLATE_SET1'
-    },
-    {
-        id: 'armor',
-        label: 'armor · bag',
-        short: 'Armor / bag',
-        qty: 192,
-        icon: 'T4_ARMOR_PLATE_SET1'
-    },
-    {
-        id: 'one',
-        label: '1H weapon',
-        short: '1H',
-        qty: 288,
-        icon: 'T4_MAIN_SWORD'
-    },
-    {
-        id: 'two',
-        label: '2H weapon',
-        short: '2H',
-        qty: 384,
-        icon: 'T4_2H_BOW'
-    }
-];
+function slots() {
+    return getEnchantSlots();
+}
 
-const STEPS = [
-    { from: 0, to: 1, kind: 'rune', label: 'Rune', itemType: 'RUNE' },
-    { from: 1, to: 2, kind: 'soul', label: 'Soul', itemType: 'SOUL' },
-    { from: 2, to: 3, kind: 'relic', label: 'Relic', itemType: 'RELIC' }
-];
+function steps() {
+    return getEnchantSteps();
+}
 
-const PATHS = [
-    { from: 0, to: 1, tone: 'rune' },
-    { from: 0, to: 2, tone: 'soul' },
-    { from: 0, to: 3, tone: 'relic' },
-    { from: 1, to: 2, tone: 'soul' },
-    { from: 1, to: 3, tone: 'span' },
-    { from: 2, to: 3, tone: 'relic' }
-];
+function paths() {
+    return getEnchantPaths();
+}
 
-const MATS = STEPS.flatMap((step) => TIERS.map((tier) => ({
-    key: matKey(step.kind, tier),
-    uniqueName: `T${tier}_${step.itemType}`,
-    kind: step.kind,
-    tier,
-    short: step.label
-})));
+function mats() {
+    return steps().flatMap((step) => TIERS.map((tier) => ({
+        key: matKey(step.kind, tier),
+        uniqueName: `T${tier}_${step.itemType}`,
+        kind: step.kind,
+        tier,
+        short: step.label
+    })));
+}
 
 function matKey(kind, tier) {
     return `${kind}-${tier}`;
@@ -84,6 +53,14 @@ function matKey(kind, tier) {
 
 function pathLabel(path) {
     return `${path.from} → .${path.to}`;
+}
+
+function ensureManualMaps() {
+    for (const mat of mats()) {
+        if (!(mat.key in state.manualMats)) {
+            state.manualMats[mat.key] = null;
+        }
+    }
 }
 
 function standardHighlightNote(power) {
@@ -115,7 +92,7 @@ const state = {
     cities: [],
     slot: 'armor',
     priceIndex: null,
-    manualMats: Object.fromEntries(MATS.map((mat) => [mat.key, null])),
+    manualMats: {},
     error: null,
     loaded: false,
     sort: { key: 'way', direction: 'asc' },
@@ -123,7 +100,7 @@ const state = {
 };
 
 function currentSlot() {
-    return SLOTS.find((slot) => slot.id === state.slot) ?? SLOTS[1];
+    return slots().find((slot) => slot.id === state.slot) ?? slots()[1];
 }
 
 function formatSilver(value) {
@@ -179,7 +156,7 @@ function saveCity(apiName) {
 function readSavedSlot() {
     try {
         const saved = localStorage.getItem(SLOT_STORAGE_KEY);
-        if (SLOTS.some((slot) => slot.id === saved)) {
+        if (slots().some((slot) => slot.id === saved)) {
             return saved;
         }
     } catch {
@@ -222,7 +199,7 @@ function manualQuote(price) {
 }
 
 function fetchedMatQuote(key) {
-    const mat = MATS.find((row) => row.key === key);
+    const mat = mats().find((row) => row.key === key);
     if (!mat || !state.priceIndex) {
         return null;
     }
@@ -244,7 +221,7 @@ function enchantCost(tier, from, to) {
     }
 
     let total = 0;
-    for (const step of STEPS) {
+    for (const step of steps()) {
         if (step.from >= from && step.to <= to) {
             const quote = matQuote(matKey(step.kind, tier));
             if (!quote) {
@@ -258,7 +235,7 @@ function enchantCost(tier, from, to) {
 }
 
 function pathRows() {
-    return PATHS.map((path, index) => ({
+    return paths().map((path, index) => ({
         index,
         path,
         label: pathLabel(path),
@@ -274,7 +251,7 @@ function renderCityOptions() {
 }
 
 function renderSlotToggle() {
-    return SLOTS.map((slot) => {
+    return slots().map((slot) => {
         const pressed = slot.id === state.slot;
         return `
             <button type="button" class="enchant-type-btn${pressed ? ' is-active' : ''}"
@@ -287,8 +264,8 @@ function renderSlotToggle() {
 
 function renderMatStrip() {
     return `
-        <ul class="enchant-mats">
-            ${STEPS.map((step) => `
+        <ul class="enchant-mats()">
+            ${steps().map((step) => `
                 <li class="enchant-mat">
                     ${itemIconHtml(`T4_${step.itemType}`)}
                     <span class="enchant-mat-text">
@@ -370,7 +347,7 @@ function renderTable() {
 }
 
 function latestQuoteDate() {
-    const dates = MATS.map((mat) => matQuote(mat.key)?.date).filter(Boolean).sort();
+    const dates = mats().map((mat) => matQuote(mat.key)?.date).filter(Boolean).sort();
     return dates.at(-1) ?? '';
 }
 
@@ -438,7 +415,7 @@ function refreshCalc(container) {
         }
     }
 
-    MATS.forEach((mat) => {
+    mats().forEach((mat) => {
         const card = container.querySelector(`[data-mat-card="${mat.key}"]`);
         const fetched = fetchedMatQuote(mat.key);
         applyPriceFieldState(card?.querySelector('.enchant-price-field'), {
@@ -500,7 +477,7 @@ function renderPage(container) {
         <div class="tool-split">
             <div class="tool-split-controls">
                 <div class="enchant-toolbar">
-                    <div class="enchant-type enchant-slots" role="radiogroup" aria-label="Slot">
+                    <div class="enchant-type enchant-slots()" role="radiogroup" aria-label="Slot">
                         ${renderSlotToggle()}
                     </div>
                     <div class="enchant-side-field">
@@ -575,7 +552,7 @@ async function loadPrices(container, { showLoader = true, source } = {}) {
         if (locations.length === 0) {
             throw new Error('Aktif şehir yok.');
         }
-        const rows = await fetchPrices(MATS.map((mat) => mat.uniqueName), locations, { source });
+        const rows = await fetchPrices(mats().map((mat) => mat.uniqueName), locations, { source });
         state.priceIndex = indexPrices(rows);
         state.loaded = true;
     } catch (error) {
@@ -604,17 +581,18 @@ async function init() {
     const settings = getSettings();
     state.matSide = settings.buyPriceSide;
     state.enchantPower = normalizeEnchantPower(settings.enchantPower);
-    state.slot = readSavedSlot();
 
     showPageLoader('Enchanting yükleniyor…');
     try {
         await initStore();
+        state.slot = readSavedSlot();
+        ensureManualMaps();
         state.cities = loadCities().filter((city) => city.isActive);
         state.city = readSavedCity(state.cities);
         renderPage(container);
         await loadPrices(container, { showLoader: false });
         bindLivePrices(() => ({
-            items: MATS.map((mat) => mat.uniqueName),
+            items: mats().map((mat) => mat.uniqueName),
             cities: [state.city],
             pause: state.livePaused
         }), () => loadPrices(container, { showLoader: false }));

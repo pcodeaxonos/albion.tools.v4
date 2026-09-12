@@ -1,4 +1,4 @@
-import { getSettings, LOCAL_PRICE_HOST } from './settings.js';
+import { getSettings, localPriceHost } from './settings.js';
 
 export const LOCAL_DATA_PREFIX = 'albiontools.v4.';
 export const LOCAL_DATA_KIND = 'albion.tools.local-data';
@@ -270,7 +270,7 @@ async function hubFetch(path, options = {}) {
     const timeout = options.timeout ?? META_TIMEOUT_MS;
     const fetchOptions = { ...options };
     delete fetchOptions.timeout;
-    return fetch(`${LOCAL_PRICE_HOST}${path}`, {
+    return fetch(`${localPriceHost()}${path}`, {
         ...fetchOptions,
         signal: AbortSignal.timeout(timeout)
     });

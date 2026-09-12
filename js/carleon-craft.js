@@ -37,49 +37,77 @@ import {
     explainEmptyHtml,
     explainHint
 } from './calc-explain.js';
+import { getCraftRecipes, cityProductionBonus } from './catalog.js';
 
-const CITY_PRODUCTION = 18;
+function cityProduction() {
+    return cityProductionBonus();
+}
 
-const MATS = [
-    { key: 'plank', uniqueName: 'T2_PLANKS', short: 'Plank' },
-    { key: 'bar', uniqueName: 'T2_METALBAR', short: 'Bar' },
-    { key: 'leather', uniqueName: 'T2_LEATHER', short: 'Leather' },
-    { key: 'cloth', uniqueName: 'T2_CLOTH', short: 'Cloth' }
-];
+function mats() {
+    const list = [];
+    const seen = new Set();
+    for (const item of items()) {
+        for (const line of item.lines) {
+            if (!line.key || seen.has(line.key)) {
+                continue;
+            }
+            seen.add(line.key);
+            list.push({
+                key: line.key,
+                uniqueName: line.uniqueName,
+                short: line.short?.replace(/^T\d+\s+/, '') || line.key
+            });
+        }
+    }
+    return list;
+}
 
-const ITEMS = [
-    { id: 'soldier-armor', uniqueName: 'T2_ARMOR_PLATE_SET1', label: 'Soldier Armor', familyKey: 'armors/plate_armor', recipe: { bar: 16 } },
-    { id: 'merc-jacket', uniqueName: 'T2_ARMOR_LEATHER_SET1', label: 'Mercenary Jacket', familyKey: 'armors/leather_armor', recipe: { leather: 16 } },
-    { id: 'merc-shoes', uniqueName: 'T2_SHOES_LEATHER_SET1', label: 'Mercenary Shoes', familyKey: 'shoes/leather_shoes', recipe: { leather: 8 } },
-    { id: 'scholar-sandals', uniqueName: 'T2_SHOES_CLOTH_SET1', label: 'Scholar Sandals', familyKey: 'shoes/cloth_shoes', recipe: { cloth: 8 } },
-    { id: 'soldier-boots', uniqueName: 'T2_SHOES_PLATE_SET1', label: 'Soldier Boots', familyKey: 'shoes/plate_shoes', recipe: { bar: 8 } },
-    { id: 'soldier-helmet', uniqueName: 'T2_HEAD_PLATE_SET1', label: 'Soldier Helmet', familyKey: 'head/plate_helmet', recipe: { bar: 8 } },
-    { id: 'scholar-cowl', uniqueName: 'T2_HEAD_CLOTH_SET1', label: 'Scholar Cowl', familyKey: 'head/cloth_helmet', recipe: { cloth: 8 } },
-    { id: 'shield', uniqueName: 'T2_OFF_SHIELD', label: 'Shield', familyKey: 'category/offhands', recipe: { plank: 4, bar: 4 } },
-    { id: 'scholar-robe', uniqueName: 'T2_ARMOR_CLOTH_SET1', label: 'Scholar Robe', familyKey: 'armors/cloth_armor', recipe: { cloth: 16 } },
-    { id: 'fire-staff', uniqueName: 'T2_MAIN_FIRESTAFF', label: 'Fire Staff', familyKey: 'weapons/firestaff', recipe: { plank: 16, bar: 8 } },
-    { id: 'tome', uniqueName: 'T2_OFF_BOOK', label: 'Tome of Spells', familyKey: 'category/offhands', recipe: { leather: 4, cloth: 4 } },
-    { id: 'sword', uniqueName: 'T2_MAIN_SWORD', label: 'Broadsword', familyKey: 'weapons/sword', recipe: { bar: 16, leather: 8 } },
-    { id: 'bow', uniqueName: 'T2_2H_BOW', label: 'Bow', familyKey: 'weapons/bow', recipe: { plank: 32 } },
-    { id: 'merc-hood', uniqueName: 'T2_HEAD_LEATHER_SET1', label: 'Mercenary Hood', familyKey: 'head/leather_helmet', recipe: { leather: 8 } }
-];
+function items() {
+    return getCraftRecipes({ tool: 'caerleon' }).map((recipe) => ({
+        id: recipe.code.replace(/^caerleon-/, ''),
+        uniqueName: recipe.uniqueName,
+        label: recipe.label,
+        familyKey: recipe.familyKey,
+        recipe: recipe.recipe,
+        lines: recipe.lines
+    }));
+}
 
 const state = {
     premium: true,
     matSide: 'buy',
     itemSide: 'sell',
-    matRows: Object.fromEntries(MATS.map((mat) => [mat.key, null])),
-    itemRows: Object.fromEntries(ITEMS.map((item) => [item.id, null])),
-    manualMats: Object.fromEntries(MATS.map((mat) => [mat.key, null])),
-    manualItems: Object.fromEntries(ITEMS.map((item) => [item.id, null])),
+    matRows: {},
+    itemRows: {},
+    manualMats: {},
+    manualItems: {},
     bonusRate: 0,
     error: null,
     loaded: false,
     sort: { key: 'pct', direction: 'desc' }
 };
 
+function ensureManualMaps() {
+    for (const mat of mats()()) {
+        if (!(mat.key in state.manualMats)) {
+            state.manualMats[mat.key] = null;
+        }
+        if (!(mat.key in state.matRows)) {
+            state.matRows[mat.key] = null;
+        }
+    }
+    for (const item of items()) {
+        if (!(item.id in state.manualItems)) {
+            state.manualItems[item.id] = null;
+        }
+        if (!(item.id in state.itemRows)) {
+            state.itemRows[item.id] = null;
+        }
+    }
+}
+
 function productionBonus() {
-    return CITY_PRODUCTION + state.bonusRate;
+    return cityProduction() + state.bonusRate;
 }
 
 function formatSilver(value, { unsigned = false } = {}) {
@@ -173,7 +201,7 @@ function itemQuote(id) {
 
 function matCost(recipe) {
     let total = 0;
-    for (const mat of MATS) {
+    for (const mat of mats()) {
         const qty = recipe[mat.key] ?? 0;
         if (!qty) {
             continue;
@@ -188,7 +216,7 @@ function matCost(recipe) {
 }
 
 function rows() {
-    return ITEMS.map((item) => {
+    return items().map((item) => {
         const quote = itemQuote(item.id);
         const raw = matCost(item.recipe);
         const rr = returnRate();
@@ -206,7 +234,7 @@ function rows() {
 }
 
 function recipeChips(recipe) {
-    return MATS
+    return mats()
         .filter((mat) => recipe[mat.key])
         .map((mat) => `
             <span class="carleon-chip">
@@ -265,8 +293,8 @@ function matMetaText(mat) {
 
 function renderMatStrip() {
     return `
-        <ul class="carleon-mats">
-            ${MATS.map((mat) => {
+        <ul class="carleon-mats()">
+            ${mats().map((mat) => {
                 const fetched = fetchedMatQuote(mat.key);
                 const value = priceInputValue(state.manualMats[mat.key], fetched?.price);
                 return `
@@ -334,13 +362,13 @@ function renderCarleonExplain(key, { hovered } = {}) {
     const sellSetup = row.quote?.setup ?? placesOrder('sell', state.itemSide);
     const afterRr = row.raw != null ? row.raw * keep : null;
     const itemIcon = itemIconHtml(row.item.uniqueName, { className: 'item-icon calc-explain-icon' });
-    const chips = [{ label: 'şehir', value: CITY_PRODUCTION, tone: 'city', title: 'Caerleon üretim bonusu' }];
+    const chips = [{ label: 'şehir', value: cityProduction(), tone: 'city', title: 'Caerleon üretim bonusu' }];
     if (state.bonusRate) {
         chips.push({ label: 'bonus', value: state.bonusRate, tone: 'bonus', title: 'Günlük craft bonusu' });
     }
 
     const matLines = [];
-    for (const mat of MATS) {
+    for (const mat of mats()) {
         const qty = row.item.recipe[mat.key] ?? 0;
         if (!qty) {
             continue;
@@ -616,7 +644,7 @@ function refreshCalc(container) {
 
     refreshCalcExplain(container.querySelector('#carleonExplain'));
 
-    MATS.forEach((mat) => {
+    mats().forEach((mat) => {
         const card = container.querySelector(`[data-mat-card="${mat.key}"]`);
         if (!card) {
             return;
@@ -777,17 +805,17 @@ async function loadPrices(container, { showLoader = true, source } = {}) {
 
     try {
         const ids = [
-            ...MATS.map((mat) => mat.uniqueName),
-            ...ITEMS.map((item) => item.uniqueName)
+            ...mats().map((mat) => mat.uniqueName),
+            ...items().map((item) => item.uniqueName)
         ];
         const rows = await fetchPrices(ids, undefined, { source });
         const index = indexPrices(rows);
 
-        for (const mat of MATS) {
+        for (const mat of mats()) {
             state.matRows[mat.key] = cityRow(index, mat.uniqueName, 'Caerleon');
         }
 
-        for (const item of ITEMS) {
+        for (const item of items()) {
             state.itemRows[item.id] = cityRow(index, item.uniqueName, 'Black Market');
         }
 
@@ -819,18 +847,18 @@ async function init() {
     state.premium = settings.premium;
     state.matSide = settings.buyPriceSide;
     state.itemSide = settings.sellPriceSide;
-    renderPage(container);
 
     showPageLoader('Caerleon craft yükleniyor…');
     try {
         await initStore();
-        state.bonusRate = defaultCraftBonusRate(ITEMS.map((item) => item.familyKey));
+        ensureManualMaps();
+        state.bonusRate = defaultCraftBonusRate(items().map((item) => item.familyKey));
         renderPage(container);
         await loadPrices(container, { showLoader: false });
         bindLivePrices(() => ({
             items: [
-                ...MATS.map((mat) => mat.uniqueName),
-                ...ITEMS.map((item) => item.uniqueName)
+                ...mats().map((mat) => mat.uniqueName),
+                ...items().map((item) => item.uniqueName)
             ],
             cities: ['Caerleon', 'Black Market'],
             pause: state.livePaused

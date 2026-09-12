@@ -1,0 +1,38 @@
+[
+  {
+    "id": 1,
+    "animalId": 1,
+    "cityId": 2,
+    "kind": "production"
+  },
+  {
+    "id": 2,
+    "animalId": 2,
+    "cityId": 1,
+    "kind": "production"
+  },
+  {
+    "id": 3,
+    "animalId": 3,
+    "cityId": 3,
+    "kind": "production"
+  },
+  {
+    "id": 4,
+    "animalId": 4,
+    "cityId": 2,
+    "kind": "production"
+  },
+  {
+    "id": 5,
+    "animalId": 5,
+    "cityId": 5,
+    "kind": "production"
+  },
+  {
+    "id": 6,
+    "animalId": 6,
+    "cityId": 4,
+    "kind": "production"
+  }
+]

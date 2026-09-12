@@ -38,65 +38,60 @@ import {
     explainEmptyHtml,
     explainHint
 } from './calc-explain.js';
+import { getCraftRecipes, getCraftKindOptions, cityProductionBonus } from './catalog.js';
 
-const CITY_PRODUCTION = 18;
 const PREFS_STORAGE_KEY = 'albiontools.v4.furniture.prefs';
 const DEFAULT_CITY = 'Martlock';
 
-const KINDS = [
-    { id: 'all', label: 'Hepsi' },
-    { id: 'chest', label: 'Sandık' },
-    { id: 'bed', label: 'Yatak' },
-    { id: 'table', label: 'Masa' }
-];
+function cityProduction() {
+    return cityProductionBonus();
+}
 
-const MAT_KINDS = {
-    plank: { stem: 'PLANKS', short: 'Plank' },
-    bar: { stem: 'METALBAR', short: 'Bar' },
-    cloth: { stem: 'CLOTH', short: 'Cloth' }
-};
+function kinds() {
+    const labels = { chest: 'Sandık', bed: 'Yatak', table: 'Masa' };
+    return getCraftKindOptions('furniture').map((row) => ({
+        ...row,
+        label: labels[row.id] || row.label
+    }));
+}
 
-const FURNITURE = [
-    { kind: 'chest', label: 'Chest', stem: 'FURNITUREITEM_CHEST', tiers: [2, 3, 4, 5], recipe: { plank: 20, bar: 10 } },
-    { kind: 'bed', label: 'Bed', stem: 'FURNITUREITEM_BED', tiers: [2, 3, 4, 5, 6, 7, 8], recipe: { plank: 10, cloth: 20 } },
-    { kind: 'table', label: 'Table', stem: 'FURNITUREITEM_TABLE', tiers: [2, 3, 4, 5, 6, 7, 8], recipe: { plank: 30, cloth: 30 } }
-];
+function craftItems() {
+    return getCraftRecipes({ tool: 'furniture' });
+}
 
-function matId(kind, tier) {
-    return `T${tier}_${MAT_KINDS[kind].stem}`;
+function items() {
+    return craftItems().map((recipe) => ({
+        id: recipe.code,
+        uniqueName: recipe.uniqueName,
+        kind: recipe.kind,
+        label: recipe.label,
+        tier: recipe.tier,
+        recipe: recipe.recipe,
+        lines: recipe.lines
+    }));
+}
+
+function mats() {
+    const list = [];
+    for (const item of items()) {
+        for (const line of item.lines) {
+            const key = `${line.key}-${item.tier}`;
+            if (!list.some((mat) => mat.key === key)) {
+                list.push({
+                    key,
+                    kind: line.key,
+                    tier: item.tier,
+                    uniqueName: line.uniqueName,
+                    short: line.short
+                });
+            }
+        }
+    }
+    return list;
 }
 
 function matKey(kind, tier) {
     return `${kind}-${tier}`;
-}
-
-function furnitureId(stem, tier) {
-    return `T${tier}_${stem}`;
-}
-
-const ITEMS = FURNITURE.flatMap((group) => group.tiers.map((tier) => ({
-    id: `${group.kind}-${tier}`,
-    uniqueName: furnitureId(group.stem, tier),
-    kind: group.kind,
-    label: group.label,
-    tier,
-    recipe: group.recipe
-})));
-
-const MATS = [];
-for (const item of ITEMS) {
-    for (const kind of Object.keys(item.recipe)) {
-        const key = matKey(kind, item.tier);
-        if (!MATS.some((mat) => mat.key === key)) {
-            MATS.push({
-                key,
-                kind,
-                tier: item.tier,
-                uniqueName: matId(kind, item.tier),
-                short: `T${item.tier} ${MAT_KINDS[kind].short}`
-            });
-        }
-    }
 }
 
 const state = {
@@ -107,8 +102,8 @@ const state = {
     city: DEFAULT_CITY,
     cities: [],
     priceIndex: null,
-    manualMats: Object.fromEntries(MATS.map((mat) => [mat.key, null])),
-    manualItems: Object.fromEntries(ITEMS.map((item) => [item.id, null])),
+    manualMats: {},
+    manualItems: {},
     bonusRate: 0,
     error: null,
     loaded: false,
@@ -116,11 +111,24 @@ const state = {
     sort: { key: 'pct', direction: 'desc' }
 };
 
+function ensureManualMaps() {
+    for (const mat of mats()()) {
+        if (!(mat.key in state.manualMats)) {
+            state.manualMats[mat.key] = null;
+        }
+    }
+    for (const item of items()) {
+        if (!(item.id in state.manualItems)) {
+            state.manualItems[item.id] = null;
+        }
+    }
+}
+
 function visibleItems() {
     if (state.kind === 'all') {
-        return ITEMS;
+        return items();
     }
-    return ITEMS.filter((item) => item.kind === state.kind);
+    return items().filter((item) => item.kind === state.kind);
 }
 
 function visibleMats() {
@@ -130,7 +138,7 @@ function visibleMats() {
             keys.add(matKey(kind, item.tier));
         }
     }
-    return MATS.filter((mat) => keys.has(mat.key));
+    return mats().filter((mat) => keys.has(mat.key));
 }
 
 function visibleTiers() {
@@ -138,7 +146,7 @@ function visibleTiers() {
 }
 
 function productionBonus() {
-    return CITY_PRODUCTION + state.bonusRate;
+    return cityProduction() + state.bonusRate;
 }
 
 function returnRate() {
@@ -213,7 +221,7 @@ function readPrefs(cities) {
             return;
         }
         const parsed = JSON.parse(raw);
-        if (KINDS.some((kind) => kind.id === parsed.kind)) {
+        if (kinds().some((kind) => kind.id === parsed.kind)) {
             state.kind = parsed.kind;
         }
         if (cities.some((city) => city.marketApiName === parsed.city)) {
@@ -236,7 +244,7 @@ function savePrefs() {
 }
 
 function fetchedMatQuote(key) {
-    const mat = MATS.find((row) => row.key === key);
+    const mat = mats().find((row) => row.key === key);
     if (!mat) {
         return null;
     }
@@ -244,7 +252,7 @@ function fetchedMatQuote(key) {
 }
 
 function fetchedItemQuote(id) {
-    const item = ITEMS.find((row) => row.id === id);
+    const item = items().find((row) => row.id === id);
     if (!item) {
         return null;
     }
@@ -316,16 +324,19 @@ function rows() {
 }
 
 function recipeChips(item) {
-    return Object.entries(item.recipe).map(([kind, qty]) => `
+    return Object.entries(item.recipe).map(([kind, qty]) => {
+        const mat = mats().find((entry) => entry.kind === kind && entry.tier === item.tier);
+        return `
         <span class="ava-chip">
-            ${itemIconHtml(matId(kind, item.tier), { className: 'item-icon ava-chip-icon' })}
+            ${itemIconHtml(mat?.uniqueName, { className: 'item-icon ava-chip-icon' })}
             <span>${qty}</span>
         </span>
-    `).join('');
+    `;
+    }).join('');
 }
 
 function renderKindToggle() {
-    return KINDS.map((kind) => {
+    return kinds().map((kind) => {
         const pressed = kind.id === state.kind;
         return `
             <button type="button" class="ava-type-btn${pressed ? ' is-active' : ''}"
@@ -371,7 +382,7 @@ function renderBonusNote() {
             `${escapeHtml(getBonusFamilyLabel(bonus.key))} +${bonus.rate}%`
         ).join(' · ');
 
-    return `<p class="ava-note">RR ${formatPct(returnRate())}${extra}. Carpenter şehir tabanı ${CITY_PRODUCTION}%.
+    return `<p class="ava-note">RR ${formatPct(returnRate())}${extra}. Carpenter şehir tabanı ${cityProduction()}%.
         Bugün (${escapeHtml(bonusWindowLabel(bonusDayIso()))}): ${today}
         <a href="daily-bonus.html">Günlük bonus</a></p>`;
 }
@@ -379,22 +390,22 @@ function renderBonusNote() {
 function renderTierMats() {
     const tiers = visibleTiers();
     return `
-        <ul class="ava-mats ava-mats--furniture">
+        <ul class="ava-mats() ava-mats()--furniture">
             ${tiers.map((tier) => {
-                const mats = visibleMats().filter((mat) => mat.tier === tier);
+                const mats() = visibleMats().filter((mat) => mat.tier === tier);
                 return `
                     <li class="ava-mat ava-mat--tier">
                         <span class="ava-mat-text">
                             <span class="ava-mat-label">T${tier}</span>
                             <span class="ava-mat-meta">${escapeHtml(priceSideHint(state.matSide, 'buy'))}</span>
-                            ${mats.map((mat) => {
+                            ${mats().map((mat) => {
                                 const fetched = fetchedMatQuote(mat.key);
                                 return `
                                     <span class="ava-tier-row" data-mat-card="${escapeHtml(mat.key)}">
                                         ${itemIconHtml(mat.uniqueName)}
                                         ${priceFieldHtml({
                                             id: `matPrice-${mat.key}`,
-                                            label: MAT_KINDS[mat.kind].short,
+                                            label: mat.short.replace(/^T\d+\s+/, '') || mat.kind,
                                             value: priceInputValue(state.manualMats[mat.key], fetched?.price),
                                             manual: isManualPrice(state.manualMats[mat.key]),
                                             missing: !fetched,
@@ -477,7 +488,7 @@ function renderExplain(key, { hovered } = {}) {
     const sellSetup = row.quote?.setup ?? placesOrder('sell', state.itemSide);
     const afterRr = row.parts?.raw != null ? row.parts.raw * keep : null;
     const itemIcon = itemIconHtml(row.item.uniqueName, { className: 'item-icon calc-explain-icon' });
-    const chips = [{ label: 'şehir', value: CITY_PRODUCTION, tone: 'city', title: 'Carpenter şehir taban bonusu' }];
+    const chips = [{ label: 'şehir', value: cityProduction(), tone: 'city', title: 'Carpenter şehir taban bonusu' }];
     if (state.bonusRate) {
         chips.push({ label: 'bonus', value: state.bonusRate, tone: 'bonus', title: 'Ek üretim bonusu' });
     }
@@ -486,9 +497,10 @@ function renderExplain(key, { hovered } = {}) {
     for (const [kind, qty] of Object.entries(row.item.recipe)) {
         const quote = matQuote(matKey(kind, row.item.tier));
         const lineTotal = quote ? quote.price * qty : null;
+        const mat = mats().find((entry) => entry.kind === kind && entry.tier === row.item.tier);
         matLines.push(explainStep({
-            icon: itemIconHtml(matId(kind, row.item.tier), { className: 'item-icon calc-explain-icon' }),
-            label: `T${row.item.tier} ${MAT_KINDS[kind].short}`,
+            icon: itemIconHtml(mat?.uniqueName, { className: 'item-icon calc-explain-icon' }),
+            label: mat?.short || `T${row.item.tier} ${kind}`,
             note: 'Tarifteki adet × birim alış fiyatı',
             formula: [
                 explainNum(qty, { kind: 'qty', cap: 'adet' }),
@@ -904,7 +916,7 @@ function renderPage(container) {
 function bindPage(container) {
     container.querySelectorAll('[data-kind]').forEach((button) => {
         button.addEventListener('click', () => {
-            if (!KINDS.some((kind) => kind.id === button.dataset.kind)) {
+            if (!kinds().some((kind) => kind.id === button.dataset.kind)) {
                 return;
             }
             state.kind = button.dataset.kind;
@@ -969,8 +981,8 @@ async function loadPrices(container, { showLoader = true, source } = {}) {
             throw new Error('Aktif şehir yok.');
         }
         const ids = [
-            ...MATS.map((mat) => mat.uniqueName),
-            ...ITEMS.map((item) => item.uniqueName)
+            ...mats().map((mat) => mat.uniqueName),
+            ...items().map((item) => item.uniqueName)
         ];
         const rows = await fetchPrices(ids, locations, { source });
         state.priceIndex = indexPrices(rows);
@@ -1006,6 +1018,7 @@ async function init() {
     showPageLoader('Furniture yükleniyor…');
     try {
         await initStore();
+        ensureManualMaps();
         state.cities = loadActiveCities();
         if (state.cities.some((city) => city.marketApiName === DEFAULT_CITY)) {
             state.city = DEFAULT_CITY;
@@ -1018,8 +1031,8 @@ async function init() {
         await loadPrices(container, { showLoader: false });
         bindLivePrices(() => ({
             items: [
-                ...MATS.map((mat) => mat.uniqueName),
-                ...ITEMS.map((item) => item.uniqueName)
+                ...mats().map((mat) => mat.uniqueName),
+                ...items().map((item) => item.uniqueName)
             ],
             cities: [state.city],
             pause: state.livePaused

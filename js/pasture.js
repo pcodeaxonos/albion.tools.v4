@@ -37,67 +37,38 @@ import {
     explainSaleSteps,
     explainProfitFoot
 } from './calc-explain.js';
+import { getAnimals, getEconomyConstant } from './catalog.js';
 
 const CITY_STORAGE_KEY = 'albiontools.v4.pasture.city';
 const PREFS_STORAGE_KEY = 'albiontools.v4.pasture.prefs';
-const BASE_YIELD = 4.5;
-const PREMIUM_YIELD = 9;
-const CITY_YIELD_BONUS = 0.1;
-const FEED_QTY = 9;
-const MEAT_QTY = 18;
-const PRODUCT_QTY = 18;
 
-const YIELD_LADDER = [
-    { seedReturn: 0, waterBonus: 2 },
-    { seedReturn: 0.3333, waterBonus: 1.33 },
-    { seedReturn: 0.6, waterBonus: 0.8 },
-    { seedReturn: 0.7333, waterBonus: 0.53 },
-    { seedReturn: 0.8, waterBonus: 0.4 },
-    { seedReturn: 0.8667, waterBonus: 0.27 },
-    { seedReturn: 0.9111, waterBonus: 0.18 },
-    { seedReturn: 0.9333, waterBonus: 0.13 }
-];
+function baseYield() {
+    return getEconomyConstant('base_yield', 4.5);
+}
 
-const FEED_CROPS = {
-    wheat: { stem: 'WHEAT', label: 'Sheaf of Wheat', bonusCities: ['Martlock', 'Brecilien'] },
-    turnip: { stem: 'TURNIP', label: 'Turnips', bonusCities: ['Fort Sterling', 'Brecilien'] },
-    cabbage: { stem: 'CABBAGE', label: 'Cabbage', bonusCities: ['Thetford', 'Brecilien'] },
-    potato: { stem: 'POTATO', label: 'Potatoes', bonusCities: ['Martlock', 'Brecilien'] },
-    corn: { stem: 'CORN', label: 'Bundle of Corn', bonusCities: ['Bridgewatch', 'Brecilien'] },
-    pumpkin: { stem: 'PUMPKIN', label: 'Pumpkin', bonusCities: ['Lymhurst', 'Brecilien'] }
-};
+function premiumYield() {
+    return getEconomyConstant('premium_yield', 9);
+}
 
-const ANIMALS = [
-    animal('chicken', 3, 'CHICKEN', 'Chicken', 5780, 'wheat', 'EGG', 486),
-    animal('goat', 4, 'GOAT', 'Goat', 8670, 'turnip', 'MILK', 441),
-    animal('goose', 5, 'GOOSE', 'Goose', 11560, 'cabbage', 'EGG', 390),
-    animal('sheep', 6, 'SHEEP', 'Sheep', 17340, 'potato', 'MILK', 429),
-    animal('pig', 7, 'PIG', 'Pig', 26010, 'corn', null, 473),
-    animal('cow', 8, 'COW', 'Cow', 34680, 'pumpkin', 'MILK', 500)
-];
+function cityYieldBonus() {
+    return getEconomyConstant('city_yield_bonus', 0.1);
+}
 
-function animal(key, tier, stem, label, vendor, feedKey, productStem, focusCost) {
-    const ladder = YIELD_LADDER[tier - 1];
-    const feed = FEED_CROPS[feedKey];
-    return {
-        id: `pasture-${key}`,
-        key,
-        tier,
-        label,
-        vendor,
-        focusCost,
-        seedReturn: ladder.seedReturn,
-        waterBonus: ladder.waterBonus,
-        babyId: `T${tier}_FARM_${stem}_BABY`,
-        grownId: `T${tier}_FARM_${stem}_GROWN`,
-        meatId: `T${tier}_MEAT`,
-        productId: productStem ? `T${tier}_${productStem}` : null,
-        feedKey,
-        feedSeedId: `T${tier}_FARM_${feed.stem}_SEED`,
-        feedPlantId: `T${tier}_${feed.stem}`,
-        feedLabel: feed.label,
-        feedBonusCities: feed.bonusCities
-    };
+function feedQty() {
+    return getAnimals({ kind: 'livestock' })[0]?.feedQtyPasture
+        ?? 9;
+}
+
+function meatQty() {
+    return getEconomyConstant('meatQty()', 18);
+}
+
+function productQty() {
+    return getEconomyConstant('productQty()', 18);
+}
+
+function animals() {
+    return getAnimals({ kind: 'livestock' });
 }
 
 const state = {
@@ -129,8 +100,8 @@ function hasFeedCropBonus(item, city) {
 }
 
 function harvestQty(item) {
-    const base = state.premium ? PREMIUM_YIELD : BASE_YIELD;
-    return hasFeedCropBonus(item, state.city) ? base * (1 + CITY_YIELD_BONUS) : base;
+    const base = state.premium ? premiumYield() : baseYield();
+    return hasFeedCropBonus(item, state.city) ? base * (1 + cityYieldBonus()) : base;
 }
 
 function seedReturnRate(item, watered) {
@@ -344,14 +315,14 @@ function pathProfits(item, focused) {
     const chance = babyChance(item, focused);
 
     const babyNet = baby ? purchaseCost(baby.price, { setup: baby.setup }) : null;
-    const growCost = babyNet != null && unit != null ? babyNet + FEED_QTY * unit : null;
+    const growCost = babyNet != null && unit != null ? babyNet + feedQty() * unit : null;
     const babyCredit = baby && Number.isFinite(chance) ? chance * baby.price : null;
 
     const growRev = grown && babyCredit != null
         ? saleProceeds(grown.price, { premium: state.premium, setup: grown.setup }) + babyCredit
         : null;
     const butcherRev = meat && babyCredit != null
-        ? saleProceeds(meat.price, { premium: state.premium, setup: meat.setup }) * MEAT_QTY + babyCredit
+        ? saleProceeds(meat.price, { premium: state.premium, setup: meat.setup }) * meatQty() + babyCredit
         : null;
 
     const profitGrow = growRev != null && growCost != null ? growRev - growCost : null;
@@ -360,8 +331,8 @@ function pathProfits(item, focused) {
     let profitFeed = null;
     let feedCost = null;
     if (item.productId && unit != null && product) {
-        feedCost = FEED_QTY * unit;
-        const feedRev = saleProceeds(product.price, { premium: state.premium, setup: product.setup }) * PRODUCT_QTY;
+        feedCost = feedQty() * unit;
+        const feedRev = saleProceeds(product.price, { premium: state.premium, setup: product.setup }) * productQty();
         profitFeed = feedRev - feedCost;
     }
 
@@ -428,7 +399,7 @@ function computeRow(item) {
 }
 
 function rows() {
-    return ANIMALS.map(computeRow);
+    return animals().map(computeRow);
 }
 
 function explainIcon(uniqueName) {
@@ -528,17 +499,17 @@ function pathRevenue(row, pathId) {
         const meatNet = row.meat
             ? saleProceeds(row.meat.price, { premium: state.premium, setup: row.meat.setup })
             : null;
-        return meatNet != null && babyCredit != null ? meatNet * MEAT_QTY + babyCredit : null;
+        return meatNet != null && babyCredit != null ? meatNet * meatQty() + babyCredit : null;
     }
     if (pathId === 'feed' && row.item.productId && row.product) {
-        return saleProceeds(row.product.price, { premium: state.premium, setup: row.product.setup }) * PRODUCT_QTY;
+        return saleProceeds(row.product.price, { premium: state.premium, setup: row.product.setup }) * productQty();
     }
     return null;
 }
 
 function pathCost(row, pathId) {
     if (pathId === 'feed') {
-        return row.unit != null ? FEED_QTY * row.unit : null;
+        return row.unit != null ? feedQty() * row.unit : null;
     }
     return row.growCost;
 }
@@ -554,7 +525,7 @@ function renderPastureExplain(key, { hovered } = {}) {
     const baby = row.baby;
     const babyNet = baby ? purchaseCost(baby.price, { setup: baby.setup }) : null;
     const babyCredit = baby && Number.isFinite(row.chance) ? row.chance * baby.price : null;
-    const feedSpend = row.unit != null ? FEED_QTY * row.unit : null;
+    const feedSpend = row.unit != null ? feedQty() * row.unit : null;
     const grownIcon = explainIcon(item.grownId);
     const bestId = row.best?.id;
     const bestRev = bestId ? pathRevenue(row, bestId) : null;
@@ -606,10 +577,10 @@ function renderPastureExplain(key, { hovered } = {}) {
         }),
         explainStep({
             icon: explainIcon(item.feedPlantId),
-            label: `Yem ×${FEED_QTY}`,
+            label: `Yem ×${feedQty()}`,
             note: 'Büyütme / besleme için tüketilen yem',
             formula: [
-                explainNum(FEED_QTY, { kind: 'qty', cap: 'adet' }),
+                explainNum(feedQty(), { kind: 'qty', cap: 'adet' }),
                 explainOp('×'),
                 explainNum(row.unit, { tone: 'cost', cap: 'yem birim' })
             ],
@@ -713,12 +684,12 @@ function renderPastureExplain(key, { hovered } = {}) {
         icon: explainIcon(item.meatId)
     });
     butcherSale.push(explainStep({
-        label: `Et ×${MEAT_QTY} + kredi`,
+        label: `Et ×${meatQty()} + kredi`,
         note: 'Kesme geliri',
         formula: [
             explainNum(meatNetSale, { tone: 'sell', cap: 'net et' }),
             explainOp('×'),
-            explainNum(MEAT_QTY, { kind: 'qty', cap: 'adet' }),
+            explainNum(meatQty(), { kind: 'qty', cap: 'adet' }),
             explainOp('+'),
             explainNum(babyCredit, { tone: 'sell', cap: 'kredi' })
         ],
@@ -786,12 +757,12 @@ function renderPastureExplain(key, { hovered } = {}) {
             icon: explainIcon(item.productId)
         });
         feedSale.push(explainStep({
-            label: `Ürün ×${PRODUCT_QTY}`,
+            label: `Ürün ×${productQty()}`,
             note: 'Besleme geliri (yavru kredisi yok; yalnız yem maliyeti)',
             formula: [
                 explainNum(productNetSale, { tone: 'sell', cap: 'net ürün' }),
                 explainOp('×'),
-                explainNum(PRODUCT_QTY, { kind: 'qty', cap: 'adet' })
+                explainNum(productQty(), { kind: 'qty', cap: 'adet' })
             ],
             result: feedRev,
             resultKind: 'sell',
@@ -884,7 +855,7 @@ function bindExplain(container) {
         table: container.querySelector('.pasture-table'),
         rowKey: (tr) => tr.dataset.itemId,
         keys: () => rows().map((row) => row.item.id),
-        defaultKey: () => bestProfitId(rows()) ?? ANIMALS[0]?.id ?? null,
+        defaultKey: () => bestProfitId(rows()) ?? animals()[0]?.id ?? null,
         render: (key, meta) => renderPastureExplain(key, meta)
     });
 }
@@ -1167,7 +1138,7 @@ function renderTable() {
 }
 
 function latestQuoteDate() {
-    const dates = ANIMALS
+    const dates = animals()
         .flatMap((item) => [
             babyQuote(item)?.date,
             feedInputQuote(item)?.date,
@@ -1212,7 +1183,7 @@ function renderOutput() {
                 Satış: büyümüş ${escapeHtml(priceSideHint(state.grownSide, 'sell'))}${grownSetup ? ` · setup ${formatPct(SETUP_FEE)}` : ''},
                 et ${escapeHtml(priceSideHint(state.meatSide, 'sell'))}${meatSetup ? ` · setup ${formatPct(SETUP_FEE)}` : ''},
                 ürün ${escapeHtml(priceSideHint(state.productSide, 'sell'))}${productSetup ? ` · setup ${formatPct(SETUP_FEE)}` : ''}.
-                Büyütme / besleme yem ×${FEED_QTY}, kesme et ×${MEAT_QTY}, ürün ×${PRODUCT_QTY}. Domuzda süt yok.
+                Büyütme / besleme yem ×${feedQty()}, kesme et ×${meatQty()}, ürün ×${productQty()}. Domuzda süt yok.
                 Kâr sütunlarında üstte % (maliyete oran), altta gümüş. En iyi = en yüksek %.
                 Yavru işareti NPC fiyatına göre.${focusNote}
                 Elle yazılan fiyat API’nin yerine geçer. Kırmızı fiyat API’de yok; turuncu 6 saatten eski.${stamp ? ` ${stamp}` : ''}
@@ -1410,7 +1381,7 @@ function bindPriceInputs(container) {
 
             input.addEventListener('change', () => {
                 const id = dataKey(input, binder.key);
-                const item = ANIMALS.find((row) => row.id === id);
+                const item = animals().find((row) => row.id === id);
                 if (parsePrice(input.value) == null) {
                     state[binder.map][id] = null;
                     const fetched = item ? resolveFetched(item, binder.key) : null;
@@ -1578,7 +1549,7 @@ function bindPage(container) {
 
 function priceItemIds() {
     const ids = new Set();
-    for (const item of ANIMALS) {
+    for (const item of animals()) {
         ids.add(item.babyId);
         ids.add(item.grownId);
         ids.add(item.meatId);

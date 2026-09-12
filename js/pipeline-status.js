@@ -1,5 +1,5 @@
 import { escapeHtml } from './utils.js';
-import { getSettings, getServer, LOCAL_PRICE_HOST, PRICE_SOURCES } from './settings.js';
+import { getSettings, getServer, localPriceHost, PRICE_SOURCES } from './settings.js';
 import { startPriceLive, noteHubSnapshot, PRICES_EVENT } from './price-live.js';
 
 const ROOT_ID = 'appStatus';
@@ -215,7 +215,7 @@ async function probe() {
 
     let hub = null;
     try {
-        hub = await fetchJson(`${LOCAL_PRICE_HOST}/api/v2/stats/status`, HUB_TIMEOUT_MS);
+        hub = await fetchJson(`${localPriceHost()}/api/v2/stats/status`, HUB_TIMEOUT_MS);
         noteHubSnapshot(hub);
         const orders = hub.orders ?? 0;
         const cities = Array.isArray(hub.cities) && hub.cities.length > 0

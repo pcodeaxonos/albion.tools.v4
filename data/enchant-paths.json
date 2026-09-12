@@ -1,0 +1,44 @@
+[
+  {
+    "id": 1,
+    "fromEnchant": 0,
+    "toEnchant": 1,
+    "tone": "rune",
+    "sortValue": 10
+  },
+  {
+    "id": 2,
+    "fromEnchant": 0,
+    "toEnchant": 2,
+    "tone": "soul",
+    "sortValue": 20
+  },
+  {
+    "id": 3,
+    "fromEnchant": 0,
+    "toEnchant": 3,
+    "tone": "relic",
+    "sortValue": 30
+  },
+  {
+    "id": 4,
+    "fromEnchant": 1,
+    "toEnchant": 2,
+    "tone": "soul",
+    "sortValue": 40
+  },
+  {
+    "id": 5,
+    "fromEnchant": 1,
+    "toEnchant": 3,
+    "tone": "span",
+    "sortValue": 50
+  },
+  {
+    "id": 6,
+    "fromEnchant": 2,
+    "toEnchant": 3,
+    "tone": "relic",
+    "sortValue": 60
+  }
+]

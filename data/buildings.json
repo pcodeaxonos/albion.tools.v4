@@ -1,0 +1,18 @@
+[
+  {
+    "id": 1,
+    "code": "house",
+    "label": "House",
+    "blocks": 180,
+    "sortValue": 10,
+    "isActive": true
+  },
+  {
+    "id": 2,
+    "code": "guild",
+    "label": "Guild Hall",
+    "blocks": 900,
+    "sortValue": 20,
+    "isActive": true
+  }
+]

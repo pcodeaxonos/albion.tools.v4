@@ -4,8 +4,10 @@ import { recordCurrentToolVisit } from './usage.js';
 import { bootLocalDataSync } from './local-data.js';
 import { initPipelineStatus } from './pipeline-status.js';
 import { initTodayBonusChip } from './today-bonus.js';
+import { initStore } from './db/store.js';
 
 await bootLocalDataSync();
+await initStore();
 
 const SIDEBAR_ID = 'appSidebar';
 const OPEN_CLASS = 'is-open';

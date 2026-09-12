@@ -1,21 +1,72 @@
 import { normalizePriceSide } from './price-side.js';
+import {
+    getPriceServers,
+    getPriceSources,
+    getEnchantPowers,
+    getLocalPriceHost
+} from './catalog.js';
 
 const STORAGE_KEY = 'albiontools.v4.settings';
 
-export const SERVERS = [
+const FALLBACK_SERVERS = [
     { id: 'europe', label: 'Europe', host: 'https://europe.albion-online-data.com' },
     { id: 'west', label: 'Americas', host: 'https://west.albion-online-data.com' },
     { id: 'east', label: 'Asia', host: 'https://east.albion-online-data.com' }
 ];
 
-export const PRICE_SOURCES = [
+const FALLBACK_SOURCES = [
     { id: 'api', label: 'AODP API' },
     { id: 'packets', label: 'Oyundaki paketler' }
 ];
 
-export const LOCAL_PRICE_HOST = 'http://127.0.0.1:3001';
+const FALLBACK_POWERS = [5, 6, 7, 8, 9, 10, 11];
 
-export const ENCHANT_POWERS = [5, 6, 7, 8, 9, 10, 11];
+export function listServers() {
+    const rows = getPriceServers();
+    return rows.length ? rows : FALLBACK_SERVERS;
+}
+
+export function listPriceSources() {
+    const rows = getPriceSources();
+    return rows.length ? rows : FALLBACK_SOURCES;
+}
+
+export function listEnchantPowers() {
+    const rows = getEnchantPowers();
+    return rows.length ? rows : FALLBACK_POWERS;
+}
+
+/** Compat iterators for existing .map/.find/.some usage */
+export const SERVERS = {
+    [Symbol.iterator]: function* () { yield* listServers(); },
+    map(...args) { return listServers().map(...args); },
+    find(...args) { return listServers().find(...args); },
+    some(...args) { return listServers().some(...args); },
+    get length() { return listServers().length; },
+    get 0() { return listServers()[0]; }
+};
+
+export const PRICE_SOURCES = {
+    [Symbol.iterator]: function* () { yield* listPriceSources(); },
+    map(...args) { return listPriceSources().map(...args); },
+    find(...args) { return listPriceSources().find(...args); },
+    some(...args) { return listPriceSources().some(...args); },
+    get length() { return listPriceSources().length; }
+};
+
+export const ENCHANT_POWERS = {
+    [Symbol.iterator]: function* () { yield* listEnchantPowers(); },
+    map(...args) { return listEnchantPowers().map(...args); },
+    includes(value) { return listEnchantPowers().includes(value); },
+    get length() { return listEnchantPowers().length; }
+};
+
+export function localPriceHost() {
+    return getLocalPriceHost();
+}
+
+/** @deprecated use localPriceHost() — static fallback for early imports */
+export const LOCAL_PRICE_HOST = 'http://127.0.0.1:3001';
 
 export const DEFAULT_SETTINGS = {
     premium: true,
@@ -59,7 +110,7 @@ export function cityHasIsland(apiName, islandCities = getSettings().islandCities
 
 export function normalizeEnchantPower(value) {
     const power = Number(value);
-    return ENCHANT_POWERS.includes(power) ? power : DEFAULT_SETTINGS.enchantPower;
+    return listEnchantPowers().includes(power) ? power : DEFAULT_SETTINGS.enchantPower;
 }
 
 export function enchantPowerCombos(power) {
@@ -83,11 +134,11 @@ export function enchantPowerLabel(power) {
 }
 
 function isServerId(value) {
-    return SERVERS.some((server) => server.id === value);
+    return listServers().some((server) => server.id === value);
 }
 
 function isPriceSource(value) {
-    return PRICE_SOURCES.some((source) => source.id === value);
+    return listPriceSources().some((source) => source.id === value);
 }
 
 export function getSettings() {
@@ -137,9 +188,9 @@ export function saveSettings(partial) {
 
 export function getServer() {
     const id = getSettings().server;
-    return SERVERS.find((server) => server.id === id) ?? SERVERS[0];
+    return listServers().find((server) => server.id === id) ?? listServers()[0];
 }
 
 export function getPriceHost() {
-    return getSettings().priceSource === 'packets' ? LOCAL_PRICE_HOST : getServer().host;
+    return getSettings().priceSource === 'packets' ? localPriceHost() : getServer().host;
 }

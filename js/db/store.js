@@ -2,12 +2,40 @@ import { getTable, getTableNames, tables } from './schema.js';
 
 const STORAGE_PREFIX = 'albiontools.v4.';
 const SEED_REVISION_KEY = STORAGE_PREFIX + 'seedRevision';
-const SEED_REVISION = 2;
-const RESEED_TABLES = ['items', 'itemCategories'];
+const SEED_REVISION = 7;
+const RESEED_TABLES = [
+    'items',
+    'itemCategories',
+    'cities',
+    'bonusFamilies',
+    'materialKeys',
+    'yieldLadders',
+    'yieldLadderSteps',
+    'plants',
+    'plantBonusCities',
+    'animals',
+    'animalBonusCities',
+    'economyConstants',
+    'islandPlots',
+    'craftRecipes',
+    'craftRecipeLines',
+    'refineFamilies',
+    'refineTiers',
+    'factions',
+    'enchantSlots',
+    'enchantSteps',
+    'enchantPaths',
+    'buildings',
+    'buildingTiers',
+    'materialGroups',
+    'materialGroupTiers',
+    'siteTools',
+    'sitePages',
+    'priceServers',
+    'priceSources'
+];
 const DAILY_BONUSES_IMPORT_KEY = STORAGE_PREFIX + 'dailyBonusesImport';
 const DAILY_BONUSES_IMPORT_REV = 1;
-const BONUS_FAMILIES_SEED_KEY = STORAGE_PREFIX + 'bonusFamiliesSeed';
-const BONUS_FAMILIES_SEED_REV = 2;
 
 function storageKey(tableName) {
     return STORAGE_PREFIX + tableName;
@@ -36,43 +64,38 @@ function applyDailyBonusesImport() {
     localStorage.setItem(DAILY_BONUSES_IMPORT_KEY, String(DAILY_BONUSES_IMPORT_REV));
 }
 
-function applyBonusFamiliesSeed() {
-    const current = Number(localStorage.getItem(BONUS_FAMILIES_SEED_KEY) || '0');
-    if (current >= BONUS_FAMILIES_SEED_REV) {
-        return;
+async function fetchSeedRows(table) {
+    if (!table.seedUrl) {
+        throw new Error(`${table.displayName || 'Tablo'} için seed dosyası yok`);
     }
 
-    localStorage.removeItem(storageKey('bonusFamilies'));
-    localStorage.setItem(BONUS_FAMILIES_SEED_KEY, String(BONUS_FAMILIES_SEED_REV));
+    const response = await fetch(table.seedUrl);
+    if (!response.ok) {
+        throw new Error(`Seed yüklenemedi (${response.status}): ${table.seedUrl}`);
+    }
+
+    return response.json();
+}
+
+async function seedTableIfEmpty(tableName) {
+    const table = tables[tableName];
+    const key = storageKey(tableName);
+
+    if (localStorage.getItem(key)) {
+        return false;
+    }
+
+    const data = await fetchSeedRows(table);
+    localStorage.setItem(key, JSON.stringify(data));
+    return true;
 }
 
 export async function initStore() {
     applySeedRevision();
     applyDailyBonusesImport();
-    applyBonusFamiliesSeed();
 
     for (const tableName of getTableNames()) {
-        const table = tables[tableName];
-        const key = storageKey(tableName);
-
-        if (localStorage.getItem(key)) {
-            continue;
-        }
-
-        if (table.seed === 'bonusFamilies') {
-            const { seedBonusFamilyRows } = await import('../bonus-cities.js');
-            localStorage.setItem(key, JSON.stringify(seedBonusFamilyRows()));
-            continue;
-        }
-
-        const response = await fetch(table.seedUrl);
-
-        if (!response.ok) {
-            throw new Error(`${tableName} seed verisi yüklenemedi (${response.status})`);
-        }
-
-        const data = await response.json();
-        localStorage.setItem(key, JSON.stringify(data));
+        await seedTableIfEmpty(tableName);
     }
 }
 
@@ -83,6 +106,9 @@ function readRows(tableName) {
 
 function writeRows(tableName, rows) {
     localStorage.setItem(storageKey(tableName), JSON.stringify(rows));
+    if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('albiontools:db-write', { detail: { tableName } }));
+    }
 }
 
 export function getRowCount(tableName) {
@@ -124,7 +150,10 @@ function coerceValue(column, rawValue) {
         return rawValue === true || rawValue === 'true' || rawValue === 'on';
     }
 
-    if (column.type === 'number') {
+    if (column.type === 'number' || column.type === 'ref') {
+        if (rawValue === '' || rawValue == null) {
+            return null;
+        }
         const num = Number(rawValue);
         return Number.isNaN(num) ? 0 : num;
     }
@@ -206,6 +235,73 @@ export function deleteRow(tableName, id) {
 
 export function resetTable(tableName) {
     localStorage.removeItem(storageKey(tableName));
+}
+
+export async function reseedTable(tableName) {
+    const table = getTable(tableName);
+    if (!table) {
+        throw new Error('Tablo bulunamadı');
+    }
+
+    resetTable(tableName);
+    await seedTableIfEmpty(tableName);
+}
+
+export function replaceAllRows(tableName, rows) {
+    if (!getTable(tableName)) {
+        throw new Error('Tablo bulunamadı');
+    }
+    if (!Array.isArray(rows)) {
+        throw new Error('JSON dizi olmalı');
+    }
+    writeRows(tableName, rows);
+}
+
+export function mergeImportedRows(tableName, incoming) {
+    const table = getTable(tableName);
+    if (!table) {
+        throw new Error('Tablo bulunamadı');
+    }
+    if (!Array.isArray(incoming)) {
+        throw new Error('JSON dizi olmalı');
+    }
+
+    const key = table.key;
+    const current = getAll(tableName);
+    const byKey = new Map(current.map((row) => [String(row[key]), row]));
+    let added = 0;
+    let updated = 0;
+
+    for (const row of incoming) {
+        const id = String(row[key]);
+        if (byKey.has(id)) {
+            byKey.set(id, { ...byKey.get(id), ...row });
+            updated += 1;
+        } else {
+            byKey.set(id, row);
+            added += 1;
+        }
+    }
+
+    writeRows(tableName, [...byKey.values()]);
+    return { added, updated, total: byKey.size };
+}
+
+export function exportTableJson(tableName) {
+    return JSON.stringify(getAll(tableName), null, 2);
+}
+
+export async function loadSeedRows(tableName) {
+    const table = getTable(tableName);
+    if (!table) {
+        throw new Error('Tablo bulunamadı');
+    }
+    return fetchSeedRows(table);
+}
+
+export function tableHasLocalChanges(tableName, seedRows) {
+    const local = getAll(tableName);
+    return JSON.stringify(local) !== JSON.stringify(seedRows);
 }
 
 export async function resetAllTables() {

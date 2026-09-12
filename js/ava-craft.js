@@ -38,57 +38,50 @@ import {
     explainEmptyHtml,
     explainHint
 } from './calc-explain.js';
+import { getCraftRecipes, cityProductionBonus } from './catalog.js';
 
-const CITY_PRODUCTION = 18;
 const FAMILY_KEY = 'gathering/tool';
 const CITY_STORAGE_KEY = 'albiontools.v4.avaCraft.city';
 const ENERGY_ID = 'QUESTITEM_TOKEN_AVALON';
-const TIERS = [4, 5, 6, 7, 8];
-const PLANK_QTY = 6;
-const BAR_QTY = 2;
-const ENERGY_BY_TIER = { 4: 20, 5: 90, 6: 160, 7: 230, 8: 300 };
 
-const TOOL_TYPES = [
-    { key: 'pickaxe', stem: '2H_TOOL_PICK_AVALON', label: 'Pickaxe' },
-    { key: 'hammer', stem: '2H_TOOL_HAMMER_AVALON', label: 'Stone Hammer' },
-    { key: 'axe', stem: '2H_TOOL_AXE_AVALON', label: 'Axe' },
-    { key: 'sickle', stem: '2H_TOOL_SICKLE_AVALON', label: 'Sickle' },
-    { key: 'knife', stem: '2H_TOOL_KNIFE_AVALON', label: 'Skinning Knife' },
-    { key: 'rod', stem: '2H_TOOL_FISHINGROD_AVALON', label: 'Fishing Rod' }
-];
-
-function plankId(tier) {
-    return `T${tier}_PLANKS`;
+function cityProduction() {
+    return cityProductionBonus();
 }
 
-function barId(tier) {
-    return `T${tier}_METALBAR`;
+function items() {
+    return getCraftRecipes({ tool: 'ava' }).map((recipe) => ({
+        id: recipe.code,
+        uniqueName: recipe.uniqueName,
+        label: recipe.label,
+        tier: recipe.tier,
+        familyKey: recipe.familyKey || FAMILY_KEY,
+        recipe: recipe.recipe,
+        lines: recipe.lines
+    }));
 }
 
-function toolId(stem, tier) {
-    return `T${tier}_${stem}`;
-}
-
-const MATS = [
-    { key: 'energy', uniqueName: ENERGY_ID, short: 'Energy', rr: false },
-    ...TIERS.flatMap((tier) => [
-        { key: `plank-${tier}`, uniqueName: plankId(tier), short: `T${tier} Plank`, rr: true, tier, kind: 'plank' },
-        { key: `bar-${tier}`, uniqueName: barId(tier), short: `T${tier} Bar`, rr: true, tier, kind: 'bar' }
-    ])
-];
-
-const ITEMS = TOOL_TYPES.flatMap((tool) => TIERS.map((tier) => ({
-    id: `${tool.key}-${tier}`,
-    uniqueName: toolId(tool.stem, tier),
-    label: tool.label,
-    tier,
-    familyKey: FAMILY_KEY,
-    recipe: {
-        plank: PLANK_QTY,
-        bar: BAR_QTY,
-        energy: ENERGY_BY_TIER[tier]
+function mats() {
+    const list = [];
+    const seen = new Set();
+    for (const item of items()) {
+        for (const line of item.lines) {
+            const key = line.key === 'energy' ? 'energy' : `${line.key}-${item.tier}`;
+            if (seen.has(key)) {
+                continue;
+            }
+            seen.add(key);
+            list.push({
+                key,
+                uniqueName: line.key === 'energy' ? ENERGY_ID : line.uniqueName,
+                short: line.key === 'energy' ? 'Energy' : line.short,
+                rr: line.appliesRr !== false,
+                tier: item.tier,
+                kind: line.key
+            });
+        }
     }
-})));
+    return list;
+}
 
 const state = {
     premium: true,
@@ -97,13 +90,26 @@ const state = {
     city: 'Bridgewatch',
     cities: [],
     priceIndex: null,
-    manualMats: Object.fromEntries(MATS.map((mat) => [mat.key, null])),
-    manualItems: Object.fromEntries(ITEMS.map((item) => [item.id, null])),
+    manualMats: {},
+    manualItems: {},
     bonusRate: 0,
     error: null,
     loaded: false,
     sort: { key: 'pct', direction: 'desc' }
 };
+
+function ensureManualMaps() {
+    for (const mat of mats()()) {
+        if (!(mat.key in state.manualMats)) {
+            state.manualMats[mat.key] = null;
+        }
+    }
+    for (const item of items()) {
+        if (!(item.id in state.manualItems)) {
+            state.manualItems[item.id] = null;
+        }
+    }
+}
 
 function formatSilver(value, { unsigned = false } = {}) {
     if (!Number.isFinite(value)) {
@@ -165,7 +171,7 @@ function saveCity(apiName) {
 }
 
 function productionBonus() {
-    return CITY_PRODUCTION + state.bonusRate;
+    return cityProduction() + state.bonusRate;
 }
 
 function returnRate() {
@@ -217,7 +223,7 @@ function averageQuote(uniqueName) {
 }
 
 function fetchedMatQuote(key) {
-    const mat = MATS.find((row) => row.key === key);
+    const mat = mats().find((row) => row.key === key);
     if (!mat) {
         return null;
     }
@@ -225,7 +231,7 @@ function fetchedMatQuote(key) {
 }
 
 function fetchedItemQuote(id) {
-    const item = ITEMS.find((row) => row.id === id);
+    const item = items().find((row) => row.id === id);
     if (!item) {
         return null;
     }
@@ -278,7 +284,7 @@ function rows() {
     const rr = returnRate();
     const matSetup = placesOrder('buy', state.matSide);
 
-    return ITEMS.map((item) => {
+    return items().map((item) => {
         const quote = itemQuote(item.id);
         const parts = matCost(item);
         const cost = parts == null
@@ -295,8 +301,8 @@ function rows() {
 }
 
 function recipeChips(item) {
-    const plank = plankId(item.tier);
-    const bar = barId(item.tier);
+    const plank = mats().find((mat) => mat.key === `plank-${item.tier}`)?.uniqueName;
+    const bar = mats().find((mat) => mat.key === `bar-${item.tier}`)?.uniqueName;
     return `
         <span class="ava-chip">
             ${itemIconHtml(plank, { className: 'item-icon ava-chip-icon' })}
@@ -370,11 +376,11 @@ function matMetaText(mat) {
 }
 
 function renderEnergyCard() {
-    const mat = MATS[0];
+    const mat = mats()[0];
     const fetched = fetchedMatQuote(mat.key);
     const value = priceInputValue(state.manualMats[mat.key], fetched?.price);
     return `
-        <ul class="ava-mats ava-mats--energy">
+        <ul class="ava-mats() ava-mats()--energy">
             <li class="ava-mat" data-mat-card="${escapeHtml(mat.key)}">
                 ${itemIconHtml(mat.uniqueName)}
                 <span class="ava-mat-text">
@@ -399,10 +405,10 @@ function renderEnergyCard() {
 
 function renderTierMats() {
     return `
-        <ul class="ava-mats ava-mats--tiers">
+        <ul class="ava-mats() ava-mats()--tiers">
             ${TIERS.map((tier) => {
-                const plank = MATS.find((mat) => mat.key === `plank-${tier}`);
-                const bar = MATS.find((mat) => mat.key === `bar-${tier}`);
+                const plank = mats().find((mat) => mat.key === `plank-${tier}`);
+                const bar = mats().find((mat) => mat.key === `bar-${tier}`);
                 const plankFetched = fetchedMatQuote(plank.key);
                 const barFetched = fetchedMatQuote(bar.key);
                 return `
@@ -494,10 +500,10 @@ function renderAvaExplain(key, { hovered } = {}) {
     const afterRr = refined != null ? refined * keep : null;
     const withToken = afterRr != null && energyTotal != null ? afterRr + energyTotal : null;
     const toolIcon = itemIconHtml(row.item.uniqueName, { className: 'item-icon calc-explain-icon' });
-    const plankIcon = itemIconHtml(plankId(row.item.tier), { className: 'item-icon calc-explain-icon' });
-    const barIcon = itemIconHtml(barId(row.item.tier), { className: 'item-icon calc-explain-icon' });
+    const plankIcon = itemIconHtml(mats().find((mat) => mat.key === `plank-${row.item.tier}`)?.uniqueName, { className: 'item-icon calc-explain-icon' });
+    const barIcon = itemIconHtml(mats().find((mat) => mat.key === `bar-${row.item.tier}`)?.uniqueName, { className: 'item-icon calc-explain-icon' });
     const energyIcon = itemIconHtml(ENERGY_ID, { className: 'item-icon calc-explain-icon' });
-    const chips = [{ label: 'şehir', value: CITY_PRODUCTION, tone: 'city', title: 'Üretim şehri taban bonusu' }];
+    const chips = [{ label: 'şehir', value: cityProduction(), tone: 'city', title: 'Üretim şehri taban bonusu' }];
     if (state.bonusRate) {
         chips.push({ label: 'bonus', value: state.bonusRate, tone: 'bonus', title: 'Günlük gathering tool bonusu' });
     }
@@ -816,7 +822,7 @@ function refreshCalc(container) {
 
     refreshCalcExplain(container.querySelector('#avaExplain'));
 
-    MATS.forEach((mat) => {
+    mats().forEach((mat) => {
         const card = container.querySelector(`[data-mat-card="${mat.key}"]`);
         if (!card) {
             return;
@@ -1000,8 +1006,8 @@ async function loadPrices(container, { showLoader = true, source } = {}) {
             throw new Error('Aktif şehir yok.');
         }
         const [matRows, itemRows] = await Promise.all([
-            fetchPrices(MATS.map((mat) => mat.uniqueName), locations, { source }),
-            fetchPrices(ITEMS.map((item) => item.uniqueName), locations, { source })
+            fetchPrices(mats().map((mat) => mat.uniqueName), locations, { source }),
+            fetchPrices(items().map((item) => item.uniqueName), locations, { source })
         ]);
         state.priceIndex = indexPrices([...matRows, ...itemRows]);
         state.loaded = true;
@@ -1036,6 +1042,7 @@ async function init() {
     showPageLoader('Ava craft yükleniyor…');
     try {
         await initStore();
+        ensureManualMaps();
         state.cities = loadCities().filter((city) => city.isActive);
         state.city = readSavedCity(state.cities);
         state.bonusRate = defaultCraftBonusRate([FAMILY_KEY]);
@@ -1043,8 +1050,8 @@ async function init() {
         await loadPrices(container, { showLoader: false });
         bindLivePrices(() => ({
             items: [
-                ...MATS.map((mat) => mat.uniqueName),
-                ...ITEMS.map((item) => item.uniqueName)
+                ...mats().map((mat) => mat.uniqueName),
+                ...items().map((item) => item.uniqueName)
             ],
             cities: [state.city],
             pause: state.livePaused

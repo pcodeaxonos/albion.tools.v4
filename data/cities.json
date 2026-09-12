@@ -4,6 +4,7 @@
     "name": "Bridgewatch",
     "displayName": "Bridgewatch",
     "marketApiName": "Bridgewatch",
+    "shortCode": "BW",
     "cityType": "Royal",
     "isActive": true
   },
@@ -12,6 +13,7 @@
     "name": "FortSterling",
     "displayName": "Fort Sterling",
     "marketApiName": "Fort Sterling",
+    "shortCode": "FS",
     "cityType": "Royal",
     "isActive": true
   },
@@ -20,6 +22,7 @@
     "name": "Lymhurst",
     "displayName": "Lymhurst",
     "marketApiName": "Lymhurst",
+    "shortCode": "LY",
     "cityType": "Royal",
     "isActive": true
   },
@@ -28,6 +31,7 @@
     "name": "Martlock",
     "displayName": "Martlock",
     "marketApiName": "Martlock",
+    "shortCode": "ML",
     "cityType": "Royal",
     "isActive": true
   },
@@ -36,6 +40,7 @@
     "name": "Thetford",
     "displayName": "Thetford",
     "marketApiName": "Thetford",
+    "shortCode": "TF",
     "cityType": "Royal",
     "isActive": true
   },
@@ -44,6 +49,7 @@
     "name": "Caerleon",
     "displayName": "Caerleon",
     "marketApiName": "Caerleon",
+    "shortCode": "CL",
     "cityType": "Caerleon",
     "isActive": true
   },
@@ -52,6 +58,7 @@
     "name": "Brecilien",
     "displayName": "Brecilien",
     "marketApiName": "Brecilien",
+    "shortCode": "BR",
     "cityType": "Brecilien",
     "isActive": true
   }

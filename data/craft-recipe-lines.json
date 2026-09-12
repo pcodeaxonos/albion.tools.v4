@@ -1,0 +1,1928 @@
+[
+  {
+    "id": 1,
+    "recipeId": 1,
+    "materialKeyId": 1,
+    "inputItemId": null,
+    "qty": 20,
+    "appliesRr": true,
+    "sortValue": 1
+  },
+  {
+    "id": 2,
+    "recipeId": 1,
+    "materialKeyId": 2,
+    "inputItemId": null,
+    "qty": 10,
+    "appliesRr": true,
+    "sortValue": 2
+  },
+  {
+    "id": 3,
+    "recipeId": 2,
+    "materialKeyId": 1,
+    "inputItemId": null,
+    "qty": 20,
+    "appliesRr": true,
+    "sortValue": 1
+  },
+  {
+    "id": 4,
+    "recipeId": 2,
+    "materialKeyId": 2,
+    "inputItemId": null,
+    "qty": 10,
+    "appliesRr": true,
+    "sortValue": 2
+  },
+  {
+    "id": 5,
+    "recipeId": 3,
+    "materialKeyId": 1,
+    "inputItemId": null,
+    "qty": 20,
+    "appliesRr": true,
+    "sortValue": 1
+  },
+  {
+    "id": 6,
+    "recipeId": 3,
+    "materialKeyId": 2,
+    "inputItemId": null,
+    "qty": 10,
+    "appliesRr": true,
+    "sortValue": 2
+  },
+  {
+    "id": 7,
+    "recipeId": 4,
+    "materialKeyId": 1,
+    "inputItemId": null,
+    "qty": 20,
+    "appliesRr": true,
+    "sortValue": 1
+  },
+  {
+    "id": 8,
+    "recipeId": 4,
+    "materialKeyId": 2,
+    "inputItemId": null,
+    "qty": 10,
+    "appliesRr": true,
+    "sortValue": 2
+  },
+  {
+    "id": 9,
+    "recipeId": 5,
+    "materialKeyId": 1,
+    "inputItemId": null,
+    "qty": 10,
+    "appliesRr": true,
+    "sortValue": 1
+  },
+  {
+    "id": 10,
+    "recipeId": 5,
+    "materialKeyId": 4,
+    "inputItemId": null,
+    "qty": 20,
+    "appliesRr": true,
+    "sortValue": 2
+  },
+  {
+    "id": 11,
+    "recipeId": 6,
+    "materialKeyId": 1,
+    "inputItemId": null,
+    "qty": 10,
+    "appliesRr": true,
+    "sortValue": 1
+  },
+  {
+    "id": 12,
+    "recipeId": 6,
+    "materialKeyId": 4,
+    "inputItemId": null,
+    "qty": 20,
+    "appliesRr": true,
+    "sortValue": 2
+  },
+  {
+    "id": 13,
+    "recipeId": 7,
+    "materialKeyId": 1,
+    "inputItemId": null,
+    "qty": 10,
+    "appliesRr": true,
+    "sortValue": 1
+  },
+  {
+    "id": 14,
+    "recipeId": 7,
+    "materialKeyId": 4,
+    "inputItemId": null,
+    "qty": 20,
+    "appliesRr": true,
+    "sortValue": 2
+  },
+  {
+    "id": 15,
+    "recipeId": 8,
+    "materialKeyId": 1,
+    "inputItemId": null,
+    "qty": 10,
+    "appliesRr": true,
+    "sortValue": 1
+  },
+  {
+    "id": 16,
+    "recipeId": 8,
+    "materialKeyId": 4,
+    "inputItemId": null,
+    "qty": 20,
+    "appliesRr": true,
+    "sortValue": 2
+  },
+  {
+    "id": 17,
+    "recipeId": 9,
+    "materialKeyId": 1,
+    "inputItemId": null,
+    "qty": 10,
+    "appliesRr": true,
+    "sortValue": 1
+  },
+  {
+    "id": 18,
+    "recipeId": 9,
+    "materialKeyId": 4,
+    "inputItemId": null,
+    "qty": 20,
+    "appliesRr": true,
+    "sortValue": 2
+  },
+  {
+    "id": 19,
+    "recipeId": 10,
+    "materialKeyId": 1,
+    "inputItemId": null,
+    "qty": 10,
+    "appliesRr": true,
+    "sortValue": 1
+  },
+  {
+    "id": 20,
+    "recipeId": 10,
+    "materialKeyId": 4,
+    "inputItemId": null,
+    "qty": 20,
+    "appliesRr": true,
+    "sortValue": 2
+  },
+  {
+    "id": 21,
+    "recipeId": 11,
+    "materialKeyId": 1,
+    "inputItemId": null,
+    "qty": 10,
+    "appliesRr": true,
+    "sortValue": 1
+  },
+  {
+    "id": 22,
+    "recipeId": 11,
+    "materialKeyId": 4,
+    "inputItemId": null,
+    "qty": 20,
+    "appliesRr": true,
+    "sortValue": 2
+  },
+  {
+    "id": 23,
+    "recipeId": 12,
+    "materialKeyId": 1,
+    "inputItemId": null,
+    "qty": 30,
+    "appliesRr": true,
+    "sortValue": 1
+  },
+  {
+    "id": 24,
+    "recipeId": 12,
+    "materialKeyId": 4,
+    "inputItemId": null,
+    "qty": 30,
+    "appliesRr": true,
+    "sortValue": 2
+  },
+  {
+    "id": 25,
+    "recipeId": 13,
+    "materialKeyId": 1,
+    "inputItemId": null,
+    "qty": 30,
+    "appliesRr": true,
+    "sortValue": 1
+  },
+  {
+    "id": 26,
+    "recipeId": 13,
+    "materialKeyId": 4,
+    "inputItemId": null,
+    "qty": 30,
+    "appliesRr": true,
+    "sortValue": 2
+  },
+  {
+    "id": 27,
+    "recipeId": 14,
+    "materialKeyId": 1,
+    "inputItemId": null,
+    "qty": 30,
+    "appliesRr": true,
+    "sortValue": 1
+  },
+  {
+    "id": 28,
+    "recipeId": 14,
+    "materialKeyId": 4,
+    "inputItemId": null,
+    "qty": 30,
+    "appliesRr": true,
+    "sortValue": 2
+  },
+  {
+    "id": 29,
+    "recipeId": 15,
+    "materialKeyId": 1,
+    "inputItemId": null,
+    "qty": 30,
+    "appliesRr": true,
+    "sortValue": 1
+  },
+  {
+    "id": 30,
+    "recipeId": 15,
+    "materialKeyId": 4,
+    "inputItemId": null,
+    "qty": 30,
+    "appliesRr": true,
+    "sortValue": 2
+  },
+  {
+    "id": 31,
+    "recipeId": 16,
+    "materialKeyId": 1,
+    "inputItemId": null,
+    "qty": 30,
+    "appliesRr": true,
+    "sortValue": 1
+  },
+  {
+    "id": 32,
+    "recipeId": 16,
+    "materialKeyId": 4,
+    "inputItemId": null,
+    "qty": 30,
+    "appliesRr": true,
+    "sortValue": 2
+  },
+  {
+    "id": 33,
+    "recipeId": 17,
+    "materialKeyId": 1,
+    "inputItemId": null,
+    "qty": 30,
+    "appliesRr": true,
+    "sortValue": 1
+  },
+  {
+    "id": 34,
+    "recipeId": 17,
+    "materialKeyId": 4,
+    "inputItemId": null,
+    "qty": 30,
+    "appliesRr": true,
+    "sortValue": 2
+  },
+  {
+    "id": 35,
+    "recipeId": 18,
+    "materialKeyId": 1,
+    "inputItemId": null,
+    "qty": 30,
+    "appliesRr": true,
+    "sortValue": 1
+  },
+  {
+    "id": 36,
+    "recipeId": 18,
+    "materialKeyId": 4,
+    "inputItemId": null,
+    "qty": 30,
+    "appliesRr": true,
+    "sortValue": 2
+  },
+  {
+    "id": 37,
+    "recipeId": 19,
+    "materialKeyId": 1,
+    "inputItemId": null,
+    "qty": 6,
+    "appliesRr": true,
+    "sortValue": 1
+  },
+  {
+    "id": 38,
+    "recipeId": 19,
+    "materialKeyId": 2,
+    "inputItemId": null,
+    "qty": 2,
+    "appliesRr": true,
+    "sortValue": 2
+  },
+  {
+    "id": 39,
+    "recipeId": 19,
+    "materialKeyId": 10,
+    "inputItemId": null,
+    "qty": 20,
+    "appliesRr": false,
+    "sortValue": 3
+  },
+  {
+    "id": 40,
+    "recipeId": 20,
+    "materialKeyId": 1,
+    "inputItemId": null,
+    "qty": 6,
+    "appliesRr": true,
+    "sortValue": 1
+  },
+  {
+    "id": 41,
+    "recipeId": 20,
+    "materialKeyId": 2,
+    "inputItemId": null,
+    "qty": 2,
+    "appliesRr": true,
+    "sortValue": 2
+  },
+  {
+    "id": 42,
+    "recipeId": 20,
+    "materialKeyId": 10,
+    "inputItemId": null,
+    "qty": 90,
+    "appliesRr": false,
+    "sortValue": 3
+  },
+  {
+    "id": 43,
+    "recipeId": 21,
+    "materialKeyId": 1,
+    "inputItemId": null,
+    "qty": 6,
+    "appliesRr": true,
+    "sortValue": 1
+  },
+  {
+    "id": 44,
+    "recipeId": 21,
+    "materialKeyId": 2,
+    "inputItemId": null,
+    "qty": 2,
+    "appliesRr": true,
+    "sortValue": 2
+  },
+  {
+    "id": 45,
+    "recipeId": 21,
+    "materialKeyId": 10,
+    "inputItemId": null,
+    "qty": 160,
+    "appliesRr": false,
+    "sortValue": 3
+  },
+  {
+    "id": 46,
+    "recipeId": 22,
+    "materialKeyId": 1,
+    "inputItemId": null,
+    "qty": 6,
+    "appliesRr": true,
+    "sortValue": 1
+  },
+  {
+    "id": 47,
+    "recipeId": 22,
+    "materialKeyId": 2,
+    "inputItemId": null,
+    "qty": 2,
+    "appliesRr": true,
+    "sortValue": 2
+  },
+  {
+    "id": 48,
+    "recipeId": 22,
+    "materialKeyId": 10,
+    "inputItemId": null,
+    "qty": 230,
+    "appliesRr": false,
+    "sortValue": 3
+  },
+  {
+    "id": 49,
+    "recipeId": 23,
+    "materialKeyId": 1,
+    "inputItemId": null,
+    "qty": 6,
+    "appliesRr": true,
+    "sortValue": 1
+  },
+  {
+    "id": 50,
+    "recipeId": 23,
+    "materialKeyId": 2,
+    "inputItemId": null,
+    "qty": 2,
+    "appliesRr": true,
+    "sortValue": 2
+  },
+  {
+    "id": 51,
+    "recipeId": 23,
+    "materialKeyId": 10,
+    "inputItemId": null,
+    "qty": 300,
+    "appliesRr": false,
+    "sortValue": 3
+  },
+  {
+    "id": 52,
+    "recipeId": 24,
+    "materialKeyId": 1,
+    "inputItemId": null,
+    "qty": 6,
+    "appliesRr": true,
+    "sortValue": 1
+  },
+  {
+    "id": 53,
+    "recipeId": 24,
+    "materialKeyId": 2,
+    "inputItemId": null,
+    "qty": 2,
+    "appliesRr": true,
+    "sortValue": 2
+  },
+  {
+    "id": 54,
+    "recipeId": 24,
+    "materialKeyId": 10,
+    "inputItemId": null,
+    "qty": 20,
+    "appliesRr": false,
+    "sortValue": 3
+  },
+  {
+    "id": 55,
+    "recipeId": 25,
+    "materialKeyId": 1,
+    "inputItemId": null,
+    "qty": 6,
+    "appliesRr": true,
+    "sortValue": 1
+  },
+  {
+    "id": 56,
+    "recipeId": 25,
+    "materialKeyId": 2,
+    "inputItemId": null,
+    "qty": 2,
+    "appliesRr": true,
+    "sortValue": 2
+  },
+  {
+    "id": 57,
+    "recipeId": 25,
+    "materialKeyId": 10,
+    "inputItemId": null,
+    "qty": 90,
+    "appliesRr": false,
+    "sortValue": 3
+  },
+  {
+    "id": 58,
+    "recipeId": 26,
+    "materialKeyId": 1,
+    "inputItemId": null,
+    "qty": 6,
+    "appliesRr": true,
+    "sortValue": 1
+  },
+  {
+    "id": 59,
+    "recipeId": 26,
+    "materialKeyId": 2,
+    "inputItemId": null,
+    "qty": 2,
+    "appliesRr": true,
+    "sortValue": 2
+  },
+  {
+    "id": 60,
+    "recipeId": 26,
+    "materialKeyId": 10,
+    "inputItemId": null,
+    "qty": 160,
+    "appliesRr": false,
+    "sortValue": 3
+  },
+  {
+    "id": 61,
+    "recipeId": 27,
+    "materialKeyId": 1,
+    "inputItemId": null,
+    "qty": 6,
+    "appliesRr": true,
+    "sortValue": 1
+  },
+  {
+    "id": 62,
+    "recipeId": 27,
+    "materialKeyId": 2,
+    "inputItemId": null,
+    "qty": 2,
+    "appliesRr": true,
+    "sortValue": 2
+  },
+  {
+    "id": 63,
+    "recipeId": 27,
+    "materialKeyId": 10,
+    "inputItemId": null,
+    "qty": 230,
+    "appliesRr": false,
+    "sortValue": 3
+  },
+  {
+    "id": 64,
+    "recipeId": 28,
+    "materialKeyId": 1,
+    "inputItemId": null,
+    "qty": 6,
+    "appliesRr": true,
+    "sortValue": 1
+  },
+  {
+    "id": 65,
+    "recipeId": 28,
+    "materialKeyId": 2,
+    "inputItemId": null,
+    "qty": 2,
+    "appliesRr": true,
+    "sortValue": 2
+  },
+  {
+    "id": 66,
+    "recipeId": 28,
+    "materialKeyId": 10,
+    "inputItemId": null,
+    "qty": 300,
+    "appliesRr": false,
+    "sortValue": 3
+  },
+  {
+    "id": 67,
+    "recipeId": 29,
+    "materialKeyId": 1,
+    "inputItemId": null,
+    "qty": 6,
+    "appliesRr": true,
+    "sortValue": 1
+  },
+  {
+    "id": 68,
+    "recipeId": 29,
+    "materialKeyId": 2,
+    "inputItemId": null,
+    "qty": 2,
+    "appliesRr": true,
+    "sortValue": 2
+  },
+  {
+    "id": 69,
+    "recipeId": 29,
+    "materialKeyId": 10,
+    "inputItemId": null,
+    "qty": 20,
+    "appliesRr": false,
+    "sortValue": 3
+  },
+  {
+    "id": 70,
+    "recipeId": 30,
+    "materialKeyId": 1,
+    "inputItemId": null,
+    "qty": 6,
+    "appliesRr": true,
+    "sortValue": 1
+  },
+  {
+    "id": 71,
+    "recipeId": 30,
+    "materialKeyId": 2,
+    "inputItemId": null,
+    "qty": 2,
+    "appliesRr": true,
+    "sortValue": 2
+  },
+  {
+    "id": 72,
+    "recipeId": 30,
+    "materialKeyId": 10,
+    "inputItemId": null,
+    "qty": 90,
+    "appliesRr": false,
+    "sortValue": 3
+  },
+  {
+    "id": 73,
+    "recipeId": 31,
+    "materialKeyId": 1,
+    "inputItemId": null,
+    "qty": 6,
+    "appliesRr": true,
+    "sortValue": 1
+  },
+  {
+    "id": 74,
+    "recipeId": 31,
+    "materialKeyId": 2,
+    "inputItemId": null,
+    "qty": 2,
+    "appliesRr": true,
+    "sortValue": 2
+  },
+  {
+    "id": 75,
+    "recipeId": 31,
+    "materialKeyId": 10,
+    "inputItemId": null,
+    "qty": 160,
+    "appliesRr": false,
+    "sortValue": 3
+  },
+  {
+    "id": 76,
+    "recipeId": 32,
+    "materialKeyId": 1,
+    "inputItemId": null,
+    "qty": 6,
+    "appliesRr": true,
+    "sortValue": 1
+  },
+  {
+    "id": 77,
+    "recipeId": 32,
+    "materialKeyId": 2,
+    "inputItemId": null,
+    "qty": 2,
+    "appliesRr": true,
+    "sortValue": 2
+  },
+  {
+    "id": 78,
+    "recipeId": 32,
+    "materialKeyId": 10,
+    "inputItemId": null,
+    "qty": 230,
+    "appliesRr": false,
+    "sortValue": 3
+  },
+  {
+    "id": 79,
+    "recipeId": 33,
+    "materialKeyId": 1,
+    "inputItemId": null,
+    "qty": 6,
+    "appliesRr": true,
+    "sortValue": 1
+  },
+  {
+    "id": 80,
+    "recipeId": 33,
+    "materialKeyId": 2,
+    "inputItemId": null,
+    "qty": 2,
+    "appliesRr": true,
+    "sortValue": 2
+  },
+  {
+    "id": 81,
+    "recipeId": 33,
+    "materialKeyId": 10,
+    "inputItemId": null,
+    "qty": 300,
+    "appliesRr": false,
+    "sortValue": 3
+  },
+  {
+    "id": 82,
+    "recipeId": 34,
+    "materialKeyId": 1,
+    "inputItemId": null,
+    "qty": 6,
+    "appliesRr": true,
+    "sortValue": 1
+  },
+  {
+    "id": 83,
+    "recipeId": 34,
+    "materialKeyId": 2,
+    "inputItemId": null,
+    "qty": 2,
+    "appliesRr": true,
+    "sortValue": 2
+  },
+  {
+    "id": 84,
+    "recipeId": 34,
+    "materialKeyId": 10,
+    "inputItemId": null,
+    "qty": 20,
+    "appliesRr": false,
+    "sortValue": 3
+  },
+  {
+    "id": 85,
+    "recipeId": 35,
+    "materialKeyId": 1,
+    "inputItemId": null,
+    "qty": 6,
+    "appliesRr": true,
+    "sortValue": 1
+  },
+  {
+    "id": 86,
+    "recipeId": 35,
+    "materialKeyId": 2,
+    "inputItemId": null,
+    "qty": 2,
+    "appliesRr": true,
+    "sortValue": 2
+  },
+  {
+    "id": 87,
+    "recipeId": 35,
+    "materialKeyId": 10,
+    "inputItemId": null,
+    "qty": 90,
+    "appliesRr": false,
+    "sortValue": 3
+  },
+  {
+    "id": 88,
+    "recipeId": 36,
+    "materialKeyId": 1,
+    "inputItemId": null,
+    "qty": 6,
+    "appliesRr": true,
+    "sortValue": 1
+  },
+  {
+    "id": 89,
+    "recipeId": 36,
+    "materialKeyId": 2,
+    "inputItemId": null,
+    "qty": 2,
+    "appliesRr": true,
+    "sortValue": 2
+  },
+  {
+    "id": 90,
+    "recipeId": 36,
+    "materialKeyId": 10,
+    "inputItemId": null,
+    "qty": 160,
+    "appliesRr": false,
+    "sortValue": 3
+  },
+  {
+    "id": 91,
+    "recipeId": 37,
+    "materialKeyId": 1,
+    "inputItemId": null,
+    "qty": 6,
+    "appliesRr": true,
+    "sortValue": 1
+  },
+  {
+    "id": 92,
+    "recipeId": 37,
+    "materialKeyId": 2,
+    "inputItemId": null,
+    "qty": 2,
+    "appliesRr": true,
+    "sortValue": 2
+  },
+  {
+    "id": 93,
+    "recipeId": 37,
+    "materialKeyId": 10,
+    "inputItemId": null,
+    "qty": 230,
+    "appliesRr": false,
+    "sortValue": 3
+  },
+  {
+    "id": 94,
+    "recipeId": 38,
+    "materialKeyId": 1,
+    "inputItemId": null,
+    "qty": 6,
+    "appliesRr": true,
+    "sortValue": 1
+  },
+  {
+    "id": 95,
+    "recipeId": 38,
+    "materialKeyId": 2,
+    "inputItemId": null,
+    "qty": 2,
+    "appliesRr": true,
+    "sortValue": 2
+  },
+  {
+    "id": 96,
+    "recipeId": 38,
+    "materialKeyId": 10,
+    "inputItemId": null,
+    "qty": 300,
+    "appliesRr": false,
+    "sortValue": 3
+  },
+  {
+    "id": 97,
+    "recipeId": 39,
+    "materialKeyId": 1,
+    "inputItemId": null,
+    "qty": 6,
+    "appliesRr": true,
+    "sortValue": 1
+  },
+  {
+    "id": 98,
+    "recipeId": 39,
+    "materialKeyId": 2,
+    "inputItemId": null,
+    "qty": 2,
+    "appliesRr": true,
+    "sortValue": 2
+  },
+  {
+    "id": 99,
+    "recipeId": 39,
+    "materialKeyId": 10,
+    "inputItemId": null,
+    "qty": 20,
+    "appliesRr": false,
+    "sortValue": 3
+  },
+  {
+    "id": 100,
+    "recipeId": 40,
+    "materialKeyId": 1,
+    "inputItemId": null,
+    "qty": 6,
+    "appliesRr": true,
+    "sortValue": 1
+  },
+  {
+    "id": 101,
+    "recipeId": 40,
+    "materialKeyId": 2,
+    "inputItemId": null,
+    "qty": 2,
+    "appliesRr": true,
+    "sortValue": 2
+  },
+  {
+    "id": 102,
+    "recipeId": 40,
+    "materialKeyId": 10,
+    "inputItemId": null,
+    "qty": 90,
+    "appliesRr": false,
+    "sortValue": 3
+  },
+  {
+    "id": 103,
+    "recipeId": 41,
+    "materialKeyId": 1,
+    "inputItemId": null,
+    "qty": 6,
+    "appliesRr": true,
+    "sortValue": 1
+  },
+  {
+    "id": 104,
+    "recipeId": 41,
+    "materialKeyId": 2,
+    "inputItemId": null,
+    "qty": 2,
+    "appliesRr": true,
+    "sortValue": 2
+  },
+  {
+    "id": 105,
+    "recipeId": 41,
+    "materialKeyId": 10,
+    "inputItemId": null,
+    "qty": 160,
+    "appliesRr": false,
+    "sortValue": 3
+  },
+  {
+    "id": 106,
+    "recipeId": 42,
+    "materialKeyId": 1,
+    "inputItemId": null,
+    "qty": 6,
+    "appliesRr": true,
+    "sortValue": 1
+  },
+  {
+    "id": 107,
+    "recipeId": 42,
+    "materialKeyId": 2,
+    "inputItemId": null,
+    "qty": 2,
+    "appliesRr": true,
+    "sortValue": 2
+  },
+  {
+    "id": 108,
+    "recipeId": 42,
+    "materialKeyId": 10,
+    "inputItemId": null,
+    "qty": 230,
+    "appliesRr": false,
+    "sortValue": 3
+  },
+  {
+    "id": 109,
+    "recipeId": 43,
+    "materialKeyId": 1,
+    "inputItemId": null,
+    "qty": 6,
+    "appliesRr": true,
+    "sortValue": 1
+  },
+  {
+    "id": 110,
+    "recipeId": 43,
+    "materialKeyId": 2,
+    "inputItemId": null,
+    "qty": 2,
+    "appliesRr": true,
+    "sortValue": 2
+  },
+  {
+    "id": 111,
+    "recipeId": 43,
+    "materialKeyId": 10,
+    "inputItemId": null,
+    "qty": 300,
+    "appliesRr": false,
+    "sortValue": 3
+  },
+  {
+    "id": 112,
+    "recipeId": 44,
+    "materialKeyId": 1,
+    "inputItemId": null,
+    "qty": 6,
+    "appliesRr": true,
+    "sortValue": 1
+  },
+  {
+    "id": 113,
+    "recipeId": 44,
+    "materialKeyId": 2,
+    "inputItemId": null,
+    "qty": 2,
+    "appliesRr": true,
+    "sortValue": 2
+  },
+  {
+    "id": 114,
+    "recipeId": 44,
+    "materialKeyId": 10,
+    "inputItemId": null,
+    "qty": 20,
+    "appliesRr": false,
+    "sortValue": 3
+  },
+  {
+    "id": 115,
+    "recipeId": 45,
+    "materialKeyId": 1,
+    "inputItemId": null,
+    "qty": 6,
+    "appliesRr": true,
+    "sortValue": 1
+  },
+  {
+    "id": 116,
+    "recipeId": 45,
+    "materialKeyId": 2,
+    "inputItemId": null,
+    "qty": 2,
+    "appliesRr": true,
+    "sortValue": 2
+  },
+  {
+    "id": 117,
+    "recipeId": 45,
+    "materialKeyId": 10,
+    "inputItemId": null,
+    "qty": 90,
+    "appliesRr": false,
+    "sortValue": 3
+  },
+  {
+    "id": 118,
+    "recipeId": 46,
+    "materialKeyId": 1,
+    "inputItemId": null,
+    "qty": 6,
+    "appliesRr": true,
+    "sortValue": 1
+  },
+  {
+    "id": 119,
+    "recipeId": 46,
+    "materialKeyId": 2,
+    "inputItemId": null,
+    "qty": 2,
+    "appliesRr": true,
+    "sortValue": 2
+  },
+  {
+    "id": 120,
+    "recipeId": 46,
+    "materialKeyId": 10,
+    "inputItemId": null,
+    "qty": 160,
+    "appliesRr": false,
+    "sortValue": 3
+  },
+  {
+    "id": 121,
+    "recipeId": 47,
+    "materialKeyId": 1,
+    "inputItemId": null,
+    "qty": 6,
+    "appliesRr": true,
+    "sortValue": 1
+  },
+  {
+    "id": 122,
+    "recipeId": 47,
+    "materialKeyId": 2,
+    "inputItemId": null,
+    "qty": 2,
+    "appliesRr": true,
+    "sortValue": 2
+  },
+  {
+    "id": 123,
+    "recipeId": 47,
+    "materialKeyId": 10,
+    "inputItemId": null,
+    "qty": 230,
+    "appliesRr": false,
+    "sortValue": 3
+  },
+  {
+    "id": 124,
+    "recipeId": 48,
+    "materialKeyId": 1,
+    "inputItemId": null,
+    "qty": 6,
+    "appliesRr": true,
+    "sortValue": 1
+  },
+  {
+    "id": 125,
+    "recipeId": 48,
+    "materialKeyId": 2,
+    "inputItemId": null,
+    "qty": 2,
+    "appliesRr": true,
+    "sortValue": 2
+  },
+  {
+    "id": 126,
+    "recipeId": 48,
+    "materialKeyId": 10,
+    "inputItemId": null,
+    "qty": 300,
+    "appliesRr": false,
+    "sortValue": 3
+  },
+  {
+    "id": 127,
+    "recipeId": 49,
+    "materialKeyId": 2,
+    "inputItemId": null,
+    "qty": 16,
+    "appliesRr": true,
+    "sortValue": 1
+  },
+  {
+    "id": 128,
+    "recipeId": 50,
+    "materialKeyId": 3,
+    "inputItemId": null,
+    "qty": 16,
+    "appliesRr": true,
+    "sortValue": 1
+  },
+  {
+    "id": 129,
+    "recipeId": 51,
+    "materialKeyId": 3,
+    "inputItemId": null,
+    "qty": 8,
+    "appliesRr": true,
+    "sortValue": 1
+  },
+  {
+    "id": 130,
+    "recipeId": 52,
+    "materialKeyId": 4,
+    "inputItemId": null,
+    "qty": 8,
+    "appliesRr": true,
+    "sortValue": 1
+  },
+  {
+    "id": 131,
+    "recipeId": 53,
+    "materialKeyId": 2,
+    "inputItemId": null,
+    "qty": 8,
+    "appliesRr": true,
+    "sortValue": 1
+  },
+  {
+    "id": 132,
+    "recipeId": 54,
+    "materialKeyId": 2,
+    "inputItemId": null,
+    "qty": 8,
+    "appliesRr": true,
+    "sortValue": 1
+  },
+  {
+    "id": 133,
+    "recipeId": 55,
+    "materialKeyId": 4,
+    "inputItemId": null,
+    "qty": 8,
+    "appliesRr": true,
+    "sortValue": 1
+  },
+  {
+    "id": 134,
+    "recipeId": 56,
+    "materialKeyId": 1,
+    "inputItemId": null,
+    "qty": 4,
+    "appliesRr": true,
+    "sortValue": 1
+  },
+  {
+    "id": 135,
+    "recipeId": 56,
+    "materialKeyId": 2,
+    "inputItemId": null,
+    "qty": 4,
+    "appliesRr": true,
+    "sortValue": 2
+  },
+  {
+    "id": 136,
+    "recipeId": 57,
+    "materialKeyId": 4,
+    "inputItemId": null,
+    "qty": 16,
+    "appliesRr": true,
+    "sortValue": 1
+  },
+  {
+    "id": 137,
+    "recipeId": 58,
+    "materialKeyId": 1,
+    "inputItemId": null,
+    "qty": 16,
+    "appliesRr": true,
+    "sortValue": 1
+  },
+  {
+    "id": 138,
+    "recipeId": 58,
+    "materialKeyId": 2,
+    "inputItemId": null,
+    "qty": 8,
+    "appliesRr": true,
+    "sortValue": 2
+  },
+  {
+    "id": 139,
+    "recipeId": 59,
+    "materialKeyId": 3,
+    "inputItemId": null,
+    "qty": 4,
+    "appliesRr": true,
+    "sortValue": 1
+  },
+  {
+    "id": 140,
+    "recipeId": 59,
+    "materialKeyId": 4,
+    "inputItemId": null,
+    "qty": 4,
+    "appliesRr": true,
+    "sortValue": 2
+  },
+  {
+    "id": 141,
+    "recipeId": 60,
+    "materialKeyId": 2,
+    "inputItemId": null,
+    "qty": 16,
+    "appliesRr": true,
+    "sortValue": 1
+  },
+  {
+    "id": 142,
+    "recipeId": 60,
+    "materialKeyId": 3,
+    "inputItemId": null,
+    "qty": 8,
+    "appliesRr": true,
+    "sortValue": 2
+  },
+  {
+    "id": 143,
+    "recipeId": 61,
+    "materialKeyId": 1,
+    "inputItemId": null,
+    "qty": 32,
+    "appliesRr": true,
+    "sortValue": 1
+  },
+  {
+    "id": 144,
+    "recipeId": 62,
+    "materialKeyId": 3,
+    "inputItemId": null,
+    "qty": 8,
+    "appliesRr": true,
+    "sortValue": 1
+  },
+  {
+    "id": 145,
+    "recipeId": 63,
+    "materialKeyId": null,
+    "inputItemId": 2453,
+    "qty": 1,
+    "appliesRr": true,
+    "sortValue": 1
+  },
+  {
+    "id": 146,
+    "recipeId": 63,
+    "materialKeyId": null,
+    "inputItemId": 9747,
+    "qty": 1,
+    "appliesRr": true,
+    "sortValue": 2
+  },
+  {
+    "id": 147,
+    "recipeId": 64,
+    "materialKeyId": null,
+    "inputItemId": 2458,
+    "qty": 1,
+    "appliesRr": true,
+    "sortValue": 1
+  },
+  {
+    "id": 148,
+    "recipeId": 64,
+    "materialKeyId": null,
+    "inputItemId": 9748,
+    "qty": 1,
+    "appliesRr": true,
+    "sortValue": 2
+  },
+  {
+    "id": 149,
+    "recipeId": 65,
+    "materialKeyId": null,
+    "inputItemId": 2463,
+    "qty": 1,
+    "appliesRr": true,
+    "sortValue": 1
+  },
+  {
+    "id": 150,
+    "recipeId": 65,
+    "materialKeyId": null,
+    "inputItemId": 9749,
+    "qty": 1,
+    "appliesRr": true,
+    "sortValue": 2
+  },
+  {
+    "id": 151,
+    "recipeId": 66,
+    "materialKeyId": null,
+    "inputItemId": 2468,
+    "qty": 1,
+    "appliesRr": true,
+    "sortValue": 1
+  },
+  {
+    "id": 152,
+    "recipeId": 66,
+    "materialKeyId": null,
+    "inputItemId": 9750,
+    "qty": 1,
+    "appliesRr": true,
+    "sortValue": 2
+  },
+  {
+    "id": 153,
+    "recipeId": 67,
+    "materialKeyId": null,
+    "inputItemId": 2473,
+    "qty": 1,
+    "appliesRr": true,
+    "sortValue": 1
+  },
+  {
+    "id": 154,
+    "recipeId": 67,
+    "materialKeyId": null,
+    "inputItemId": 9751,
+    "qty": 1,
+    "appliesRr": true,
+    "sortValue": 2
+  },
+  {
+    "id": 155,
+    "recipeId": 68,
+    "materialKeyId": null,
+    "inputItemId": 2453,
+    "qty": 1,
+    "appliesRr": true,
+    "sortValue": 1
+  },
+  {
+    "id": 156,
+    "recipeId": 68,
+    "materialKeyId": null,
+    "inputItemId": 9752,
+    "qty": 1,
+    "appliesRr": true,
+    "sortValue": 2
+  },
+  {
+    "id": 157,
+    "recipeId": 69,
+    "materialKeyId": null,
+    "inputItemId": 2458,
+    "qty": 1,
+    "appliesRr": true,
+    "sortValue": 1
+  },
+  {
+    "id": 158,
+    "recipeId": 69,
+    "materialKeyId": null,
+    "inputItemId": 9753,
+    "qty": 1,
+    "appliesRr": true,
+    "sortValue": 2
+  },
+  {
+    "id": 159,
+    "recipeId": 70,
+    "materialKeyId": null,
+    "inputItemId": 2463,
+    "qty": 1,
+    "appliesRr": true,
+    "sortValue": 1
+  },
+  {
+    "id": 160,
+    "recipeId": 70,
+    "materialKeyId": null,
+    "inputItemId": 9754,
+    "qty": 1,
+    "appliesRr": true,
+    "sortValue": 2
+  },
+  {
+    "id": 161,
+    "recipeId": 71,
+    "materialKeyId": null,
+    "inputItemId": 2468,
+    "qty": 1,
+    "appliesRr": true,
+    "sortValue": 1
+  },
+  {
+    "id": 162,
+    "recipeId": 71,
+    "materialKeyId": null,
+    "inputItemId": 9755,
+    "qty": 1,
+    "appliesRr": true,
+    "sortValue": 2
+  },
+  {
+    "id": 163,
+    "recipeId": 72,
+    "materialKeyId": null,
+    "inputItemId": 2473,
+    "qty": 1,
+    "appliesRr": true,
+    "sortValue": 1
+  },
+  {
+    "id": 164,
+    "recipeId": 72,
+    "materialKeyId": null,
+    "inputItemId": 9756,
+    "qty": 1,
+    "appliesRr": true,
+    "sortValue": 2
+  },
+  {
+    "id": 165,
+    "recipeId": 73,
+    "materialKeyId": null,
+    "inputItemId": 2453,
+    "qty": 1,
+    "appliesRr": true,
+    "sortValue": 1
+  },
+  {
+    "id": 166,
+    "recipeId": 73,
+    "materialKeyId": null,
+    "inputItemId": 9757,
+    "qty": 1,
+    "appliesRr": true,
+    "sortValue": 2
+  },
+  {
+    "id": 167,
+    "recipeId": 74,
+    "materialKeyId": null,
+    "inputItemId": 2458,
+    "qty": 1,
+    "appliesRr": true,
+    "sortValue": 1
+  },
+  {
+    "id": 168,
+    "recipeId": 74,
+    "materialKeyId": null,
+    "inputItemId": 9758,
+    "qty": 1,
+    "appliesRr": true,
+    "sortValue": 2
+  },
+  {
+    "id": 169,
+    "recipeId": 75,
+    "materialKeyId": null,
+    "inputItemId": 2463,
+    "qty": 1,
+    "appliesRr": true,
+    "sortValue": 1
+  },
+  {
+    "id": 170,
+    "recipeId": 75,
+    "materialKeyId": null,
+    "inputItemId": 9759,
+    "qty": 1,
+    "appliesRr": true,
+    "sortValue": 2
+  },
+  {
+    "id": 171,
+    "recipeId": 76,
+    "materialKeyId": null,
+    "inputItemId": 2468,
+    "qty": 1,
+    "appliesRr": true,
+    "sortValue": 1
+  },
+  {
+    "id": 172,
+    "recipeId": 76,
+    "materialKeyId": null,
+    "inputItemId": 9760,
+    "qty": 1,
+    "appliesRr": true,
+    "sortValue": 2
+  },
+  {
+    "id": 173,
+    "recipeId": 77,
+    "materialKeyId": null,
+    "inputItemId": 2473,
+    "qty": 1,
+    "appliesRr": true,
+    "sortValue": 1
+  },
+  {
+    "id": 174,
+    "recipeId": 77,
+    "materialKeyId": null,
+    "inputItemId": 9761,
+    "qty": 1,
+    "appliesRr": true,
+    "sortValue": 2
+  },
+  {
+    "id": 175,
+    "recipeId": 78,
+    "materialKeyId": null,
+    "inputItemId": 2453,
+    "qty": 1,
+    "appliesRr": true,
+    "sortValue": 1
+  },
+  {
+    "id": 176,
+    "recipeId": 78,
+    "materialKeyId": null,
+    "inputItemId": 9762,
+    "qty": 1,
+    "appliesRr": true,
+    "sortValue": 2
+  },
+  {
+    "id": 177,
+    "recipeId": 79,
+    "materialKeyId": null,
+    "inputItemId": 2458,
+    "qty": 1,
+    "appliesRr": true,
+    "sortValue": 1
+  },
+  {
+    "id": 178,
+    "recipeId": 79,
+    "materialKeyId": null,
+    "inputItemId": 9763,
+    "qty": 1,
+    "appliesRr": true,
+    "sortValue": 2
+  },
+  {
+    "id": 179,
+    "recipeId": 80,
+    "materialKeyId": null,
+    "inputItemId": 2463,
+    "qty": 1,
+    "appliesRr": true,
+    "sortValue": 1
+  },
+  {
+    "id": 180,
+    "recipeId": 80,
+    "materialKeyId": null,
+    "inputItemId": 9764,
+    "qty": 1,
+    "appliesRr": true,
+    "sortValue": 2
+  },
+  {
+    "id": 181,
+    "recipeId": 81,
+    "materialKeyId": null,
+    "inputItemId": 2468,
+    "qty": 1,
+    "appliesRr": true,
+    "sortValue": 1
+  },
+  {
+    "id": 182,
+    "recipeId": 81,
+    "materialKeyId": null,
+    "inputItemId": 9765,
+    "qty": 1,
+    "appliesRr": true,
+    "sortValue": 2
+  },
+  {
+    "id": 183,
+    "recipeId": 82,
+    "materialKeyId": null,
+    "inputItemId": 2473,
+    "qty": 1,
+    "appliesRr": true,
+    "sortValue": 1
+  },
+  {
+    "id": 184,
+    "recipeId": 82,
+    "materialKeyId": null,
+    "inputItemId": 9766,
+    "qty": 1,
+    "appliesRr": true,
+    "sortValue": 2
+  },
+  {
+    "id": 185,
+    "recipeId": 83,
+    "materialKeyId": null,
+    "inputItemId": 2453,
+    "qty": 1,
+    "appliesRr": true,
+    "sortValue": 1
+  },
+  {
+    "id": 186,
+    "recipeId": 83,
+    "materialKeyId": null,
+    "inputItemId": 9767,
+    "qty": 1,
+    "appliesRr": true,
+    "sortValue": 2
+  },
+  {
+    "id": 187,
+    "recipeId": 84,
+    "materialKeyId": null,
+    "inputItemId": 2458,
+    "qty": 1,
+    "appliesRr": true,
+    "sortValue": 1
+  },
+  {
+    "id": 188,
+    "recipeId": 84,
+    "materialKeyId": null,
+    "inputItemId": 9768,
+    "qty": 1,
+    "appliesRr": true,
+    "sortValue": 2
+  },
+  {
+    "id": 189,
+    "recipeId": 85,
+    "materialKeyId": null,
+    "inputItemId": 2463,
+    "qty": 1,
+    "appliesRr": true,
+    "sortValue": 1
+  },
+  {
+    "id": 190,
+    "recipeId": 85,
+    "materialKeyId": null,
+    "inputItemId": 9769,
+    "qty": 1,
+    "appliesRr": true,
+    "sortValue": 2
+  },
+  {
+    "id": 191,
+    "recipeId": 86,
+    "materialKeyId": null,
+    "inputItemId": 2468,
+    "qty": 1,
+    "appliesRr": true,
+    "sortValue": 1
+  },
+  {
+    "id": 192,
+    "recipeId": 86,
+    "materialKeyId": null,
+    "inputItemId": 9770,
+    "qty": 1,
+    "appliesRr": true,
+    "sortValue": 2
+  },
+  {
+    "id": 193,
+    "recipeId": 87,
+    "materialKeyId": null,
+    "inputItemId": 2473,
+    "qty": 1,
+    "appliesRr": true,
+    "sortValue": 1
+  },
+  {
+    "id": 194,
+    "recipeId": 87,
+    "materialKeyId": null,
+    "inputItemId": 9771,
+    "qty": 1,
+    "appliesRr": true,
+    "sortValue": 2
+  },
+  {
+    "id": 195,
+    "recipeId": 88,
+    "materialKeyId": null,
+    "inputItemId": 2453,
+    "qty": 1,
+    "appliesRr": true,
+    "sortValue": 1
+  },
+  {
+    "id": 196,
+    "recipeId": 88,
+    "materialKeyId": null,
+    "inputItemId": 9772,
+    "qty": 1,
+    "appliesRr": true,
+    "sortValue": 2
+  },
+  {
+    "id": 197,
+    "recipeId": 89,
+    "materialKeyId": null,
+    "inputItemId": 2458,
+    "qty": 1,
+    "appliesRr": true,
+    "sortValue": 1
+  },
+  {
+    "id": 198,
+    "recipeId": 89,
+    "materialKeyId": null,
+    "inputItemId": 9773,
+    "qty": 1,
+    "appliesRr": true,
+    "sortValue": 2
+  },
+  {
+    "id": 199,
+    "recipeId": 90,
+    "materialKeyId": null,
+    "inputItemId": 2463,
+    "qty": 1,
+    "appliesRr": true,
+    "sortValue": 1
+  },
+  {
+    "id": 200,
+    "recipeId": 90,
+    "materialKeyId": null,
+    "inputItemId": 9774,
+    "qty": 1,
+    "appliesRr": true,
+    "sortValue": 2
+  },
+  {
+    "id": 201,
+    "recipeId": 91,
+    "materialKeyId": null,
+    "inputItemId": 2468,
+    "qty": 1,
+    "appliesRr": true,
+    "sortValue": 1
+  },
+  {
+    "id": 202,
+    "recipeId": 91,
+    "materialKeyId": null,
+    "inputItemId": 9775,
+    "qty": 1,
+    "appliesRr": true,
+    "sortValue": 2
+  },
+  {
+    "id": 203,
+    "recipeId": 92,
+    "materialKeyId": null,
+    "inputItemId": 2473,
+    "qty": 1,
+    "appliesRr": true,
+    "sortValue": 1
+  },
+  {
+    "id": 204,
+    "recipeId": 92,
+    "materialKeyId": null,
+    "inputItemId": 9776,
+    "qty": 1,
+    "appliesRr": true,
+    "sortValue": 2
+  },
+  {
+    "id": 205,
+    "recipeId": 93,
+    "materialKeyId": null,
+    "inputItemId": 2453,
+    "qty": 1,
+    "appliesRr": true,
+    "sortValue": 1
+  },
+  {
+    "id": 206,
+    "recipeId": 93,
+    "materialKeyId": null,
+    "inputItemId": 9782,
+    "qty": 1,
+    "appliesRr": true,
+    "sortValue": 2
+  },
+  {
+    "id": 207,
+    "recipeId": 94,
+    "materialKeyId": null,
+    "inputItemId": 2458,
+    "qty": 1,
+    "appliesRr": true,
+    "sortValue": 1
+  },
+  {
+    "id": 208,
+    "recipeId": 94,
+    "materialKeyId": null,
+    "inputItemId": 9783,
+    "qty": 1,
+    "appliesRr": true,
+    "sortValue": 2
+  },
+  {
+    "id": 209,
+    "recipeId": 95,
+    "materialKeyId": null,
+    "inputItemId": 2463,
+    "qty": 1,
+    "appliesRr": true,
+    "sortValue": 1
+  },
+  {
+    "id": 210,
+    "recipeId": 95,
+    "materialKeyId": null,
+    "inputItemId": 9784,
+    "qty": 1,
+    "appliesRr": true,
+    "sortValue": 2
+  },
+  {
+    "id": 211,
+    "recipeId": 96,
+    "materialKeyId": null,
+    "inputItemId": 2468,
+    "qty": 1,
+    "appliesRr": true,
+    "sortValue": 1
+  },
+  {
+    "id": 212,
+    "recipeId": 96,
+    "materialKeyId": null,
+    "inputItemId": 9785,
+    "qty": 1,
+    "appliesRr": true,
+    "sortValue": 2
+  },
+  {
+    "id": 213,
+    "recipeId": 97,
+    "materialKeyId": null,
+    "inputItemId": 2473,
+    "qty": 1,
+    "appliesRr": true,
+    "sortValue": 1
+  },
+  {
+    "id": 214,
+    "recipeId": 97,
+    "materialKeyId": null,
+    "inputItemId": 9786,
+    "qty": 1,
+    "appliesRr": true,
+    "sortValue": 2
+  }
+]

@@ -1,0 +1,58 @@
+[
+  {
+    "id": 1,
+    "ladderId": 1,
+    "tier": 1,
+    "seedReturn": 0,
+    "waterBonus": 2
+  },
+  {
+    "id": 2,
+    "ladderId": 1,
+    "tier": 2,
+    "seedReturn": 0.3333,
+    "waterBonus": 1.33
+  },
+  {
+    "id": 3,
+    "ladderId": 1,
+    "tier": 3,
+    "seedReturn": 0.6,
+    "waterBonus": 0.8
+  },
+  {
+    "id": 4,
+    "ladderId": 1,
+    "tier": 4,
+    "seedReturn": 0.7333,
+    "waterBonus": 0.53
+  },
+  {
+    "id": 5,
+    "ladderId": 1,
+    "tier": 5,
+    "seedReturn": 0.8,
+    "waterBonus": 0.4
+  },
+  {
+    "id": 6,
+    "ladderId": 1,
+    "tier": 6,
+    "seedReturn": 0.8667,
+    "waterBonus": 0.27
+  },
+  {
+    "id": 7,
+    "ladderId": 1,
+    "tier": 7,
+    "seedReturn": 0.9111,
+    "waterBonus": 0.18
+  },
+  {
+    "id": 8,
+    "ladderId": 1,
+    "tier": 8,
+    "seedReturn": 0.9333,
+    "waterBonus": 0.13
+  }
+]

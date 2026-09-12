@@ -1,0 +1,52 @@
+[
+  {
+    "id": 1,
+    "code": "ore",
+    "label": "Ore",
+    "hamWord": "ore",
+    "outWord": "Bar",
+    "rawStem": "ORE",
+    "outStem": "METALBAR",
+    "bonusFamilyId": 30
+  },
+  {
+    "id": 2,
+    "code": "wood",
+    "label": "Wood",
+    "hamWord": "odun",
+    "outWord": "Plank",
+    "rawStem": "WOOD",
+    "outStem": "PLANKS",
+    "bonusFamilyId": 6
+  },
+  {
+    "id": 3,
+    "code": "hide",
+    "label": "Hide",
+    "hamWord": "hide",
+    "outWord": "Leather",
+    "rawStem": "HIDE",
+    "outStem": "LEATHER",
+    "bonusFamilyId": 24
+  },
+  {
+    "id": 4,
+    "code": "fiber",
+    "label": "Fiber",
+    "hamWord": "fiber",
+    "outWord": "Cloth",
+    "rawStem": "FIBER",
+    "outStem": "CLOTH",
+    "bonusFamilyId": 12
+  },
+  {
+    "id": 5,
+    "code": "stone",
+    "label": "Stone",
+    "hamWord": "taş",
+    "outWord": "Block",
+    "rawStem": "ROCK",
+    "outStem": "STONEBLOCK",
+    "bonusFamilyId": 18
+  }
+]

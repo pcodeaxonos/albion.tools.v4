@@ -23,7 +23,7 @@ import {
     allPriceItemIds,
     optimizeIsland,
     plotTypeLabel,
-    LIVESTOCK_FEED
+    livestockFeed
 } from './island-economy.js';
 
 const CITY_STORAGE_KEY = 'albiontools.v4.island-planner.islandCity';
@@ -513,7 +513,7 @@ function renderOutput() {
             ${renderRunnersUp()}
             <p class="farming-note">
                 ${escapeHtml(feeMetaText(state.premium))}
-                · livestock yem ×${LIVESTOCK_FEED} (wiki)
+                · livestock yem ×${livestockFeed()} (wiki)
                 · maliyet / kâr bir plot · bir döngü (net = satış − maliyet; vergi + setup dahil)
                 · net gümüş/gün = net kâr ÷ döngü × 24s
                 · oyun 22s → plan 24s (1 gün; +2s slack)

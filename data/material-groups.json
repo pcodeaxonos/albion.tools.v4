@@ -1,0 +1,83 @@
+[
+  {
+    "id": 1,
+    "code": "plank",
+    "label": "Plank",
+    "family": "Malzeme",
+    "stem": "PLANKS",
+    "hasEnchant": true,
+    "sortValue": 10
+  },
+  {
+    "id": 2,
+    "code": "block",
+    "label": "Block",
+    "family": "Malzeme",
+    "stem": "STONEBLOCK",
+    "hasEnchant": true,
+    "sortValue": 20
+  },
+  {
+    "id": 3,
+    "code": "bar",
+    "label": "Bar",
+    "family": "Malzeme",
+    "stem": "METALBAR",
+    "hasEnchant": true,
+    "sortValue": 30
+  },
+  {
+    "id": 4,
+    "code": "leather",
+    "label": "Leather",
+    "family": "Malzeme",
+    "stem": "LEATHER",
+    "hasEnchant": true,
+    "sortValue": 40
+  },
+  {
+    "id": 5,
+    "code": "cloth",
+    "label": "Cloth",
+    "family": "Malzeme",
+    "stem": "CLOTH",
+    "hasEnchant": true,
+    "sortValue": 50
+  },
+  {
+    "id": 6,
+    "code": "horse",
+    "label": "Horse",
+    "family": "Binek",
+    "stem": "MOUNT_HORSE",
+    "hasEnchant": false,
+    "sortValue": 60
+  },
+  {
+    "id": 7,
+    "code": "ox",
+    "label": "Ox",
+    "family": "Binek",
+    "stem": "MOUNT_OX",
+    "hasEnchant": false,
+    "sortValue": 70
+  },
+  {
+    "id": 8,
+    "code": "armored",
+    "label": "Armored horse",
+    "family": "Binek",
+    "stem": "MOUNT_ARMORED_HORSE",
+    "hasEnchant": false,
+    "sortValue": 80
+  },
+  {
+    "id": 9,
+    "code": "mule",
+    "label": "Mule",
+    "family": "Binek",
+    "stem": "MOUNT_MULE",
+    "hasEnchant": false,
+    "sortValue": 90
+  }
+]

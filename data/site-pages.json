@@ -1,0 +1,23 @@
+[
+  {
+    "id": 1,
+    "code": "home",
+    "title": "Home",
+    "href": "index.html",
+    "sortValue": 10
+  },
+  {
+    "id": 2,
+    "code": "db",
+    "title": "Veritabanı",
+    "href": "db.html",
+    "sortValue": 20
+  },
+  {
+    "id": 3,
+    "code": "settings",
+    "title": "Ayarlar",
+    "href": "settings.html",
+    "sortValue": 30
+  }
+]

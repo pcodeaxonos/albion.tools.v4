@@ -1,37 +1,24 @@
 import { escapeHtml } from './utils.js';
 import { initNav } from './nav.js';
 import { initFloatingLabels } from './forms.js';
+import { initStore } from './db/store.js';
 import { itemIconHtml, itemLabel, rawStoneId, stoneBlockId } from './item-icon.js';
+import { getBuildings, getRefineTier } from './catalog.js';
+import { showPageLoader, hidePageLoader } from './loader.js';
 
 const TIERS = [2, 3, 4, 5, 6, 7, 8];
 
-/** Raw stone per 1 block of that tier in the 0% RR refine chain. T7/T8 both use 5. */
-const REFINE_RAW = {
-    2: 1,
-    3: 2,
-    4: 2,
-    5: 3,
-    6: 4,
-    7: 5,
-    8: 5
-};
+function refineRaw(tier) {
+    return getRefineTier()[tier]?.rawQty ?? 0;
+}
 
-const BUILDINGS = {
-    house: {
-        id: 'house',
-        label: 'House',
-        wood: { 2: 30, 3: 60, 4: 120, 5: 240, 6: 480, 7: 960, 8: 1920 },
-        stone: { 2: 3, 3: 6, 4: 12, 5: 24, 6: 48, 7: 96, 8: 192 },
-        blocks: 180
-    },
-    guild: {
-        id: 'guild',
-        label: 'Guild Hall',
-        wood: { 2: 150, 3: 300, 4: 600, 5: 1200, 6: 2400, 7: 4800, 8: 9600 },
-        stone: { 2: 15, 3: 30, 4: 60, 5: 120, 6: 240, 7: 480, 8: 960 },
-        blocks: 900
+function buildingsMap() {
+    const map = {};
+    for (const building of getBuildings()) {
+        map[building.id] = building;
     }
-};
+    return map;
+}
 
 const state = {
     building: 'house',
@@ -54,12 +41,12 @@ function emptyMats() {
 }
 
 function addStep(mats, building, tier) {
-    mats.wood += building.wood[tier];
-    mats.stone += building.stone[tier];
+    mats.wood += building.wood[tier] || 0;
+    mats.stone += building.stone[tier] || 0;
     mats.blocks[tier] += building.blocks;
     for (const stoneTier of TIERS) {
         if (stoneTier <= tier) {
-            mats.raw[stoneTier] += building.blocks * REFINE_RAW[stoneTier];
+            mats.raw[stoneTier] += building.blocks * refineRaw(stoneTier);
         }
     }
 }
@@ -87,7 +74,8 @@ function clampState() {
     const qty = Number.parseInt(String(state.qty), 10);
     state.qty = Number.isFinite(qty) ? Math.min(99, Math.max(1, qty)) : 1;
 
-    if (!BUILDINGS[state.building]) {
+    const buildings = buildingsMap();
+    if (!buildings[state.building]) {
         state.building = 'house';
     }
 
@@ -117,7 +105,7 @@ function remainingTiers(from, to) {
 }
 
 function renderTypeToggle() {
-    return Object.values(BUILDINGS).map((building) => {
+    return Object.values(buildingsMap()).map((building) => {
         const pressed = building.id === state.building;
         return `
             <button type="button" class="house-type-btn${pressed ? ' is-active' : ''}"
@@ -245,7 +233,7 @@ function renderLayers(mats) {
 }
 
 function renderOutput() {
-    const building = BUILDINGS[state.building];
+    const building = buildingsMap()[state.building];
     const needed = scaleMats(sumRange(building, state.from, state.to), state.qty);
     const steps = remainingTiers(state.from, state.to);
     const stepNote = steps.length === 1
@@ -370,11 +358,16 @@ function bindPage(container) {
     });
 }
 
-function init() {
+async function init() {
     initNav();
     const container = document.getElementById('houseTool');
     if (!container) {
         return;
+    }
+    try {
+        await initStore();
+    } catch (error) {
+        console.error(error);
     }
     renderPage(container);
 }

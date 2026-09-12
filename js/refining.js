@@ -39,22 +39,40 @@ import {
     explainEmptyHtml,
     explainHint
 } from './calc-explain.js';
+import {
+    getRefineFamilies,
+    getRefineTiers,
+    cityProductionBonus,
+    cityResourceBonus,
+    focusProductionBonus
+} from './catalog.js';
 
-const CITY_PRODUCTION = 18;
-const CITY_RESOURCE = 40;
-const FOCUS_PRODUCTION = 59;
 const PREFS_STORAGE_KEY = 'albiontools.v4.refining.prefs';
 const TIERS = [2, 3, 4, 5, 6, 7, 8];
-const RAW_QTY = { 2: 1, 3: 2, 4: 2, 5: 3, 6: 4, 7: 5, 8: 5 };
-const LOWER_QTY = { 2: 0, 3: 1, 4: 1, 5: 1, 6: 1, 7: 1, 8: 1 };
 
-const FAMILIES = [
-    { id: 'ore', label: 'Ore', hamWord: 'ore', outWord: 'Bar', raw: 'ORE', out: 'METALBAR', bonusKey: 'resources/ore' },
-    { id: 'wood', label: 'Wood', hamWord: 'odun', outWord: 'Plank', raw: 'WOOD', out: 'PLANKS', bonusKey: 'resources/wood' },
-    { id: 'hide', label: 'Hide', hamWord: 'hide', outWord: 'Leather', raw: 'HIDE', out: 'LEATHER', bonusKey: 'resources/hide' },
-    { id: 'fiber', label: 'Fiber', hamWord: 'fiber', outWord: 'Cloth', raw: 'FIBER', out: 'CLOTH', bonusKey: 'resources/fiber' },
-    { id: 'stone', label: 'Stone', hamWord: 'taş', outWord: 'Block', raw: 'ROCK', out: 'STONEBLOCK', bonusKey: 'resources/rock' }
-];
+function cityProduction() {
+    return cityProductionBonus();
+}
+
+function cityResource() {
+    return cityResourceBonus();
+}
+
+function focusProduction() {
+    return focusProductionBonus();
+}
+
+function families() {
+    return getRefineFamilies();
+}
+
+function rawQtyFor(tier) {
+    return getRefineTiers()[tier]?.rawQty ?? 0;
+}
+
+function lowerQtyFor(tier) {
+    return getRefineTiers()[tier]?.lowerQty ?? 0;
+}
 
 const state = {
     premium: true,
@@ -79,7 +97,7 @@ const state = {
 };
 
 function currentFamily() {
-    return FAMILIES.find((family) => family.id === state.family) ?? FAMILIES[0];
+    return families().find((family) => family.id === state.family) ?? families()[0];
 }
 
 function familyCity(family = currentFamily()) {
@@ -176,10 +194,10 @@ function hasCityBonus() {
 }
 
 function productionBonus() {
-    return CITY_PRODUCTION
-        + (hasCityBonus() ? CITY_RESOURCE : 0)
+    return cityProduction()
+        + (hasCityBonus() ? cityResource() : 0)
         + state.bonusRate
-        + (state.focus ? FOCUS_PRODUCTION : 0);
+        + (state.focus ? focusProduction() : 0);
 }
 
 function returnRate() {
@@ -256,7 +274,7 @@ function readPrefs(cities) {
             return false;
         }
         const parsed = JSON.parse(raw);
-        if (FAMILIES.some((family) => family.id === parsed.family)) {
+        if (families().some((family) => family.id === parsed.family)) {
             state.family = parsed.family;
         }
         const enchant = Number(parsed.enchant);
@@ -342,8 +360,8 @@ function computeCost(tier, enchant, cache) {
     }
 
     const hamNet = purchaseCost(rawQuote.price, { setup: rawQuote.setup });
-    const rawQty = RAW_QTY[tier];
-    const lowerQty = LOWER_QTY[tier];
+    const rawQty = rawQtyFor(tier);
+    const lowerQty = lowerQtyFor(tier);
     const lower = lowerSpec(tier, enchant);
     let altNet = 0;
 
@@ -385,7 +403,7 @@ function rows() {
         const pct = profit != null && cost > 0 ? profit / cost : null;
         const lower = lowerSpec(tier, enchant);
         const lowerId = lower ? resourceId(family.out, lower.tier, lower.enchant) : null;
-        const lowerGap = Boolean(lowerId) && LOWER_QTY[tier] > 0 && cost == null
+        const lowerGap = Boolean(lowerId) && lowerQtyFor(tier) > 0 && cost == null
             && (state.chain === 'full'
                 ? computeCost(lower.tier, lower.enchant, cache) == null
                 : !quoteLower(lowerId));
@@ -396,8 +414,8 @@ function rows() {
             enchant,
             rawId,
             outId,
-            rawQty: RAW_QTY[tier],
-            lowerQty: LOWER_QTY[tier],
+            rawQty: rawQtyFor(tier),
+            lowerQty: lowerQtyFor(tier),
             rawQuote,
             outQuote,
             rr,
@@ -443,7 +461,7 @@ function chainNodes(tier, enchant) {
     while (true) {
         nodes.push({ tier: currentTier, enchant: currentEnchant, bought: false });
         const lower = lowerSpec(currentTier, currentEnchant);
-        if (!lower || LOWER_QTY[currentTier] === 0) {
+        if (!lower || lowerQtyFor(currentTier) === 0) {
             break;
         }
         if (state.chain !== 'full') {
@@ -494,8 +512,8 @@ function explainChainLines(row) {
         const rawId = resourceId(family.raw, node.tier, node.enchant);
         const rawQuote = quoteRaw(rawId);
         const hamNet = rawQuote ? purchaseCost(rawQuote.price, { setup: rawQuote.setup }) : null;
-        const rawQty = RAW_QTY[node.tier];
-        const lowerQty = LOWER_QTY[node.tier];
+        const rawQty = rawQtyFor(node.tier);
+        const lowerQty = lowerQtyFor(node.tier);
         const hamBook = rawQuote ? rawQty * rawQuote.price : null;
         const hamWithFee = hamNet != null ? rawQty * hamNet : null;
         const hamPart = hamNet != null ? rawQty * hamNet * keep : null;
@@ -598,14 +616,14 @@ function renderRefiningExplain(key, { hovered } = {}) {
     const outIcon = explainIcon(row.outId);
     const chips = [{
         label: 'şehir',
-        value: CITY_PRODUCTION,
+        value: cityProduction(),
         tone: 'city',
         title: 'Her şehir istasyonunda taban üretim bonusu'
     }];
     if (hasCityBonus()) {
         chips.push({
             label: 'uzman',
-            value: CITY_RESOURCE,
+            value: cityResource(),
             tone: 'spec',
             title: `Bu hammadde ${cityLabel(familyCity())} uzmanı; işle şehri orasıysa +40`
         });
@@ -621,7 +639,7 @@ function renderRefiningExplain(key, { hovered } = {}) {
     if (state.focus) {
         chips.push({
             label: 'focus',
-            value: FOCUS_PRODUCTION,
+            value: focusProduction(),
             tone: 'focus',
             title: 'Focus kullanınca ek üretim bonusu'
         });
@@ -898,7 +916,7 @@ function renderPage(container) {
             <div class="tool-split-controls">
                 <div class="farming-toolbar">
                     <div class="farming-type" role="radiogroup" aria-label="Aile">
-                        ${renderToggleGroup('family', FAMILIES.map((family) => ({ id: family.id, label: family.label })), state.family, 'family')}
+                        ${renderToggleGroup('family', families().map((family) => ({ id: family.id, label: family.label })), state.family, 'family')}
                     </div>
                     <div class="farming-type" role="radiogroup" aria-label="Enchant">
                         ${renderToggleGroup('enchant', [
@@ -1168,7 +1186,7 @@ function bindCitySelect(container, id, assign) {
 function bindPage(container) {
     container.querySelectorAll('[data-family]').forEach((button) => {
         button.addEventListener('click', () => {
-            const next = FAMILIES.find((family) => family.id === button.dataset.family);
+            const next = families().find((family) => family.id === button.dataset.family);
             if (!next || next.id === state.family) {
                 return;
             }
