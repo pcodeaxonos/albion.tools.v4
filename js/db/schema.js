@@ -73,6 +73,25 @@ export const tables = {
             { name: 'slot2FamilyKey', type: 'string', label: 'Bonus 2' },
             { name: 'slot2Rate', type: 'enum', options: ['10', '20'], label: 'Rate 2' }
         ]
+    },
+    bonusFamilies: {
+        displayName: 'Bonus aileleri',
+        key: 'id',
+        autoKey: true,
+        defaultSort: { column: 'label', direction: 'asc' },
+        seed: 'bonusFamilies',
+        columns: [
+            { name: 'id', type: 'number', editable: false },
+            { name: 'familyKey', type: 'string', label: 'Aile' },
+            { name: 'label', type: 'string', label: 'Ad' },
+            { name: 'city', type: 'string', label: 'Şehir' },
+            { name: 'vendor', type: 'string', label: 'İstasyon' },
+            { name: 'journal', type: 'string', label: 'Kitap' },
+            { name: 'tree', type: 'string', label: 'Ağaç' },
+            { name: 'materials', type: 'string', label: 'Malzemeler', format: 'materials' },
+            { name: 'variants', type: 'string', label: 'Tarifler', format: 'variants' },
+            { name: 'notes', type: 'string', label: 'Not' }
+        ]
     }
 };
 

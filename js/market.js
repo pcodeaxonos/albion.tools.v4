@@ -1,4 +1,5 @@
 import { getPriceHost, getSettings, getServer, LOCAL_PRICE_HOST } from './settings.js';
+import { isStalePriceDate } from './price-side.js';
 
 function hostForSource(source) {
     if (source === 'api') {
@@ -85,24 +86,27 @@ function isLiveDate(value) {
     return Boolean(value) && !String(value).startsWith('0001');
 }
 
+function datedPrice(price, date) {
+    const live = isLiveDate(date) ? date : null;
+    return {
+        price,
+        date: live,
+        stale: isStalePriceDate(live)
+    };
+}
+
 export function sellOrderPrice(row) {
     if (!row || !(row.sell_price_min > 0)) {
         return null;
     }
-    return {
-        price: row.sell_price_min,
-        date: isLiveDate(row.sell_price_min_date) ? row.sell_price_min_date : null
-    };
+    return datedPrice(row.sell_price_min, row.sell_price_min_date);
 }
 
 export function buyOrderPrice(row) {
     if (!row || !(row.buy_price_max > 0)) {
         return null;
     }
-    return {
-        price: row.buy_price_max,
-        date: isLiveDate(row.buy_price_max_date) ? row.buy_price_max_date : null
-    };
+    return datedPrice(row.buy_price_max, row.buy_price_max_date);
 }
 
 export function cityRow(priceIndex, uniqueName, city) {

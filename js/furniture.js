@@ -14,8 +14,7 @@ import {
     quoteFromRow,
     priceSideHint,
     priceSideToggleHtml,
-    priceFieldClass,
-    priceFieldTitle,
+    priceFieldHtml,
     priceInputValue,
     applyPriceFieldState,
     incompleteClass
@@ -281,19 +280,6 @@ function itemQuote(id) {
     return fetchedItemQuote(id);
 }
 
-function priceFieldHtml({ id, label, value, manual, missing, dataAttr }) {
-    const filled = String(value ?? '').length > 0 ? ' is-filled' : '';
-    const title = priceFieldTitle({ manual, missing });
-    return `
-        <div class="form-floating ava-price-field${priceFieldClass({ manual, missing })}"${title ? ` title="${escapeHtml(title)}"` : ''}>
-            <input type="text" class="form-control${filled}" id="${escapeHtml(id)}"
-                ${dataAttr} value="${escapeHtml(value)}" placeholder=" "
-                inputmode="decimal" autocomplete="off" spellcheck="false">
-            <label for="${escapeHtml(id)}">${escapeHtml(label)}</label>
-        </div>
-    `;
-}
-
 function matCost(item) {
     let raw = 0;
     const parts = {};
@@ -412,7 +398,10 @@ function renderTierMats() {
                                             value: priceInputValue(state.manualMats[mat.key], fetched?.price),
                                             manual: isManualPrice(state.manualMats[mat.key]),
                                             missing: !fetched,
-                                            dataAttr: `data-mat-price="${escapeHtml(mat.key)}"`
+                                            date: fetched?.date,
+                                            dataAttr: `data-mat-price="${escapeHtml(mat.key)}"`,
+                                            fieldClass: 'ava-price-field',
+                                            iconId: mat.uniqueName
                                         })}
                                     </span>
                                 `;
@@ -649,7 +638,10 @@ function renderTable() {
                         value: sellValue,
                         manual: isManualPrice(state.manualItems[row.item.id]),
                         missing: !fetched,
-                        dataAttr: `data-item-price="${escapeHtml(row.item.id)}"`
+                        date: fetched?.date,
+                        dataAttr: `data-item-price="${escapeHtml(row.item.id)}"`,
+                        fieldClass: 'ava-price-field',
+                        iconId: row.item.uniqueName
                     })}
                 </td>
                 <td class="num ava-num${incompleteClass(row.sell)}" data-sort-value="${row.sell ?? ''}">${formatSilver(row.sell)}</td>
@@ -704,7 +696,7 @@ function renderOutput() {
             ${calcExplainShell('furnitureExplain')}
             ${renderSummary(list)}
             ${renderBonusNote()}
-            <p class="ava-note">Malzeme ve satış ${escapeHtml(cityLabel(state.city))} · ${escapeHtml(matNote)}. Satış ${escapeHtml(itemNote)}. Elle yazılan alış/satış API’nin yerine geçer. Kırmızı fiyat API’de yok; hesap da kırmızı kalır.${stamp ? ` ${escapeHtml(stamp)}.` : ''}</p>
+            <p class="ava-note">Malzeme ve satış ${escapeHtml(cityLabel(state.city))} · ${escapeHtml(matNote)}. Satış ${escapeHtml(itemNote)}. Elle yazılan alış/satış API’nin yerine geçer. Kırmızı fiyat API’de yok; turuncu 6 saatten eski.${stamp ? ` ${escapeHtml(stamp)}.` : ''}</p>
         </div>
     `;
 }
@@ -741,6 +733,7 @@ function patchRowCells(tr, row, bestId) {
     applyPriceFieldState(priceCell.querySelector('.ava-price-field'), {
         manual: Boolean(row.quote?.manual),
         missing: !itemFetched,
+        date: itemFetched?.date,
         displayValue: priceInputValue(state.manualItems[row.item.id], itemFetched?.price)
     });
 
@@ -793,6 +786,7 @@ function refreshCalc(container) {
             applyPriceFieldState(field, {
                 manual: isManualPrice(state.manualMats[mat.key]),
                 missing: !fetched,
+                date: fetched?.date,
                 displayValue: priceInputValue(state.manualMats[mat.key], fetched?.price)
             });
         }

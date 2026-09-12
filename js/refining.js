@@ -14,8 +14,7 @@ import {
     quoteFromRow,
     priceSideHint,
     priceSideToggleHtml,
-    priceFieldClass,
-    priceFieldTitle,
+    priceFieldHtml,
     priceInputValue,
     applyPriceFieldState,
     incompleteClass
@@ -698,19 +697,6 @@ function bindExplain(container) {
     });
 }
 
-function priceFieldHtml({ id, label, value, manual, missing, dataAttr }) {
-    const filled = String(value ?? '').length > 0 ? ' is-filled' : '';
-    const title = priceFieldTitle({ manual, missing });
-    return `
-        <div class="form-floating farming-price-field${priceFieldClass({ manual, missing })}"${title ? ` title="${escapeHtml(title)}"` : ''}>
-            <input type="text" class="form-control${filled}" id="${escapeHtml(id)}"
-                ${dataAttr} value="${escapeHtml(value)}" placeholder=" "
-                inputmode="decimal" autocomplete="off" spellcheck="false">
-            <label for="${escapeHtml(id)}">${escapeHtml(label)}</label>
-        </div>
-    `;
-}
-
 function renderToggleGroup(name, options, selected, attr) {
     return options.map((option) => {
         const pressed = option.id === selected;
@@ -823,7 +809,9 @@ function renderTable(list) {
                         value: rawValue,
                         manual: isManualPrice(state.manualRaw[row.rawId]),
                         missing: !rawFetched,
-                        dataAttr: `data-raw-id="${escapeHtml(row.rawId)}"`
+                        date: rawFetched?.date,
+                        dataAttr: `data-raw-id="${escapeHtml(row.rawId)}"`,
+                        iconId: row.rawId
                     })}
                 </td>
                 <td class="num farming-num farming-price-cell" data-sort-value="${row.outQuote?.price ?? ''}">
@@ -833,7 +821,9 @@ function renderTable(list) {
                         value: outValue,
                         manual: isManualPrice(state.manualOut[row.outId]),
                         missing: !outFetched,
-                        dataAttr: `data-out-id="${escapeHtml(row.outId)}"`
+                        date: outFetched?.date,
+                        dataAttr: `data-out-id="${escapeHtml(row.outId)}"`,
+                        iconId: row.outId
                     })}
                 </td>
                 <td class="num farming-num${incompleteClass(row.cost)}" data-sort-value="${row.cost ?? ''}">${formatSilver(row.cost)}</td>
@@ -1019,6 +1009,7 @@ function patchRowCells(tr, row, bestId) {
     applyPriceFieldState(rawCell.querySelector('.farming-price-field'), {
         manual: isManualPrice(state.manualRaw[row.rawId]),
         missing: !rawFetched,
+        date: rawFetched?.date,
         displayValue: priceInputValue(state.manualRaw[row.rawId], rawFetched?.price)
     });
 
@@ -1027,6 +1018,7 @@ function patchRowCells(tr, row, bestId) {
     applyPriceFieldState(outCell.querySelector('.farming-price-field'), {
         manual: isManualPrice(state.manualOut[row.outId]),
         missing: !outFetched,
+        date: outFetched?.date,
         displayValue: priceInputValue(state.manualOut[row.outId], outFetched?.price)
     });
 

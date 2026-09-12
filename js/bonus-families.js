@@ -45,6 +45,11 @@ function formatSlugLabel(slug) {
         .join(' ');
 }
 
+export function labelForFamilyKey(key) {
+    const slug = String(key || '').split('/').pop();
+    return formatSlugLabel(slug);
+}
+
 function bySort(a, b) {
     return (a.sortValue - b.sortValue) || a.label.localeCompare(b.label);
 }
@@ -153,5 +158,5 @@ export function getBonusFamilyByKey(key) {
 }
 
 export function getBonusFamilyLabel(key) {
-    return getBonusFamilyByKey(key)?.label ?? key;
+    return getBonusFamilyByKey(key)?.label ?? labelForFamilyKey(key);
 }

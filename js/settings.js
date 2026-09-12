@@ -19,6 +19,7 @@ export const ENCHANT_POWERS = [5, 6, 7, 8, 9, 10, 11];
 
 export const DEFAULT_SETTINGS = {
     premium: true,
+    farmWater: false,
     server: 'europe',
     priceSource: 'api',
     buyPriceSide: 'buy',
@@ -99,6 +100,7 @@ export function getSettings() {
         const parsed = JSON.parse(raw);
         return {
             premium: parsed.premium !== false,
+            farmWater: parsed.farmWater === true,
             server: isServerId(parsed.server) ? parsed.server : DEFAULT_SETTINGS.server,
             priceSource: isPriceSource(parsed.priceSource) ? parsed.priceSource : DEFAULT_SETTINGS.priceSource,
             buyPriceSide: normalizePriceSide(parsed.buyPriceSide, DEFAULT_SETTINGS.buyPriceSide),
@@ -122,6 +124,7 @@ export function saveSettings(partial) {
         next.priceSource = DEFAULT_SETTINGS.priceSource;
     }
     next.premium = Boolean(next.premium);
+    next.farmWater = Boolean(next.farmWater);
     next.buyPriceSide = normalizePriceSide(next.buyPriceSide, DEFAULT_SETTINGS.buyPriceSide);
     next.sellPriceSide = normalizePriceSide(next.sellPriceSide, DEFAULT_SETTINGS.sellPriceSide);
     next.enchantPower = normalizeEnchantPower(next.enchantPower);

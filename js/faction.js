@@ -14,8 +14,7 @@ import {
     quoteFromRow,
     priceSideHint,
     priceSideToggleHtml,
-    priceFieldClass,
-    priceFieldTitle,
+    priceFieldHtml,
     priceInputValue,
     applyPriceFieldState,
     incompleteClass
@@ -326,20 +325,6 @@ function quoteFor(uniqueName, side, intent) {
 
 function priceInputValueFor(uniqueName, fetchedPrice) {
     return priceInputValue(state.manualPrices[uniqueName], fetchedPrice);
-}
-
-function priceFieldHtml({ id, label, uniqueName, value, dataAttr, missing = false }) {
-    const filled = String(value ?? '').length > 0 ? ' is-filled' : '';
-    const manual = isManualPrice(state.manualPrices[uniqueName]);
-    const title = priceFieldTitle({ manual, missing });
-    return `
-        <div class="form-floating ava-price-field${priceFieldClass({ manual, missing })}"${title ? ` title="${escapeHtml(title)}"` : ''}>
-            <input type="text" class="form-control${filled}" id="${escapeHtml(id)}"
-                ${dataAttr} value="${escapeHtml(value)}" placeholder=" "
-                inputmode="decimal" autocomplete="off" spellcheck="false">
-            <label for="${escapeHtml(id)}">${escapeHtml(label)}</label>
-        </div>
-    `;
 }
 
 function perPoint(silver, points) {
@@ -797,10 +782,13 @@ function renderCapeMats() {
                                 ${priceFieldHtml({
                                     id: `matPrice-${uniqueName}`,
                                     label: 'Alış',
-                                    uniqueName,
                                     value: priceInputValueFor(uniqueName, fetched?.price),
+                                    manual: isManualPrice(state.manualPrices[uniqueName]),
                                     missing: !fetched,
-                                    dataAttr: `data-price-id="${escapeHtml(uniqueName)}"`
+                                    date: fetched?.date,
+                                    dataAttr: `data-price-id="${escapeHtml(uniqueName)}"`,
+                                    fieldClass: 'ava-price-field',
+                                    iconId: uniqueName
                                 })}
                             </span>
                         </span>
@@ -829,10 +817,13 @@ function renderVendorTable() {
                 ${priceFieldHtml({
                     id: `vendorSell-${row.item.id}`,
                     label: 'Satış',
-                    uniqueName: row.item.uniqueName,
                     value: priceInputValueFor(row.item.uniqueName, row.sellQuote?.price),
+                    manual: isManualPrice(state.manualPrices[row.item.uniqueName]),
                     missing: !fetchedQuote(row.item.uniqueName, state.itemSide, 'sell'),
-                    dataAttr: `data-price-id="${escapeHtml(row.item.uniqueName)}"`
+                    date: fetchedQuote(row.item.uniqueName, state.itemSide, 'sell')?.date,
+                    dataAttr: `data-price-id="${escapeHtml(row.item.uniqueName)}"`,
+                    fieldClass: 'ava-price-field',
+                    iconId: row.item.uniqueName
                 })}
             </td>
             <td class="num ava-num${incompleteClass(row.buyQuote?.price)}" data-sort-value="${row.buyQuote?.price ?? ''}">${formatSilver(row.buyQuote?.price)}</td>
@@ -896,10 +887,13 @@ function renderCapeTable() {
                     ${priceFieldHtml({
                         id: `capeSell-${row.item.id}`,
                         label: 'Satış',
-                        uniqueName: row.item.uniqueName,
                         value: priceInputValueFor(row.item.uniqueName, row.outQuote?.price),
+                        manual: isManualPrice(state.manualPrices[row.item.uniqueName]),
                         missing: !fetchedQuote(row.item.uniqueName, state.itemSide, 'sell'),
-                        dataAttr: `data-price-id="${escapeHtml(row.item.uniqueName)}"`
+                        date: fetchedQuote(row.item.uniqueName, state.itemSide, 'sell')?.date,
+                        dataAttr: `data-price-id="${escapeHtml(row.item.uniqueName)}"`,
+                        fieldClass: 'ava-price-field',
+                        iconId: row.item.uniqueName
                     })}
                 </td>
                 <td class="num ava-num${incompleteClass(row.sell)}" data-sort-value="${row.sell ?? ''}">${formatSilver(row.sell)}</td>
@@ -922,7 +916,7 @@ function renderCapeTable() {
                         ${sortHeaderHtml('Net', { key: 'sell', type: 'number', className: 'num ava-num', direction: sort.key === 'sell' ? sort.direction : null, title: 'Vergi sonrası net satış' })}
                         ${sortHeaderHtml('Kâr', { key: 'profit', type: 'number', className: 'num ava-num', direction: sort.key === 'profit' ? sort.direction : null, title: 'Net satış eksi maliyet' })}
                         ${sortHeaderHtml('%', { key: 'pct', type: 'number', className: 'num ava-num', direction: sort.key === 'pct' ? sort.direction : null, title: 'Kârın maliyete oranı' })}
-                        ${sortHeaderHtml('₺/puan', { key: 'pointValue', type: 'number', className: 'num ava-num', direction: sort.key === 'pointValue' ? sort.direction : null, title: 'Crest puanı başına net değer' })}
+                        ${sortHeaderHtml('gümüş/puan', { key: 'pointValue', type: 'number', className: 'num ava-num', direction: sort.key === 'pointValue' ? sort.direction : null, title: 'Crest puanı başına net değer' })}
                     </tr>
                 </thead>
                 <tbody>${body}</tbody>
@@ -965,8 +959,8 @@ function renderOutput() {
 
             ${renderBonusNote()}
             <p class="faction-note">${escapeHtml(cityLabel(state.city))} · malzeme ${escapeHtml(matNote)} · satış ${escapeHtml(itemNote)}.
-                Satış/puan net (vergi sonrası). Cape ₺/puan = (net satış − düz cape maliyeti) / crest puanı.
-                Elle yazılan fiyat API’nin yerine geçer. Kırmızı fiyat API’de yok; hesap da kırmızı kalır.${stamp ? ` · ${stamp}` : ''}</p>
+                Satış/puan net (vergi sonrası). Cape gümüş/puan = (net satış − düz cape maliyeti) / crest puanı.
+                Elle yazılan fiyat API’nin yerine geçer. Kırmızı fiyat API’de yok; turuncu 6 saatten eski.${stamp ? ` · ${stamp}` : ''}</p>
         </div>
     `;
 }
@@ -1000,6 +994,7 @@ function patchVendorRow(tr, row) {
     applyPriceFieldState(tr.cells[2].querySelector('.ava-price-field'), {
         manual: Boolean(row.sellQuote?.manual),
         missing: !sellFetched,
+        date: sellFetched?.date,
         displayValue: priceInputValueFor(row.item.uniqueName, sellFetched?.price)
     });
     tr.cells[3].dataset.sortValue = row.buyQuote?.price ?? '';
@@ -1022,6 +1017,7 @@ function patchCapeRow(tr, row) {
     applyPriceFieldState(tr.cells[3].querySelector('.ava-price-field'), {
         manual: Boolean(row.outQuote?.manual),
         missing: !outFetched,
+        date: outFetched?.date,
         displayValue: priceInputValueFor(row.item.uniqueName, outFetched?.price)
     });
     tr.cells[4].dataset.sortValue = row.sell ?? '';
@@ -1066,6 +1062,7 @@ function refreshCalc(container) {
             applyPriceFieldState(field, {
                 manual: isManualPrice(state.manualPrices[card.dataset.priceCard]),
                 missing: !fetched,
+                date: fetched?.date,
                 displayValue: priceInputValueFor(card.dataset.priceCard, fetched?.price)
             });
         }

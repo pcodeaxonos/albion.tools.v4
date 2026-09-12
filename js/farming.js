@@ -11,8 +11,8 @@ import {
     quoteFromRow,
     priceSideHint,
     priceSideToggleHtml,
-    priceFieldClass,
-    priceFieldTitle,
+    priceFieldHtml,
+    priceMarkHtml,
     priceInputValue,
     applyPriceFieldState,
     incompleteClass
@@ -232,7 +232,6 @@ function readPrefs() {
         if (parsed.kind === 'herb' || parsed.kind === 'crop') {
             state.kind = parsed.kind;
         }
-        state.water = parsed.water === true;
         state.cropGeneral = clampSpec(parsed.cropGeneral);
         state.cropSpec = clampSpec(parsed.cropSpec);
         state.herbGeneral = clampSpec(parsed.herbGeneral);
@@ -246,7 +245,6 @@ function savePrefs() {
     try {
         localStorage.setItem(PREFS_STORAGE_KEY, JSON.stringify({
             kind: state.kind,
-            water: state.water,
             cropGeneral: state.cropGeneral,
             cropSpec: state.cropSpec,
             herbGeneral: state.herbGeneral,
@@ -387,20 +385,6 @@ function bestUnitId(list) {
     return best?.item.id ?? null;
 }
 
-function priceFieldHtml({ id, label, value, manual, missing, dataAttr, extra = '' }) {
-    const filled = String(value ?? '').length > 0 ? ' is-filled' : '';
-    const title = priceFieldTitle({ manual, missing });
-    return `
-        <div class="form-floating farming-price-field${priceFieldClass({ manual, missing })}"${title ? ` title="${escapeHtml(title)}"` : ''}>
-            <input type="text" class="form-control${filled}" id="${escapeHtml(id)}"
-                ${dataAttr} value="${escapeHtml(value)}" placeholder=" "
-                inputmode="decimal" autocomplete="off" spellcheck="false">
-            <label for="${escapeHtml(id)}">${escapeHtml(label)}</label>
-            ${extra}
-        </div>
-    `;
-}
-
 function renderKindToggle() {
     return [
         { id: 'crop', label: 'Ekin' },
@@ -425,22 +409,6 @@ function renderPremiumToggle() {
         return `
             <button type="button" class="farming-type-btn${pressed ? ' is-active' : ''}"
                 data-premium="${option.id ? '1' : '0'}"
-                aria-pressed="${pressed ? 'true' : 'false'}">
-                ${escapeHtml(option.label)}
-            </button>
-        `;
-    }).join('');
-}
-
-function renderWaterToggle() {
-    return [
-        { id: false, label: 'Sulama yok' },
-        { id: true, label: 'Sulama' }
-    ].map((option) => {
-        const pressed = option.id === state.water;
-        return `
-            <button type="button" class="farming-type-btn${pressed ? ' is-active' : ''}"
-                data-water="${option.id ? '1' : '0'}"
                 aria-pressed="${pressed ? 'true' : 'false'}">
                 ${escapeHtml(option.label)}
             </button>
@@ -530,9 +498,7 @@ function renderTable() {
         const plantManual = isManualPrice(state.manualPlants[row.item.id]);
         const seedValue = priceInputValue(state.manualSeeds[row.item.id], seedFetched?.price);
         const plantValue = priceInputValue(state.manualPlants[row.item.id], plantFetched?.price);
-        const mark = row.mark
-            ? `<span class="farming-seed-mark float-cut is-${row.mark.tone}">${escapeHtml(row.mark.label)}</span>`
-            : '';
+        const mark = priceMarkHtml(row.mark);
         const bonus = row.bonus ? '<span class="farming-bonus">+10%</span>' : '';
         const best = row.item.id === bestId ? ' is-best' : '';
 
@@ -554,8 +520,10 @@ function renderTable() {
                         value: seedValue,
                         manual: seedManual,
                         missing: !seedFetched,
+                        date: seedFetched?.date,
                         dataAttr: `data-seed-price="${escapeHtml(row.item.id)}"`,
-                        extra: mark
+                        iconId: row.item.seedId,
+                        mark
                     })}
                 </td>
                 <td class="num farming-num farming-price-cell" data-sort-value="${row.plant?.price ?? ''}">
@@ -565,7 +533,9 @@ function renderTable() {
                         value: plantValue,
                         manual: plantManual,
                         missing: !plantFetched,
-                        dataAttr: `data-plant-price="${escapeHtml(row.item.id)}"`
+                        date: plantFetched?.date,
+                        dataAttr: `data-plant-price="${escapeHtml(row.item.id)}"`,
+                        iconId: row.item.plantId
                     })}
                 </td>
                 <td class="num farming-num" data-sort-value="${row.qty}">${formatQty(row.qty)}</td>
@@ -602,7 +572,7 @@ function renderTable() {
                         ${sortHeaderHtml('Birim', { key: 'unit', type: 'number', className: 'num farming-num', direction: dir('unit'), title: 'Bir hasat biriminin üretim maliyeti' })}
                         ${sortHeaderHtml('Fark', { key: 'delta', type: 'number', className: 'num farming-num', direction: dir('delta'), title: 'Üretim maliyeti eksi piyasa fiyatı' })}
                         ${sortHeaderHtml('Karar', { key: 'decision', type: 'text', direction: dir('decision'), title: 'Üret veya piyasadan al' })}
-                        ${sortHeaderHtml('₺/focus', { key: 'focus', type: 'number', className: 'num farming-num', direction: dir('focus'), title: 'Sulamada focus başına kazanılan gümüş' })}
+                        ${sortHeaderHtml('gümüş/focus', { key: 'focus', type: 'number', className: 'num farming-num', direction: dir('focus'), title: 'Sulamada focus başına kazanılan gümüş' })}
                     </tr>
                 </thead>
                 <tbody>${body}</tbody>
@@ -644,7 +614,7 @@ function renderOutput() {
                 ${escapeHtml(cityLabel(state.city))} · tohum ${escapeHtml(seedNote)} · hasat ${escapeHtml(plantNote)}.
                 Birim = net tohum / verim. Fark = birim − hasat alış; negatifse üret, değilse al.
                 Tohum işareti NPC fiyatına göre.${focusNote}
-                Elle yazılan fiyat API’nin yerine geçer. Kırmızı fiyat API’de yok; hesap da kırmızı kalır, elle doldur.${stamp ? ` ${stamp}` : ''}
+                Elle yazılan fiyat API’nin yerine geçer. Kırmızı fiyat API’de yok; turuncu 6 saatten eski. Hesap da kırmızı kalır, elle doldur.${stamp ? ` ${stamp}` : ''}
             </p>
         </div>
     `;
@@ -684,17 +654,18 @@ function patchRowCells(tr, row, bestId) {
     applyPriceFieldState(seedCell.querySelector('.farming-price-field'), {
         manual: isManualPrice(seedManual),
         missing: !seedFetched,
+        date: seedFetched?.date,
         displayValue: priceInputValue(seedManual, seedFetched?.price)
     });
     const seedField = seedCell.querySelector('.farming-price-field');
-    let mark = seedField?.querySelector('.farming-seed-mark');
+    let mark = seedField?.querySelector('.price-field-mark, .farming-seed-mark');
     if (row.mark) {
         if (!mark && seedField) {
             mark = document.createElement('span');
             seedField.append(mark);
         }
         if (mark) {
-            mark.className = `farming-seed-mark float-cut is-${row.mark.tone}`;
+            mark.className = `price-field-mark farming-seed-mark float-cut is-${row.mark.tone}`;
             mark.textContent = row.mark.label;
         }
     } else if (mark) {
@@ -707,6 +678,7 @@ function patchRowCells(tr, row, bestId) {
     applyPriceFieldState(plantCell.querySelector('.farming-price-field'), {
         manual: isManualPrice(plantManual),
         missing: !plantFetched,
+        date: plantFetched?.date,
         displayValue: priceInputValue(plantManual, plantFetched?.price)
     });
 
@@ -829,9 +801,6 @@ function renderPage(container) {
                     <div class="farming-type" role="radiogroup" aria-label="Premium">
                         ${renderPremiumToggle()}
                     </div>
-                    <div class="farming-type" role="radiogroup" aria-label="Sulama">
-                        ${renderWaterToggle()}
-                    </div>
                     <div class="farming-side-field">
                         <span class="farming-side-label" id="farmingSeedSideLabel">Tohum</span>
                         <div class="price-side" role="radiogroup" aria-labelledby="farmingSeedSideLabel">
@@ -878,14 +847,6 @@ function bindPage(container) {
     container.querySelectorAll('[data-premium]').forEach((button) => {
         button.addEventListener('click', () => {
             state.premium = button.dataset.premium === '1';
-            renderPage(container);
-        });
-    });
-
-    container.querySelectorAll('[data-water]').forEach((button) => {
-        button.addEventListener('click', () => {
-            state.water = button.dataset.water === '1';
-            savePrefs();
             renderPage(container);
         });
     });
@@ -997,6 +958,7 @@ async function init() {
 
     const settings = getSettings();
     state.premium = settings.premium;
+    state.water = settings.farmWater === true;
     state.seedSide = settings.buyPriceSide;
     state.plantSide = settings.buyPriceSide;
     readPrefs();

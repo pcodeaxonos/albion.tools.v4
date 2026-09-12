@@ -22,56 +22,32 @@ export const TOOLS = [
     {
         id: 'pasture',
         title: 'Pasture',
-        description: 'Hayvan yetiştirme: focus, yavru ihtimali ve şehir varyantları.',
+        description: 'Hayvan büyütme, kesme ve süt/yumurta kârı; yem ada veya piyasa.',
         icon: '🐑',
+        href: 'pasture.html',
+        addedAt: '2026-09-07',
         group: 'Ada',
         frequent: true
     },
     {
-        id: 'horse',
-        title: 'Horse',
-        description: 'At yetiştirme süreleri, focus ve maliyet.',
-        icon: '🐴',
+        id: 'island-planner',
+        title: 'Ada Planlayıcı',
+        description: 'Ada slotlarını gümüş/gün maksimize et; yem ada vs pazar fırsat maliyetiyle.',
+        icon: '🏝️',
+        href: 'island-planner.html',
+        addedAt: '2026-09-07',
         group: 'Ada',
         frequent: true
-    },
-    {
-        id: 'results',
-        title: 'Results',
-        description: 'Farming sonuç ve verim karşılaştırması.',
-        icon: '📈',
-        group: 'Ada'
-    },
-    {
-        id: 'data',
-        title: 'Şehir Fiyatları',
-        description: 'Şehirler arası sell / buy fiyatları ve değişim geçmişi.',
-        icon: '📊',
-        group: 'Piyasa'
     },
     {
         id: 'malzemeler',
-        title: 'Malzemeler',
-        description: 'Şehir bazlı plank / block makas, harcama ve net kâr.',
+        title: 'Şehir Makası',
+        description: 'Plank, bar, binek: bir şehirden alıp diğerinde satmanın net kârı.',
         icon: '🪵',
         href: 'malzemeler.html',
         addedAt: '2026-09-06',
         group: 'Piyasa',
         frequent: true
-    },
-    {
-        id: 'refined',
-        title: 'Refined',
-        description: 'İşlenmiş malzeme fiyatları: plank, steel, leather, cloth.',
-        icon: '🧱',
-        group: 'Piyasa'
-    },
-    {
-        id: 'journal',
-        title: 'Journal',
-        description: 'Boş ve dolu journal alım-satım karşılaştırması.',
-        icon: '📓',
-        group: 'Piyasa'
     },
     {
         id: 'faction',
@@ -83,13 +59,6 @@ export const TOOLS = [
         group: 'Piyasa'
     },
     {
-        id: 'ore',
-        title: 'Ore',
-        description: 'Cevher ve bar stok, ihtiyaç ve maliyet hesabı.',
-        icon: '⛏️',
-        group: 'Üretim'
-    },
-    {
         id: 'refining',
         title: 'Refining',
         description: 'Ore / logs refine maliyeti, return rate ve kâr.',
@@ -98,13 +67,6 @@ export const TOOLS = [
         addedAt: '2026-09-05',
         group: 'Üretim',
         frequent: true
-    },
-    {
-        id: 'craftin',
-        title: 'Crafting',
-        description: 'Genel craft malzeme maliyeti ve return rate.',
-        icon: '⚒️',
-        group: 'Üretim'
     },
     {
         id: 'furniture',

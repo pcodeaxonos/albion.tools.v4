@@ -43,6 +43,27 @@
     height: 1.35rem;
 }
 
+.bonus-mat-recipes {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.2rem;
+    vertical-align: middle;
+}
+
+.bonus-mat-recipe {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+}
+
+.bonus-mat-recipe-label {
+    font-size: 0.625rem;
+    line-height: 1.2;
+    color: var(--color-text-muted);
+    white-space: nowrap;
+}
+
 .dashboard-stats {
     position: relative;
     display: grid;
@@ -326,7 +347,8 @@ a.tool-card {
     .carleon-toolbar,
     .ava-toolbar,
     .enchant-toolbar,
-    .farming-toolbar {
+    .farming-toolbar,
+    .pasture-toolbar {
         margin-bottom: 0;
     }
 
@@ -387,7 +409,8 @@ a.tool-card {
     .carleon-toolbar,
     .ava-toolbar,
     .enchant-toolbar,
-    .farming-toolbar {
+    .farming-toolbar,
+    .pasture-toolbar {
         display: flex;
         flex-direction: column;
         flex-wrap: nowrap;
@@ -979,7 +1002,8 @@ a.tool-card {
 .carleon-hero,
 .ava-hero,
 .enchant-hero,
-.farming-hero {
+.farming-hero,
+.pasture-hero {
     margin-bottom: var(--spacing-lg);
     padding-bottom: var(--spacing-md);
     border-bottom: var(--border-width) solid var(--color-border);
@@ -1058,6 +1082,13 @@ a.tool-card {
     .bonus-mat-icon {
         width: 1.2rem;
         height: 1.2rem;
+    }
+
+    .bonus-mat-recipes {
+        flex-direction: row;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 0.35rem 0.75rem;
     }
 }
 
@@ -1616,7 +1647,8 @@ a.tool-card {
 .carleon-toolbar,
 .ava-toolbar,
 .enchant-toolbar,
-.farming-toolbar {
+.farming-toolbar,
+.pasture-toolbar {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
@@ -1790,6 +1822,197 @@ a.tool-card {
     a {
         color: var(--color-primary);
     }
+}
+
+.island-planner-summary {
+    margin: 0 0 var(--spacing-md);
+}
+
+.island-planner-total {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.35rem 0.75rem;
+    margin: 0 0 var(--spacing-xs);
+    font-size: var(--font-size-lg);
+
+    strong {
+        font-variant-numeric: tabular-nums;
+    }
+
+    span {
+        color: var(--color-text-muted);
+        font-size: var(--font-size-sm);
+    }
+}
+
+.island-planner-feed {
+    margin: 0 0 var(--spacing-xs);
+    font-weight: 500;
+}
+
+.island-planner-cities {
+    width: 100%;
+}
+
+.island-planner-subhead {
+    margin: var(--spacing-lg) 0 var(--spacing-xs);
+    font-size: var(--h4-size);
+    font-weight: var(--font-weight-semibold);
+}
+
+.island-planner-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin: 0 0 var(--spacing-md);
+    padding: 0;
+    list-style: none;
+}
+
+.island-planner-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    max-width: 100%;
+    padding: 0.4rem 0.65rem;
+    background: color-mix(in srgb, var(--color-surface-raised) 88%, var(--color-primary));
+    border: var(--border-width) solid var(--color-border);
+    color: var(--color-text);
+    font-size: var(--font-size-sm);
+    line-height: 1.2;
+
+    strong {
+        font-variant-numeric: tabular-nums;
+    }
+}
+
+.island-planner-chip-type {
+    color: var(--color-text-muted);
+}
+
+.island-planner-chip-path {
+    color: var(--color-primary);
+    font-weight: var(--font-weight-semibold);
+}
+
+.island-planner-chip-icon {
+    width: 1.25rem;
+    height: 1.25rem;
+}
+
+.island-planner-table {
+    th,
+    td {
+        vertical-align: middle;
+        padding: 0.65rem 0.85rem;
+    }
+
+    .farming-item {
+        gap: 0.65rem;
+        flex-wrap: nowrap;
+    }
+
+    .farming-item .item-icon {
+        width: 2.25rem;
+        height: 2.25rem;
+    }
+
+    .farming-item-name {
+        flex-wrap: nowrap;
+        white-space: nowrap;
+        align-items: center;
+        gap: 0.4rem;
+    }
+
+    .farming-item-meta {
+        white-space: nowrap;
+    }
+}
+
+.island-planner-tag {
+    flex: 0 0 auto;
+}
+
+.island-planner-col-slot {
+    width: 5.5rem;
+    white-space: nowrap;
+}
+
+.island-planner-col-type {
+    width: 6.5rem;
+}
+
+.island-planner-col-path {
+    width: 4.5rem;
+}
+
+.island-planner-col-day {
+    width: 8rem;
+    white-space: nowrap;
+}
+
+.island-planner-slot-range {
+    display: block;
+    font-weight: var(--font-weight-semibold);
+    font-variant-numeric: tabular-nums;
+}
+
+.island-planner-slot-count {
+    display: block;
+    margin-top: 0.15rem;
+    color: var(--color-text-muted);
+    font-size: 0.6875rem;
+}
+
+.island-planner-type {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.2rem 0.45rem;
+    border: var(--border-width) solid var(--color-border);
+    background: var(--color-surface);
+    font-size: 0.75rem;
+    font-weight: var(--font-weight-semibold);
+    letter-spacing: 0.02em;
+}
+
+.island-planner-type--farm {
+    border-color: color-mix(in srgb, #6fbf73 45%, var(--color-border));
+    color: #9fd4a1;
+}
+
+.island-planner-type--herb {
+    border-color: color-mix(in srgb, #7eb6ff 45%, var(--color-border));
+    color: #a9ceff;
+}
+
+.island-planner-type--pasture {
+    border-color: color-mix(in srgb, #e0b35a 45%, var(--color-border));
+    color: #e8c888;
+}
+
+.island-planner-type--kennel {
+    border-color: color-mix(in srgb, #c98bff 45%, var(--color-border));
+    color: #d9b3ff;
+}
+
+.island-planner-day {
+    display: block;
+    font-variant-numeric: tabular-nums;
+    font-weight: var(--font-weight-semibold);
+}
+
+.island-planner-day-total {
+    display: block;
+    margin-top: 0.15rem;
+    color: var(--color-text-muted);
+    font-size: 0.6875rem;
+}
+
+.island-planner-note {
+    color: var(--color-text-muted);
+    font-size: var(--font-size-sm);
+    line-height: 1.35;
 }
 
 .carleon-mats,
@@ -2042,6 +2265,16 @@ a.tool-card {
     > .form-control {
         color: var(--color-danger);
         background-color: color-mix(in srgb, var(--color-danger) 12%, var(--field-bg));
+    }
+}
+
+.carleon-price-field.is-stale,
+.ava-price-field.is-stale,
+.enchant-price-field.is-stale,
+.farming-price-field.is-stale {
+    > .form-control {
+        color: var(--color-warning);
+        background-color: color-mix(in srgb, var(--color-warning) 12%, var(--field-bg));
     }
 }
 
@@ -2367,7 +2600,9 @@ a.tool-card {
 .farming-price-cell {
     overflow: hidden;
     padding-top: 0.7rem;
+    padding-bottom: 0.7rem;
     padding-inline: 0.5rem;
+    vertical-align: top;
 
     .farming-price-field {
         margin-left: 0;
@@ -2376,16 +2611,8 @@ a.tool-card {
 }
 
 .farming-seed-mark {
-    position: absolute;
-    top: 0;
-    right: 0.35rem;
-    bottom: auto;
-    z-index: 3;
-    margin: 0;
     font-size: 0.5rem;
     text-transform: uppercase;
-    white-space: nowrap;
-    pointer-events: none;
 
     &.is-cheap {
         background-color: var(--color-success);
@@ -2425,7 +2652,42 @@ a.tool-card {
 }
 
 .farming-table tbody tr.is-best td,
+.pasture-table tbody tr.is-best td,
 .ava-table tbody tr.is-best td {
     background-color: color-mix(in srgb, var(--color-success) 12%, var(--color-surface));
+}
+
+.farming-num.is-path-best .pasture-profit-pct,
+.pasture-profit-cell.is-path-best .pasture-profit-pct {
+    font-weight: var(--font-weight-bold);
+    text-decoration: underline;
+    text-decoration-color: color-mix(in srgb, var(--color-success) 65%, transparent);
+    text-underline-offset: 0.2em;
+}
+
+.pasture-profit-cell {
+    vertical-align: middle;
+    line-height: 1.15;
+}
+
+.pasture-profit-pct {
+    display: block;
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-semibold);
+}
+
+.pasture-profit-silver {
+    display: block;
+    margin-top: 0.1rem;
+    font-size: 0.7rem;
+    font-weight: var(--font-weight-medium);
+    color: var(--color-text-muted);
+    opacity: 0.95;
+}
+
+.pasture-profit-cell.is-profit .pasture-profit-silver,
+.pasture-profit-cell.is-loss .pasture-profit-silver {
+    color: inherit;
+    opacity: 0.8;
 }
 

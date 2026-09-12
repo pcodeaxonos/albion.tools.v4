@@ -21,14 +21,14 @@ export function slotTitle(bonus) {
     return [family, compactPackLine(bonus)].join(' · ');
 }
 
-export function renderMatsHtml(materials, className = 'bonus-mat-icon') {
+export function renderMatsHtml(materials, className = 'bonus-mat-icon', size = 32) {
     if (!materials?.length) {
         return '';
     }
 
     const icons = materials
         .map((key) => itemIconHtml(bonusMaterialItemId(key), {
-            size: 32,
+            size,
             className: `item-icon ${className}`
         }))
         .filter(Boolean)
@@ -41,6 +41,39 @@ export function renderMatsHtml(materials, className = 'bonus-mat-icon') {
     return `<span class="bonus-mats">${icons}</span>`;
 }
 
+export function renderRecipesHtml(variants, { labels = true, className = 'bonus-mat-icon', size = 32 } = {}) {
+    const recipes = (variants || []).filter((recipe) => recipe.materials?.length);
+    if (!recipes.length) {
+        return '';
+    }
+
+    if (recipes.length === 1 && !recipes[0].label) {
+        return renderMatsHtml(recipes[0].materials, className, size);
+    }
+
+    return `<span class="bonus-mat-recipes">${recipes.map((recipe) => {
+        const title = recipe.label
+            ? `${recipe.label}: ${recipe.materials.join(' + ')}`
+            : recipe.materials.join(' + ');
+        const label = labels && recipe.label
+            ? `<span class="bonus-mat-recipe-label">${escapeHtml(recipe.label)}</span>`
+            : '';
+        return `<span class="bonus-mat-recipe" title="${escapeHtml(title)}">${label}${renderMatsHtml(recipe.materials, className, size)}</span>`;
+    }).join('')}</span>`;
+}
+
+function recipesFromMeta(meta) {
+    if (meta.variants?.length) {
+        return meta.variants;
+    }
+
+    if (meta.materials?.length) {
+        return [{ label: '', materials: meta.materials }];
+    }
+
+    return [];
+}
+
 export function renderBonusHintHtml(familyKey) {
     const meta = bonusFamilyMeta(familyKey);
     if (!meta.cityLabel) {
@@ -50,24 +83,18 @@ export function renderBonusHintHtml(familyKey) {
     const station = bonusStationLine(meta);
     return [
         `<span class="bonus-hint-city">${escapeHtml(meta.cityLabel)}</span>`,
-        renderMatsHtml(meta.materials),
+        renderRecipesHtml(recipesFromMeta(meta), { labels: true }),
         station ? `<span class="bonus-hint-station">${escapeHtml(station)}</span>` : ''
     ].filter(Boolean).join(' ');
 }
 
 function renderPackHtml(bonus) {
-    const mats = renderMatsHtml(bonus.materials);
-    const station = bonusStationLine(bonus);
-    if (!mats && !station) {
+    const mats = renderRecipesHtml(recipesFromMeta(bonus), { labels: false, size: 64 });
+    if (!mats) {
         return '';
     }
 
-    return `
-        <span class="sidebar-today-pack">
-            ${mats}
-            ${station ? `<span class="sidebar-today-station">${escapeHtml(station)}</span>` : ''}
-        </span>
-    `;
+    return `<span class="sidebar-today-pack">${mats}</span>`;
 }
 
 function emptyCopy(compact) {
@@ -92,13 +119,17 @@ function renderSidebarSlots(bonuses) {
         const short = bonus.cityShort || city;
         const slug = citySlug(bonus.city || bonus.cityLabel);
         const cityAttr = slug ? ` data-city="${escapeHtml(slug)}"` : '';
+        const station = bonusStationLine(bonus);
         return `
             <span class="sidebar-today-slot"${cityAttr} title="${escapeHtml(slotTitle(bonus))}">
-                <span class="sidebar-today-city">
-                    <span class="sidebar-today-city-full">${escapeHtml(city)}</span>
-                    <span class="sidebar-today-city-short">${escapeHtml(short)}</span>
+                <span class="sidebar-today-copy">
+                    <span class="sidebar-today-city">
+                        <span class="sidebar-today-city-full">${escapeHtml(city)}</span>
+                        <span class="sidebar-today-city-short">${escapeHtml(short)}</span>
+                    </span>
+                    <span class="sidebar-today-family">${escapeHtml(bonus.label)} <span class="sidebar-today-rate">+${bonus.rate}%</span></span>
+                    ${station ? `<span class="sidebar-today-station">${escapeHtml(station)}</span>` : ''}
                 </span>
-                <span class="sidebar-today-family">${escapeHtml(bonus.label)} <span class="sidebar-today-rate">+${bonus.rate}%</span></span>
                 ${renderPackHtml(bonus)}
             </span>
         `;

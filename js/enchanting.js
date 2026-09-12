@@ -11,8 +11,7 @@ import {
     quoteFromRow,
     priceSideHint,
     priceSideToggleHtml,
-    priceFieldClass,
-    priceFieldTitle,
+    priceFieldHtml,
     priceInputValue,
     applyPriceFieldState,
     incompleteClass
@@ -258,19 +257,6 @@ function enchantCost(tier, from, to) {
     return total;
 }
 
-function priceFieldHtml({ id, label, value, manual, missing, dataAttr }) {
-    const filled = String(value ?? '').length > 0 ? ' is-filled' : '';
-    const title = priceFieldTitle({ manual, missing });
-    return `
-        <div class="form-floating enchant-price-field${priceFieldClass({ manual, missing })}"${title ? ` title="${escapeHtml(title)}"` : ''}>
-            <input type="text" class="form-control${filled}" id="${escapeHtml(id)}"
-                ${dataAttr} value="${escapeHtml(value)}" placeholder=" "
-                inputmode="decimal" autocomplete="off" spellcheck="false">
-            <label for="${escapeHtml(id)}">${escapeHtml(label)}</label>
-        </div>
-    `;
-}
-
 function pathRows() {
     return PATHS.map((path, index) => ({
         index,
@@ -321,7 +307,10 @@ function renderMatStrip() {
                                             value: priceInputValue(state.manualMats[key], fetched?.price),
                                             manual: isManualPrice(state.manualMats[key]),
                                             missing: !fetched,
-                                            dataAttr: `data-mat-price="${escapeHtml(key)}"`
+                                            date: fetched?.date,
+                                            dataAttr: `data-mat-price="${escapeHtml(key)}"`,
+                                            fieldClass: 'enchant-price-field',
+                                            iconId: `T${tier}_${step.itemType}`
                                         })}
                                     </span>
                                 `;
@@ -408,7 +397,7 @@ function renderOutput() {
             </div>
             ${renderMatStrip()}
             ${renderTable()}
-            <p class="enchant-note">${slot.qty} rune / soul / relic · ${escapeHtml(cityLabel(state.city))} ${escapeHtml(hint)}${stamp ? ` · ${stamp}` : ''}. Elle yazılan malzeme fiyatı API’nin yerine geçer. Kırmızı fiyat API’de yok; maliyet de kırmızı kalır.</p>
+            <p class="enchant-note">${slot.qty} rune / soul / relic · ${escapeHtml(cityLabel(state.city))} ${escapeHtml(hint)}${stamp ? ` · ${stamp}` : ''}. Elle yazılan malzeme fiyatı API’nin yerine geçer. Kırmızı fiyat API’de yok; turuncu 6 saatten eski.</p>
             <p class="enchant-standard-note">Vurgu: ${escapeHtml(standardHighlightNote(state.enchantPower))}. 0 → hedef yolları daha koyu. <a href="settings.html">Ayarlardan değiştir</a></p>
         </div>
     `;
@@ -455,6 +444,7 @@ function refreshCalc(container) {
         applyPriceFieldState(card?.querySelector('.enchant-price-field'), {
             manual: isManualPrice(state.manualMats[mat.key]),
             missing: !fetched,
+            date: fetched?.date,
             displayValue: priceInputValue(state.manualMats[mat.key], fetched?.price)
         });
     });

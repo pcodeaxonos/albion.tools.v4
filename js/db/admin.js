@@ -27,11 +27,13 @@ import {
     yieldToMain
 } from '../loader.js';
 import { initTableSort, sortHeaderHtml } from '../table-sort.js';
+import { renderMatsHtml, renderRecipesHtml } from '../today-bonus.js';
+import { parseFamilyVariants } from '../bonus-cities.js';
 
 const PAGE_SIZE = 25;
 const CODE_CHAR_LIMIT = 20;
 const NAME_COLUMNS = new Set(['localizedName', 'displayName', 'name', 'marketApiName']);
-const CODE_COLUMNS = new Set(['uniqueName', 'slug', 'parentSlug', 'index']);
+const CODE_COLUMNS = new Set(['uniqueName', 'slug', 'parentSlug', 'index', 'familyKey']);
 
 const state = {
     tableName: null,
@@ -683,6 +685,18 @@ function shouldTruncateCode(column, str) {
 }
 
 function getCellClass(column, value) {
+    if (column.format === 'variants') {
+        return 'db-cell-recipes';
+    }
+
+    if (column.format === 'materials') {
+        return 'db-cell-mats';
+    }
+
+    if (column.name === 'notes') {
+        return 'db-cell-notes';
+    }
+
     if (isCompactColumn(column)) {
         return column.type === 'number' ? 'db-col-compact num' : 'db-col-compact';
     }
@@ -722,6 +736,24 @@ function formatCellValue(value, column) {
 
     if (column.type === 'number') {
         return escapeHtml(value);
+    }
+
+    if (column.format === 'variants') {
+        const html = renderRecipesHtml(parseFamilyVariants(value), { labels: true });
+        if (html) {
+            return html;
+        }
+    }
+
+    if (column.format === 'materials') {
+        const keys = String(value)
+            .split(/[,/·]+/)
+            .map((item) => item.trim())
+            .filter(Boolean);
+        const icons = renderMatsHtml(keys);
+        if (icons) {
+            return `<span class="db-cell-mats">${icons}<span class="db-cell-mats-text">${escapeHtml(keys.join(', '))}</span></span>`;
+        }
     }
 
     const str = String(value);

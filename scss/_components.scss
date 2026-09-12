@@ -327,6 +327,12 @@ input[type="month"].form-control {
         --float-tag-fg: var(--color-on-accent);
     }
 
+    &.is-stale {
+        --input-stroke: var(--color-warning);
+        --float-tag-bg: var(--color-warning);
+        --float-tag-fg: var(--color-on-accent);
+    }
+
     &.is-missing {
         --input-stroke: var(--color-danger);
         --float-tag-bg: var(--color-danger);
@@ -354,6 +360,83 @@ input[type="month"].form-control {
     background-color: var(--float-tag-bg);
     transform: translateY(-50%);
     transition: none;
+}
+
+/* Icon beside the field; meta in a reserved foot — input chrome stays clean. */
+.price-field-stack {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.2rem;
+    min-width: 0;
+    width: 100%;
+}
+
+.price-field-row {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    min-width: 0;
+}
+
+.price-field-aside {
+    flex: 0 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.5rem;
+    height: var(--input-height-sm, 2rem);
+}
+
+.price-field-aside-icon {
+    width: 1.375rem;
+    height: 1.375rem;
+    margin: 0;
+}
+
+.price-field-row > .form-floating {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+.price-field-foot {
+    min-height: 0.85rem;
+    line-height: 0.85rem;
+    padding-inline: 0.1rem;
+}
+
+.price-field-stack.has-aside .price-field-foot {
+    padding-left: calc(1.5rem + 0.35rem);
+}
+
+.price-field-meta {
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 0.65rem;
+    font-weight: var(--font-weight-medium);
+    line-height: 0.85rem;
+    color: var(--color-text-muted);
+}
+
+.price-field-meta.is-empty {
+    visibility: hidden;
+}
+
+.price-field-mark,
+.farming-seed-mark {
+    position: absolute;
+    top: 0;
+    right: 0.35rem;
+    bottom: auto;
+    z-index: 3;
+    margin: 0;
+    max-width: 48%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    pointer-events: none;
 }
 
 .btn-link {
@@ -1001,6 +1084,42 @@ input[type="month"].form-control {
         max-width: none;
         overflow: visible;
         white-space: nowrap;
+    }
+
+    td.db-cell-mats {
+        white-space: nowrap;
+
+        .bonus-mat-icon {
+            width: 1.25rem;
+            height: 1.25rem;
+        }
+
+        .db-cell-mats-text {
+            margin-left: 0.35rem;
+            color: var(--color-text-muted);
+            font-size: 0.75rem;
+        }
+    }
+
+    td.db-cell-recipes {
+        white-space: normal;
+
+        .bonus-mat-recipes {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 0.25rem;
+        }
+
+        .bonus-mat-icon {
+            width: 1.25rem;
+            height: 1.25rem;
+        }
+    }
+
+    td.db-cell-notes {
+        max-width: 28rem;
+        white-space: normal;
+        line-height: 1.35;
     }
 
     td:last-child {

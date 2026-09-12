@@ -25,7 +25,6 @@ const LOCAL_DATA_PREFIX = 'albiontools.v4.';
 const LOCAL_DATA_CLOCK_KEY = LOCAL_DATA_PREFIX + '_syncClock';
 const LOCAL_DATA_MAX_BYTES = 50 * 1024 * 1024;
 const LOCATIONS_PATH = join(ROOT, 'data', 'locations.json');
-const ORDER_TTL_MS = 6 * 60 * 60 * 1000;
 const ADC_IMAGE = 'albiondata-client.exe';
 const ADC_PROCESS_TTL_MS = 4000;
 const execFileAsync = promisify(execFile);
@@ -626,10 +625,9 @@ function pruneExpired() {
     for (const [key, book] of books) {
         for (const [id, order] of book.orders) {
             const expires = order.expiresAt ? Date.parse(order.expiresAt) : NaN;
-            const seen = Date.parse(order.seenAt);
-            const stale = Number.isFinite(seen) && now - seen > ORDER_TTL_MS;
-            const expired = Number.isFinite(expires) && expires <= now;
-            if (stale || expired) {
+            // Keep orders past last-seen freshness; UI marks them stale (orange).
+            // Only drop when the game Expires timestamp has passed.
+            if (Number.isFinite(expires) && expires <= now) {
                 book.orders.delete(id);
             }
         }

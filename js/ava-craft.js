@@ -14,8 +14,7 @@ import {
     quoteFromRow,
     priceSideHint,
     priceSideToggleHtml,
-    priceFieldClass,
-    priceFieldTitle,
+    priceFieldHtml,
     priceInputValue,
     applyPriceFieldState,
     incompleteClass
@@ -207,6 +206,7 @@ function averageQuote(uniqueName) {
         price,
         book: price,
         date: latest,
+        stale: quotes.some((quote) => quote.stale),
         side: state.matSide,
         intent: 'buy',
         tick: 0,
@@ -259,19 +259,6 @@ function itemQuote(id) {
         return manualQuote(parsed, state.itemSide, 'sell');
     }
     return fetchedItemQuote(id);
-}
-
-function priceFieldHtml({ id, label, value, manual, missing, dataAttr }) {
-    const filled = String(value ?? '').length > 0 ? ' is-filled' : '';
-    const title = priceFieldTitle({ manual, missing });
-    return `
-        <div class="form-floating ava-price-field${priceFieldClass({ manual, missing })}"${title ? ` title="${escapeHtml(title)}"` : ''}>
-            <input type="text" class="form-control${filled}" id="${escapeHtml(id)}"
-                ${dataAttr} value="${escapeHtml(value)}" placeholder=" "
-                inputmode="decimal" autocomplete="off" spellcheck="false">
-            <label for="${escapeHtml(id)}">${escapeHtml(label)}</label>
-        </div>
-    `;
 }
 
 function matCost(item) {
@@ -399,7 +386,10 @@ function renderEnergyCard() {
                         value,
                         manual: isManualPrice(state.manualMats[mat.key]),
                         missing: !fetched,
-                        dataAttr: `data-mat-price="${escapeHtml(mat.key)}"`
+                        date: fetched?.date,
+                        dataAttr: `data-mat-price="${escapeHtml(mat.key)}"`,
+                        fieldClass: 'ava-price-field',
+                        iconId: mat.uniqueName
                     })}
                 </span>
             </li>
@@ -428,7 +418,10 @@ function renderTierMats() {
                                     value: priceInputValue(state.manualMats[plank.key], plankFetched?.price),
                                     manual: isManualPrice(state.manualMats[plank.key]),
                                     missing: !plankFetched,
-                                    dataAttr: `data-mat-price="${escapeHtml(plank.key)}"`
+                                    date: plankFetched?.date,
+                                    dataAttr: `data-mat-price="${escapeHtml(plank.key)}"`,
+                                    fieldClass: 'ava-price-field',
+                                    iconId: plank.uniqueName
                                 })}
                             </span>
                             <span class="ava-tier-row" data-mat-card="${escapeHtml(bar.key)}">
@@ -439,7 +432,10 @@ function renderTierMats() {
                                     value: priceInputValue(state.manualMats[bar.key], barFetched?.price),
                                     manual: isManualPrice(state.manualMats[bar.key]),
                                     missing: !barFetched,
-                                    dataAttr: `data-mat-price="${escapeHtml(bar.key)}"`
+                                    date: barFetched?.date,
+                                    dataAttr: `data-mat-price="${escapeHtml(bar.key)}"`,
+                                    fieldClass: 'ava-price-field',
+                                    iconId: bar.uniqueName
                                 })}
                             </span>
                         </span>
@@ -699,7 +695,10 @@ function renderTable() {
                         value: sellValue,
                         manual: isManualPrice(state.manualItems[row.item.id]),
                         missing: !fetched,
-                        dataAttr: `data-item-price="${escapeHtml(row.item.id)}"`
+                        date: fetched?.date,
+                        dataAttr: `data-item-price="${escapeHtml(row.item.id)}"`,
+                        fieldClass: 'ava-price-field',
+                        iconId: row.item.uniqueName
                     })}
                 </td>
                 <td class="num ava-num${incompleteClass(row.sell)}" data-sort-value="${row.sell ?? ''}">${formatSilver(row.sell)}</td>
@@ -752,7 +751,7 @@ function renderOutput() {
             ${renderTable()}
             ${calcExplainShell('avaExplain')}
             ${renderBonusNote()}
-            <p class="ava-note">Malzeme şehir ortalaması · ${escapeHtml(matNote)}. Satış ${escapeHtml(cityLabel(state.city))} · ${escapeHtml(itemNote)}. Elle yazılan alış/satış API’nin yerine geçer. Kırmızı fiyat API’de yok; hesap da kırmızı kalır.</p>
+            <p class="ava-note">Malzeme şehir ortalaması · ${escapeHtml(matNote)}. Satış ${escapeHtml(cityLabel(state.city))} · ${escapeHtml(itemNote)}. Elle yazılan alış/satış API’nin yerine geçer. Kırmızı fiyat API’de yok; turuncu 6 saatten eski.</p>
         </div>
     `;
 }
@@ -787,6 +786,7 @@ function patchRowCells(tr, row) {
     applyPriceFieldState(priceCell.querySelector('.ava-price-field'), {
         manual: Boolean(row.quote?.manual),
         missing: !itemFetched,
+        date: itemFetched?.date,
         displayValue: priceInputValue(state.manualItems[row.item.id], itemFetched?.price)
     });
 
@@ -831,6 +831,7 @@ function refreshCalc(container) {
             applyPriceFieldState(field, {
                 manual: isManualPrice(state.manualMats[mat.key]),
                 missing: !fetched,
+                date: fetched?.date,
                 displayValue: priceInputValue(state.manualMats[mat.key], fetched?.price)
             });
         }

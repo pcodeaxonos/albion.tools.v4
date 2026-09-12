@@ -1,16 +1,12 @@
+import { pageFileStem } from './utils.js';
 import { TOOLS, getFrequentTools as getStaticFrequentTools } from './tools.js';
 
 const STORAGE_KEY = 'albiontools.v4.usage';
 
 let recordedThisLoad = false;
 
-function currentFileName() {
-    const raw = location.pathname.split('/').pop() || 'index.html';
-    return raw.split('?')[0] || 'index.html';
-}
-
-function hrefFileName(href) {
-    return href.split('/').pop().split('?')[0];
+function htmlFileName(pathOrHref) {
+    return `${pageFileStem(pathOrHref)}.html`;
 }
 
 function liveTools() {
@@ -18,13 +14,13 @@ function liveTools() {
 }
 
 function toolForCurrentPage() {
-    const file = currentFileName();
+    const file = htmlFileName(location.pathname);
 
-    if (file === 'index.html' || file === '' || file === 'db.html') {
+    if (file === 'index.html' || file === 'db.html') {
         return null;
     }
 
-    return liveTools().find((tool) => hrefFileName(tool.href) === file) || null;
+    return liveTools().find((tool) => htmlFileName(tool.href) === file) || null;
 }
 
 function readUsage() {

@@ -1,4 +1,6 @@
 import { loadCities } from './cities.js';
+import { getAll } from './db/store.js';
+import { labelForFamilyKey } from './bonus-families.js';
 
 const FIGHTER = { tree: 'Fighter', treeShort: 'Fighter', vendor: "Warrior's Forge", vendorShort: 'Forge', journal: 'Fighter' };
 const HUNTER = { tree: 'Hunter', treeShort: 'Hunter', vendor: "Hunter's Lodge", vendorShort: 'Lodge', journal: 'Hunter' };
@@ -119,6 +121,7 @@ const MAT = {
     plank: ['plank'],
     plankBar: ['plank', 'bar'],
     plankBarCloth: ['plank', 'bar', 'cloth'],
+    plankBarClothLeather: ['plank', 'bar', 'cloth', 'leather'],
     leatherCloth: ['leather', 'cloth']
 };
 
@@ -152,7 +155,7 @@ const FAMILY_MATERIALS = {
     'weapons/naturestaff': MAT.plank,
     'weapons/shapeshifterstaff': MAT.plank,
 
-    'category/offhands': MAT.plankBarCloth,
+    'category/offhands': MAT.plankBarClothLeather,
     'category/bags': MAT.leatherCloth,
     'category/capes': MAT.cloth,
     'gathering/tool': MAT.plankBar,
@@ -164,6 +167,14 @@ const FAMILY_MATERIALS = {
     'resources/rock': ['taş'],
     'resources/hide': ['hide'],
     'resources/ore': ['ore']
+};
+
+const FAMILY_VARIANTS = {
+    'category/offhands': [
+        { label: 'Shield', materials: ['plank', 'bar'] },
+        { label: 'Torch', materials: ['plank', 'cloth'] },
+        { label: 'Tome of Spells', materials: ['leather', 'cloth'] }
+    ]
 };
 
 const MAT_ITEM = {
@@ -178,8 +189,100 @@ const MAT_ITEM = {
     ore: 'T4_ORE'
 };
 
+function parseMaterials(value) {
+    if (Array.isArray(value)) {
+        return value.map((item) => String(item).trim()).filter(Boolean);
+    }
+
+    return String(value || '')
+        .split(/[,/·]+/)
+        .map((item) => item.trim())
+        .filter(Boolean);
+}
+
+function uniqueMaterials(variants) {
+    const seen = new Set();
+    const keys = [];
+
+    for (const recipe of variants) {
+        for (const key of recipe.materials) {
+            if (!seen.has(key)) {
+                seen.add(key);
+                keys.push(key);
+            }
+        }
+    }
+
+    return keys;
+}
+
+export function formatFamilyVariants(variants) {
+    return (variants || [])
+        .filter((recipe) => recipe.materials?.length)
+        .map((recipe) => {
+            const mats = recipe.materials.join(' + ');
+            return recipe.label ? `${recipe.label}: ${mats}` : mats;
+        })
+        .join(' | ');
+}
+
+export function parseFamilyVariants(value) {
+    if (Array.isArray(value)) {
+        return value
+            .map((recipe) => ({
+                label: String(recipe.label || '').trim(),
+                materials: parseMaterials(recipe.materials)
+            }))
+            .filter((recipe) => recipe.materials.length);
+    }
+
+    const raw = String(value || '').trim();
+    if (!raw) {
+        return [];
+    }
+
+    return raw.split('|').map((part) => {
+        const chunk = part.trim();
+        const split = chunk.indexOf(':');
+        if (split === -1) {
+            return { label: '', materials: parseMaterials(chunk.replaceAll('+', ',')) };
+        }
+
+        return {
+            label: chunk.slice(0, split).trim(),
+            materials: parseMaterials(chunk.slice(split + 1).replaceAll('+', ','))
+        };
+    }).filter((recipe) => recipe.materials.length);
+}
+
+function familyRow(familyKey) {
+    return getAll('bonusFamilies').find((row) => row.familyKey === familyKey) ?? null;
+}
+
+export function seedBonusFamilyRows() {
+    return Object.keys(FAMILY_CITY).map((familyKey, index) => {
+        const station = FAMILY_STATION[familyKey];
+        const named = FAMILY_VARIANTS[familyKey] || [];
+        const materials = named.length
+            ? uniqueMaterials(named)
+            : (FAMILY_MATERIALS[familyKey] ?? []);
+        return {
+            id: index + 1,
+            familyKey,
+            label: labelForFamilyKey(familyKey),
+            city: FAMILY_CITY[familyKey],
+            tree: station?.tree ?? '',
+            vendor: station?.vendor ?? '',
+            journal: station?.journal ?? '',
+            materials: materials.join(', '),
+            variants: formatFamilyVariants(named),
+            notes: ''
+        };
+    });
+}
+
 export function bonusCityApiName(familyKey) {
-    return FAMILY_CITY[familyKey] ?? null;
+    return familyRow(familyKey)?.city || FAMILY_CITY[familyKey] || null;
 }
 
 export function bonusMaterialItemId(key) {
@@ -201,11 +304,49 @@ export function bonusCityShort(familyKey) {
     return CITY_SHORT[apiName] ?? '';
 }
 
+export function bonusFamilyVariants(familyKey) {
+    const stored = parseFamilyVariants(familyRow(familyKey)?.variants);
+    if (stored.length) {
+        return stored;
+    }
+
+    if (FAMILY_VARIANTS[familyKey]?.length) {
+        return FAMILY_VARIANTS[familyKey].map((recipe) => ({
+            label: recipe.label,
+            materials: [...recipe.materials]
+        }));
+    }
+
+    const materials = FAMILY_MATERIALS[familyKey] ?? [];
+    return materials.length ? [{ label: '', materials: [...materials] }] : [];
+}
+
 export function bonusFamilyMaterials(familyKey) {
+    const variants = bonusFamilyVariants(familyKey);
+    if (variants.length) {
+        return uniqueMaterials(variants);
+    }
+
+    const stored = familyRow(familyKey)?.materials;
+    if (stored != null && String(stored).trim() !== '') {
+        return parseMaterials(stored);
+    }
+
     return FAMILY_MATERIALS[familyKey] ?? [];
 }
 
 export function bonusStation(familyKey) {
+    const row = familyRow(familyKey);
+    if (row && (row.vendor || row.journal || row.tree)) {
+        return {
+            tree: row.tree || '',
+            treeShort: row.tree || '',
+            vendor: row.vendor || '',
+            vendorShort: row.vendor || '',
+            journal: row.journal || ''
+        };
+    }
+
     return FAMILY_STATION[familyKey] ?? null;
 }
 
@@ -236,7 +377,9 @@ export function bonusPackParts(meta, { includeCity = true } = {}) {
     if (includeCity) {
         bits.push(meta.cityLabel || 'Şehir yok');
     }
-    if (meta.materialShort) {
+    if (meta.variants?.length) {
+        bits.push(formatFamilyVariants(meta.variants));
+    } else if (meta.materialShort) {
         bits.push(meta.materialShort);
     }
     const station = bonusStationLine(meta);
@@ -251,7 +394,8 @@ export function bonusPackLine(meta, options) {
 }
 
 export function bonusFamilyMeta(familyKey) {
-    const materials = bonusFamilyMaterials(familyKey);
+    const variants = bonusFamilyVariants(familyKey);
+    const materials = uniqueMaterials(variants);
     const materialShort = materials.join(' · ');
     const station = bonusStation(familyKey);
     return {
@@ -259,13 +403,15 @@ export function bonusFamilyMeta(familyKey) {
         cityLabel: bonusCityLabel(familyKey),
         cityShort: bonusCityShort(familyKey),
         materials,
+        variants,
         materialShort,
         materialLabel: materialShort,
         tree: station?.tree ?? '',
         treeShort: station?.treeShort ?? '',
         vendor: station?.vendor ?? '',
         vendorShort: station?.vendorShort ?? '',
-        journal: station?.journal ?? ''
+        journal: station?.journal ?? '',
+        notes: familyRow(familyKey)?.notes || ''
     };
 }
 

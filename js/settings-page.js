@@ -85,6 +85,14 @@ function renderPage(container, cities) {
                     </span>
                 </label>
                 <label class="form-check">
+                    <input class="form-check-input" type="checkbox" id="settingFarmWater"
+                        ${settings.farmWater ? 'checked' : ''}>
+                    <span class="form-check-label">
+                        Ekin sulama
+                        <span class="settings-fee-meta">Farming, Pasture yemi ve Ada Planlayıcı. Kapalıysa seed return sulamasız. Varsayılan: sulama yok.</span>
+                    </span>
+                </label>
+                <label class="form-check">
                     <input class="form-check-input" type="checkbox" id="settingRefineFollowSpecialty"
                         ${settings.refineFollowSpecialty ? 'checked' : ''}>
                     <span class="form-check-label">
@@ -203,6 +211,7 @@ function persist(container) {
     const islandCities = selectedIslandCities(container);
     saveSettings({
         premium,
+        farmWater: Boolean(container.querySelector('#settingFarmWater')?.checked),
         priceSource,
         server: container.querySelector('#settingServer')?.value,
         buyPriceSide: selectedSide(container, 'buy', 'buy'),

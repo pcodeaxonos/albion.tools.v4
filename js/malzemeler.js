@@ -11,8 +11,7 @@ import {
     quoteFromRow,
     priceSideHint,
     priceSideToggleHtml,
-    priceFieldClass,
-    priceFieldTitle,
+    priceFieldHtml,
     priceInputValue,
     applyPriceFieldState,
     incompleteClass
@@ -303,19 +302,6 @@ function profitClass(profit) {
     return '';
 }
 
-function priceFieldHtml({ id, label, value, manual, missing, dataAttr }) {
-    const filled = String(value ?? '').length > 0 ? ' is-filled' : '';
-    const title = priceFieldTitle({ manual, missing });
-    return `
-        <div class="form-floating farming-price-field${priceFieldClass({ manual, missing })}"${title ? ` title="${escapeHtml(title)}"` : ''}>
-            <input type="text" class="form-control${filled}" id="${escapeHtml(id)}"
-                ${dataAttr} value="${escapeHtml(value)}" placeholder=" "
-                inputmode="decimal" autocomplete="off" spellcheck="false">
-            <label for="${escapeHtml(id)}">${escapeHtml(label)}</label>
-        </div>
-    `;
-}
-
 function renderToggleGroup(options, selected, attr) {
     return options.map((option) => {
         const pressed = option.id === selected;
@@ -417,7 +403,9 @@ function renderTable(list) {
                         value: buyValue,
                         manual: isManualPrice(state.manualBuy[row.itemId]),
                         missing: !buyFetched,
-                        dataAttr: `data-buy-id="${escapeHtml(row.itemId)}"`
+                        date: buyFetched?.date,
+                        dataAttr: `data-buy-id="${escapeHtml(row.itemId)}"`,
+                        iconId: row.itemId
                     })}
                 </td>
                 <td class="num farming-num farming-price-cell" data-sort-value="${row.sellQuote?.price ?? ''}">
@@ -427,7 +415,9 @@ function renderTable(list) {
                         value: sellValue,
                         manual: isManualPrice(state.manualSell[row.itemId]),
                         missing: !sellFetched,
-                        dataAttr: `data-sell-id="${escapeHtml(row.itemId)}"`
+                        date: sellFetched?.date,
+                        dataAttr: `data-sell-id="${escapeHtml(row.itemId)}"`,
+                        iconId: row.itemId
                     })}
                 </td>
                 <td class="num farming-num${profitClass(row.spread)}${incompleteClass(row.spread)}" data-sort-value="${row.spread ?? ''}">${formatPct(row.spread)}</td>
@@ -493,8 +483,8 @@ function renderPage(container) {
     const group = currentGroup();
     container.innerHTML = `
         <section class="farming-hero">
-            <h1>Malzemeler</h1>
-            <p>Seçilen grupta hangi kademeyi flip etmenin kâr bıraktığı. Alış ve satış şehirleri ayrı; vergi ve setup diğer araçlarla aynı.</p>
+            <h1>Şehir Makası</h1>
+            <p>Bir şehirden alıp diğerinde sat: plank, bar, leather, cloth ve binek. Vergi ve setup diğer araçlarla aynı.</p>
         </section>
 
         <div class="tool-split">
@@ -590,6 +580,7 @@ function patchRowCells(tr, row, bestId) {
     applyPriceFieldState(buyCell.querySelector('.farming-price-field'), {
         manual: isManualPrice(state.manualBuy[row.itemId]),
         missing: !buyFetched,
+        date: buyFetched?.date,
         displayValue: priceInputValue(state.manualBuy[row.itemId], buyFetched?.price)
     });
 
@@ -598,6 +589,7 @@ function patchRowCells(tr, row, bestId) {
     applyPriceFieldState(sellCell.querySelector('.farming-price-field'), {
         manual: isManualPrice(state.manualSell[row.itemId]),
         missing: !sellFetched,
+        date: sellFetched?.date,
         displayValue: priceInputValue(state.manualSell[row.itemId], sellFetched?.price)
     });
 
@@ -875,7 +867,7 @@ async function init() {
     state.buySide = settings.buyPriceSide;
     state.sellSide = settings.sellPriceSide;
 
-    showPageLoader('Malzemeler yükleniyor…');
+    showPageLoader('Şehir Makası yükleniyor…');
     try {
         await initStore();
         state.cities = loadActiveCities();

@@ -6,6 +6,8 @@ const SEED_REVISION = 2;
 const RESEED_TABLES = ['items', 'itemCategories'];
 const DAILY_BONUSES_IMPORT_KEY = STORAGE_PREFIX + 'dailyBonusesImport';
 const DAILY_BONUSES_IMPORT_REV = 1;
+const BONUS_FAMILIES_SEED_KEY = STORAGE_PREFIX + 'bonusFamiliesSeed';
+const BONUS_FAMILIES_SEED_REV = 2;
 
 function storageKey(tableName) {
     return STORAGE_PREFIX + tableName;
@@ -34,15 +36,32 @@ function applyDailyBonusesImport() {
     localStorage.setItem(DAILY_BONUSES_IMPORT_KEY, String(DAILY_BONUSES_IMPORT_REV));
 }
 
+function applyBonusFamiliesSeed() {
+    const current = Number(localStorage.getItem(BONUS_FAMILIES_SEED_KEY) || '0');
+    if (current >= BONUS_FAMILIES_SEED_REV) {
+        return;
+    }
+
+    localStorage.removeItem(storageKey('bonusFamilies'));
+    localStorage.setItem(BONUS_FAMILIES_SEED_KEY, String(BONUS_FAMILIES_SEED_REV));
+}
+
 export async function initStore() {
     applySeedRevision();
     applyDailyBonusesImport();
+    applyBonusFamiliesSeed();
 
     for (const tableName of getTableNames()) {
         const table = tables[tableName];
         const key = storageKey(tableName);
 
         if (localStorage.getItem(key)) {
+            continue;
+        }
+
+        if (table.seed === 'bonusFamilies') {
+            const { seedBonusFamilyRows } = await import('../bonus-cities.js');
+            localStorage.setItem(key, JSON.stringify(seedBonusFamilyRows()));
             continue;
         }
 

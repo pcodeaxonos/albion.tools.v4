@@ -185,13 +185,12 @@ body {
 
 .sidebar-today-slot {
     --slot-city: var(--color-primary);
-    position: relative;
     display: flex;
-    flex-direction: column;
-    gap: 0.1rem;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 0.55rem;
     min-width: 0;
-    min-height: 3.25rem;
-    padding: 0.4rem 5.75rem 0.4rem 0.5rem;
+    padding: 0.5rem 0.55rem;
     background-color: color-mix(in srgb, var(--slot-city) 11%, transparent);
     box-shadow: inset 2px 0 0 var(--slot-city);
 
@@ -202,6 +201,13 @@ body {
     &[data-city="thetford"] { --slot-city: #b07ae8; }
     &[data-city="caerleon"] { --slot-city: #e85a5a; }
     &[data-city="brecilien"] { --slot-city: #6ec9c0; }
+}
+
+.sidebar-today-copy {
+    display: flex;
+    flex-direction: column;
+    gap: 0.12rem;
+    min-width: 0;
 }
 
 .sidebar-today-city {
@@ -227,27 +233,49 @@ body {
     color: var(--color-primary-light);
 }
 
+.sidebar-today-station {
+    font-size: 0.625rem;
+    line-height: 1.25;
+    color: var(--color-text-muted);
+    opacity: 0.85;
+}
+
 .sidebar-today-pack {
-    position: absolute;
-    top: 50%;
-    right: 0.4rem;
-    transform: translateY(-50%);
     display: flex;
     flex-direction: column;
-    flex-wrap: nowrap;
     align-items: flex-end;
-    gap: 0.12rem;
-    max-width: 52%;
-    font-size: 0.625rem;
-    line-height: 1.2;
-    color: var(--color-text-muted);
-    letter-spacing: 0.01em;
-    text-align: right;
+    flex-shrink: 0;
+    gap: 0.2rem;
     pointer-events: none;
 
+    .bonus-mat-recipes {
+        align-items: flex-end;
+        gap: 0.2rem;
+    }
+
+    .bonus-mat-recipe {
+        gap: 0.2rem;
+        padding: 0.1rem;
+        border-radius: 0.35rem;
+        background-color: color-mix(in srgb, #000 28%, transparent);
+    }
+
+    .bonus-mat-recipe-label {
+        display: none;
+    }
+
+    .bonus-mats {
+        gap: 0.2rem;
+    }
+
     .bonus-mat-icon {
-        width: 1.85rem;
-        height: 1.85rem;
+        width: 2.55rem;
+        height: 2.55rem;
+    }
+
+    > .bonus-mats .bonus-mat-icon {
+        width: 2.85rem;
+        height: 2.85rem;
     }
 }
 
@@ -599,21 +627,19 @@ body.app-sidebar-open {
     }
 
     .sidebar-today-slot {
-        flex-direction: row;
-        flex-wrap: wrap;
-        align-items: center;
-        column-gap: 0.4rem;
-        row-gap: 0;
-        min-height: 2.5rem;
-        padding: 0.2rem 3.75rem 0.2rem 0.5rem;
+        padding: 0.4rem 0.45rem;
+        column-gap: 0.45rem;
     }
 
     .sidebar-today-pack {
-        right: 0.3rem;
-
         .bonus-mat-icon {
-            width: 1.45rem;
-            height: 1.45rem;
+            width: 2.1rem;
+            height: 2.1rem;
+        }
+
+        > .bonus-mats .bonus-mat-icon {
+            width: 2.35rem;
+            height: 2.35rem;
         }
     }
 

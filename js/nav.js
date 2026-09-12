@@ -1,4 +1,4 @@
-import { escapeHtml } from './utils.js';
+import { escapeHtml, pageFileStem } from './utils.js';
 import { PAGES, getToolGroups, isNewTool } from './tools.js';
 import { recordCurrentToolVisit } from './usage.js';
 import { bootLocalDataSync } from './local-data.js';
@@ -12,14 +12,8 @@ const OPEN_CLASS = 'is-open';
 const BODY_OPEN_CLASS = 'app-sidebar-open';
 const MQ_DESKTOP = '(min-width: 768px)';
 
-function currentPage() {
-    return location.pathname.split('/').pop() || 'index.html';
-}
-
 function isActiveHref(href) {
-    const path = href.split('/').pop();
-    const current = currentPage();
-    return path === current || (current === '' && path === 'index.html');
+    return pageFileStem(href) === pageFileStem(location.pathname);
 }
 
 function renderPageLink(page) {

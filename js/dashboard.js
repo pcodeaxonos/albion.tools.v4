@@ -34,7 +34,7 @@ export async function renderDashboard(container) {
         <section class="dashboard-section">
             <div class="dashboard-section-header">
                 <h2>Sık kullanılanlar</h2>
-                <p class="text-muted">En çok açtığınız araçlar. Tam liste soldaki menüde; yakında olanlar yapı hazır oldukça açılacak.</p>
+                <p class="text-muted">En çok açtığınız araçlar. Tam liste soldaki menüde.</p>
             </div>
             <div class="tool-grid tool-grid--frequent"></div>
         </section>
