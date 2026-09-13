@@ -475,8 +475,24 @@ function renderBonusTags(bonuses) {
     )).join('');
 }
 
+function slotIsThin(slot) {
+    if (slot?.thinMarket === true) {
+        return true;
+    }
+    if (!(state.minVolume > 0)) {
+        return false;
+    }
+    if (Number.isFinite(slot?.avgItemCount)) {
+        return slot.avgItemCount < state.minVolume;
+    }
+    return true;
+}
+
 function renderProductCell(slot) {
     const { bonuses, notes } = splitDetail(slot.detail);
+    if (slotIsThin(slot) && !bonuses.includes('ince pazar')) {
+        bonuses.unshift('ince pazar');
+    }
     return `
         <span class="farming-item">
             ${slot.iconId ? itemIconHtml(slot.iconId, { className: 'item-icon' }) : ''}

@@ -5468,8 +5468,8 @@ a.tool-card:hover {
   height: 2.25rem;
 }
 .island-planner-table .farming-item-name {
-  flex-wrap: nowrap;
-  white-space: nowrap;
+  flex-wrap: wrap;
+  white-space: normal;
   align-items: center;
   gap: 0.4rem;
 }

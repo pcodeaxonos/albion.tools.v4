@@ -335,14 +335,13 @@ function stabilityFactors(sellItemId, sellCity, ctx) {
     const k = Number(ctx.volK) || getEconomyConstant('farm_vol_penalty_k', 1.5);
     const minVolume = Number(ctx.minVolume) || 0;
     const avgItemCount = hist?.avgItemCount ?? null;
-    const thinMarket = minVolume > 0 && Number.isFinite(avgItemCount) && avgItemCount < minVolume;
 
     if (!hist) {
         return {
             liquidity: 1,
             volPenalty: 1,
             lowLiquidity: false,
-            thinMarket: false,
+            thinMarket: minVolume > 0,
             hist: null,
             avgItemCount: null
         };
@@ -353,7 +352,7 @@ function stabilityFactors(sellItemId, sellCity, ctx) {
         liquidity,
         volPenalty,
         lowLiquidity: liquidity < 0.35,
-        thinMarket,
+        thinMarket: minVolume > 0 && (avgItemCount == null || avgItemCount < minVolume),
         hist,
         avgItemCount
     };
@@ -981,6 +980,8 @@ function slotFromActivity(activity, index, role = 'cash') {
         activityId: activity.id,
         lowLiquidity: activity.lowLiquidity === true,
         thinMarket: activity.thinMarket === true,
+        avgItemCount: activity.avgItemCount ?? null,
+        historyN: activity.historyN ?? 0,
         explain: activity.explain ?? null,
         role
     };
@@ -1127,6 +1128,8 @@ function animalModuleSlots(animal, blended, feedCrop, island, ctx, { a, f, islan
             activityId: `${animal.id}-${blended.path.id}-island`,
             lowLiquidity: blended.lowLiquidity === true,
             thinMarket: blended.thinMarket === true,
+            avgItemCount: blended.avgItemCount ?? null,
+            historyN: blended.historyN ?? 0,
             explain: animalExplainRow,
             role: 'animal'
         });
@@ -1173,6 +1176,8 @@ function animalModuleSlots(animal, blended, feedCrop, island, ctx, { a, f, islan
                 activityId: `feed-${feedCrop.id}`,
                 lowLiquidity: feedScored.lowLiquidity === true,
                 thinMarket: feedScored.thinMarket === true,
+                avgItemCount: feedScored.avgItemCount ?? null,
+                historyN: feedScored.historyN ?? 0,
                 explain: feedExplainRow,
                 role: 'feed'
             });
@@ -1391,7 +1396,10 @@ function bestPlantActivity(activities) {
     return plants[0] ?? null;
 }
 
-function knapsackPlans(n, modulesByAnimal, leftoverActivity, { requiredAnimalId = null, requiredMinA = 0 } = {}) {
+function knapsackPlans(n, modulesByAnimal, leftoverActivity, { requiredAnimalId = null, requiredMinA = 0, requiredDummy = null } = {}) {
+    if (requiredAnimalId != null && !modulesByAnimal.has(requiredAnimalId) && requiredDummy) {
+        modulesByAnimal.set(requiredAnimalId, [requiredDummy]);
+    }
     if (requiredAnimalId != null && !modulesByAnimal.has(requiredAnimalId)) {
         return null;
     }
@@ -1623,11 +1631,53 @@ function packageFromKnapsack(best, leftoverActivity) {
     };
 }
 
-function simpleFactionPlan(n, factionAnimal, activities, ctx) {
-    const locked = Math.min(n, Math.max(0, Math.round(Number(ctx.factionPlots) || 0)));
-    if (!factionAnimal || locked <= 0) {
-        return null;
-    }
+function placeholderFactionActivity(animal) {
+    const hours = metricsHours(animal.baseHours, true);
+    return {
+        id: `${animal.id}-locked`,
+        kind: animal.kind,
+        plotType: animal.plotType || 'kennel',
+        label: animal.label,
+        pathLabel: 'Kilit',
+        item: animal,
+        iconId: animal.grownId,
+        sellItemId: animal.grownId,
+        perDay: 0,
+        rawPerDay: 0,
+        stablePerDay: 0,
+        spotPerDay: null,
+        profit: null,
+        cost: null,
+        revenue: null,
+        profitPct: null,
+        hours,
+        feedDemand: animal.pens * (animal.feedQty || 0),
+        feedCrop: null,
+        feedMode: 'market',
+        feedLabel: null,
+        detail: 'faction kilit · fiyat yok',
+        lowLiquidity: false,
+        thinMarket: false,
+        explain: {
+            kind: 'animal',
+            role: 'animal',
+            title: `${animal.label} · Kilit`,
+            iconId: animal.grownId,
+            pathLabel: 'Kilit',
+            priceBasis: PRICE_BASIS,
+            diffs: ['Faction kennel kilidi zorunlu. Bu şehirde yeterli fiyat yok; ham gümüş/gün 0 sayılır.'],
+            chips: [{ label: 'kilit', html: '<span class="calc-explain-n">faction</span>' }],
+            inputs: { pens: animal.pens },
+            costs: {},
+            sale: {},
+            cycle: { profit: null, cost: null, revenue: null, hours, rawPerDay: 0, pens: animal.pens },
+            stability: {},
+            notes: []
+        }
+    };
+}
+
+function bestFactionMarketActivity(factionAnimal, ctx) {
     const feedCrops = listCrops();
     let bestAct = null;
     for (const crop of feedCrops) {
@@ -1667,9 +1717,33 @@ function simpleFactionPlan(n, factionAnimal, activities, ctx) {
             }
         }
     }
-    if (!bestAct) {
+    return bestAct;
+}
+
+function dummyFactionModule(factionAnimal, locked, ctx) {
+    const act = bestFactionMarketActivity(factionAnimal, ctx) || placeholderFactionActivity(factionAnimal);
+    return {
+        groupId: factionAnimal.id,
+        animalId: factionAnimal.id,
+        animalKey: factionAnimal.key,
+        cost: locked,
+        a: locked,
+        f: 0,
+        value: (act.perDay || 0) * locked,
+        stableValue: (act.stablePerDay || 0) * locked,
+        feedNote: `Faction ${locked}× kennel · ${act.feedLabel ? `yem pazar · ${act.feedLabel}` : (act.detail || 'kilit')}`,
+        mode: 'faction-simple',
+        buildSlots: () => fillPlots(locked, act, 'animal')
+    };
+}
+
+function simpleFactionPlan(n, factionAnimal, activities, ctx) {
+    const locked = Math.min(n, Math.max(0, Math.round(Number(ctx.factionPlots) || 0)));
+    if (!factionAnimal || locked <= 0) {
         return null;
     }
+    const bestAct = bestFactionMarketActivity(factionAnimal, ctx)
+        || placeholderFactionActivity(factionAnimal);
 
     const rest = n - locked;
     const fill = bestStandaloneFill(rest, activities.filter((a) => a.item?.id !== factionAnimal.id));
@@ -1706,7 +1780,9 @@ function runnerFromActivity(activity) {
         lowLiquidity: activity.lowLiquidity === true,
         thinMarket: activity.thinMarket === true,
         explain: activity.explain ?? null,
-        activityId: activity.id
+        activityId: activity.id,
+        avgItemCount: activity.avgItemCount ?? null,
+        historyN: activity.historyN ?? 0
     };
 }
 
@@ -1748,23 +1824,25 @@ export function optimizeIsland(options) {
         ? factionMountForCity(ctx.islandCity, ctx.factionTier)
         : null;
 
-    let simple;
-    if (factionAnimal && ctx.factionPlots > 0) {
-        simple = simpleFactionPlan(n, factionAnimal, activities, ctx)
-            || packageFromFill(bestStandaloneFill(n, activities));
-    } else {
-        simple = packageFromFill(bestStandaloneFill(n, activities));
-    }
+    const locked = factionAnimal && ctx.factionPlots > 0
+        ? Math.min(n, ctx.factionPlots)
+        : 0;
+    const simple = locked > 0
+        ? simpleFactionPlan(n, factionAnimal, activities, ctx)
+        : packageFromFill(bestStandaloneFill(n, activities));
 
     const leftoverPlant = bestPlantActivity(activities);
     const minPlots = new Map();
-    if (factionAnimal && ctx.factionPlots > 0) {
-        minPlots.set(factionAnimal.id, Math.min(n, ctx.factionPlots));
+    if (factionAnimal && locked > 0) {
+        minPlots.set(factionAnimal.id, locked);
     }
     const modules = collectAnimalModules(n, ctx, { minPlotsByAnimalId: minPlots });
     const knapsack = knapsackPlans(n, modules, leftoverPlant, {
-        requiredAnimalId: factionAnimal && ctx.factionPlots > 0 ? factionAnimal.id : null,
-        requiredMinA: factionAnimal && ctx.factionPlots > 0 ? Math.min(n, ctx.factionPlots) : 0
+        requiredAnimalId: factionAnimal && locked > 0 ? factionAnimal.id : null,
+        requiredMinA: locked,
+        requiredDummy: factionAnimal && locked > 0
+            ? dummyFactionModule(factionAnimal, locked, ctx)
+            : null
     });
     const mixed = packageFromKnapsack(knapsack, leftoverPlant);
 
