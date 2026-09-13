@@ -8,8 +8,47 @@ export const PRICE_SIDES = ['buy', 'sell'];
 export const PRICE_STALE_MS = 6 * 60 * 60 * 1000;
 /** How long a live price % delta stays on the field. */
 export const PRICE_DELTA_MS = 60_000;
+/** Skip "=" highlight when the same silver is re-touched within this window. */
+export const PRICE_EQUAL_SUPPRESS_MS = 5 * 60 * 1000;
 
 const priceDeltaTimers = new WeakMap();
+/** Survives DOM remounts: key → { silver, touchAt, visualAt }. */
+const priceFieldMemory = new Map();
+
+function priceFieldMemoryKey(field, input) {
+    if (!input) {
+        return field?.id || null;
+    }
+    const preferred = [
+        'matPrice', 'itemPrice', 'priceId', 'rawId', 'outId', 'buyId', 'sellId',
+        'seedPrice', 'plantPrice', 'babyPrice', 'feedPrice', 'grownPrice', 'meatPrice', 'productPrice'
+    ];
+    for (const prop of preferred) {
+        const value = input.dataset[prop];
+        if (value) {
+            return `${prop}:${value}`;
+        }
+    }
+    return input.id || field?.id || null;
+}
+
+function readPriceFieldMemory(key) {
+    return key ? priceFieldMemory.get(key) || null : null;
+}
+
+function writePriceFieldMemory(key, patch) {
+    if (!key) {
+        return;
+    }
+    const prev = priceFieldMemory.get(key) || {};
+    priceFieldMemory.set(key, { ...prev, ...patch });
+}
+
+function clearPriceFieldMemory(key) {
+    if (key) {
+        priceFieldMemory.delete(key);
+    }
+}
 
 export function normalizePriceSide(value, fallback = 'buy') {
     return value === 'sell' || value === 'buy' ? value : fallback;
@@ -129,6 +168,10 @@ function clearPriceFieldDelta(field) {
     }
     field.querySelector('.price-field-delta')?.remove();
     clearPriceFieldUpdateMark(field);
+    delete field.dataset.priceSeenAt;
+    delete field.dataset.priceTouchAt;
+    const input = field.querySelector('.form-control');
+    clearPriceFieldMemory(priceFieldMemoryKey(field, input));
 }
 
 /** Undo every visual effect from a live price update (chips + marked borders). */
@@ -170,8 +213,8 @@ function mountPriceFieldDelta(field, { text, dirClass, markMode }) {
 
 /**
  * Overlay on a price field without shifting layout.
- * Direction chips use info/warning; value-change border stays green until cleared;
- * unchanged feed uses gray "=".
+ * Direction chips use info/warning; value-change border stays fuchsia until cleared;
+ * unchanged feed uses gray "=" (unless suppressed for recent re-touches).
  */
 function showPriceFieldDelta(field, prev, next) {
     if (!(prev > 0) || !Number.isFinite(next)) {
@@ -204,6 +247,51 @@ function showPriceFieldDelta(field, prev, next) {
         text: `${Math.abs(pct)}%`,
         dirClass: dir,
         markMode: 'is-changed'
+    });
+}
+
+/**
+ * Same-silver "=" must not fire on every in-game re-sight within 5 minutes.
+ * Quote dates often jump by hours (old order date → new seenAt), so wall-clock
+ * memory is the source of truth — not |nextAt - prevAt|.
+ */
+function shouldSuppressEqualHighlight(field, input, silver) {
+    const now = Date.now();
+    const key = priceFieldMemoryKey(field, input);
+    const mem = readPriceFieldMemory(key);
+
+    if (mem && Number.isFinite(mem.touchAt) && now - mem.touchAt < PRICE_EQUAL_SUPPRESS_MS) {
+        // Any recent feed touch of this field (same or prior silver).
+        if (mem.silver == null || mem.silver === silver) {
+            return true;
+        }
+    }
+    if (mem && Number.isFinite(mem.visualAt) && now - mem.visualAt < PRICE_EQUAL_SUPPRESS_MS) {
+        return true;
+    }
+
+    const touchAt = Number(field.dataset.priceTouchAt);
+    if (Number.isFinite(touchAt) && now - touchAt < PRICE_EQUAL_SUPPRESS_MS) {
+        return true;
+    }
+    const seenAt = Number(field.dataset.priceSeenAt);
+    return Number.isFinite(seenAt) && now - seenAt < PRICE_EQUAL_SUPPRESS_MS;
+}
+
+function notePriceFieldTouch(field, input, silver) {
+    const now = Date.now();
+    field.dataset.priceTouchAt = String(now);
+    writePriceFieldMemory(priceFieldMemoryKey(field, input), { silver, touchAt: now });
+}
+
+function notePriceFieldVisual(field, input, silver) {
+    const now = Date.now();
+    field.dataset.priceSeenAt = String(now);
+    field.dataset.priceTouchAt = String(now);
+    writePriceFieldMemory(priceFieldMemoryKey(field, input), {
+        silver,
+        touchAt: now,
+        visualAt: now
     });
 }
 
@@ -242,9 +330,20 @@ export function applyPriceFieldState(field, { manual, missing, stale, date, disp
         if (prev != null && next != null) {
             if (prev !== next) {
                 showPriceFieldDelta(field, prev, next);
+                notePriceFieldVisual(field, input, next);
             } else if (nextAt && prevAt && nextAt !== prevAt) {
-                // Same silver, newer quote timestamp → feed touched, no move.
-                showPriceFieldDelta(field, prev, next);
+                // Same silver, newer quote — skip "=" inside the 5‑minute window so a
+                // quick re-check does not wipe a real % / border highlight.
+                if (!shouldSuppressEqualHighlight(field, input, next)) {
+                    showPriceFieldDelta(field, prev, next);
+                    notePriceFieldVisual(field, input, next);
+                } else {
+                    notePriceFieldTouch(field, input, next);
+                }
+            } else if (nextAt || prev != null) {
+                // First paint / same quote date: remember touch so the next equal
+                // re-sight within 5 minutes is suppressed.
+                notePriceFieldTouch(field, input, next);
             }
         }
 
