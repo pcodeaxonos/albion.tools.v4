@@ -443,6 +443,19 @@ function setVariantIconsHtml(setBase) {
     return `<span class="royal-item-sets" aria-label="SET ucuzdan pahalıya">${icons}</span>`;
 }
 
+function craftMatIconHtml(row) {
+    const spec = row.craftSpec;
+    if (!spec?.uniqueName) {
+        return '';
+    }
+    const title = `${spec.label} · T${row.recipe.tier} · ${spec.qty} adet`;
+    return `
+        <span class="royal-item-mat" title="${escapeHtml(title)}" aria-label="${escapeHtml(title)}">
+            ${itemIconHtml(spec.uniqueName, { className: 'item-icon royal-item-mat-icon', size: 48 })}
+        </span>
+    `;
+}
+
 function enchantCost(tier, toEnchant, kind) {
     if (toEnchant <= 0) {
         return 0;
@@ -996,6 +1009,7 @@ function renderTable(list) {
                                                 ${setIcons}
                                             </span>
                                         </span>
+                                        ${craftMatIconHtml(row)}
                                     </span>
                                 </td>
                                 <td class="num" data-sort-value="${escapeHtml(row.tierEnchant)}">${escapeHtml(row.tierEnchant)}</td>

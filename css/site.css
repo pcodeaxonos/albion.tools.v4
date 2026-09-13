@@ -6158,8 +6158,8 @@ a.tool-card:hover {
 }
 
 .royal-item-cell {
-  width: 13.5rem;
-  max-width: 16rem;
+  width: 16.5rem;
+  max-width: 20rem;
 }
 
 .royal-item {
@@ -6168,6 +6168,7 @@ a.tool-card:hover {
   gap: 0.55rem;
   min-width: 0;
   max-width: 100%;
+  width: 100%;
 }
 
 .royal-item-icon {
@@ -6178,6 +6179,7 @@ a.tool-card:hover {
 
 .royal-item-text {
   min-width: 0;
+  flex: 1 1 auto;
   overflow: hidden;
 }
 
@@ -6203,6 +6205,22 @@ a.tool-card:hover {
 
 .royal-item-set {
   flex: 0 0 auto;
+}
+
+.royal-item-mat {
+  flex: 0 0 auto;
+  width: 2.5rem;
+  height: 2.5rem;
+  margin-left: auto;
+  line-height: 0;
+}
+
+.royal-item-mat-icon {
+  width: 2.5rem;
+  height: 2.5rem;
+  margin: 0;
+  display: block;
+  object-fit: contain;
 }
 
 .royal-item-sets {
