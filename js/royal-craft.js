@@ -391,6 +391,50 @@ function cheapestSet(setBase, quality) {
     return best;
 }
 
+/** SET1/2/3 with buy quotes, cheapest → most expensive (unpriced last). */
+function setVariantsByPrice(setBase, quality = SET_BUY_QUALITY) {
+    return setVariants(setBase)
+        .map((uniqueName) => {
+            const key = `set:${uniqueName}|q${quality}`;
+            const quote = matQuote(key, uniqueName, quality);
+            return {
+                uniqueName,
+                key,
+                quote,
+                price: quote?.price ?? null
+            };
+        })
+        .sort((a, b) => {
+            if (a.price == null && b.price == null) {
+                return a.uniqueName.localeCompare(b.uniqueName);
+            }
+            if (a.price == null) {
+                return 1;
+            }
+            if (b.price == null) {
+                return -1;
+            }
+            return a.price - b.price || a.uniqueName.localeCompare(b.uniqueName);
+        });
+}
+
+function setVariantIconsHtml(setBase) {
+    const variants = setVariantsByPrice(setBase);
+    if (!variants.length) {
+        return '';
+    }
+    const icons = variants.map((row) => {
+        const label = setLabel(row.uniqueName);
+        const price = row.price != null ? formatSilver(row.price) : 'fiyat yok';
+        return `
+            <span class="royal-set-icon-wrap${row.price == null ? ' is-missing' : ''}" title="${escapeHtml(`${label} · ${price}`)}">
+                ${itemIconHtml(row.uniqueName, { className: 'item-icon royal-set-icon', size: 18 })}
+            </span>
+        `;
+    }).join('');
+    return `<span class="royal-item-sets" aria-label="SET ucuzdan pahalıya">${icons}</span>`;
+}
+
 function enchantCost(tier, toEnchant, kind) {
     if (toEnchant <= 0) {
         return 0;
@@ -904,6 +948,7 @@ function renderTable(list) {
                 <tbody>
                     ${list.map((row) => {
                         const setName = row.setPick ? setLabel(row.setPick.uniqueName) : '—';
+                        const setIcons = setVariantIconsHtml(row.setLine?.uniqueName);
                         const rowClass = [
                             `is-tier-${row.recipe.tier}`,
                             row.standard ? 'is-standard' : '',
@@ -945,7 +990,10 @@ function renderTable(list) {
                                         ${itemIconHtml(row.sellId, { className: 'item-icon royal-item-icon', size: 56 })}
                                         <span class="royal-item-text" title="${escapeHtml(row.recipe.label)} · ${escapeHtml(setName)}">
                                             <span class="royal-item-name">${escapeHtml(shortItemName(row.recipe.label))}</span>
-                                            <span class="royal-item-meta">${escapeHtml(setName)}</span>
+                                            <span class="royal-item-meta">
+                                                <span class="royal-item-set">${escapeHtml(setName)}</span>
+                                                ${setIcons}
+                                            </span>
                                         </span>
                                     </span>
                                 </td>

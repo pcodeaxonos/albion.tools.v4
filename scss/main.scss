@@ -2883,8 +2883,8 @@ a.tool-card {
 }
 
 .royal-item-cell {
-    width: 12rem;
-    max-width: 14rem;
+    width: 13.5rem;
+    max-width: 16rem;
 }
 
 .royal-item {
@@ -2916,11 +2916,41 @@ a.tool-card {
 }
 
 .royal-item-meta {
-    display: block;
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    min-width: 0;
     font-size: 0.75rem;
     color: var(--color-text-muted);
     white-space: nowrap;
     line-height: 1.2;
+}
+
+.royal-item-set {
+    flex: 0 0 auto;
+}
+
+.royal-item-sets {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.15rem;
+    min-width: 0;
+}
+
+.royal-set-icon-wrap {
+    display: inline-flex;
+    flex: 0 0 auto;
+    line-height: 0;
+
+    &.is-missing {
+        opacity: 0.4;
+    }
+}
+
+.royal-set-icon {
+    width: 1.125rem;
+    height: 1.125rem;
+    margin: 0;
 }
 
 .royal-table {

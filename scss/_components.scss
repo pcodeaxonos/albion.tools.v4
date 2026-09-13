@@ -453,6 +453,90 @@ input[type="month"].form-control {
     pointer-events: none;
 }
 
+/* Live feed % delta — full-height strip inside the input, flush to the right border. */
+@keyframes price-delta-in {
+    from {
+        opacity: 0;
+        transform: scaleX(0.85);
+        transform-origin: right center;
+    }
+    to {
+        opacity: 1;
+        transform: scaleX(1);
+        transform-origin: right center;
+    }
+}
+
+@keyframes price-delta-out {
+    from {
+        opacity: 1;
+        transform: scaleX(1);
+        transform-origin: right center;
+    }
+    to {
+        opacity: 0;
+        transform: scaleX(0.9);
+        transform-origin: right center;
+    }
+}
+
+.price-field-delta {
+    position: absolute;
+    top: var(--border-width);
+    right: var(--border-width);
+    bottom: var(--border-width);
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0;
+    max-width: 45%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    pointer-events: none;
+    padding: 0 0.4rem;
+    border-radius: 0;
+    font-family: var(--font-family-mono);
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-bold);
+    letter-spacing: -0.02em;
+    line-height: 1;
+    color: var(--color-on-accent);
+    animation: price-delta-in 0.28s ease-out;
+
+    /* Direction only on the chip — never drives input border. */
+    &.is-up {
+        background-color: var(--color-info);
+    }
+
+    &.is-down {
+        background-color: var(--color-warning);
+    }
+
+    &.is-flat {
+        color: var(--color-text);
+        background-color: var(--color-border-strong);
+    }
+
+    &.is-leaving {
+        animation: price-delta-out 0.22s ease-in forwards;
+    }
+}
+
+/* Persistent update chrome (fuchsia) — independent of chip up/down colors. */
+.form-floating.is-price-updated.is-changed,
+.form-floating.is-price-updated.is-flat {
+    --input-stroke: var(--color-price-update);
+    --float-tag-bg: var(--color-price-update);
+    --float-tag-fg: var(--color-on-accent);
+
+    > .form-control {
+        border-color: var(--color-price-update) !important;
+        box-shadow: 0 0 0 1px color-mix(in srgb, var(--color-price-update) 65%, transparent);
+    }
+}
+
 .btn-link {
     min-width: 0;
     min-height: 0;

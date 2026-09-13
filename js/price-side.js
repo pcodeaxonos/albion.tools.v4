@@ -1,10 +1,15 @@
 import { escapeHtml } from './utils.js';
 import { placesOrder } from './market-fees.js';
 import { itemIconHtml } from './item-icon.js';
+import { parseSortNumber } from './table-sort.js';
 
 export const PRICE_SIDES = ['buy', 'sell'];
 /** Prices older than this are still shown, but marked stale (blue). */
 export const PRICE_STALE_MS = 6 * 60 * 60 * 1000;
+/** How long a live price % delta stays on the field. */
+export const PRICE_DELTA_MS = 60_000;
+
+const priceDeltaTimers = new WeakMap();
 
 export function normalizePriceSide(value, fallback = 'buy') {
     return value === 'sell' || value === 'buy' ? value : fallback;
@@ -112,6 +117,96 @@ function setPriceInputDisplay(input, value) {
     input.classList.toggle('is-filled', next.length > 0);
 }
 
+function clearPriceFieldUpdateMark(field) {
+    field.classList.remove('is-price-updated', 'is-price-flash', 'is-up', 'is-down', 'is-flat', 'is-changed');
+}
+
+function clearPriceFieldDelta(field) {
+    const timer = priceDeltaTimers.get(field);
+    if (timer) {
+        window.clearTimeout(timer);
+        priceDeltaTimers.delete(field);
+    }
+    field.querySelector('.price-field-delta')?.remove();
+    clearPriceFieldUpdateMark(field);
+}
+
+/** Undo every visual effect from a live price update (chips + marked borders). */
+export function clearAllPriceFieldDeltas(root = document) {
+    const marked = root.querySelectorAll(
+        '.form-floating:has(.price-field-delta), .form-floating.is-price-updated, .form-floating.is-price-flash'
+    );
+    marked.forEach((field) => clearPriceFieldDelta(field));
+    root.querySelectorAll('.price-field-delta').forEach((el) => el.remove());
+}
+
+function markPriceFieldUpdated(field, mode) {
+    clearPriceFieldUpdateMark(field);
+    field.classList.add('is-price-updated', mode);
+}
+
+function mountPriceFieldDelta(field, { text, dirClass, markMode }) {
+    const timer = priceDeltaTimers.get(field);
+    if (timer) {
+        window.clearTimeout(timer);
+        priceDeltaTimers.delete(field);
+    }
+    field.querySelector('.price-field-delta')?.remove();
+
+    const el = document.createElement('span');
+    el.className = `price-field-delta ${dirClass}`;
+    el.setAttribute('aria-hidden', 'true');
+    el.textContent = text;
+    field.appendChild(el);
+
+    markPriceFieldUpdated(field, markMode);
+
+    priceDeltaTimers.set(field, window.setTimeout(() => {
+        priceDeltaTimers.delete(field);
+        el.classList.add('is-leaving');
+        window.setTimeout(() => el.remove(), 220);
+    }, PRICE_DELTA_MS));
+}
+
+/**
+ * Overlay on a price field without shifting layout.
+ * Direction chips use info/warning; value-change border stays green until cleared;
+ * unchanged feed uses gray "=".
+ */
+function showPriceFieldDelta(field, prev, next) {
+    if (!(prev > 0) || !Number.isFinite(next)) {
+        return;
+    }
+
+    if (prev === next) {
+        mountPriceFieldDelta(field, {
+            text: '=',
+            dirClass: 'is-flat',
+            markMode: 'is-flat'
+        });
+        return;
+    }
+
+    const rawPct = ((next - prev) / prev) * 100;
+    const dir = rawPct > 0 ? 'is-up' : 'is-down';
+
+    if (Math.abs(rawPct) < 1) {
+        mountPriceFieldDelta(field, {
+            text: '<1%',
+            dirClass: dir,
+            markMode: 'is-changed'
+        });
+        return;
+    }
+
+    const pct = Math.round(rawPct);
+    mountPriceFieldDelta(field, {
+        text: `${Math.abs(pct)}%`,
+        dirClass: dir,
+        markMode: 'is-changed'
+    });
+}
+
 export function applyPriceFieldState(field, { manual, missing, stale, date, displayValue } = {}) {
     if (!field) {
         return;
@@ -131,16 +226,37 @@ export function applyPriceFieldState(field, { manual, missing, stale, date, disp
 
     const input = field.querySelector('.form-control');
     if (!input || isManual) {
+        if (isManual) {
+            clearPriceFieldDelta(field);
+        }
         return;
     }
 
     if (displayValue !== undefined) {
+        const prev = parseSortNumber(input.value);
+        const next = parseSortNumber(displayValue);
+        const prevAt = field.dataset.priceAt || '';
+        const nextAt = isLiveDate(date) ? String(date) : '';
         setPriceInputDisplay(input, displayValue);
+
+        if (prev != null && next != null) {
+            if (prev !== next) {
+                showPriceFieldDelta(field, prev, next);
+            } else if (nextAt && prevAt && nextAt !== prevAt) {
+                // Same silver, newer quote timestamp → feed touched, no move.
+                showPriceFieldDelta(field, prev, next);
+            }
+        }
+
+        if (nextAt) {
+            field.dataset.priceAt = nextAt;
+        }
         return;
     }
 
     if (isMissing) {
         setPriceInputDisplay(input, '');
+        clearPriceFieldDelta(field);
     }
 }
 
