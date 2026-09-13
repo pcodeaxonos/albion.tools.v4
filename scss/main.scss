@@ -2099,6 +2099,13 @@ a.tool-card {
     }
 }
 
+.island-planner-objective {
+    margin: 0 0 var(--spacing-xs);
+    color: var(--color-text-muted);
+    font-size: var(--font-size-sm);
+    line-height: 1.4;
+}
+
 .island-planner-feed {
     margin: 0 0 var(--spacing-xs);
     font-weight: 500;
@@ -2172,8 +2179,8 @@ a.tool-card {
     }
 
     .farming-item-name {
-        flex-wrap: nowrap;
-        white-space: nowrap;
+        flex-wrap: wrap;
+        white-space: normal;
         align-items: center;
         gap: 0.4rem;
     }
@@ -2255,7 +2262,8 @@ a.tool-card {
     font-weight: var(--font-weight-semibold);
 }
 
-.island-planner-day-total {
+.island-planner-day-total,
+.island-planner-day-stable {
     display: block;
     margin-top: 0.15rem;
     color: var(--color-text-muted);
