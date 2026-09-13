@@ -5393,6 +5393,13 @@ a.tool-card:hover {
   font-size: var(--font-size-sm);
 }
 
+.island-planner-objective {
+  margin: 0 0 var(--spacing-xs);
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+  line-height: 1.4;
+}
+
 .island-planner-feed {
   margin: 0 0 var(--spacing-xs);
   font-weight: 500;
@@ -5542,7 +5549,8 @@ a.tool-card:hover {
   font-weight: var(--font-weight-semibold);
 }
 
-.island-planner-day-total {
+.island-planner-day-total,
+.island-planner-day-stable {
   display: block;
   margin-top: 0.15rem;
   color: var(--color-text-muted);

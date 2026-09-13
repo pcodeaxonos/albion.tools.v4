@@ -290,7 +290,7 @@ const economyConstants = [
     { id: 31, key: 'farm_target_volume', value: '40', label: 'Farm sell liquidity target (avg item_count/day)' },
     { id: 32, key: 'farm_vol_penalty_k', value: '1.5', label: 'Price CV penalty coefficient for stable score' },
     { id: 33, key: 'farm_history_days', value: '14', label: 'AODP history window (days)' },
-    { id: 34, key: 'island_chain_bias', value: '1.15', label: 'Chain plan must beat simple by this ratio' }
+    { id: 34, key: 'island_chain_bias', value: '1', label: 'Unused — planner ranks raw silver/day with no chain bias' }
 ];
 
 const islandPlots = [

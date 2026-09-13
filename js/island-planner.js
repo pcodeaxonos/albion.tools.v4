@@ -14,12 +14,26 @@ import { fetchHistoryIndex } from './market-history.js';
 import { itemIconHtml } from './item-icon.js';
 import { showPageLoader, hidePageLoader } from './loader.js';
 import { initFloatingLabels } from './forms.js';
-import { feeMetaText } from './market-fees.js';
+import { feeMetaText, SETUP_FEE, salesTaxRate } from './market-fees.js';
 import { bindCalcSticky } from './calc-sticky.js';
 import { loadActiveCities } from './cities.js';
 import { cityFieldHtml, bindCityField, setCityFieldValue } from './city-picker.js';
 import { bindLivePrices } from './price-live.js';
 import { getEconomyConstant } from './catalog.js';
+import {
+    calcExplainShell,
+    bindCalcExplain,
+    explainPanelHtml,
+    explainEmptyHtml,
+    explainHint,
+    explainFlow,
+    explainStep,
+    explainNum,
+    explainOp,
+    explainChips,
+    explainSaleSteps,
+    explainProfitFoot
+} from './calc-explain.js';
 import {
     ISLAND_PLOTS_BY_LEVEL,
     plotsForLevel,
@@ -28,6 +42,7 @@ import {
     compareIslandCities,
     plotTypeLabel,
     livestockFeed,
+    livestockFeedPasture,
     factionMountForCity
 } from './island-economy.js';
 
@@ -185,6 +200,51 @@ function formatHours(hours) {
     return `${days} gün`;
 }
 
+function recommendedLabel(plan) {
+    if (plan?.recommended === 'chain') {
+        return 'Zincir';
+    }
+    if (plan?.recommended === 'mix') {
+        return 'Karışık';
+    }
+    return 'Sade';
+}
+
+function explainIcon(uniqueName) {
+    return itemIconHtml(uniqueName, { className: 'item-icon calc-explain-icon' });
+}
+
+function explainKeyForSlot(slot, start) {
+    return `${slot.activityId || slot.label}|${slot.role || 'cash'}|${start}`;
+}
+
+function collectExplainRows() {
+    const plan = state.plan;
+    const rows = [];
+    if (plan?.slots?.length) {
+        for (const group of groupSlots(plan.slots)) {
+            rows.push({
+                key: explainKeyForSlot(group.slot, group.start),
+                slot: group.slot,
+                count: group.count
+            });
+        }
+    }
+    for (const row of plan?.runnersUp || []) {
+        rows.push({
+            key: `runner|${row.activityId || row.label}`,
+            slot: row,
+            count: 1,
+            runner: true
+        });
+    }
+    return rows;
+}
+
+function findExplainRow(key) {
+    return collectExplainRows().find((row) => row.key === key) ?? null;
+}
+
 function runPlan() {
     if (!state.priceIndex) {
         state.plan = null;
@@ -271,37 +331,39 @@ function renderSummary() {
     const cmp = plan.comparison;
     const groups = groupSlots(plan.slots);
     const uniform = groups.length === 1 && groups[0].count === effectivePlots();
-    const rec = plan.recommended === 'chain' ? 'Zincir' : 'Sade';
-    const alt = plan.recommended === 'chain' ? plan.simple : plan.chain;
+    const rec = recommendedLabel(plan);
+    const alt = plan.recommended === 'simple' ? plan.chain : plan.simple;
     const faction = plan.faction;
+    const stable = plan.totalStableDay;
     return `
         <div class="island-planner-summary">
             <p class="island-planner-total">
                 <strong>${formatSilver(plan.totalDay)}</strong>
-                <span>istikrarlı net gümüş/gün · ${effectivePlots()} plot · önerilen: ${escapeHtml(rec)}</span>
+                <span>ham gümüş/gün · ${effectivePlots()} plot · önerilen: ${escapeHtml(rec)}</span>
                 <span class="island-planner-cities">alış ${escapeHtml(cityLabel(state.islandCity))} → satış ${escapeHtml(cityLabel(state.sellCity))}</span>
             </p>
+            <p class="island-planner-objective">Hedef: ham gümüş/gün = Σ (plot kârı ÷ döngü saati × 24). İstikrar sıralamaz, elemez veya “önerilen”i değiştirmez.</p>
             <p class="island-planner-feed">${escapeHtml(plan.feedNote || '—')}</p>
+            ${Number.isFinite(stable) ? `
+                <p class="farming-note">İstikrar (bilgi): ${formatSilver(stable)} gümüş/gün · likidite × volatilite cezası. İnce pazar satırları durur; yalnızca uyarıdır.</p>
+            ` : ''}
             ${faction ? `
                 <p class="farming-note">Faction kilit: ${faction.plots}× kennel T${faction.tier} ${escapeHtml(faction.label)} (kennel plotun olmalı).</p>
             ` : ''}
             ${uniform ? `
-                <p class="farming-note">Sade planda tüm plotlar aynı aktiviteye verildi.</p>
+                <p class="farming-note">Bu planda tüm plotlar aynı aktiviteye verildi — karışık bir dağılım ham gümüş/günü artırmıyor.</p>
             ` : ''}
             ${alt ? `
                 <p class="island-planner-compare farming-note">
-                    Alternatif ${escapeHtml(alt.label)}: ${formatSilver(alt.totalDay)} net gümüş/gün
+                    Alternatif ${escapeHtml(alt.label)}: ${formatSilver(alt.totalDay)} ham gümüş/gün
                     · fark ${formatSilver((alt.totalDay || 0) - (plan.totalDay || 0), { signed: true })}
-                    ${plan.recommended === 'simple' && plan.chain
-                        ? ` · zincir ancak %${Math.round(((cmp?.chainBias || 1.15) - 1) * 100)}+ daha iyiyse önerilir`
-                        : ''}
                 </p>
             ` : ''}
             ${cmp ? `
                 <p class="island-planner-compare farming-note">
-                    Sade baseline: ${formatSilver(cmp.marketDay)} · seçilen ${formatSilver(cmp.chosenDay)}
+                    Sade pazar: ${formatSilver(cmp.marketDay)} · seçilen ${formatSilver(cmp.chosenDay)}
                     · fark ${formatSilver(cmp.delta, { signed: true })}
-                    ${cmp.choseIslandFeed ? ' · ada yemi' : ''}
+                    ${cmp.choseIslandFeed ? ' · ada yemi / karışık' : ''}
                 </p>
             ` : ''}
         </div>
@@ -322,19 +384,19 @@ function renderCityCompare() {
                 ${row.pathLabel ? `<span class="farming-item-meta">${escapeHtml(row.pathLabel)}</span>` : ''}
             </td>
             <td class="num">${formatSilver(row.totalDay)}</td>
-            <td>${escapeHtml(row.recommended === 'chain' ? 'Zincir' : 'Sade')}</td>
+            <td>${escapeHtml(recommendedLabel(row))}</td>
         </tr>
     `).join('');
     return `
         <h2 class="island-planner-subhead">Şehir karşılaştırması</h2>
-        <p class="farming-note">Her ada şehri için istikrarlı net gümüş/gün (aynı plot / premium / satış şehri ayarları).</p>
+        <p class="farming-note">Her ada şehri için ham gümüş/gün (aynı plot / premium / satış şehri ayarları).</p>
         <div class="table-responsive calc-table-wrap">
             <table class="table table-striped farming-table island-planner-table calc-table">
                 <thead>
                     <tr>
                         <th>Ada</th>
                         <th>Ana ürün</th>
-                        <th class="num">istikrarlı gümüş/gün</th>
+                        <th class="num">ham gümüş/gün</th>
                         <th>Plan</th>
                     </tr>
                 </thead>
@@ -395,6 +457,8 @@ function splitDetail(detail) {
     for (const part of parts) {
         if (part === 'şehir +10%' || part === 'yem şehir +10%') {
             bonuses.push(part === 'şehir +10%' ? '+10%' : 'yem +10%');
+        } else if (part === 'ince pazar' || part === 'satış zor') {
+            bonuses.push(part);
         } else {
             notes.push(part);
         }
@@ -466,7 +530,7 @@ function renderSlotsTable() {
                 <th class="num">Maliyet</th>
                 <th class="num">Kâr</th>
                 <th class="num">Kâr %</th>
-                <th class="num island-planner-col-day">istikrarlı/gün</th>
+                <th class="num island-planner-col-day">ham gümüş/gün</th>
                 <th class="num">bugün/gün</th>
                 <th class="num">Döngü</th>
             </tr>
@@ -494,7 +558,7 @@ function renderSlotsTable() {
             ? (slot.profit > 0 ? ' is-profit' : slot.profit < 0 ? ' is-loss' : '')
             : '';
         return `
-            <tr>
+            <tr data-explain-key="${escapeHtml(explainKeyForSlot(slot, group.start))}">
                 <td class="island-planner-col-slot">
                     <span class="island-planner-slot-range">${escapeHtml(renderSlotRange(group))}</span>
                     ${group.count > 1 ? `<span class="island-planner-slot-count">${group.count} plot</span>` : ''}
@@ -512,6 +576,9 @@ function renderSlotsTable() {
                     ${group.count > 1 && dayTotal != null
                         ? `<span class="island-planner-day-total">${formatSilver(dayTotal)} toplam</span>`
                         : ''}
+                    ${Number.isFinite(slot.stablePerDay)
+                        ? `<span class="island-planner-day-stable">istikrar ${formatSilver(slot.stablePerDay)}</span>`
+                        : ''}
                 </td>
                 <td class="num">${formatSilver(slot.spotPerDay)}</td>
                 <td class="num">${formatHours(slot.hours)}</td>
@@ -522,7 +589,7 @@ function renderSlotsTable() {
     return `
         ${renderAllocationChips(groups)}
         <div class="table-responsive calc-table-wrap" data-calc-table>
-            <table class="table table-striped farming-table island-planner-table calc-table">
+            <table class="table table-striped farming-table island-planner-table calc-table" data-island-explain-table="plan">
                 ${head}
                 <tbody>${rows}</tbody>
             </table>
@@ -540,7 +607,7 @@ function renderRunnersUp() {
             ? (row.profit > 0 ? ' is-profit' : row.profit < 0 ? ' is-loss' : '')
             : '';
         return `
-            <tr>
+            <tr data-explain-key="${escapeHtml(`runner|${row.activityId || row.label}`)}">
                 <td class="num">${i + 1}</td>
                 <td>
                     <span class="island-planner-type island-planner-type--${escapeHtml(row.plotType)}">${escapeHtml(plotTypeLabel(row.plotType))}</span>
@@ -550,7 +617,12 @@ function renderRunnersUp() {
                 <td class="num">${formatSilver(row.cost)}</td>
                 <td class="num farming-num${profitClass}">${formatSilver(row.profit, { signed: true })}</td>
                 <td class="num farming-num${profitClass}">${formatPct(row.profitPct)}</td>
-                <td class="num">${formatSilver(row.perDay)}</td>
+                <td class="num">
+                    ${formatSilver(row.perDay)}
+                    ${Number.isFinite(row.stablePerDay)
+                        ? `<span class="island-planner-day-stable">istikrar ${formatSilver(row.stablePerDay)}</span>`
+                        : ''}
+                </td>
                 <td class="num">${formatSilver(row.spotPerDay)}</td>
                 <td class="num">${formatHours(row.hours)}</td>
             </tr>
@@ -559,9 +631,9 @@ function renderRunnersUp() {
 
     return `
         <h2 class="island-planner-subhead">Alternatifler (plot başına)</h2>
-        <p class="farming-note">Anlık / sürdürülebilir skorla sıradaki adaylar. “Bugün” kolonu spot fiyattır — spike olabilir.</p>
+        <p class="farming-note">Ham gümüş/gün sırasıyla seçilmeyen adaylar. İnce pazar elenmez. “Bugün” kolonu spot fiyattır — spike olabilir. Satıra tıklayınca formül açılır.</p>
         <div class="table-responsive calc-table-wrap">
-            <table class="table table-striped farming-table island-planner-table calc-table">
+            <table class="table table-striped farming-table island-planner-table calc-table" data-island-explain-table="runners">
                 <thead>
                     <tr>
                         <th class="num">#</th>
@@ -571,7 +643,7 @@ function renderRunnersUp() {
                         <th class="num">Maliyet</th>
                         <th class="num">Kâr</th>
                         <th class="num">Kâr %</th>
-                        <th class="num">istikrarlı/gün</th>
+                        <th class="num">ham gümüş/gün</th>
                         <th class="num">bugün/gün</th>
                         <th class="num">Döngü</th>
                     </tr>
@@ -580,6 +652,369 @@ function renderRunnersUp() {
             </table>
         </div>
     `;
+}
+
+function renderPlannerExplain(key, { hovered } = {}) {
+    const found = findExplainRow(key);
+    if (!found?.slot?.explain) {
+        return explainEmptyHtml('Bu satırın formülü yok. Tabloda bir ürüne gelin veya tıklayın.');
+    }
+    const slot = found.slot;
+    const ex = slot.explain;
+    const tax = salesTaxRate(state.premium);
+    const chips = explainChips([
+        ...(ex.chips || []),
+        found.runner ? { label: 'aday', html: '<span class="calc-explain-n">alternatif</span>' } : { label: `${found.count}× plot`, tone: 'qty', value: found.count, kind: 'qty' },
+        slot.thinMarket ? { label: 'ince pazar', html: '<span class="calc-explain-n is-loss">uyarı</span>' } : null,
+        slot.lowLiquidity && !slot.thinMarket ? { label: 'satış zor', html: '<span class="calc-explain-n is-loss">uyarı</span>' } : null
+    ].filter(Boolean));
+
+    const groups = [];
+
+    groups.push({
+        title: 'Fiyat kaynağı',
+        tone: 'buy',
+        intro: chips,
+        lines: [
+            explainStep({
+                label: 'Alış',
+                note: ex.priceBasis?.buy || 'max(spot, medyan)',
+                result: ex.inputs?.seedPrice ?? ex.inputs?.babyPrice ?? ex.costs?.unit ?? null,
+                resultKind: 'price',
+                resultCap: 'kullanılan alış'
+            }),
+            explainStep({
+                label: 'Satış',
+                note: ex.priceBasis?.sell || 'medyan (yoksa spot)',
+                result: ex.sale?.price ?? null,
+                resultKind: 'price',
+                resultCap: 'kullanılan satış'
+            }),
+            ...(ex.diffs || []).map((text) => explainStep({
+                label: 'Fark / not',
+                note: text
+            }))
+        ]
+    });
+
+    if (ex.kind === 'plant' || ex.kind === 'feed') {
+        const keep = 1 - (ex.inputs?.usedReturn ?? 0);
+        groups.push({
+            title: 'Birim maliyet (Farming formülü)',
+            tone: 'cost',
+            lines: [
+                explainStep({
+                    icon: explainIcon(ex.inputs?.seedId),
+                    label: 'Net tohum',
+                    note: ex.inputs?.seedSetup ? 'Tohum × ödenen pay × setup' : 'Tohum × ödenen pay',
+                    formula: ex.inputs?.seedSetup
+                        ? [
+                            explainNum(ex.inputs?.seedPrice, { tone: 'price', cap: 'tohum' }),
+                            explainOp('×'),
+                            explainNum(keep, { kind: 'pct', tone: 'rr', cap: 'ödenen' }),
+                            explainOp('×'),
+                            explainNum(1 + SETUP_FEE, { kind: 'factor', tone: 'fee', cap: 'setup' })
+                        ]
+                        : [
+                            explainNum(ex.inputs?.seedPrice, { tone: 'price', cap: 'tohum' }),
+                            explainOp('×'),
+                            explainNum(keep, { kind: 'pct', tone: 'rr', cap: 'ödenen' })
+                        ],
+                    result: ex.costs?.netSeed,
+                    resultKind: 'cost',
+                    resultCap: 'net tohum'
+                }),
+                explainStep({
+                    icon: explainIcon(ex.sale?.itemId || slot.iconId),
+                    label: 'Birim',
+                    note: `Net tohum / verim (${ex.inputs?.yieldSource === 'user' ? `ada ort. n=${ex.inputs.yieldN}` : 'standart'})`,
+                    formula: [
+                        explainNum(ex.costs?.netSeed, { tone: 'cost', cap: 'net tohum' }),
+                        explainOp('/'),
+                        explainNum(ex.inputs?.harvestQty, { kind: 'qty', cap: 'verim' })
+                    ],
+                    result: ex.costs?.unit,
+                    resultKind: 'cost',
+                    resultCap: 'birim'
+                }),
+                explainStep({
+                    label: 'Plot maliyet',
+                    note: `Birim × ${ex.inputs?.slots || 9} slot × verim`,
+                    formula: [
+                        explainNum(ex.costs?.unit, { tone: 'cost', cap: 'birim' }),
+                        explainOp('×'),
+                        explainNum(ex.inputs?.yieldPlot, { kind: 'qty', cap: 'hasat' })
+                    ],
+                    result: ex.costs?.plotCost ?? ex.cycle?.cost,
+                    resultKind: 'cost',
+                    resultCap: 'plot'
+                })
+            ]
+        });
+    }
+
+    if (ex.kind === 'animal') {
+        groups.push({
+            title: 'Maliyet (Pasture path matematiği)',
+            tone: 'cost',
+            lines: [
+                explainStep({
+                    icon: explainIcon(ex.inputs?.babyId),
+                    label: 'Yavru net',
+                    note: ex.inputs?.babySetup ? 'Alış + setup' : 'Anında alış (setup yok)',
+                    formula: ex.inputs?.babySetup
+                        ? [
+                            explainNum(ex.inputs?.babyPrice, { tone: 'price', cap: 'yavru' }),
+                            explainOp('×'),
+                            explainNum(1 + SETUP_FEE, { kind: 'factor', tone: 'fee', cap: 'setup' })
+                        ]
+                        : [explainNum(ex.inputs?.babyPrice, { tone: 'price', cap: 'yavru' })],
+                    result: ex.costs?.babyNet,
+                    resultKind: 'cost',
+                    resultCap: 'yavru net'
+                }),
+                explainStep({
+                    label: `Yem ×${ex.inputs?.feedQty ?? '—'}`,
+                    note: [
+                        ex.inputs?.feedSource === 'island' ? 'Ada birim maliyeti' : (ex.inputs?.feedSource === 'mixed' ? 'Ada + pazar karışık' : 'Pazar birim'),
+                        Number.isFinite(ex.inputs?.feedQtyIsland) && Number.isFinite(ex.inputs?.feedQtyPasture) && ex.inputs.feedQtyIsland !== ex.inputs.feedQtyPasture
+                            ? `ada ×${ex.inputs.feedQtyIsland} / pasture ×${ex.inputs.feedQtyPasture}`
+                            : null
+                    ].filter(Boolean).join(' · '),
+                    formula: [
+                        explainNum(ex.inputs?.feedQty, { kind: 'qty', cap: 'adet' }),
+                        explainOp('×'),
+                        explainNum(ex.inputs?.feedUnit, { tone: 'cost', cap: 'yem birim' })
+                    ],
+                    result: ex.costs?.feedCost,
+                    resultKind: 'cost',
+                    resultCap: 'yem'
+                }),
+                explainStep({
+                    label: 'Hayvan maliyeti',
+                    note: ex.pathId === 'feed' ? 'Yalnız yem (besle)' : 'Yavru + yem',
+                    formula: ex.pathId === 'feed'
+                        ? [explainNum(ex.costs?.feedCost, { tone: 'cost', cap: 'yem' })]
+                        : [
+                            explainNum(ex.costs?.babyNet, { tone: 'cost', cap: 'yavru' }),
+                            explainOp('+'),
+                            explainNum(ex.costs?.feedCost, { tone: 'cost', cap: 'yem' })
+                        ],
+                    result: ex.cycle?.pathCost ?? ex.costs?.unitCost,
+                    resultKind: 'cost',
+                    resultCap: 'hayvan'
+                }),
+                explainStep({
+                    label: `Plot ×${ex.inputs?.pens ?? '—'} ağıt`,
+                    note: 'Bir pasture / kennel plot',
+                    formula: [
+                        explainNum(ex.cycle?.pathCost ?? ex.costs?.unitCost, { tone: 'cost', cap: 'hayvan' }),
+                        explainOp('×'),
+                        explainNum(ex.inputs?.pens, { kind: 'qty', cap: 'ağıt' })
+                    ],
+                    result: ex.cycle?.cost,
+                    resultKind: 'cost',
+                    resultCap: 'plot'
+                })
+            ]
+        });
+        if (Number.isFinite(ex.inputs?.chance)) {
+            groups.push({
+                title: 'Yavru iadesi',
+                tone: 'rr',
+                lines: [
+                    explainStep({
+                        icon: explainIcon(ex.inputs?.babyId),
+                        label: 'Yavru kredisi',
+                        note: state.focus ? 'Focus açık: iade + water bonus' : 'Focus yok: taban iade',
+                        formula: [
+                            explainNum(ex.inputs.chance, { kind: 'pct', tone: state.focus ? 'focus' : 'rr', cap: 'ihtimal' }),
+                            explainOp('×'),
+                            explainNum(ex.inputs.babyPrice, { tone: 'price', cap: 'yavru fiyat' })
+                        ],
+                        result: ex.sale?.babyCredit,
+                        resultKind: 'sell',
+                        resultCap: 'kredi'
+                    })
+                ]
+            });
+        }
+    }
+
+    const saleLines = explainSaleSteps({
+        price: ex.sale?.price,
+        tax: ex.sale?.tax ?? tax,
+        setup: ex.sale?.setup === true,
+        sell: ex.sale?.netUnit,
+        label: 'Satış fiyatı',
+        icon: explainIcon(ex.sale?.itemId || slot.iconId)
+    });
+    if (Number.isFinite(ex.sale?.qty) && ex.sale.qty !== 1) {
+        saleLines.push(explainStep({
+            label: `Miktar ×${ex.sale.qty}`,
+            note: 'Net birim × adet',
+            formula: [
+                explainNum(ex.sale.netUnit, { tone: 'sell', cap: 'net birim' }),
+                explainOp('×'),
+                explainNum(ex.sale.qty, { kind: 'qty', cap: 'adet' })
+            ],
+            result: Number.isFinite(ex.sale.netUnit) ? ex.sale.netUnit * ex.sale.qty : null,
+            resultKind: 'sell',
+            resultCap: 'ürün'
+        }));
+    }
+    if (Number.isFinite(ex.sale?.babyCredit) && ex.sale.babyCredit !== 0) {
+        saleLines.push(explainStep({
+            label: 'Gelir',
+            note: 'Net satış + yavru kredisi',
+            formula: [
+                explainNum(
+                    Number.isFinite(ex.sale.netUnit)
+                        ? ex.sale.netUnit * (ex.sale.qty ?? 1)
+                        : null,
+                    { tone: 'sell', cap: 'ürün' }
+                ),
+                explainOp('+'),
+                explainNum(ex.sale.babyCredit, { tone: 'sell', cap: 'kredi' })
+            ],
+            result: ex.kind === 'animal' ? ex.sale.revenue : ex.cycle?.revenue,
+            resultKind: 'sell',
+            resultCap: 'gelir'
+        }));
+    }
+    groups.push({
+        title: ex.kind === 'feed' ? 'Fazla yem satışı' : 'Satış',
+        tone: 'sell',
+        lines: saleLines
+    });
+
+    groups.push({
+        title: 'Ham gümüş/gün',
+        tone: 'point',
+        lines: [
+            explainStep({
+                label: 'Plot kârı',
+                note: 'Bir plot · bir döngü',
+                formula: [
+                    explainNum(ex.cycle?.revenue, { tone: 'sell', cap: 'gelir' }),
+                    explainOp('−'),
+                    explainNum(ex.cycle?.cost, { tone: 'cost', cap: 'maliyet' })
+                ],
+                result: ex.cycle?.profit,
+                resultKind: 'profit',
+                resultCap: 'kâr',
+                signed: true
+            }),
+            explainStep({
+                label: 'Ham gümüş/gün',
+                note: 'Kâr ÷ döngü × 24s — sıralama ve öneri bunu kullanır',
+                formula: [
+                    explainNum(ex.cycle?.profit, { tone: 'profit', cap: 'kâr', signed: true }),
+                    explainOp('/'),
+                    explainNum(ex.cycle?.hours, { kind: 'qty', cap: 'saat' }),
+                    explainOp('×'),
+                    explainNum(24, { kind: 'qty', cap: 'gün' })
+                ],
+                result: ex.cycle?.rawPerDay,
+                resultKind: 'profit',
+                resultCap: 'ham/gün',
+                signed: true
+            }),
+            explainStep({
+                label: 'İstikrar (bilgi)',
+                note: 'Ham × likidite × volatilite cezası. Sıralamaz, elemez.',
+                formula: [
+                    explainNum(ex.stability?.rawPerDay, { tone: 'profit', cap: 'ham', signed: true }),
+                    explainOp('×'),
+                    explainNum(ex.stability?.liquidity, { kind: 'pct', tone: 'rr', cap: 'likidite' }),
+                    explainOp('×'),
+                    explainNum(ex.stability?.volPenalty, { kind: 'factor', tone: 'fee', cap: 'vol' })
+                ],
+                result: ex.stability?.stablePerDay,
+                resultKind: 'profit',
+                resultCap: 'istikrar/gün',
+                signed: true
+            })
+        ]
+    });
+
+    const dayTotal = Number.isFinite(slot.perDay) ? slot.perDay * found.count : null;
+    return explainPanelHtml({
+        icon: explainIcon(ex.iconId || slot.iconId),
+        title: ex.title || `${slot.label} · ${slot.pathLabel || ''}`.trim(),
+        hint: explainHint(hovered),
+        flow: explainFlow([
+            { icon: explainIcon(ex.iconId || slot.iconId), label: 'Maliyet', value: ex.cycle?.cost, tone: 'cost' },
+            { label: 'Gelir', value: ex.cycle?.revenue, tone: 'sell' },
+            {
+                label: (ex.cycle?.profit ?? 0) < 0 ? 'Zarar' : 'Kâr',
+                value: ex.cycle?.profit,
+                tone: (ex.cycle?.profit ?? 0) < 0 ? 'loss' : 'profit',
+                signed: true
+            },
+            {
+                label: 'Ham/gün',
+                value: ex.cycle?.rawPerDay,
+                tone: 'profit',
+                signed: true
+            }
+        ]),
+        groups,
+        footer: `
+            ${explainProfitFoot({
+                sell: ex.cycle?.revenue,
+                cost: ex.cycle?.cost,
+                profit: ex.cycle?.profit,
+                pct: ex.cycle?.profitPct
+            })}
+            ${found.count > 1 && dayTotal != null ? `
+                <p class="farming-note">${found.count} plot × ${formatSilver(slot.perDay)} = ${formatSilver(dayTotal)} ham gümüş/gün.</p>
+            ` : ''}
+        `
+    });
+}
+
+function bindPlannerExplain(container) {
+    const panel = container.querySelector('#islandPlannerExplain');
+    const table = container.querySelector('[data-island-explain-table="plan"]')
+        || container.querySelector('.island-planner-table');
+    if (!panel || !table) {
+        return;
+    }
+    bindCalcExplain({
+        panel,
+        table,
+        rowKey: (tr) => tr.dataset.explainKey,
+        keys: () => collectExplainRows().map((row) => row.key),
+        defaultKey: () => collectExplainRows()[0]?.key ?? null,
+        render: (key, meta) => renderPlannerExplain(key, meta)
+    });
+
+    const runners = container.querySelector('[data-island-explain-table="runners"]');
+    if (!runners || runners.dataset.explainBound === 'on') {
+        return;
+    }
+    runners.dataset.explainBound = 'on';
+    const paintKey = (key) => {
+        if (!key) {
+            return;
+        }
+        const sessionTable = table;
+        sessionTable.querySelectorAll('tbody tr').forEach((tr) => {
+            tr.classList.toggle('is-explain', false);
+            tr.classList.toggle('is-explain-hover', false);
+        });
+        panel.innerHTML = renderPlannerExplain(key, { hovered: false });
+        runners.querySelectorAll('tbody tr').forEach((tr) => {
+            tr.classList.toggle('is-explain', tr.dataset.explainKey === key);
+        });
+    };
+    runners.addEventListener('click', (event) => {
+        const tr = event.target instanceof Element ? event.target.closest('tbody tr') : null;
+        if (tr?.dataset.explainKey) {
+            paintKey(tr.dataset.explainKey);
+        }
+    });
 }
 
 function renderOutput() {
@@ -595,16 +1030,20 @@ function renderOutput() {
         <div id="islandPlannerResult">
             ${renderSummary()}
             ${renderSlotsTable()}
+            ${calcExplainShell('islandPlannerExplain')}
             ${renderCityCompare()}
             ${renderRunnersUp()}
             <p class="farming-note">
                 ${escapeHtml(feeMetaText(state.premium))}
-                · skor = medyan fiyat × likidite × volatilite cezası (AODP ~${getEconomyConstant('farm_history_days', 14)}g)
-                · livestock yem ×${livestockFeed()} (wiki)
+                · hedef ham gümüş/gün = plot kârı ÷ döngü × 24s
+                · alış max(spot, ~${getEconomyConstant('farm_history_days', 14)}g medyan) · satış medyan (Farming/Pasture spot kullanır)
+                · livestock ada yemi ×${livestockFeed()} (Pasture ×${livestockFeedPasture()})
+                · path = ham gümüş; Pasture “en iyi” = kâr %
+                · hayvan et/ürün adedine ada şehir +10% uygulanır (Pasture uygulamaz)
+                · istikrar = ham × likidite × vol cezası — bilgi / uyarı, sıralama değil
                 · maliyet / kâr bir plot · bir döngü
-                · istikrarlı gümüş/gün = skorlu net ÷ döngü × 24s
                 · sulama ${state.water ? 'açık' : 'kapalı'} (Ayarlar)
-                · min hacim ${state.minVolume || 'yok'}
+                · ince pazar eşiği ${state.minVolume || 'yok'} (uyarı; eleme yok)
                 · alış ${escapeHtml(cityLabel(state.islandCity))} · satış ${escapeHtml(cityLabel(state.sellCity))}
                 · <a href="island-yields.html">Ada Çıktı</a> kayıtları varsa yield ortalaması kullanılır
                 ${stamp ? ` · ${escapeHtml(stamp)}` : ''}
@@ -618,6 +1057,7 @@ function refreshOutput(container) {
     const resultHost = container.querySelector('.tool-split-result');
     if (resultHost) {
         resultHost.innerHTML = renderOutput();
+        bindPlannerExplain(container);
         bindCalcSticky(container);
     }
 }
@@ -686,7 +1126,7 @@ function renderPage(container) {
     container.innerHTML = `
         <section class="farming-hero">
             <h1>Ada Planlayıcı</h1>
-            <p>İstikrarlı net gümüş/gün (medyan + hacim). Sade plan varsayılan; zincir yalnızca belirgin üstünse önerilir. Faction plot kilidi isteğe bağlı.</p>
+            <p>Ada plotlarını <strong>ham gümüş/gün</strong> (zaman-normalize kâr) için planlar. Likidite ve volatilite yalnızca uyarıdır; ince pazar elenmez. Faction plot kilidi isteğe bağlı.</p>
         </section>
 
         <div class="tool-split">
@@ -741,7 +1181,7 @@ function renderPage(container) {
                     <div class="form-floating farming-city-field">
                         <input class="form-control${state.minVolume ? ' is-filled' : ''}" type="number" min="0" step="1"
                             id="minVolume" value="${state.minVolume || ''}" placeholder=" ">
-                        <label for="minVolume">Min satış hacmi/gün</label>
+                        <label for="minVolume">İnce pazar eşiği (uyarı)</label>
                     </div>
                     ${factionAvail
                         ? `<p class="farming-note">${escapeHtml(factionAvail.label)} bu şehirde kilitlenebilir.</p>`

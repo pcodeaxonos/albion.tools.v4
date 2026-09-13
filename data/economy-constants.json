@@ -200,7 +200,7 @@
   {
     "id": 34,
     "key": "island_chain_bias",
-    "value": "1.15",
-    "label": "Chain plan must beat simple by this ratio"
+    "value": "1",
+    "label": "Unused — planner ranks raw silver/day with no chain bias"
   }
 ]
