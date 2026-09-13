@@ -13,6 +13,19 @@
     "isActive": true
   },
   {
+    "id": 14,
+    "code": "island-yields",
+    "title": "Ada Çıktı",
+    "description": "Ada hasat yield’lerini kaydedin; ortalamalar farming ve planlayıcıda kullanılır.",
+    "icon": "📊",
+    "href": "island-yields.html",
+    "addedAt": "2026-09-13",
+    "groupLabel": "Kayıt",
+    "frequent": true,
+    "sortValue": 15,
+    "isActive": true
+  },
+  {
     "id": 2,
     "code": "farmin",
     "title": "Farming",
@@ -42,7 +55,7 @@
     "id": 4,
     "code": "island-planner",
     "title": "Ada Planlayıcı",
-    "description": "Ada slotlarını gümüş/gün maksimize et; yem ada vs pazar fırsat maliyetiyle.",
+    "description": "İstikrarlı gümüş/gün; sade vs zincir; faction kilit.",
     "icon": "🏝️",
     "href": "island-planner.html",
     "addedAt": "2026-09-07",

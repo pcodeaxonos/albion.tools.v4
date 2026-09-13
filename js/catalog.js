@@ -89,6 +89,24 @@ export function hydratePlant(row) {
 /**
  * Hydrated animal for pasture + island. Feed plant linked by feedPlantId.
  */
+const FW_CITY_MAP = {
+    MARTLOCK: 'Martlock',
+    FORTSTERLING: 'Fort Sterling',
+    BRIDGEWATCH: 'Bridgewatch',
+    LYMHURST: 'Lymhurst',
+    THETFORD: 'Thetford',
+    CAERLEON: 'Caerleon',
+    BRECILIEN: 'Brecilien'
+};
+
+function factionCityFromUnique(uniqueName) {
+    const match = String(uniqueName || '').match(/_FW_([A-Z]+)_/);
+    if (!match) {
+        return null;
+    }
+    return FW_CITY_MAP[match[1]] || null;
+}
+
 export function hydrateAnimal(row) {
     if (!row || row.isActive === false) {
         return null;
@@ -104,6 +122,8 @@ export function hydrateAnimal(row) {
     const grownItem = getItemById(row.grownItemId);
     const meatItem = row.meatItemId != null ? getItemById(row.meatItemId) : null;
     const productItem = row.productItemId != null ? getItemById(row.productItemId) : null;
+    const babyUnique = babyItem?.uniqueName || getItemUniqueName(row.babyItemId);
+    const factionCity = row.kind === 'faction-mount' ? factionCityFromUnique(babyUnique) : null;
 
     return {
         id: Number(row.id),
@@ -129,7 +149,7 @@ export function hydrateAnimal(row) {
         grownItemId: Number(row.grownItemId),
         meatItemId: row.meatItemId != null ? Number(row.meatItemId) : null,
         productItemId: row.productItemId != null ? Number(row.productItemId) : null,
-        babyId: babyItem?.uniqueName || getItemUniqueName(row.babyItemId),
+        babyId: babyUnique,
         grownId: grownItem?.uniqueName || getItemUniqueName(row.grownItemId),
         meatId: meatItem?.uniqueName || (row.meatItemId != null ? getItemUniqueName(row.meatItemId) : null),
         productId: productItem?.uniqueName || (row.productItemId != null ? getItemUniqueName(row.productItemId) : null),
@@ -139,7 +159,8 @@ export function hydrateAnimal(row) {
         feedBonusCityIds: feedPlant?.bonusCityIds || [],
         feedBonusCities: feedPlant?.bonusCities || [],
         bonusCityIds: productionCityIds,
-        bonusCities: cityApiNames(productionCityIds)
+        bonusCities: cityApiNames(productionCityIds),
+        factionCity
     };
 }
 

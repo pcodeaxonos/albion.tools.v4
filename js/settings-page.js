@@ -303,7 +303,7 @@ function renderPage(container, cities) {
                 ${settingsSection('settings-veri', 'Veri', 'Yedekleme ve origin’ler arası eşleme. Live Server (:5500) ile yerel sunucu (:3000) ayrı hafızadır.', `
                     <div class="settings-subblock">
                         <h3 class="settings-subblock-title">Yedek</h3>
-                        <p class="settings-subblock-lead">Ayarlar, günlük bonuslar, tool tercihleri ve veritabanı tabloları bu tarayıcı origin’inde saklanır.</p>
+                        <p class="settings-subblock-lead">Ayarlar, günlük bonuslar, ada çıktı, tool tercihleri ve veritabanı tabloları bu tarayıcı origin’inde saklanır.</p>
                         <div class="settings-data-actions">
                             <button type="button" class="btn btn-outline-primary" id="settingsExportData">Dışa aktar</button>
                             <button type="button" class="btn btn-outline-secondary" id="settingsImportData">İçe aktar</button>

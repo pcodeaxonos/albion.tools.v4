@@ -1,17 +1,20 @@
 /**
  * Island plot planner: crop / herb / pasture / kennel economics + opportunity-cost feed search.
+ * Scoring: stable gümüş/gün (history median × liquidity × vol penalty); dual simple/chain plans.
  * Catalog: plants / animals / economyConstants / islandPlots (relational DB).
  */
 
 import { purchaseCost, saleProceeds } from './market-fees.js';
 import { quoteFromRow } from './price-side.js';
 import { cityRow } from './market.js';
+import { historyAt } from './market-history.js';
 import {
     getPlants,
     getAnimals,
     getEconomyConstant,
     getIslandPlotsByLevel
 } from './catalog.js';
+import { effectivePlantYield, effectiveSeedReturn } from './island-yield-stats.js';
 
 export function islandPlotsByLevel() {
     return getIslandPlotsByLevel();
@@ -87,7 +90,6 @@ export function planDayHours() {
     return getEconomyConstant('plan_day_hours', 24);
 }
 
-/** Compat exports used by island-planner UI text */
 export const PLANT_SLOTS = 9;
 export const PASTURE_PENS = 9;
 export const KENNEL_PENS = 4;
@@ -99,9 +101,6 @@ export const PRODUCT_QTY = 18;
 export const ALBION_DAY_HOURS = 22;
 export const PLAN_DAY_HOURS = 24;
 
-/**
- * Convert in-game cycle hours to planning hours (22h → 24h = 1 gün).
- */
 export function planCycleHours(albionHours) {
     if (!Number.isFinite(albionHours) || albionHours <= 0) {
         return null;
@@ -111,14 +110,6 @@ export function planCycleHours(albionHours) {
     const raw = (albionHours / dayAlbion) * dayPlan;
     const days = Math.max(1, Math.ceil(raw / dayPlan - 1e-9));
     return days * dayPlan;
-}
-
-function baseYield() {
-    return getEconomyConstant('base_yield', 4.5);
-}
-
-function premiumYield() {
-    return getEconomyConstant('premium_yield', 9);
 }
 
 function cityYieldBonus() {
@@ -152,6 +143,10 @@ export function listKennelMounts() {
     return getAnimals({ kind: 'mount', plotType: 'kennel' }).map(islandAnimal);
 }
 
+export function listFactionMounts() {
+    return getAnimals({ kind: 'faction-mount' }).map(islandAnimal);
+}
+
 export function listAllAnimals() {
     return getAnimals().map(islandAnimal);
 }
@@ -160,7 +155,6 @@ export function listAllPlants() {
     return getPlants();
 }
 
-/** Compat aliases — always live arrays from DB */
 export const CROPS = listCrops;
 export const HERBS = listHerbs;
 export const LIVESTOCK = listLivestock;
@@ -173,6 +167,11 @@ export function plotsForLevel(level) {
     const map = islandPlotsByLevel();
     const n = map[level];
     return Number.isFinite(n) ? n : map[6];
+}
+
+export function factionMountForCity(city, tier = 5) {
+    const t = Number(tier) || 5;
+    return listFactionMounts().find((animal) => animal.factionCity === city && animal.tier === t) ?? null;
 }
 
 export function allPriceItemIds() {
@@ -214,15 +213,6 @@ function hasBonus(bonusCities, city) {
     return Array.isArray(bonusCities) && bonusCities.includes(city);
 }
 
-function harvestPerSeed(plant, islandCity, premium) {
-    const base = premium ? premiumYield() : baseYield();
-    return hasBonus(plant.bonusCities, islandCity) ? base * (1 + cityYieldBonus()) : base;
-}
-
-function seedReturnRate(item, watered) {
-    return watered ? item.seedReturn + item.waterBonus : item.seedReturn;
-}
-
 function babyChance(item, focused) {
     return focused ? item.seedReturn + item.waterBonus : item.seedReturn;
 }
@@ -231,7 +221,6 @@ function cycleHours(baseHours, premium) {
     return premium ? baseHours / 2 : baseHours;
 }
 
-/** Hours used for ₺/gün and UI (24h day planning). */
 function metricsHours(baseHours, premium) {
     return planCycleHours(cycleHours(baseHours, premium));
 }
@@ -242,7 +231,6 @@ function perDay(profit, hours) {
     }
     return (profit / hours) * planDayHours();
 }
-
 
 function cycleMetrics(profit, cost, hours) {
     const safeCost = Number.isFinite(cost) ? cost : null;
@@ -260,13 +248,108 @@ function cycleMetrics(profit, cost, hours) {
     };
 }
 
-function plantGrowUnitCost(plant, ctx) {
-    const seed = quoteAt(ctx.priceIndex, plant.seedId, ctx.islandCity, ctx.buySide, 'buy');
+/** Buy: max(spot, median) so costs are not understated. */
+function buyQuote(itemId, city, ctx) {
+    const spot = quoteAt(ctx.priceIndex, itemId, city, ctx.buySide, 'buy');
+    if (!spot) {
+        return null;
+    }
+    const hist = historyAt(ctx.historyIndex, itemId, city);
+    const median = hist?.medianAvgPrice;
+    if (Number.isFinite(median) && median > 0) {
+        return { ...spot, price: Math.max(spot.price, median), history: hist };
+    }
+    return { ...spot, history: hist };
+}
+
+/** Sell: median when available, else spot. */
+function sellQuote(itemId, city, ctx) {
+    const spot = quoteAt(ctx.priceIndex, itemId, city, ctx.sellSide, 'sell');
+    const hist = historyAt(ctx.historyIndex, itemId, city);
+    const median = hist?.medianAvgPrice;
+    if (Number.isFinite(median) && median > 0) {
+        return {
+            price: median,
+            setup: spot?.setup ?? true,
+            date: spot?.date ?? null,
+            stale: spot?.stale ?? false,
+            history: hist,
+            spotPrice: spot?.price ?? null
+        };
+    }
+    return spot ? { ...spot, history: hist } : null;
+}
+
+function spotBuyQuote(itemId, city, ctx) {
+    return quoteAt(ctx.priceIndex, itemId, city, ctx.buySide, 'buy');
+}
+
+function spotSellQuote(itemId, city, ctx) {
+    return quoteAt(ctx.priceIndex, itemId, city, ctx.sellSide, 'sell');
+}
+
+function stabilityFactors(sellItemId, sellCity, ctx) {
+    const hist = historyAt(ctx.historyIndex, sellItemId, sellCity);
+    const target = Number(ctx.targetVolume) || getEconomyConstant('farm_target_volume', 40);
+    const k = Number(ctx.volK) || getEconomyConstant('farm_vol_penalty_k', 1.5);
+    const minVolume = Number(ctx.minVolume) || 0;
+
+    if (!hist) {
+        return { liquidity: 1, volPenalty: 1, lowLiquidity: false, rejected: false, hist: null };
+    }
+    if (minVolume > 0 && (hist.avgItemCount || 0) < minVolume) {
+        return { liquidity: 0, volPenalty: 0, lowLiquidity: true, rejected: true, hist };
+    }
+    const liquidity = Math.min(1, Math.max(0, (hist.avgItemCount || 0) / Math.max(1, target)));
+    const volPenalty = 1 / (1 + k * (hist.cv || 0));
+    return {
+        liquidity,
+        volPenalty,
+        lowLiquidity: liquidity < 0.35,
+        rejected: false,
+        hist
+    };
+}
+
+function withStability(metrics, sellItemId, sellCity, ctx, spotPerDay = null) {
+    if (!metrics || metrics.perDay == null) {
+        return null;
+    }
+    const factors = stabilityFactors(sellItemId, sellCity, ctx);
+    if (factors.rejected) {
+        return null;
+    }
+    const stablePerDay = metrics.perDay * factors.liquidity * factors.volPenalty;
+    return {
+        ...metrics,
+        rawPerDay: metrics.perDay,
+        perDay: stablePerDay,
+        spotPerDay: spotPerDay ?? metrics.perDay,
+        liquidity: factors.liquidity,
+        volPenalty: factors.volPenalty,
+        lowLiquidity: factors.lowLiquidity,
+        historyN: factors.hist?.n ?? 0,
+        avgItemCount: factors.hist?.avgItemCount ?? null
+    };
+}
+
+function plantGrowUnitCost(plant, ctx, { spot = false } = {}) {
+    const seed = spot
+        ? spotBuyQuote(plant.seedId, ctx.islandCity, ctx)
+        : buyQuote(plant.seedId, ctx.islandCity, ctx);
     if (!seed) {
         return null;
     }
-    const qty = harvestPerSeed(plant, ctx.islandCity, ctx.premium);
-    const usedReturn = seedReturnRate(plant, ctx.water);
+    const yieldInfo = effectivePlantYield(plant, ctx.islandCity, {
+        premium: ctx.premium,
+        water: ctx.water
+    });
+    const seedInfo = effectiveSeedReturn(plant, ctx.islandCity, {
+        premium: ctx.premium,
+        water: ctx.water
+    });
+    const qty = yieldInfo.qty;
+    const usedReturn = seedInfo.rate;
     const netSeed = purchaseCost(seed.price * (1 - usedReturn), { setup: seed.setup });
     if (!(qty > 0) || !Number.isFinite(netSeed)) {
         return null;
@@ -276,18 +359,24 @@ function plantGrowUnitCost(plant, ctx) {
         seed,
         qty,
         usedReturn,
-        bonus: hasBonus(plant.bonusCities, ctx.islandCity)
+        bonus: yieldInfo.bonus,
+        yieldSource: yieldInfo.source,
+        yieldN: yieldInfo.n,
+        seedSource: seedInfo.source
     };
 }
 
 function plantPlotYield(plant, ctx) {
-    const qty = harvestPerSeed(plant, ctx.islandCity, ctx.premium);
-    return plantSlots() * qty;
+    const yieldInfo = effectivePlantYield(plant, ctx.islandCity, {
+        premium: ctx.premium,
+        water: ctx.water
+    });
+    return plantSlots() * yieldInfo.qty;
 }
 
 function cropSellActivity(plant, ctx) {
     const grow = plantGrowUnitCost(plant, ctx);
-    const sell = quoteAt(ctx.priceIndex, plant.plantId, ctx.sellCity, ctx.sellSide, 'sell');
+    const sell = sellQuote(plant.plantId, ctx.sellCity, ctx);
     if (!grow || !sell) {
         return null;
     }
@@ -297,9 +386,29 @@ function cropSellActivity(plant, ctx) {
     const profit = revenue - seedCost;
     const hours = planCycleHours(cropHours());
     const metrics = cycleMetrics(profit, seedCost, hours);
-    if (metrics.perDay == null) {
+
+    const spotGrow = plantGrowUnitCost(plant, ctx, { spot: true });
+    const spotSell = spotSellQuote(plant.plantId, ctx.sellCity, ctx);
+    let spotPerDay = null;
+    if (spotGrow && spotSell) {
+        const spotCost = spotGrow.unit * yieldPlot;
+        const spotRev = saleProceeds(spotSell.price, { premium: ctx.premium, setup: spotSell.setup }) * yieldPlot;
+        spotPerDay = cycleMetrics(spotRev - spotCost, spotCost, hours).perDay;
+    }
+
+    const scored = withStability(metrics, plant.plantId, ctx.sellCity, ctx, spotPerDay);
+    if (!scored) {
         return null;
     }
+
+    const notes = [];
+    if (grow.bonus) {
+        notes.push('şehir +10%');
+    }
+    if (grow.yieldSource === 'user') {
+        notes.push(`ada ort. n=${grow.yieldN}`);
+    }
+
     return {
         id: `sell-${plant.id}`,
         kind: plant.kind,
@@ -308,10 +417,11 @@ function cropSellActivity(plant, ctx) {
         pathLabel: 'Sat',
         item: plant,
         iconId: plant.plantId,
-        ...metrics,
+        sellItemId: plant.plantId,
+        ...scored,
         feedDemand: 0,
         feedCrop: null,
-        detail: grow.bonus ? 'şehir +10%' : null
+        detail: notes.length ? notes.join(' · ') : null
     };
 }
 
@@ -322,10 +432,11 @@ function resolveFeedCrop(animal, feedCropOverride) {
     return feedCropOverride ?? null;
 }
 
-function marketFeedUnit(animal, feedCrop, ctx) {
+function marketFeedUnit(animal, feedCrop, ctx, { spot = false } = {}) {
+    const buy = spot ? spotBuyQuote : buyQuote;
     if (animal.feedDiet === 'meat') {
         const meatId = `T${animal.tier}_MEAT`;
-        const q = quoteAt(ctx.priceIndex, meatId, ctx.islandCity, ctx.buySide, 'buy');
+        const q = buy(meatId, ctx.islandCity, ctx);
         if (!q) {
             return null;
         }
@@ -341,7 +452,7 @@ function marketFeedUnit(animal, feedCrop, ctx) {
     if (!plant) {
         return null;
     }
-    const q = quoteAt(ctx.priceIndex, plant.plantId, ctx.islandCity, ctx.buySide, 'buy');
+    const q = buy(plant.plantId, ctx.islandCity, ctx);
     if (!q) {
         return null;
     }
@@ -368,7 +479,9 @@ function islandFeedUnit(feedCrop, ctx) {
         crop: feedCrop,
         source: 'island',
         harvestPerSeed: grow.qty,
-        bonus: grow.bonus
+        bonus: grow.bonus,
+        yieldSource: grow.yieldSource,
+        yieldN: grow.yieldN
     };
 }
 
@@ -386,9 +499,11 @@ function productQty(animal, ctx) {
     return hasAnimalCityBonus(animal, ctx.islandCity) ? base * (1 + cityYieldBonus()) : base;
 }
 
-function animalPathProfits(animal, feedUnit, ctx) {
-    const baby = quoteAt(ctx.priceIndex, animal.babyId, ctx.islandCity, ctx.buySide, 'buy');
-    const grown = quoteAt(ctx.priceIndex, animal.grownId, ctx.sellCity, ctx.sellSide, 'sell');
+function animalPathProfits(animal, feedUnit, ctx, { spot = false } = {}) {
+    const buy = spot ? spotBuyQuote : buyQuote;
+    const sell = spot ? spotSellQuote : sellQuote;
+    const baby = buy(animal.babyId, ctx.islandCity, ctx);
+    const grown = sell(animal.grownId, ctx.sellCity, ctx);
     if (!baby || feedUnit == null || !Number.isFinite(feedUnit)) {
         return [];
     }
@@ -410,12 +525,13 @@ function animalPathProfits(animal, feedUnit, ctx) {
             cost: growCost,
             revenue: rev,
             iconId: animal.grownId,
+            sellItemId: animal.grownId,
             cityBonus: false
         });
     }
 
     if (animal.meatId) {
-        const meat = quoteAt(ctx.priceIndex, animal.meatId, ctx.sellCity, ctx.sellSide, 'sell');
+        const meat = sell(animal.meatId, ctx.sellCity, ctx);
         if (meat) {
             const qty = butcherQty(animal, ctx);
             const rev = saleProceeds(meat.price, { premium: ctx.premium, setup: meat.setup }) * qty + babyCredit;
@@ -426,13 +542,14 @@ function animalPathProfits(animal, feedUnit, ctx) {
                 cost: growCost,
                 revenue: rev,
                 iconId: animal.meatId,
+                sellItemId: animal.meatId,
                 cityBonus
             });
         }
     }
 
     if (animal.productId) {
-        const product = quoteAt(ctx.priceIndex, animal.productId, ctx.sellCity, ctx.sellSide, 'sell');
+        const product = sell(animal.productId, ctx.sellCity, ctx);
         if (product) {
             const onlyFeed = feedCost;
             const qty = productQty(animal, ctx);
@@ -444,6 +561,7 @@ function animalPathProfits(animal, feedUnit, ctx) {
                 cost: onlyFeed,
                 revenue: rev,
                 iconId: animal.productId,
+                sellItemId: animal.productId,
                 cityBonus
             });
         }
@@ -468,13 +586,29 @@ function animalActivityFromPath(animal, path, feed, feedCrop, ctx) {
     const plotProfit = path.profit * animal.pens;
     const plotCost = path.cost * animal.pens;
     const metrics = cycleMetrics(plotProfit, plotCost, hours);
-    if (metrics.perDay == null) {
+
+    const spotFeed = marketFeedUnit(animal, feedCrop, ctx, { spot: true });
+    let spotPerDay = null;
+    if (spotFeed) {
+        const spotPaths = animalPathProfits(animal, spotFeed.unit, ctx, { spot: true });
+        const spotPath = spotPaths.find((p) => p.id === path.id) ?? spotPaths[0];
+        if (spotPath) {
+            spotPerDay = cycleMetrics(spotPath.profit * animal.pens, spotPath.cost * animal.pens, hours).perDay;
+        }
+    }
+
+    const scored = withStability(metrics, path.sellItemId, ctx.sellCity, ctx, spotPerDay);
+    if (!scored) {
         return null;
     }
+
     const feedKey = feedCrop?.key ?? (animal.feedDiet === 'meat' ? 'meat' : 'x');
     const notes = [`yem pazar · ${feed.label}`];
     if (path.cityBonus) {
         notes.push('şehir +10%');
+    }
+    if (scored.lowLiquidity) {
+        notes.push('satış zor');
     }
     return {
         id: `${animal.id}-${path.id}-mkt-${feedKey}`,
@@ -484,7 +618,8 @@ function animalActivityFromPath(animal, path, feed, feedCrop, ctx) {
         pathLabel: path.label,
         item: animal,
         iconId: path.iconId,
-        ...metrics,
+        sellItemId: path.sellItemId,
+        ...scored,
         feedDemand: animal.pens * animal.feedQty,
         feedCrop: feedCrop ?? null,
         feedMode: 'market',
@@ -545,6 +680,9 @@ function standaloneActivities(ctx) {
         }
     }
     for (const animal of listAllAnimals()) {
+        if (animal.kind === 'faction-mount' && animal.factionCity && animal.factionCity !== ctx.islandCity) {
+            continue;
+        }
         list.push(...animalMarketActivities(animal, ctx));
     }
     list.sort((a, b) => b.perDay - a.perDay);
@@ -558,6 +696,7 @@ function slotFromActivity(activity, index, role = 'cash') {
         label: activity.label,
         pathLabel: activity.pathLabel,
         perDay: activity.perDay,
+        spotPerDay: activity.spotPerDay ?? null,
         profit: activity.profit,
         cost: activity.cost,
         revenue: activity.revenue,
@@ -566,6 +705,7 @@ function slotFromActivity(activity, index, role = 'cash') {
         iconId: activity.iconId,
         detail: activity.detail,
         activityId: activity.id,
+        lowLiquidity: activity.lowLiquidity === true,
         role
     };
 }
@@ -606,17 +746,23 @@ function blendedAnimalPlotProfit(animal, pathId, islandUnit, marketUnit, islandS
     const plotProfit = path.profit * animal.pens;
     const plotCost = path.cost * animal.pens;
     const hours = metricsHours(animal.baseHours, ctx.premium);
+    const metrics = cycleMetrics(plotProfit, plotCost, hours);
+    const scored = withStability(metrics, path.sellItemId, ctx.sellCity, ctx);
+    if (!scored) {
+        return null;
+    }
     return {
         path,
-        ...cycleMetrics(plotProfit, plotCost, hours),
+        ...scored,
         unit
     };
 }
 
 /**
  * Search island-feed plans for one animal activity + one feed crop.
+ * @param {{ fixedAnimalPlots?: number|null }} opts
  */
-function searchIslandFeedPlan(animal, pathId, feedCrop, n, marketBaselinePerDay, ctx) {
+function searchIslandFeedPlan(animal, pathId, feedCrop, n, marketBaselinePerDay, ctx, opts = {}) {
     const albionHours = cycleHours(animal.baseHours, ctx.premium);
     const hours = planCycleHours(albionHours);
     const island = islandFeedUnit(feedCrop, ctx);
@@ -625,9 +771,9 @@ function searchIslandFeedPlan(animal, pathId, feedCrop, n, marketBaselinePerDay,
         return null;
     }
 
-    const sellQuote = quoteAt(ctx.priceIndex, feedCrop.plantId, ctx.sellCity, ctx.sellSide, 'sell');
-    const sellUnit = sellQuote
-        ? saleProceeds(sellQuote.price, { premium: ctx.premium, setup: sellQuote.setup })
+    const sellQ = sellQuote(feedCrop.plantId, ctx.sellCity, ctx);
+    const sellUnit = sellQ
+        ? saleProceeds(sellQ.price, { premium: ctx.premium, setup: sellQ.setup })
         : null;
 
     const demandPerPlot = animal.pens * animal.feedQty;
@@ -637,12 +783,19 @@ function searchIslandFeedPlan(animal, pathId, feedCrop, n, marketBaselinePerDay,
     }
 
     const standalones = standaloneActivities(ctx).filter(
-        (a) => !(a.kind === animal.kind && a.item?.id === animal.id)
+        (a) => !(a.item?.id === animal.id)
     );
+
+    const fixedA = opts.fixedAnimalPlots != null ? Math.round(Number(opts.fixedAnimalPlots)) : null;
+    const aStart = fixedA != null ? fixedA : 1;
+    const aEnd = fixedA != null ? fixedA : n;
+    if (aStart < 1 || aStart > n) {
+        return null;
+    }
 
     let best = null;
 
-    for (let a = 1; a <= n; a += 1) {
+    for (let a = aStart; a <= aEnd; a += 1) {
         for (let f = 0; f <= n - a; f += 1) {
             const demand = a * demandPerPlot;
             const supply = f * supplyPerFarm;
@@ -683,7 +836,15 @@ function searchIslandFeedPlan(animal, pathId, feedCrop, n, marketBaselinePerDay,
                 continue;
             }
 
-            if (!best || totalDay > best.totalDay) {
+            // Re-score totalDay using animal stability already in blended.perDay:
+            // fill.total is already stable; surplusDay is raw — apply mild liquidity of feed crop
+            const feedStab = stabilityFactors(feedCrop.plantId, ctx.sellCity, ctx);
+            const adjustedSurplusDay = surplusDay * feedStab.liquidity * feedStab.volPenalty;
+            const stableTotalDay = (animalDay * a)
+                + (f > 0 ? adjustedSurplusDay : 0)
+                + fill.total;
+
+            if (!best || stableTotalDay > best.totalDay) {
                 const slots = [];
                 let idx = 1;
                 for (let i = 0; i < a; i += 1) {
@@ -697,12 +858,19 @@ function searchIslandFeedPlan(animal, pathId, feedCrop, n, marketBaselinePerDay,
                     if (island.bonus) {
                         notes.push('yem şehir +10%');
                     }
+                    if (island.yieldSource === 'user') {
+                        notes.push(`yem ada ort. n=${island.yieldN}`);
+                    }
+                    if (blended.lowLiquidity) {
+                        notes.push('satış zor');
+                    }
                     slots.push({
                         index: idx,
                         plotType: animal.plotType,
                         label: animal.label,
                         pathLabel: blended.path.label,
                         perDay: animalDay,
+                        spotPerDay: blended.spotPerDay ?? null,
                         profit: blended.profit,
                         cost: blended.cost,
                         revenue: blended.revenue,
@@ -711,6 +879,7 @@ function searchIslandFeedPlan(animal, pathId, feedCrop, n, marketBaselinePerDay,
                         iconId: blended.path.iconId,
                         detail: notes.join(' · '),
                         activityId: `${animal.id}-${blended.path.id}-island`,
+                        lowLiquidity: blended.lowLiquidity === true,
                         role: 'animal'
                     });
                     idx += 1;
@@ -725,14 +894,19 @@ function searchIslandFeedPlan(animal, pathId, feedCrop, n, marketBaselinePerDay,
                         plotType: 'farm',
                         label: feedCrop.label,
                         pathLabel: 'Yem',
-                        perDay: feedMetrics?.perDay ?? (surplusDay / Math.max(f, 1)),
+                        perDay: feedMetrics?.perDay != null
+                            ? feedMetrics.perDay * feedStab.liquidity * feedStab.volPenalty
+                            : (adjustedSurplusDay / Math.max(f, 1)),
+                        spotPerDay: feedMetrics?.perDay ?? null,
                         profit: feedMetrics?.profit ?? null,
                         cost: feedMetrics?.cost ?? null,
                         revenue: feedMetrics?.revenue ?? null,
                         profitPct: feedMetrics?.profitPct ?? null,
                         hours,
                         iconId: feedCrop.plantId,
-                        detail: 'ada yemi (satılmaz / fazla satılır)',
+                        detail: island.yieldSource === 'user'
+                            ? `ada yemi · ort. n=${island.yieldN}`
+                            : 'ada yemi (satılmaz / fazla satılır)',
                         activityId: `feed-${feedCrop.id}`,
                         role: 'feed'
                     });
@@ -753,11 +927,12 @@ function searchIslandFeedPlan(animal, pathId, feedCrop, n, marketBaselinePerDay,
                 }
 
                 best = {
-                    totalDay,
+                    totalDay: stableTotalDay,
                     slots,
                     feedNote,
                     mode: f > 0 ? 'island-feed' : 'market',
-                    vsMarket: totalDay - marketBaselinePerDay
+                    vsMarket: stableTotalDay - marketBaselinePerDay,
+                    animalKey: animal.key
                 };
             }
         }
@@ -781,20 +956,8 @@ function plotTypeLabel(type) {
     }
 }
 
-/**
- * @param {object} options
- * @param {number} options.plots
- * @param {boolean} options.premium
- * @param {boolean} options.water
- * @param {boolean} options.focus
- * @param {string} options.islandCity
- * @param {string} options.sellCity
- * @param {'buy'|'sell'} options.buySide
- * @param {'buy'|'sell'} options.sellSide
- * @param {object} options.priceIndex
- */
-export function optimizeIsland(options) {
-    const ctx = {
+function buildCtx(options) {
+    return {
         premium: options.premium !== false,
         water: options.water === true,
         focus: options.focus === true,
@@ -802,45 +965,54 @@ export function optimizeIsland(options) {
         sellCity: options.sellCity,
         buySide: options.buySide === 'sell' ? 'sell' : 'buy',
         sellSide: options.sellSide === 'buy' ? 'buy' : 'sell',
-        priceIndex: options.priceIndex
+        priceIndex: options.priceIndex,
+        historyIndex: options.historyIndex || null,
+        minVolume: Number(options.minVolume) || 0,
+        targetVolume: Number(options.targetVolume) || getEconomyConstant('farm_target_volume', 40),
+        volK: Number(options.volK) || getEconomyConstant('farm_vol_penalty_k', 1.5)
     };
+}
 
-    const n = Math.max(0, Math.min(16, Math.round(Number(options.plots) || 0)));
-    if (n === 0 || !ctx.priceIndex) {
-        return {
-            slots: [],
-            totalDay: 0,
-            feedNote: '—',
-            mode: 'empty',
-            marketOnly: null,
-            runnersUp: [],
-            comparison: null,
-            plotTypeLabel
-        };
+function emptyResult() {
+    return {
+        slots: [],
+        totalDay: 0,
+        feedNote: '—',
+        mode: 'empty',
+        recommended: 'simple',
+        simple: null,
+        chain: null,
+        marketOnly: null,
+        runnersUp: [],
+        comparison: null,
+        cityCompare: [],
+        plotTypeLabel
+    };
+}
+
+function planPackage(plan, label) {
+    if (!plan) {
+        return null;
     }
-
-    const activities = standaloneActivities(ctx);
-    const marketFill = bestStandaloneFill(n, activities);
-    const marketOnly = {
-        totalDay: marketFill.total,
-        slots: marketFill.slots,
-        feedNote: marketFill.activity?.feedMode === 'market'
-            ? `Pazardan al: ${marketFill.activity.feedLabel}`
-            : (marketFill.activity ? 'Yem gerekmez (ekin/ot satışı)' : 'Uygun aday yok'),
-        mode: 'market',
-        activity: marketFill.activity
+    return {
+        label,
+        totalDay: plan.totalDay,
+        slots: plan.slots,
+        feedNote: plan.feedNote,
+        mode: plan.mode,
+        animalKey: plan.animalKey || null
     };
+}
 
-    let best = {
-        totalDay: marketOnly.totalDay,
-        slots: marketOnly.slots,
-        feedNote: marketOnly.feedNote,
-        mode: marketOnly.mode,
-        vsMarket: 0
-    };
+function bestChainPlan(n, marketBaseline, ctx, { onlyAnimal = null, fixedAnimalPlots = null } = {}) {
+    let best = null;
+    const animals = onlyAnimal ? [onlyAnimal] : listAllAnimals();
 
-    for (const animal of listAllAnimals()) {
+    for (const animal of animals) {
         if (animal.feedDiet === 'meat') {
+            continue;
+        }
+        if (animal.kind === 'faction-mount' && animal.factionCity && animal.factionCity !== ctx.islandCity) {
             continue;
         }
         const feedCrops = animal.feedFixed
@@ -857,14 +1029,147 @@ export function optimizeIsland(options) {
         }
 
         for (const feedCrop of feedCrops) {
-            const plan = searchIslandFeedPlan(animal, path.id, feedCrop, n, marketOnly.totalDay, ctx);
-            if (plan && plan.totalDay > best.totalDay) {
+            const plan = searchIslandFeedPlan(
+                animal,
+                path.id,
+                feedCrop,
+                n,
+                marketBaseline,
+                ctx,
+                { fixedAnimalPlots }
+            );
+            if (plan && (!best || plan.totalDay > best.totalDay)) {
                 best = plan;
             }
         }
     }
+    return best;
+}
 
-    const chosenIds = new Set(best.slots.map((s) => s.activityId).filter(Boolean));
+function simpleFactionPlan(n, factionAnimal, activities, ctx) {
+    const locked = Math.min(n, Math.max(0, Math.round(Number(ctx.factionPlots) || 0)));
+    if (!factionAnimal || locked <= 0) {
+        return null;
+    }
+    const feedCrops = listCrops();
+    let bestAct = null;
+    for (const crop of feedCrops) {
+        const feed = marketFeedUnit(factionAnimal, crop, ctx);
+        if (!feed) {
+            continue;
+        }
+        const path = bestAnimalPath(factionAnimal, feed.unit, ctx);
+        if (!path) {
+            continue;
+        }
+        const act = animalActivityFromPath(factionAnimal, path, feed, crop, ctx);
+        if (act && (!bestAct || act.perDay > bestAct.perDay)) {
+            bestAct = act;
+        }
+    }
+    if (!bestAct) {
+        const feed = marketFeedUnit(factionAnimal, null, ctx);
+        if (feed) {
+            const path = bestAnimalPath(factionAnimal, feed.unit, ctx);
+            if (path) {
+                bestAct = animalActivityFromPath(factionAnimal, path, feed, feed.crop ?? null, ctx);
+            }
+        }
+    }
+    if (!bestAct) {
+        return null;
+    }
+
+    const rest = n - locked;
+    const fill = bestStandaloneFill(rest, activities.filter((a) => a.item?.id !== factionAnimal.id));
+    const slots = [
+        ...fillPlots(locked, bestAct),
+        ...fill.slots.map((s, i) => ({ ...s, index: locked + i + 1 }))
+    ].map((s, i) => ({ ...s, index: i + 1, role: i < locked ? 'animal' : s.role }));
+
+    return {
+        totalDay: bestAct.perDay * locked + fill.total,
+        slots,
+        feedNote: `Faction ${locked}× kennel · ${bestAct.feedLabel ? `yem pazar · ${bestAct.feedLabel}` : 'yem pazar'}`,
+        mode: 'faction-simple',
+        animalKey: factionAnimal.key
+    };
+}
+
+/**
+ * @param {object} options
+ */
+export function optimizeIsland(options) {
+    const ctx = buildCtx(options);
+    ctx.factionPlots = Math.max(0, Math.round(Number(options.factionPlots) || 0));
+    ctx.factionTier = Number(options.factionTier) === 8 ? 8 : 5;
+
+    const n = Math.max(0, Math.min(16, Math.round(Number(options.plots) || 0)));
+    if (n === 0 || !ctx.priceIndex) {
+        return emptyResult();
+    }
+
+    const activities = standaloneActivities(ctx);
+    const chainBias = getEconomyConstant('island_chain_bias', 1.15);
+    const factionAnimal = ctx.factionPlots > 0
+        ? factionMountForCity(ctx.islandCity, ctx.factionTier)
+        : null;
+
+    let simple;
+    let chain;
+
+    if (factionAnimal && ctx.factionPlots > 0) {
+        const locked = Math.min(n, ctx.factionPlots);
+        simple = simpleFactionPlan(n, factionAnimal, activities, ctx)
+            || bestStandaloneFill(n, activities);
+        if (simple && !simple.mode) {
+            simple = {
+                totalDay: simple.total,
+                slots: simple.slots,
+                feedNote: simple.activity?.feedMode === 'market'
+                    ? `Pazardan al: ${simple.activity.feedLabel}`
+                    : (simple.activity ? 'Yem gerekmez (ekin/ot satışı)' : 'Uygun aday yok'),
+                mode: 'market'
+            };
+        }
+        chain = bestChainPlan(n, simple?.totalDay ?? 0, ctx, {
+            onlyAnimal: factionAnimal,
+            fixedAnimalPlots: locked
+        });
+    } else {
+        const marketFill = bestStandaloneFill(n, activities);
+        simple = {
+            totalDay: marketFill.total,
+            slots: marketFill.slots,
+            feedNote: marketFill.activity?.feedMode === 'market'
+                ? `Pazardan al: ${marketFill.activity.feedLabel}`
+                : (marketFill.activity ? 'Yem gerekmez (ekin/ot satışı)' : 'Uygun aday yok'),
+            mode: 'market',
+            activity: marketFill.activity
+        };
+        chain = bestChainPlan(n, simple.totalDay, ctx);
+    }
+
+    const simplePkg = planPackage(simple, 'Sade');
+    const chainPkg = planPackage(chain, 'Zincir');
+
+    let recommended = 'simple';
+    let best = simple;
+    if (chain && simple && chain.totalDay > simple.totalDay * chainBias) {
+        recommended = 'chain';
+        best = chain;
+    } else if (chain && (!simple || chain.totalDay > (simple.totalDay || 0))) {
+        // Chain better but under bias — still keep simple as recommended
+        recommended = 'simple';
+        best = simple;
+    } else if (!simple && chain) {
+        recommended = 'chain';
+        best = chain;
+    }
+
+    const marketOnly = simplePkg;
+
+    const chosenIds = new Set((best?.slots || []).map((s) => s.activityId).filter(Boolean));
     const runnersUp = activities
         .filter((a) => !chosenIds.has(a.id))
         .slice(0, 5)
@@ -874,25 +1179,65 @@ export function optimizeIsland(options) {
             pathLabel: a.pathLabel,
             iconId: a.iconId,
             perDay: a.perDay,
+            spotPerDay: a.spotPerDay ?? null,
             profit: a.profit,
             cost: a.cost,
             profitPct: a.profitPct,
             hours: a.hours,
-            detail: a.detail
+            detail: a.detail,
+            lowLiquidity: a.lowLiquidity === true
         }));
 
     return {
         ...best,
+        recommended,
+        simple: simplePkg,
+        chain: chainPkg,
         marketOnly,
         runnersUp,
         comparison: {
-            marketDay: marketOnly.totalDay,
-            chosenDay: best.totalDay,
-            delta: best.totalDay - marketOnly.totalDay,
-            choseIslandFeed: best.mode === 'island-feed'
+            marketDay: simplePkg?.totalDay ?? 0,
+            chosenDay: best?.totalDay ?? 0,
+            delta: (best?.totalDay ?? 0) - (simplePkg?.totalDay ?? 0),
+            choseIslandFeed: best?.mode === 'island-feed',
+            chainBias,
+            recommended
         },
+        faction: factionAnimal
+            ? { key: factionAnimal.key, label: factionAnimal.label, plots: ctx.factionPlots, tier: ctx.factionTier }
+            : null,
+        cityCompare: [],
         plotTypeLabel
     };
+}
+
+/**
+ * Lightweight per-city comparison for island cities.
+ */
+export function compareIslandCities(options, cities) {
+    const list = (cities || []).filter(Boolean);
+    const out = [];
+    for (const city of list) {
+        const plan = optimizeIsland({
+            ...options,
+            islandCity: city,
+            sellCity: options.sellCity || city,
+            // city compare: no faction lock unless this is the selected city with lock
+            factionPlots: city === options.islandCity ? options.factionPlots : 0
+        });
+        const main = plan.slots?.[0];
+        out.push({
+            city,
+            totalDay: plan.totalDay,
+            recommended: plan.recommended,
+            label: main?.label || '—',
+            pathLabel: main?.pathLabel || '',
+            mode: plan.mode,
+            iconId: main?.iconId || null
+        });
+    }
+    out.sort((a, b) => (b.totalDay || 0) - (a.totalDay || 0));
+    return out;
 }
 
 export { plotTypeLabel };

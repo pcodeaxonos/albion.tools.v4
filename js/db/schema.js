@@ -236,7 +236,7 @@ export const tables = {
         columns: [
             COL.id,
             { name: 'key', type: 'string', label: 'Kod' },
-            { name: 'kind', type: 'enum', options: ['livestock', 'mount'], label: 'Tür' },
+            { name: 'kind', type: 'enum', options: ['livestock', 'mount', 'faction-mount'], label: 'Tür' },
             { name: 'tier', type: 'number', label: 'Tier' },
             { name: 'vendorSilver', type: 'number', label: 'Vendor' },
             { name: 'focusCost', type: 'number', label: 'Focus' },
@@ -619,6 +619,28 @@ export const tables = {
             { name: 'slot1Rate', type: 'enum', options: ['10', '20'], label: 'Rate 1' },
             { name: 'slot2FamilyKey', type: 'string', label: 'Bonus 2' },
             { name: 'slot2Rate', type: 'enum', options: ['10', '20'], label: 'Rate 2' }
+        ]
+    },
+    islandYieldLogs: {
+        displayName: 'Ada Çıktı',
+        group: 'user',
+        source: 'user',
+        description: 'Ada hasat gözlemleri — seed / ürün yield ortalaması',
+        key: 'id',
+        autoKey: true,
+        userData: true,
+        defaultSort: { column: 'date', direction: 'desc' },
+        seedUrl: './data/island-yield-logs.json',
+        columns: [
+            COL.id,
+            { name: 'date', type: 'string', label: 'Tarih' },
+            { name: 'islandCity', type: 'string', label: 'Ada şehri' },
+            { name: 'plantKey', type: 'string', label: 'Bitki' },
+            { name: 'seedsPlanted', type: 'number', label: 'Dikilen tohum' },
+            { name: 'seedsReturned', type: 'number', label: 'Dönen tohum' },
+            { name: 'plantsHarvested', type: 'number', label: 'Hasat ürün' },
+            { name: 'premium', type: 'boolean', label: 'Premium' },
+            { name: 'water', type: 'boolean', label: 'Sulama' }
         ]
     }
 };

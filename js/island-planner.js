@@ -10,6 +10,7 @@ import {
     priceLoaderMessage,
     applyPriceLoadMode
 } from './market.js';
+import { fetchHistoryIndex } from './market-history.js';
 import { itemIconHtml } from './item-icon.js';
 import { showPageLoader, hidePageLoader } from './loader.js';
 import { initFloatingLabels } from './forms.js';
@@ -18,13 +19,16 @@ import { bindCalcSticky } from './calc-sticky.js';
 import { loadActiveCities } from './cities.js';
 import { cityFieldHtml, bindCityField, setCityFieldValue } from './city-picker.js';
 import { bindLivePrices } from './price-live.js';
+import { getEconomyConstant } from './catalog.js';
 import {
     ISLAND_PLOTS_BY_LEVEL,
     plotsForLevel,
     allPriceItemIds,
     optimizeIsland,
+    compareIslandCities,
     plotTypeLabel,
-    livestockFeed
+    livestockFeed,
+    factionMountForCity
 } from './island-economy.js';
 
 const CITY_STORAGE_KEY = 'albiontools.v4.island-planner.islandCity';
@@ -43,10 +47,15 @@ const state = {
     sellSide: 'sell',
     cities: [],
     priceIndex: null,
+    historyIndex: null,
+    factionPlots: 0,
+    factionTier: 5,
+    minVolume: 0,
     loaded: false,
     error: null,
     livePaused: false,
-    plan: null
+    plan: null,
+    cityCompare: []
 };
 
 function formatSilver(value, { digits = 0, signed = false } = {}) {
@@ -132,6 +141,15 @@ function readPrefs() {
         if (parsed.plotsOverride != null && Number.isFinite(Number(parsed.plotsOverride))) {
             state.plotsOverride = Math.max(1, Math.min(16, Math.round(Number(parsed.plotsOverride))));
         }
+        const fp = Number(parsed.factionPlots);
+        if (Number.isFinite(fp)) {
+            state.factionPlots = Math.max(0, Math.min(16, Math.round(fp)));
+        }
+        state.factionTier = Number(parsed.factionTier) === 8 ? 8 : 5;
+        const mv = Number(parsed.minVolume);
+        if (Number.isFinite(mv) && mv >= 0) {
+            state.minVolume = mv;
+        }
     } catch {
         /* ignore */
     }
@@ -142,7 +160,10 @@ function savePrefs() {
         localStorage.setItem(PREFS_STORAGE_KEY, JSON.stringify({
             focus: state.focus,
             islandLevel: state.islandLevel,
-            plotsOverride: state.plotsOverride
+            plotsOverride: state.plotsOverride,
+            factionPlots: state.factionPlots,
+            factionTier: state.factionTier,
+            minVolume: state.minVolume
         }));
     } catch {
         /* ignore */
@@ -167,11 +188,12 @@ function formatHours(hours) {
 function runPlan() {
     if (!state.priceIndex) {
         state.plan = null;
+        state.cityCompare = [];
         return;
     }
     const settings = getSettings();
     state.water = settings.farmWater === true;
-    state.plan = optimizeIsland({
+    const opts = {
         plots: effectivePlots(),
         premium: state.premium,
         water: state.water,
@@ -180,8 +202,17 @@ function runPlan() {
         sellCity: state.sellCity,
         buySide: state.buySide,
         sellSide: state.sellSide,
-        priceIndex: state.priceIndex
-    });
+        priceIndex: state.priceIndex,
+        historyIndex: state.historyIndex,
+        factionPlots: state.factionPlots,
+        factionTier: state.factionTier,
+        minVolume: state.minVolume
+    };
+    state.plan = optimizeIsland(opts);
+    const islandCities = state.cities
+        .filter((c) => cityHasIsland(c.marketApiName))
+        .map((c) => c.marketApiName);
+    state.cityCompare = compareIslandCities(opts, islandCities);
 }
 
 function renderToggle(groupLabel, options, dataAttr, current) {
@@ -240,24 +271,75 @@ function renderSummary() {
     const cmp = plan.comparison;
     const groups = groupSlots(plan.slots);
     const uniform = groups.length === 1 && groups[0].count === effectivePlots();
+    const rec = plan.recommended === 'chain' ? 'Zincir' : 'Sade';
+    const alt = plan.recommended === 'chain' ? plan.simple : plan.chain;
+    const faction = plan.faction;
     return `
         <div class="island-planner-summary">
             <p class="island-planner-total">
                 <strong>${formatSilver(plan.totalDay)}</strong>
-                <span>net gümüş/gün · ${effectivePlots()} plot</span>
+                <span>istikrarlı net gümüş/gün · ${effectivePlots()} plot · önerilen: ${escapeHtml(rec)}</span>
                 <span class="island-planner-cities">alış ${escapeHtml(cityLabel(state.islandCity))} → satış ${escapeHtml(cityLabel(state.sellCity))}</span>
             </p>
             <p class="island-planner-feed">${escapeHtml(plan.feedNote || '—')}</p>
+            ${faction ? `
+                <p class="farming-note">Faction kilit: ${faction.plots}× kennel T${faction.tier} ${escapeHtml(faction.label)} (kennel plotun olmalı).</p>
+            ` : ''}
             ${uniform ? `
-                <p class="farming-note">Max net gümüş/gün için tüm plotlar aynı aktiviteye verildi; alternatifler tablonun altında.</p>
+                <p class="farming-note">Sade planda tüm plotlar aynı aktiviteye verildi.</p>
+            ` : ''}
+            ${alt ? `
+                <p class="island-planner-compare farming-note">
+                    Alternatif ${escapeHtml(alt.label)}: ${formatSilver(alt.totalDay)} net gümüş/gün
+                    · fark ${formatSilver((alt.totalDay || 0) - (plan.totalDay || 0), { signed: true })}
+                    ${plan.recommended === 'simple' && plan.chain
+                        ? ` · zincir ancak %${Math.round(((cmp?.chainBias || 1.15) - 1) * 100)}+ daha iyiyse önerilir`
+                        : ''}
+                </p>
             ` : ''}
             ${cmp ? `
                 <p class="island-planner-compare farming-note">
-                    Pazar-yem / tek tip baseline: ${formatSilver(cmp.marketDay)} net gümüş/gün
+                    Sade baseline: ${formatSilver(cmp.marketDay)} · seçilen ${formatSilver(cmp.chosenDay)}
                     · fark ${formatSilver(cmp.delta, { signed: true })}
-                    ${cmp.choseIslandFeed ? ' · ada yemi seçildi' : ' · pazar / ekin satışı seçildi'}
+                    ${cmp.choseIslandFeed ? ' · ada yemi' : ''}
                 </p>
             ` : ''}
+        </div>
+    `;
+}
+
+function renderCityCompare() {
+    const list = state.cityCompare;
+    if (!list?.length) {
+        return '';
+    }
+    const rows = list.map((row) => `
+        <tr${row.city === state.islandCity ? ' class="is-active-city"' : ''}>
+            <td>${escapeHtml(cityLabel(row.city))}</td>
+            <td>
+                ${row.iconId ? itemIconHtml(row.iconId, { className: 'item-icon' }) : ''}
+                ${escapeHtml(row.label)}
+                ${row.pathLabel ? `<span class="farming-item-meta">${escapeHtml(row.pathLabel)}</span>` : ''}
+            </td>
+            <td class="num">${formatSilver(row.totalDay)}</td>
+            <td>${escapeHtml(row.recommended === 'chain' ? 'Zincir' : 'Sade')}</td>
+        </tr>
+    `).join('');
+    return `
+        <h2 class="island-planner-subhead">Şehir karşılaştırması</h2>
+        <p class="farming-note">Her ada şehri için istikrarlı net gümüş/gün (aynı plot / premium / satış şehri ayarları).</p>
+        <div class="table-responsive calc-table-wrap">
+            <table class="table table-striped farming-table island-planner-table calc-table">
+                <thead>
+                    <tr>
+                        <th>Ada</th>
+                        <th>Ana ürün</th>
+                        <th class="num">istikrarlı gümüş/gün</th>
+                        <th>Plan</th>
+                    </tr>
+                </thead>
+                <tbody>${rows}</tbody>
+            </table>
         </div>
     `;
 }
@@ -384,7 +466,8 @@ function renderSlotsTable() {
                 <th class="num">Maliyet</th>
                 <th class="num">Kâr</th>
                 <th class="num">Kâr %</th>
-                <th class="num island-planner-col-day">net gümüş/gün</th>
+                <th class="num island-planner-col-day">istikrarlı/gün</th>
+                <th class="num">bugün/gün</th>
                 <th class="num">Döngü</th>
             </tr>
         </thead>
@@ -396,7 +479,7 @@ function renderSlotsTable() {
                 <table class="table table-striped farming-table island-planner-table calc-table">
                     ${head}
                     <tbody>
-                        <tr><td colspan="9">Henüz plan yok.</td></tr>
+                        <tr><td colspan="10">Henüz plan yok.</td></tr>
                     </tbody>
                 </table>
             </div>
@@ -430,6 +513,7 @@ function renderSlotsTable() {
                         ? `<span class="island-planner-day-total">${formatSilver(dayTotal)} toplam</span>`
                         : ''}
                 </td>
+                <td class="num">${formatSilver(slot.spotPerDay)}</td>
                 <td class="num">${formatHours(slot.hours)}</td>
             </tr>
         `;
@@ -467,6 +551,7 @@ function renderRunnersUp() {
                 <td class="num farming-num${profitClass}">${formatSilver(row.profit, { signed: true })}</td>
                 <td class="num farming-num${profitClass}">${formatPct(row.profitPct)}</td>
                 <td class="num">${formatSilver(row.perDay)}</td>
+                <td class="num">${formatSilver(row.spotPerDay)}</td>
                 <td class="num">${formatHours(row.hours)}</td>
             </tr>
         `;
@@ -474,7 +559,7 @@ function renderRunnersUp() {
 
     return `
         <h2 class="island-planner-subhead">Alternatifler (plot başına)</h2>
-        <p class="farming-note">Seçilen plandan sonraki en yüksek net gümüş/gün adayları. Şehir veya satış şehri değişince sıra değişir.</p>
+        <p class="farming-note">Anlık / sürdürülebilir skorla sıradaki adaylar. “Bugün” kolonu spot fiyattır — spike olabilir.</p>
         <div class="table-responsive calc-table-wrap">
             <table class="table table-striped farming-table island-planner-table calc-table">
                 <thead>
@@ -486,7 +571,8 @@ function renderRunnersUp() {
                         <th class="num">Maliyet</th>
                         <th class="num">Kâr</th>
                         <th class="num">Kâr %</th>
-                        <th class="num">net gümüş/gün</th>
+                        <th class="num">istikrarlı/gün</th>
+                        <th class="num">bugün/gün</th>
                         <th class="num">Döngü</th>
                     </tr>
                 </thead>
@@ -509,15 +595,18 @@ function renderOutput() {
         <div id="islandPlannerResult">
             ${renderSummary()}
             ${renderSlotsTable()}
+            ${renderCityCompare()}
             ${renderRunnersUp()}
             <p class="farming-note">
                 ${escapeHtml(feeMetaText(state.premium))}
+                · skor = medyan fiyat × likidite × volatilite cezası (AODP ~${getEconomyConstant('farm_history_days', 14)}g)
                 · livestock yem ×${livestockFeed()} (wiki)
-                · maliyet / kâr bir plot · bir döngü (net = satış − maliyet; vergi + setup dahil)
-                · net gümüş/gün = net kâr ÷ döngü × 24s
-                · oyun 22s → plan 24s (1 gün; +2s slack)
+                · maliyet / kâr bir plot · bir döngü
+                · istikrarlı gümüş/gün = skorlu net ÷ döngü × 24s
                 · sulama ${state.water ? 'açık' : 'kapalı'} (Ayarlar)
+                · min hacim ${state.minVolume || 'yok'}
                 · alış ${escapeHtml(cityLabel(state.islandCity))} · satış ${escapeHtml(cityLabel(state.sellCity))}
+                · <a href="island-yields.html">Ada Çıktı</a> kayıtları varsa yield ortalaması kullanılır
                 ${stamp ? ` · ${escapeHtml(stamp)}` : ''}
             </p>
         </div>
@@ -562,6 +651,26 @@ function syncControls(container) {
         }
         plotsOverride.classList.toggle('is-filled', Boolean(next));
     }
+    const factionPlots = container.querySelector('#factionPlots');
+    if (factionPlots) {
+        const next = state.factionPlots ? String(state.factionPlots) : '';
+        if (factionPlots.value !== next) {
+            factionPlots.value = next;
+        }
+        factionPlots.classList.toggle('is-filled', Boolean(next));
+    }
+    const factionTier = container.querySelector('#factionTier');
+    if (factionTier && Number(factionTier.value) !== state.factionTier) {
+        factionTier.value = String(state.factionTier);
+    }
+    const minVolume = container.querySelector('#minVolume');
+    if (minVolume) {
+        const next = state.minVolume ? String(state.minVolume) : '';
+        if (minVolume.value !== next) {
+            minVolume.value = next;
+        }
+        minVolume.classList.toggle('is-filled', Boolean(next));
+    }
     initFloatingLabels(container);
 }
 
@@ -573,10 +682,11 @@ function applyPlan(container) {
 
 function renderPage(container) {
     const overrideVal = state.plotsOverride != null ? String(state.plotsOverride) : '';
+    const factionAvail = factionMountForCity(state.islandCity, state.factionTier);
     container.innerHTML = `
         <section class="farming-hero">
             <h1>Ada Planlayıcı</h1>
-            <p>Soldaki seçimlere göre anlık plan. Ada / satış şehri, seviye ve premium değişince sonuç yeniden hesaplanır; sabit plan yok.</p>
+            <p>İstikrarlı net gümüş/gün (medyan + hacim). Sade plan varsayılan; zincir yalnızca belirgin üstünse önerilir. Faction plot kilidi isteğe bağlı.</p>
         </section>
 
         <div class="tool-split">
@@ -616,6 +726,26 @@ function renderPage(container) {
                             id="plotsOverride" value="${escapeHtml(overrideVal)}" placeholder=" ">
                         <label for="plotsOverride">Plot override (1–16)</label>
                     </div>
+                    <div class="form-floating farming-city-field">
+                        <input class="form-control${state.factionPlots ? ' is-filled' : ''}" type="number" min="0" max="16"
+                            id="factionPlots" value="${state.factionPlots || ''}" placeholder=" ">
+                        <label for="factionPlots">Faction kennel plot</label>
+                    </div>
+                    <div class="form-floating farming-city-field">
+                        <select class="form-select is-filled" id="factionTier">
+                            <option value="5"${state.factionTier === 5 ? ' selected' : ''}>T5 faction</option>
+                            <option value="8"${state.factionTier === 8 ? ' selected' : ''}>T8 faction</option>
+                        </select>
+                        <label for="factionTier">Faction tier</label>
+                    </div>
+                    <div class="form-floating farming-city-field">
+                        <input class="form-control${state.minVolume ? ' is-filled' : ''}" type="number" min="0" step="1"
+                            id="minVolume" value="${state.minVolume || ''}" placeholder=" ">
+                        <label for="minVolume">Min satış hacmi/gün</label>
+                    </div>
+                    ${factionAvail
+                        ? `<p class="farming-note">${escapeHtml(factionAvail.label)} bu şehirde kilitlenebilir.</p>`
+                        : `<p class="farming-note">Bu şehirde faction bineği yok / bilinmiyor.</p>`}
                     ${priceRefreshActionsHtml({ refreshId: 'islandPlannerRefresh', apiId: 'islandPlannerRefreshApi' })}
                 </div>
             </div>
@@ -654,7 +784,7 @@ function bindPage(container) {
         state.sellCity = value;
         saveCity(CITY_STORAGE_KEY, value);
         saveCity(SELL_CITY_STORAGE_KEY, value);
-        applyPlan(container);
+        renderPage(container);
     });
 
     bindCityField(container, 'sellCity', (value) => {
@@ -695,6 +825,30 @@ function bindPage(container) {
     plotsInput?.addEventListener('change', onPlotsChange);
     plotsInput?.addEventListener('input', onPlotsChange);
 
+    const onFactionPlots = (event) => {
+        const raw = event.target.value.trim();
+        state.factionPlots = raw ? Math.max(0, Math.min(16, Math.round(Number(raw)) || 0)) : 0;
+        savePrefs();
+        applyPlan(container);
+    };
+    container.querySelector('#factionPlots')?.addEventListener('change', onFactionPlots);
+    container.querySelector('#factionPlots')?.addEventListener('input', onFactionPlots);
+
+    container.querySelector('#factionTier')?.addEventListener('change', (event) => {
+        state.factionTier = Number(event.target.value) === 8 ? 8 : 5;
+        savePrefs();
+        applyPlan(container);
+    });
+
+    const onMinVolume = (event) => {
+        const raw = event.target.value.trim();
+        state.minVolume = raw ? Math.max(0, Number(raw) || 0) : 0;
+        savePrefs();
+        applyPlan(container);
+    };
+    container.querySelector('#minVolume')?.addEventListener('change', onMinVolume);
+    container.querySelector('#minVolume')?.addEventListener('input', onMinVolume);
+
     bindPriceRefresh(container, {
         refreshId: 'islandPlannerRefresh',
         apiId: 'islandPlannerRefreshApi',
@@ -706,7 +860,7 @@ async function loadPrices(container, { showLoader = true, source } = {}) {
     applyPriceLoadMode(state, { source, showLoader });
     state.error = null;
     if (showLoader) {
-        showPageLoader(priceLoaderMessage(source, 'Şehir fiyatları alınıyor…'));
+        showPageLoader(priceLoaderMessage(source, 'Şehir fiyatları ve geçmiş alınıyor…'));
     }
 
     try {
@@ -714,8 +868,17 @@ async function loadPrices(container, { showLoader = true, source } = {}) {
         if (locations.length === 0) {
             throw new Error('Aktif şehir yok.');
         }
-        const rows = await fetchPrices(allPriceItemIds(), locations, { source });
+        const ids = allPriceItemIds();
+        const days = getEconomyConstant('farm_history_days', 14);
+        const [rows, historyIndex] = await Promise.all([
+            fetchPrices(ids, locations, { source }),
+            fetchHistoryIndex(ids, locations, { days }).catch((err) => {
+                console.warn(err);
+                return new Map();
+            })
+        ]);
         state.priceIndex = indexPrices(rows);
+        state.historyIndex = historyIndex;
         state.loaded = true;
         runPlan();
     } catch (error) {
@@ -723,6 +886,7 @@ async function loadPrices(container, { showLoader = true, source } = {}) {
         state.error = error.message || 'Fiyatlar alınamadı.';
         state.loaded = true;
         state.plan = null;
+        state.cityCompare = [];
     } finally {
         if (showLoader) {
             hidePageLoader();

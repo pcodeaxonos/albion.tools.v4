@@ -23,6 +23,7 @@ import { loadActiveCities } from './cities.js';
 import { cityFieldHtml, bindCityField } from './city-picker.js';
 import { bindLivePrices } from './price-live.js';
 import { getPlants, getEconomyConstant } from './catalog.js';
+import { effectivePlantYield, effectiveSeedReturn } from './island-yield-stats.js';
 
 const CITY_STORAGE_KEY = 'albiontools.v4.farming.city';
 const PREFS_STORAGE_KEY = 'albiontools.v4.farming.prefs';
@@ -115,12 +116,24 @@ function hasCityBonus(item, city) {
 }
 
 function harvestQty(item) {
-    const base = state.premium ? premiumYield() : baseYield();
-    return hasCityBonus(item, state.city) ? base * (1 + cityYieldBonus()) : base;
+    return effectivePlantYield(item, state.city, {
+        premium: state.premium,
+        water: state.water
+    }).qty;
 }
 
 function seedReturnRate(item, watered) {
-    return watered ? item.seedReturn + item.waterBonus : item.seedReturn;
+    return effectiveSeedReturn(item, state.city, {
+        premium: state.premium,
+        water: watered
+    }).rate;
+}
+
+function yieldMeta(item) {
+    return effectivePlantYield(item, state.city, {
+        premium: state.premium,
+        water: state.water
+    });
 }
 
 function formatSilver(value, { unsigned = false, digits = 0 } = {}) {
@@ -298,7 +311,8 @@ function seedMark(usedPrice, vendor) {
 function computeRow(item) {
     const seed = seedQuote(item);
     const plant = plantQuote(item);
-    const qty = harvestQty(item);
+    const yieldInfo = yieldMeta(item);
+    const qty = yieldInfo.qty;
     const baseReturn = seedReturnRate(item, false);
     const usedReturn = seedReturnRate(item, state.water);
     const seedSetup = seed ? seed.setup : false;
@@ -334,7 +348,9 @@ function computeRow(item) {
         delta,
         decision,
         perFocus,
-        bonus: hasCityBonus(item, state.city),
+        bonus: yieldInfo.source === 'standard' && yieldInfo.bonus,
+        yieldSource: yieldInfo.source,
+        yieldN: yieldInfo.n,
         mark: seed ? seedMark(seed.price, item.vendor) : null
     };
 }
@@ -471,6 +487,9 @@ function renderTable() {
         const plantValue = priceInputValue(state.manualPlants[row.item.id], plantFetched?.price);
         const mark = priceMarkHtml(row.mark);
         const bonus = row.bonus ? '<span class="farming-bonus">+10%</span>' : '';
+        const yieldTag = row.yieldSource === 'user'
+            ? `<span class="farming-bonus">ada n=${row.yieldN}</span>`
+            : '';
         const best = row.item.id === bestId ? ' is-best' : '';
 
         return `
@@ -480,7 +499,7 @@ function renderTable() {
                         ${itemIconHtml(row.item.plantId)}
                         <span>
                             <span class="farming-item-name">T${row.item.tier} ${escapeHtml(itemLabel(row.item.plantId, row.item.label))}</span>
-                            <span class="farming-item-meta">${itemIconHtml(row.item.seedId, { className: 'item-icon farming-seed-icon' })} tohum${bonus}</span>
+                            <span class="farming-item-meta">${itemIconHtml(row.item.seedId, { className: 'item-icon farming-seed-icon' })} tohum${bonus}${yieldTag}</span>
                         </span>
                     </span>
                 </td>

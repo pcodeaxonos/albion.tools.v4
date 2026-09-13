@@ -214,6 +214,51 @@ for (const def of kennelMounts) {
     });
 }
 
+// Faction warfare kennel mounts (plant diet) — T5 / T8 per city
+const factionMounts = [
+    { key: 'faction-moabird', stem: 'MOABIRD_FW_BRIDGEWATCH', city: 'Bridgewatch' },
+    { key: 'faction-direbear', stem: 'DIREBEAR_FW_FORTSTERLING', city: 'Fort Sterling' },
+    { key: 'faction-direboar', stem: 'DIREBOAR_FW_LYMHURST', city: 'Lymhurst' },
+    { key: 'faction-ram', stem: 'RAM_FW_MARTLOCK', city: 'Martlock' },
+    { key: 'faction-swampdragon', stem: 'SWAMPDRAGON_FW_THETFORD', city: 'Thetford' },
+    { key: 'faction-greywolf', stem: 'GREYWOLF_FW_CAERLEON', city: 'Caerleon' },
+    { key: 'faction-owl', stem: 'OWL_FW_BRECILIEN', city: 'Brecilien' }
+];
+const factionYield = {
+    5: { sr: 0, wb: 0.1 },
+    8: { sr: 0, wb: 0.05 }
+};
+
+for (const tier of [5, 8]) {
+    const y = factionYield[tier];
+    for (const def of factionMounts) {
+        animals.push({
+            id: animalId++,
+            key: `${def.key}-t${tier}`,
+            kind: 'faction-mount',
+            tier,
+            vendorSilver: null,
+            focusCost: null,
+            babyItemId: itemId(`T${tier}_FARM_${def.stem}_BABY`),
+            grownItemId: itemId(`T${tier}_FARM_${def.stem}_GROWN`),
+            meatItemId: null,
+            productItemId: null,
+            feedPlantId: null,
+            ladderId: null,
+            seedReturn: y.sr,
+            waterBonus: y.wb,
+            plotType: 'kennel',
+            pens: 4,
+            baseHours: mountHours[tier],
+            feedQtyPasture: mountFeed[tier],
+            feedQtyIsland: mountFeed[tier],
+            feedDiet: 'plants',
+            feedFixed: false,
+            isActive: true
+        });
+    }
+}
+
 let animalBonusId = 1;
 const animalBonusCities = [];
 for (const def of livestockDefs) {
@@ -241,7 +286,11 @@ const economyConstants = [
     { id: 10, key: 'pasture_pens', value: '9', label: 'Pens per pasture' },
     { id: 11, key: 'kennel_pens', value: '4', label: 'Pens per kennel' },
     { id: 12, key: 'albion_day_hours', value: '22', label: 'Albion day length (hours)' },
-    { id: 13, key: 'plan_day_hours', value: '24', label: 'Planner day length (hours)' }
+    { id: 13, key: 'plan_day_hours', value: '24', label: 'Planner day length (hours)' },
+    { id: 31, key: 'farm_target_volume', value: '40', label: 'Farm sell liquidity target (avg item_count/day)' },
+    { id: 32, key: 'farm_vol_penalty_k', value: '1.5', label: 'Price CV penalty coefficient for stable score' },
+    { id: 33, key: 'farm_history_days', value: '14', label: 'AODP history window (days)' },
+    { id: 34, key: 'island_chain_bias', value: '1.15', label: 'Chain plan must beat simple by this ratio' }
 ];
 
 const islandPlots = [
