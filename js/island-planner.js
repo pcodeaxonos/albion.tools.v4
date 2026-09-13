@@ -245,7 +245,21 @@ function findExplainRow(key) {
     return collectExplainRows().find((row) => row.key === key) ?? null;
 }
 
+function readMinVolumeField() {
+    try {
+        const el = document.querySelector('#minVolume');
+        if (!el) {
+            return;
+        }
+        const raw = String(el.value || '').trim();
+        state.minVolume = raw ? Math.max(0, Number(raw) || 0) : 0;
+    } catch {
+        /* ignore */
+    }
+}
+
 function runPlan() {
+    readMinVolumeField();
     if (!state.priceIndex) {
         state.plan = null;
         state.cityCompare = [];
@@ -346,6 +360,9 @@ function renderSummary() {
             <p class="island-planner-feed">${escapeHtml(plan.feedNote || '—')}</p>
             ${Number.isFinite(stable) ? `
                 <p class="farming-note">İstikrar (bilgi): ${formatSilver(stable)} gümüş/gün · likidite × volatilite cezası. İnce pazar satırları durur; yalnızca uyarıdır.</p>
+            ` : ''}
+            ${state.minVolume > 0 ? `
+                <p class="farming-note">İnce pazar eşiği ${escapeHtml(String(state.minVolume))}/gün: hacmi düşük (veya geçmişi olmayan) satırlar işaretlenir; sıralama ve öneri değişmez.</p>
             ` : ''}
             ${faction ? `
                 <p class="farming-note">Faction kilit: ${faction.plots}× kennel T${faction.tier} ${escapeHtml(faction.label)} (kennel plotun olmalı).</p>
@@ -681,8 +698,8 @@ function renderPlannerExplain(key, { hovered } = {}) {
     const chips = explainChips([
         ...(ex.chips || []),
         found.runner ? { label: 'aday', html: '<span class="calc-explain-n">alternatif</span>' } : { label: `${found.count}× plot`, tone: 'qty', value: found.count, kind: 'qty' },
-        slot.thinMarket ? { label: 'ince pazar', html: '<span class="calc-explain-n is-loss">uyarı</span>' } : null,
-        slot.lowLiquidity && !slot.thinMarket ? { label: 'satış zor', html: '<span class="calc-explain-n is-loss">uyarı</span>' } : null
+        slotIsThin(slot) ? { label: 'ince pazar', html: '<span class="calc-explain-n is-loss">uyarı</span>' } : null,
+        slot.lowLiquidity && !slotIsThin(slot) ? { label: 'satış zor', html: '<span class="calc-explain-n is-loss">uyarı</span>' } : null
     ].filter(Boolean));
 
     const groups = [];
