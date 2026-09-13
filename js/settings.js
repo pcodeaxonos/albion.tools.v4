@@ -79,10 +79,20 @@ export const DEFAULT_SETTINGS = {
     standardCombos: ['4.3', '5.2', '6.1'],
     enchantPowerOrder: {},
     defaultCity: 'Martlock',
+    cityPickerStyle: 'standard',
     dataSync: true,
     islandCities: [],
     refineFollowSpecialty: false
 };
+
+export const CITY_PICKER_STYLES = [
+    { id: 'standard', label: 'Standart (liste)' },
+    { id: 'diagonal', label: 'Diagonal (renkli harita)' }
+];
+
+export function normalizeCityPickerStyle(value) {
+    return value === 'diagonal' ? 'diagonal' : 'standard';
+}
 
 function comboKey(combo) {
     return `${combo.tier}.${combo.enchant}`;
@@ -288,6 +298,10 @@ export function getDefaultCity() {
     return normalizeDefaultCity(getSettings().defaultCity);
 }
 
+export function getCityPickerStyle(settings = getSettings()) {
+    return normalizeCityPickerStyle(settings?.cityPickerStyle);
+}
+
 export function getSettings() {
     try {
         const raw = localStorage.getItem(STORAGE_KEY);
@@ -313,6 +327,7 @@ export function getSettings() {
             standardCombos,
             enchantPowerOrder: normalizeEnchantPowerOrderStore(parsed.enchantPowerOrder),
             defaultCity: normalizeDefaultCity(parsed.defaultCity),
+            cityPickerStyle: normalizeCityPickerStyle(parsed.cityPickerStyle),
             dataSync: parsed.dataSync !== false,
             islandCities: normalizeIslandCities(parsed.islandCities),
             refineFollowSpecialty: parsed.refineFollowSpecialty === true
@@ -342,6 +357,7 @@ export function saveSettings(partial) {
     next.standardCombos = standardComboKeys(next.standardCombos);
     next.enchantPowerOrder = normalizeEnchantPowerOrderStore(next.enchantPowerOrder);
     next.defaultCity = normalizeDefaultCity(next.defaultCity);
+    next.cityPickerStyle = normalizeCityPickerStyle(next.cityPickerStyle);
     next.dataSync = next.dataSync !== false;
     next.islandCities = normalizeIslandCities(next.islandCities);
     next.refineFollowSpecialty = Boolean(next.refineFollowSpecialty);

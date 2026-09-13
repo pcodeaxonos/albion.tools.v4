@@ -331,7 +331,8 @@ a.tool-card {
         top: var(--chrome-top);
         z-index: 12;
         max-height: calc(100dvh - var(--chrome-top));
-        overflow: auto;
+        overflow-x: hidden;
+        overflow-y: auto;
         overscroll-behavior: contain;
         padding-top: var(--tool-split-float-room);
         padding-bottom: var(--spacing-md);
@@ -413,20 +414,26 @@ a.tool-card {
     .farming-toolbar,
     .pasture-toolbar,
     .royal-toolbar {
-        display: flex;
-        flex-direction: column;
-        flex-wrap: nowrap;
-        align-items: stretch;
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+        align-items: start;
         min-width: 0;
         max-width: 100%;
         gap: 0.375rem;
+
+        > *:not(.city-field--diagonal) {
+            grid-column: 1 / -1;
+            width: 100%;
+            min-width: 0;
+            margin-left: 0;
+        }
 
         .carleon-type,
         .ava-type,
         .enchant-type,
         .farming-type,
-        .ava-city-field,
-        .farming-city-field,
+        .ava-city-field:not(.city-field--diagonal),
+        .farming-city-field:not(.city-field--diagonal),
         .farming-spec,
         .carleon-side-field,
         .ava-side-field,
@@ -434,6 +441,13 @@ a.tool-card {
         .farming-side-field,
         > .btn {
             width: 100%;
+            margin-left: 0;
+        }
+
+        .city-field--diagonal {
+            width: auto;
+            min-width: 0;
+            max-width: 100%;
             margin-left: 0;
         }
 
@@ -3009,8 +3023,8 @@ a.tool-card {
 }
 
 .royal-plan-dialog {
-    width: min(78rem, calc(100vw - 1.5rem));
-    max-width: calc(100vw - 1.5rem);
+    width: min(78rem, calc(100vw - 1.5rem - 20px - 2.85rem));
+    max-width: calc(100vw - 1.5rem - 20px - 2.85rem);
     max-height: calc(100dvh - 1.5rem);
     margin: auto;
     padding: 0;
@@ -3034,41 +3048,6 @@ a.tool-card {
     max-height: calc(100dvh - 1.5rem);
     padding: 0.75rem 1rem 0.9rem;
     overflow: auto;
-}
-
-.royal-plan-sheet-head {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    flex-shrink: 0;
-}
-
-.royal-plan-sheet-meta {
-    min-width: 0;
-    flex: 1 1 auto;
-    font-size: var(--font-size-sm);
-    color: var(--color-text-muted);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-
-.royal-plan-close {
-    flex: 0 0 auto;
-    width: 2rem;
-    height: 2rem;
-    padding: 0;
-    border: var(--border-width) solid var(--color-border);
-    background: transparent;
-    color: var(--color-text-muted);
-    font-size: 1.35rem;
-    line-height: 1;
-    cursor: pointer;
-
-    &:hover {
-        color: var(--color-text);
-        border-color: var(--color-border-strong);
-    }
 }
 
 .royal-plan-stations {
@@ -3183,8 +3162,8 @@ a.tool-card {
     font-weight: var(--font-weight-bold);
     letter-spacing: -0.02em;
     line-height: 1;
-    color: var(--color-on-accent);
-    background-color: color-mix(in srgb, var(--color-primary) 92%, #000);
+    color: var(--color-on-item-tier, var(--color-on-tier));
+    background-color: var(--color-item-tier, var(--color-border-strong));
     pointer-events: none;
 }
 
@@ -3254,26 +3233,26 @@ a.tool-card {
 }
 
 .royal-plan-missing {
-    border: var(--border-width) solid var(--color-border);
-    background-color: var(--color-surface);
+    min-width: 0;
 }
 
 .royal-plan-missing-head {
-    padding: 0.4rem 0.6rem;
-    border-bottom: var(--border-width) solid var(--color-border);
-    font-size: 0.75rem;
+    padding: 0 0 0.35rem;
+}
+
+.royal-plan-missing-label {
+    font-size: 1.15rem;
     font-weight: var(--font-weight-bold);
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    color: var(--color-text-muted);
-    background-color: var(--color-surface-raised);
+    letter-spacing: 0.02em;
+    line-height: 1.2;
+    color: var(--color-text);
 }
 
 .royal-plan-missing-list {
     display: flex;
     flex-wrap: wrap;
     gap: 0.4rem;
-    padding: 0.55rem;
+    padding: 0;
 }
 
 .royal-plan-miss-item {
@@ -3294,8 +3273,6 @@ a.tool-card {
 
     .royal-plan-te {
         position: static;
-        background-color: var(--color-border-strong);
-        color: var(--color-text);
     }
 }
 
@@ -3458,65 +3435,65 @@ a.tool-card {
     }
 
     tbody tr.is-tier-4 {
-        --royal-tier-bar: #4a7fd4;
+        --royal-tier-bar: var(--color-tier-4);
     }
 
     tbody tr.is-tier-5 {
-        --royal-tier-bar: #c45454;
+        --royal-tier-bar: var(--color-tier-5);
     }
 
     tbody tr.is-tier-6 {
-        --royal-tier-bar: #c47a2a;
+        --royal-tier-bar: var(--color-tier-6);
     }
 
     tbody tr.is-tier-7 {
-        --royal-tier-bar: #c4a832;
+        --royal-tier-bar: var(--color-tier-7);
     }
 
     tbody tr.is-tier-8 {
-        --royal-tier-bar: #c8ccd4;
+        --royal-tier-bar: var(--color-tier-8);
     }
 
     // Tier tint (dark-friendly mixes) — same for Ex/MP; no permanent left bar
     tbody tr.is-tier-4 td {
-        background-color: color-mix(in srgb, #4a7fd4 11%, var(--color-surface));
+        background-color: color-mix(in srgb, var(--color-tier-4) 11%, var(--color-surface));
     }
 
     tbody tr.is-tier-5 td {
-        background-color: color-mix(in srgb, #c45454 11%, var(--color-surface));
+        background-color: color-mix(in srgb, var(--color-tier-5) 11%, var(--color-surface));
     }
 
     tbody tr.is-tier-6 td {
-        background-color: color-mix(in srgb, #c47a2a 11%, var(--color-surface));
+        background-color: color-mix(in srgb, var(--color-tier-6) 11%, var(--color-surface));
     }
 
     tbody tr.is-tier-7 td {
-        background-color: color-mix(in srgb, #c4a832 11%, var(--color-surface));
+        background-color: color-mix(in srgb, var(--color-tier-7) 11%, var(--color-surface));
     }
 
     tbody tr.is-tier-8 td {
-        background-color: color-mix(in srgb, #d0d4dc 10%, var(--color-surface));
+        background-color: color-mix(in srgb, var(--color-tier-8) 10%, var(--color-surface));
     }
 
     // Slightly stronger only for the top standard T.E (still no left bar)
     tbody tr.is-standard.is-main.is-tier-4 td {
-        background-color: color-mix(in srgb, #4a7fd4 16%, var(--color-surface));
+        background-color: color-mix(in srgb, var(--color-tier-4) 16%, var(--color-surface));
     }
 
     tbody tr.is-standard.is-main.is-tier-5 td {
-        background-color: color-mix(in srgb, #c45454 16%, var(--color-surface));
+        background-color: color-mix(in srgb, var(--color-tier-5) 16%, var(--color-surface));
     }
 
     tbody tr.is-standard.is-main.is-tier-6 td {
-        background-color: color-mix(in srgb, #c47a2a 16%, var(--color-surface));
+        background-color: color-mix(in srgb, var(--color-tier-6) 16%, var(--color-surface));
     }
 
     tbody tr.is-standard.is-main.is-tier-7 td {
-        background-color: color-mix(in srgb, #c4a832 16%, var(--color-surface));
+        background-color: color-mix(in srgb, var(--color-tier-7) 16%, var(--color-surface));
     }
 
     tbody tr.is-standard.is-main.is-tier-8 td {
-        background-color: color-mix(in srgb, #d0d4dc 14%, var(--color-surface));
+        background-color: color-mix(in srgb, var(--color-tier-8) 14%, var(--color-surface));
     }
 
     // Hover / selection must beat tier td backgrounds
@@ -3532,23 +3509,23 @@ a.tool-card {
     }
 
     &.has-explain tbody tr.is-explain.is-tier-4 td {
-        background-color: color-mix(in srgb, #4a7fd4 22%, var(--color-surface));
+        background-color: color-mix(in srgb, var(--color-tier-4) 22%, var(--color-surface));
     }
 
     &.has-explain tbody tr.is-explain.is-tier-5 td {
-        background-color: color-mix(in srgb, #c45454 22%, var(--color-surface));
+        background-color: color-mix(in srgb, var(--color-tier-5) 22%, var(--color-surface));
     }
 
     &.has-explain tbody tr.is-explain.is-tier-6 td {
-        background-color: color-mix(in srgb, #c47a2a 22%, var(--color-surface));
+        background-color: color-mix(in srgb, var(--color-tier-6) 22%, var(--color-surface));
     }
 
     &.has-explain tbody tr.is-explain.is-tier-7 td {
-        background-color: color-mix(in srgb, #c4a832 22%, var(--color-surface));
+        background-color: color-mix(in srgb, var(--color-tier-7) 22%, var(--color-surface));
     }
 
     &.has-explain tbody tr.is-explain.is-tier-8 td {
-        background-color: color-mix(in srgb, #d0d4dc 20%, var(--color-surface));
+        background-color: color-mix(in srgb, var(--color-tier-8) 20%, var(--color-surface));
     }
 
     &.has-explain tbody tr.is-explain td:first-child {

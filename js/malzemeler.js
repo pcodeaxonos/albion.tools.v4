@@ -19,6 +19,7 @@ import {
 import { SETUP_FEE, purchaseCost, saleProceeds, salesTaxRate, placesOrder, feeMetaText } from './market-fees.js';
 import { bindCalcSticky } from './calc-sticky.js';
 import { loadActiveCities } from './cities.js';
+import { cityFieldHtml, bindCityField, syncCityField } from './city-picker.js';
 import { bindLivePrices } from './price-live.js';
 import { getMaterialGroups } from './catalog.js';
 
@@ -331,13 +332,6 @@ function renderGroupOptions(selected) {
     `).join('');
 }
 
-function renderCityOptions(selected) {
-    return state.cities.map((city) => {
-        const isSelected = city.marketApiName === selected ? ' selected' : '';
-        return `<option value="${escapeHtml(city.marketApiName)}"${isSelected}>${escapeHtml(city.displayName)}</option>`;
-    }).join('');
-}
-
 function renderSummary(list) {
     const best = bestRow(list);
     if (!best || best.profit == null) {
@@ -517,18 +511,18 @@ function renderPage(container) {
                             ${priceSideToggleHtml('sell', state.sellSide)}
                         </div>
                     </div>
-                    <div class="form-floating farming-city-field">
-                        <select class="form-select is-filled" id="malzemelerBuyCity">
-                            ${renderCityOptions(state.buyCity)}
-                        </select>
-                        <label for="malzemelerBuyCity">Alış şehri</label>
-                    </div>
-                    <div class="form-floating farming-city-field">
-                        <select class="form-select is-filled" id="malzemelerSellCity">
-                            ${renderCityOptions(state.sellCity)}
-                        </select>
-                        <label for="malzemelerSellCity">Satış şehri</label>
-                    </div>
+                    ${cityFieldHtml({
+                        id: 'malzemelerBuyCity',
+                        label: 'Alış şehri',
+                        selected: state.buyCity,
+                        cities: state.cities
+                    })}
+                    ${cityFieldHtml({
+                        id: 'malzemelerSellCity',
+                        label: 'Satış şehri',
+                        selected: state.sellCity,
+                        cities: state.cities
+                    })}
                     ${priceRefreshActionsHtml({ refreshId: 'malzemelerRefresh', apiId: 'malzemelerRefreshApi' })}
                 </div>
             </div>
@@ -688,10 +682,10 @@ function syncCitySelects(container) {
         malzemelerSellCity: state.sellCity
     };
     for (const [id, value] of Object.entries(selected)) {
-        const select = container.querySelector(`#${id}`);
-        if (select) {
-            select.innerHTML = renderCityOptions(value);
-        }
+        syncCityField(container, id, {
+            selected: value,
+            cities: state.cities
+        });
     }
 }
 
@@ -721,8 +715,7 @@ function refreshView(container) {
 }
 
 function bindCitySelect(container, id, assign) {
-    container.querySelector(id)?.addEventListener('change', (event) => {
-        const value = event.target.value;
+    bindCityField(container, id.replace(/^#/, ''), (value) => {
         if (!state.cities.some((city) => city.marketApiName === value)) {
             return;
         }

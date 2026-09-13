@@ -1,0 +1,44 @@
+[
+  {
+    "id": 1,
+    "cityId": 1,
+    "colorHex": "#e0a04a",
+    "label": "Bridgewatch"
+  },
+  {
+    "id": 2,
+    "cityId": 2,
+    "colorHex": "#c5d4e8",
+    "label": "Fort Sterling"
+  },
+  {
+    "id": 3,
+    "cityId": 3,
+    "colorHex": "#5ecf7a",
+    "label": "Lymhurst"
+  },
+  {
+    "id": 4,
+    "cityId": 4,
+    "colorHex": "#5aa8e8",
+    "label": "Martlock"
+  },
+  {
+    "id": 5,
+    "cityId": 5,
+    "colorHex": "#b07ae8",
+    "label": "Thetford"
+  },
+  {
+    "id": 6,
+    "cityId": 6,
+    "colorHex": "#e85a5a",
+    "label": "Caerleon"
+  },
+  {
+    "id": 7,
+    "cityId": 7,
+    "colorHex": "#6ec9c0",
+    "label": "Brecilien"
+  }
+]

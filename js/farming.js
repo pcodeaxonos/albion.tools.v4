@@ -20,6 +20,7 @@ import {
 import { SETUP_FEE, purchaseCost, placesOrder } from './market-fees.js';
 import { bindCalcSticky } from './calc-sticky.js';
 import { loadActiveCities } from './cities.js';
+import { cityFieldHtml, bindCityField } from './city-picker.js';
 import { bindLivePrices } from './price-live.js';
 import { getPlants, getEconomyConstant } from './catalog.js';
 
@@ -386,17 +387,17 @@ function renderPremiumToggle() {
     }).join('');
 }
 
-function renderCityOptions() {
-    return [...state.cities]
-        .sort((a, b) => Number(!cityHasIsland(a.marketApiName)) - Number(!cityHasIsland(b.marketApiName)) || a.id - b.id)
-        .map((city) => {
-            const selected = city.marketApiName === state.city ? ' selected' : '';
-            const muted = cityHasIsland(city.marketApiName)
-                ? ''
-                : ' data-muted="1" data-hint="ada yok"';
-            return `<option value="${escapeHtml(city.marketApiName)}"${selected}${muted}>${escapeHtml(city.displayName)}</option>`;
-        })
-        .join('');
+function cityIslandDecorate(city) {
+    if (cityHasIsland(city.marketApiName)) {
+        return {};
+    }
+    return { muted: true, hint: 'ada yok' };
+}
+
+function sortedCities() {
+    return [...state.cities].sort(
+        (a, b) => Number(!cityHasIsland(a.marketApiName)) - Number(!cityHasIsland(b.marketApiName)) || a.id - b.id
+    );
 }
 
 function specFieldsHtml() {
@@ -783,12 +784,13 @@ function renderPage(container) {
                             ${priceSideToggleHtml('plant', state.plantSide)}
                         </div>
                     </div>
-                    <div class="form-floating farming-city-field">
-                        <select class="form-select is-filled" id="farmingCity">
-                            ${renderCityOptions()}
-                        </select>
-                        <label for="farmingCity">Şehir</label>
-                    </div>
+                    ${cityFieldHtml({
+                        id: 'farmingCity',
+                        label: 'Şehir',
+                        selected: state.city,
+                        cities: sortedCities(),
+                        decorate: cityIslandDecorate
+                    })}
                     ${specFieldsHtml()}
                     ${priceRefreshActionsHtml({ refreshId: 'farmingRefresh', apiId: 'farmingRefreshApi' })}
                 </div>
@@ -833,8 +835,7 @@ function bindPage(container) {
         });
     });
 
-    container.querySelector('#farmingCity')?.addEventListener('change', (event) => {
-        const value = event.target.value;
+    bindCityField(container, 'farmingCity', (value) => {
         if (!state.cities.some((city) => city.marketApiName === value)) {
             return;
         }

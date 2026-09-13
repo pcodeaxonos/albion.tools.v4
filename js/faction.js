@@ -22,6 +22,7 @@ import {
 import { SETUP_FEE, purchaseCost, saleProceeds, salesTaxRate, placesOrder } from './market-fees.js';
 import { bindCalcSticky } from './calc-sticky.js';
 import { loadCities } from './cities.js';
+import { cityFieldHtml, bindCityField } from './city-picker.js';
 import { bindLivePrices } from './price-live.js';
 import {
     bindCalcExplain,
@@ -349,13 +350,6 @@ function renderPremiumToggle() {
                 ${escapeHtml(option.label)}
             </button>
         `;
-    }).join('');
-}
-
-function renderCityOptions() {
-    return state.cities.map((city) => {
-        const selected = city.marketApiName === state.city ? ' selected' : '';
-        return `<option value="${escapeHtml(city.marketApiName)}"${selected}>${escapeHtml(city.displayName)}</option>`;
     }).join('');
 }
 
@@ -1102,12 +1096,13 @@ function renderPage(container) {
                             ${priceSideToggleHtml('item', state.itemSide)}
                         </div>
                     </div>
-                    <div class="form-floating ava-city-field">
-                        <select class="form-select is-filled" id="factionCity">
-                            ${renderCityOptions()}
-                        </select>
-                        <label for="factionCity">Şehir</label>
-                    </div>
+                    ${cityFieldHtml({
+                        id: 'factionCity',
+                        label: 'Şehir',
+                        selected: state.city,
+                        cities: state.cities,
+                        className: 'ava-city-field'
+                    })}
                     ${priceRefreshActionsHtml({ refreshId: 'factionRefresh', apiId: 'factionRefreshApi' })}
                 </div>
             </div>
@@ -1151,8 +1146,7 @@ function bindPage(container) {
         });
     });
 
-    container.querySelector('#factionCity')?.addEventListener('change', (event) => {
-        const value = event.target.value;
+    bindCityField(container, 'factionCity', (value) => {
         if (!state.cities.some((city) => city.marketApiName === value)) {
             return;
         }

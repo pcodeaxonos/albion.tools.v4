@@ -35,6 +35,21 @@ export const tables = {
             COL.active
         ]
     },
+    cityColors: {
+        displayName: 'Şehir renkleri',
+        group: 'lookup',
+        source: 'curated',
+        description: 'Şehir seçici ve sidebar renkleri — cityId → cities',
+        key: 'id',
+        autoKey: true,
+        seedUrl: './data/city-colors.json',
+        columns: [
+            COL.id,
+            { name: 'cityId', type: 'ref', refTable: 'cities', refLabel: 'displayName', label: 'Şehir' },
+            { name: 'colorHex', type: 'string', label: 'Renk' },
+            { name: 'label', type: 'string', label: 'Etiket' }
+        ]
+    },
     items: {
         displayName: 'Eşyalar',
         group: 'game',

@@ -22,6 +22,7 @@ import {
 import { SETUP_FEE, purchaseCost, saleProceeds, salesTaxRate, placesOrder, feeMetaText } from './market-fees.js';
 import { bindCalcSticky } from './calc-sticky.js';
 import { loadActiveCities } from './cities.js';
+import { cityFieldHtml, bindCityField, syncCityField } from './city-picker.js';
 import { bonusCityApiName } from './bonus-cities.js';
 import { bindLivePrices } from './price-live.js';
 import {
@@ -731,13 +732,12 @@ function renderToggleGroup(name, options, selected, attr) {
     }).join('');
 }
 
-function renderCityOptions(selected) {
+function cityDecorate(city) {
     const family = currentFamily();
-    return state.cities.map((city) => {
-        const isSelected = city.marketApiName === selected ? ' selected' : '';
-        const bonus = city.marketApiName === familyCity(family) ? ' · +40' : '';
-        return `<option value="${escapeHtml(city.marketApiName)}"${isSelected}>${escapeHtml(city.displayName)}${bonus}</option>`;
-    }).join('');
+    if (city.marketApiName === familyCity(family)) {
+        return { hint: '+40' };
+    }
+    return {};
 }
 
 function rrDetails() {
@@ -969,24 +969,27 @@ function renderPage(container) {
                             ${priceSideToggleHtml('item', state.itemSide)}
                         </div>
                     </div>
-                    <div class="form-floating farming-city-field">
-                        <select class="form-select is-filled" id="refiningBuyCity">
-                            ${renderCityOptions(state.buyCity)}
-                        </select>
-                        <label for="refiningBuyCity">Ham alış şehri</label>
-                    </div>
-                    <div class="form-floating farming-city-field">
-                        <select class="form-select is-filled" id="refiningRefineCity">
-                            ${renderCityOptions(state.refineCity)}
-                        </select>
-                        <label for="refiningRefineCity">Refine şehri</label>
-                    </div>
-                    <div class="form-floating farming-city-field">
-                        <select class="form-select is-filled" id="refiningSellCity">
-                            ${renderCityOptions(state.sellCity)}
-                        </select>
-                        <label for="refiningSellCity">Satış şehri</label>
-                    </div>
+                    ${cityFieldHtml({
+                        id: 'refiningBuyCity',
+                        label: 'Ham alış şehri',
+                        selected: state.buyCity,
+                        cities: state.cities,
+                        decorate: cityDecorate
+                    })}
+                    ${cityFieldHtml({
+                        id: 'refiningRefineCity',
+                        label: 'Refine şehri',
+                        selected: state.refineCity,
+                        cities: state.cities,
+                        decorate: cityDecorate
+                    })}
+                    ${cityFieldHtml({
+                        id: 'refiningSellCity',
+                        label: 'Satış şehri',
+                        selected: state.sellCity,
+                        cities: state.cities,
+                        decorate: cityDecorate
+                    })}
                     ${priceRefreshActionsHtml({ refreshId: 'refiningRefresh', apiId: 'refiningRefreshApi' })}
                 </div>
             </div>
@@ -1150,10 +1153,11 @@ function syncCitySelects(container) {
         refiningSellCity: state.sellCity
     };
     for (const [id, value] of Object.entries(selected)) {
-        const select = container.querySelector(`#${id}`);
-        if (select) {
-            select.innerHTML = renderCityOptions(value);
-        }
+        syncCityField(container, id, {
+            selected: value,
+            cities: state.cities,
+            decorate: cityDecorate
+        });
     }
 }
 
@@ -1179,8 +1183,7 @@ function refreshView(container) {
 }
 
 function bindCitySelect(container, id, assign) {
-    container.querySelector(id)?.addEventListener('change', (event) => {
-        const value = event.target.value;
+    bindCityField(container, id.replace(/^#/, ''), (value) => {
         if (!state.cities.some((city) => city.marketApiName === value)) {
             return;
         }

@@ -16,6 +16,16 @@
   --color-price-update: #e879b8;
   /* Stale prices: reuse info blue so it stays in-palette and clear vs focus gold */
   --color-stale: var(--color-info);
+  /* Albion item tiers (T4 blue, T5 red, …) — shared badges / row tints */
+  --color-tier-2: #8b8b92;
+  --color-tier-3: #4a9e5c;
+  --color-tier-4: #4a7fd4;
+  --color-tier-5: #c45454;
+  --color-tier-6: #c47a2a;
+  --color-tier-7: #c4a832;
+  --color-tier-8: #c8ccd4;
+  --color-on-tier: #f7f7f8;
+  --color-on-tier-light: #1a1610;
   --color-text: #f2f2f4;
   --color-text-muted: #9898a0;
   --color-border: #3a3a40;
@@ -2146,6 +2156,189 @@ input[type=month].form-control {
   display: none;
 }
 
+/* Albion item-tier tokens (T2–T8) for badges / tints */
+.is-item-tier-2 {
+  --color-item-tier: var(--color-tier-2);
+}
+
+.is-item-tier-3 {
+  --color-item-tier: var(--color-tier-3);
+}
+
+.is-item-tier-4 {
+  --color-item-tier: var(--color-tier-4);
+}
+
+.is-item-tier-5 {
+  --color-item-tier: var(--color-tier-5);
+}
+
+.is-item-tier-6 {
+  --color-item-tier: var(--color-tier-6);
+}
+
+.is-item-tier-7 {
+  --color-item-tier: var(--color-tier-7);
+}
+
+.is-item-tier-8 {
+  --color-item-tier: var(--color-tier-8);
+  --color-on-item-tier: var(--color-on-tier-light);
+}
+
+/*
+ * Modal close: hangs outside the dialog (right side, 20px gap), CSS X via ::before/::after.
+ * Empty button — no × glyph. See .cursor/rules/dialog-close.mdc
+ */
+.app-dialog {
+  overflow: visible;
+}
+
+.app-dialog-close {
+  position: absolute;
+  top: 0;
+  left: calc(100% + 20px);
+  right: auto;
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.85rem;
+  height: 2.85rem;
+  margin: 0;
+  padding: 0;
+  border: var(--border-width) solid var(--color-border-strong);
+  border-radius: 0;
+  background-color: var(--color-surface-raised);
+  color: var(--color-text);
+  cursor: pointer;
+  box-shadow: var(--shadow-md);
+}
+.app-dialog-close::before, .app-dialog-close::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 1.15rem;
+  height: 2px;
+  margin: 0;
+  background-color: currentColor;
+  border-radius: 1px;
+}
+.app-dialog-close::before {
+  transform: translate(-50%, -50%) rotate(45deg);
+}
+.app-dialog-close::after {
+  transform: translate(-50%, -50%) rotate(-45deg);
+}
+.app-dialog-close:hover {
+  color: var(--color-on-accent);
+  background-color: var(--color-primary);
+  border-color: var(--color-primary);
+}
+.app-dialog-close:focus-visible {
+  outline: var(--focus-outline-width) solid var(--color-focus-ring);
+  outline-offset: 2px;
+}
+
+/* Diagonal / map-style city picker */
+.city-field--diagonal {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  min-width: 0;
+  width: 100%;
+}
+
+.city-field-label {
+  font-size: 0.65rem;
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+  line-height: 1.2;
+}
+
+.city-map {
+  container-type: inline-size;
+  position: relative;
+  width: 100%;
+  max-width: 100%;
+  aspect-ratio: 1/1;
+  border: var(--border-width) solid var(--color-border);
+  background-color: var(--color-surface);
+  overflow: visible;
+}
+
+.city-map-node {
+  --city-color: var(--color-primary);
+  --city-node: clamp(10px, 12cqw, 18px);
+  --city-ring: clamp(1.5px, 2.2cqw, 3px);
+  --city-gap: clamp(1px, 1.4cqw, 2px);
+  --x: 50%;
+  --y: 50%;
+  position: absolute;
+  left: var(--x);
+  top: var(--y);
+  z-index: 1;
+  width: var(--city-node);
+  height: var(--city-node);
+  margin: 0;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background-color: var(--city-color);
+  transform: translate(-50%, -50%);
+  cursor: pointer;
+  appearance: none;
+}
+.city-map-node::after {
+  content: "";
+  position: absolute;
+  inset: calc(-1 * (var(--city-gap) + var(--city-ring)));
+  border: var(--city-ring) solid transparent;
+  border-radius: 50%;
+  pointer-events: none;
+}
+.city-map-node:hover, .city-map-node:focus-visible {
+  z-index: 3;
+  outline: none;
+}
+.city-map-node:focus-visible::after {
+  border-color: var(--color-focus-ring);
+}
+.city-map-node.is-selected::after {
+  border-color: var(--city-color);
+}
+.city-map-node.is-muted {
+  opacity: 0.4;
+}
+.city-map-node:hover .city-map-tip, .city-map-node:focus-visible .city-map-tip {
+  opacity: 1;
+  transform: translate(-50%, 0);
+}
+
+.city-map-tip {
+  position: absolute;
+  left: 50%;
+  bottom: calc(100% + 0.3rem);
+  z-index: 4;
+  max-width: 6.5rem;
+  padding: 0.12rem 0.3rem;
+  border: var(--border-width) solid var(--color-border);
+  background-color: var(--color-surface);
+  color: var(--color-text);
+  font-size: 0.65rem;
+  font-weight: var(--font-weight-semibold);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  opacity: 0;
+  transform: translate(-50%, 0.1rem);
+  transition: opacity 0.1s ease, transform 0.1s ease;
+  pointer-events: none;
+}
+
 :root {
   --loader-accent-gold: #e8c36a;
   --loader-accent-silver: #a8a8b0;
@@ -3355,7 +3548,8 @@ a.tool-card:hover {
     top: var(--chrome-top);
     z-index: 12;
     max-height: calc(100dvh - var(--chrome-top));
-    overflow: auto;
+    overflow-x: hidden;
+    overflow-y: auto;
     overscroll-behavior: contain;
     padding-top: var(--tool-split-float-room);
     padding-bottom: var(--spacing-md);
@@ -3426,20 +3620,30 @@ a.tool-card:hover {
 .tool-split-controls .farming-toolbar,
 .tool-split-controls .pasture-toolbar,
 .tool-split-controls .royal-toolbar {
-  display: flex;
-  flex-direction: column;
-  flex-wrap: nowrap;
-  align-items: stretch;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  align-items: start;
   min-width: 0;
   max-width: 100%;
   gap: 0.375rem;
+}
+.tool-split-controls .carleon-toolbar > *:not(.city-field--diagonal),
+.tool-split-controls .ava-toolbar > *:not(.city-field--diagonal),
+.tool-split-controls .enchant-toolbar > *:not(.city-field--diagonal),
+.tool-split-controls .farming-toolbar > *:not(.city-field--diagonal),
+.tool-split-controls .pasture-toolbar > *:not(.city-field--diagonal),
+.tool-split-controls .royal-toolbar > *:not(.city-field--diagonal) {
+  grid-column: 1/-1;
+  width: 100%;
+  min-width: 0;
+  margin-left: 0;
 }
 .tool-split-controls .carleon-toolbar .carleon-type,
 .tool-split-controls .carleon-toolbar .ava-type,
 .tool-split-controls .carleon-toolbar .enchant-type,
 .tool-split-controls .carleon-toolbar .farming-type,
-.tool-split-controls .carleon-toolbar .ava-city-field,
-.tool-split-controls .carleon-toolbar .farming-city-field,
+.tool-split-controls .carleon-toolbar .ava-city-field:not(.city-field--diagonal),
+.tool-split-controls .carleon-toolbar .farming-city-field:not(.city-field--diagonal),
 .tool-split-controls .carleon-toolbar .farming-spec,
 .tool-split-controls .carleon-toolbar .carleon-side-field,
 .tool-split-controls .carleon-toolbar .ava-side-field,
@@ -3450,8 +3654,8 @@ a.tool-card:hover {
 .tool-split-controls .ava-toolbar .ava-type,
 .tool-split-controls .ava-toolbar .enchant-type,
 .tool-split-controls .ava-toolbar .farming-type,
-.tool-split-controls .ava-toolbar .ava-city-field,
-.tool-split-controls .ava-toolbar .farming-city-field,
+.tool-split-controls .ava-toolbar .ava-city-field:not(.city-field--diagonal),
+.tool-split-controls .ava-toolbar .farming-city-field:not(.city-field--diagonal),
 .tool-split-controls .ava-toolbar .farming-spec,
 .tool-split-controls .ava-toolbar .carleon-side-field,
 .tool-split-controls .ava-toolbar .ava-side-field,
@@ -3462,8 +3666,8 @@ a.tool-card:hover {
 .tool-split-controls .enchant-toolbar .ava-type,
 .tool-split-controls .enchant-toolbar .enchant-type,
 .tool-split-controls .enchant-toolbar .farming-type,
-.tool-split-controls .enchant-toolbar .ava-city-field,
-.tool-split-controls .enchant-toolbar .farming-city-field,
+.tool-split-controls .enchant-toolbar .ava-city-field:not(.city-field--diagonal),
+.tool-split-controls .enchant-toolbar .farming-city-field:not(.city-field--diagonal),
 .tool-split-controls .enchant-toolbar .farming-spec,
 .tool-split-controls .enchant-toolbar .carleon-side-field,
 .tool-split-controls .enchant-toolbar .ava-side-field,
@@ -3474,8 +3678,8 @@ a.tool-card:hover {
 .tool-split-controls .farming-toolbar .ava-type,
 .tool-split-controls .farming-toolbar .enchant-type,
 .tool-split-controls .farming-toolbar .farming-type,
-.tool-split-controls .farming-toolbar .ava-city-field,
-.tool-split-controls .farming-toolbar .farming-city-field,
+.tool-split-controls .farming-toolbar .ava-city-field:not(.city-field--diagonal),
+.tool-split-controls .farming-toolbar .farming-city-field:not(.city-field--diagonal),
 .tool-split-controls .farming-toolbar .farming-spec,
 .tool-split-controls .farming-toolbar .carleon-side-field,
 .tool-split-controls .farming-toolbar .ava-side-field,
@@ -3486,8 +3690,8 @@ a.tool-card:hover {
 .tool-split-controls .pasture-toolbar .ava-type,
 .tool-split-controls .pasture-toolbar .enchant-type,
 .tool-split-controls .pasture-toolbar .farming-type,
-.tool-split-controls .pasture-toolbar .ava-city-field,
-.tool-split-controls .pasture-toolbar .farming-city-field,
+.tool-split-controls .pasture-toolbar .ava-city-field:not(.city-field--diagonal),
+.tool-split-controls .pasture-toolbar .farming-city-field:not(.city-field--diagonal),
 .tool-split-controls .pasture-toolbar .farming-spec,
 .tool-split-controls .pasture-toolbar .carleon-side-field,
 .tool-split-controls .pasture-toolbar .ava-side-field,
@@ -3498,8 +3702,8 @@ a.tool-card:hover {
 .tool-split-controls .royal-toolbar .ava-type,
 .tool-split-controls .royal-toolbar .enchant-type,
 .tool-split-controls .royal-toolbar .farming-type,
-.tool-split-controls .royal-toolbar .ava-city-field,
-.tool-split-controls .royal-toolbar .farming-city-field,
+.tool-split-controls .royal-toolbar .ava-city-field:not(.city-field--diagonal),
+.tool-split-controls .royal-toolbar .farming-city-field:not(.city-field--diagonal),
 .tool-split-controls .royal-toolbar .farming-spec,
 .tool-split-controls .royal-toolbar .carleon-side-field,
 .tool-split-controls .royal-toolbar .ava-side-field,
@@ -3507,6 +3711,17 @@ a.tool-card:hover {
 .tool-split-controls .royal-toolbar .farming-side-field,
 .tool-split-controls .royal-toolbar > .btn {
   width: 100%;
+  margin-left: 0;
+}
+.tool-split-controls .carleon-toolbar .city-field--diagonal,
+.tool-split-controls .ava-toolbar .city-field--diagonal,
+.tool-split-controls .enchant-toolbar .city-field--diagonal,
+.tool-split-controls .farming-toolbar .city-field--diagonal,
+.tool-split-controls .pasture-toolbar .city-field--diagonal,
+.tool-split-controls .royal-toolbar .city-field--diagonal {
+  width: auto;
+  min-width: 0;
+  max-width: 100%;
   margin-left: 0;
 }
 .tool-split-controls .carleon-toolbar .price-side,
@@ -6064,8 +6279,8 @@ a.tool-card:hover {
 }
 
 .royal-plan-dialog {
-  width: min(78rem, 100vw - 1.5rem);
-  max-width: calc(100vw - 1.5rem);
+  width: min(78rem, 100vw - 1.5rem - 20px - 2.85rem);
+  max-width: calc(100vw - 1.5rem - 20px - 2.85rem);
   max-height: calc(100dvh - 1.5rem);
   margin: auto;
   padding: 0;
@@ -6088,40 +6303,6 @@ a.tool-card:hover {
   max-height: calc(100dvh - 1.5rem);
   padding: 0.75rem 1rem 0.9rem;
   overflow: auto;
-}
-
-.royal-plan-sheet-head {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  flex-shrink: 0;
-}
-
-.royal-plan-sheet-meta {
-  min-width: 0;
-  flex: 1 1 auto;
-  font-size: var(--font-size-sm);
-  color: var(--color-text-muted);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.royal-plan-close {
-  flex: 0 0 auto;
-  width: 2rem;
-  height: 2rem;
-  padding: 0;
-  border: var(--border-width) solid var(--color-border);
-  background: transparent;
-  color: var(--color-text-muted);
-  font-size: 1.35rem;
-  line-height: 1;
-  cursor: pointer;
-}
-.royal-plan-close:hover {
-  color: var(--color-text);
-  border-color: var(--color-border-strong);
 }
 
 .royal-plan-stations {
@@ -6231,8 +6412,8 @@ a.tool-card:hover {
   font-weight: var(--font-weight-bold);
   letter-spacing: -0.02em;
   line-height: 1;
-  color: var(--color-on-accent);
-  background-color: color-mix(in srgb, var(--color-primary) 92%, #000);
+  color: var(--color-on-item-tier, var(--color-on-tier));
+  background-color: var(--color-item-tier, var(--color-border-strong));
   pointer-events: none;
 }
 
@@ -6302,26 +6483,26 @@ a.tool-card:hover {
 }
 
 .royal-plan-missing {
-  border: var(--border-width) solid var(--color-border);
-  background-color: var(--color-surface);
+  min-width: 0;
 }
 
 .royal-plan-missing-head {
-  padding: 0.4rem 0.6rem;
-  border-bottom: var(--border-width) solid var(--color-border);
-  font-size: 0.75rem;
+  padding: 0 0 0.35rem;
+}
+
+.royal-plan-missing-label {
+  font-size: 1.15rem;
   font-weight: var(--font-weight-bold);
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--color-text-muted);
-  background-color: var(--color-surface-raised);
+  letter-spacing: 0.02em;
+  line-height: 1.2;
+  color: var(--color-text);
 }
 
 .royal-plan-missing-list {
   display: flex;
   flex-wrap: wrap;
   gap: 0.4rem;
-  padding: 0.55rem;
+  padding: 0;
 }
 
 .royal-plan-miss-item {
@@ -6341,8 +6522,6 @@ a.tool-card:hover {
 }
 .royal-plan-miss-item .royal-plan-te {
   position: static;
-  background-color: var(--color-border-strong);
-  color: var(--color-text);
 }
 
 .royal-plan-miss-icon {
@@ -6481,49 +6660,49 @@ a.tool-card:hover {
   font-style: italic;
 }
 .royal-table tbody tr.is-tier-4 {
-  --royal-tier-bar: #4a7fd4;
+  --royal-tier-bar: var(--color-tier-4);
 }
 .royal-table tbody tr.is-tier-5 {
-  --royal-tier-bar: #c45454;
+  --royal-tier-bar: var(--color-tier-5);
 }
 .royal-table tbody tr.is-tier-6 {
-  --royal-tier-bar: #c47a2a;
+  --royal-tier-bar: var(--color-tier-6);
 }
 .royal-table tbody tr.is-tier-7 {
-  --royal-tier-bar: #c4a832;
+  --royal-tier-bar: var(--color-tier-7);
 }
 .royal-table tbody tr.is-tier-8 {
-  --royal-tier-bar: #c8ccd4;
+  --royal-tier-bar: var(--color-tier-8);
 }
 .royal-table tbody tr.is-tier-4 td {
-  background-color: color-mix(in srgb, #4a7fd4 11%, var(--color-surface));
+  background-color: color-mix(in srgb, var(--color-tier-4) 11%, var(--color-surface));
 }
 .royal-table tbody tr.is-tier-5 td {
-  background-color: color-mix(in srgb, #c45454 11%, var(--color-surface));
+  background-color: color-mix(in srgb, var(--color-tier-5) 11%, var(--color-surface));
 }
 .royal-table tbody tr.is-tier-6 td {
-  background-color: color-mix(in srgb, #c47a2a 11%, var(--color-surface));
+  background-color: color-mix(in srgb, var(--color-tier-6) 11%, var(--color-surface));
 }
 .royal-table tbody tr.is-tier-7 td {
-  background-color: color-mix(in srgb, #c4a832 11%, var(--color-surface));
+  background-color: color-mix(in srgb, var(--color-tier-7) 11%, var(--color-surface));
 }
 .royal-table tbody tr.is-tier-8 td {
-  background-color: color-mix(in srgb, #d0d4dc 10%, var(--color-surface));
+  background-color: color-mix(in srgb, var(--color-tier-8) 10%, var(--color-surface));
 }
 .royal-table tbody tr.is-standard.is-main.is-tier-4 td {
-  background-color: color-mix(in srgb, #4a7fd4 16%, var(--color-surface));
+  background-color: color-mix(in srgb, var(--color-tier-4) 16%, var(--color-surface));
 }
 .royal-table tbody tr.is-standard.is-main.is-tier-5 td {
-  background-color: color-mix(in srgb, #c45454 16%, var(--color-surface));
+  background-color: color-mix(in srgb, var(--color-tier-5) 16%, var(--color-surface));
 }
 .royal-table tbody tr.is-standard.is-main.is-tier-6 td {
-  background-color: color-mix(in srgb, #c47a2a 16%, var(--color-surface));
+  background-color: color-mix(in srgb, var(--color-tier-6) 16%, var(--color-surface));
 }
 .royal-table tbody tr.is-standard.is-main.is-tier-7 td {
-  background-color: color-mix(in srgb, #c4a832 16%, var(--color-surface));
+  background-color: color-mix(in srgb, var(--color-tier-7) 16%, var(--color-surface));
 }
 .royal-table tbody tr.is-standard.is-main.is-tier-8 td {
-  background-color: color-mix(in srgb, #d0d4dc 14%, var(--color-surface));
+  background-color: color-mix(in srgb, var(--color-tier-8) 14%, var(--color-surface));
 }
 .royal-table.has-explain tbody tr.is-explain-hover:not(.is-explain) td {
   background-image: linear-gradient(color-mix(in srgb, var(--color-primary) 14%, transparent), color-mix(in srgb, var(--color-primary) 14%, transparent));
@@ -6532,19 +6711,19 @@ a.tool-card:hover {
   background-image: none;
 }
 .royal-table.has-explain tbody tr.is-explain.is-tier-4 td {
-  background-color: color-mix(in srgb, #4a7fd4 22%, var(--color-surface));
+  background-color: color-mix(in srgb, var(--color-tier-4) 22%, var(--color-surface));
 }
 .royal-table.has-explain tbody tr.is-explain.is-tier-5 td {
-  background-color: color-mix(in srgb, #c45454 22%, var(--color-surface));
+  background-color: color-mix(in srgb, var(--color-tier-5) 22%, var(--color-surface));
 }
 .royal-table.has-explain tbody tr.is-explain.is-tier-6 td {
-  background-color: color-mix(in srgb, #c47a2a 22%, var(--color-surface));
+  background-color: color-mix(in srgb, var(--color-tier-6) 22%, var(--color-surface));
 }
 .royal-table.has-explain tbody tr.is-explain.is-tier-7 td {
-  background-color: color-mix(in srgb, #c4a832 22%, var(--color-surface));
+  background-color: color-mix(in srgb, var(--color-tier-7) 22%, var(--color-surface));
 }
 .royal-table.has-explain tbody tr.is-explain.is-tier-8 td {
-  background-color: color-mix(in srgb, #d0d4dc 20%, var(--color-surface));
+  background-color: color-mix(in srgb, var(--color-tier-8) 20%, var(--color-surface));
 }
 .royal-table.has-explain tbody tr.is-explain td:first-child {
   box-shadow: inset 3px 0 0 var(--royal-tier-bar, var(--color-primary)), 0 1px 0 var(--color-border);

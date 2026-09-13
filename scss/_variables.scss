@@ -19,6 +19,16 @@
     --color-price-update: #e879b8;
     /* Stale prices: reuse info blue so it stays in-palette and clear vs focus gold */
     --color-stale: var(--color-info);
+    /* Albion item tiers (T4 blue, T5 red, …) — shared badges / row tints */
+    --color-tier-2: #8b8b92;
+    --color-tier-3: #4a9e5c;
+    --color-tier-4: #4a7fd4;
+    --color-tier-5: #c45454;
+    --color-tier-6: #c47a2a;
+    --color-tier-7: #c4a832;
+    --color-tier-8: #c8ccd4;
+    --color-on-tier: #f7f7f8;
+    --color-on-tier-light: #1a1610;
     --color-text: #f2f2f4;
     --color-text-muted: #9898a0;
     --color-border: #3a3a40;

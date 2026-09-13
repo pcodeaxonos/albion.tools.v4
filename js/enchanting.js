@@ -19,6 +19,7 @@ import {
 import { bindCalcSticky } from './calc-sticky.js';
 import { bindLivePrices } from './price-live.js';
 import { loadCities } from './cities.js';
+import { cityFieldHtml, bindCityField } from './city-picker.js';
 import { getEnchantSlots, getEnchantSteps, getEnchantPaths } from './catalog.js';
 
 const TIERS = [4, 5, 6, 7, 8];
@@ -246,13 +247,6 @@ function pathRows() {
         label: pathLabel(path),
         costs: Object.fromEntries(TIERS.map((tier) => [tier, enchantCost(tier, path.from, path.to)]))
     }));
-}
-
-function renderCityOptions() {
-    return state.cities.map((city) => {
-        const selected = city.marketApiName === state.city ? ' selected' : '';
-        return `<option value="${escapeHtml(city.marketApiName)}"${selected}>${escapeHtml(city.displayName)}</option>`;
-    }).join('');
 }
 
 function renderSlotToggle() {
@@ -493,12 +487,13 @@ function renderPage(container) {
                             ${priceSideToggleHtml('mat', state.matSide)}
                         </div>
                     </div>
-                    <div class="form-floating">
-                        <select class="form-select is-filled" id="enchantCity">
-                            ${renderCityOptions()}
-                        </select>
-                        <label for="enchantCity">Şehir</label>
-                    </div>
+                    ${cityFieldHtml({
+                        id: 'enchantCity',
+                        label: 'Şehir',
+                        selected: state.city,
+                        cities: state.cities,
+                        className: ''
+                    })}
                     ${priceRefreshActionsHtml({ refreshId: 'enchantRefresh', apiId: 'enchantRefreshApi' })}
                 </div>
             </div>
@@ -530,8 +525,7 @@ function bindPage(container) {
         });
     });
 
-    container.querySelector('#enchantCity')?.addEventListener('change', (event) => {
-        const value = event.target.value;
+    bindCityField(container, 'enchantCity', (value) => {
         if (!state.cities.some((city) => city.marketApiName === value)) {
             return;
         }

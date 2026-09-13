@@ -16,6 +16,7 @@ import { initFloatingLabels } from './forms.js';
 import { feeMetaText } from './market-fees.js';
 import { bindCalcSticky } from './calc-sticky.js';
 import { loadActiveCities } from './cities.js';
+import { cityFieldHtml, bindCityField, setCityFieldValue } from './city-picker.js';
 import { bindLivePrices } from './price-live.js';
 import {
     ISLAND_PLOTS_BY_LEVEL,
@@ -199,14 +200,11 @@ function renderToggle(groupLabel, options, dataAttr, current) {
     `;
 }
 
-function renderCityOptions(selected) {
-    return state.cities.map((city) => {
-        const value = city.marketApiName;
-        const island = cityHasIsland(value);
-        const selectedAttr = value === selected ? ' selected' : '';
-        const hint = island ? '' : ' data-hint="ada yok"';
-        return `<option value="${escapeHtml(value)}"${selectedAttr}${hint}>${escapeHtml(city.displayName)}${island ? '' : ' (ada yok)'}</option>`;
-    }).join('');
+function cityIslandDecorate(city) {
+    if (cityHasIsland(city.marketApiName)) {
+        return {};
+    }
+    return { muted: true, hint: 'ada yok' };
 }
 
 function renderLevelOptions() {
@@ -550,14 +548,8 @@ function syncControls(container) {
     syncToggleGroup(container, 'premium', state.premium);
     syncToggleGroup(container, 'focus', state.focus);
 
-    const islandCity = container.querySelector('#islandCity');
-    if (islandCity && islandCity.value !== state.islandCity) {
-        islandCity.value = state.islandCity;
-    }
-    const sellCity = container.querySelector('#sellCity');
-    if (sellCity && sellCity.value !== state.sellCity) {
-        sellCity.value = state.sellCity;
-    }
+    setCityFieldValue(container, 'islandCity', state.islandCity);
+    setCityFieldValue(container, 'sellCity', state.sellCity);
     const islandLevel = container.querySelector('#islandLevel');
     if (islandLevel && Number(islandLevel.value) !== state.islandLevel) {
         islandLevel.value = String(state.islandLevel);
@@ -599,18 +591,20 @@ function renderPage(container) {
                         { id: false, value: '0', label: 'Yok' }
                     ], 'focus', state.focus)}
 
-                    <div class="form-floating farming-city-field">
-                        <select class="form-select is-filled" id="islandCity">
-                            ${renderCityOptions(state.islandCity)}
-                        </select>
-                        <label for="islandCity">Ada şehri</label>
-                    </div>
-                    <div class="form-floating farming-city-field">
-                        <select class="form-select is-filled" id="sellCity">
-                            ${renderCityOptions(state.sellCity)}
-                        </select>
-                        <label for="sellCity">Satış şehri</label>
-                    </div>
+                    ${cityFieldHtml({
+                        id: 'islandCity',
+                        label: 'Ada şehri',
+                        selected: state.islandCity,
+                        cities: state.cities,
+                        decorate: cityIslandDecorate
+                    })}
+                    ${cityFieldHtml({
+                        id: 'sellCity',
+                        label: 'Satış şehri',
+                        selected: state.sellCity,
+                        cities: state.cities,
+                        decorate: cityIslandDecorate
+                    })}
                     <div class="form-floating farming-city-field">
                         <select class="form-select is-filled" id="islandLevel">
                             ${renderLevelOptions()}
@@ -652,8 +646,7 @@ function bindPage(container) {
         });
     });
 
-    container.querySelector('#islandCity')?.addEventListener('change', (event) => {
-        const value = event.target.value;
+    bindCityField(container, 'islandCity', (value) => {
         if (!state.cities.some((city) => city.marketApiName === value)) {
             return;
         }
@@ -664,8 +657,7 @@ function bindPage(container) {
         applyPlan(container);
     });
 
-    container.querySelector('#sellCity')?.addEventListener('change', (event) => {
-        const value = event.target.value;
+    bindCityField(container, 'sellCity', (value) => {
         if (!state.cities.some((city) => city.marketApiName === value)) {
             return;
         }

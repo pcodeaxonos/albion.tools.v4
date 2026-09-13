@@ -19,6 +19,7 @@ import { purchaseCost, saleProceeds, placesOrder, feeMetaText, SETUP_FEE, salesT
 import { bindCalcSticky } from './calc-sticky.js';
 import { bindLivePrices } from './price-live.js';
 import { loadActiveCities } from './cities.js';
+import { cityFieldHtml, bindCityField, setCityFieldValue } from './city-picker.js';
 import {
     getCraftRecipes,
     cityProductionBonus,
@@ -770,13 +771,6 @@ function renderToggle(options, selected, dataAttr) {
     }).join('');
 }
 
-function renderCityOptions(selected) {
-    return state.cities.map((city) => {
-        const current = city.marketApiName === selected ? ' selected' : '';
-        return `<option value="${escapeHtml(city.marketApiName)}"${current}>${escapeHtml(city.displayName)}</option>`;
-    }).join('');
-}
-
 function sealedMatCard() {
     return {
         key: SEALED_SIGIL_KEY,
@@ -1273,13 +1267,19 @@ function planSetIconsHtml(row) {
     `;
 }
 
+function planTeHtml(row) {
+    const tier = Number(row.recipe?.tier);
+    const tierClass = Number.isFinite(tier) ? ` is-item-tier-${tier}` : '';
+    return `<span class="royal-plan-te${tierClass}">${escapeHtml(row.tierEnchant)}</span>`;
+}
+
 function renderPlanStationItem(row, tier = 'D') {
     return `
         <button type="button" class="royal-plan-item is-tier-${escapeHtml(tier)}" data-plan-row="${escapeHtml(row.id)}"
             title="${escapeHtml(planRowTitle(row, tier))}">
             <span class="royal-plan-item-visual">
                 ${itemIconHtml(row.sellId, { className: 'item-icon royal-plan-item-icon', size: 80 })}
-                <span class="royal-plan-te">${escapeHtml(row.tierEnchant)}</span>
+                ${planTeHtml(row)}
             </span>
             ${planSetIconsHtml(row)}
             <span class="royal-plan-item-stats">
@@ -1310,27 +1310,13 @@ function renderPlanMissingItem(row) {
         <button type="button" class="royal-plan-miss-item" data-plan-row="${escapeHtml(row.id)}"
             title="${escapeHtml(`${shortItemName(row.recipe.label)} · ${row.tierEnchant} · satış yok`)}">
             ${itemIconHtml(row.sellId, { className: 'item-icon royal-plan-miss-icon', size: 48 })}
-            <span class="royal-plan-te">${escapeHtml(row.tierEnchant)}</span>
+            ${planTeHtml(row)}
             <span class="royal-plan-chip">${escapeHtml(type || '?')}</span>
         </button>
     `;
 }
 
 function renderPlanDialogBody(plan) {
-    const setPathLabel = state.setPath === 'craft'
-        ? 'SET craft'
-        : state.setPath === 'buy'
-            ? 'SET Ex buy'
-            : 'min SET';
-    const meta = [
-        cityLabel(state.buyCity),
-        '→',
-        cityLabel(state.sellCity),
-        state.sealedSigil ? 'Sealed' : 'Sigil',
-        setPathLabel,
-        'Tier A–D = bu tablonun kâr% dağılımı'
-    ].join(' · ');
-
     const stations = PLAN_STATIONS.map((station) =>
         renderPlanStationBox(station, plan.stations[station.id] || [], plan.tiers)
     ).join('');
@@ -1338,7 +1324,9 @@ function renderPlanDialogBody(plan) {
     const missing = plan.missingSell.length
         ? `
             <section class="royal-plan-missing">
-                <header class="royal-plan-missing-head">Satış yok</header>
+                <header class="royal-plan-missing-head">
+                    <span class="royal-plan-missing-label">Satış yok</span>
+                </header>
                 <div class="royal-plan-missing-list">
                     ${plan.missingSell.map(renderPlanMissingItem).join('')}
                 </div>
@@ -1347,11 +1335,8 @@ function renderPlanDialogBody(plan) {
         : '';
 
     return `
+        <button type="button" class="app-dialog-close" aria-label="Kapat" data-plan-close></button>
         <div class="royal-plan-sheet">
-            <header class="royal-plan-sheet-head">
-                <span class="royal-plan-sheet-meta">${escapeHtml(meta)}</span>
-                <button type="button" class="royal-plan-close" aria-label="Kapat" data-plan-close>&times;</button>
-            </header>
             <div class="royal-plan-stations">${stations}</div>
             ${missing}
         </div>
@@ -1426,7 +1411,6 @@ function openCraftPlan(container) {
     if (!dialog) {
         dialog = document.createElement('dialog');
         dialog.id = 'royalPlanDialog';
-        dialog.className = 'royal-plan-dialog';
         container.appendChild(dialog);
         dialog.addEventListener('click', (event) => {
             if (event.target === dialog) {
@@ -1434,6 +1418,7 @@ function openCraftPlan(container) {
             }
         });
     }
+    dialog.className = 'app-dialog royal-plan-dialog';
 
     const plan = buildCraftPlan(sortedRows());
     dialog.innerHTML = renderPlanDialogBody(plan);
@@ -1848,18 +1833,18 @@ function renderPage(container) {
                             ${priceSideToggleHtml('item', state.itemSide)}
                         </div>
                     </div>
-                    <div class="form-floating farming-city-field">
-                        <select class="form-select is-filled" id="royalBuyCity">
-                            ${renderCityOptions(state.buyCity)}
-                        </select>
-                        <label for="royalBuyCity">Alış şehri</label>
-                    </div>
-                    <div class="form-floating farming-city-field">
-                        <select class="form-select is-filled" id="royalSellCity">
-                            ${renderCityOptions(state.sellCity)}
-                        </select>
-                        <label for="royalSellCity">Satış şehri</label>
-                    </div>
+                    ${cityFieldHtml({
+                        id: 'royalBuyCity',
+                        label: 'Alış şehri',
+                        selected: state.buyCity,
+                        cities: state.cities
+                    })}
+                    ${cityFieldHtml({
+                        id: 'royalSellCity',
+                        label: 'Satış şehri',
+                        selected: state.sellCity,
+                        cities: state.cities
+                    })}
                     ${priceRefreshActionsHtml({ refreshId: 'royalRefresh', apiId: 'royalRefreshApi' })}
                 </div>
             </div>
@@ -1904,10 +1889,10 @@ function applyControls(container) {
     const buy = container.querySelector('#royalBuyCity');
     const sell = container.querySelector('#royalSellCity');
     if (buy) {
-        buy.value = state.buyCity;
+        setCityFieldValue(container, 'royalBuyCity', state.buyCity);
     }
     if (sell) {
-        sell.value = state.sellCity;
+        setCityFieldValue(container, 'royalSellCity', state.sellCity);
     }
 }
 
@@ -1972,8 +1957,8 @@ function bindPriceInputs(container) {
 }
 
 function bindCitySelect(container, id, assign) {
-    container.querySelector(id)?.addEventListener('change', (event) => {
-        assign(event.target.value);
+    bindCityField(container, id.replace(/^#/, ''), (value) => {
+        assign(value);
         savePrefs();
         applyControls(container);
         loadPrices(container, { showLoader: false });

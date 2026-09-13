@@ -1878,3 +1878,182 @@ input[type="month"].form-control {
         display: none;
     }
 }
+
+/* Albion item-tier tokens (T2–T8) for badges / tints */
+.is-item-tier-2 { --color-item-tier: var(--color-tier-2); }
+.is-item-tier-3 { --color-item-tier: var(--color-tier-3); }
+.is-item-tier-4 { --color-item-tier: var(--color-tier-4); }
+.is-item-tier-5 { --color-item-tier: var(--color-tier-5); }
+.is-item-tier-6 { --color-item-tier: var(--color-tier-6); }
+.is-item-tier-7 { --color-item-tier: var(--color-tier-7); }
+.is-item-tier-8 {
+    --color-item-tier: var(--color-tier-8);
+    --color-on-item-tier: var(--color-on-tier-light);
+}
+
+/*
+ * Modal close: hangs outside the dialog (right side, 20px gap), CSS X via ::before/::after.
+ * Empty button — no × glyph. See .cursor/rules/dialog-close.mdc
+ */
+.app-dialog {
+    overflow: visible;
+}
+
+.app-dialog-close {
+    position: absolute;
+    top: 0;
+    left: calc(100% + 20px);
+    right: auto;
+    z-index: 2;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.85rem;
+    height: 2.85rem;
+    margin: 0;
+    padding: 0;
+    border: var(--border-width) solid var(--color-border-strong);
+    border-radius: 0;
+    background-color: var(--color-surface-raised);
+    color: var(--color-text);
+    cursor: pointer;
+    box-shadow: var(--shadow-md);
+
+    &::before,
+    &::after {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 1.15rem;
+        height: 2px;
+        margin: 0;
+        background-color: currentColor;
+        border-radius: 1px;
+    }
+
+    &::before {
+        transform: translate(-50%, -50%) rotate(45deg);
+    }
+
+    &::after {
+        transform: translate(-50%, -50%) rotate(-45deg);
+    }
+
+    &:hover {
+        color: var(--color-on-accent);
+        background-color: var(--color-primary);
+        border-color: var(--color-primary);
+    }
+
+    &:focus-visible {
+        outline: var(--focus-outline-width) solid var(--color-focus-ring);
+        outline-offset: 2px;
+    }
+}
+
+/* Diagonal / map-style city picker */
+.city-field--diagonal {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    min-width: 0;
+    width: 100%;
+}
+
+.city-field-label {
+    font-size: 0.65rem;
+    font-weight: var(--font-weight-semibold);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--color-text-muted);
+    line-height: 1.2;
+}
+
+.city-map {
+    container-type: inline-size;
+    position: relative;
+    width: 100%;
+    max-width: 100%;
+    aspect-ratio: 1 / 1;
+    border: var(--border-width) solid var(--color-border);
+    background-color: var(--color-surface);
+    overflow: visible;
+}
+
+.city-map-node {
+    --city-color: var(--color-primary);
+    --city-node: clamp(10px, 12cqw, 18px);
+    --city-ring: clamp(1.5px, 2.2cqw, 3px);
+    --city-gap: clamp(1px, 1.4cqw, 2px);
+    --x: 50%;
+    --y: 50%;
+    position: absolute;
+    left: var(--x);
+    top: var(--y);
+    z-index: 1;
+    width: var(--city-node);
+    height: var(--city-node);
+    margin: 0;
+    padding: 0;
+    border: none;
+    border-radius: 50%;
+    background-color: var(--city-color);
+    transform: translate(-50%, -50%);
+    cursor: pointer;
+    appearance: none;
+
+    &::after {
+        content: '';
+        position: absolute;
+        inset: calc(-1 * (var(--city-gap) + var(--city-ring)));
+        border: var(--city-ring) solid transparent;
+        border-radius: 50%;
+        pointer-events: none;
+    }
+
+    &:hover,
+    &:focus-visible {
+        z-index: 3;
+        outline: none;
+    }
+
+    &:focus-visible::after {
+        border-color: var(--color-focus-ring);
+    }
+
+    &.is-selected::after {
+        border-color: var(--city-color);
+    }
+
+    &.is-muted {
+        opacity: 0.4;
+    }
+
+    &:hover .city-map-tip,
+    &:focus-visible .city-map-tip {
+        opacity: 1;
+        transform: translate(-50%, 0);
+    }
+}
+
+.city-map-tip {
+    position: absolute;
+    left: 50%;
+    bottom: calc(100% + 0.3rem);
+    z-index: 4;
+    max-width: 6.5rem;
+    padding: 0.12rem 0.3rem;
+    border: var(--border-width) solid var(--color-border);
+    background-color: var(--color-surface);
+    color: var(--color-text);
+    font-size: 0.65rem;
+    font-weight: var(--font-weight-semibold);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    opacity: 0;
+    transform: translate(-50%, 0.1rem);
+    transition: opacity 0.1s ease, transform 0.1s ease;
+    pointer-events: none;
+}

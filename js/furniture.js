@@ -23,6 +23,7 @@ import { SETUP_FEE, purchaseCost, saleProceeds, salesTaxRate, placesOrder } from
 import { bindCalcSticky } from './calc-sticky.js';
 import { bindLivePrices } from './price-live.js';
 import { loadActiveCities } from './cities.js';
+import { cityFieldHtml, bindCityField } from './city-picker.js';
 import {
     bindCalcExplain,
     refreshCalcExplain,
@@ -362,13 +363,6 @@ function renderPremiumToggle() {
                 ${escapeHtml(option.label)}
             </button>
         `;
-    }).join('');
-}
-
-function renderCityOptions() {
-    return state.cities.map((city) => {
-        const selected = city.marketApiName === state.city ? ' selected' : '';
-        return `<option value="${escapeHtml(city.marketApiName)}"${selected}>${escapeHtml(city.displayName)}</option>`;
     }).join('');
 }
 
@@ -890,12 +884,13 @@ function renderPage(container) {
                             ${priceSideToggleHtml('item', state.itemSide)}
                         </div>
                     </div>
-                    <div class="form-floating ava-city-field">
-                        <select class="form-select is-filled" id="furnitureCity">
-                            ${renderCityOptions()}
-                        </select>
-                        <label for="furnitureCity">Şehir</label>
-                    </div>
+                    ${cityFieldHtml({
+                        id: 'furnitureCity',
+                        label: 'Şehir',
+                        selected: state.city,
+                        cities: state.cities,
+                        className: 'ava-city-field'
+                    })}
                     ${priceRefreshActionsHtml({ refreshId: 'furnitureRefresh', apiId: 'furnitureRefreshApi' })}
                 </div>
             </div>
@@ -950,8 +945,7 @@ function bindPage(container) {
         });
     });
 
-    container.querySelector('#furnitureCity')?.addEventListener('change', (event) => {
-        const value = event.target.value;
+    bindCityField(container, 'furnitureCity', (value) => {
         if (!state.cities.some((city) => city.marketApiName === value)) {
             return;
         }

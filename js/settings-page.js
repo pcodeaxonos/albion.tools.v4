@@ -12,7 +12,8 @@ import {
     enchantPowerCombos,
     normalizeEnchantPower,
     cityHasIsland,
-    localPriceHost
+    localPriceHost,
+    CITY_PICKER_STYLES
 } from './settings.js';
 import { initStore } from './db/store.js';
 import { loadActiveCities } from './cities.js';
@@ -199,13 +200,22 @@ function renderPage(container, cities) {
                                 <label for="settingDefaultCity">Varsayılan şehir</label>
                             </div>
                             <div class="form-floating">
+                                <select class="form-select is-filled" id="settingCityPickerStyle">
+                                    ${CITY_PICKER_STYLES.map((style) => {
+                                        const selected = style.id === settings.cityPickerStyle ? ' selected' : '';
+                                        return `<option value="${escapeHtml(style.id)}"${selected}>${escapeHtml(style.label)}</option>`;
+                                    }).join('')}
+                                </select>
+                                <label for="settingCityPickerStyle">Şehir seçimi</label>
+                            </div>
+                            <div class="form-floating">
                                 <select class="form-select is-filled" id="settingEnchantPower">
                                     ${renderEnchantPowerOptions(settings.enchantPower)}
                                 </select>
                                 <label for="settingEnchantPower">IP bandı (hızlı doldur)</label>
                             </div>
                         </div>
-                        <p class="text-muted settings-note">Varsayılan şehir, tool’da kayıtlı şehir yoksa alış/satış seçiminde gelir (Martlock).</p>
+                        <p class="text-muted settings-note">Varsayılan şehir, tool’da kayıtlı şehir yoksa alış/satış seçiminde gelir (Martlock). Şehir seçimi: standart liste veya diagonal renkli harita.</p>
                         <div class="settings-combo-order-wrap">
                             <p class="settings-combo-order-title">Standart combolar</p>
                             ${renderStandardComboList(settings)}
@@ -361,6 +371,7 @@ function persist(container) {
         priceSource,
         server: container.querySelector('#settingServer')?.value,
         defaultCity: container.querySelector('#settingDefaultCity')?.value,
+        cityPickerStyle: container.querySelector('#settingCityPickerStyle')?.value,
         buyPriceSide: selectedSide(container, 'buy', 'buy'),
         sellPriceSide: selectedSide(container, 'sell', 'sell'),
         enchantPower,
@@ -514,6 +525,7 @@ function bindPage(container) {
     container.querySelector('#settingPriceSource')?.addEventListener('change', () => persist(container));
     container.querySelector('#settingServer')?.addEventListener('change', () => persist(container));
     container.querySelector('#settingDefaultCity')?.addEventListener('change', () => persist(container));
+    container.querySelector('#settingCityPickerStyle')?.addEventListener('change', () => persist(container));
     container.querySelector('#settingEnchantPower')?.addEventListener('change', () => persist(container));
     bindStandardCombos(container);
     container.querySelectorAll('[data-island-city]').forEach((input) => {
