@@ -1273,10 +1273,12 @@ function planTeHtml(row) {
     return `<span class="royal-plan-te${tierClass}">${escapeHtml(row.tierEnchant)}</span>`;
 }
 
-function renderPlanStationItem(row, tier = 'D') {
+function renderPlanStationItem(row, profitTier = 'D') {
+    const itemTier = Number(row.recipe?.tier);
+    const itemClass = Number.isFinite(itemTier) ? ` is-item-tier-${itemTier}` : '';
     return `
-        <button type="button" class="royal-plan-item is-tier-${escapeHtml(tier)}" data-plan-row="${escapeHtml(row.id)}"
-            title="${escapeHtml(planRowTitle(row, tier))}">
+        <button type="button" class="royal-plan-item${itemClass} is-profit-tier-${escapeHtml(profitTier)}" data-plan-row="${escapeHtml(row.id)}"
+            title="${escapeHtml(planRowTitle(row, profitTier))}">
             <span class="royal-plan-item-visual">
                 ${itemIconHtml(row.sellId, { className: 'item-icon royal-plan-item-icon', size: 80 })}
                 ${planTeHtml(row)}
@@ -1284,8 +1286,8 @@ function renderPlanStationItem(row, tier = 'D') {
             ${planSetIconsHtml(row)}
             <span class="royal-plan-item-stats">
                 <span class="royal-plan-item-pct">${escapeHtml(planPctText(row.pct))}</span>
-                <span class="royal-plan-tier" aria-label="Kâr tier ${escapeHtml(tier)}">${escapeHtml(tier)}</span>
             </span>
+            <span class="royal-plan-tier" aria-label="Kâr tier ${escapeHtml(profitTier)}">${escapeHtml(profitTier)}</span>
         </button>
     `;
 }

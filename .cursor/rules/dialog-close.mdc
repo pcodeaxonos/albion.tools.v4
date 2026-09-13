@@ -1,0 +1,39 @@
+---
+description: Modal dialog close button hangs outside the panel with a CSS X
+alwaysApply: true
+---
+
+# Dialog close button
+
+Native `<dialog>` / modal panels use a shared close control that sits **outside** the panel so it never covers content.
+
+## Markup
+
+```html
+<dialog class="app-dialog some-dialog">
+  <button type="button" class="app-dialog-close" aria-label="Kapat" data-*-close></button>
+  <div class="…-sheet"><!-- scrollable content --></div>
+</dialog>
+```
+
+- Empty button body — **no** `×` / `&times;` / SVG / text
+- Always include `aria-label="Kapat"` (or locale equivalent)
+- Prefer `data-*-close` for the click handler hook
+- Put `.app-dialog` on the `<dialog>` (with any page-specific class)
+
+## Visual
+
+- Class: `.app-dialog-close` (defined in `scss/_components.scss`)
+- X is drawn with `::before` / `::after` bars only
+- Anchored to the **right** of the dialog (`left: calc(100% + 20px)`, `top: 0`) — 20px gap
+- `border-radius: 0` (square)
+- Keep dialog `overflow: visible`; scroll the inner sheet instead
+- Reserve horizontal room in the dialog `max-width` so the control stays in the viewport (`20px` + close width)
+
+## Do not
+
+- Place the close control inside a header that eats content space
+- Place it above the dialog
+- Use border-radius on the close button
+- Use a glyph or icon font for the X
+- Clip the button with `overflow: hidden` on the dialog

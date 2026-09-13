@@ -6344,15 +6344,17 @@ a.tool-card:hover {
 }
 
 .royal-plan-item {
+  --royal-plan-tier-slot: calc(min(10vh, 4.75rem) + 0.6rem);
+  position: relative;
   display: grid;
   grid-template-columns: auto auto minmax(0, 1fr);
   align-items: center;
   gap: 0.55rem 0.65rem;
   width: 100%;
   margin: 0;
-  padding: 0.3rem 0.4rem;
-  border: var(--border-width) solid var(--color-border);
-  background-color: var(--color-surface-raised);
+  padding: 0.3rem calc(var(--royal-plan-tier-slot) + 0.4rem) 0.3rem 0.4rem;
+  border: var(--border-width) solid color-mix(in srgb, var(--color-item-tier, var(--color-border)) 65%, var(--color-border));
+  background-color: color-mix(in srgb, var(--color-item-tier, transparent) 14%, var(--color-surface-raised));
   color: inherit;
   text-align: left;
   cursor: pointer;
@@ -6360,25 +6362,17 @@ a.tool-card:hover {
 .royal-plan-item:hover {
   filter: brightness(1.06);
 }
-.royal-plan-item.is-tier-A {
+.royal-plan-item.is-profit-tier-A {
   --plan-tier: #6dce86;
-  border-color: color-mix(in srgb, var(--plan-tier) 70%, var(--color-border));
-  background-color: color-mix(in srgb, var(--plan-tier) 16%, var(--color-surface-raised));
 }
-.royal-plan-item.is-tier-B {
+.royal-plan-item.is-profit-tier-B {
   --plan-tier: #6eb8e8;
-  border-color: color-mix(in srgb, var(--plan-tier) 70%, var(--color-border));
-  background-color: color-mix(in srgb, var(--plan-tier) 14%, var(--color-surface-raised));
 }
-.royal-plan-item.is-tier-C {
+.royal-plan-item.is-profit-tier-C {
   --plan-tier: #f0b84a;
-  border-color: color-mix(in srgb, var(--plan-tier) 65%, var(--color-border));
-  background-color: color-mix(in srgb, var(--plan-tier) 12%, var(--color-surface-raised));
 }
-.royal-plan-item.is-tier-D {
+.royal-plan-item.is-profit-tier-D {
   --plan-tier: #9898a0;
-  border-color: color-mix(in srgb, var(--plan-tier) 55%, var(--color-border));
-  background-color: color-mix(in srgb, var(--plan-tier) 10%, var(--color-surface-raised));
 }
 
 .royal-plan-item-visual {
@@ -6437,17 +6431,28 @@ a.tool-card:hover {
 }
 
 .royal-plan-tier {
+  position: absolute;
+  top: calc(var(--border-width) + var(--spacing-xs));
+  right: calc(var(--border-width) + var(--spacing-xs));
+  bottom: calc(var(--border-width) + var(--spacing-xs));
+  z-index: 1;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 1.25rem;
-  padding: 0.12rem 0.3rem;
-  font-size: 0.65rem;
+  width: auto;
+  height: auto;
+  aspect-ratio: 1/1;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  font-family: var(--font-family-mono);
+  font-size: clamp(1.35rem, 4.6vh, 2.15rem);
   font-weight: var(--font-weight-bold);
-  letter-spacing: 0.06em;
+  letter-spacing: -0.04em;
   line-height: 1;
-  color: var(--color-on-accent);
+  color: color-mix(in srgb, var(--plan-tier, var(--color-text-muted)) 42%, #000);
   background-color: var(--plan-tier, var(--color-border-strong));
+  pointer-events: none;
 }
 
 .royal-plan-sets {
@@ -6541,6 +6546,7 @@ a.tool-card:hover {
     grid-template-columns: 1fr;
   }
   .royal-plan-item {
+    --royal-plan-tier-slot: calc(min(9vh, 4rem) + 0.6rem);
     grid-template-columns: auto auto minmax(0, 1fr);
   }
   .royal-plan-item-visual,
