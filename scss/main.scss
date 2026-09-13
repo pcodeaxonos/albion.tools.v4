@@ -2384,20 +2384,20 @@ a.tool-card {
 }
 
 .ava-tier-row {
-    display: flex;
-    align-items: center;
-    gap: 0.375rem;
+    display: block;
     min-width: 0;
 
-    .item-icon {
-        width: 1.5rem;
-        height: 1.5rem;
-        margin-top: 0.35rem;
-        flex: 0 0 auto;
+    .price-field-stack {
+        width: 100%;
+        gap: 0;
+    }
+
+    .price-field-foot {
+        display: none;
     }
 
     .ava-price-field {
-        margin-top: 0.125rem;
+        margin-top: 0;
         min-width: 0;
     }
 }
@@ -2547,91 +2547,94 @@ a.tool-card {
 .enchant-mats {
     display: flex;
     flex-direction: column;
-    gap: var(--spacing-sm);
-    margin: 0 0 var(--spacing-lg);
-    padding: 0;
-    list-style: none;
+    gap: 0.35rem;
+    margin: 0 0 var(--spacing-sm);
+    overflow-x: auto;
 }
 
-.enchant-mat {
+.enchant-mats-meta {
+    margin: 0;
+    font-size: 0.75rem;
+    color: var(--color-text-muted);
+}
+
+.enchant-mats-grid {
+    --enchant-mat-cols: 5;
+    display: grid;
+    grid-template-columns: minmax(2.75rem, auto) repeat(var(--enchant-mat-cols), minmax(5.25rem, 1fr));
+    gap: 0.35rem 0.4rem;
+    align-items: center;
+    min-width: min(100%, 40rem);
+}
+
+.enchant-mat-corner {
+    min-height: 1.25rem;
+}
+
+.enchant-mat-tier-head {
     display: flex;
-    flex-direction: row;
-    align-items: flex-start;
-    gap: var(--spacing-sm);
-    padding: 0.5rem 0.625rem;
-    background-color: var(--color-surface);
-    border: var(--border-width) solid var(--color-border);
-
-    > .item-icon {
-        width: 2rem;
-        height: 2rem;
-        margin-top: 0.125rem;
-        flex: 0 0 auto;
-    }
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font-mono);
+    font-weight: var(--font-weight-semibold);
+    font-size: 0.75rem;
+    color: var(--color-text-muted);
 }
 
-.enchant-mat-text {
+.enchant-mat-kind {
     display: flex;
-    flex-direction: column;
-    flex: 1 1 auto;
-    min-width: 0;
-    gap: 0.125rem;
-}
-
-.enchant-mat-label {
-    font-size: var(--font-size-sm);
-    font-weight: var(--font-weight-medium);
-    line-height: 1.25;
-}
-
-.enchant-mat-meta {
-    font-size: 0.6875rem;
+    align-items: center;
+    font-size: 0.75rem;
+    font-weight: var(--font-weight-semibold);
     color: var(--color-text-muted);
     line-height: 1.2;
 }
 
-.enchant-mat-tiers {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: var(--spacing-xs);
-
-    @media (min-width: 768px) {
-        grid-template-columns: repeat(5, minmax(0, 1fr));
-    }
-}
-
-.enchant-tier-row {
-    display: flex;
-    align-items: center;
-    gap: 0.375rem;
+.enchant-mat {
     min-width: 0;
+    padding: 0;
+    border: 0;
+    background: transparent;
 
-    .enchant-tier-icon {
-        width: 1.5rem;
-        height: 1.5rem;
-        flex: 0 0 auto;
+    .price-field-stack {
+        gap: 0;
+    }
+
+    .price-field-foot {
+        display: none;
+    }
+
+    .price-field-aside {
+        width: 2rem;
+        height: 2rem;
+    }
+
+    .price-field-aside-icon {
+        width: 1.75rem;
+        height: 1.75rem;
+    }
+
+    .price-field-row {
+        align-items: center;
+        gap: 0.4rem;
     }
 }
 
 .enchant-price-field {
     --input-height: var(--input-height-sm);
-    --floating-label-inset: 0.5rem;
-    --floating-label-pad: 0.25rem;
+    --floating-label-inset: 0.45rem;
+    --floating-label-pad: 0.2rem;
     --floating-label-scale: calc(var(--floating-label-float-size) / var(--font-size-sm));
+    margin-top: 0;
     width: 100%;
     min-width: 0;
     max-width: none;
-    margin-top: 0.125rem;
 
     > .form-control {
         font-family: var(--font-family-mono);
-        font-size: var(--font-size-sm);
+        font-size: 0.8125rem;
         font-weight: var(--font-weight-semibold);
         letter-spacing: -0.03em;
-    }
-
-    > label {
-        font-size: var(--font-size-sm);
     }
 }
 
@@ -3544,6 +3547,10 @@ a.tool-card {
 @media (max-width: 991.98px) {
     .royal-mats-grid {
         grid-template-columns: minmax(2.5rem, auto) repeat(var(--royal-mat-cols), minmax(5.25rem, 1fr));
+    }
+
+    .enchant-mats-grid {
+        grid-template-columns: minmax(2.5rem, auto) repeat(var(--enchant-mat-cols), minmax(5.25rem, 1fr));
     }
 }
 

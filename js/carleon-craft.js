@@ -88,7 +88,7 @@ const state = {
 };
 
 function ensureManualMaps() {
-    for (const mat of mats()()) {
+    for (const mat of mats()) {
         if (!(mat.key in state.manualMats)) {
             state.manualMats[mat.key] = null;
         }
@@ -293,7 +293,7 @@ function matMetaText(mat) {
 
 function renderMatStrip() {
     return `
-        <ul class="carleon-mats()">
+        <ul class="carleon-mats">
             ${mats().map((mat) => {
                 const fetched = fetchedMatQuote(mat.key);
                 const value = priceInputValue(state.manualMats[mat.key], fetched?.price);
@@ -311,8 +311,7 @@ function renderMatStrip() {
                                 missing: !fetched,
                                 date: fetched?.date,
                                 dataAttr: `data-mat-price="${escapeHtml(mat.key)}"`,
-                                fieldClass: 'carleon-price-field',
-                                iconId: mat.uniqueName
+                                fieldClass: 'carleon-price-field'
                             })}
                         </span>
                     </li>

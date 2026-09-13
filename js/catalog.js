@@ -328,7 +328,7 @@ export function getRefineFamilies() {
         });
 }
 
-export function getRefineTier() {
+export function getRefineTiers() {
     const map = {};
     for (const row of getAll('refineTiers')) {
         map[Number(row.tier)] = {

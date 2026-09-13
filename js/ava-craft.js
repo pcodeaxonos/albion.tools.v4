@@ -44,6 +44,7 @@ import { getCraftRecipes, cityProductionBonus } from './catalog.js';
 const FAMILY_KEY = 'gathering/tool';
 const CITY_STORAGE_KEY = 'albiontools.v4.avaCraft.city';
 const ENERGY_ID = 'QUESTITEM_TOKEN_AVALON';
+const TIERS = [4, 5, 6, 7, 8];
 
 function cityProduction() {
     return cityProductionBonus();
@@ -100,7 +101,7 @@ const state = {
 };
 
 function ensureManualMaps() {
-    for (const mat of mats()()) {
+    for (const mat of mats()) {
         if (!(mat.key in state.manualMats)) {
             state.manualMats[mat.key] = null;
         }
@@ -378,7 +379,7 @@ function renderEnergyCard() {
     const fetched = fetchedMatQuote(mat.key);
     const value = priceInputValue(state.manualMats[mat.key], fetched?.price);
     return `
-        <ul class="ava-mats() ava-mats()--energy">
+        <ul class="ava-mats ava-mats--energy">
             <li class="ava-mat" data-mat-card="${escapeHtml(mat.key)}">
                 ${itemIconHtml(mat.uniqueName)}
                 <span class="ava-mat-text">
@@ -392,8 +393,7 @@ function renderEnergyCard() {
                         missing: !fetched,
                         date: fetched?.date,
                         dataAttr: `data-mat-price="${escapeHtml(mat.key)}"`,
-                        fieldClass: 'ava-price-field',
-                        iconId: mat.uniqueName
+                        fieldClass: 'ava-price-field'
                     })}
                 </span>
             </li>
@@ -403,7 +403,7 @@ function renderEnergyCard() {
 
 function renderTierMats() {
     return `
-        <ul class="ava-mats() ava-mats()--tiers">
+        <ul class="ava-mats ava-mats--tiers">
             ${TIERS.map((tier) => {
                 const plank = mats().find((mat) => mat.key === `plank-${tier}`);
                 const bar = mats().find((mat) => mat.key === `bar-${tier}`);
@@ -415,7 +415,6 @@ function renderTierMats() {
                             <span class="ava-mat-label">T${tier}</span>
                             <span class="ava-mat-meta">${escapeHtml(priceSideHint(state.matSide, 'buy'))}</span>
                             <span class="ava-tier-row" data-mat-card="${escapeHtml(plank.key)}">
-                                ${itemIconHtml(plank.uniqueName)}
                                 ${priceFieldHtml({
                                     id: `matPrice-${plank.key}`,
                                     label: 'Plank',
@@ -429,7 +428,6 @@ function renderTierMats() {
                                 })}
                             </span>
                             <span class="ava-tier-row" data-mat-card="${escapeHtml(bar.key)}">
-                                ${itemIconHtml(bar.uniqueName)}
                                 ${priceFieldHtml({
                                     id: `matPrice-${bar.key}`,
                                     label: 'Bar',

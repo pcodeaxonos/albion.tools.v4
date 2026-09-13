@@ -112,7 +112,7 @@ const state = {
 };
 
 function ensureManualMaps() {
-    for (const mat of mats()()) {
+    for (const mat of mats()) {
         if (!(mat.key in state.manualMats)) {
             state.manualMats[mat.key] = null;
         }
@@ -383,19 +383,18 @@ function renderBonusNote() {
 function renderTierMats() {
     const tiers = visibleTiers();
     return `
-        <ul class="ava-mats() ava-mats()--furniture">
+        <ul class="ava-mats ava-mats--furniture">
             ${tiers.map((tier) => {
-                const mats() = visibleMats().filter((mat) => mat.tier === tier);
+                const mats = visibleMats().filter((mat) => mat.tier === tier);
                 return `
                     <li class="ava-mat ava-mat--tier">
                         <span class="ava-mat-text">
                             <span class="ava-mat-label">T${tier}</span>
                             <span class="ava-mat-meta">${escapeHtml(priceSideHint(state.matSide, 'buy'))}</span>
-                            ${mats().map((mat) => {
+                            ${mats.map((mat) => {
                                 const fetched = fetchedMatQuote(mat.key);
                                 return `
                                     <span class="ava-tier-row" data-mat-card="${escapeHtml(mat.key)}">
-                                        ${itemIconHtml(mat.uniqueName)}
                                         ${priceFieldHtml({
                                             id: `matPrice-${mat.key}`,
                                             label: mat.short.replace(/^T\d+\s+/, '') || mat.kind,

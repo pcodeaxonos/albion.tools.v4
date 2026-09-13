@@ -3,7 +3,7 @@ import { initNav } from './nav.js';
 import { initFloatingLabels } from './forms.js';
 import { initStore } from './db/store.js';
 import { itemIconHtml, itemLabel, rawStoneId, stoneBlockId } from './item-icon.js';
-import { getBuildings, getRefineTier } from './catalog.js';
+import { getBuildings, getRefineTiers } from './catalog.js';
 import { showPageLoader, hidePageLoader } from './loader.js';
 
 const TIERS = [2, 3, 4, 5, 6, 7, 8];

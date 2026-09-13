@@ -263,39 +263,35 @@ function renderSlotToggle() {
 
 function renderMatStrip() {
     return `
-        <ul class="enchant-mats()">
-            ${steps().map((step) => `
-                <li class="enchant-mat">
-                    ${itemIconHtml(`T4_${step.itemType}`)}
-                    <span class="enchant-mat-text">
-                        <span class="enchant-mat-label">${escapeHtml(step.label)}</span>
-                        <span class="enchant-mat-meta">${escapeHtml(priceSideHint(state.matSide, 'buy'))} · ${escapeHtml(cityLabel(state.city))}</span>
-                        <span class="enchant-mat-tiers">
-                            ${TIERS.map((tier) => {
-                                const key = matKey(step.kind, tier);
-                                const fetched = fetchedMatQuote(key);
-                                return `
-                                    <span class="enchant-tier-row" data-mat-card="${escapeHtml(key)}">
-                                        ${itemIconHtml(`T${tier}_${step.itemType}`, { className: 'item-icon enchant-tier-icon' })}
-                                        ${priceFieldHtml({
-                                            id: `matPrice-${key}`,
-                                            label: `T${tier}`,
-                                            value: priceInputValue(state.manualMats[key], fetched?.price),
-                                            manual: isManualPrice(state.manualMats[key]),
-                                            missing: !fetched,
-                                            date: fetched?.date,
-                                            dataAttr: `data-mat-price="${escapeHtml(key)}"`,
-                                            fieldClass: 'enchant-price-field',
-                                            iconId: `T${tier}_${step.itemType}`
-                                        })}
-                                    </span>
-                                `;
-                            }).join('')}
-                        </span>
-                    </span>
-                </li>
-            `).join('')}
-        </ul>
+        <div class="enchant-mats" id="enchantMats">
+            <p class="enchant-mats-meta">${escapeHtml(priceSideHint(state.matSide, 'buy'))} · ${escapeHtml(cityLabel(state.city))}</p>
+            <div class="enchant-mats-grid" style="--enchant-mat-cols: ${TIERS.length}">
+                <div class="enchant-mat-corner" aria-hidden="true"></div>
+                ${TIERS.map((tier) => `<div class="enchant-mat-tier-head">T${tier}</div>`).join('')}
+                ${steps().map((step) => `
+                    <div class="enchant-mat-kind">${escapeHtml(step.label)}</div>
+                    ${TIERS.map((tier) => {
+                        const key = matKey(step.kind, tier);
+                        const fetched = fetchedMatQuote(key);
+                        return `
+                            <div class="enchant-mat" data-mat-card="${escapeHtml(key)}">
+                                ${priceFieldHtml({
+                                    id: `matPrice-${key}`,
+                                    label: 'Fiyat',
+                                    value: priceInputValue(state.manualMats[key], fetched?.price),
+                                    manual: isManualPrice(state.manualMats[key]),
+                                    missing: !fetched,
+                                    date: fetched?.date,
+                                    dataAttr: `data-mat-price="${escapeHtml(key)}"`,
+                                    fieldClass: 'enchant-price-field royal-price-field',
+                                    iconId: `T${tier}_${step.itemType}`
+                                })}
+                            </div>
+                        `;
+                    }).join('')}
+                `).join('')}
+            </div>
+        </div>
     `;
 }
 
@@ -478,7 +474,7 @@ function renderPage(container) {
         <div class="tool-split">
             <div class="tool-split-controls">
                 <div class="enchant-toolbar">
-                    <div class="enchant-type enchant-slots()" role="radiogroup" aria-label="Slot">
+                    <div class="enchant-type enchant-slots" role="radiogroup" aria-label="Slot">
                         ${renderSlotToggle()}
                     </div>
                     <div class="enchant-side-field">
