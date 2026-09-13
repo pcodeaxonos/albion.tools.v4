@@ -43,7 +43,8 @@ import {
     plotTypeLabel,
     livestockFeed,
     livestockFeedPasture,
-    factionMountForCity
+    factionMountForCity,
+    ledgerGroupLabel
 } from './island-economy.js';
 
 const CITY_STORAGE_KEY = 'albiontools.v4.island-planner.islandCity';
@@ -200,6 +201,17 @@ function formatHours(hours) {
     return `${days} gün`;
 }
 
+function formatFarms(value) {
+    if (!Number.isFinite(value)) {
+        return '—';
+    }
+    return value.toLocaleString('tr-TR', { maximumFractionDigits: 2 });
+}
+
+function planActivityIds() {
+    return new Set((state.plan?.slots || []).map((slot) => slot.activityId).filter(Boolean));
+}
+
 function recommendedLabel(plan) {
     if (plan?.recommended === 'chain') {
         return 'Zincir';
@@ -218,6 +230,10 @@ function explainKeyForSlot(slot, start) {
     return `${slot.activityId || slot.label}|${slot.role || 'cash'}|${start}`;
 }
 
+function ledgerExplainKey(row) {
+    return `ledger|${row.id}`;
+}
+
 function collectExplainRows() {
     const plan = state.plan;
     const rows = [];
@@ -229,6 +245,14 @@ function collectExplainRows() {
                 count: group.count
             });
         }
+    }
+    for (const row of plan?.ledger || []) {
+        rows.push({
+            key: ledgerExplainKey(row),
+            slot: row,
+            count: 1,
+            ledger: true
+        });
     }
     for (const row of plan?.runnersUp || []) {
         rows.push({
@@ -630,6 +654,127 @@ function renderSlotsTable() {
     `;
 }
 
+function renderMissingFlags(missing) {
+    if (!missing?.length) {
+        return '<span class="island-ledger-ok">fiyat tam</span>';
+    }
+    return missing.map((label) => (
+        `<span class="farming-bonus island-planner-tag island-ledger-missing">${escapeHtml(label)}</span>`
+    )).join('');
+}
+
+function renderLedgerDayCell(row) {
+    const opp = row.opportunity;
+    const dayClass = Number.isFinite(row.perDay)
+        ? (row.perDay > 0 ? ' is-profit' : row.perDay < 0 ? ' is-loss' : '')
+        : ' is-missing';
+    return `
+        <span class="island-planner-day farming-num${dayClass}">${formatSilver(row.perDay, { signed: true })}</span>
+        ${row.feedMode === 'island' ? `
+            <span class="island-planner-day-stable">tohum · pasture</span>
+            ${Number.isFinite(opp?.chainAvgPerDay) ? `
+                <span class="island-ledger-chain">zincir ${formatSilver(opp.chainAvgPerDay, { signed: true })}/plot</span>
+            ` : ''}
+            ${Number.isFinite(opp?.farmsPerPasture) ? `
+                <span class="island-ledger-opp">+${escapeHtml(formatFarms(opp.farmsPerPasture))} farm ${escapeHtml(opp.feedCropLabel || '')}</span>
+            ` : ''}
+            ${Number.isFinite(opp?.oppCostPerDay) ? `
+                <span class="island-ledger-opp">fırsat ${formatSilver(opp.oppCostPerDay)}/gün</span>
+            ` : ''}
+        ` : ''}
+    `;
+}
+
+function renderLedger() {
+    const list = state.plan?.ledger;
+    const chosen = planActivityIds();
+    const head = `
+        <thead>
+            <tr>
+                <th>Grup</th>
+                <th>Ad</th>
+                <th class="island-planner-col-path">Path</th>
+                <th class="island-planner-col-type">Plot</th>
+                <th class="num">Maliyet</th>
+                <th class="num">Gelir</th>
+                <th class="num">Kâr</th>
+                <th class="num island-planner-col-day">ham gümüş/gün</th>
+                <th>Eksik fiyat</th>
+                <th>Neden</th>
+            </tr>
+        </thead>
+    `;
+    if (!list?.length) {
+        return `
+            <h2 class="island-planner-subhead">Aday defteri</h2>
+            <p class="farming-note">Plan hesaplanınca tüm ekin / ot / hayvan path’leri burada görünür.</p>
+            <div class="table-responsive calc-table-wrap">
+                <table class="table table-striped farming-table island-planner-table island-ledger-table calc-table">
+                    ${head}
+                    <tbody>
+                        <tr><td colspan="10">Henüz aday yok.</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        `;
+    }
+
+    const rows = list.map((row) => {
+        const profitClass = Number.isFinite(row.profit)
+            ? (row.profit > 0 ? ' is-profit' : row.profit < 0 ? ' is-loss' : '')
+            : (row.missing?.length ? ' is-missing' : '');
+        const inPlan = chosen.has(row.activityId);
+        const typeLabel = plotTypeLabel(row.plotType);
+        return `
+            <tr data-explain-key="${escapeHtml(ledgerExplainKey(row))}"${inPlan ? ' class="is-in-plan"' : ''}${row.missing?.length ? ' data-missing="1"' : ''}>
+                <td>
+                    <span class="island-planner-type island-planner-type--${escapeHtml(row.plotType)}">${escapeHtml(row.groupLabel || ledgerGroupLabel(row.group))}</span>
+                    ${inPlan ? '<span class="farming-bonus island-planner-tag">planda</span>' : ''}
+                </td>
+                <td>
+                    <span class="farming-item">
+                        ${row.iconId ? itemIconHtml(row.iconId, { className: 'item-icon' }) : ''}
+                        <span>
+                            <span class="farming-item-name">${escapeHtml(row.name)}</span>
+                            ${row.feedLabel ? `<span class="farming-item-meta">${escapeHtml(row.feedLabel)}</span>` : ''}
+                        </span>
+                    </span>
+                </td>
+                <td class="island-planner-col-path">${escapeHtml(row.pathLabel || '—')}</td>
+                <td class="island-planner-col-type">
+                    <span class="island-planner-type island-planner-type--${escapeHtml(row.plotType)}">${escapeHtml(typeLabel)}</span>
+                </td>
+                <td class="num farming-num${row.missing?.length && !Number.isFinite(row.cost) ? ' is-missing' : ''}">${formatSilver(row.cost)}</td>
+                <td class="num farming-num">${formatSilver(row.revenue)}</td>
+                <td class="num farming-num${profitClass}">${formatSilver(row.profit, { signed: true })}</td>
+                <td class="num island-planner-col-day">${renderLedgerDayCell(row)}</td>
+                <td>${renderMissingFlags(row.missing)}</td>
+                <td class="island-ledger-why">${escapeHtml(row.why || '—')}</td>
+            </tr>
+        `;
+    }).join('');
+
+    return `
+        <h2 class="island-planner-subhead">Aday defteri</h2>
+        <p class="farming-note">
+            Tüm ada çıktıları (ekin/ot satışı; hayvan büyüt / kes / besle; pazar ve ada yemi).
+            Sıra ham gümüş/gün (plot başına, önericinin skoru). Zarar ve eksik fiyat gizlenmez.
+            Ada yemi satırında büyük rakam tohum maliyetli pasture-only’dir; zincir/fırsat yem plotunun satılmadığını gösterir.
+            Satıra tıklayınca formül açılır.
+        </p>
+        <div class="table-responsive calc-table-wrap">
+            <table class="table table-striped farming-table island-planner-table island-ledger-table calc-table" data-island-explain-table="ledger">
+                ${head}
+                <tbody>${rows}</tbody>
+            </table>
+        </div>
+        <p class="farming-note island-planner-note">
+            Ham gümüş/gün sıralaması önericiyle aynı metriktir; ada yemi satırı “en yüksek pasture” olabilir diye zinciri kazanmaz.
+            Cow + ada yemi vs burdock karşılaştırması: burdock satırına ve ineğin pazar / ada yemi path’lerine bakın.
+        </p>
+    `;
+}
+
 function renderRunnersUp() {
     const list = state.plan?.runnersUp;
     if (!list?.length) {
@@ -695,9 +840,17 @@ function renderPlannerExplain(key, { hovered } = {}) {
     const slot = found.slot;
     const ex = slot.explain;
     const tax = salesTaxRate(state.premium);
+    const opp = slot.opportunity || ex.opportunity;
     const chips = explainChips([
         ...(ex.chips || []),
-        found.runner ? { label: 'aday', html: '<span class="calc-explain-n">alternatif</span>' } : { label: `${found.count}× plot`, tone: 'qty', value: found.count, kind: 'qty' },
+        found.ledger ? { label: 'defter', html: '<span class="calc-explain-n">aday</span>' } : null,
+        found.runner ? { label: 'aday', html: '<span class="calc-explain-n">alternatif</span>' } : null,
+        !found.ledger && !found.runner
+            ? { label: `${found.count}× plot`, tone: 'qty', value: found.count, kind: 'qty' }
+            : null,
+        slot.missing?.length
+            ? { label: 'eksik fiyat', html: `<span class="calc-explain-n is-loss">${escapeHtml(slot.missing.join(', '))}</span>` }
+            : null,
         slotIsThin(slot) ? { label: 'ince pazar', html: '<span class="calc-explain-n is-loss">uyarı</span>' } : null,
         slot.lowLiquidity && !slotIsThin(slot) ? { label: 'satış zor', html: '<span class="calc-explain-n is-loss">uyarı</span>' } : null
     ].filter(Boolean));
@@ -921,6 +1074,56 @@ function renderPlannerExplain(key, { hovered } = {}) {
         lines: saleLines
     });
 
+    if (opp) {
+        groups.push({
+            title: 'Fırsat maliyeti (ada yemi)',
+            tone: 'rr',
+            lines: [
+                explainStep({
+                    label: 'Pasture-only',
+                    note: 'Tohum maliyetli yem · yalnızca hayvan plotu. Ada optimumu bu değil.',
+                    result: opp.seedOnlyPerDay ?? slot.perDay,
+                    resultKind: 'profit',
+                    resultCap: 'ham/gün',
+                    signed: true
+                }),
+                explainStep({
+                    label: 'Yem farm',
+                    note: `${opp.feedCropLabel || 'yem'} · 1 pasture için ~${formatFarms(opp.farmsPerPasture)} farm plot`,
+                    formula: [
+                        explainNum(opp.farmsPerPasture, { kind: 'qty', cap: 'farm/pasture' })
+                    ]
+                }),
+                explainStep({
+                    label: 'Fırsat',
+                    note: 'O farm plotlar ekin olarak satılsaydı (plot × ham/gün)',
+                    formula: [
+                        explainNum(opp.farmsPerPasture, { kind: 'qty', cap: 'farm' }),
+                        explainOp('×'),
+                        explainNum(opp.cropSellPerDay, { tone: 'profit', cap: 'ekin/gün', signed: true })
+                    ],
+                    result: opp.oppCostPerDay,
+                    resultKind: 'profit',
+                    resultCap: 'fırsat/gün',
+                    signed: true
+                }),
+                explainStep({
+                    label: 'Zincir ortalama',
+                    note: 'Pasture ham/gün ÷ (1 + farm/pasture). Burdock gibi tek-plot satırla bunu karşılaştırın.',
+                    formula: [
+                        explainNum(opp.seedOnlyPerDay ?? slot.perDay, { tone: 'profit', cap: 'pasture', signed: true }),
+                        explainOp('/'),
+                        explainNum(opp.chainPlots, { kind: 'qty', cap: 'plot' })
+                    ],
+                    result: opp.chainAvgPerDay,
+                    resultKind: 'profit',
+                    resultCap: 'zincir/plot',
+                    signed: true
+                })
+            ]
+        });
+    }
+
     groups.push({
         title: 'Ham gümüş/gün',
         tone: 'point',
@@ -1023,30 +1226,33 @@ function bindPlannerExplain(container) {
         render: (key, meta) => renderPlannerExplain(key, meta)
     });
 
-    const runners = container.querySelector('[data-island-explain-table="runners"]');
-    if (!runners || runners.dataset.explainBound === 'on') {
-        return;
-    }
-    runners.dataset.explainBound = 'on';
-    const paintKey = (key) => {
+    const extraTables = [...container.querySelectorAll('[data-island-explain-table="ledger"], [data-island-explain-table="runners"]')];
+    const paintKey = (key, source) => {
         if (!key) {
             return;
         }
-        const sessionTable = table;
-        sessionTable.querySelectorAll('tbody tr').forEach((tr) => {
+        table.querySelectorAll('tbody tr').forEach((tr) => {
             tr.classList.toggle('is-explain', false);
             tr.classList.toggle('is-explain-hover', false);
         });
-        panel.innerHTML = renderPlannerExplain(key, { hovered: false });
-        runners.querySelectorAll('tbody tr').forEach((tr) => {
-            tr.classList.toggle('is-explain', tr.dataset.explainKey === key);
+        extraTables.forEach((extra) => {
+            extra.querySelectorAll('tbody tr').forEach((tr) => {
+                tr.classList.toggle('is-explain', extra === source && tr.dataset.explainKey === key);
+            });
         });
+        panel.innerHTML = renderPlannerExplain(key, { hovered: false });
     };
-    runners.addEventListener('click', (event) => {
-        const tr = event.target instanceof Element ? event.target.closest('tbody tr') : null;
-        if (tr?.dataset.explainKey) {
-            paintKey(tr.dataset.explainKey);
+    extraTables.forEach((extra) => {
+        if (extra.dataset.explainBound === 'on') {
+            return;
         }
+        extra.dataset.explainBound = 'on';
+        extra.addEventListener('click', (event) => {
+            const tr = event.target instanceof Element ? event.target.closest('tbody tr') : null;
+            if (tr?.dataset.explainKey) {
+                paintKey(tr.dataset.explainKey, extra);
+            }
+        });
     });
 }
 
@@ -1063,6 +1269,7 @@ function renderOutput() {
         <div id="islandPlannerResult">
             ${renderSummary()}
             ${renderSlotsTable()}
+            ${renderLedger()}
             ${calcExplainShell('islandPlannerExplain')}
             ${renderCityCompare()}
             ${renderRunnersUp()}
@@ -1159,7 +1366,7 @@ function renderPage(container) {
     container.innerHTML = `
         <section class="farming-hero">
             <h1>Ada Planlayıcı</h1>
-            <p>Ada plotlarını <strong>ham gümüş/gün</strong> (zaman-normalize kâr) için planlar. Likidite ve volatilite yalnızca uyarıdır; ince pazar elenmez. Faction plot kilidi isteğe bağlı.</p>
+            <p>Ada plotlarını <strong>ham gümüş/gün</strong> (zaman-normalize kâr) için planlar. Aday defteri her path’in maliyet / gelir / kârını ve ada yemi fırsat maliyetini canlı gösterir. Likidite ve volatilite yalnızca uyarıdır; ince pazar elenmez.</p>
         </section>
 
         <div class="tool-split">

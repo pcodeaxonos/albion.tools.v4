@@ -2276,6 +2276,57 @@ a.tool-card {
     line-height: 1.35;
 }
 
+.island-ledger-table {
+    tbody tr.is-in-plan {
+        box-shadow: inset 3px 0 0 var(--color-primary);
+    }
+
+    tbody tr[data-missing="1"] td {
+        background: color-mix(in srgb, var(--color-danger) 6%, transparent);
+    }
+
+    .island-planner-col-day {
+        min-width: 9.5rem;
+        white-space: normal;
+    }
+}
+
+.island-ledger-ok {
+    color: var(--color-text-muted);
+    font-size: 0.75rem;
+}
+
+.island-ledger-missing {
+    border-color: color-mix(in srgb, var(--color-danger) 45%, var(--color-border));
+    color: #ffb4b5;
+}
+
+.island-ledger-chain,
+.island-ledger-opp {
+    display: block;
+    margin-top: 0.15rem;
+    font-size: 0.6875rem;
+    line-height: 1.3;
+    white-space: normal;
+}
+
+.island-ledger-chain {
+    color: var(--color-text);
+    font-weight: var(--font-weight-semibold);
+}
+
+.island-ledger-opp {
+    color: var(--color-text-muted);
+}
+
+.island-ledger-why {
+    max-width: 22rem;
+    color: var(--color-text-muted);
+    font-size: 0.75rem;
+    line-height: 1.35;
+    white-space: normal;
+}
+
 .carleon-mats,
 .ava-mats {
     display: grid;
