@@ -40,6 +40,16 @@
     "appliesRr": true
   },
   {
+    "id": 11,
+    "key": "block",
+    "stem": "STONEBLOCK",
+    "itemId": 1076,
+    "label": "Block",
+    "matGroup": "craft",
+    "sortValue": 50,
+    "appliesRr": true
+  },
+  {
     "id": 5,
     "key": "odun",
     "stem": "WOOD",
@@ -98,15 +108,5 @@
     "matGroup": "other",
     "sortValue": 200,
     "appliesRr": false
-  },
-  {
-    "id": 11,
-    "key": "block",
-    "stem": "STONEBLOCK",
-    "itemId": 1076,
-    "label": "Block",
-    "matGroup": "craft",
-    "sortValue": 50,
-    "appliesRr": true
   }
 ]

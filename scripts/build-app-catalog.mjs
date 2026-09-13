@@ -101,7 +101,8 @@ const siteTools = [
     { id: 9, code: 'house', title: 'House', description: 'Ev ve guild hall yükseltme: oyunun istediği T1 + block, isteğe bağlı ham eşdeğer.', icon: '🏠', href: 'house.html', addedAt: '2026-07-01', groupLabel: 'Üretim', frequent: false, sortValue: 90, isActive: true },
     { id: 10, code: 'ava-craft', title: 'Ava Craft', description: 'Avalonian tool craft maliyeti ve kârı.', icon: '⚡', href: 'ava-craft.html', addedAt: '2026-07-20', groupLabel: 'Üretim', frequent: false, sortValue: 100, isActive: true },
     { id: 11, code: 'carleon-craft', title: 'Caerleon Craft', description: 'Caerleon / Black Market craft maliyeti ve kârı.', icon: '🗡️', href: 'carleon-craft.html', addedAt: '2026-08-15', groupLabel: 'Üretim', frequent: false, sortValue: 110, isActive: true },
-    { id: 12, code: 'enchantin', title: 'Enchanting', description: 'Rune, soul ve relic: kaçtan kaça çıkarmanın gümüş maliyeti.', icon: '🔮', href: 'enchanting.html', addedAt: '2026-08-23', groupLabel: 'Üretim', frequent: false, sortValue: 120, isActive: true }
+    { id: 12, code: 'royal-craft', title: 'Royal Crafting', description: 'Royal giyilebilir: SET + sigil craft, enchant ve şehir kârı.', icon: '👑', href: 'royal-craft.html', addedAt: '2026-09-13', groupLabel: 'Üretim', frequent: true, sortValue: 115, isActive: true },
+    { id: 13, code: 'enchantin', title: 'Enchanting', description: 'Rune, soul ve relic: kaçtan kaça çıkarmanın gümüş maliyeti.', icon: '🔮', href: 'enchanting.html', addedAt: '2026-08-23', groupLabel: 'Üretim', frequent: false, sortValue: 120, isActive: true }
 ];
 
 const sitePages = [

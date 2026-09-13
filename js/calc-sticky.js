@@ -79,6 +79,12 @@ export function bindCalcSticky(root, toolbar = root?.querySelector('[data-calc-t
         applyToolbarHeight(root, toolbar);
 
         root.querySelectorAll('.calc-table').forEach((table) => {
+            const thead = table.tHead;
+            const theadHeight = thead ? Math.ceil(thead.getBoundingClientRect().height) : 0;
+            table.style.setProperty(
+                '--calc-thead-height',
+                `${Math.max(theadHeight, 1)}px`
+            );
             const sentinel = ensureSentinel(table, 'data-calc-thead-sentinel');
             pinObservers.push(observePinned(sentinel, table, scrollRoot, chromeTop + toolbarHeight));
         });

@@ -1,7 +1,7 @@
 import { escapeHtml } from './utils.js';
 import { getItemLocalizedName, getItemByUniqueName } from './db/relations.js';
 
-const ICON_BASE = 'https://render.albiononline.com/v1/item';
+const ICON_BASE = './icons';
 const DEFAULT_SIZE = 64;
 
 /** Label from items table (localizedName). No duplicate map. */
@@ -12,9 +12,8 @@ export function itemLabel(uniqueName, fallback = uniqueName) {
     return getItemLocalizedName(uniqueName, fallback || uniqueName);
 }
 
-export function itemIconUrl(uniqueName, size = DEFAULT_SIZE) {
-    const safeSize = Number.isFinite(size) ? Math.min(217, Math.max(1, Math.round(size))) : DEFAULT_SIZE;
-    return `${ICON_BASE}/${encodeURIComponent(uniqueName)}.png?size=${safeSize}`;
+export function itemIconUrl(uniqueName, _size = DEFAULT_SIZE) {
+    return `${ICON_BASE}/${encodeURIComponent(uniqueName)}.png`;
 }
 
 export function stoneBlockId(tier) {

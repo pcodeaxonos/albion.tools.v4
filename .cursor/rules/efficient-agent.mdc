@@ -1,0 +1,32 @@
+---
+alwaysApply: true
+---
+
+
+Work efficiently and minimize unnecessary token/context usage without sacrificing correctness.
+
+General behavior:
+- Start with the smallest amount of context needed for the task.
+- Inspect only files that are likely relevant.
+- Prefer targeted searches over broad codebase scans.
+- Do not re-read unchanged files unless necessary.
+- Reuse information already available in the conversation/context.
+- Keep explanations concise unless more detail is useful.
+
+Important:
+- Do NOT avoid searching, reading additional files, builds, tests, or debugging when they are genuinely needed for correctness.
+- If the initial context is insufficient or there is uncertainty, expand the investigation as needed.
+- Prefer one focused investigation over repeated trial-and-error edits.
+- Before changing code, understand the relevant flow well enough to avoid speculative fixes.
+- After making a change, verify it when verification is reasonably useful.
+- Do not make unrelated refactors or formatting changes.
+
+Tool usage:
+- Use targeted file reads/searches first.
+- Avoid scanning the entire repository unless the task requires architectural or cross-cutting understanding.
+- Run the narrowest useful build/test first; expand only if needed.
+- Avoid repeating commands whose result is already known and still valid.
+
+Priority:
+Correctness > avoiding tokens.
+Efficiency > unnecessary exploration.

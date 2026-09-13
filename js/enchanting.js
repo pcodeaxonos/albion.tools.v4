@@ -1,7 +1,7 @@
 ﻿import { escapeHtml } from './utils.js';
 import { initNav } from './nav.js';
 import { initStore } from './db/store.js';
-import { getSettings, enchantPowerCombos, normalizeEnchantPower } from './settings.js';
+import { getSettings, getStandardCombos, getDefaultCity } from './settings.js';
 import { fetchPrices, indexPrices, cityRow, priceRefreshActionsHtml, bindPriceRefresh, priceLoaderMessage, applyPriceLoadMode } from './market.js';
 import { itemIconHtml } from './item-icon.js';
 import { showPageLoader, hidePageLoader } from './loader.js';
@@ -63,40 +63,41 @@ function ensureManualMaps() {
     }
 }
 
-function standardHighlightNote(power) {
-    const target = normalizeEnchantPower(power);
-    const combos = enchantPowerCombos(target)
+function standardHighlightNote() {
+    const combos = getStandardCombos()
         .map((combo) => `${combo.tier}.${combo.enchant}`)
         .join(' · ');
-    return combos ? `${target} ayar (${combos})` : `${target} ayar`;
+    return combos ? `Standart (${combos})` : 'Standart (boş)';
 }
 
-function isStandardCell(tier, path, power) {
-    return path.to >= 1 && path.to <= 3 && tier + path.to === power;
+function isStandardCell(tier, path) {
+    if (path.to < 1 || path.to > 3) {
+        return false;
+    }
+    return getStandardCombos().some((combo) => combo.tier === tier && combo.enchant === path.to);
 }
 
-function isMainStandardCell(tier, path, power) {
-    return isStandardCell(tier, path, power) && path.from === 0;
+function isMainStandardCell(tier, path) {
+    return isStandardCell(tier, path) && path.from === 0;
 }
 
-function standardCellClass(tier, path, power) {
-    if (!isStandardCell(tier, path, power)) {
+function standardCellClass(tier, path) {
+    if (!isStandardCell(tier, path)) {
         return '';
     }
-    return isMainStandardCell(tier, path, power) ? ' is-standard is-main' : ' is-standard';
+    return isMainStandardCell(tier, path) ? ' is-standard is-main' : ' is-standard';
 }
 
 const state = {
     matSide: 'buy',
-    city: 'Bridgewatch',
+    city: getDefaultCity(),
     cities: [],
     slot: 'armor',
     priceIndex: null,
     manualMats: {},
     error: null,
     loaded: false,
-    sort: { key: 'way', direction: 'asc' },
-    enchantPower: 7
+    sort: { key: 'way', direction: 'asc' }
 };
 
 function currentSlot() {
@@ -142,7 +143,11 @@ function readSavedCity(cities) {
     } catch {
         /* ignore */
     }
-    return cities[0]?.marketApiName ?? 'Bridgewatch';
+    const preferred = getDefaultCity();
+    if (cities.some((city) => city.marketApiName === preferred)) {
+        return preferred;
+    }
+    return cities[0]?.marketApiName ?? preferred;
 }
 
 function saveCity(apiName) {
@@ -302,7 +307,7 @@ function renderMatStrip() {
 
 function renderTable() {
     const slot = currentSlot();
-    const power = state.enchantPower;
+    const standards = getStandardCombos();
     const body = pathRows().map((row) => `
         <tr data-path="${row.index}" class="enchant-path enchant-path--${escapeHtml(row.path.tone)}">
             <td data-sort-value="${row.index}">
@@ -310,7 +315,7 @@ function renderTable() {
                 <span class="enchant-item-meta">${escapeHtml(slot.label)} · ${slot.qty}</span>
             </td>
             ${TIERS.map((tier) => `
-                <td class="num enchant-num${standardCellClass(tier, row.path, power)}${incompleteClass(row.costs[tier])}" data-sort-value="${row.costs[tier] ?? ''}">${formatSilver(row.costs[tier])}</td>
+                <td class="num enchant-num${standardCellClass(tier, row.path)}${incompleteClass(row.costs[tier])}" data-sort-value="${row.costs[tier] ?? ''}">${formatSilver(row.costs[tier])}</td>
             `).join('')}
         </tr>
     `).join('');
@@ -325,16 +330,18 @@ function renderTable() {
                     <tr>
                         ${sortHeaderHtml('Yol', { key: 'way', type: 'number', direction: dir('way'), title: 'Enchant adımı (başlangıç → hedef)' })}
                         ${TIERS.map((tier) => {
-                            const enchant = power - tier;
-                            const marked = enchant >= 1 && enchant <= 3;
-                            const heading = marked ? `T${tier}.${enchant}` : `T${tier}`;
+                            const hits = standards.filter((combo) => combo.tier === tier);
+                            const marked = hits.length > 0;
+                            const heading = marked
+                                ? hits.map((combo) => `T${tier}.${combo.enchant}`).join(' · ')
+                                : `T${tier}`;
                             return sortHeaderHtml(heading, {
                                 key: `t${tier}`,
                                 type: 'number',
                                 className: `num enchant-num${marked ? ' is-standard-col' : ''}`,
                                 direction: dir(`t${tier}`),
                                 title: marked
-                                    ? `Hedef güç ${heading} için bu yolun malzeme maliyeti`
+                                    ? `Standart hedef: ${heading}`
                                     : `T${tier} eşyayı bu yolla enchant etmenin maliyeti`
                             });
                         }).join('')}
@@ -375,7 +382,7 @@ function renderOutput() {
             ${renderMatStrip()}
             ${renderTable()}
             <p class="enchant-note">${slot.qty} rune / soul / relic · ${escapeHtml(cityLabel(state.city))} ${escapeHtml(hint)}${stamp ? ` · ${stamp}` : ''}. Elle yazılan malzeme fiyatı API’nin yerine geçer. Kırmızı fiyat API’de yok; mavi 6 saatten eski.</p>
-            <p class="enchant-standard-note">Vurgu: ${escapeHtml(standardHighlightNote(state.enchantPower))}. 0 → hedef yolları daha koyu. <a href="settings.html">Ayarlardan değiştir</a></p>
+            <p class="enchant-standard-note">Vurgu: ${escapeHtml(standardHighlightNote())}. 0 → hedef yolları daha koyu. <a href="settings.html">Ayarlardan değiştir</a></p>
         </div>
     `;
 }
@@ -399,7 +406,7 @@ function patchRowCells(tr, row) {
     TIERS.forEach((tier, index) => {
         const cell = tr.cells[index + 1];
         cell.dataset.sortValue = row.costs[tier] ?? '';
-        cell.className = `num enchant-num${standardCellClass(tier, row.path, state.enchantPower)}${incompleteClass(row.costs[tier])}`;
+        cell.className = `num enchant-num${standardCellClass(tier, row.path)}${incompleteClass(row.costs[tier])}`;
         cell.textContent = formatSilver(row.costs[tier]);
     });
 }
@@ -471,7 +478,7 @@ function renderPage(container) {
     container.innerHTML = `
         <section class="enchant-hero">
             <h1>Enchanting</h1>
-            <p>Seçilen slot’u kaçtan kaça çıkarmanın gümüş maliyeti. Excel tablosu: yol × T4–T8. Standart ayar (4.3 / 5.2 / 6.1 gibi) vurgulanır; Ayarlar’dan değişir. Fiyatlar şehirden; boşsa elle yazın.</p>
+            <p>Seçilen slot’u kaçtan kaça çıkarmanın gümüş maliyeti. Excel tablosu: yol × T4–T8. Standart ayar (4.3 / 5.2 / 6.1 gibi) vurgulanır; sıra Ayarlar’dan değişir ve Royal Crafting’de de kullanılır. Fiyatlar şehirden; boşsa elle yazın.</p>
         </section>
 
         <div class="tool-split">
@@ -580,7 +587,6 @@ async function init() {
 
     const settings = getSettings();
     state.matSide = settings.buyPriceSide;
-    state.enchantPower = normalizeEnchantPower(settings.enchantPower);
 
     showPageLoader('Enchanting yükleniyor…');
     try {

@@ -844,6 +844,11 @@ input[type="month"].form-control {
         text-transform: uppercase;
     }
 
+    th:has(.table-sort-btn) {
+        cursor: pointer;
+        user-select: none;
+    }
+
     .table-sort-btn {
         display: grid;
         grid-template-columns: minmax(0, 1fr) auto;

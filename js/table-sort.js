@@ -167,13 +167,11 @@ export function initTableSort(table, options = {}) {
     const headerRow = table.tHead.rows[0];
 
     headerRow.addEventListener('click', (event) => {
-        const button = event.target.closest('.table-sort-btn');
-        if (!button) {
+        const th = event.target.closest('th');
+        if (!th || !headerRow.contains(th) || th.dataset.sort === 'false') {
             return;
         }
-
-        const th = button.closest('th');
-        if (!th || th.dataset.sort === 'false') {
+        if (!th.querySelector('.table-sort-btn')) {
             return;
         }
 

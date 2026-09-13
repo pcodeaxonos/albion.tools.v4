@@ -45,6 +45,7 @@ const materialKeys = [
     { id: 2, key: 'bar', stem: 'METALBAR', itemId: itemId('T4_METALBAR'), label: 'Bar', matGroup: 'craft', sortValue: 10, appliesRr: true },
     { id: 3, key: 'leather', stem: 'LEATHER', itemId: itemId('T4_LEATHER'), label: 'Leather', matGroup: 'craft', sortValue: 40, appliesRr: true },
     { id: 4, key: 'cloth', stem: 'CLOTH', itemId: itemId('T4_CLOTH'), label: 'Cloth', matGroup: 'craft', sortValue: 30, appliesRr: true },
+    { id: 11, key: 'block', stem: 'STONEBLOCK', itemId: itemId('T4_STONEBLOCK'), label: 'Block', matGroup: 'craft', sortValue: 50, appliesRr: true },
     { id: 5, key: 'odun', stem: 'WOOD', itemId: itemId('T4_WOOD'), label: 'Wood', matGroup: 'refine', sortValue: 120, appliesRr: true },
     { id: 6, key: 'fiber', stem: 'FIBER', itemId: itemId('T4_FIBER'), label: 'Fiber', matGroup: 'refine', sortValue: 110, appliesRr: true },
     { id: 7, key: 'taş', stem: 'ROCK', itemId: itemId('T4_ROCK'), label: 'Stone', matGroup: 'refine', sortValue: 140, appliesRr: true },
@@ -211,6 +212,81 @@ for (const faction of FACTIONS) {
                 { inputUniqueName: `T${tier}_CAPEITEM_FW_${faction.stem}_BP`, qty: 1, appliesRr: true, sortValue: 2 }
             ]
         });
+    }
+}
+
+// —— Royal armor (SET1 + royal sigil → royal gear @0) ——
+const ROYAL_SLOTS = [
+    { slot: 'HEAD', kindSlot: 'head', familySuffix: 'helmet', sigilProfile: 'light' },
+    { slot: 'ARMOR', kindSlot: 'armor', familySuffix: 'armor', sigilProfile: 'armor' },
+    { slot: 'SHOES', kindSlot: 'shoes', familySuffix: 'shoes', sigilProfile: 'light' }
+];
+
+const ROYAL_TYPES = [
+    { type: 'PLATE', kindType: 'plate', familyPrefix: 'plate' },
+    { type: 'LEATHER', kindType: 'leather', familyPrefix: 'leather' },
+    { type: 'CLOTH', kindType: 'cloth', familyPrefix: 'cloth' }
+];
+
+function royalSigilQty(profile, tier) {
+    if (profile === 'armor') {
+        if (tier <= 4) {
+            return 2;
+        }
+        if (tier === 5) {
+            return 8;
+        }
+        return 16;
+    }
+    if (tier <= 4) {
+        return 2;
+    }
+    if (tier === 5) {
+        return 4;
+    }
+    return 8;
+}
+
+function royalFamilyKey(type, slot) {
+    if (slot.kindSlot === 'head') {
+        return `head/${type.familyPrefix}_helmet`;
+    }
+    if (slot.kindSlot === 'armor') {
+        return `armors/${type.familyPrefix}_armor`;
+    }
+    return `shoes/${type.familyPrefix}_shoes`;
+}
+
+let royalSort = 5000;
+for (const type of ROYAL_TYPES) {
+    for (const slot of ROYAL_SLOTS) {
+        for (const tier of [4, 5, 6, 7, 8]) {
+            const kind = `${type.kindType}-${slot.kindSlot}`;
+            addRecipe({
+                code: `royal-${kind}-t${tier}`,
+                tool: 'royal',
+                uniqueName: `T${tier}_${slot.slot}_${type.type}_ROYAL`,
+                kind,
+                tier,
+                familyKey: royalFamilyKey(type, slot),
+                sortValue: royalSort++,
+                lines: [
+                    {
+                        inputUniqueName: `T${tier}_${slot.slot}_${type.type}_SET1`,
+                        qty: 1,
+                        // Royal craft itself has no RR; SET RR is only when crafting SET from mats.
+                        appliesRr: false,
+                        sortValue: 1
+                    },
+                    {
+                        inputUniqueName: `QUESTITEM_TOKEN_ROYAL_T${tier}`,
+                        qty: royalSigilQty(slot.sigilProfile, tier),
+                        appliesRr: false,
+                        sortValue: 2
+                    }
+                ]
+            });
+        }
     }
 }
 

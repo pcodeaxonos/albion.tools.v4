@@ -1,7 +1,7 @@
 import { escapeHtml } from './utils.js';
 import { initNav } from './nav.js';
 import { initStore } from './db/store.js';
-import { getSettings, cityHasIsland } from './settings.js';
+import { getSettings, cityHasIsland, getDefaultCity } from './settings.js';
 import {
     fetchPrices,
     indexPrices,
@@ -36,8 +36,8 @@ const state = {
     focus: false,
     islandLevel: 6,
     plotsOverride: null,
-    islandCity: 'Martlock',
-    sellCity: 'Martlock',
+    islandCity: getDefaultCity(),
+    sellCity: getDefaultCity(),
     buySide: 'buy',
     sellSide: 'sell',
     cities: [],
@@ -100,10 +100,11 @@ function readSavedCity(key, cities, fallback) {
     } catch {
         /* ignore */
     }
-    if (cities.some((city) => city.marketApiName === fallback)) {
-        return fallback;
+    const preferred = fallback || getDefaultCity();
+    if (cities.some((city) => city.marketApiName === preferred)) {
+        return preferred;
     }
-    return cities[0]?.marketApiName ?? 'Martlock';
+    return cities[0]?.marketApiName ?? preferred;
 }
 
 function saveCity(key, apiName) {
@@ -760,7 +761,7 @@ async function init() {
     try {
         await initStore();
         state.cities = await loadActiveCities();
-        state.islandCity = readSavedCity(CITY_STORAGE_KEY, state.cities, 'Martlock');
+        state.islandCity = readSavedCity(CITY_STORAGE_KEY, state.cities, getDefaultCity());
         state.sellCity = readSavedCity(SELL_CITY_STORAGE_KEY, state.cities, state.islandCity);
         renderPage(container);
         await loadPrices(container, { showLoader: false });

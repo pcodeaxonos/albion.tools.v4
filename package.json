@@ -7,6 +7,7 @@
         "css:build": "sass scss/main.scss css/site.css --no-source-map",
         "css:watch": "sass --watch scss/main.scss css/site.css --no-source-map",
         "data:fetch": "node scripts/fetch-game-data.mjs",
+        "data:icons": "node scripts/fetch-item-icons.mjs",
     "data:farm": "node scripts/build-farm-catalog.mjs",
     "data:craft": "node scripts/build-craft-catalog.mjs",
     "data:app": "node scripts/build-app-catalog.mjs",

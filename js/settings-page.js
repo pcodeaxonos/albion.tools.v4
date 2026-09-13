@@ -7,6 +7,10 @@ import {
     PRICE_SOURCES,
     ENCHANT_POWERS,
     enchantPowerLabel,
+    getStandardCombos,
+    allEnchantCombos,
+    enchantPowerCombos,
+    normalizeEnchantPower,
     cityHasIsland,
     localPriceHost
 } from './settings.js';
@@ -42,6 +46,16 @@ function renderServerOptions(selected) {
     }).join('');
 }
 
+function renderDefaultCityOptions(cities, selected) {
+    if (!cities.length) {
+        return `<option value="${escapeHtml(selected || 'Martlock')}">${escapeHtml(selected || 'Martlock')}</option>`;
+    }
+    return cities.map((city) => {
+        const current = city.marketApiName === selected ? ' selected' : '';
+        return `<option value="${escapeHtml(city.marketApiName)}"${current}>${escapeHtml(city.displayName)}</option>`;
+    }).join('');
+}
+
 function renderPriceSourceOptions(selected) {
     return PRICE_SOURCES.map((source) => {
         const current = source.id === selected ? ' selected' : '';
@@ -54,6 +68,55 @@ function renderEnchantPowerOptions(selected) {
         const current = power === selected ? ' selected' : '';
         return `<option value="${power}"${current}>${escapeHtml(enchantPowerLabel(power))}</option>`;
     }).join('');
+}
+
+function renderStandardComboList(settings) {
+    const combos = getStandardCombos(settings);
+    if (combos.length === 0) {
+        return `<p class="text-muted settings-note" id="settingStandardCombosEmpty">Liste boş — aşağıdan combo ekle.</p>
+            <div class="settings-combo-order" id="settingEnchantPowerOrder" role="list"></div>`;
+    }
+
+    return `
+        <div class="settings-combo-order" id="settingEnchantPowerOrder" role="list">
+            ${combos.map((combo, index) => {
+                const label = `${combo.tier}.${combo.enchant}`;
+                const upDisabled = index === 0 ? ' disabled' : '';
+                const downDisabled = index === combos.length - 1 ? ' disabled' : '';
+                return `
+                    <div class="settings-combo-order-row" role="listitem" data-combo="${escapeHtml(label)}">
+                        <span class="settings-combo-order-label">${escapeHtml(label)}</span>
+                        <div class="settings-combo-order-actions">
+                            <button type="button" class="btn btn-outline-secondary btn-sm" data-combo-move="up"${upDisabled} aria-label="${escapeHtml(label)} yukarı">↑</button>
+                            <button type="button" class="btn btn-outline-secondary btn-sm" data-combo-move="down"${downDisabled} aria-label="${escapeHtml(label)} aşağı">↓</button>
+                            <button type="button" class="btn btn-outline-secondary btn-sm" data-combo-remove aria-label="${escapeHtml(label)} çıkar">✕</button>
+                        </div>
+                    </div>
+                `;
+            }).join('')}
+        </div>
+    `;
+}
+
+function renderAddComboOptions(settings) {
+    const taken = new Set(getStandardCombos(settings).map((combo) => `${combo.tier}.${combo.enchant}`));
+    const available = allEnchantCombos().filter((combo) => !taken.has(`${combo.tier}.${combo.enchant}`));
+    if (available.length === 0) {
+        return '<option value="">Tümü eklendi</option>';
+    }
+    return [
+        '<option value="">Combo seç…</option>',
+        ...available.map((combo) => {
+            const label = `${combo.tier}.${combo.enchant}`;
+            return `<option value="${escapeHtml(label)}">${escapeHtml(label)}</option>`;
+        })
+    ].join('');
+}
+
+function readStandardCombos(container) {
+    return [...container.querySelectorAll('#settingEnchantPowerOrder [data-combo]')]
+        .map((row) => row.dataset.combo)
+        .filter(Boolean);
 }
 
 function renderIslandCityChecks(cities, islandCities) {
@@ -130,13 +193,34 @@ function renderPage(container, cities) {
                                 <label for="settingServer">Sunucu</label>
                             </div>
                             <div class="form-floating">
+                                <select class="form-select is-filled" id="settingDefaultCity">
+                                    ${renderDefaultCityOptions(cities, settings.defaultCity)}
+                                </select>
+                                <label for="settingDefaultCity">Varsayılan şehir</label>
+                            </div>
+                            <div class="form-floating">
                                 <select class="form-select is-filled" id="settingEnchantPower">
                                     ${renderEnchantPowerOptions(settings.enchantPower)}
                                 </select>
-                                <label for="settingEnchantPower">Standart ayar</label>
+                                <label for="settingEnchantPower">IP bandı (hızlı doldur)</label>
                             </div>
                         </div>
-                        <p class="text-muted settings-note">Standart ayar Enchanting tablosunda aynı IP bandını vurgular (varsayılan 7).</p>
+                        <p class="text-muted settings-note">Varsayılan şehir, tool’da kayıtlı şehir yoksa alış/satış seçiminde gelir (Martlock).</p>
+                        <div class="settings-combo-order-wrap">
+                            <p class="settings-combo-order-title">Standart combolar</p>
+                            ${renderStandardComboList(settings)}
+                            <div class="settings-combo-add">
+                                <div class="form-floating">
+                                    <select class="form-select" id="settingAddCombo">
+                                        ${renderAddComboOptions(settings)}
+                                    </select>
+                                    <label for="settingAddCombo">Combo ekle</label>
+                                </div>
+                                <button type="button" class="btn btn-outline-secondary" id="settingAddComboBtn">Ekle</button>
+                                <button type="button" class="btn btn-outline-secondary" id="settingFillBandBtn" title="IP bandındaki combolarla listeyi değiştir">Bandı uygula</button>
+                            </div>
+                        </div>
+                        <p class="text-muted settings-note">Standart combolar Royal Crafting varsayılan filtresi ve Enchanting vurgusudur. Ekle / çıkar / sırala; IP bandı ile hızlı doldurabilirsin.</p>
                     `)}
 
                     ${settingsSection('settings-fiyat', 'Fiyatlar', 'Kaynak, alım/satış tarafı ve yerel paket hub’ı.', `
@@ -268,14 +352,19 @@ function persist(container) {
     const premium = Boolean(container.querySelector('#settingPremium')?.checked);
     const priceSource = container.querySelector('#settingPriceSource')?.value;
     const islandCities = selectedIslandCities(container);
+    const enchantPower = container.querySelector('#settingEnchantPower')?.value;
+    const standardCombos = readStandardCombos(container);
+
     saveSettings({
         premium,
         farmWater: Boolean(container.querySelector('#settingFarmWater')?.checked),
         priceSource,
         server: container.querySelector('#settingServer')?.value,
+        defaultCity: container.querySelector('#settingDefaultCity')?.value,
         buyPriceSide: selectedSide(container, 'buy', 'buy'),
         sellPriceSide: selectedSide(container, 'sell', 'sell'),
-        enchantPower: container.querySelector('#settingEnchantPower')?.value,
+        enchantPower,
+        standardCombos,
         refineFollowSpecialty: Boolean(container.querySelector('#settingRefineFollowSpecialty')?.checked),
         ...(islandCities !== null ? { islandCities } : {})
     });
@@ -302,6 +391,95 @@ function persist(container) {
     }
 
     syncHubPolling(container);
+}
+
+function refreshStandardCombos(container) {
+    const wrap = container.querySelector('.settings-combo-order-wrap');
+    if (!wrap) {
+        return;
+    }
+    const settings = getSettings();
+    wrap.innerHTML = `
+        <p class="settings-combo-order-title">Standart combolar</p>
+        ${renderStandardComboList(settings)}
+        <div class="settings-combo-add">
+            <div class="form-floating">
+                <select class="form-select" id="settingAddCombo">
+                    ${renderAddComboOptions(settings)}
+                </select>
+                <label for="settingAddCombo">Combo ekle</label>
+            </div>
+            <button type="button" class="btn btn-outline-secondary" id="settingAddComboBtn">Ekle</button>
+            <button type="button" class="btn btn-outline-secondary" id="settingFillBandBtn" title="IP bandındaki combolarla listeyi değiştir">Bandı uygula</button>
+        </div>
+    `;
+    initFloatingLabels(wrap);
+    bindStandardCombos(container);
+}
+
+function bindStandardCombos(container) {
+    container.querySelectorAll('[data-combo-move]').forEach((button) => {
+        button.addEventListener('click', () => {
+            const row = button.closest('[data-combo]');
+            const list = row?.parentElement;
+            if (!row || !list) {
+                return;
+            }
+            if (button.dataset.comboMove === 'up' && row.previousElementSibling) {
+                list.insertBefore(row, row.previousElementSibling);
+            }
+            if (button.dataset.comboMove === 'down' && row.nextElementSibling) {
+                list.insertBefore(row.nextElementSibling, row);
+            }
+            persist(container);
+            refreshStandardCombos(container);
+        });
+    });
+
+    container.querySelectorAll('[data-combo-remove]').forEach((button) => {
+        button.addEventListener('click', () => {
+            button.closest('[data-combo]')?.remove();
+            persist(container);
+            refreshStandardCombos(container);
+        });
+    });
+
+    container.querySelector('#settingAddComboBtn')?.addEventListener('click', () => {
+        const select = container.querySelector('#settingAddCombo');
+        const value = select?.value;
+        if (!value) {
+            return;
+        }
+        const list = container.querySelector('#settingEnchantPowerOrder');
+        if (!list) {
+            return;
+        }
+        const empty = container.querySelector('#settingStandardCombosEmpty');
+        empty?.remove();
+        const row = document.createElement('div');
+        row.className = 'settings-combo-order-row';
+        row.setAttribute('role', 'listitem');
+        row.dataset.combo = value;
+        row.innerHTML = `
+            <span class="settings-combo-order-label">${escapeHtml(value)}</span>
+            <div class="settings-combo-order-actions">
+                <button type="button" class="btn btn-outline-secondary btn-sm" data-combo-move="up" aria-label="${escapeHtml(value)} yukarı">↑</button>
+                <button type="button" class="btn btn-outline-secondary btn-sm" data-combo-move="down" aria-label="${escapeHtml(value)} aşağı">↓</button>
+                <button type="button" class="btn btn-outline-secondary btn-sm" data-combo-remove aria-label="${escapeHtml(value)} çıkar">✕</button>
+            </div>
+        `;
+        list.appendChild(row);
+        persist(container);
+        refreshStandardCombos(container);
+    });
+
+    container.querySelector('#settingFillBandBtn')?.addEventListener('click', () => {
+        const power = normalizeEnchantPower(container.querySelector('#settingEnchantPower')?.value);
+        const combos = enchantPowerCombos(power).map((combo) => `${combo.tier}.${combo.enchant}`);
+        saveSettings({ enchantPower: power, standardCombos: combos });
+        refreshStandardCombos(container);
+        persist(container);
+    });
 }
 
 function localMetaText() {
@@ -335,7 +513,9 @@ function bindPage(container) {
     container.querySelector('#settingRefineFollowSpecialty')?.addEventListener('change', () => persist(container));
     container.querySelector('#settingPriceSource')?.addEventListener('change', () => persist(container));
     container.querySelector('#settingServer')?.addEventListener('change', () => persist(container));
+    container.querySelector('#settingDefaultCity')?.addEventListener('change', () => persist(container));
     container.querySelector('#settingEnchantPower')?.addEventListener('change', () => persist(container));
+    bindStandardCombos(container);
     container.querySelectorAll('[data-island-city]').forEach((input) => {
         input.addEventListener('change', () => persist(container));
     });

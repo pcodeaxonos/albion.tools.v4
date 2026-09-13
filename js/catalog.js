@@ -242,7 +242,7 @@ function hydrateRecipeLine(line, recipeTier) {
 }
 
 /**
- * Hydrated craft recipe for furniture / ava / caerleon / faction tools.
+ * Hydrated craft recipe for furniture / ava / caerleon / faction / royal tools.
  */
 export function hydrateCraftRecipe(row) {
     if (!row || row.isActive === false) {

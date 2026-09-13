@@ -7,3 +7,5 @@ albiondata-client.log*
 _tmp_xlsm_report/
 .price-hub.json
 .albion-tools-data.json
+# Item icons: local only — run `npm run data:icons`
+icons/

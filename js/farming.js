@@ -1,7 +1,7 @@
 import { escapeHtml } from './utils.js';
 import { initNav } from './nav.js';
 import { initStore } from './db/store.js';
-import { getSettings, cityHasIsland } from './settings.js';
+import { getSettings, cityHasIsland, getDefaultCity } from './settings.js';
 import { fetchPrices, indexPrices, cityRow, priceRefreshActionsHtml, bindPriceRefresh, priceLoaderMessage, applyPriceLoadMode } from './market.js';
 import { itemIconHtml, itemLabel } from './item-icon.js';
 import { showPageLoader, hidePageLoader } from './loader.js';
@@ -60,7 +60,7 @@ const state = {
     water: false,
     seedSide: 'buy',
     plantSide: 'buy',
-    city: 'Martlock',
+    city: getDefaultCity(),
     cities: [],
     cropGeneral: 0,
     cropSpec: 0,
@@ -179,8 +179,9 @@ function readSavedCity(cities) {
     } catch {
         /* ignore */
     }
-    const martlock = cities.find((city) => city.marketApiName === 'Martlock');
-    return martlock?.marketApiName ?? cities[0]?.marketApiName ?? 'Martlock';
+    const preferred = getDefaultCity();
+    const match = cities.find((city) => city.marketApiName === preferred);
+    return match?.marketApiName ?? cities[0]?.marketApiName ?? preferred;
 }
 
 function saveCity(apiName) {

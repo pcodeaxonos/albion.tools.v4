@@ -4,7 +4,7 @@ import { initStore } from './db/store.js';
 import { bonusDayIso, bonusWindowLabel } from './bonus-day.js';
 import { getBonusFamilyLabel } from './bonus-families.js';
 import { defaultCraftBonusRate, normalizeCraftBonusRate, todayCraftBonuses, craftBonusToggleHtml } from './craft-bonus.js';
-import { getSettings } from './settings.js';
+import { getSettings, getDefaultCity } from './settings.js';
 import { fetchPrices, indexPrices, cityRow, priceRefreshActionsHtml, bindPriceRefresh, priceLoaderMessage, applyPriceLoadMode } from './market.js';
 import { itemIconHtml, itemLabel } from './item-icon.js';
 import { showPageLoader, hidePageLoader } from './loader.js';
@@ -41,7 +41,6 @@ import {
 import { getCraftRecipes, getCraftKindOptions, cityProductionBonus } from './catalog.js';
 
 const PREFS_STORAGE_KEY = 'albiontools.v4.furniture.prefs';
-const DEFAULT_CITY = 'Martlock';
 
 function cityProduction() {
     return cityProductionBonus();
@@ -99,7 +98,7 @@ const state = {
     matSide: 'buy',
     itemSide: 'sell',
     kind: 'all',
-    city: DEFAULT_CITY,
+    city: getDefaultCity(),
     cities: [],
     priceIndex: null,
     manualMats: {},
@@ -1020,10 +1019,11 @@ async function init() {
         await initStore();
         ensureManualMaps();
         state.cities = loadActiveCities();
-        if (state.cities.some((city) => city.marketApiName === DEFAULT_CITY)) {
-            state.city = DEFAULT_CITY;
+        const preferred = getDefaultCity();
+        if (state.cities.some((city) => city.marketApiName === preferred)) {
+            state.city = preferred;
         } else {
-            state.city = state.cities[0]?.marketApiName ?? DEFAULT_CITY;
+            state.city = state.cities[0]?.marketApiName ?? preferred;
         }
         readPrefs(state.cities);
         state.bonusRate = defaultCraftBonusRate([]);

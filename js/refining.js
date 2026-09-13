@@ -4,7 +4,7 @@ import { initStore } from './db/store.js';
 import { getBonusFamilyLabel } from './bonus-families.js';
 import { bonusDayIso, bonusWindowLabel } from './bonus-day.js';
 import { defaultCraftBonusRate, normalizeCraftBonusRate, todayCraftBonuses, craftBonusToggleHtml } from './craft-bonus.js';
-import { getSettings } from './settings.js';
+import { getSettings, getDefaultCity } from './settings.js';
 import { fetchPrices, indexPrices, cityRow, priceRefreshActionsHtml, bindPriceRefresh, priceLoaderMessage, applyPriceLoadMode } from './market.js';
 import { itemIconHtml, itemLabel } from './item-icon.js';
 import { showPageLoader, hidePageLoader, showAreaLoader, hideAreaLoader } from './loader.js';
@@ -82,9 +82,9 @@ const state = {
     enchant: 0,
     chain: 'market',
     focus: false,
-    buyCity: 'Martlock',
-    refineCity: 'Martlock',
-    sellCity: 'Martlock',
+    buyCity: getDefaultCity(),
+    refineCity: getDefaultCity(),
+    sellCity: getDefaultCity(),
     cities: [],
     bonusRate: 0,
     priceIndex: null,
@@ -316,7 +316,7 @@ function savePrefs() {
 
 function specialtyCityName(cities) {
     const specialty = cities.find((city) => city.marketApiName === familyCity());
-    return specialty?.marketApiName ?? cities[0]?.marketApiName ?? 'Martlock';
+    return specialty?.marketApiName ?? cities[0]?.marketApiName ?? getDefaultCity();
 }
 
 function applyFamilyCityDefaults(cities, { preferSpecialty = false } = {}) {

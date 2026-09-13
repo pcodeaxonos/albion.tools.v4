@@ -4,7 +4,7 @@ import { initStore } from './db/store.js';
 import { getBonusFamilyLabel } from './bonus-families.js';
 import { bonusDayIso, bonusWindowLabel } from './bonus-day.js';
 import { defaultCraftBonusRate, normalizeCraftBonusRate, todayCraftBonuses, craftBonusToggleHtml } from './craft-bonus.js';
-import { getSettings } from './settings.js';
+import { getSettings, getDefaultCity } from './settings.js';
 import { fetchPrices, indexPrices, cityRow, priceRefreshActionsHtml, bindPriceRefresh, priceLoaderMessage, applyPriceLoadMode } from './market.js';
 import { itemIconHtml, itemLabel } from './item-icon.js';
 import { showPageLoader, hidePageLoader } from './loader.js';
@@ -87,7 +87,7 @@ const state = {
     premium: true,
     matSide: 'buy',
     itemSide: 'sell',
-    city: 'Bridgewatch',
+    city: getDefaultCity(),
     cities: [],
     priceIndex: null,
     manualMats: {},
@@ -159,7 +159,11 @@ function readSavedCity(cities) {
     } catch {
         /* ignore */
     }
-    return cities[0]?.marketApiName ?? 'Bridgewatch';
+    const preferred = getDefaultCity();
+    if (cities.some((city) => city.marketApiName === preferred)) {
+        return preferred;
+    }
+    return cities[0]?.marketApiName ?? preferred;
 }
 
 function saveCity(apiName) {

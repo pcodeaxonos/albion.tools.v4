@@ -1,7 +1,7 @@
 import { escapeHtml } from './utils.js';
 import { initNav } from './nav.js';
 import { initStore } from './db/store.js';
-import { getSettings } from './settings.js';
+import { getSettings, getDefaultCity } from './settings.js';
 import { fetchPrices, indexPrices, cityRow, priceRefreshActionsHtml, bindPriceRefresh, priceLoaderMessage, applyPriceLoadMode } from './market.js';
 import { itemIconHtml, itemLabel } from './item-icon.js';
 import { showPageLoader, hidePageLoader, showAreaLoader, hideAreaLoader } from './loader.js';
@@ -23,7 +23,6 @@ import { bindLivePrices } from './price-live.js';
 import { getMaterialGroups } from './catalog.js';
 
 const PREFS_STORAGE_KEY = 'albiontools.v4.malzemeler.prefs';
-const DEFAULT_CITY = 'Martlock';
 
 function groups() {
     return getMaterialGroups();
@@ -35,8 +34,8 @@ const state = {
     sellSide: 'sell',
     group: 'plank',
     enchant: 0,
-    buyCity: DEFAULT_CITY,
-    sellCity: DEFAULT_CITY,
+    buyCity: getDefaultCity(),
+    sellCity: getDefaultCity(),
     cities: [],
     priceIndex: null,
     manualBuy: {},
@@ -179,8 +178,9 @@ function quoteSell(uniqueName) {
 }
 
 function defaultCityName(cities) {
-    const martlock = cities.find((city) => city.marketApiName === DEFAULT_CITY);
-    return martlock?.marketApiName ?? cities[0]?.marketApiName ?? DEFAULT_CITY;
+    const preferred = getDefaultCity();
+    const match = cities.find((city) => city.marketApiName === preferred);
+    return match?.marketApiName ?? cities[0]?.marketApiName ?? preferred;
 }
 
 function readPrefs(cities) {

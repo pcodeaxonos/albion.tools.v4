@@ -300,7 +300,7 @@ export const tables = {
         columns: [
             COL.id,
             { name: 'code', type: 'string', label: 'Kod' },
-            { name: 'tool', type: 'enum', options: ['furniture', 'ava', 'caerleon', 'faction'], label: 'Tool' },
+            { name: 'tool', type: 'enum', options: ['furniture', 'ava', 'caerleon', 'faction', 'royal'], label: 'Tool' },
             { name: 'kind', type: 'string', label: 'Tür' },
             { name: 'tier', type: 'number', label: 'Tier' },
             { name: 'outputItemId', type: 'number', label: 'Çıktı item id' },

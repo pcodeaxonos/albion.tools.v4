@@ -144,6 +144,19 @@
   },
   {
     "id": 12,
+    "code": "royal-craft",
+    "title": "Royal Crafting",
+    "description": "Royal giyilebilir: SET + sigil craft, enchant ve şehir kârı.",
+    "icon": "👑",
+    "href": "royal-craft.html",
+    "addedAt": "2026-09-13",
+    "groupLabel": "Üretim",
+    "frequent": true,
+    "sortValue": 115,
+    "isActive": true
+  },
+  {
+    "id": 13,
     "code": "enchantin",
     "title": "Enchanting",
     "description": "Rune, soul ve relic: kaçtan kaça çıkarmanın gümüş maliyeti.",

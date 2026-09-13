@@ -348,7 +348,8 @@ a.tool-card {
     .ava-toolbar,
     .enchant-toolbar,
     .farming-toolbar,
-    .pasture-toolbar {
+    .pasture-toolbar,
+    .royal-toolbar {
         margin-bottom: 0;
     }
 
@@ -410,7 +411,8 @@ a.tool-card {
     .ava-toolbar,
     .enchant-toolbar,
     .farming-toolbar,
-    .pasture-toolbar {
+    .pasture-toolbar,
+    .royal-toolbar {
         display: flex;
         flex-direction: column;
         flex-wrap: nowrap;
@@ -497,12 +499,27 @@ a.tool-card {
         cursor: pointer;
     }
 
-    &.has-explain tbody tr.is-explain td:first-child {
-        box-shadow: inset 3px 0 0 var(--color-primary);
+    // Selected row sticks under thead while scrolling (all calc tools)
+    &.has-explain tbody tr.is-explain td {
+        position: sticky;
+        top: calc(var(--chrome-top) + var(--calc-toolbar-height) + var(--calc-thead-height));
+        z-index: 10;
+        background-color: color-mix(in srgb, var(--color-primary) 8%, var(--color-surface));
+        box-shadow: 0 1px 0 var(--color-border);
     }
 
-    &.has-explain tbody tr.is-explain-hover td {
+    &.has-explain tbody tr.is-explain td:first-child {
+        box-shadow:
+            inset 3px 0 0 var(--color-primary),
+            0 1px 0 var(--color-border);
+    }
+
+    &.has-explain tbody tr.is-explain-hover:not(.is-explain) td {
         background-color: color-mix(in srgb, var(--color-primary) 10%, var(--color-surface-hover));
+    }
+
+    &.has-explain tbody tr.is-explain.is-explain-hover td {
+        background-color: color-mix(in srgb, var(--color-primary) 14%, var(--color-surface));
     }
 }
 
@@ -514,12 +531,17 @@ a.tool-card {
 }
 
 .calc-explain-head {
+    position: sticky;
+    top: calc(var(--chrome-top) + var(--calc-toolbar-height));
+    z-index: 9;
     display: flex;
     align-items: center;
     gap: 0.75rem;
-    margin-bottom: 0.85rem;
-    padding-bottom: 0.75rem;
+    margin: -0.875rem -1rem 0.85rem;
+    padding: 0.875rem 1rem 0.75rem;
+    background-color: var(--color-surface);
     border-bottom: var(--border-width) solid var(--color-border);
+    box-shadow: 0 1px 0 transparent;
 }
 
 .calc-explain-head > .item-icon,
@@ -1801,6 +1823,58 @@ a.tool-card {
     margin: 0;
 }
 
+.settings-combo-order-wrap {
+    margin-top: var(--spacing-md);
+}
+
+.settings-combo-order-title {
+    margin: 0 0 var(--spacing-sm);
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-semibold);
+}
+
+.settings-combo-order {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-xs);
+    max-width: 20rem;
+}
+
+.settings-combo-order-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--spacing-sm);
+    padding: 0.4rem 0.55rem;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    background: var(--color-surface-raised);
+}
+
+.settings-combo-order-label {
+    font-family: var(--font-mono);
+    font-weight: var(--font-weight-semibold);
+}
+
+.settings-combo-order-actions {
+    display: inline-flex;
+    gap: 0.25rem;
+}
+
+.settings-combo-add {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    gap: var(--spacing-sm);
+    margin-top: var(--spacing-sm);
+    max-width: 32rem;
+
+    .form-floating {
+        flex: 1 1 8rem;
+        min-width: 7rem;
+    }
+}
+
 .settings-status {
     margin: var(--spacing-sm) 0 0;
     font-size: var(--font-size-sm);
@@ -1842,7 +1916,8 @@ a.tool-card {
 .ava-toolbar,
 .enchant-toolbar,
 .farming-toolbar,
-.pasture-toolbar {
+.pasture-toolbar,
+.royal-toolbar {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
@@ -1873,13 +1948,15 @@ a.tool-card {
 .enchant-side-field,
 .farming-side-field,
 .price-side-field {
-    display: flex;
-    flex-direction: column;
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
     align-items: stretch;
-    gap: 0.375rem;
+    gap: 0.35rem;
+    min-width: 0;
 
     .price-side {
         width: 100%;
+        min-width: 0;
     }
 
     .price-side-btn {
@@ -1893,10 +1970,21 @@ a.tool-card {
 .enchant-side-label,
 .farming-side-label,
 .price-side-label {
+    display: inline-flex;
+    align-items: center;
+    justify-content: flex-end;
+    min-width: 2.75rem;
+    padding: 0 0.15rem 0 0;
     font-size: var(--font-size-xs, 0.75rem);
     font-weight: var(--font-weight-medium);
+    letter-spacing: 0.02em;
     color: var(--color-text-muted);
-    line-height: 1.25;
+    line-height: 1.1;
+    white-space: nowrap;
+    border: 0;
+    background: none;
+    pointer-events: none;
+    user-select: none;
 }
 
 .settings-sides {
@@ -2645,6 +2733,421 @@ a.tool-card {
         box-shadow: inset 0 0 0 1px var(--color-primary);
         color: var(--color-on-accent);
         font-weight: var(--font-weight-bold);
+    }
+}
+
+.royal-mats {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    margin: 0 0 var(--spacing-sm);
+    overflow-x: auto;
+}
+
+.royal-mats-meta {
+    margin: 0;
+    font-size: 0.75rem;
+    color: var(--color-text-muted);
+}
+
+.royal-sealed-control {
+    width: 100%;
+    min-width: 0;
+}
+
+.royal-sealed-field {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    width: 100%;
+    padding: 0.15rem 0.35rem;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm, 0.35rem);
+    min-width: 0;
+    opacity: 0.72;
+
+    &.is-active {
+        opacity: 1;
+        border-color: var(--color-primary);
+    }
+
+    .price-field-stack {
+        flex: 1 1 auto;
+        min-width: 0;
+        width: 100%;
+    }
+
+    .price-field-foot {
+        display: none;
+    }
+
+    .farming-price-field {
+        flex: 1 1 auto;
+        min-width: 0;
+        width: 100%;
+    }
+}
+
+.royal-mats-grid {
+    --royal-mat-cols: 5;
+    display: grid;
+    grid-template-columns: minmax(2.75rem, auto) repeat(var(--royal-mat-cols), minmax(5.25rem, 1fr));
+    gap: 0.35rem 0.4rem;
+    align-items: center;
+    min-width: min(100%, 40rem);
+}
+
+.royal-mat-corner {
+    min-height: 1.25rem;
+}
+
+.royal-mat-tier-head {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font-mono);
+    font-weight: var(--font-weight-semibold);
+    font-size: 0.75rem;
+    color: var(--color-text-muted);
+}
+
+.royal-mat-kind {
+    display: flex;
+    align-items: center;
+    font-size: 0.75rem;
+    font-weight: var(--font-weight-semibold);
+    color: var(--color-text-muted);
+    line-height: 1.2;
+}
+
+.royal-mat {
+    min-width: 0;
+    padding: 0;
+    border: 0;
+    background: transparent;
+
+    .price-field-stack {
+        gap: 0;
+    }
+
+    .price-field-foot {
+        display: none;
+    }
+
+    .price-field-aside {
+        width: 2rem;
+        height: 2rem;
+    }
+
+    .price-field-aside-icon {
+        width: 1.75rem;
+        height: 1.75rem;
+    }
+
+    .price-field-row {
+        align-items: center;
+        gap: 0.4rem;
+    }
+}
+
+.royal-price-field {
+    --input-height: var(--input-height-sm);
+    --floating-label-inset: 0.45rem;
+    --floating-label-pad: 0.2rem;
+    --floating-label-scale: calc(var(--floating-label-float-size) / var(--font-size-sm));
+    margin-top: 0;
+
+    > .form-control {
+        font-family: var(--font-family-mono);
+        font-size: 0.8125rem;
+        font-weight: var(--font-weight-semibold);
+        letter-spacing: -0.03em;
+    }
+
+    // Tier already in column head — hide float tag so icon + value stay centered.
+    > label {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        white-space: nowrap;
+        border: 0;
+        transform: none !important;
+        background: none;
+        font-size: 0;
+        max-width: none;
+    }
+}
+
+.royal-item-cell {
+    width: 12rem;
+    max-width: 14rem;
+}
+
+.royal-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55rem;
+    min-width: 0;
+    max-width: 100%;
+}
+
+.royal-item-icon {
+    width: 3.5rem;
+    height: 3.5rem;
+    flex-shrink: 0;
+}
+
+.royal-item-text {
+    min-width: 0;
+    overflow: hidden;
+}
+
+.royal-item-name {
+    display: block;
+    font-weight: var(--font-weight-semibold);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    line-height: 1.2;
+}
+
+.royal-item-meta {
+    display: block;
+    font-size: 0.75rem;
+    color: var(--color-text-muted);
+    white-space: nowrap;
+    line-height: 1.2;
+}
+
+.royal-table {
+    table-layout: fixed;
+    width: 100%;
+
+    th,
+    td {
+        font-size: var(--font-size-sm);
+        vertical-align: middle;
+        padding: 0.5rem 0.65rem;
+        min-width: 0;
+    }
+
+    th,
+    th .table-sort-btn {
+        white-space: nowrap;
+        line-height: 1.2;
+    }
+
+    .royal-col-item {
+        width: 22%;
+    }
+
+    .royal-col-te {
+        width: 5.5%;
+    }
+
+    .royal-col-quality {
+        width: 7%;
+    }
+
+    .royal-col-num {
+        width: 8.5%;
+    }
+
+    .royal-col-path {
+        width: 5.5%;
+    }
+
+    .royal-col-pct {
+        width: 7%;
+    }
+
+    td.num {
+        font-variant-numeric: tabular-nums;
+        white-space: nowrap;
+        text-align: right;
+    }
+
+    td.royal-pct {
+        font-size: 1rem;
+        font-weight: var(--font-weight-bold);
+        line-height: 1.15;
+        letter-spacing: -0.02em;
+    }
+
+    .royal-path-cell {
+        text-align: center;
+        vertical-align: middle;
+    }
+
+    .royal-path-tag {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 3.1rem;
+        padding: 0.15rem 0.4rem;
+        font-size: 0.6875rem;
+        font-weight: var(--font-weight-bold);
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        line-height: 1.1;
+        border: var(--border-width) solid var(--color-border);
+        color: var(--color-text-muted);
+        white-space: nowrap;
+    }
+
+    .royal-path-tag.is-craft {
+        color: var(--color-info);
+        border-color: color-mix(in srgb, var(--color-info) 55%, var(--color-border));
+        background-color: color-mix(in srgb, var(--color-info) 16%, transparent);
+    }
+
+    .royal-path-tag.is-buy {
+        color: var(--color-warning);
+        border-color: color-mix(in srgb, var(--color-warning) 55%, var(--color-border));
+        background-color: color-mix(in srgb, var(--color-warning) 16%, transparent);
+    }
+
+    .royal-path-tag.is-missing {
+        opacity: 0.55;
+    }
+
+    .royal-quality {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.3rem;
+    }
+
+    .royal-proxy-tag {
+        display: inline-flex;
+        align-items: center;
+        padding: 0.1rem 0.3rem;
+        font-size: 0.625rem;
+        font-weight: var(--font-weight-bold);
+        letter-spacing: 0.03em;
+        text-transform: uppercase;
+        line-height: 1;
+        color: var(--color-warning);
+        border: var(--border-width) solid color-mix(in srgb, var(--color-warning) 50%, var(--color-border));
+        background-color: color-mix(in srgb, var(--color-warning) 14%, transparent);
+    }
+
+    td.is-quality-proxy,
+    .royal-quality.is-quality-proxy {
+        color: var(--color-warning);
+    }
+
+    td.num.is-quality-proxy {
+        font-style: italic;
+    }
+
+    tbody tr.is-tier-4 {
+        --royal-tier-bar: #4a7fd4;
+    }
+
+    tbody tr.is-tier-5 {
+        --royal-tier-bar: #c45454;
+    }
+
+    tbody tr.is-tier-6 {
+        --royal-tier-bar: #c47a2a;
+    }
+
+    tbody tr.is-tier-7 {
+        --royal-tier-bar: #c4a832;
+    }
+
+    tbody tr.is-tier-8 {
+        --royal-tier-bar: #c8ccd4;
+    }
+
+    // Tier tint (dark-friendly mixes) — same for Ex/MP; no permanent left bar
+    tbody tr.is-tier-4 td {
+        background-color: color-mix(in srgb, #4a7fd4 11%, var(--color-surface));
+    }
+
+    tbody tr.is-tier-5 td {
+        background-color: color-mix(in srgb, #c45454 11%, var(--color-surface));
+    }
+
+    tbody tr.is-tier-6 td {
+        background-color: color-mix(in srgb, #c47a2a 11%, var(--color-surface));
+    }
+
+    tbody tr.is-tier-7 td {
+        background-color: color-mix(in srgb, #c4a832 11%, var(--color-surface));
+    }
+
+    tbody tr.is-tier-8 td {
+        background-color: color-mix(in srgb, #d0d4dc 10%, var(--color-surface));
+    }
+
+    // Slightly stronger only for the top standard T.E (still no left bar)
+    tbody tr.is-standard.is-main.is-tier-4 td {
+        background-color: color-mix(in srgb, #4a7fd4 16%, var(--color-surface));
+    }
+
+    tbody tr.is-standard.is-main.is-tier-5 td {
+        background-color: color-mix(in srgb, #c45454 16%, var(--color-surface));
+    }
+
+    tbody tr.is-standard.is-main.is-tier-6 td {
+        background-color: color-mix(in srgb, #c47a2a 16%, var(--color-surface));
+    }
+
+    tbody tr.is-standard.is-main.is-tier-7 td {
+        background-color: color-mix(in srgb, #c4a832 16%, var(--color-surface));
+    }
+
+    tbody tr.is-standard.is-main.is-tier-8 td {
+        background-color: color-mix(in srgb, #d0d4dc 14%, var(--color-surface));
+    }
+
+    // Hover / selection must beat tier td backgrounds
+    &.has-explain tbody tr.is-explain-hover:not(.is-explain) td {
+        background-image: linear-gradient(
+            color-mix(in srgb, var(--color-primary) 14%, transparent),
+            color-mix(in srgb, var(--color-primary) 14%, transparent)
+        );
+    }
+
+    &.has-explain tbody tr.is-explain td {
+        background-image: none;
+    }
+
+    &.has-explain tbody tr.is-explain.is-tier-4 td {
+        background-color: color-mix(in srgb, #4a7fd4 22%, var(--color-surface));
+    }
+
+    &.has-explain tbody tr.is-explain.is-tier-5 td {
+        background-color: color-mix(in srgb, #c45454 22%, var(--color-surface));
+    }
+
+    &.has-explain tbody tr.is-explain.is-tier-6 td {
+        background-color: color-mix(in srgb, #c47a2a 22%, var(--color-surface));
+    }
+
+    &.has-explain tbody tr.is-explain.is-tier-7 td {
+        background-color: color-mix(in srgb, #c4a832 22%, var(--color-surface));
+    }
+
+    &.has-explain tbody tr.is-explain.is-tier-8 td {
+        background-color: color-mix(in srgb, #d0d4dc 20%, var(--color-surface));
+    }
+
+    &.has-explain tbody tr.is-explain td:first-child {
+        box-shadow:
+            inset 3px 0 0 var(--royal-tier-bar, var(--color-primary)),
+            0 1px 0 var(--color-border);
+    }
+}
+
+@media (max-width: 991.98px) {
+    .royal-mats-grid {
+        grid-template-columns: minmax(2.5rem, auto) repeat(var(--royal-mat-cols), minmax(5.25rem, 1fr));
     }
 }
 
