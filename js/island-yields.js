@@ -6,7 +6,7 @@ import { showPageLoader, hidePageLoader } from './loader.js';
 import { bindCalcSticky } from './calc-sticky.js';
 import { bindLogTableRows } from './log-table.js';
 import { loadActiveCities } from './cities.js';
-import { cityFieldHtml, bindCityField, setCityFieldValue } from './city-picker.js';
+import { cityFieldHtml, bindCityField, setCityFieldValue, cityColorHex } from './city-picker.js';
 import { plantFieldHtml, bindPlantField, setPlantFieldValue } from './plant-picker.js';
 import { getSettings, cityHasIsland, getDefaultCity } from './settings.js';
 import { getPlants, getEconomyConstant } from './catalog.js';
@@ -28,6 +28,9 @@ const PLANT_GROUPS = [
     { kind: 'herb', title: 'Ot tohumları' }
 ];
 
+const ROYAL_CITY_RING = ['Bridgewatch', 'Martlock', 'Thetford', 'Fort Sterling', 'Lymhurst'];
+const SPECIAL_COMPARISON_CITIES = ['Caerleon', 'Brecilien'];
+
 const state = {
     month: toYearMonth(todayIso()),
     editingId: null,
@@ -35,7 +38,8 @@ const state = {
     premium: true,
     water: false,
     cities: [],
-    plotsSelected: 1
+    plotsSelected: 1,
+    filteredPlantKey: null
 };
 
 function todayIso() {
@@ -59,7 +63,7 @@ function formatPct(ratio) {
     if (!Number.isFinite(ratio)) {
         return '—';
     }
-    return `${(ratio * 100).toLocaleString('tr-TR', { maximumFractionDigits: 1 })}%`;
+    return `${(ratio * 100).toLocaleString('tr-TR', { maximumFractionDigits: 0 })}%`;
 }
 
 function formatQty(value) {
@@ -86,6 +90,15 @@ function formatSigned(value, { digits = 2, asPctPoints = false } = {}) {
     return `0${unit}`;
 }
 
+function formatRelativeDifference(actual, expected) {
+    if (!Number.isFinite(actual) || !Number.isFinite(expected) || expected === 0) return '—';
+    return `${Math.abs((actual - expected) / expected * 100).toLocaleString('tr-TR', { maximumFractionDigits: 0 })}%`;
+}
+
+function confidenceLevel(n) {
+    return n >= 12 ? 3 : n >= 5 ? 2 : n >= 1 ? 1 : 0;
+}
+
 function deltaTone(value) {
     if (!Number.isFinite(value) || value === 0) {
         return '';
@@ -97,14 +110,32 @@ function cityLabel(apiName) {
     return state.cities.find((city) => city.marketApiName === apiName)?.displayName ?? apiName;
 }
 
+function normalizeCityName(city) {
+    return String(city ?? '').toLowerCase().replace(/[\s_-]+/g, '');
+}
+
+function comparisonCities() {
+    const byName = new Map(state.cities.map((city) => [normalizeCityName(city.marketApiName), city]));
+    const mainCity = normalizeCityName(getSettings().defaultCity);
+    const start = ROYAL_CITY_RING.findIndex((city) => normalizeCityName(city) === mainCity);
+    const ring = start >= 0
+        ? [...ROYAL_CITY_RING.slice(start), ...ROYAL_CITY_RING.slice(0, start)]
+        : ROYAL_CITY_RING;
+    const orderedKeys = [...ring, ...SPECIAL_COMPARISON_CITIES].map(normalizeCityName);
+    const ordered = orderedKeys.map((key) => byName.get(key)).filter(Boolean);
+    const known = new Set(ordered.map((city) => normalizeCityName(city.marketApiName)));
+    return [...ordered, ...state.cities.filter((city) => !known.has(normalizeCityName(city.marketApiName)))];
+}
+
 function plantLabel(key) {
     return getPlants().find((p) => p.key === key)?.label || key;
 }
 
-function rowsForMonth(month, islandCity = null) {
+function rowsForMonth(month, islandCity = null, plantKey = null) {
     return getAll(TABLE)
         .filter((row) => toYearMonth(row.date) === month)
         .filter((row) => !islandCity || row.islandCity === islandCity)
+        .filter((row) => !plantKey || row.plantKey === plantKey)
         .slice()
         .sort((a, b) => b.date.localeCompare(a.date) || b.id - a.id);
 }
@@ -276,10 +307,11 @@ function syncToggles(container) {
 }
 
 function renderLogTable(month) {
-    const rows = rowsForMonth(month, state.islandCity);
+    const rows = rowsForMonth(month, state.islandCity, state.filteredPlantKey);
     if (!rows.length) {
         const city = state.islandCity ? cityLabel(state.islandCity) : 'seçili ada';
-        return `<div class="alert alert-info">${escapeHtml(month)} · ${escapeHtml(city)} için kayıt yok. Soldan hasat sonucu ekle.</div>`;
+        const plant = state.filteredPlantKey ? ` · ${plantLabel(state.filteredPlantKey)}` : '';
+        return `<div class="alert alert-info">${escapeHtml(month)} · ${escapeHtml(city)}${escapeHtml(plant)} için kayıt yok. Soldan hasat sonucu ekle.</div>`;
     }
     const body = rows.map((row) => {
         const plant = getPlants().find((p) => p.key === row.plantKey);
@@ -311,14 +343,14 @@ function renderLogTable(month) {
                 <thead>
                     <tr>
                         <th>Tarih</th>
-                        <th>Ada</th>
+                        <th>Ada şehri</th>
                         <th>Bitki</th>
-                        <th class="num">Dikilen</th>
-                        <th class="num">Dönen</th>
-                        <th class="num">Hasat</th>
-                        <th class="num">ürün/tohum</th>
-                        <th class="num">tohum %</th>
-                        <th>Bağlam</th>
+                        <th class="num">Ekilen tohum</th>
+                        <th class="num">Alınan tohum</th>
+                        <th class="num">Hasat miktarı</th>
+                        <th class="num">Tohum başına ürün</th>
+                        <th class="num">Tohum dönüşü %</th>
+                        <th>Premium / Sulama</th>
                     </tr>
                 </thead>
                 <tbody>${body}</tbody>
@@ -355,37 +387,38 @@ function renderAvgCard(plant, islandCity) {
     const bonus = hasCityBonus(plant, islandCity);
     const bonusPct = cityBonusPct();
     const active = avg && avg.avgPlantYield > 0;
-    const yieldDelta = active ? avg.avgPlantYield - wikiYield : null;
-    const seedDelta = active && Number.isFinite(avg.avgSeedReturn) && Number.isFinite(wikiSeed)
-        ? avg.avgSeedReturn - wikiSeed
-        : null;
     const thin = active && avg.n < 3;
     const name = `T${plant.tier} ${plant.label}`;
+    const yieldRelativeDifference = active ? (avg.avgPlantYield - wikiYield) / wikiYield : null;
+    const seedRelativeDifference = active && Number.isFinite(avg.avgSeedReturn) && Number.isFinite(wikiSeed)
+        ? (avg.avgSeedReturn - wikiSeed) / wikiSeed
+        : null;
+    const confidence = active ? confidenceLevel(avg.n) : 0;
 
     return `
-        <article class="yield-avg-card ${tierClass(plant.tier)}${active ? '' : ' is-passive'}${thin ? ' is-thin' : ''}"
-            ${tipAttr(name)}>
-            <div class="yield-avg-card-top">
-                <div class="yield-avg-card-visual">
-                    ${plant.plantId
-                        ? itemIconHtml(plant.plantId, { size: 96, className: 'item-icon yield-avg-card-icon' })
-                        : `<span class="yield-avg-card-icon-fallback">T${plant.tier}</span>`}
+        <article class="yield-avg-card ${tierClass(plant.tier)}${active ? '' : ' is-passive'}${thin ? ' is-thin' : ''}${state.filteredPlantKey === plant.key ? ' is-selected' : ''} is-confidence-${confidence}"
+            data-yield-plant="${escapeHtml(plant.key)}" role="button" tabindex="0" aria-pressed="${state.filteredPlantKey === plant.key ? 'true' : 'false'}" ${tipAttr(`${name} — kayıtları filtrele`)}>
+            <span class="yield-avg-tier">T${plant.tier}</span>
+            ${bonus ? `<span class="yield-avg-bonus-floating"${tipAttr('Şehir bonusu')}><img src="icons/yield-city.svg" alt="">${formatPct(bonusPct)}</span>` : ''}
+            <div class="yield-avg-card-visual">${plant.plantId
+                ? itemIconHtml(plant.plantId, { size: 96, className: 'item-icon yield-avg-card-icon' })
+                : `<span class="yield-avg-card-icon-fallback">T${plant.tier}</span>`}</div>
+            <h4 class="yield-avg-card-name">${escapeHtml(plant.label)}</h4>
+            <section class="yield-metric" aria-label="Ürün getirisi">
+                <div class="yield-metric-title"><img src="icons/yield-product.svg" alt=""><span>Ürün</span></div>
+                <div class="yield-metric-content">
+                    <div class="yield-delta-stack ${deltaTone(yieldRelativeDifference)}"${tipAttr('Varsayılan ürüne göre yüzde farkı')}><strong>${formatRelativeDifference(active ? avg.avgPlantYield : null, wikiYield)}</strong><span>${formatSigned(active ? avg.avgPlantYield - wikiYield : null, { digits: 1 })}</span></div>
+                    <div class="yield-values-stack"><span>Gerçek <b>${active ? formatQty(avg.avgPlantYield) : '—'}</b></span><span>Vars. <b>${formatQty(wikiYield)}</b></span></div>
                 </div>
-                <div class="yield-avg-card-primary">
-                    ${avgTag(active ? formatQty(avg.avgPlantYield) : '—', { kind: 'user', slot: 'yield', tip: 'Senin ürün/tohum' })}
-                    ${avgTag(formatSigned(yieldDelta), { kind: 'delta', tone: deltaTone(yieldDelta), slot: 'yield-delta', tip: 'Sapma (ürün)' })}
+            </section>
+            <section class="yield-metric" aria-label="Tohum getirisi">
+                <div class="yield-metric-title"><img src="icons/yield-seed.svg" alt=""><span>Tohum</span></div>
+                <div class="yield-metric-content">
+                    <div class="yield-delta-stack ${deltaTone(seedRelativeDifference)}"${tipAttr('Varsayılan tohum dönüşüne göre yüzde farkı')}><strong>${formatRelativeDifference(active ? avg.avgSeedReturn : null, wikiSeed)}</strong><span>${formatSigned(active ? avg.avgSeedReturn - wikiSeed : null, { asPctPoints: true })}</span></div>
+                    <div class="yield-values-stack"><span>Gerçek <b>${active ? formatPct(avg.avgSeedReturn) : '—'}</b></span><span>Vars. <b>${formatPct(wikiSeed)}</b></span></div>
                 </div>
-            </div>
-            <div class="yield-avg-card-meta">
-                ${avgTag(formatQty(wikiYield), { kind: 'wiki', slot: 'wiki-yield', tip: 'Wiki ürün/tohum' })}
-                ${avgTag(active ? formatPct(avg.avgSeedReturn) : '—', { kind: 'user', slot: 'seed', tip: 'Senin tohum %' })}
-                ${bonus
-                    ? avgTag(`+${formatPct(bonusPct)}`, { kind: 'bonus', slot: 'bonus', tip: 'Şehir bonusu' })
-                    : avgTag('—', { kind: 'bonus', slot: 'bonus', tip: 'Şehir bonusu yok' })}
-                ${avgTag(formatPct(wikiSeed), { kind: 'wiki', slot: 'wiki-seed', tip: 'Wiki tohum %' })}
-                ${avgTag(formatSigned(seedDelta, { asPctPoints: true }), { kind: 'delta', tone: deltaTone(seedDelta), slot: 'seed-delta', tip: 'Sapma (tohum)' })}
-                ${avgTag(active ? `n=${avg.n}` : 'n=0', { kind: 'n', slot: 'n', tip: thin ? 'İnce örnek' : 'Kayıt sayısı' })}
-            </div>
+            </section>
+            <footer class="yield-card-footer"><span title="Ortalamaya giren kayıt sayısı"><img src="icons/yield-log.svg" alt=""> <b>n=${active ? avg.n : 0}</b></span><span class="yield-confidence"${tipAttr(`Güven seviyesi ${confidence}/3`)}><i></i><i></i><i></i></span></footer>
         </article>
     `;
 }
@@ -394,44 +427,39 @@ function renderAvgLegend() {
     const bonusPct = formatPct(cityBonusPct());
     const rows = [
         {
-            sample: avgTag('9.8', { kind: 'user', tip: 'Senin ürün/tohum' }),
-            text: 'Senin hasat ortalaman — kayıtlarına göre tohum başına düşen ürün.',
-            formula: 'hasat ÷ dikilen'
+            sample: '<span class="yield-values-stack"><span>Gerçek <b>9,8</b></span><span>Vars. <b>9,9</b></span></span>',
+            text: 'Ürün: Gerçek, kayıtlarındaki tohum başına hasat ortalaması; Vars., premium ve şehir bonusu dahil beklenen değer.',
+            formula: 'hasat ÷ ekilen tohum'
         },
         {
-            sample: avgTag('9.9', { kind: 'wiki', tip: 'Wiki ürün/tohum' }),
-            text: 'Oyunun beklenen ürünü (premium/free tabanı; şehir bonusu varsa dahil).',
-            formula: 'taban × (1 + şehir%)'
+            sample: '<span class="yield-values-stack"><span>Gerçek <b>84%</b></span><span>Vars. <b>80%</b></span></span>',
+            text: 'Tohum: Gerçek, geri aldığın tohumların ekilen tohuma oranı; Vars., sulama seçimine göre beklenen dönüş oranı.',
+            formula: 'alınan tohum ÷ ekilen tohum'
         },
         {
-            sample: avgTag('+0.2', { kind: 'delta', tone: 'is-pos', tip: 'Sapma (ürün)' }),
-            text: 'Senin ortalaman wiki’den ne kadar ayrılıyor (ürün/tohum).',
-            formula: 'senin − wiki'
+            sample: '<span class="yield-delta-stack is-neg"><strong>1%</strong><span>−0,1</span></span>',
+            text: 'Büyük yüzde, varsayılan değere göre farkın büyüklüğüdür. Yeşil daha yüksek, kırmızı daha düşük getiriyi gösterir. Altındaki sayı ürün/tohum farkıdır.',
+            formula: '|gerçek − varsayılan| ÷ varsayılan'
         },
         {
-            sample: avgTag('84%', { kind: 'user', tip: 'Senin tohum %' }),
-            text: 'Tohumun geri dönüş oranı — dikilene göre dönen tohum payı.',
-            formula: 'dönen ÷ dikilen'
-        },
-        {
-            sample: avgTag('80%', { kind: 'wiki', tip: 'Wiki tohum %' }),
-            text: 'Merdivendeki standart tohum dönüşü; sulama açıksa su bonusu eklenir.',
-            formula: 'merdiven + su'
-        },
-        {
-            sample: avgTag('+4pp', { kind: 'delta', tone: 'is-pos', tip: 'Sapma (tohum)' }),
-            text: 'Tohum yüzdesinin wiki’den sapması (yüzde puanı).',
-            formula: 'senin − wiki'
+            sample: '<span class="yield-delta-stack is-pos"><strong>5%</strong><span>+4pp</span></span>',
+            text: 'Tohum farkında pp, yüzde puanı demektir. %84 ile %80 arasında +4 yüzde puanı, varsayılana göre %5 artış vardır.',
+            formula: '84% − 80% = 4pp'
         },
         {
             sample: avgTag(`+${bonusPct}`, { kind: 'bonus', tip: 'Şehir bonusu' }),
-            text: 'Bu bitki seçili adada şehir üretim bonusu alıyorsa gösterilir; wiki ürününe yansır.',
+            text: 'Sağ üstteki şehir bonusu, seçili adada bu bitkinin ek ürün verdiğini gösterir. Varsayılan ürün değerine dahildir.',
             formula: `+${bonusPct}`
         },
         {
             sample: avgTag('n=3', { kind: 'n', tip: 'Kayıt sayısı' }),
-            text: 'Ortalamaya giren hasat kaydı adedi. Az kayıt (ince) daha az güvenilir sayılır.',
-            formula: 'kayıt sayısı'
+            text: 'n, ortalamaya giren kayıt sayısıdır. Alttaki noktalar kayıt miktarını gösterir: 1–4 kayıtta bir, 5–11 kayıtta iki, 12 ve üzeri kayıtta üç nokta yanar.',
+            formula: '1 / 5 / 12 kayıt'
+        },
+        {
+            sample: '<span class="yield-delta-stack"><strong>—</strong></span>',
+            text: 'Soluk kartlarda kullanılabilir hasat verisi yoktur; gerçek değer ve fark yerine çizgi gösterilir. Varsayılan değerler görünmeye devam eder.',
+            formula: 'henüz veri yok'
         }
     ];
 
@@ -445,6 +473,66 @@ function renderAvgLegend() {
                 </div>
             `).join('')}
         </div>
+    `;
+}
+
+function renderCityComparison() {
+    if (!state.filteredPlantKey) {
+        return '';
+    }
+    const plant = getPlants().find((item) => item.key === state.filteredPlantKey);
+    if (!plant) {
+        return '';
+    }
+    const cities = comparisonCities();
+    return `
+        <section class="yield-city-comparison" aria-label="Şehir karşılaştırması">
+            <div class="yield-city-comparison-head">
+                <div>
+                    <p class="yield-city-comparison-kicker">Şehir karşılaştırması</p>
+                    <h3 class="island-planner-subhead yield-city-comparison-title">
+                        ${plant.plantId ? itemIconHtml(plant.plantId, { size: 40, className: 'item-icon' }) : ''}
+                        <span>${escapeHtml(plant.label)}</span>
+                        <span class="yield-city-comparison-tier ${tierClass(plant.tier)}">T${plant.tier}</span>
+                    </h3>
+                </div>
+                <p>Seçili Premium / Sulama ayarındaki tüm ada şehirleri.</p>
+            </div>
+            <div class="yield-city-comparison-grid">
+                ${cities.map((city) => {
+                    const cityName = city.marketApiName;
+                    const avg = plantYieldAverage(cityName, plant.key, { premium: state.premium, water: state.water });
+                    const standardYield = standardPlantYield(plant, cityName, state.premium);
+                    const standardSeed = standardSeedReturn(plant, state.water);
+                    const hasData = avg && avg.avgPlantYield > 0;
+                    const yieldDelta = hasData ? (avg.avgPlantYield - standardYield) / standardYield : null;
+                    const seedDelta = hasData && Number.isFinite(avg.avgSeedReturn) && Number.isFinite(standardSeed)
+                        ? avg.avgSeedReturn - standardSeed
+                        : null;
+                    const bonus = hasCityBonus(plant, cityName);
+                    return `
+                        <article class="yield-city-card${cityName === state.islandCity ? ' is-current' : ''}${hasData ? '' : ' is-empty'}"
+                            style="--yield-city-color:${escapeHtml(cityColorHex(city))}">
+                            <header>
+                                <strong>${escapeHtml(cityLabel(cityName))}</strong>
+                                ${bonus ? `<span title="Şehir üretim bonusu">+${formatPct(cityBonusPct())}</span>` : ''}
+                            </header>
+                            <div class="yield-city-card-metric">
+                                <span>Ürün</span>
+                                <b>${hasData ? formatQty(avg.avgPlantYield) : '—'}</b>
+                                <small>${hasData ? `${formatSigned(avg.avgPlantYield - standardYield, { digits: 1 })} · ${formatRelativeDifference(avg.avgPlantYield, standardYield)}` : `Vars. ${formatQty(standardYield)}`}</small>
+                            </div>
+                            <div class="yield-city-card-metric">
+                                <span>Tohum</span>
+                                <b>${hasData ? formatPct(avg.avgSeedReturn) : '—'}</b>
+                                <small>${hasData ? formatSigned(seedDelta, { asPctPoints: true }) : `Vars. ${formatPct(standardSeed)}`}</small>
+                            </div>
+                            <footer>${hasData ? `n=${avg.n} kayıt` : 'Kayıt yok'}</footer>
+                        </article>
+                    `;
+                }).join('')}
+            </div>
+        </section>
     `;
 }
 
@@ -482,7 +570,7 @@ function renderAverages() {
     const groups = PLANT_GROUPS.map((group) => renderAvgGroup(group, plants, islandCity)).join('');
 
     return `
-        <section class="yield-averages" data-yield-averages data-calc-toolbar aria-label="Ortalamalar">
+        <section class="yield-averages" data-yield-averages aria-label="Ortalamalar">
             <div class="yield-averages-head">
                 <h2 class="island-planner-subhead yield-averages-title">Ortalamalar · ${escapeHtml(cityLabel(islandCity))}</h2>
                 <p class="yield-averages-meta"${tipAttr('Seçili ada + premium/su')}>${escapeHtml(contextLabel)}</p>
@@ -500,10 +588,15 @@ function refreshResult(container) {
     }
     host.innerHTML = `
         ${renderAverages()}
+        ${renderCityComparison()}
         <div class="yield-log-section">
             <div class="form-floating farming-city-field yield-month-field">
                 <input class="form-control is-filled" type="month" id="yieldMonth" value="${escapeHtml(state.month)}">
                 <label for="yieldMonth">Ay</label>
+            </div>
+            <div class="yield-log-heading">
+                <h3 class="island-planner-subhead">Kayıtlar${state.filteredPlantKey ? ` · ${escapeHtml(plantLabel(state.filteredPlantKey))}` : ''}</h3>
+                ${state.filteredPlantKey ? '<button type="button" class="btn btn-sm btn-outline-secondary" data-clear-yield-filter>Filtreyi kaldır</button>' : ''}
             </div>
             <div id="yieldLog">${renderLogTable(state.month)}</div>
             <p class="farming-note">Veri yoksa Farming / Ada Planlayıcı standart oyun yield (+şehir %10) kullanır. Ortalama varken şehir bonusu tekrar uygulanmaz.</p>
@@ -515,6 +608,24 @@ function refreshResult(container) {
 }
 
 function bindResult(container) {
+    const setPlantFilter = (plantKey) => {
+        state.filteredPlantKey = state.filteredPlantKey === plantKey ? null : plantKey;
+        refreshResult(container);
+        container.querySelector('.yield-log-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    };
+    container.querySelectorAll('[data-yield-plant]').forEach((card) => {
+        card.addEventListener('click', () => setPlantFilter(card.dataset.yieldPlant));
+        card.addEventListener('keydown', (event) => {
+            if (event.key === 'Enter' || event.key === ' ') {
+                event.preventDefault();
+                setPlantFilter(card.dataset.yieldPlant);
+            }
+        });
+    });
+    container.querySelector('[data-clear-yield-filter]')?.addEventListener('click', () => {
+        state.filteredPlantKey = null;
+        refreshResult(container);
+    });
     container.querySelector('#yieldMonth')?.addEventListener('change', (event) => {
         if (event.target.value) {
             state.month = event.target.value;

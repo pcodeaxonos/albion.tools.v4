@@ -3860,7 +3860,7 @@ a.tool-card {
     opacity: 0.8;
 }
 
-// Island yields — plot squares + seed/harvest pairs + sticky average cards
+// Island yields — plot squares + seed/harvest pairs + average cards
 .yield-planted-pair,
 .yield-harvest-pair {
     display: grid;
@@ -3944,14 +3944,8 @@ a.tool-card {
 }
 
 .yield-averages {
-    position: sticky;
-    top: var(--chrome-top);
-    z-index: 9;
     margin: 0 0 var(--spacing-md);
-    padding: 0 0 var(--spacing-sm);
-    background-color: var(--color-bg);
-    border-bottom: var(--border-width) solid var(--color-border);
-    box-shadow: 0 8px 16px -12px rgba(0, 0, 0, 0.55);
+    padding: 0;
 }
 
 .yield-averages-head {
@@ -4134,7 +4128,7 @@ a.tool-card {
     flex-direction: column;
     gap: 0.35rem;
     margin: 0 0 var(--spacing-md);
-    padding: var(--spacing-sm) 0 0;
+    padding: var(--spacing-md) 0 0;
     border-top: var(--border-width) solid var(--color-border);
 }
 
@@ -4150,6 +4144,9 @@ a.tool-card {
     align-items: center;
     justify-content: flex-start;
     min-width: 0;
+
+    .yield-values-stack { width: 100%; font-size: 0.65rem; }
+    .yield-delta-stack { min-width: 3.5rem; }
 
     .yield-avg-tag {
         width: auto;
@@ -4195,5 +4192,211 @@ a.tool-card {
 .yield-month-field {
     max-width: 12rem;
     margin-bottom: 1rem;
+}
+
+// Island yields — percentage-difference cards
+.yield-avg-row {
+    grid-template-columns: repeat(8, minmax(9.5rem, 1fr));
+    overflow-x: auto;
+    padding: 0.2rem;
+}
+
+.yield-avg-card {
+    position: relative;
+    gap: 0;
+    padding: 0.5rem;
+    border-color: color-mix(in srgb, #2d82d8 86%, white 14%);
+    border-top-width: var(--border-width);
+    border-radius: 0.55rem;
+    background: radial-gradient(circle at 50% 0, rgba(60, 135, 214, 0.14), transparent 35%), linear-gradient(180deg, #111923, #0d141d);
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.025), 0 6px 16px rgba(0, 0, 0, 0.24);
+    overflow: hidden;
+
+    &::before, &::after { content: ''; position: absolute; width: 0.8rem; height: 0.8rem; opacity: 0.75; pointer-events: none; }
+    &::before { top: 0.2rem; left: 0.2rem; border-top: 1px solid #53a7ff; border-left: 1px solid #53a7ff; border-radius: 0.3rem 0 0; }
+    &::after { right: 0.2rem; bottom: 0.2rem; border-right: 1px solid #53a7ff; border-bottom: 1px solid #53a7ff; border-radius: 0 0 0.3rem; }
+}
+
+.yield-avg-card.is-passive {
+    opacity: 0.28;
+    filter: grayscale(0.65) saturate(0.35);
+}
+
+.yield-avg-card.is-selected {
+    outline: 2px solid var(--color-item-tier, var(--color-primary));
+    outline-offset: 2px;
+}
+
+.yield-log-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--spacing-sm);
+    margin-bottom: var(--spacing-sm);
+
+    .island-planner-subhead { margin: 0; }
+}
+
+.yield-city-comparison {
+    margin: var(--spacing-md) 0;
+    padding: var(--spacing-md) 0;
+    border-top: var(--border-width) solid var(--color-border);
+    border-bottom: var(--border-width) solid var(--color-border);
+}
+
+.yield-city-comparison-head {
+    display: flex;
+    align-items: end;
+    justify-content: space-between;
+    gap: var(--spacing-sm);
+    margin-bottom: var(--spacing-sm);
+
+    .island-planner-subhead { margin: 0; }
+    > p { margin: 0; color: var(--color-text-muted); font-size: var(--font-size-sm); }
+}
+
+.yield-city-comparison-kicker {
+    margin: 0 0 0.1rem;
+    color: var(--color-text-muted);
+    font-size: 0.625rem;
+    font-weight: var(--font-weight-semibold);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.yield-city-comparison-title {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+
+    .item-icon { width: 1.7rem; height: 1.7rem; object-fit: contain; }
+}
+
+.yield-city-comparison-tier {
+    padding: 0.1rem 0.25rem;
+    border-radius: 0.2rem;
+    font-family: var(--font-family-mono);
+    font-size: 0.65rem;
+    font-weight: var(--font-weight-bold);
+    line-height: 1;
+    color: var(--color-on-item-tier, var(--color-on-tier));
+    background-color: var(--color-item-tier, var(--color-border-strong));
+}
+
+.yield-city-comparison-grid {
+    display: grid;
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+    gap: 0.4rem;
+}
+
+.yield-city-card {
+    --yield-city-color: var(--color-primary);
+    padding: 0.45rem;
+    border: var(--border-width) solid color-mix(in srgb, var(--yield-city-color) 48%, var(--color-border));
+    border-radius: 0.4rem;
+    background-color: color-mix(in srgb, var(--yield-city-color) 9%, var(--color-surface));
+
+    &.is-current { border-color: var(--yield-city-color); box-shadow: inset 3px 0 0 var(--yield-city-color), 0 0 0 1px color-mix(in srgb, var(--yield-city-color) 22%, transparent); }
+    &.is-empty { opacity: 0.68; }
+
+    header { display: flex; align-items: center; justify-content: space-between; gap: 0.4rem; margin-bottom: 0.35rem; }
+    header strong { color: var(--yield-city-color); font-size: var(--font-size-sm); }
+    header span { padding: 0.08rem 0.2rem; border-radius: 0.2rem; background: rgba(242, 200, 85, 0.14); color: #f2c855; font-size: 0.625rem; font-weight: var(--font-weight-bold); }
+    footer { margin-top: 0.35rem; color: var(--color-text-muted); font-size: 0.625rem; }
+}
+
+.yield-city-card-metric {
+    display: grid;
+    grid-template-columns: 3.25rem auto 1fr;
+    gap: 0.25rem;
+    align-items: baseline;
+    padding: 0.2rem 0;
+    border-top: 1px solid color-mix(in srgb, var(--color-border) 70%, transparent);
+
+    > span, small { color: var(--color-text-muted); font-size: 0.625rem; }
+    b { color: #ffd361; font-family: var(--font-family-mono); font-size: 0.75rem; }
+    small { text-align: right; }
+}
+
+.yield-avg-card-top, .yield-avg-card-primary, .yield-avg-card-meta { display: none; }
+.yield-avg-card-visual { height: 4.5rem; margin-bottom: 0.15rem; }
+.yield-avg-card-icon, .yield-avg-card-icon-fallback { width: 4.5rem; height: 4.5rem; filter: drop-shadow(0 3px 4px rgba(0, 0, 0, 0.45)); }
+.yield-avg-card-name { margin: 0 0 0.35rem; text-align: center; color: #edf2f8; font-size: 0.82rem; font-weight: var(--font-weight-bold); }
+.yield-avg-bonus-floating { position: absolute; z-index: 2; top: 0.45rem; right: 0.45rem; padding: 0.16rem 0.3rem; border: 1px solid rgba(242, 200, 85, 0.5); border-radius: 0.3rem; background: rgba(29, 24, 9, 0.88); color: #f2c855; font-size: 0.64rem; font-weight: var(--font-weight-bold); }
+.yield-metric { padding: 0.4rem; border: 1px solid rgba(150, 171, 198, 0.24); border-radius: 0.42rem; background: linear-gradient(180deg, rgba(12, 18, 26, 0.94), rgba(8, 13, 19, 0.9)); }
+.yield-metric + .yield-metric { margin-top: 0.35rem; }
+.yield-metric-title { color: #d9e0e9; font-size: 0.66rem; font-weight: var(--font-weight-bold); }
+.yield-delta { display: flex; justify-content: center; align-items: center; gap: 0.3rem; min-height: 1.8rem; margin-top: 0.28rem; border: 1px solid var(--color-border); border-radius: 0.35rem; color: #c7d0df; font-variant-numeric: tabular-nums; }
+.yield-delta strong { font-size: 1rem; }
+.yield-delta.is-pos { color: #5ee88d; border-color: rgba(94, 232, 141, 0.62); background: linear-gradient(180deg, rgba(14, 78, 41, 0.44), rgba(8, 38, 22, 0.36)); }
+.yield-delta.is-neg { color: #ff6674; border-color: rgba(255, 102, 116, 0.68); background: linear-gradient(180deg, rgba(92, 18, 27, 0.45), rgba(45, 13, 18, 0.34)); }
+.yield-metric small { display: block; margin-top: 0.3rem; color: #9aa7b7; font-size: 0.58rem; text-align: center; white-space: nowrap; }
+.yield-metric small b:first-of-type { color: #ffd361; }
+.yield-metric small b:last-child { color: #c7d0df; }
+.yield-card-footer { display: flex; align-items: center; justify-content: space-between; min-height: 1.5rem; margin-top: 0.35rem; padding: 0.22rem 0.3rem; border: 1px solid rgba(151, 169, 191, 0.2); border-radius: 0.38rem; background: rgba(9, 14, 20, 0.72); color: #dce3ec; font-size: 0.63rem; }
+.yield-confidence { display: flex; gap: 0.2rem; }
+.yield-confidence i { width: 0.42rem; height: 0.42rem; border-radius: 50%; background: #46515f; }
+.yield-avg-card.is-confidence-1 .yield-confidence i:nth-child(-n+1), .yield-avg-card.is-confidence-2 .yield-confidence i:nth-child(-n+2), .yield-avg-card.is-confidence-3 .yield-confidence i:nth-child(-n+3) { background: #ffd361; box-shadow: 0 0 5px rgba(255, 211, 97, 0.3); }
+
+// Compact eight-tier yield layout
+.yield-avg-row {
+    grid-template-columns: repeat(8, minmax(0, 1fr));
+    gap: 0.3rem;
+    overflow: visible;
+}
+
+.yield-avg-card {
+    padding: 0.35rem;
+    border-color: var(--color-item-tier, var(--color-border));
+    background: linear-gradient(180deg, color-mix(in srgb, var(--color-item-tier, var(--color-border)) 16%, #111923), #0d141d);
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--color-item-tier, var(--color-border)) 22%, transparent), 0 4px 10px rgba(0, 0, 0, 0.22);
+
+    &::before, &::after { content: none; }
+}
+
+.yield-avg-card-visual { height: clamp(2.3rem, 5vw, 4rem); margin-bottom: 0; }
+.yield-avg-card-icon, .yield-avg-card-icon-fallback { width: clamp(2.3rem, 5vw, 4rem); height: clamp(2.3rem, 5vw, 4rem); }
+.yield-avg-card-name { margin: 0.05rem 0 0.25rem; font-size: clamp(0.5rem, 1vw, 0.78rem); line-height: 1.15; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.yield-avg-tier {
+    position: absolute;
+    top: 0.2rem;
+    left: 0.2rem;
+    z-index: 2;
+    padding: 0.1rem 0.25rem;
+    border-radius: 0.2rem;
+    font-family: var(--font-family-mono);
+    font-size: clamp(0.45rem, 0.8vw, 0.65rem);
+    font-weight: var(--font-weight-bold);
+    line-height: 1;
+    color: var(--color-on-item-tier, var(--color-on-tier));
+    background-color: var(--color-item-tier, var(--color-border-strong));
+}
+.yield-avg-bonus-floating { top: 0.2rem; right: 0.2rem; display: inline-flex; align-items: center; gap: 0.1rem; padding: 0.1rem 0.2rem; font-size: clamp(0.45rem, 0.8vw, 0.62rem); }
+.yield-avg-bonus-floating img { width: 0.65rem; height: 0.65rem; }
+.yield-metric { padding: 0.27rem; border-radius: 0.32rem; }
+.yield-metric + .yield-metric { margin-top: 0.25rem; }
+.yield-metric-title { display: flex; align-items: center; gap: 0.15rem; font-size: clamp(0.48rem, 0.8vw, 0.64rem); }
+.yield-metric-title img { width: 0.72rem; height: 0.72rem; }
+.yield-metric-content { display: grid; grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.05fr); gap: 0.25rem; margin-top: 0.2rem; }
+.yield-delta-stack { display: grid; place-items: center; min-width: 0; padding: 0.12rem; color: #c7d0df; font-variant-numeric: tabular-nums; text-align: center; }
+.yield-delta-stack strong { font-size: clamp(0.72rem, 1.5vw, 1.05rem); line-height: 1; }
+.yield-delta-stack span { margin-top: 0.12rem; font-family: var(--font-family-mono); font-size: clamp(0.46rem, 0.75vw, 0.62rem); }
+.yield-delta-stack.is-pos { color: var(--color-success); }
+.yield-delta-stack.is-neg { color: var(--color-danger); }
+.yield-values-stack { display: grid; align-content: center; gap: 0.12rem; min-width: 0; font-size: clamp(0.42rem, 0.7vw, 0.58rem); color: #9aa7b7; }
+.yield-values-stack span { display: flex; justify-content: space-between; gap: 0.15rem; white-space: nowrap; }
+.yield-values-stack b { color: #c7d0df; font-size: 1.1em; }
+.yield-values-stack span:first-child b { color: #ffd361; }
+.yield-card-footer { min-height: 1.15rem; margin-top: 0.25rem; padding: 0.12rem 0.22rem; font-size: clamp(0.45rem, 0.75vw, 0.62rem); }
+.yield-card-footer > span:first-child { display: inline-flex; align-items: center; gap: 0.12rem; }
+.yield-card-footer img { width: 0.65rem; height: 0.65rem; }
+.yield-confidence i { width: 0.34rem; height: 0.34rem; }
+
+@media (max-width: 640px) {
+    .yield-avg-row { gap: 0.15rem; }
+    .yield-avg-card { padding: 0.18rem; border-radius: 0.3rem; }
+    .yield-metric { padding: 0.16rem; }
+    .yield-metric-title img, .yield-avg-bonus-floating img, .yield-card-footer img { display: none; }
+    .yield-avg-bonus-floating { font-size: 0.4rem; }
 }
 
