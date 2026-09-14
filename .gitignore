@@ -8,4 +8,8 @@ _tmp_xlsm_report/
 .price-hub.json
 .albion-tools-data.json
 # Item icons: local only — run `npm run data:icons`
-icons/
+icons/*
+!icons/yield-city.svg
+!icons/yield-product.svg
+!icons/yield-seed.svg
+!icons/yield-log.svg
