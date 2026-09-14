@@ -11,6 +11,8 @@ import { initTableSort, sortHeaderHtml } from './table-sort.js';
 import { bindCalcSticky } from './calc-sticky.js';
 import { bindLogTableRows } from './log-table.js';
 import { showToast } from './toast.js';
+import { itemIconHtml } from './item-icon.js';
+import { getStandardCombos } from './settings.js';
 
 const TABLE = 'dailyBonuses';
 
@@ -46,6 +48,138 @@ function datesForLogMonth(month, recordedDates) {
 function formatDate(isoDate) {
     const [y, m, d] = isoDate.split('-');
     return `${d}.${m}.${y}`;
+}
+
+const BONUS_ANALYSIS_ITEMS = [
+    { name: 'Scholar Robe', key: 'ARMOR_CLOTH_SET1', values: [[10428, 6246], [28441, 16479], [71220, 41386], [166004, 96520], [382200, 223640]] },
+    { name: 'Cleric Robe', key: 'ARMOR_CLOTH_SET2', values: [[9870, 6349], [26918, 16697], [66115, 40174], [152440, 94028], [348880, 217902]] },
+    { name: 'Mage Robe', key: 'ARMOR_CLOTH_SET3', values: [[9112, 6308], [24006, 16194], [58904, 38236], [139680, 89210], [320540, 207780]] }
+];
+const ANALYSIS_TIERS = [4, 5, 6, 7, 8];
+
+function analysisDefaultTiers() {
+    const tiers = [...new Set(getStandardCombos()
+        .map((combo) => Number(combo.tier))
+        .filter((tier) => ANALYSIS_TIERS.includes(tier)))];
+    return tiers.length ? tiers : [4, 5, 6];
+}
+
+function number(value) {
+    return new Intl.NumberFormat('tr-TR').format(value);
+}
+
+function renderAnalysisCard(item, tier, rank) {
+    const [market, material] = item.values[tier - 4];
+    const profit = market - material;
+    const percent = Math.round((profit / material) * 100);
+    const materialCount = 2 ** (tier + 1);
+    return `
+        <article class="bonus-analysis-card">
+            <div class="bonus-analysis-card-main">
+                <span class="bonus-analysis-rank">${rank}</span>
+                <div class="bonus-analysis-icon">${itemIconHtml(`T${tier}_${item.key}`, { size: 64, className: 'item-icon' })}</div>
+                <div class="bonus-analysis-item-copy"><h3>${escapeHtml(item.name)}</h3><p>Cloth Robe</p></div>
+                <dl class="bonus-analysis-prices">
+                    <div><dt>BM Fiyatı</dt><dd>${number(market)}</dd></div>
+                    <div class="is-profit"><dt>Kâr / Adet</dt><dd>+${number(profit)} <small>(%${percent})</small></dd></div>
+                </dl>
+            </div>
+            <div class="bonus-analysis-material"><div><span>Hammadde Maliyeti</span><strong>${number(material)}</strong></div><div><span>Gerekli Hammadde</span><strong>T${tier} Cloth · ${number(materialCount)}</strong></div></div>
+        </article>`;
+}
+
+function renderTierColumn(tier) {
+    return `
+        <section class="bonus-analysis-tier-column is-tier-${tier}" data-analysis-tier="${tier}">
+            <header><strong>T${tier}</strong><span>En Kârlı 3 Item</span></header>
+            <div>${BONUS_ANALYSIS_ITEMS.map((item, index) => renderAnalysisCard(item, tier, index + 1)).join('')}</div>
+        </section>`;
+}
+
+function renderBonusAnalysisDialog() {
+    const defaultTiers = analysisDefaultTiers();
+    return `
+        <button type="button" class="app-dialog-close" aria-label="Kapat" data-analysis-close></button>
+        <div class="bonus-analysis-sheet">
+            <header class="bonus-analysis-head">
+                <div><p class="bonus-analysis-eyebrow">GÜNLÜK CRAFT BONUS ANALİZİ</p><h2>Cloth Robe <span>· ${formatDate(bonusDayIso())}</span></h2><p>Artifactsiz ilk üç item için Black Market fiyatına göre en kârlı seçenekler.</p></div>
+                <button type="button" class="btn btn-primary bonus-analysis-refresh" data-analysis-refresh>↻ Fiyatları Yenile</button>
+            </header>
+            <section class="bonus-analysis-controls" aria-label="Analiz filtreleri">
+                <div class="bonus-analysis-select"><span>Bonus grubu</span><strong>Cloth Robe</strong><small>Fort Sterling</small></div>
+                <div class="bonus-analysis-select"><span>Market</span><strong>Black Market</strong><small>Satış fiyatı</small></div>
+                <div class="bonus-analysis-tiers" role="group" aria-label="Tier seçimi">
+                    ${ANALYSIS_TIERS.map((tier) => `<button type="button" class="is-tier-${tier}${defaultTiers.includes(tier) ? ' is-active' : ''}" data-analysis-filter="${tier}">T${tier}</button>`).join('')}
+                    <button type="button" data-analysis-filter="all">Tüm Tierlar</button>
+                </div>
+            </section>
+            <div class="bonus-analysis-note">Her tier için, bonus grubundaki en kârlı üç normal item gösterilir. Kâr = Black Market fiyatı − hammadde maliyeti.</div>
+            <section class="bonus-analysis-grid" id="bonusAnalysisGrid">
+                ${ANALYSIS_TIERS.map(renderTierColumn).join('')}
+            </section>
+            <footer class="bonus-analysis-foot"><span>Son güncelleme: Tasarım önizlemesi</span><span>Öncelikli tierlar: T4 · T5 · T6</span></footer>
+        </div>`;
+}
+
+function openBonusAnalysis(container) {
+    let dialog = container.querySelector('#bonusAnalysisDialog');
+    if (!dialog) {
+        dialog = document.createElement('dialog');
+        dialog.id = 'bonusAnalysisDialog';
+        dialog.className = 'app-dialog bonus-analysis-dialog';
+        container.appendChild(dialog);
+        dialog.addEventListener('click', (event) => { if (event.target === dialog) dialog.close(); });
+    }
+    dialog.innerHTML = renderBonusAnalysisDialog();
+    dialog.querySelector('[data-analysis-close]')?.addEventListener('click', () => dialog.close());
+    dialog.querySelector('[data-analysis-refresh]')?.addEventListener('click', (event) => {
+        event.currentTarget.textContent = '✓ Fiyatlar Güncel';
+        window.setTimeout(() => { event.currentTarget.textContent = '↻ Fiyatları Yenile'; }, 1300);
+    });
+    const filterButtons = [...dialog.querySelectorAll('[data-analysis-filter]')];
+    const applyTierFilters = () => {
+        const showAll = dialog.querySelector('[data-analysis-filter="all"]')?.classList.contains('is-active');
+        const selected = new Set(filterButtons
+            .filter((button) => button.dataset.analysisFilter !== 'all' && button.classList.contains('is-active'))
+            .map((button) => button.dataset.analysisFilter));
+        dialog.querySelectorAll('[data-analysis-tier]').forEach((column) => {
+            column.hidden = !showAll && !selected.has(column.dataset.analysisTier);
+        });
+    };
+    filterButtons.forEach((button) => button.addEventListener('click', () => {
+        if (button.dataset.analysisFilter === 'all') {
+            if (button.classList.contains('is-active')) {
+                return;
+            }
+            button.classList.add('is-active');
+            filterButtons.filter((el) => el.dataset.analysisFilter !== 'all').forEach((el) => el.classList.remove('is-active'));
+        } else {
+            const allButton = dialog.querySelector('[data-analysis-filter="all"]');
+            if (allButton?.classList.contains('is-active')) {
+                allButton.classList.remove('is-active');
+                button.classList.add('is-active');
+                applyTierFilters();
+                return;
+            }
+            const selectedTierButtons = filterButtons.filter((el) =>
+                el.dataset.analysisFilter !== 'all' && el.classList.contains('is-active')
+            );
+            if (button.classList.contains('is-active') && selectedTierButtons.length === 1) {
+                allButton?.classList.add('is-active');
+                selectedTierButtons.forEach((el) => el.classList.remove('is-active'));
+                applyTierFilters();
+                return;
+            }
+            button.classList.toggle('is-active');
+        }
+        applyTierFilters();
+    }));
+    applyTierFilters();
+    if (typeof dialog.showModal === 'function') {
+        dialog.showModal();
+    } else {
+        dialog.setAttribute('open', '');
+    }
 }
 
 function rowsForMonth(month) {
@@ -369,7 +503,7 @@ function renderPage(container) {
 
     container.innerHTML = `
         <section class="bonus-hero">
-            <h1>Günlük Bonus</h1>
+            <div class="bonus-hero-head"><h1>Günlük Bonus</h1><button type="button" class="bonus-analysis-trigger" id="openBonusAnalysis"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 19V5m0 14h16M7 15l3-3 3 2 5-6"/><path d="M15 8h3v3"/></svg><span>Craft Analizi</span></button></div>
             <p>Her gün iki craft / refine bonusu. Gün 13:00’te yenilenir. Oyun API’sinden gelmez; buraya kaydedilir. Unutulan günler boş bırakılabilir.</p>
         </section>
 
@@ -440,6 +574,8 @@ function renderPage(container) {
 
 function bindPage(container) {
     initFloatingLabels(container);
+
+    container.querySelector('#openBonusAnalysis')?.addEventListener('click', () => openBonusAnalysis(container));
 
     container.querySelector('#bonusMonth')?.addEventListener('change', (event) => {
         const value = event.target.value;
