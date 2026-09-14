@@ -4,15 +4,29 @@ import { initFloatingLabels } from './forms.js';
 import { initStore, getAll, createRow, updateRow, deleteRow } from './db/store.js';
 import { showPageLoader, hidePageLoader } from './loader.js';
 import { bindCalcSticky } from './calc-sticky.js';
+import { bindLogTableRows } from './log-table.js';
 import { loadActiveCities } from './cities.js';
 import { cityFieldHtml, bindCityField, setCityFieldValue } from './city-picker.js';
+import { plantFieldHtml, bindPlantField, setPlantFieldValue } from './plant-picker.js';
 import { getSettings, cityHasIsland, getDefaultCity } from './settings.js';
-import { getPlants } from './catalog.js';
+import { getPlants, getEconomyConstant } from './catalog.js';
 import { itemIconHtml } from './item-icon.js';
-import { summarizeYieldAverages } from './island-yield-stats.js';
+import { showToast } from './toast.js';
+import {
+    plantYieldAverage,
+    standardPlantYield,
+    standardSeedReturn
+} from './island-yield-stats.js';
 
 const TABLE = 'islandYieldLogs';
 const CITY_STORAGE_KEY = 'albiontools.v4.island-yields.city';
+const SEEDS_PER_PLOT = 9;
+const PLOT_CHOICES = [1, 2, 3, 4, 5];
+
+const PLANT_GROUPS = [
+    { kind: 'crop', title: 'Ekin tohumları' },
+    { kind: 'herb', title: 'Ot tohumları' }
+];
 
 const state = {
     month: toYearMonth(todayIso()),
@@ -20,7 +34,8 @@ const state = {
     islandCity: getDefaultCity(),
     premium: true,
     water: false,
-    cities: []
+    cities: [],
+    plotsSelected: 1
 };
 
 function todayIso() {
@@ -54,6 +69,30 @@ function formatQty(value) {
     return value.toLocaleString('tr-TR', { maximumFractionDigits: 2 });
 }
 
+function formatSigned(value, { digits = 2, asPctPoints = false } = {}) {
+    if (!Number.isFinite(value)) {
+        return '—';
+    }
+    const abs = asPctPoints
+        ? Math.abs(value * 100).toLocaleString('tr-TR', { maximumFractionDigits: 1 })
+        : Math.abs(value).toLocaleString('tr-TR', { maximumFractionDigits: digits });
+    const unit = asPctPoints ? 'pp' : '';
+    if (value > 0) {
+        return `+${abs}${unit}`;
+    }
+    if (value < 0) {
+        return `−${abs}${unit}`;
+    }
+    return `0${unit}`;
+}
+
+function deltaTone(value) {
+    if (!Number.isFinite(value) || value === 0) {
+        return '';
+    }
+    return value > 0 ? 'is-pos' : 'is-neg';
+}
+
 function cityLabel(apiName) {
     return state.cities.find((city) => city.marketApiName === apiName)?.displayName ?? apiName;
 }
@@ -62,24 +101,10 @@ function plantLabel(key) {
     return getPlants().find((p) => p.key === key)?.label || key;
 }
 
-function plantOptions(selected) {
-    const plants = getPlants();
-    const crops = plants.filter((p) => p.kind === 'crop');
-    const herbs = plants.filter((p) => p.kind === 'herb');
-    const opt = (list) => list.map((p) => {
-        const sel = p.key === selected ? ' selected' : '';
-        return `<option value="${escapeHtml(p.key)}"${sel}>T${p.tier} ${escapeHtml(p.label)}</option>`;
-    }).join('');
-    return `
-        <option value="">Seçin</option>
-        <optgroup label="Ekin">${opt(crops)}</optgroup>
-        <optgroup label="Ot">${opt(herbs)}</optgroup>
-    `;
-}
-
-function rowsForMonth(month) {
+function rowsForMonth(month, islandCity = null) {
     return getAll(TABLE)
         .filter((row) => toYearMonth(row.date) === month)
+        .filter((row) => !islandCity || row.islandCity === islandCity)
         .slice()
         .sort((a, b) => b.date.localeCompare(a.date) || b.id - a.id);
 }
@@ -89,6 +114,22 @@ function cityIslandDecorate(city) {
         return {};
     }
     return { muted: true, hint: 'ada yok' };
+}
+
+function cityBonusPct() {
+    return getEconomyConstant('city_yield_bonus', 0.1);
+}
+
+function hasCityBonus(plant, islandCity) {
+    return Array.isArray(plant?.bonusCities) && plant.bonusCities.includes(islandCity);
+}
+
+function tierClass(tier) {
+    const n = Number(tier);
+    if (n >= 1 && n <= 8) {
+        return `is-item-tier-${n}`;
+    }
+    return '';
 }
 
 function renderToggle(groupLabel, options, dataAttr, current) {
@@ -107,25 +148,85 @@ function renderToggle(groupLabel, options, dataAttr, current) {
     `;
 }
 
-function setFormMessage(container, text) {
-    const el = container.querySelector('#yieldFormMessage');
-    if (!el) {
+function setPlantedFields(container, seeds) {
+    const planted = container.querySelector('#seedsPlanted');
+    if (!planted) {
         return;
     }
-    if (!text) {
-        el.hidden = true;
-        el.textContent = '';
+    const n = Number(seeds);
+    const safe = Number.isFinite(n) && n > 0 ? n : 1;
+    planted.value = String(safe);
+    planted.classList.add('is-filled');
+
+    const plotCount = safe / SEEDS_PER_PLOT;
+    const matched = Number.isInteger(plotCount) && PLOT_CHOICES.includes(plotCount)
+        ? plotCount
+        : null;
+    state.plotsSelected = matched;
+    syncPlotButtons(container, matched);
+}
+
+function syncPlotButtons(container, plotCount) {
+    container.querySelectorAll('[data-plots]').forEach((button) => {
+        const pressed = plotCount != null && Number(button.dataset.plots) === Number(plotCount);
+        button.classList.toggle('is-active', pressed);
+        button.setAttribute('aria-pressed', pressed ? 'true' : 'false');
+    });
+}
+
+function applyPlotChoice(container, plots) {
+    const n = Number(plots);
+    if (!PLOT_CHOICES.includes(n)) {
         return;
     }
-    el.hidden = false;
-    el.textContent = text;
-    el.className = 'alert alert-info';
+    state.plotsSelected = n;
+    const planted = container.querySelector('#seedsPlanted');
+    if (planted) {
+        planted.value = String(n * SEEDS_PER_PLOT);
+        planted.classList.add('is-filled');
+    }
+    syncPlotButtons(container, n);
+}
+
+function syncPlotsFromSeeds(container) {
+    const planted = container.querySelector('#seedsPlanted');
+    if (!planted) {
+        return;
+    }
+    const seeds = Number(planted.value);
+    if (!Number.isFinite(seeds) || seeds <= 0) {
+        state.plotsSelected = null;
+        syncPlotButtons(container, null);
+        return;
+    }
+    const raw = seeds / SEEDS_PER_PLOT;
+    const matched = Number.isInteger(raw) && PLOT_CHOICES.includes(raw) ? raw : null;
+    state.plotsSelected = matched;
+    syncPlotButtons(container, matched);
+}
+
+function renderPlotPicker(selectedPlots) {
+    return `
+        <div class="yield-plot-picker" role="radiogroup" aria-label="Plot"
+            title="1 plot = ${SEEDS_PER_PLOT} tohum">
+            ${PLOT_CHOICES.map((n) => {
+                const pressed = n === selectedPlots;
+                return `
+                    <button type="button"
+                        class="yield-plot-btn${pressed ? ' is-active' : ''}"
+                        data-plots="${n}"
+                        aria-pressed="${pressed ? 'true' : 'false'}"
+                        title="${n} plot · ${n * SEEDS_PER_PLOT} tohum">
+                        ${n}
+                    </button>
+                `;
+            }).join('')}
+        </div>
+    `;
 }
 
 function fillForm(container, row) {
     const dateInput = container.querySelector('#yieldDate');
-    const plant = container.querySelector('#plantKey');
-    const planted = container.querySelector('#seedsPlanted');
     const returned = container.querySelector('#seedsReturned');
     const harvested = container.querySelector('#plantsHarvested');
     const submit = container.querySelector('#yieldSubmit');
@@ -138,8 +239,8 @@ function fillForm(container, row) {
         state.premium = row.premium === true;
         state.water = row.water === true;
         dateInput.value = row.date;
-        plant.value = row.plantKey;
-        planted.value = String(row.seedsPlanted ?? 1);
+        setPlantFieldValue(container, 'plantKey', row.plantKey);
+        setPlantedFields(container, row.seedsPlanted ?? 1);
         returned.value = String(row.seedsReturned ?? 0);
         harvested.value = String(row.plantsHarvested ?? 0);
         submit.textContent = 'Güncelle';
@@ -150,8 +251,8 @@ function fillForm(container, row) {
     } else {
         state.editingId = null;
         dateInput.value = todayIso();
-        plant.value = '';
-        planted.value = '1';
+        setPlantFieldValue(container, 'plantKey', '');
+        setPlantedFields(container, SEEDS_PER_PLOT);
         returned.value = '';
         harvested.value = '';
         submit.textContent = 'Kaydet';
@@ -175,16 +276,17 @@ function syncToggles(container) {
 }
 
 function renderLogTable(month) {
-    const rows = rowsForMonth(month);
+    const rows = rowsForMonth(month, state.islandCity);
     if (!rows.length) {
-        return `<div class="alert alert-info">${escapeHtml(month)} için kayıt yok. Soldan hasat sonucu ekle.</div>`;
+        const city = state.islandCity ? cityLabel(state.islandCity) : 'seçili ada';
+        return `<div class="alert alert-info">${escapeHtml(month)} · ${escapeHtml(city)} için kayıt yok. Soldan hasat sonucu ekle.</div>`;
     }
     const body = rows.map((row) => {
         const plant = getPlants().find((p) => p.key === row.plantKey);
         const perSeed = row.seedsPlanted > 0 ? row.plantsHarvested / row.seedsPlanted : null;
         const seedRate = row.seedsPlanted > 0 ? row.seedsReturned / row.seedsPlanted : null;
         return `
-            <tr data-id="${row.id}"${state.editingId === row.id ? ' class="is-editing"' : ''}>
+            <tr data-id="${row.id}"${String(state.editingId) === String(row.id) ? ' class="is-editing"' : ''}>
                 <td class="text-nowrap">${escapeHtml(formatDate(row.date))}</td>
                 <td>${escapeHtml(cityLabel(row.islandCity))}</td>
                 <td>
@@ -205,7 +307,7 @@ function renderLogTable(month) {
 
     return `
         <div class="table-responsive calc-table-wrap" data-calc-table>
-            <table class="table table-striped farming-table calc-table">
+            <table class="table table-striped farming-table log-table calc-table">
                 <thead>
                     <tr>
                         <th>Tarih</th>
@@ -225,43 +327,169 @@ function renderLogTable(month) {
     `;
 }
 
-function renderAverages() {
-    const rows = summarizeYieldAverages();
-    if (!rows.length) {
-        return `<p class="farming-note">Henüz ortalama yok — kayıt girdikçe burada görünür. Farming ve Ada Planlayıcı bu ortalamaları kullanır.</p>`;
+function tipAttr(label) {
+    return ` title="${escapeHtml(label)}" aria-label="${escapeHtml(label)}"`;
+}
+
+function avgTag(text, { kind = '', tone = '', tip = '', slot = '' } = {}) {
+    const classes = ['yield-avg-tag'];
+    if (kind) {
+        classes.push(`is-${kind}`);
     }
-    const body = rows.map((row) => `
-        <tr>
-            <td>${escapeHtml(cityLabel(row.islandCity))}</td>
-            <td>
-                <span class="farming-item">
-                    ${row.plantId ? itemIconHtml(row.plantId, { className: 'item-icon' }) : ''}
-                    <span>${escapeHtml(row.plantLabel)}${row.thin ? ' <span class="farming-bonus">ince</span>' : ''}</span>
-                </span>
-            </td>
-            <td class="num">${row.n}</td>
-            <td class="num">${formatQty(row.avgPlantYield)}</td>
-            <td class="num">${formatPct(row.avgSeedReturn)}</td>
-            <td>${row.premium ? 'Premium' : 'Free'}${row.water ? ' · su' : ''}</td>
-        </tr>
-    `).join('');
+    if (tone) {
+        classes.push(tone);
+    }
+    if (slot) {
+        classes.push(`is-slot-${slot}`);
+    }
+    return `<span class="${classes.join(' ')}"${tip ? tipAttr(tip) : ''}>${escapeHtml(text)}</span>`;
+}
+
+function renderAvgCard(plant, islandCity) {
+    const avg = plantYieldAverage(islandCity, plant.key, {
+        premium: state.premium,
+        water: state.water
+    });
+    const wikiYield = standardPlantYield(plant, islandCity, state.premium);
+    const wikiSeed = standardSeedReturn(plant, state.water);
+    const bonus = hasCityBonus(plant, islandCity);
+    const bonusPct = cityBonusPct();
+    const active = avg && avg.avgPlantYield > 0;
+    const yieldDelta = active ? avg.avgPlantYield - wikiYield : null;
+    const seedDelta = active && Number.isFinite(avg.avgSeedReturn) && Number.isFinite(wikiSeed)
+        ? avg.avgSeedReturn - wikiSeed
+        : null;
+    const thin = active && avg.n < 3;
+    const name = `T${plant.tier} ${plant.label}`;
+
     return `
-        <h2 class="island-planner-subhead">Ortalamalar</h2>
-        <div class="table-responsive calc-table-wrap">
-            <table class="table table-striped farming-table calc-table">
-                <thead>
-                    <tr>
-                        <th>Ada</th>
-                        <th>Bitki</th>
-                        <th class="num">n</th>
-                        <th class="num">ort. ürün/tohum</th>
-                        <th class="num">ort. tohum %</th>
-                        <th>Bağlam</th>
-                    </tr>
-                </thead>
-                <tbody>${body}</tbody>
-            </table>
+        <article class="yield-avg-card ${tierClass(plant.tier)}${active ? '' : ' is-passive'}${thin ? ' is-thin' : ''}"
+            ${tipAttr(name)}>
+            <div class="yield-avg-card-top">
+                <div class="yield-avg-card-visual">
+                    ${plant.plantId
+                        ? itemIconHtml(plant.plantId, { size: 96, className: 'item-icon yield-avg-card-icon' })
+                        : `<span class="yield-avg-card-icon-fallback">T${plant.tier}</span>`}
+                </div>
+                <div class="yield-avg-card-primary">
+                    ${avgTag(active ? formatQty(avg.avgPlantYield) : '—', { kind: 'user', slot: 'yield', tip: 'Senin ürün/tohum' })}
+                    ${avgTag(formatSigned(yieldDelta), { kind: 'delta', tone: deltaTone(yieldDelta), slot: 'yield-delta', tip: 'Sapma (ürün)' })}
+                </div>
+            </div>
+            <div class="yield-avg-card-meta">
+                ${avgTag(formatQty(wikiYield), { kind: 'wiki', slot: 'wiki-yield', tip: 'Wiki ürün/tohum' })}
+                ${avgTag(active ? formatPct(avg.avgSeedReturn) : '—', { kind: 'user', slot: 'seed', tip: 'Senin tohum %' })}
+                ${bonus
+                    ? avgTag(`+${formatPct(bonusPct)}`, { kind: 'bonus', slot: 'bonus', tip: 'Şehir bonusu' })
+                    : avgTag('—', { kind: 'bonus', slot: 'bonus', tip: 'Şehir bonusu yok' })}
+                ${avgTag(formatPct(wikiSeed), { kind: 'wiki', slot: 'wiki-seed', tip: 'Wiki tohum %' })}
+                ${avgTag(formatSigned(seedDelta, { asPctPoints: true }), { kind: 'delta', tone: deltaTone(seedDelta), slot: 'seed-delta', tip: 'Sapma (tohum)' })}
+                ${avgTag(active ? `n=${avg.n}` : 'n=0', { kind: 'n', slot: 'n', tip: thin ? 'İnce örnek' : 'Kayıt sayısı' })}
+            </div>
+        </article>
+    `;
+}
+
+function renderAvgLegend() {
+    const bonusPct = formatPct(cityBonusPct());
+    const rows = [
+        {
+            sample: avgTag('9.8', { kind: 'user', tip: 'Senin ürün/tohum' }),
+            text: 'Senin hasat ortalaman — kayıtlarına göre tohum başına düşen ürün.',
+            formula: 'hasat ÷ dikilen'
+        },
+        {
+            sample: avgTag('9.9', { kind: 'wiki', tip: 'Wiki ürün/tohum' }),
+            text: 'Oyunun beklenen ürünü (premium/free tabanı; şehir bonusu varsa dahil).',
+            formula: 'taban × (1 + şehir%)'
+        },
+        {
+            sample: avgTag('+0.2', { kind: 'delta', tone: 'is-pos', tip: 'Sapma (ürün)' }),
+            text: 'Senin ortalaman wiki’den ne kadar ayrılıyor (ürün/tohum).',
+            formula: 'senin − wiki'
+        },
+        {
+            sample: avgTag('84%', { kind: 'user', tip: 'Senin tohum %' }),
+            text: 'Tohumun geri dönüş oranı — dikilene göre dönen tohum payı.',
+            formula: 'dönen ÷ dikilen'
+        },
+        {
+            sample: avgTag('80%', { kind: 'wiki', tip: 'Wiki tohum %' }),
+            text: 'Merdivendeki standart tohum dönüşü; sulama açıksa su bonusu eklenir.',
+            formula: 'merdiven + su'
+        },
+        {
+            sample: avgTag('+4pp', { kind: 'delta', tone: 'is-pos', tip: 'Sapma (tohum)' }),
+            text: 'Tohum yüzdesinin wiki’den sapması (yüzde puanı).',
+            formula: 'senin − wiki'
+        },
+        {
+            sample: avgTag(`+${bonusPct}`, { kind: 'bonus', tip: 'Şehir bonusu' }),
+            text: 'Bu bitki seçili adada şehir üretim bonusu alıyorsa gösterilir; wiki ürününe yansır.',
+            formula: `+${bonusPct}`
+        },
+        {
+            sample: avgTag('n=3', { kind: 'n', tip: 'Kayıt sayısı' }),
+            text: 'Ortalamaya giren hasat kaydı adedi. Az kayıt (ince) daha az güvenilir sayılır.',
+            formula: 'kayıt sayısı'
+        }
+    ];
+
+    return `
+        <div class="yield-avg-legend" aria-label="Ortalama etiketleri">
+            ${rows.map((row) => `
+                <div class="yield-avg-legend-row">
+                    <div class="yield-avg-legend-sample">${row.sample}</div>
+                    <p class="yield-avg-legend-copy">${escapeHtml(row.text)}</p>
+                    <span class="yield-avg-legend-formula">${escapeHtml(row.formula)}</span>
+                </div>
+            `).join('')}
         </div>
+    `;
+}
+
+function renderAvgGroup(group, plants, islandCity) {
+    const list = plants.filter((p) => p.kind === group.kind);
+    if (!list.length) {
+        return '';
+    }
+    const slots = Array.from({ length: 8 }, (_, index) => {
+        const tier = index + 1;
+        return list.find((plant) => Number(plant.tier) === tier) ?? null;
+    });
+
+    return `
+        <div class="yield-avg-group" data-kind="${escapeHtml(group.kind)}">
+            <h3 class="yield-avg-group-title">${escapeHtml(group.title)}</h3>
+            <div class="yield-avg-row">
+                ${slots.map((plant) => (plant
+                    ? renderAvgCard(plant, islandCity)
+                    : '<div class="yield-avg-slot is-empty" aria-hidden="true"></div>'
+                )).join('')}
+            </div>
+        </div>
+    `;
+}
+
+function renderAverages() {
+    const islandCity = state.islandCity;
+    if (!islandCity) {
+        return `<p class="farming-note">Ortalamalar için ada şehri seç.</p>`;
+    }
+
+    const plants = getPlants();
+    const contextLabel = `${state.premium ? 'Premium' : 'Free'} · ${state.water ? 'Su' : 'Kuru'}`;
+    const groups = PLANT_GROUPS.map((group) => renderAvgGroup(group, plants, islandCity)).join('');
+
+    return `
+        <section class="yield-averages" data-yield-averages data-calc-toolbar aria-label="Ortalamalar">
+            <div class="yield-averages-head">
+                <h2 class="island-planner-subhead yield-averages-title">Ortalamalar · ${escapeHtml(cityLabel(islandCity))}</h2>
+                <p class="yield-averages-meta"${tipAttr('Seçili ada + premium/su')}>${escapeHtml(contextLabel)}</p>
+            </div>
+            ${groups}
+        </section>
+        ${renderAvgLegend()}
     `;
 }
 
@@ -271,13 +499,15 @@ function refreshResult(container) {
         return;
     }
     host.innerHTML = `
-        <div class="form-floating farming-city-field" style="max-width:12rem;margin-bottom:1rem;">
-            <input class="form-control is-filled" type="month" id="yieldMonth" value="${escapeHtml(state.month)}">
-            <label for="yieldMonth">Ay</label>
-        </div>
-        <div id="yieldLog">${renderLogTable(state.month)}</div>
         ${renderAverages()}
-        <p class="farming-note">Veri yoksa Farming / Ada Planlayıcı standart oyun yield (+şehir %10) kullanır. Ortalama varken şehir bonusu tekrar uygulanmaz.</p>
+        <div class="yield-log-section">
+            <div class="form-floating farming-city-field yield-month-field">
+                <input class="form-control is-filled" type="month" id="yieldMonth" value="${escapeHtml(state.month)}">
+                <label for="yieldMonth">Ay</label>
+            </div>
+            <div id="yieldLog">${renderLogTable(state.month)}</div>
+            <p class="farming-note">Veri yoksa Farming / Ada Planlayıcı standart oyun yield (+şehir %10) kullanır. Ortalama varken şehir bonusu tekrar uygulanmaz.</p>
+        </div>
     `;
     bindResult(container);
     bindCalcSticky(container);
@@ -291,16 +521,13 @@ function bindResult(container) {
             refreshResult(container);
         }
     });
-    container.querySelectorAll('#yieldLog tbody tr[data-id]').forEach((tr) => {
-        tr.addEventListener('click', () => {
-            const row = getAll(TABLE).find((item) => String(item.id) === tr.dataset.id);
-            if (!row) {
-                return;
-            }
-            fillForm(container, row);
-            setFormMessage(container, '');
-            refreshResult(container);
-        });
+    bindLogTableRows(container, (id) => {
+        const row = getAll(TABLE).find((item) => String(item.id) === id);
+        if (!row) {
+            return;
+        }
+        fillForm(container, row);
+        refreshResult(container);
     });
 }
 
@@ -312,11 +539,11 @@ function saveEntry(container) {
     const plantsHarvested = Number(container.querySelector('#plantsHarvested')?.value);
 
     if (!date || !plantKey || !state.islandCity) {
-        setFormMessage(container, 'Tarih, ada ve bitki zorunlu.');
+        showToast('Tarih, ada ve bitki zorunlu.', { kind: 'error' });
         return;
     }
     if (!(seedsPlanted > 0) || !Number.isFinite(seedsReturned) || !Number.isFinite(plantsHarvested)) {
-        setFormMessage(container, 'Dikilen / dönen / hasat sayılarını kontrol et.');
+        showToast('Dikilen / dönen / hasat sayılarını kontrol et.', { kind: 'error' });
         return;
     }
 
@@ -337,17 +564,17 @@ function saveEntry(container) {
     try {
         if (state.editingId) {
             updateRow(TABLE, state.editingId, fd);
-            setFormMessage(container, 'Güncellendi.');
+            showToast('Güncellendi.');
         } else {
             createRow(TABLE, fd);
-            setFormMessage(container, 'Kaydedildi.');
+            showToast('Kaydedildi.');
         }
         state.month = toYearMonth(date);
         fillForm(container, null);
         refreshResult(container);
     } catch (error) {
         console.error(error);
-        setFormMessage(container, error.message || 'Kayıt başarısız.');
+        showToast(error.message || 'Kayıt başarısız.', { kind: 'error' });
     }
 }
 
@@ -360,7 +587,6 @@ function renderPage(container) {
         <div class="tool-split">
             <div class="tool-split-controls">
                 <form id="yieldForm" class="farming-toolbar island-planner-toolbar">
-                    <div id="yieldFormMessage" class="alert alert-info" hidden></div>
                     ${renderToggle('Premium', [
                         { id: true, value: '1', label: 'Premium' },
                         { id: false, value: '0', label: 'Free' }
@@ -380,23 +606,28 @@ function renderPage(container) {
                         <input class="form-control is-filled" type="date" id="yieldDate" name="date" required>
                         <label for="yieldDate">Tarih</label>
                     </div>
-                    <div class="form-floating farming-city-field">
-                        <select class="form-select" id="plantKey" name="plantKey" required>
-                            ${plantOptions('')}
-                        </select>
-                        <label for="plantKey">Bitki</label>
+                    ${plantFieldHtml({
+                        id: 'plantKey',
+                        label: 'Bitki',
+                        selected: '',
+                        className: 'farming-city-field'
+                    })}
+                    <div class="yield-planted-pair" title="1 plot = ${SEEDS_PER_PLOT} tohum">
+                        ${renderPlotPicker(state.plotsSelected ?? 1)}
+                        <div class="form-floating farming-city-field yield-seeds-field">
+                            <input class="form-control is-filled" type="number" min="1" step="1" id="seedsPlanted" name="seedsPlanted" value="${SEEDS_PER_PLOT}" required>
+                            <label for="seedsPlanted">Tohum</label>
+                        </div>
                     </div>
-                    <div class="form-floating farming-city-field">
-                        <input class="form-control is-filled" type="number" min="1" step="1" id="seedsPlanted" name="seedsPlanted" value="1" required>
-                        <label for="seedsPlanted">Dikilen tohum</label>
-                    </div>
-                    <div class="form-floating farming-city-field">
-                        <input class="form-control" type="number" min="0" step="1" id="seedsReturned" name="seedsReturned" required>
-                        <label for="seedsReturned">Dönen tohum</label>
-                    </div>
-                    <div class="form-floating farming-city-field">
-                        <input class="form-control" type="number" min="0" step="1" id="plantsHarvested" name="plantsHarvested" required>
-                        <label for="plantsHarvested">Hasat ürün</label>
+                    <div class="yield-harvest-pair">
+                        <div class="form-floating farming-city-field">
+                            <input class="form-control" type="number" min="0" step="1" id="seedsReturned" name="seedsReturned" required>
+                            <label for="seedsReturned">Dönen tohum</label>
+                        </div>
+                        <div class="form-floating farming-city-field">
+                            <input class="form-control" type="number" min="0" step="1" id="plantsHarvested" name="plantsHarvested" required>
+                            <label for="plantsHarvested">Hasat ürün</label>
+                        </div>
                     </div>
                     <div class="form-actions">
                         <button type="submit" class="btn btn-primary" id="yieldSubmit">Kaydet</button>
@@ -418,12 +649,14 @@ function bindPage(container) {
         button.addEventListener('click', () => {
             state.premium = button.dataset.premium === '1';
             syncToggles(container);
+            refreshResult(container);
         });
     });
     container.querySelectorAll('[data-water]').forEach((button) => {
         button.addEventListener('click', () => {
             state.water = button.dataset.water === '1';
             syncToggles(container);
+            refreshResult(container);
         });
     });
     bindCityField(container, 'islandCity', (value) => {
@@ -436,13 +669,22 @@ function bindPage(container) {
         } catch {
             /* ignore */
         }
+        refreshResult(container);
+    });
+    bindPlantField(container, 'plantKey');
+    container.querySelectorAll('[data-plots]').forEach((button) => {
+        button.addEventListener('click', () => {
+            applyPlotChoice(container, Number(button.dataset.plots));
+        });
+    });
+    container.querySelector('#seedsPlanted')?.addEventListener('input', () => {
+        syncPlotsFromSeeds(container);
     });
     container.querySelector('#yieldForm')?.addEventListener('submit', (event) => {
         event.preventDefault();
         saveEntry(container);
     });
     container.querySelector('#yieldCancelEdit')?.addEventListener('click', () => {
-        setFormMessage(container, '');
         fillForm(container, null);
         refreshResult(container);
     });
@@ -451,7 +693,7 @@ function bindPage(container) {
             return;
         }
         deleteRow(TABLE, state.editingId);
-        setFormMessage(container, 'Silindi.');
+        showToast('Silindi.');
         fillForm(container, null);
         refreshResult(container);
     });

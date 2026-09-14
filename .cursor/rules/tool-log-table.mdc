@@ -1,0 +1,39 @@
+---
+description: Shared clickable record log tables (pointer + is-editing)
+globs: js/**/*.{js}, scss/**/*.scss
+alwaysApply: false
+---
+
+# Tool log tables
+
+Editable month/day record tables (daily bonus, island yields, …) share one pattern — do not invent a parallel one.
+
+## Markup
+
+```html
+<table class="table table-striped log-table calc-table …">
+  <tbody>
+    <tr data-id="…" class="is-editing?">…</tr>
+  </tbody>
+</table>
+```
+
+- Always include `.log-table` for pointer cursor + selected (`is-editing`) chrome
+- Selected row: `class="is-editing"` while the left form is in update mode
+- Page-specific extras (e.g. `.bonus-log-table`, `.farming-table`) are additive, not replacements
+
+## JS
+
+Use `bindLogTableRows` from `js/log-table.js` — do not re-bind `tbody tr[data-id]` click handlers ad hoc.
+
+```js
+import { bindLogTableRows } from './log-table.js';
+
+bindLogTableRows(container, (id) => {
+  // load row → fillForm → refresh log (re-apply is-editing)
+});
+```
+
+## CSS
+
+Base styles live on `.log-table` in `scss/main.scss`. Bonus-only states (gap, filter dim) stay under `.bonus-log-table`.

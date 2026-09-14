@@ -16,6 +16,16 @@
   --color-price-update: #e879b8;
   /* Stale prices: reuse info blue so it stays in-palette and clear vs focus gold */
   --color-stale: var(--color-info);
+  /* Albion item tiers (T4 blue, T5 red, …) — shared badges / row tints */
+  --color-tier-2: #8b8b92;
+  --color-tier-3: #4a9e5c;
+  --color-tier-4: #4a7fd4;
+  --color-tier-5: #c45454;
+  --color-tier-6: #c47a2a;
+  --color-tier-7: #c4a832;
+  --color-tier-8: #c8ccd4;
+  --color-on-tier: #f7f7f8;
+  --color-on-tier-light: #1a1610;
   --color-text: #f2f2f4;
   --color-text-muted: #9898a0;
   --color-border: #3a3a40;
@@ -2179,6 +2189,290 @@ input[type=month].form-control {
   display: none;
 }
 
+/* Albion item-tier tokens (T1–T8) for badges / tints */
+.is-item-tier-1 {
+  --color-item-tier: var(--color-tier-2);
+}
+
+.is-item-tier-2 {
+  --color-item-tier: var(--color-tier-2);
+}
+
+.is-item-tier-3 {
+  --color-item-tier: var(--color-tier-3);
+}
+
+.is-item-tier-4 {
+  --color-item-tier: var(--color-tier-4);
+}
+
+.is-item-tier-5 {
+  --color-item-tier: var(--color-tier-5);
+}
+
+.is-item-tier-6 {
+  --color-item-tier: var(--color-tier-6);
+}
+
+.is-item-tier-7 {
+  --color-item-tier: var(--color-tier-7);
+}
+
+.is-item-tier-8 {
+  --color-item-tier: var(--color-tier-8);
+  --color-on-item-tier: var(--color-on-tier-light);
+}
+
+/*
+ * Modal close: hangs outside the dialog (right side, 20px gap), CSS X via ::before/::after.
+ * Empty button — no × glyph. See .cursor/rules/dialog-close.mdc
+ */
+.app-dialog {
+  overflow: visible;
+}
+
+.app-dialog-close {
+  position: absolute;
+  top: 0;
+  left: calc(100% + 20px);
+  right: auto;
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.85rem;
+  height: 2.85rem;
+  margin: 0;
+  padding: 0;
+  border: var(--border-width) solid var(--color-border-strong);
+  border-radius: 0;
+  background-color: var(--color-surface-raised);
+  color: var(--color-text);
+  cursor: pointer;
+  box-shadow: var(--shadow-md);
+}
+.app-dialog-close::before, .app-dialog-close::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 1.15rem;
+  height: 2px;
+  margin: 0;
+  background-color: currentColor;
+  border-radius: 1px;
+}
+.app-dialog-close::before {
+  transform: translate(-50%, -50%) rotate(45deg);
+}
+.app-dialog-close::after {
+  transform: translate(-50%, -50%) rotate(-45deg);
+}
+.app-dialog-close:hover {
+  color: var(--color-on-accent);
+  background-color: var(--color-primary);
+  border-color: var(--color-primary);
+}
+.app-dialog-close:focus-visible {
+  outline: var(--focus-outline-width) solid var(--color-focus-ring);
+  outline-offset: 2px;
+}
+
+/* Diagonal / map-style city picker */
+.city-field--diagonal {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  min-width: 0;
+  width: 100%;
+}
+
+.city-field-label {
+  font-size: 0.65rem;
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+  line-height: 1.2;
+}
+
+.city-map {
+  container-type: inline-size;
+  position: relative;
+  width: 100%;
+  max-width: 100%;
+  aspect-ratio: 1/1;
+  border: var(--border-width) solid var(--color-border);
+  background-color: var(--color-surface);
+  overflow: visible;
+}
+
+.city-map-node {
+  --city-color: var(--color-primary);
+  --city-node: clamp(10px, 12cqw, 18px);
+  --city-ring: clamp(1.5px, 2.2cqw, 3px);
+  --city-gap: clamp(1px, 1.4cqw, 2px);
+  --x: 50%;
+  --y: 50%;
+  position: absolute;
+  left: var(--x);
+  top: var(--y);
+  z-index: 1;
+  width: var(--city-node);
+  height: var(--city-node);
+  margin: 0;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background-color: var(--city-color);
+  transform: translate(-50%, -50%);
+  cursor: pointer;
+  -webkit-appearance: none;
+     -moz-appearance: none;
+          appearance: none;
+}
+.city-map-node::after {
+  content: "";
+  position: absolute;
+  inset: calc(-1 * (var(--city-gap) + var(--city-ring)));
+  border: var(--city-ring) solid transparent;
+  border-radius: 50%;
+  pointer-events: none;
+}
+.city-map-node:hover, .city-map-node:focus-visible {
+  z-index: 3;
+  outline: none;
+}
+.city-map-node:focus-visible::after {
+  border-color: var(--color-focus-ring);
+}
+.city-map-node.is-selected::after {
+  border-color: var(--city-color);
+}
+.city-map-node.is-muted {
+  opacity: 0.4;
+}
+.city-map-node:hover .city-map-tip, .city-map-node:focus-visible .city-map-tip {
+  opacity: 1;
+  transform: translate(-50%, 0);
+}
+
+.city-map-tip {
+  position: absolute;
+  left: 50%;
+  bottom: calc(100% + 0.3rem);
+  z-index: 4;
+  max-width: 6.5rem;
+  padding: 0.12rem 0.3rem;
+  border: var(--border-width) solid var(--color-border);
+  background-color: var(--color-surface);
+  color: var(--color-text);
+  font-size: 0.625rem;
+  font-weight: var(--font-weight-medium);
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  opacity: 0;
+  transform: translate(-50%, 0.15rem);
+  pointer-events: none;
+  transition: opacity var(--transition-fast), transform var(--transition-fast);
+}
+
+/* Plant picker — icon rows (settings: plantPickerStyle) */
+.plant-field--icons {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  min-width: 0;
+  width: 100%;
+}
+
+.plant-field-label {
+  font-size: 0.65rem;
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+  line-height: 1.2;
+}
+
+.plant-icon-picker {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  min-width: 0;
+  width: 100%;
+}
+
+.plant-icon-row {
+  display: grid;
+  grid-template-columns: repeat(8, minmax(0, 1fr));
+  gap: 0.3rem;
+  min-width: 0;
+  width: 100%;
+}
+
+.plant-icon-slot.is-empty {
+  min-width: 0;
+  aspect-ratio: 1/1;
+}
+
+.plant-icon-node {
+  position: relative;
+  display: block;
+  width: 100%;
+  aspect-ratio: 1/1;
+  margin: 0;
+  padding: 0;
+  border: 2px solid var(--color-border-strong);
+  border-radius: 50%;
+  overflow: hidden;
+  background: var(--color-surface);
+  cursor: pointer;
+  -webkit-appearance: none;
+     -moz-appearance: none;
+          appearance: none;
+}
+.plant-icon-node:hover, .plant-icon-node:focus-visible {
+  z-index: 2;
+  outline: none;
+  filter: brightness(1.08);
+}
+.plant-icon-node:focus-visible {
+  box-shadow: 0 0 0 2px var(--color-focus-ring);
+}
+.plant-icon-node.is-selected {
+  z-index: 1;
+  border-color: var(--color-item-tier, var(--color-primary));
+  box-shadow: inset 0 0 0 2px var(--color-item-tier, var(--color-primary));
+}
+
+.plant-icon-node-img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  -o-object-fit: cover;
+     object-fit: cover;
+  -o-object-position: center;
+     object-position: center;
+  transform: scale(1.18);
+  pointer-events: none;
+}
+
+.plant-icon-node-fallback {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  font-family: var(--font-family-mono);
+  font-size: 0.625rem;
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-muted);
+  pointer-events: none;
+}
+
 :root {
   --loader-accent-gold: #e8c36a;
   --loader-accent-silver: #a8a8b0;
@@ -2344,6 +2638,136 @@ body.is-page-loading {
   .loader-sigil::before,
   .loader-sigil__gem {
     opacity: 0.9;
+  }
+}
+.app-toast-host {
+  position: fixed;
+  z-index: 1200;
+  right: var(--spacing-md);
+  bottom: var(--spacing-md);
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: var(--spacing-sm);
+  width: min(22rem, 100vw - 2 * var(--spacing-md));
+  pointer-events: none;
+}
+
+.app-toast {
+  --toast-accent: var(--color-success);
+  --toast-fg: var(--color-success);
+  position: relative;
+  display: grid;
+  grid-template-columns: 3px 1fr auto;
+  align-items: start;
+  gap: 0.75rem;
+  margin: 0;
+  padding: 0.875rem 0.75rem 0.875rem 0.875rem;
+  pointer-events: auto;
+  border: var(--border-width) solid color-mix(in srgb, var(--toast-accent) 35%, var(--color-border));
+  border-radius: 0;
+  background: linear-gradient(135deg, color-mix(in srgb, var(--toast-accent) 14%, var(--color-surface-raised)) 0%, var(--color-surface-raised) 48%, var(--color-surface) 100%);
+  box-shadow: var(--shadow-md);
+  color: var(--color-text);
+  opacity: 0;
+  transform: translate3d(0.75rem, 0.5rem, 0) scale(0.98);
+  transition: opacity var(--transition-normal), transform var(--transition-normal);
+  cursor: pointer;
+}
+.app-toast.is-in {
+  opacity: 1;
+  transform: translate3d(0, 0, 0) scale(1);
+}
+.app-toast.is-out {
+  opacity: 0;
+  transform: translate3d(0.5rem, 0.35rem, 0) scale(0.98);
+  pointer-events: none;
+}
+.app-toast--success {
+  --toast-accent: var(--color-success);
+  --toast-fg: var(--color-success);
+}
+.app-toast--error {
+  --toast-accent: var(--color-danger);
+  --toast-fg: var(--color-danger);
+}
+.app-toast--info {
+  --toast-accent: var(--color-info);
+  --toast-fg: var(--color-info);
+}
+
+.app-toast__bar {
+  align-self: stretch;
+  width: 3px;
+  background: var(--toast-accent);
+  box-shadow: 0 0 12px color-mix(in srgb, var(--toast-accent) 55%, transparent);
+}
+
+.app-toast__text {
+  margin: 0;
+  padding-top: 0.05rem;
+  font-family: var(--font-family-base);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: 0.04em;
+  line-height: 1.35;
+  color: var(--toast-fg);
+}
+
+.app-toast__close {
+  position: relative;
+  flex-shrink: 0;
+  width: 1.5rem;
+  height: 1.5rem;
+  margin: -0.15rem -0.15rem 0 0;
+  padding: 0;
+  border: var(--border-width) solid var(--color-border);
+  border-radius: 0;
+  background: color-mix(in srgb, var(--color-surface) 70%, transparent);
+  color: var(--color-text-muted);
+  cursor: pointer;
+  transition: background-color var(--transition-fast), border-color var(--transition-fast), color var(--transition-fast);
+}
+.app-toast__close::before, .app-toast__close::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0.7rem;
+  height: 1.5px;
+  background: currentColor;
+}
+.app-toast__close::before {
+  transform: translate(-50%, -50%) rotate(45deg);
+}
+.app-toast__close::after {
+  transform: translate(-50%, -50%) rotate(-45deg);
+}
+.app-toast__close:hover {
+  color: var(--color-text);
+  border-color: var(--color-border-strong);
+  background: var(--color-surface-hover);
+}
+.app-toast__close:focus-visible {
+  outline: var(--focus-outline-width) solid var(--color-focus-ring);
+  outline-offset: var(--focus-outline-offset);
+}
+
+@media (max-width: 575.98px) {
+  .app-toast-host {
+    right: var(--spacing-sm);
+    left: var(--spacing-sm);
+    bottom: var(--spacing-sm);
+    width: auto;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .app-toast {
+    transition: opacity var(--transition-fast);
+    transform: none;
+  }
+  .app-toast.is-in, .app-toast.is-out {
+    transform: none;
   }
 }
 html,
@@ -3390,7 +3814,8 @@ a.tool-card:hover {
     top: var(--chrome-top);
     z-index: 12;
     max-height: calc(100dvh - var(--chrome-top));
-    overflow: auto;
+    overflow-x: hidden;
+    overflow-y: auto;
     overscroll-behavior: contain;
     padding-top: var(--tool-split-float-room);
     padding-bottom: var(--spacing-md);
@@ -3461,20 +3886,30 @@ a.tool-card:hover {
 .tool-split-controls .farming-toolbar,
 .tool-split-controls .pasture-toolbar,
 .tool-split-controls .royal-toolbar {
-  display: flex;
-  flex-direction: column;
-  flex-wrap: nowrap;
-  align-items: stretch;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  align-items: start;
   min-width: 0;
   max-width: 100%;
   gap: 0.375rem;
+}
+.tool-split-controls .carleon-toolbar > *:not(.city-field--diagonal),
+.tool-split-controls .ava-toolbar > *:not(.city-field--diagonal),
+.tool-split-controls .enchant-toolbar > *:not(.city-field--diagonal),
+.tool-split-controls .farming-toolbar > *:not(.city-field--diagonal),
+.tool-split-controls .pasture-toolbar > *:not(.city-field--diagonal),
+.tool-split-controls .royal-toolbar > *:not(.city-field--diagonal) {
+  grid-column: 1/-1;
+  width: 100%;
+  min-width: 0;
+  margin-left: 0;
 }
 .tool-split-controls .carleon-toolbar .carleon-type,
 .tool-split-controls .carleon-toolbar .ava-type,
 .tool-split-controls .carleon-toolbar .enchant-type,
 .tool-split-controls .carleon-toolbar .farming-type,
-.tool-split-controls .carleon-toolbar .ava-city-field,
-.tool-split-controls .carleon-toolbar .farming-city-field,
+.tool-split-controls .carleon-toolbar .ava-city-field:not(.city-field--diagonal),
+.tool-split-controls .carleon-toolbar .farming-city-field:not(.city-field--diagonal),
 .tool-split-controls .carleon-toolbar .farming-spec,
 .tool-split-controls .carleon-toolbar .carleon-side-field,
 .tool-split-controls .carleon-toolbar .ava-side-field,
@@ -3485,8 +3920,8 @@ a.tool-card:hover {
 .tool-split-controls .ava-toolbar .ava-type,
 .tool-split-controls .ava-toolbar .enchant-type,
 .tool-split-controls .ava-toolbar .farming-type,
-.tool-split-controls .ava-toolbar .ava-city-field,
-.tool-split-controls .ava-toolbar .farming-city-field,
+.tool-split-controls .ava-toolbar .ava-city-field:not(.city-field--diagonal),
+.tool-split-controls .ava-toolbar .farming-city-field:not(.city-field--diagonal),
 .tool-split-controls .ava-toolbar .farming-spec,
 .tool-split-controls .ava-toolbar .carleon-side-field,
 .tool-split-controls .ava-toolbar .ava-side-field,
@@ -3497,8 +3932,8 @@ a.tool-card:hover {
 .tool-split-controls .enchant-toolbar .ava-type,
 .tool-split-controls .enchant-toolbar .enchant-type,
 .tool-split-controls .enchant-toolbar .farming-type,
-.tool-split-controls .enchant-toolbar .ava-city-field,
-.tool-split-controls .enchant-toolbar .farming-city-field,
+.tool-split-controls .enchant-toolbar .ava-city-field:not(.city-field--diagonal),
+.tool-split-controls .enchant-toolbar .farming-city-field:not(.city-field--diagonal),
 .tool-split-controls .enchant-toolbar .farming-spec,
 .tool-split-controls .enchant-toolbar .carleon-side-field,
 .tool-split-controls .enchant-toolbar .ava-side-field,
@@ -3509,8 +3944,8 @@ a.tool-card:hover {
 .tool-split-controls .farming-toolbar .ava-type,
 .tool-split-controls .farming-toolbar .enchant-type,
 .tool-split-controls .farming-toolbar .farming-type,
-.tool-split-controls .farming-toolbar .ava-city-field,
-.tool-split-controls .farming-toolbar .farming-city-field,
+.tool-split-controls .farming-toolbar .ava-city-field:not(.city-field--diagonal),
+.tool-split-controls .farming-toolbar .farming-city-field:not(.city-field--diagonal),
 .tool-split-controls .farming-toolbar .farming-spec,
 .tool-split-controls .farming-toolbar .carleon-side-field,
 .tool-split-controls .farming-toolbar .ava-side-field,
@@ -3521,8 +3956,8 @@ a.tool-card:hover {
 .tool-split-controls .pasture-toolbar .ava-type,
 .tool-split-controls .pasture-toolbar .enchant-type,
 .tool-split-controls .pasture-toolbar .farming-type,
-.tool-split-controls .pasture-toolbar .ava-city-field,
-.tool-split-controls .pasture-toolbar .farming-city-field,
+.tool-split-controls .pasture-toolbar .ava-city-field:not(.city-field--diagonal),
+.tool-split-controls .pasture-toolbar .farming-city-field:not(.city-field--diagonal),
 .tool-split-controls .pasture-toolbar .farming-spec,
 .tool-split-controls .pasture-toolbar .carleon-side-field,
 .tool-split-controls .pasture-toolbar .ava-side-field,
@@ -3533,8 +3968,8 @@ a.tool-card:hover {
 .tool-split-controls .royal-toolbar .ava-type,
 .tool-split-controls .royal-toolbar .enchant-type,
 .tool-split-controls .royal-toolbar .farming-type,
-.tool-split-controls .royal-toolbar .ava-city-field,
-.tool-split-controls .royal-toolbar .farming-city-field,
+.tool-split-controls .royal-toolbar .ava-city-field:not(.city-field--diagonal),
+.tool-split-controls .royal-toolbar .farming-city-field:not(.city-field--diagonal),
 .tool-split-controls .royal-toolbar .farming-spec,
 .tool-split-controls .royal-toolbar .carleon-side-field,
 .tool-split-controls .royal-toolbar .ava-side-field,
@@ -3542,6 +3977,28 @@ a.tool-card:hover {
 .tool-split-controls .royal-toolbar .farming-side-field,
 .tool-split-controls .royal-toolbar > .btn {
   width: 100%;
+  margin-left: 0;
+}
+.tool-split-controls .carleon-toolbar .city-field--diagonal,
+.tool-split-controls .ava-toolbar .city-field--diagonal,
+.tool-split-controls .enchant-toolbar .city-field--diagonal,
+.tool-split-controls .farming-toolbar .city-field--diagonal,
+.tool-split-controls .pasture-toolbar .city-field--diagonal,
+.tool-split-controls .royal-toolbar .city-field--diagonal {
+  width: auto;
+  min-width: 0;
+  max-width: 100%;
+  margin-left: 0;
+}
+.tool-split-controls .carleon-toolbar .plant-field--icons,
+.tool-split-controls .ava-toolbar .plant-field--icons,
+.tool-split-controls .enchant-toolbar .plant-field--icons,
+.tool-split-controls .farming-toolbar .plant-field--icons,
+.tool-split-controls .pasture-toolbar .plant-field--icons,
+.tool-split-controls .royal-toolbar .plant-field--icons {
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
   margin-left: 0;
 }
 .tool-split-controls .carleon-toolbar .price-side,
@@ -4310,10 +4767,21 @@ a.tool-card:hover {
   font-weight: var(--font-weight-medium);
 }
 
-.bonus-log-table tbody tr {
+.log-table tbody tr[data-id],
+.log-table tbody tr.is-gap {
   cursor: pointer;
   transition: background-color var(--transition-fast), opacity var(--transition-fast);
 }
+.log-table tbody tr[data-id]:hover,
+.log-table tbody tr.is-gap:hover {
+  background-color: var(--color-surface-hover);
+}
+.log-table tbody tr.is-editing {
+  outline: 1px solid var(--color-primary);
+  outline-offset: -1px;
+  background-color: color-mix(in srgb, var(--color-primary) 14%, var(--color-surface));
+}
+
 .bonus-log-table tbody tr.is-gap {
   color: var(--color-text-muted);
   opacity: 0.5;
@@ -4321,11 +4789,6 @@ a.tool-card:hover {
 }
 .bonus-log-table tbody tr.is-gap:hover, .bonus-log-table tbody tr.is-gap.is-editing {
   opacity: 0.9;
-  background-color: var(--color-surface-hover);
-}
-.bonus-log-table tbody tr.is-editing {
-  outline: 1px solid var(--color-primary);
-  outline-offset: -1px;
   background-color: var(--color-surface-hover);
 }
 .bonus-log-table.is-filtering tbody tr:not(.is-bonus-match):not(.is-editing) {
@@ -5216,6 +5679,13 @@ a.tool-card:hover {
   font-size: var(--font-size-sm);
 }
 
+.island-planner-objective {
+  margin: 0 0 var(--spacing-xs);
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+  line-height: 1.4;
+}
+
 .island-planner-feed {
   margin: 0 0 var(--spacing-xs);
   font-weight: 500;
@@ -5284,8 +5754,8 @@ a.tool-card:hover {
   height: 2.25rem;
 }
 .island-planner-table .farming-item-name {
-  flex-wrap: nowrap;
-  white-space: nowrap;
+  flex-wrap: wrap;
+  white-space: normal;
   align-items: center;
   gap: 0.4rem;
 }
@@ -5365,7 +5835,8 @@ a.tool-card:hover {
   font-weight: var(--font-weight-semibold);
 }
 
-.island-planner-day-total {
+.island-planner-day-total,
+.island-planner-day-stable {
   display: block;
   margin-top: 0.15rem;
   color: var(--color-text-muted);
@@ -5376,6 +5847,53 @@ a.tool-card:hover {
   color: var(--color-text-muted);
   font-size: var(--font-size-sm);
   line-height: 1.35;
+}
+
+.island-ledger-table tbody tr.is-in-plan {
+  box-shadow: inset 3px 0 0 var(--color-primary);
+}
+.island-ledger-table tbody tr[data-missing="1"] td {
+  background: color-mix(in srgb, var(--color-danger) 6%, transparent);
+}
+.island-ledger-table .island-planner-col-day {
+  min-width: 9.5rem;
+  white-space: normal;
+}
+
+.island-ledger-ok {
+  color: var(--color-text-muted);
+  font-size: 0.75rem;
+}
+
+.island-ledger-missing {
+  border-color: color-mix(in srgb, var(--color-danger) 45%, var(--color-border));
+  color: #ffb4b5;
+}
+
+.island-ledger-chain,
+.island-ledger-opp {
+  display: block;
+  margin-top: 0.15rem;
+  font-size: 0.6875rem;
+  line-height: 1.3;
+  white-space: normal;
+}
+
+.island-ledger-chain {
+  color: var(--color-text);
+  font-weight: var(--font-weight-semibold);
+}
+
+.island-ledger-opp {
+  color: var(--color-text-muted);
+}
+
+.island-ledger-why {
+  max-width: 22rem;
+  color: var(--color-text-muted);
+  font-size: 0.75rem;
+  line-height: 1.35;
+  white-space: normal;
 }
 
 .carleon-mats,
@@ -5497,19 +6015,18 @@ a.tool-card:hover {
 }
 
 .ava-tier-row {
-  display: flex;
-  align-items: center;
-  gap: 0.375rem;
+  display: block;
   min-width: 0;
 }
-.ava-tier-row .item-icon {
-  width: 1.5rem;
-  height: 1.5rem;
-  margin-top: 0.35rem;
-  flex: 0 0 auto;
+.ava-tier-row .price-field-stack {
+  width: 100%;
+  gap: 0;
+}
+.ava-tier-row .price-field-foot {
+  display: none;
 }
 .ava-tier-row .ava-price-field {
-  margin-top: 0.125rem;
+  margin-top: 0;
   min-width: 0;
 }
 
@@ -5659,89 +6176,89 @@ a.tool-card:hover {
 .enchant-mats {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-sm);
-  margin: 0 0 var(--spacing-lg);
-  padding: 0;
-  list-style: none;
+  gap: 0.35rem;
+  margin: 0 0 var(--spacing-sm);
+  overflow-x: auto;
 }
 
-.enchant-mat {
+.enchant-mats-meta {
+  margin: 0;
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+}
+
+.enchant-mats-grid {
+  --enchant-mat-cols: 5;
+  display: grid;
+  grid-template-columns: minmax(2.75rem, auto) repeat(var(--enchant-mat-cols), minmax(5.25rem, 1fr));
+  gap: 0.35rem 0.4rem;
+  align-items: center;
+  min-width: min(100%, 40rem);
+}
+
+.enchant-mat-corner {
+  min-height: 1.25rem;
+}
+
+.enchant-mat-tier-head {
   display: flex;
-  flex-direction: row;
-  align-items: flex-start;
-  gap: var(--spacing-sm);
-  padding: 0.5rem 0.625rem;
-  background-color: var(--color-surface);
-  border: var(--border-width) solid var(--color-border);
-}
-.enchant-mat > .item-icon {
-  width: 2rem;
-  height: 2rem;
-  margin-top: 0.125rem;
-  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-mono);
+  font-weight: var(--font-weight-semibold);
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
 }
 
-.enchant-mat-text {
+.enchant-mat-kind {
   display: flex;
-  flex-direction: column;
-  flex: 1 1 auto;
-  min-width: 0;
-  gap: 0.125rem;
-}
-
-.enchant-mat-label {
-  font-size: var(--font-size-sm);
-  font-weight: var(--font-weight-medium);
-  line-height: 1.25;
-}
-
-.enchant-mat-meta {
-  font-size: 0.6875rem;
+  align-items: center;
+  font-size: 0.75rem;
+  font-weight: var(--font-weight-semibold);
   color: var(--color-text-muted);
   line-height: 1.2;
 }
 
-.enchant-mat-tiers {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: var(--spacing-xs);
-}
-@media (min-width: 768px) {
-  .enchant-mat-tiers {
-    grid-template-columns: repeat(5, minmax(0, 1fr));
-  }
-}
-
-.enchant-tier-row {
-  display: flex;
-  align-items: center;
-  gap: 0.375rem;
+.enchant-mat {
   min-width: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
 }
-.enchant-tier-row .enchant-tier-icon {
-  width: 1.5rem;
-  height: 1.5rem;
-  flex: 0 0 auto;
+.enchant-mat .price-field-stack {
+  gap: 0;
+}
+.enchant-mat .price-field-foot {
+  display: none;
+}
+.enchant-mat .price-field-aside {
+  width: 2rem;
+  height: 2rem;
+}
+.enchant-mat .price-field-aside-icon {
+  width: 1.75rem;
+  height: 1.75rem;
+}
+.enchant-mat .price-field-row {
+  align-items: center;
+  gap: 0.4rem;
 }
 
 .enchant-price-field {
   --input-height: var(--input-height-sm);
-  --floating-label-inset: 0.5rem;
-  --floating-label-pad: 0.25rem;
+  --floating-label-inset: 0.45rem;
+  --floating-label-pad: 0.2rem;
   --floating-label-scale: calc(var(--floating-label-float-size) / var(--font-size-sm));
+  margin-top: 0;
   width: 100%;
   min-width: 0;
   max-width: none;
-  margin-top: 0.125rem;
 }
 .enchant-price-field > .form-control {
   font-family: var(--font-family-mono);
-  font-size: var(--font-size-sm);
+  font-size: 0.8125rem;
   font-weight: var(--font-weight-semibold);
   letter-spacing: -0.03em;
-}
-.enchant-price-field > label {
-  font-size: var(--font-size-sm);
 }
 
 .enchant-price-cell {
@@ -5982,8 +6499,8 @@ a.tool-card:hover {
 }
 
 .royal-item-cell {
-  width: 13.5rem;
-  max-width: 16rem;
+  width: 16.5rem;
+  max-width: 20rem;
 }
 
 .royal-item {
@@ -5992,6 +6509,7 @@ a.tool-card:hover {
   gap: 0.55rem;
   min-width: 0;
   max-width: 100%;
+  width: 100%;
 }
 
 .royal-item-icon {
@@ -6002,6 +6520,7 @@ a.tool-card:hover {
 
 .royal-item-text {
   min-width: 0;
+  flex: 1 1 auto;
   overflow: hidden;
 }
 
@@ -6029,6 +6548,23 @@ a.tool-card:hover {
   flex: 0 0 auto;
 }
 
+.royal-item-mat {
+  flex: 0 0 auto;
+  width: 2.5rem;
+  height: 2.5rem;
+  margin-left: auto;
+  line-height: 0;
+}
+
+.royal-item-mat-icon {
+  width: 2.5rem;
+  height: 2.5rem;
+  margin: 0;
+  display: block;
+  -o-object-fit: contain;
+     object-fit: contain;
+}
+
 .royal-item-sets {
   display: inline-flex;
   align-items: center;
@@ -6051,6 +6587,343 @@ a.tool-card:hover {
   margin: 0;
 }
 
+.royal-result {
+  position: relative;
+}
+.royal-result::after {
+  content: "";
+  display: table;
+  clear: both;
+}
+
+.royal-plan-fab {
+  position: absolute;
+  top: 50%;
+  /* Stay left of status chevron; do not pad the toggle (chevron stays put). */
+  right: calc(var(--spacing-md) + 0.4rem + var(--spacing-sm) + 0.45rem);
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  margin: 0;
+  padding: 0;
+  border: var(--border-width) solid var(--color-border-strong);
+  border-radius: 0.35rem;
+  background-color: var(--color-surface-raised);
+  color: var(--color-primary);
+  cursor: pointer;
+  transform: translateY(-50%);
+  box-shadow: var(--shadow-md);
+}
+.royal-plan-fab:hover {
+  color: var(--color-on-accent);
+  background-color: var(--color-primary);
+  border-color: var(--color-primary);
+}
+.royal-plan-fab:focus-visible {
+  outline: var(--focus-outline-width) solid var(--color-focus-ring);
+  outline-offset: 2px;
+}
+
+.royal-plan-fab-icon {
+  display: block;
+  width: 1.35rem;
+  height: 1.35rem;
+}
+
+.app-status.has-royal-plan-fab .app-status-copy {
+  padding-right: 3.1rem;
+}
+
+.royal-plan-dialog {
+  width: min(78rem, 100vw - 1.5rem - 20px - 2.85rem);
+  max-width: calc(100vw - 1.5rem - 20px - 2.85rem);
+  max-height: calc(100dvh - 1.5rem);
+  margin: auto;
+  padding: 0;
+  border: var(--border-width) solid var(--color-border);
+  border-radius: 0;
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  box-shadow: var(--shadow-md);
+}
+.royal-plan-dialog::backdrop {
+  background-color: color-mix(in srgb, #000 48%, transparent);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.royal-plan-sheet {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  max-height: calc(100dvh - 1.5rem);
+  padding: 0.75rem 1rem 0.9rem;
+  overflow: auto;
+}
+
+.royal-plan-stations {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+  align-items: start;
+}
+
+.royal-plan-station {
+  min-width: 0;
+}
+
+.royal-plan-station-head {
+  padding: 0 0 0.35rem;
+}
+
+.royal-plan-station-label {
+  font-size: 1.15rem;
+  font-weight: var(--font-weight-bold);
+  letter-spacing: 0.02em;
+  line-height: 1.2;
+  color: var(--color-text);
+}
+
+.royal-plan-station-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  padding: 0;
+}
+
+.royal-plan-empty {
+  margin: 0;
+  padding: 0.85rem 0.25rem;
+  text-align: center;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
+
+.royal-plan-item {
+  --royal-plan-tier-slot: calc(min(10vh, 4.75rem) + 0.6rem);
+  position: relative;
+  display: grid;
+  grid-template-columns: auto auto minmax(0, 1fr);
+  align-items: center;
+  gap: 0.55rem 0.65rem;
+  width: 100%;
+  margin: 0;
+  padding: 0.3rem calc(var(--royal-plan-tier-slot) + 0.4rem) 0.3rem 0.4rem;
+  border: var(--border-width) solid color-mix(in srgb, var(--color-item-tier, var(--color-border)) 65%, var(--color-border));
+  background-color: color-mix(in srgb, var(--color-item-tier, transparent) 14%, var(--color-surface-raised));
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.royal-plan-item:hover {
+  filter: brightness(1.06);
+}
+.royal-plan-item.is-profit-tier-A {
+  --plan-tier: #6dce86;
+}
+.royal-plan-item.is-profit-tier-B {
+  --plan-tier: #6eb8e8;
+}
+.royal-plan-item.is-profit-tier-C {
+  --plan-tier: #f0b84a;
+}
+.royal-plan-item.is-profit-tier-D {
+  --plan-tier: #9898a0;
+}
+
+.royal-plan-item-visual {
+  position: relative;
+  flex: 0 0 auto;
+  width: 10vh;
+  height: 10vh;
+  max-width: 4.75rem;
+  max-height: 4.75rem;
+}
+
+.royal-plan-item-icon {
+  width: 10vh;
+  height: 10vh;
+  max-width: 4.75rem;
+  max-height: 4.75rem;
+  margin: 0;
+  display: block;
+  -o-object-fit: contain;
+     object-fit: contain;
+}
+
+.royal-plan-te {
+  position: absolute;
+  left: 0.1rem;
+  bottom: 0.1rem;
+  z-index: 1;
+  padding: 0.1rem 0.25rem;
+  border-radius: 0.2rem;
+  font-family: var(--font-family-mono);
+  font-size: 0.65rem;
+  font-weight: var(--font-weight-bold);
+  letter-spacing: -0.02em;
+  line-height: 1;
+  color: var(--color-on-item-tier, var(--color-on-tier));
+  background-color: var(--color-item-tier, var(--color-border-strong));
+  pointer-events: none;
+}
+
+.royal-plan-item-stats {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 0.25rem;
+  min-width: 0;
+}
+
+.royal-plan-item-pct {
+  font-family: var(--font-family-mono);
+  font-size: clamp(1.05rem, 2.4vh, 1.45rem);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: -0.04em;
+  line-height: 1;
+  white-space: nowrap;
+  color: var(--plan-tier, var(--color-text));
+}
+
+.royal-plan-tier {
+  position: absolute;
+  top: calc(var(--border-width) + var(--spacing-xs));
+  right: calc(var(--border-width) + var(--spacing-xs));
+  bottom: calc(var(--border-width) + var(--spacing-xs));
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: auto;
+  height: auto;
+  aspect-ratio: 1/1;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  font-family: var(--font-family-mono);
+  font-size: clamp(1.35rem, 4.6vh, 2.15rem);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: -0.04em;
+  line-height: 1;
+  color: color-mix(in srgb, var(--plan-tier, var(--color-text-muted)) 42%, #000);
+  background-color: var(--plan-tier, var(--color-border-strong));
+  pointer-events: none;
+}
+
+.royal-plan-sets {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 0.2rem;
+  min-width: 0;
+}
+
+.royal-plan-set-icon {
+  width: 5.5vh;
+  height: 5.5vh;
+  max-width: 2.6rem;
+  max-height: 2.6rem;
+  margin: 0;
+  flex: 0 0 auto;
+  -o-object-fit: contain;
+     object-fit: contain;
+}
+
+.royal-plan-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.1rem 0.3rem;
+  font-size: 0.625rem;
+  font-weight: var(--font-weight-bold);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  line-height: 1;
+  color: var(--color-text-muted);
+  border: var(--border-width) solid var(--color-border);
+  background-color: color-mix(in srgb, var(--color-surface) 80%, transparent);
+}
+
+.royal-plan-missing {
+  min-width: 0;
+}
+
+.royal-plan-missing-head {
+  padding: 0 0 0.35rem;
+}
+
+.royal-plan-missing-label {
+  font-size: 1.15rem;
+  font-weight: var(--font-weight-bold);
+  letter-spacing: 0.02em;
+  line-height: 1.2;
+  color: var(--color-text);
+}
+
+.royal-plan-missing-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  padding: 0;
+}
+
+.royal-plan-miss-item {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin: 0;
+  padding: 0.3rem 0.4rem;
+  border: var(--border-width) solid var(--color-border);
+  background-color: var(--color-surface-raised);
+  color: inherit;
+  cursor: pointer;
+}
+.royal-plan-miss-item:hover {
+  border-color: var(--color-warning);
+}
+.royal-plan-miss-item .royal-plan-te {
+  position: static;
+}
+
+.royal-plan-miss-icon {
+  width: 3rem;
+  height: 3rem;
+  margin: 0;
+  opacity: 0.9;
+}
+
+.royal-table tbody tr.is-plan-focus td {
+  outline: 2px solid var(--color-primary);
+  outline-offset: -2px;
+}
+
+@media (max-width: 991px) {
+  .royal-plan-stations {
+    grid-template-columns: 1fr;
+  }
+  .royal-plan-item {
+    --royal-plan-tier-slot: calc(min(9vh, 4rem) + 0.6rem);
+    grid-template-columns: auto auto minmax(0, 1fr);
+  }
+  .royal-plan-item-visual,
+  .royal-plan-item-icon {
+    width: 9vh;
+    height: 9vh;
+    max-width: 4rem;
+    max-height: 4rem;
+  }
+  .royal-plan-set-icon {
+    width: 5vh;
+    height: 5vh;
+    max-width: 2.25rem;
+    max-height: 2.25rem;
+  }
+}
 .royal-table {
   table-layout: fixed;
   width: 100%;
@@ -6154,49 +7027,49 @@ a.tool-card:hover {
   font-style: italic;
 }
 .royal-table tbody tr.is-tier-4 {
-  --royal-tier-bar: #4a7fd4;
+  --royal-tier-bar: var(--color-tier-4);
 }
 .royal-table tbody tr.is-tier-5 {
-  --royal-tier-bar: #c45454;
+  --royal-tier-bar: var(--color-tier-5);
 }
 .royal-table tbody tr.is-tier-6 {
-  --royal-tier-bar: #c47a2a;
+  --royal-tier-bar: var(--color-tier-6);
 }
 .royal-table tbody tr.is-tier-7 {
-  --royal-tier-bar: #c4a832;
+  --royal-tier-bar: var(--color-tier-7);
 }
 .royal-table tbody tr.is-tier-8 {
-  --royal-tier-bar: #c8ccd4;
+  --royal-tier-bar: var(--color-tier-8);
 }
 .royal-table tbody tr.is-tier-4 td {
-  background-color: color-mix(in srgb, #4a7fd4 11%, var(--color-surface));
+  background-color: color-mix(in srgb, var(--color-tier-4) 11%, var(--color-surface));
 }
 .royal-table tbody tr.is-tier-5 td {
-  background-color: color-mix(in srgb, #c45454 11%, var(--color-surface));
+  background-color: color-mix(in srgb, var(--color-tier-5) 11%, var(--color-surface));
 }
 .royal-table tbody tr.is-tier-6 td {
-  background-color: color-mix(in srgb, #c47a2a 11%, var(--color-surface));
+  background-color: color-mix(in srgb, var(--color-tier-6) 11%, var(--color-surface));
 }
 .royal-table tbody tr.is-tier-7 td {
-  background-color: color-mix(in srgb, #c4a832 11%, var(--color-surface));
+  background-color: color-mix(in srgb, var(--color-tier-7) 11%, var(--color-surface));
 }
 .royal-table tbody tr.is-tier-8 td {
-  background-color: color-mix(in srgb, #d0d4dc 10%, var(--color-surface));
+  background-color: color-mix(in srgb, var(--color-tier-8) 10%, var(--color-surface));
 }
 .royal-table tbody tr.is-standard.is-main.is-tier-4 td {
-  background-color: color-mix(in srgb, #4a7fd4 16%, var(--color-surface));
+  background-color: color-mix(in srgb, var(--color-tier-4) 16%, var(--color-surface));
 }
 .royal-table tbody tr.is-standard.is-main.is-tier-5 td {
-  background-color: color-mix(in srgb, #c45454 16%, var(--color-surface));
+  background-color: color-mix(in srgb, var(--color-tier-5) 16%, var(--color-surface));
 }
 .royal-table tbody tr.is-standard.is-main.is-tier-6 td {
-  background-color: color-mix(in srgb, #c47a2a 16%, var(--color-surface));
+  background-color: color-mix(in srgb, var(--color-tier-6) 16%, var(--color-surface));
 }
 .royal-table tbody tr.is-standard.is-main.is-tier-7 td {
-  background-color: color-mix(in srgb, #c4a832 16%, var(--color-surface));
+  background-color: color-mix(in srgb, var(--color-tier-7) 16%, var(--color-surface));
 }
 .royal-table tbody tr.is-standard.is-main.is-tier-8 td {
-  background-color: color-mix(in srgb, #d0d4dc 14%, var(--color-surface));
+  background-color: color-mix(in srgb, var(--color-tier-8) 14%, var(--color-surface));
 }
 .royal-table.has-explain tbody tr.is-explain-hover:not(.is-explain) td {
   background-image: linear-gradient(color-mix(in srgb, var(--color-primary) 14%, transparent), color-mix(in srgb, var(--color-primary) 14%, transparent));
@@ -6205,19 +7078,19 @@ a.tool-card:hover {
   background-image: none;
 }
 .royal-table.has-explain tbody tr.is-explain.is-tier-4 td {
-  background-color: color-mix(in srgb, #4a7fd4 22%, var(--color-surface));
+  background-color: color-mix(in srgb, var(--color-tier-4) 22%, var(--color-surface));
 }
 .royal-table.has-explain tbody tr.is-explain.is-tier-5 td {
-  background-color: color-mix(in srgb, #c45454 22%, var(--color-surface));
+  background-color: color-mix(in srgb, var(--color-tier-5) 22%, var(--color-surface));
 }
 .royal-table.has-explain tbody tr.is-explain.is-tier-6 td {
-  background-color: color-mix(in srgb, #c47a2a 22%, var(--color-surface));
+  background-color: color-mix(in srgb, var(--color-tier-6) 22%, var(--color-surface));
 }
 .royal-table.has-explain tbody tr.is-explain.is-tier-7 td {
-  background-color: color-mix(in srgb, #c4a832 22%, var(--color-surface));
+  background-color: color-mix(in srgb, var(--color-tier-7) 22%, var(--color-surface));
 }
 .royal-table.has-explain tbody tr.is-explain.is-tier-8 td {
-  background-color: color-mix(in srgb, #d0d4dc 20%, var(--color-surface));
+  background-color: color-mix(in srgb, var(--color-tier-8) 20%, var(--color-surface));
 }
 .royal-table.has-explain tbody tr.is-explain td:first-child {
   box-shadow: inset 3px 0 0 var(--royal-tier-bar, var(--color-primary)), 0 1px 0 var(--color-border);
@@ -6226,6 +7099,9 @@ a.tool-card:hover {
 @media (max-width: 991.98px) {
   .royal-mats-grid {
     grid-template-columns: minmax(2.5rem, auto) repeat(var(--royal-mat-cols), minmax(5.25rem, 1fr));
+  }
+  .enchant-mats-grid {
+    grid-template-columns: minmax(2.5rem, auto) repeat(var(--enchant-mat-cols), minmax(5.25rem, 1fr));
   }
 }
 .farming-type-btn {
@@ -6424,4 +7300,340 @@ a.tool-card:hover {
 .pasture-profit-cell.is-loss .pasture-profit-silver {
   color: inherit;
   opacity: 0.8;
+}
+
+.yield-planted-pair,
+.yield-harvest-pair {
+  display: grid;
+  gap: 0.4rem;
+  width: 100%;
+  min-width: 0;
+}
+.yield-planted-pair .form-floating,
+.yield-harvest-pair .form-floating {
+  min-width: 0;
+}
+
+.yield-planted-pair {
+  grid-template-columns: minmax(0, 1fr) minmax(4.25rem, 5.5rem);
+  align-items: end;
+}
+
+.yield-harvest-pair {
+  grid-template-columns: 1fr 1fr;
+}
+
+.tool-split-controls .yield-planted-pair,
+.tool-split-controls .yield-harvest-pair {
+  width: 100%;
+}
+
+.yield-plot-picker {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 0.25rem;
+  align-self: stretch;
+  min-width: 0;
+}
+
+.yield-plot-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  aspect-ratio: 1/1;
+  margin: 0;
+  padding: 0;
+  border: var(--border-width) solid var(--color-border);
+  border-radius: 0;
+  background-color: var(--color-surface);
+  color: var(--color-text-muted);
+  font-family: var(--font-family-mono);
+  font-size: 0.8125rem;
+  font-weight: var(--font-weight-semibold);
+  line-height: 1;
+  cursor: pointer;
+  -webkit-appearance: none;
+     -moz-appearance: none;
+          appearance: none;
+}
+.yield-plot-btn:hover, .yield-plot-btn:focus-visible {
+  border-color: var(--color-border-strong);
+  color: var(--color-text);
+  outline: none;
+}
+.yield-plot-btn:focus-visible {
+  box-shadow: inset 0 0 0 1px var(--color-focus-ring);
+}
+.yield-plot-btn.is-active {
+  border-color: var(--color-primary);
+  background-color: color-mix(in srgb, var(--color-primary) 16%, var(--color-surface));
+  color: var(--color-primary);
+}
+
+.yield-seeds-field .form-control {
+  font-size: var(--font-size-sm);
+  padding-inline: 0.5rem;
+}
+.yield-seeds-field label {
+  font-size: 0.7rem;
+}
+
+.yield-averages {
+  position: sticky;
+  top: var(--chrome-top);
+  z-index: 9;
+  margin: 0 0 var(--spacing-md);
+  padding: 0 0 var(--spacing-sm);
+  background-color: var(--color-bg);
+  border-bottom: var(--border-width) solid var(--color-border);
+  box-shadow: 0 8px 16px -12px rgba(0, 0, 0, 0.55);
+}
+
+.yield-averages-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.35rem 0.75rem;
+  margin-bottom: var(--spacing-sm);
+}
+
+.yield-averages-title {
+  margin: 0;
+}
+
+.yield-averages-meta {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
+
+.yield-avg-group + .yield-avg-group {
+  margin-top: var(--spacing-sm);
+}
+
+.yield-avg-group-title {
+  margin: 0 0 0.4rem;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: 0.02em;
+  color: var(--color-text-muted);
+}
+
+.yield-avg-row {
+  display: grid;
+  grid-template-columns: repeat(8, minmax(0, 1fr));
+  gap: 0.35rem;
+  align-items: start;
+}
+
+.yield-avg-slot.is-empty {
+  min-width: 0;
+}
+
+.yield-avg-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  min-width: 0;
+  width: 100%;
+  padding: 0.4rem 0.35rem;
+  border: var(--border-width) solid var(--color-item-tier, var(--color-border));
+  border-top-width: calc(var(--border-width) + 2px);
+  border-radius: 0.4rem;
+  background-color: color-mix(in srgb, var(--color-item-tier, var(--color-border)) 16%, var(--color-surface));
+}
+.yield-avg-card.is-passive {
+  opacity: 0.5;
+  filter: grayscale(0.15);
+}
+.yield-avg-card.is-thin:not(.is-passive) {
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--color-warning) 55%, transparent);
+}
+
+.yield-avg-card-top {
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+  gap: 0.3rem;
+  align-items: center;
+  width: 100%;
+}
+
+.yield-avg-card-visual {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+}
+
+.yield-avg-card-icon,
+.yield-avg-card-icon-fallback {
+  width: clamp(2.625rem, 7.2vw, 4.5rem);
+  height: clamp(2.625rem, 7.2vw, 4.5rem);
+  -o-object-fit: contain;
+     object-fit: contain;
+}
+
+.yield-avg-card-icon-fallback {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-family-mono);
+  font-size: 0.75rem;
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-muted);
+  background: transparent;
+  border: var(--border-width) solid var(--color-border);
+  border-radius: 0.25rem;
+}
+
+.yield-avg-card-primary {
+  display: grid;
+  grid-template-rows: auto auto;
+  gap: 0.2rem;
+  min-width: 0;
+}
+
+.yield-avg-card-meta {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-areas: "wiki-yield seed bonus" "wiki-seed seed-delta n";
+  gap: 0.2rem;
+  width: 100%;
+}
+
+.yield-avg-tag.is-slot-wiki-yield {
+  grid-area: wiki-yield;
+}
+
+.yield-avg-tag.is-slot-seed {
+  grid-area: seed;
+}
+
+.yield-avg-tag.is-slot-bonus {
+  grid-area: bonus;
+}
+
+.yield-avg-tag.is-slot-wiki-seed {
+  grid-area: wiki-seed;
+}
+
+.yield-avg-tag.is-slot-seed-delta {
+  grid-area: seed-delta;
+}
+
+.yield-avg-tag.is-slot-n {
+  grid-area: n;
+}
+
+.yield-avg-tag {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-width: 0;
+  min-height: 1.2rem;
+  padding: 0.1rem 0.2rem;
+  border: var(--border-width) solid var(--color-border);
+  border-radius: 0.25rem;
+  font-family: var(--font-family-mono);
+  font-size: 0.625rem;
+  font-weight: var(--font-weight-medium);
+  font-variant-numeric: tabular-nums;
+  line-height: 1.15;
+  color: var(--color-text);
+  background-color: color-mix(in srgb, var(--color-surface) 88%, transparent);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.yield-avg-tag.is-user {
+  border-color: color-mix(in srgb, var(--color-primary) 55%, var(--color-border));
+  color: var(--color-primary);
+  font-weight: var(--font-weight-semibold);
+}
+.yield-avg-tag.is-wiki {
+  color: var(--color-text-muted);
+}
+.yield-avg-tag.is-delta.is-pos {
+  color: var(--color-success);
+  border-color: color-mix(in srgb, var(--color-success) 50%, var(--color-border));
+}
+.yield-avg-tag.is-delta.is-neg {
+  color: var(--color-danger);
+  border-color: color-mix(in srgb, var(--color-danger) 50%, var(--color-border));
+}
+.yield-avg-tag.is-bonus {
+  color: var(--color-primary);
+  border-color: color-mix(in srgb, var(--color-primary) 50%, var(--color-border));
+}
+.yield-avg-tag.is-n {
+  color: var(--color-text-muted);
+  letter-spacing: 0.02em;
+}
+
+.yield-avg-legend {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  margin: 0 0 var(--spacing-md);
+  padding: var(--spacing-sm) 0 0;
+  border-top: var(--border-width) solid var(--color-border);
+}
+
+.yield-avg-legend-row {
+  display: grid;
+  grid-template-columns: 4.75rem minmax(0, 1fr) auto;
+  gap: 0.5rem 0.75rem;
+  align-items: center;
+}
+
+.yield-avg-legend-sample {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  min-width: 0;
+}
+.yield-avg-legend-sample .yield-avg-tag {
+  width: auto;
+  max-width: 100%;
+  min-width: 3.5rem;
+}
+
+.yield-avg-legend-copy {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+  line-height: 1.35;
+}
+
+.yield-avg-legend-formula {
+  justify-self: end;
+  padding: 0.05rem 0.3rem;
+  border: var(--border-width) solid var(--color-border);
+  border-radius: 0.2rem;
+  font-family: var(--font-family-mono);
+  font-size: 0.6875rem;
+  color: var(--color-text);
+  background-color: var(--color-surface-raised);
+  white-space: nowrap;
+}
+
+@media (max-width: 719px) {
+  .yield-avg-legend-row {
+    grid-template-columns: 4.75rem minmax(0, 1fr);
+  }
+  .yield-avg-legend-formula {
+    grid-column: 2;
+    justify-self: start;
+  }
+}
+.yield-log-section {
+  min-width: 0;
+}
+
+.yield-month-field {
+  max-width: 12rem;
+  margin-bottom: 1rem;
 }

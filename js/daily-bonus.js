@@ -9,6 +9,8 @@ import { refreshTodayBonusChip } from './today-bonus.js';
 import { showPageLoader, hidePageLoader } from './loader.js';
 import { initTableSort, sortHeaderHtml } from './table-sort.js';
 import { bindCalcSticky } from './calc-sticky.js';
+import { bindLogTableRows } from './log-table.js';
+import { showToast } from './toast.js';
 
 const TABLE = 'dailyBonuses';
 
@@ -340,7 +342,7 @@ function renderLogTable(month, highlightKeys = []) {
     return `
         ${emptyMonthNote}
         <div class="table-responsive calc-table-wrap">
-            <table class="table table-striped bonus-log-table calc-table${filtering}">
+            <table class="table table-striped log-table bonus-log-table calc-table${filtering}">
                 <thead>
                     <tr>
                         ${sortHeaderHtml('Tarih', { key: 'date', type: 'date', direction: sort.key === 'date' ? sort.direction : null, title: 'Bonus günü (13:00 – ertesi 13:00)' })}
@@ -486,7 +488,7 @@ function bindPage(container) {
             return;
         }
         deleteRow(TABLE, state.editingId);
-        setFormMessage(container, 'Kayıt silindi.');
+        showToast('Kayıt silindi.');
         fillForm(container, null);
         refreshLog(container);
         refreshTodayBonusChip();
@@ -498,16 +500,14 @@ function bindPage(container) {
 }
 
 function bindLogRows(container) {
-    container.querySelectorAll('.bonus-log-table tbody tr[data-id]').forEach((row) => {
-        row.addEventListener('click', () => {
-            const record = getAll(TABLE).find((item) => String(item.id) === row.dataset.id);
-            if (!record) {
-                return;
-            }
-            fillForm(container, record);
-            setFormMessage(container, '');
-            refreshLog(container);
-        });
+    bindLogTableRows(container, (id) => {
+        const record = getAll(TABLE).find((item) => String(item.id) === id);
+        if (!record) {
+            return;
+        }
+        fillForm(container, record);
+        setFormMessage(container, '');
+        refreshLog(container);
     });
 
     container.querySelectorAll('.bonus-log-table tbody tr.is-gap[data-date]').forEach((row) => {
@@ -529,12 +529,12 @@ function saveEntry(container) {
     const slot2Rate = container.querySelector('#slot2Rate').value;
 
     if (!date || !slot1FamilyKey || !slot2FamilyKey || !slot1Rate || !slot2Rate) {
-        setFormMessage(container, 'Tarih, iki bonus ve iki oran gerekli.', 'error');
+        showToast('Tarih, iki bonus ve iki oran gerekli.', { kind: 'error' });
         return;
     }
 
     if (slot1FamilyKey === slot2FamilyKey) {
-        setFormMessage(container, 'İki slot aynı bonus ailesi olamaz.', 'error');
+        showToast('İki slot aynı bonus ailesi olamaz.', { kind: 'error' });
         return;
     }
 
@@ -551,14 +551,14 @@ function saveEntry(container) {
     if (targetId) {
         const current = getAll(TABLE).find((row) => row.id === targetId);
         if (current && current.date !== date && existing) {
-            setFormMessage(container, 'Bu tarihte zaten başka bir kayıt var.', 'error');
+            showToast('Bu tarihte zaten başka bir kayıt var.', { kind: 'error' });
             return;
         }
         updateRow(TABLE, targetId, payload);
-        setFormMessage(container, 'Kayıt güncellendi.');
+        showToast('Kayıt güncellendi.');
     } else {
         createRow(TABLE, payload);
-        setFormMessage(container, 'Kayıt eklendi.');
+        showToast('Kayıt eklendi.');
     }
 
     state.month = toYearMonth(date);

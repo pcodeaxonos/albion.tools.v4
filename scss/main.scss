@@ -7,6 +7,7 @@
 @use "base";
 @use "components";
 @use "loader";
+@use "toast";
 @use "layout";
 
 // ============================================
@@ -446,6 +447,13 @@ a.tool-card {
 
         .city-field--diagonal {
             width: auto;
+            min-width: 0;
+            max-width: 100%;
+            margin-left: 0;
+        }
+
+        .plant-field--icons {
+            width: 100%;
             min-width: 0;
             max-width: 100%;
             margin-left: 0;
@@ -1193,12 +1201,27 @@ a.tool-card {
     font-weight: var(--font-weight-medium);
 }
 
-.bonus-log-table {
-    tbody tr {
+// Shared clickable record logs (daily bonus, island yields, …)
+.log-table {
+    tbody tr[data-id],
+    tbody tr.is-gap {
         cursor: pointer;
         transition: background-color var(--transition-fast), opacity var(--transition-fast);
     }
 
+    tbody tr[data-id]:hover,
+    tbody tr.is-gap:hover {
+        background-color: var(--color-surface-hover);
+    }
+
+    tbody tr.is-editing {
+        outline: 1px solid var(--color-primary);
+        outline-offset: -1px;
+        background-color: color-mix(in srgb, var(--color-primary) 14%, var(--color-surface));
+    }
+}
+
+.bonus-log-table {
     tbody tr.is-gap {
         color: var(--color-text-muted);
         opacity: 0.5;
@@ -1209,12 +1232,6 @@ a.tool-card {
             opacity: 0.9;
             background-color: var(--color-surface-hover);
         }
-    }
-
-    tbody tr.is-editing {
-        outline: 1px solid var(--color-primary);
-        outline-offset: -1px;
-        background-color: var(--color-surface-hover);
     }
 
     &.is-filtering tbody tr:not(.is-bonus-match):not(.is-editing) {
@@ -3841,5 +3858,342 @@ a.tool-card {
 .pasture-profit-cell.is-loss .pasture-profit-silver {
     color: inherit;
     opacity: 0.8;
+}
+
+// Island yields — plot squares + seed/harvest pairs + sticky average cards
+.yield-planted-pair,
+.yield-harvest-pair {
+    display: grid;
+    gap: 0.4rem;
+    width: 100%;
+    min-width: 0;
+
+    .form-floating {
+        min-width: 0;
+    }
+}
+
+.yield-planted-pair {
+    grid-template-columns: minmax(0, 1fr) minmax(4.25rem, 5.5rem);
+    align-items: end;
+}
+
+.yield-harvest-pair {
+    grid-template-columns: 1fr 1fr;
+}
+
+.tool-split-controls .yield-planted-pair,
+.tool-split-controls .yield-harvest-pair {
+    width: 100%;
+}
+
+.yield-plot-picker {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 0.25rem;
+    align-self: stretch;
+    min-width: 0;
+}
+
+.yield-plot-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    margin: 0;
+    padding: 0;
+    border: var(--border-width) solid var(--color-border);
+    border-radius: 0;
+    background-color: var(--color-surface);
+    color: var(--color-text-muted);
+    font-family: var(--font-family-mono);
+    font-size: 0.8125rem;
+    font-weight: var(--font-weight-semibold);
+    line-height: 1;
+    cursor: pointer;
+    appearance: none;
+
+    &:hover,
+    &:focus-visible {
+        border-color: var(--color-border-strong);
+        color: var(--color-text);
+        outline: none;
+    }
+
+    &:focus-visible {
+        box-shadow: inset 0 0 0 1px var(--color-focus-ring);
+    }
+
+    &.is-active {
+        border-color: var(--color-primary);
+        background-color: color-mix(in srgb, var(--color-primary) 16%, var(--color-surface));
+        color: var(--color-primary);
+    }
+}
+
+.yield-seeds-field {
+    .form-control {
+        font-size: var(--font-size-sm);
+        padding-inline: 0.5rem;
+    }
+
+    label {
+        font-size: 0.7rem;
+    }
+}
+
+.yield-averages {
+    position: sticky;
+    top: var(--chrome-top);
+    z-index: 9;
+    margin: 0 0 var(--spacing-md);
+    padding: 0 0 var(--spacing-sm);
+    background-color: var(--color-bg);
+    border-bottom: var(--border-width) solid var(--color-border);
+    box-shadow: 0 8px 16px -12px rgba(0, 0, 0, 0.55);
+}
+
+.yield-averages-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 0.35rem 0.75rem;
+    margin-bottom: var(--spacing-sm);
+}
+
+.yield-averages-title {
+    margin: 0;
+}
+
+.yield-averages-meta {
+    margin: 0;
+    color: var(--color-text-muted);
+    font-size: var(--font-size-sm);
+}
+
+.yield-avg-group + .yield-avg-group {
+    margin-top: var(--spacing-sm);
+}
+
+.yield-avg-group-title {
+    margin: 0 0 0.4rem;
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-semibold);
+    letter-spacing: 0.02em;
+    color: var(--color-text-muted);
+}
+
+.yield-avg-row {
+    display: grid;
+    grid-template-columns: repeat(8, minmax(0, 1fr));
+    gap: 0.35rem;
+    align-items: start;
+}
+
+.yield-avg-slot.is-empty {
+    min-width: 0;
+}
+
+.yield-avg-card {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    min-width: 0;
+    width: 100%;
+    padding: 0.4rem 0.35rem;
+    border: var(--border-width) solid var(--color-item-tier, var(--color-border));
+    border-top-width: calc(var(--border-width) + 2px);
+    border-radius: 0.4rem;
+    background-color: color-mix(in srgb, var(--color-item-tier, var(--color-border)) 16%, var(--color-surface));
+
+    &.is-passive {
+        opacity: 0.5;
+        filter: grayscale(0.15);
+    }
+
+    &.is-thin:not(.is-passive) {
+        box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--color-warning) 55%, transparent);
+    }
+}
+
+.yield-avg-card-top {
+    display: grid;
+    grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+    gap: 0.3rem;
+    align-items: center;
+    width: 100%;
+}
+
+.yield-avg-card-visual {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 0;
+}
+
+.yield-avg-card-icon,
+.yield-avg-card-icon-fallback {
+    width: clamp(2.625rem, 7.2vw, 4.5rem);
+    height: clamp(2.625rem, 7.2vw, 4.5rem);
+    object-fit: contain;
+}
+
+.yield-avg-card-icon-fallback {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font-family-mono);
+    font-size: 0.75rem;
+    font-weight: var(--font-weight-bold);
+    color: var(--color-text-muted);
+    background: transparent;
+    border: var(--border-width) solid var(--color-border);
+    border-radius: 0.25rem;
+}
+
+.yield-avg-card-primary {
+    display: grid;
+    grid-template-rows: auto auto;
+    gap: 0.2rem;
+    min-width: 0;
+}
+
+.yield-avg-card-meta {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-areas:
+        'wiki-yield seed bonus'
+        'wiki-seed seed-delta n';
+    gap: 0.2rem;
+    width: 100%;
+}
+
+.yield-avg-tag.is-slot-wiki-yield { grid-area: wiki-yield; }
+.yield-avg-tag.is-slot-seed { grid-area: seed; }
+.yield-avg-tag.is-slot-bonus { grid-area: bonus; }
+.yield-avg-tag.is-slot-wiki-seed { grid-area: wiki-seed; }
+.yield-avg-tag.is-slot-seed-delta { grid-area: seed-delta; }
+.yield-avg-tag.is-slot-n { grid-area: n; }
+
+.yield-avg-tag {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    min-width: 0;
+    min-height: 1.2rem;
+    padding: 0.1rem 0.2rem;
+    border: var(--border-width) solid var(--color-border);
+    border-radius: 0.25rem;
+    font-family: var(--font-family-mono);
+    font-size: 0.625rem;
+    font-weight: var(--font-weight-medium);
+    font-variant-numeric: tabular-nums;
+    line-height: 1.15;
+    color: var(--color-text);
+    background-color: color-mix(in srgb, var(--color-surface) 88%, transparent);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+
+    &.is-user {
+        border-color: color-mix(in srgb, var(--color-primary) 55%, var(--color-border));
+        color: var(--color-primary);
+        font-weight: var(--font-weight-semibold);
+    }
+
+    &.is-wiki {
+        color: var(--color-text-muted);
+    }
+
+    &.is-delta.is-pos {
+        color: var(--color-success);
+        border-color: color-mix(in srgb, var(--color-success) 50%, var(--color-border));
+    }
+
+    &.is-delta.is-neg {
+        color: var(--color-danger);
+        border-color: color-mix(in srgb, var(--color-danger) 50%, var(--color-border));
+    }
+
+    &.is-bonus {
+        color: var(--color-primary);
+        border-color: color-mix(in srgb, var(--color-primary) 50%, var(--color-border));
+    }
+
+    &.is-n {
+        color: var(--color-text-muted);
+        letter-spacing: 0.02em;
+    }
+}
+
+.yield-avg-legend {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    margin: 0 0 var(--spacing-md);
+    padding: var(--spacing-sm) 0 0;
+    border-top: var(--border-width) solid var(--color-border);
+}
+
+.yield-avg-legend-row {
+    display: grid;
+    grid-template-columns: 4.75rem minmax(0, 1fr) auto;
+    gap: 0.5rem 0.75rem;
+    align-items: center;
+}
+
+.yield-avg-legend-sample {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    min-width: 0;
+
+    .yield-avg-tag {
+        width: auto;
+        max-width: 100%;
+        min-width: 3.5rem;
+    }
+}
+
+.yield-avg-legend-copy {
+    margin: 0;
+    color: var(--color-text-muted);
+    font-size: var(--font-size-sm);
+    line-height: 1.35;
+}
+
+.yield-avg-legend-formula {
+    justify-self: end;
+    padding: 0.05rem 0.3rem;
+    border: var(--border-width) solid var(--color-border);
+    border-radius: 0.2rem;
+    font-family: var(--font-family-mono);
+    font-size: 0.6875rem;
+    color: var(--color-text);
+    background-color: var(--color-surface-raised);
+    white-space: nowrap;
+}
+
+@media (max-width: 719px) {
+    .yield-avg-legend-row {
+        grid-template-columns: 4.75rem minmax(0, 1fr);
+    }
+
+    .yield-avg-legend-formula {
+        grid-column: 2;
+        justify-self: start;
+    }
+}
+
+.yield-log-section {
+    min-width: 0;
+}
+
+.yield-month-field {
+    max-width: 12rem;
+    margin-bottom: 1rem;
 }
 

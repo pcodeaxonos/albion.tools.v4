@@ -80,6 +80,7 @@ export const DEFAULT_SETTINGS = {
     enchantPowerOrder: {},
     defaultCity: 'Martlock',
     cityPickerStyle: 'standard',
+    plantPickerStyle: 'icons',
     dataSync: true,
     islandCities: [],
     refineFollowSpecialty: false
@@ -90,8 +91,17 @@ export const CITY_PICKER_STYLES = [
     { id: 'diagonal', label: 'Diagonal (renkli harita)' }
 ];
 
+export const PLANT_PICKER_STYLES = [
+    { id: 'standard', label: 'Standart (liste)' },
+    { id: 'icons', label: 'İkon satırları' }
+];
+
 export function normalizeCityPickerStyle(value) {
     return value === 'diagonal' ? 'diagonal' : 'standard';
+}
+
+export function normalizePlantPickerStyle(value) {
+    return value === 'standard' ? 'standard' : 'icons';
 }
 
 function comboKey(combo) {
@@ -302,6 +312,10 @@ export function getCityPickerStyle(settings = getSettings()) {
     return normalizeCityPickerStyle(settings?.cityPickerStyle);
 }
 
+export function getPlantPickerStyle(settings = getSettings()) {
+    return normalizePlantPickerStyle(settings?.plantPickerStyle);
+}
+
 export function getSettings() {
     try {
         const raw = localStorage.getItem(STORAGE_KEY);
@@ -328,6 +342,7 @@ export function getSettings() {
             enchantPowerOrder: normalizeEnchantPowerOrderStore(parsed.enchantPowerOrder),
             defaultCity: normalizeDefaultCity(parsed.defaultCity),
             cityPickerStyle: normalizeCityPickerStyle(parsed.cityPickerStyle),
+            plantPickerStyle: normalizePlantPickerStyle(parsed.plantPickerStyle),
             dataSync: parsed.dataSync !== false,
             islandCities: normalizeIslandCities(parsed.islandCities),
             refineFollowSpecialty: parsed.refineFollowSpecialty === true
@@ -358,6 +373,7 @@ export function saveSettings(partial) {
     next.enchantPowerOrder = normalizeEnchantPowerOrderStore(next.enchantPowerOrder);
     next.defaultCity = normalizeDefaultCity(next.defaultCity);
     next.cityPickerStyle = normalizeCityPickerStyle(next.cityPickerStyle);
+    next.plantPickerStyle = normalizePlantPickerStyle(next.plantPickerStyle);
     next.dataSync = next.dataSync !== false;
     next.islandCities = normalizeIslandCities(next.islandCities);
     next.refineFollowSpecialty = Boolean(next.refineFollowSpecialty);

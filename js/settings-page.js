@@ -13,7 +13,8 @@ import {
     normalizeEnchantPower,
     cityHasIsland,
     localPriceHost,
-    CITY_PICKER_STYLES
+    CITY_PICKER_STYLES,
+    PLANT_PICKER_STYLES
 } from './settings.js';
 import { initStore } from './db/store.js';
 import { loadActiveCities } from './cities.js';
@@ -21,6 +22,7 @@ import { priceSideToggleHtml } from './price-side.js';
 import { feeMetaText } from './market-fees.js';
 import { escapeHtml } from './utils.js';
 import { sessionAdcState } from './pipeline-status.js';
+import { showToast } from './toast.js';
 import {
     localDataSummary,
     formatDataBytes,
@@ -209,13 +211,22 @@ function renderPage(container, cities) {
                                 <label for="settingCityPickerStyle">Şehir seçimi</label>
                             </div>
                             <div class="form-floating">
+                                <select class="form-select is-filled" id="settingPlantPickerStyle">
+                                    ${PLANT_PICKER_STYLES.map((style) => {
+                                        const selected = style.id === settings.plantPickerStyle ? ' selected' : '';
+                                        return `<option value="${escapeHtml(style.id)}"${selected}>${escapeHtml(style.label)}</option>`;
+                                    }).join('')}
+                                </select>
+                                <label for="settingPlantPickerStyle">Bitki seçimi</label>
+                            </div>
+                            <div class="form-floating">
                                 <select class="form-select is-filled" id="settingEnchantPower">
                                     ${renderEnchantPowerOptions(settings.enchantPower)}
                                 </select>
                                 <label for="settingEnchantPower">IP bandı (hızlı doldur)</label>
                             </div>
                         </div>
-                        <p class="text-muted settings-note">Varsayılan şehir, tool’da kayıtlı şehir yoksa alış/satış seçiminde gelir (Martlock). Şehir seçimi: standart liste veya diagonal renkli harita.</p>
+                        <p class="text-muted settings-note">Varsayılan şehir, tool’da kayıtlı şehir yoksa alış/satış seçiminde gelir (Martlock). Şehir seçimi: standart liste veya diagonal renkli harita. Bitki seçimi: liste veya ekin/ot ikon satırları.</p>
                         <div class="settings-combo-order-wrap">
                             <p class="settings-combo-order-title">Standart combolar</p>
                             ${renderStandardComboList(settings)}
@@ -297,7 +308,6 @@ function renderPage(container, cities) {
                         ${renderIslandCityChecks(cities, settings.islandCities)}
                     `)}
 
-                    <p class="settings-status" id="settingsStatus" hidden></p>
                 </form>
 
                 ${settingsSection('settings-veri', 'Veri', 'Yedekleme ve origin’ler arası eşleme. Live Server (:5500) ile yerel sunucu (:3000) ayrı hafızadır.', `
@@ -327,7 +337,6 @@ function renderPage(container, cities) {
                             <button type="button" class="btn btn-outline-secondary" id="settingsPushData">Hub’a gönder</button>
                         </div>
                     </div>
-                    <p class="settings-status" id="settingsDataStatus" hidden></p>
                 `)}
             </div>
         </div>
@@ -372,6 +381,7 @@ function persist(container) {
         server: container.querySelector('#settingServer')?.value,
         defaultCity: container.querySelector('#settingDefaultCity')?.value,
         cityPickerStyle: container.querySelector('#settingCityPickerStyle')?.value,
+        plantPickerStyle: container.querySelector('#settingPlantPickerStyle')?.value,
         buyPriceSide: selectedSide(container, 'buy', 'buy'),
         sellPriceSide: selectedSide(container, 'sell', 'sell'),
         enchantPower,
@@ -395,12 +405,7 @@ function persist(container) {
         note.textContent = sourceNote(priceSource);
     }
 
-    const status = container.querySelector('#settingsStatus');
-    if (status) {
-        status.hidden = false;
-        status.textContent = 'Kaydedildi.';
-    }
-
+    showToast('Kaydedildi.', { duration: 2000 });
     syncHubPolling(container);
 }
 
@@ -501,14 +506,11 @@ function localMetaText() {
     return `Bu origin’de ${summary.keys} anahtar · ${formatDataBytes(summary.bytes)}`;
 }
 
-function setDataStatus(container, message, kind = 'ok') {
-    const status = container.querySelector('#settingsDataStatus');
-    if (!status) {
+function setDataStatus(message, kind = 'ok') {
+    if (!message) {
         return;
     }
-    status.hidden = !message;
-    status.textContent = message || '';
-    status.classList.toggle('is-error', kind === 'error');
+    showToast(message, { kind: kind === 'error' ? 'error' : 'success' });
 }
 
 function bindPage(container) {
@@ -613,9 +615,9 @@ function bindDataSection(container) {
     container.querySelector('#settingsExportData')?.addEventListener('click', () => {
         try {
             downloadLocalData();
-            setDataStatus(container, 'JSON indirildi.');
+            setDataStatus('JSON indirildi.');
         } catch (error) {
-            setDataStatus(container, error.message || 'Dışa aktarılamadı.', 'error');
+            setDataStatus(error.message || 'Dışa aktarılamadı.', 'error');
         }
     });
 
@@ -640,7 +642,7 @@ function bindDataSection(container) {
             }
             location.reload();
         } catch (error) {
-            setDataStatus(container, error.message || 'İçe aktarılamadı.', 'error');
+            setDataStatus(error.message || 'İçe aktarılamadı.', 'error');
         }
     });
 
@@ -655,12 +657,12 @@ function bindDataSection(container) {
                     location.reload();
                     return;
                 }
-                setDataStatus(container, syncResultText(result));
+                setDataStatus(syncResultText(result));
             } catch {
-                setDataStatus(container, 'Hub kapalı; eşleme bekleniyor.', 'error');
+                setDataStatus('Hub kapalı; eşleme bekleniyor.', 'error');
             }
         } else {
-            setDataStatus(container, 'Otomatik eşleme kapalı.');
+            setDataStatus('Otomatik eşleme kapalı.');
         }
         refreshDataSyncStatus(container);
     });
@@ -675,10 +677,10 @@ function bindDataSection(container) {
                 location.reload();
                 return;
             }
-            setDataStatus(container, syncResultText(result));
+            setDataStatus(syncResultText(result));
             refreshDataSyncStatus(container);
         } catch {
-            setDataStatus(container, 'Hub kapalı. start.bat çalıştır.', 'error');
+            setDataStatus('Hub kapalı. start.bat çalıştır.', 'error');
             refreshDataSyncStatus(container);
         }
     });
@@ -686,10 +688,10 @@ function bindDataSection(container) {
     container.querySelector('#settingsPushData')?.addEventListener('click', async () => {
         try {
             const result = await syncWithHub('push');
-            setDataStatus(container, syncResultText(result));
+            setDataStatus(syncResultText(result));
             refreshDataSyncStatus(container);
         } catch {
-            setDataStatus(container, 'Hub kapalı. start.bat çalıştır.', 'error');
+            setDataStatus('Hub kapalı. start.bat çalıştır.', 'error');
             refreshDataSyncStatus(container);
         }
     });

@@ -1,0 +1,161 @@
+// ============================================
+// Toast — fixed popup feedback (no layout shift)
+// ============================================
+
+@use "variables" as *;
+
+.app-toast-host {
+    position: fixed;
+    z-index: 1200;
+    right: var(--spacing-md);
+    bottom: var(--spacing-md);
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--spacing-sm);
+    width: min(22rem, calc(100vw - 2 * var(--spacing-md)));
+    pointer-events: none;
+}
+
+.app-toast {
+    --toast-accent: var(--color-success);
+    --toast-fg: var(--color-success);
+    position: relative;
+    display: grid;
+    grid-template-columns: 3px 1fr auto;
+    align-items: start;
+    gap: 0.75rem;
+    margin: 0;
+    padding: 0.875rem 0.75rem 0.875rem 0.875rem;
+    pointer-events: auto;
+    border: var(--border-width) solid color-mix(in srgb, var(--toast-accent) 35%, var(--color-border));
+    border-radius: 0;
+    background:
+        linear-gradient(
+            135deg,
+            color-mix(in srgb, var(--toast-accent) 14%, var(--color-surface-raised)) 0%,
+            var(--color-surface-raised) 48%,
+            var(--color-surface) 100%
+        );
+    box-shadow: var(--shadow-md);
+    color: var(--color-text);
+    opacity: 0;
+    transform: translate3d(0.75rem, 0.5rem, 0) scale(0.98);
+    transition:
+        opacity var(--transition-normal),
+        transform var(--transition-normal);
+    cursor: pointer;
+
+    &.is-in {
+        opacity: 1;
+        transform: translate3d(0, 0, 0) scale(1);
+    }
+
+    &.is-out {
+        opacity: 0;
+        transform: translate3d(0.5rem, 0.35rem, 0) scale(0.98);
+        pointer-events: none;
+    }
+
+    &--success {
+        --toast-accent: var(--color-success);
+        --toast-fg: var(--color-success);
+    }
+
+    &--error {
+        --toast-accent: var(--color-danger);
+        --toast-fg: var(--color-danger);
+    }
+
+    &--info {
+        --toast-accent: var(--color-info);
+        --toast-fg: var(--color-info);
+    }
+}
+
+.app-toast__bar {
+    align-self: stretch;
+    width: 3px;
+    background: var(--toast-accent);
+    box-shadow: 0 0 12px color-mix(in srgb, var(--toast-accent) 55%, transparent);
+}
+
+.app-toast__text {
+    margin: 0;
+    padding-top: 0.05rem;
+    font-family: var(--font-family-base);
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-semibold);
+    letter-spacing: 0.04em;
+    line-height: 1.35;
+    color: var(--toast-fg);
+}
+
+.app-toast__close {
+    position: relative;
+    flex-shrink: 0;
+    width: 1.5rem;
+    height: 1.5rem;
+    margin: -0.15rem -0.15rem 0 0;
+    padding: 0;
+    border: var(--border-width) solid var(--color-border);
+    border-radius: 0;
+    background: color-mix(in srgb, var(--color-surface) 70%, transparent);
+    color: var(--color-text-muted);
+    cursor: pointer;
+    transition:
+        background-color var(--transition-fast),
+        border-color var(--transition-fast),
+        color var(--transition-fast);
+
+    &::before,
+    &::after {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 0.7rem;
+        height: 1.5px;
+        background: currentColor;
+    }
+
+    &::before {
+        transform: translate(-50%, -50%) rotate(45deg);
+    }
+
+    &::after {
+        transform: translate(-50%, -50%) rotate(-45deg);
+    }
+
+    &:hover {
+        color: var(--color-text);
+        border-color: var(--color-border-strong);
+        background: var(--color-surface-hover);
+    }
+
+    &:focus-visible {
+        outline: var(--focus-outline-width) solid var(--color-focus-ring);
+        outline-offset: var(--focus-outline-offset);
+    }
+}
+
+@media (max-width: 575.98px) {
+    .app-toast-host {
+        right: var(--spacing-sm);
+        left: var(--spacing-sm);
+        bottom: var(--spacing-sm);
+        width: auto;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .app-toast {
+        transition: opacity var(--transition-fast);
+        transform: none;
+
+        &.is-in,
+        &.is-out {
+            transform: none;
+        }
+    }
+}
