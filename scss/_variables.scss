@@ -109,6 +109,12 @@
     --transition-shadow: 0.2s ease;
 }
 
+@media (max-height: 899px) {
+    :root {
+        --topbar-height: 2.625rem;
+    }
+}
+
 @property --input-stroke {
     syntax: "<color>";
     inherits: true;

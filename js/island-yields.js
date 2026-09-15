@@ -73,6 +73,14 @@ function formatQty(value) {
     return value.toLocaleString('tr-TR', { maximumFractionDigits: 2 });
 }
 
+function parseQuantityExpression(value) {
+    const expression = String(value ?? '').replace(/\s+/g, '');
+    if (!/^\d+(?:\s*[+-]\s*\d+)*$/.test(expression)) {
+        return Number.NaN;
+    }
+    return (expression.match(/[+-]?\d+/g) || []).reduce((total, part) => total + Number(part), 0);
+}
+
 function formatSigned(value, { digits = 2, asPctPoints = false } = {}) {
     if (!Number.isFinite(value)) {
         return '—';
@@ -423,28 +431,36 @@ function renderAvgCard(plant, islandCity) {
     `;
 }
 
-function renderAvgLegend() {
+function renderAvgLegend(plant, islandCity) {
     const bonusPct = formatPct(cityBonusPct());
+    const standardYield = standardPlantYield(plant, islandCity, state.premium);
+    const standardSeed = standardSeedReturn(plant, state.water);
+    const exampleYield = standardYield * 0.99;
+    const exampleSeed = Math.min(1, standardSeed * 1.05);
+    const exampleYieldDifference = exampleYield - standardYield;
+    const exampleSeedDifference = exampleSeed - standardSeed;
+    const exampleYieldRelative = formatRelativeDifference(exampleYield, standardYield);
+    const exampleSeedRelative = formatRelativeDifference(exampleSeed, standardSeed);
     const rows = [
         {
-            sample: '<span class="yield-values-stack"><span>Gerçek <b>9,8</b></span><span>Vars. <b>9,9</b></span></span>',
+            sample: `<span class="yield-values-stack"><span>Gerçek <b>${formatQty(exampleYield)}</b></span><span>Vars. <b>${formatQty(standardYield)}</b></span></span>`,
             text: 'Ürün: Gerçek, kayıtlarındaki tohum başına hasat ortalaması; Vars., premium ve şehir bonusu dahil beklenen değer.',
             formula: 'hasat ÷ ekilen tohum'
         },
         {
-            sample: '<span class="yield-values-stack"><span>Gerçek <b>84%</b></span><span>Vars. <b>80%</b></span></span>',
+            sample: `<span class="yield-values-stack"><span>Gerçek <b>${formatPct(exampleSeed)}</b></span><span>Vars. <b>${formatPct(standardSeed)}</b></span></span>`,
             text: 'Tohum: Gerçek, geri aldığın tohumların ekilen tohuma oranı; Vars., sulama seçimine göre beklenen dönüş oranı.',
             formula: 'alınan tohum ÷ ekilen tohum'
         },
         {
-            sample: '<span class="yield-delta-stack is-neg"><strong>1%</strong><span>−0,1</span></span>',
+            sample: `<span class="yield-delta-stack is-neg"><strong>${exampleYieldRelative}</strong><span>${formatSigned(exampleYieldDifference, { digits: 1 })}</span></span>`,
             text: 'Büyük yüzde, varsayılan değere göre farkın büyüklüğüdür. Yeşil daha yüksek, kırmızı daha düşük getiriyi gösterir. Altındaki sayı ürün/tohum farkıdır.',
             formula: '|gerçek − varsayılan| ÷ varsayılan'
         },
         {
-            sample: '<span class="yield-delta-stack is-pos"><strong>5%</strong><span>+4pp</span></span>',
-            text: 'Tohum farkında pp, yüzde puanı demektir. %84 ile %80 arasında +4 yüzde puanı, varsayılana göre %5 artış vardır.',
-            formula: '84% − 80% = 4pp'
+            sample: `<span class="yield-delta-stack is-pos"><strong>${exampleSeedRelative}</strong><span>${formatSigned(exampleSeedDifference, { asPctPoints: true })}</span></span>`,
+            text: `Tohum farkında pp, yüzde puanı demektir. ${formatPct(exampleSeed)} ile ${formatPct(standardSeed)} arasındaki fark ${formatSigned(exampleSeedDifference, { asPctPoints: true })}; varsayılana göre ${exampleSeedRelative} artıştır.`,
+            formula: `${formatPct(exampleSeed)} − ${formatPct(standardSeed)} = ${formatSigned(exampleSeedDifference, { asPctPoints: true })}`
         },
         {
             sample: avgTag(`+${bonusPct}`, { kind: 'bonus', tip: 'Şehir bonusu' }),
@@ -568,6 +584,9 @@ function renderAverages() {
     const plants = getPlants();
     const contextLabel = `${state.premium ? 'Premium' : 'Free'} · ${state.water ? 'Su' : 'Kuru'}`;
     const groups = PLANT_GROUPS.map((group) => renderAvgGroup(group, plants, islandCity)).join('');
+    const legendPlant = plants.find((plant) => plant.key === state.filteredPlantKey)
+        ?? plants.find((plant) => hasCityBonus(plant, islandCity))
+        ?? plants[0];
 
     return `
         <section class="yield-averages" data-yield-averages aria-label="Ortalamalar">
@@ -577,7 +596,7 @@ function renderAverages() {
             </div>
             ${groups}
         </section>
-        ${renderAvgLegend()}
+        ${legendPlant ? renderAvgLegend(legendPlant, islandCity) : ''}
     `;
 }
 
@@ -599,7 +618,7 @@ function refreshResult(container) {
                 ${state.filteredPlantKey ? '<button type="button" class="btn btn-sm btn-outline-secondary" data-clear-yield-filter>Filtreyi kaldır</button>' : ''}
             </div>
             <div id="yieldLog">${renderLogTable(state.month)}</div>
-            <p class="farming-note">Veri yoksa Farming / Ada Planlayıcı standart oyun yield (+şehir %10) kullanır. Ortalama varken şehir bonusu tekrar uygulanmaz.</p>
+            <p class="farming-note">Veri yoksa Farming / Ada Planlayıcı standart oyun yield (+şehir ${formatPct(cityBonusPct())}) kullanır. Ortalama varken şehir bonusu tekrar uygulanmaz.</p>
         </div>
     `;
     bindResult(container);
@@ -646,17 +665,21 @@ function saveEntry(container) {
     const date = container.querySelector('#yieldDate')?.value;
     const plantKey = container.querySelector('#plantKey')?.value;
     const seedsPlanted = Number(container.querySelector('#seedsPlanted')?.value);
-    const seedsReturned = Number(container.querySelector('#seedsReturned')?.value);
-    const plantsHarvested = Number(container.querySelector('#plantsHarvested')?.value);
+    const returnedInput = container.querySelector('#seedsReturned');
+    const harvestedInput = container.querySelector('#plantsHarvested');
+    const seedsReturned = parseQuantityExpression(returnedInput?.value);
+    const plantsHarvested = parseQuantityExpression(harvestedInput?.value);
 
     if (!date || !plantKey || !state.islandCity) {
         showToast('Tarih, ada ve bitki zorunlu.', { kind: 'error' });
         return;
     }
-    if (!(seedsPlanted > 0) || !Number.isFinite(seedsReturned) || !Number.isFinite(plantsHarvested)) {
+    if (!(seedsPlanted > 0) || !(seedsReturned >= 0) || !(plantsHarvested >= 0)) {
         showToast('Dikilen / dönen / hasat sayılarını kontrol et.', { kind: 'error' });
         return;
     }
+    returnedInput.value = String(seedsReturned);
+    harvestedInput.value = String(plantsHarvested);
 
     const fd = new FormData();
     fd.set('date', date);
@@ -732,11 +755,11 @@ function renderPage(container) {
                     </div>
                     <div class="yield-harvest-pair">
                         <div class="form-floating farming-city-field">
-                            <input class="form-control" type="number" min="0" step="1" id="seedsReturned" name="seedsReturned" required>
+                            <input class="form-control" type="text" inputmode="decimal" autocomplete="off" id="seedsReturned" name="seedsReturned" placeholder="10-8" required>
                             <label for="seedsReturned">Dönen tohum</label>
                         </div>
                         <div class="form-floating farming-city-field">
-                            <input class="form-control" type="number" min="0" step="1" id="plantsHarvested" name="plantsHarvested" required>
+                            <input class="form-control" type="text" inputmode="decimal" autocomplete="off" id="plantsHarvested" name="plantsHarvested" placeholder="10-8" required>
                             <label for="plantsHarvested">Hasat ürün</label>
                         </div>
                     </div>
@@ -790,6 +813,15 @@ function bindPage(container) {
     });
     container.querySelector('#seedsPlanted')?.addEventListener('input', () => {
         syncPlotsFromSeeds(container);
+    });
+    container.querySelectorAll('#seedsReturned, #plantsHarvested').forEach((input) => {
+        input.addEventListener('blur', () => {
+            const value = parseQuantityExpression(input.value);
+            if (value >= 0) {
+                input.value = String(value);
+                input.classList.add('is-filled');
+            }
+        });
     });
     container.querySelector('#yieldForm')?.addEventListener('submit', (event) => {
         event.preventDefault();

@@ -8,6 +8,7 @@
 
 import { execFile } from 'node:child_process';
 import { createServer } from 'node:http';
+import https from 'node:https';
 import { readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -117,6 +118,13 @@ async function route(req, res, url, path) {
         return;
     }
 
+    const gameInfoMatch = path.match(/^\/api\/v1\/gameinfo\/items\/([A-Z0-9_@-]+)\/data$/);
+    if (req.method === 'GET' && gameInfoMatch) {
+        const payload = await fetchGameInfoItem(gameInfoMatch[1]);
+        sendJson(res, 200, payload);
+        return;
+    }
+
     const priceMatch = path.match(/^\/api\/v2\/stats\/prices\/(.+?)(?:\.json)?$/);
     if (req.method === 'GET' && priceMatch) {
         pruneExpired();
@@ -170,6 +178,28 @@ async function route(req, res, url, path) {
         await readBody(req).catch(() => '');
     }
     sendJson(res, 404, { error: 'Not found' });
+}
+
+function fetchGameInfoItem(itemId) {
+    return new Promise((resolve, reject) => {
+        https.get(`https://gameinfo.albiononline.com/api/gameinfo/items/${encodeURIComponent(itemId)}/data`, {
+            headers: { 'User-Agent': 'albion.tools.v4' }
+        }, (response) => {
+            const chunks = [];
+            response.on('data', (chunk) => chunks.push(chunk));
+            response.on('end', () => {
+                if (response.statusCode !== 200) {
+                    reject(new Error(`Oyun tarif verisi alınamadı (${response.statusCode})`));
+                    return;
+                }
+                try {
+                    resolve(JSON.parse(Buffer.concat(chunks).toString('utf8')));
+                } catch (error) {
+                    reject(error);
+                }
+            });
+        }).on('error', reject);
+    });
 }
 
 function ingestTopic(path) {

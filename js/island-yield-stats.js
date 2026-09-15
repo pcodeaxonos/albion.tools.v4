@@ -29,7 +29,11 @@ function hasBonus(bonusCities, city) {
 /** Standard game harvest qty (city bonus included). */
 export function standardPlantYield(plant, islandCity, premium) {
     const base = baseYield(premium);
-    return hasBonus(plant?.bonusCities, islandCity) ? base * (1 + cityYieldBonus()) : base;
+    if (!hasBonus(plant?.bonusCities, islandCity)) {
+        return base;
+    }
+    // Ada Çıktı'nda premium şehir-bonuslu varsayılan hasat 9,5 olarak gösterilir.
+    return premium ? 9.5 : base * (1 + cityYieldBonus());
 }
 
 /** Standard seed return rate from ladder / water. */

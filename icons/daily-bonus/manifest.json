@@ -1,0 +1,42 @@
+{
+  "reference": "reference/dashboard-reference.png",
+  "items": [
+    "t4-pickaxe.png",
+    "t4-stone-hammer.png",
+    "t4-axe.png",
+    "t5-pickaxe.png",
+    "t5-stone-hammer.png",
+    "t5-axe.png",
+    "t6-pickaxe.png",
+    "t6-stone-hammer.png",
+    "t6-axe.png"
+  ],
+  "materials": [
+    "wood.png",
+    "metal.png",
+    "avalonian-t4.png",
+    "avalonian-t5.png",
+    "avalonian-t6.png"
+  ],
+  "decor": [
+    "t4-header-art.png",
+    "t5-header-art.png",
+    "t6-header-art.png"
+  ],
+  "ui_icons": [
+    "refresh.svg",
+    "tool.svg",
+    "spear.svg",
+    "warning.svg",
+    "coins.svg",
+    "info.svg",
+    "chevron-right.svg",
+    "chart-bars.svg"
+  ],
+  "notes": {
+    "font": "No font files included. Use Inter, Segoe UI, or system-ui.",
+    "rank_badges": "Build with CSS; no raster asset needed.",
+    "tier_headers": "Use CSS gradients + optional decor/*-header-art.png on the right.",
+    "borders_and_glows": "Build with CSS so the layout stays responsive."
+  }
+}

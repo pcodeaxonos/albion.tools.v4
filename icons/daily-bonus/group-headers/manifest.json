@@ -1,0 +1,314 @@
+[
+  {
+    "file": "tool.png",
+    "source": "/mnt/data/dövülmüş_gölge_çekiç_ve_kazma.png",
+    "size": [
+      1600,
+      520
+    ]
+  },
+  {
+    "file": "spear.png",
+    "source": "/mnt/data/ghostwriter_images/generated/wide_horizontal_compositing_overlay_style_fantasy_2_batch_2.png",
+    "size": [
+      1600,
+      520
+    ]
+  },
+  {
+    "file": "cloth_robe.png",
+    "source": "/mnt/data/ghostwriter_images/generated/wide_horizontal_fantasy_concept_art_ui_banner_st_3_batch_3.png",
+    "size": [
+      1600,
+      520
+    ]
+  },
+  {
+    "file": "plate_armor.png",
+    "source": "/mnt/data/ghostwriter_images/generated/wide_horizontal_fantasy_concept_art_asset_on_a_tra_4_batch_4.png",
+    "size": [
+      1600,
+      520
+    ]
+  },
+  {
+    "file": "leather_armor.png",
+    "source": "/mnt/data/ghostwriter_images/generated/wide_cinematic_png_style_composition_on_a_transpar_5_batch_5.png",
+    "size": [
+      1600,
+      520
+    ]
+  },
+  {
+    "file": "sword.png",
+    "source": "/mnt/data/ghostwriter_images/generated/a_wide_cinematic_fantasy_ui_style_render_on_a_tra_6_batch_6.png",
+    "size": [
+      1600,
+      520
+    ]
+  },
+  {
+    "file": "axe.png",
+    "source": "/mnt/data/ghostwriter_images/generated/wide_cinematic_graphic_with_a_transparent_backgrou_7_batch_7.png",
+    "size": [
+      1600,
+      520
+    ]
+  },
+  {
+    "file": "bow.png",
+    "source": "/mnt/data/ghostwriter_images/generated/wide_horizontal_fantasy_png_graphic_composition_on_8_batch_8.png",
+    "size": [
+      1600,
+      520
+    ]
+  },
+  {
+    "file": "crossbow.png",
+    "source": "/mnt/data/ghostwriter_images/generated/wide_horizontal_fantasy_game_art_style_transparent_9_batch_9.png",
+    "size": [
+      1600,
+      520
+    ]
+  },
+  {
+    "file": "hammer.png",
+    "source": "/mnt/data/ghostwriter_images/generated/wide_horizontal_transparent_background_digital_fan_10_batch_10.png",
+    "size": [
+      1600,
+      520
+    ]
+  },
+  {
+    "file": "mace.png",
+    "source": "/mnt/data/gotik_sislerle_çevrili_savaş_topuzu.png",
+    "size": [
+      1600,
+      520
+    ]
+  },
+  {
+    "file": "dagger.png",
+    "source": "/mnt/data/şeffaf_zeminde_büyülü_gölge_hançeri.png",
+    "size": [
+      1600,
+      520
+    ]
+  },
+  {
+    "file": "staff.png",
+    "source": "/mnt/data/şeffaf_arka_planlı_büyülü_asa.png",
+    "size": [
+      1600,
+      520
+    ]
+  },
+  {
+    "file": "nature_staff.png",
+    "source": "/mnt/data/tek_üzerinde_büyülü_druid_asası.png",
+    "size": [
+      1600,
+      520
+    ]
+  },
+  {
+    "file": "holy_staff.png",
+    "source": "/mnt/data/gümüş_işıklı_kutsal_asa.png",
+    "size": [
+      1600,
+      520
+    ]
+  },
+  {
+    "file": "fire_staff.png",
+    "source": "/mnt/data/karanlık_alevli_büyü_asası.png",
+    "size": [
+      1600,
+      520
+    ]
+  },
+  {
+    "file": "frost_staff.png",
+    "source": "/mnt/data/buz_kristalli_gotik_asa.png",
+    "size": [
+      1600,
+      520
+    ]
+  },
+  {
+    "file": "arcane_staff.png",
+    "source": "/mnt/data/karanlık_göktaşı_büyü_asası.png",
+    "size": [
+      1600,
+      520
+    ]
+  },
+  {
+    "file": "cursed_staff.png",
+    "source": "/mnt/data/karanlık_büyünün_lanetli_asası.png",
+    "size": [
+      1600,
+      520
+    ]
+  },
+  {
+    "file": "quarterstaff.png",
+    "source": "/mnt/data/gümüş_mistik_savaş_asası.png",
+    "size": [
+      1600,
+      520
+    ]
+  },
+  {
+    "file": "war_gloves.png",
+    "source": "/mnt/data/gümüş_sis_i_çinde_savaş_eldivenleri.png",
+    "size": [
+      1600,
+      520
+    ]
+  },
+  {
+    "file": "shapeshifter_staff.png",
+    "source": "/mnt/data/ruh_canavarın_gümüş_asası.png",
+    "size": [
+      1600,
+      520
+    ]
+  },
+  {
+    "file": "plate_helmet.png",
+    "source": "/mnt/data/gümüş_sisler_i_çinde_şövalye_miğferi.png",
+    "size": [
+      1600,
+      520
+    ]
+  },
+  {
+    "file": "leather_hood.png",
+    "source": "/mnt/data/gölgeli_suikastçı_başlığı_ve_mistik_duman.png",
+    "size": [
+      1600,
+      520
+    ]
+  },
+  {
+    "file": "cloth_cowl.png",
+    "source": "/mnt/data/gizemli_gümüş_büyücü_pelerini.png",
+    "size": [
+      1600,
+      520
+    ]
+  },
+  {
+    "file": "plate_boots.png",
+    "source": "/mnt/data/gümüş_sisli_şövalye_zırhı.png",
+    "size": [
+      1600,
+      520
+    ]
+  },
+  {
+    "file": "leather_shoes.png",
+    "source": "/mnt/data/büyülü_sisle_sarılı_deri_çizmeler.png",
+    "size": [
+      1600,
+      520
+    ]
+  },
+  {
+    "file": "cloth_sandals.png",
+    "source": "/mnt/data/gümüş_büyülü_sandaletler.png",
+    "size": [
+      1600,
+      520
+    ]
+  },
+  {
+    "file": "off_hand.png",
+    "source": "/mnt/data/gotik_sislerle_sarmalanmış_büyülü_kalkan.png",
+    "size": [
+      1600,
+      520
+    ]
+  },
+  {
+    "file": "gathering_gear.png",
+    "source": "/mnt/data/başlıksız_hayalet_sisli_orman_gezgini.png",
+    "size": [
+      1600,
+      520
+    ]
+  },
+  {
+    "file": "bag.png",
+    "source": "/mnt/data/sisli_fantastik_maceracı_sırt_çantası.png",
+    "size": [
+      1600,
+      520
+    ]
+  },
+  {
+    "file": "cape.png",
+    "source": "/mnt/data/gölgeli_yıldız_tokalı_hayalet_pelerin.png",
+    "size": [
+      1600,
+      520
+    ]
+  },
+  {
+    "file": "food.png",
+    "source": "/mnt/data/büyülü_kızarmış_et_ziyafeti.png",
+    "size": [
+      1600,
+      520
+    ]
+  },
+  {
+    "file": "potion.png",
+    "source": "/mnt/data/dumanlarla_sarılı_gizemli_simya_şişesi.png",
+    "size": [
+      1600,
+      520
+    ]
+  },
+  {
+    "file": "wood.png",
+    "source": "/mnt/data/büyülü_ahşap_kütük_demeti.png",
+    "size": [
+      1600,
+      520
+    ]
+  },
+  {
+    "file": "fiber.png",
+    "source": "/mnt/data/büyülü_lif_demeti_ve_tılsım.png",
+    "size": [
+      1600,
+      520
+    ]
+  },
+  {
+    "file": "stone.png",
+    "source": "/mnt/data/büyülü_taş_yığını_ve_duman.png",
+    "size": [
+      1600,
+      520
+    ]
+  },
+  {
+    "file": "hide.png",
+    "source": "/mnt/data/büyülü_pelerin_kürkü_sarmalı.png",
+    "size": [
+      1600,
+      520
+    ]
+  },
+  {
+    "file": "ore.png",
+    "source": "/mnt/data/gümüş_sis_i_çinde_büyülü_maden.png",
+    "size": [
+      1600,
+      520
+    ]
+  }
+]

@@ -13,3 +13,10 @@ icons/*
 !icons/yield-product.svg
 !icons/yield-seed.svg
 !icons/yield-log.svg
+!icons/daily-bonus/
+!icons/daily-bonus/decor/
+!icons/daily-bonus/decor/*.png
+!icons/daily-bonus/ui-icons/
+!icons/daily-bonus/ui-icons/*.svg
+!icons/daily-bonus/families/
+!icons/daily-bonus/families/*.png
