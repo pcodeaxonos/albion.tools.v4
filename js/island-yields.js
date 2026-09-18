@@ -100,6 +100,15 @@ function formatSigned(value, { digits = 2, asPctPoints = false } = {}) {
     return `0${unit}`;
 }
 
+function formatDeltaMagnitude(value, { digits = 2, asPctPoints = false } = {}) {
+    if (!Number.isFinite(value)) {
+        return '';
+    }
+    const amount = asPctPoints ? Math.abs(value * 100) : Math.abs(value);
+    const suffix = asPctPoints ? 'pp' : '';
+    return `${amount.toLocaleString('tr-TR', { maximumFractionDigits: digits })}${suffix}`;
+}
+
 function formatRelativeDifference(actual, expected) {
     if (!Number.isFinite(actual) || !Number.isFinite(expected) || expected === 0) return '—';
     return formatRelativeRatio((actual - expected) / expected);
@@ -110,8 +119,15 @@ function formatRelativeRatio(value) {
     return `${Math.abs(value * 100).toLocaleString('tr-TR', { maximumFractionDigits: 0 })}%`;
 }
 
-function confidenceLevel(n) {
-    return n >= 12 ? 3 : n >= 5 ? 2 : n >= 1 ? 1 : 0;
+function confidenceLevel(seedsPlanted) {
+    const seeds = Number(seedsPlanted);
+    if (!(seeds > 0)) return 0;
+    // One plot has nine seeds. Sample size, rather than the number of form
+    // submissions, determines how representative the weighted average is.
+    if (seeds >= 360) return 4;
+    if (seeds >= 135) return 3;
+    if (seeds >= 45) return 2;
+    return 1;
 }
 
 function deltaTone(value) {
@@ -119,6 +135,15 @@ function deltaTone(value) {
         return '';
     }
     return value > 0 ? 'is-pos' : 'is-neg';
+}
+
+function gaugeFill(value) {
+    if (!Number.isFinite(value) || value === 0) {
+        return 0;
+    }
+    // The gauge spans one side of the zero marker. Ten percentage points fills
+    // that side; a small floor keeps non-zero observations legible.
+    return Math.min(48, Math.max(4, Math.abs(value) * 500));
 }
 
 function cityLabel(apiName) {
@@ -408,7 +433,7 @@ function renderAvgCard(plant, islandCity) {
     const seedRelativeDifference = active && Number.isFinite(avg.avgSeedReturn) && Number.isFinite(wikiSeed)
         ? (avg.avgSeedReturn - wikiSeed) / wikiSeed
         : null;
-    const confidence = active ? confidenceLevel(avg.n) : 0;
+    const confidence = active ? confidenceLevel(avg.seedsPlanted) : 0;
 
     return `
         <article class="yield-avg-card ${tierClass(plant.tier)}${active ? '' : ' is-passive'}${thin ? ' is-thin' : ''}${state.filteredPlantKey === plant.key ? ' is-selected' : ''} is-confidence-${confidence}"
@@ -422,18 +447,18 @@ function renderAvgCard(plant, islandCity) {
             <section class="yield-metric" aria-label="Ürün getirisi">
                 <div class="yield-metric-title"><img src="icons/yield-product.svg" alt=""><span>Ürün</span></div>
                 <div class="yield-metric-content">
-                    <div class="yield-delta-stack ${deltaTone(yieldRelativeDifference)}"${tipAttr('Varsayılan ürüne göre yüzde farkı')}><strong data-yield-change="product-relative">${formatRelativeDifference(active ? avg.avgPlantYield : null, wikiYield)}</strong><span>${formatSigned(active ? avg.avgPlantYield - wikiYield : null, { digits: 1 })}</span></div>
-                    <div class="yield-values-stack"><span>Gerçek <b data-yield-change="product">${active ? formatQty(avg.avgPlantYield) : '—'}</b></span><span>Vars. <b>${formatQty(wikiYield)}</b></span></div>
+                    <div class="yield-actual"><b data-yield-change="product">${active ? formatQty(avg.avgPlantYield) : ''}</b><span>Gerçek</span></div>
+                    <div class="yield-delta-stack ${deltaTone(yieldRelativeDifference)}"${tipAttr('Varsayılan ürüne göre yüzde farkı')}><strong data-yield-change="product-relative">${active ? formatRelativeDifference(avg.avgPlantYield, wikiYield) : ''}</strong><span>${active ? formatDeltaMagnitude(avg.avgPlantYield - wikiYield, { digits: 1 }) : ''}</span><span class="yield-default"><b>${formatQty(wikiYield)}</b></span><i class="yield-delta-gauge" style="--yield-gauge-fill: ${gaugeFill(yieldRelativeDifference)}%;" aria-hidden="true"></i></div>
                 </div>
             </section>
             <section class="yield-metric" aria-label="Tohum getirisi">
                 <div class="yield-metric-title"><img src="icons/yield-seed.svg" alt=""><span>Tohum</span></div>
                 <div class="yield-metric-content">
-                    <div class="yield-delta-stack ${deltaTone(seedRelativeDifference)}"${tipAttr('Varsayılan tohum dönüşüne göre yüzde farkı')}><strong data-yield-change="seed-relative">${formatRelativeDifference(active ? avg.avgSeedReturn : null, wikiSeed)}</strong><span>${formatSigned(active ? avg.avgSeedReturn - wikiSeed : null, { asPctPoints: true })}</span></div>
-                    <div class="yield-values-stack"><span>Gerçek <b data-yield-change="seed">${active ? formatPct(avg.avgSeedReturn) : '—'}</b></span><span>Vars. <b>${formatPct(wikiSeed)}</b></span></div>
+                    <div class="yield-actual"><b data-yield-change="seed">${active ? formatPct(avg.avgSeedReturn) : ''}</b><span>Gerçek</span></div>
+                    <div class="yield-delta-stack ${deltaTone(seedRelativeDifference)}"${tipAttr('Varsayılan tohum dönüşüne göre yüzde farkı')}><strong data-yield-change="seed-relative">${active ? formatRelativeDifference(avg.avgSeedReturn, wikiSeed) : ''}</strong><span>${active ? formatDeltaMagnitude(avg.avgSeedReturn - wikiSeed, { digits: 1, asPctPoints: true }) : ''}</span><span class="yield-default"><b>${formatPct(wikiSeed)}</b></span><i class="yield-delta-gauge" style="--yield-gauge-fill: ${gaugeFill(seedRelativeDifference)}%;" aria-hidden="true"></i></div>
                 </div>
             </section>
-            <footer class="yield-card-footer"><span title="Ortalamaya giren kayıt sayısı"><img src="icons/yield-log.svg" alt=""> <b>n=${active ? avg.n : 0}</b></span><span class="yield-confidence"${tipAttr(`Güven seviyesi ${confidence}/3`)}><i></i><i></i><i></i></span></footer>
+            <footer class="yield-card-footer"><span title="Ortalamaya giren kayıt sayısı"><img src="icons/yield-log.svg" alt=""> <b>n=${active ? avg.n : 0}</b></span><span class="yield-confidence"${tipAttr(`Güven seviyesi ${confidence}/4 · ${active ? formatQty(avg.seedsPlanted) : 0} ekilen tohum`)}><i></i><i></i><i></i><i></i></span></footer>
         </article>
     `;
 }

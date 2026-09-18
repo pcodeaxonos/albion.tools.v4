@@ -1,0 +1,241 @@
+/* Final, page-specific sizing layer for the Island Yield cards. */
+.yield-avg-row {
+  display: flex;
+  width: 100%;
+  max-width: 100%;
+  gap: 0.5rem;
+  overflow: hidden;
+}
+
+.yield-avg-row > .yield-avg-card,
+.yield-avg-row > .yield-avg-slot {
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+.yield-avg-row > .yield-avg-card {
+  width: auto;
+  margin: 0;
+  gap: 4px;
+}
+
+.yield-avg-card {
+  padding: 0.45rem;
+  border-radius: 0.72rem;
+  /* Neutral T2/T8 tones must not inherit the former red panel fallback. */
+  border-color: var(--color-item-tier, var(--color-border));
+  background:
+    radial-gradient(circle at 50% 13%, color-mix(in srgb, var(--color-item-tier, var(--color-border)) 16%, transparent), transparent 30%),
+    linear-gradient(145deg, #171a1d 0%, #0b1115 100%);
+}
+
+.yield-avg-card-visual {
+  height: 4.35rem;
+  margin: 0;
+}
+
+.yield-avg-card-icon,
+.yield-avg-card-icon-fallback {
+  width: 4.35rem;
+  height: 4.35rem;
+}
+
+.yield-avg-card-name {
+  margin: 0;
+  margin-top: -10px;
+  font-size: 0.7rem;
+  font-weight: 400;
+}
+
+.yield-avg-tier {
+  top: 0.5rem;
+  left: 0.5rem;
+  padding: 0.2rem 0.35rem;
+  font-size: 0.62rem;
+}
+
+.yield-avg-bonus-floating {
+  top: 0.5rem;
+  right: 0.5rem;
+  padding: 0.18rem 0.3rem;
+  font-size: 0.58rem;
+}
+
+.yield-avg-bonus-floating img {
+  width: 0.7rem;
+  height: 0.7rem;
+}
+
+.yield-metric {
+  position: relative;
+  padding: 0.35rem;
+  border-radius: 0.6rem;
+  border-color: rgba(150, 171, 198, 0.13);
+}
+
+.yield-metric + .yield-metric { margin-top: 0; }
+.yield-metric-title {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.08rem;
+  font-size: 0.7rem;
+}
+.yield-metric-title img { width: 0.9rem; height: 0.9rem; }
+/* Metric names are temporarily hidden while their icons remain as visual anchors. */
+.yield-metric-title span { display: none; }
+
+.yield-metric-content {
+  display: block;
+  min-height: 3.65rem;
+  margin: 0;
+}
+
+.yield-actual {
+  position: absolute;
+  left: 0.35rem;
+  top: 0;
+  bottom: 0;
+  color: #9aa7b7;
+  font-size: 0.58rem;
+  line-height: 1;
+}
+
+.yield-actual b {
+  color: #ffd361;
+  font-family: var(--font-family-mono);
+  font-size: 0.864rem;
+}
+
+.yield-actual b {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.yield-actual span {
+  position: absolute;
+  top: calc(50% + 0.5rem);
+  font-size: 0.58rem;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.yield-metric:last-of-type .yield-actual b { color: var(--yield-seed); }
+
+.yield-delta-stack {
+  position: static;
+  display: block;
+  padding: 0;
+}
+
+.yield-delta-stack strong { font-size: 1.08rem; }
+.yield-delta-stack > span:not(.yield-default) {
+  margin: 0;
+  font-size: 0.48rem;
+  font-weight: 500;
+}
+
+.yield-delta-gauge {
+  --yield-gauge-fill: 0%;
+  position: absolute;
+  top: 0.55rem;
+  right: 0.35rem;
+  bottom: 0.55rem;
+  width: 0.56rem;
+  height: auto;
+}
+
+/* The zero marker remains above the fill, preventing the overlap seen on red bars. */
+.yield-delta-gauge::before {
+  z-index: 2;
+  left: -0.28rem;
+  width: 1.12rem;
+  height: 0.14rem;
+}
+
+.yield-delta-gauge::after { z-index: 1; }
+
+.yield-delta-stack.is-pos .yield-delta-gauge::after,
+.yield-delta-stack.is-neg .yield-delta-gauge::after {
+  height: var(--yield-gauge-fill, 0%);
+}
+
+.yield-delta-stack .yield-default {
+  position: absolute;
+  z-index: 3;
+  right: 1.58rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #c7d0df;
+  font-family: var(--font-family-mono);
+  font-size: 0.64rem;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.yield-default b { font-size: inherit; }
+
+.yield-delta-stack strong[data-yield-change="product-relative"],
+.yield-delta-stack strong[data-yield-change="seed-relative"] {
+  position: absolute;
+  z-index: 3;
+  right: 1.78rem;
+  margin: 0;
+  line-height: 1;
+}
+
+.yield-delta-stack.is-pos strong[data-yield-change="product-relative"],
+.yield-delta-stack.is-pos strong[data-yield-change="seed-relative"] {
+  top: 0.55rem;
+}
+
+.yield-delta-stack.is-neg strong[data-yield-change="product-relative"],
+.yield-delta-stack.is-neg strong[data-yield-change="seed-relative"] {
+  bottom: 0.55rem;
+}
+
+.yield-metric:first-of-type .yield-delta-stack > span:not(.yield-default) {
+  position: absolute;
+  right: 3.2rem;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+/* Tohumdaki mutlak fark yüzde puanı (pp) tekrar görünür. */
+.yield-metric:last-of-type .yield-delta-stack > span:not(.yield-default) {
+  position: absolute;
+  right: 3.2rem;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.yield-card-footer {
+  min-height: 1.45rem;
+  margin-top: 0;
+  padding: 0.18rem 0.3rem;
+  border-radius: 0.48rem;
+  font-size: 0.464rem;
+}
+
+.yield-card-footer img { width: 0.75rem; height: 0.75rem; }
+.yield-confidence { gap: 0.14rem; }
+.yield-confidence i { width: 0.42rem; height: 0.42rem; }
+
+.yield-avg-card.is-confidence-1 .yield-confidence i:nth-child(-n + 1),
+.yield-avg-card.is-confidence-2 .yield-confidence i:nth-child(-n + 2),
+.yield-avg-card.is-confidence-3 .yield-confidence i:nth-child(-n + 3),
+.yield-avg-card.is-confidence-4 .yield-confidence i:nth-child(-n + 4) {
+  background: #ffd361;
+  box-shadow: 0 0 5px rgba(255, 211, 97, 0.3);
+}
+
+/* Keep the outer sections present but deliberately subdued. */
+.yield-metric:first-of-type { border-color: rgba(216, 80, 92, 0.24); }
+.yield-metric:last-of-type { border-color: rgba(69, 220, 138, 0.22); }
+
+@media (max-width: 640px) {
+  .yield-avg-row { gap: 0.2rem; }
+  .yield-metric-title img,
+  .yield-avg-bonus-floating img,
+  .yield-card-footer img { display: block; }
+}
