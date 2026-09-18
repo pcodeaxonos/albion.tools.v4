@@ -13,7 +13,6 @@ import { bindLogTableRows } from './log-table.js';
 import { showToast } from './toast.js';
 import { itemIconHtml } from './item-icon.js';
 import { getStandardCombos, getSettings, localPriceHost } from './settings.js';
-import { getCraftRecipes } from './catalog.js';
 import { getCityApiName } from './db/relations.js';
 import { getItemByUniqueName } from './db/relations.js';
 import { fetchPrices, indexPrices, cityRow } from './market.js';
@@ -25,7 +24,7 @@ const state = {
     month: toYearMonth(bonusDayIso()),
     editingId: null,
     sort: { key: 'date', direction: 'desc' },
-    analysis: { familyKey: null, rows: [], loading: false, error: null }
+    analysis: { familyKey: null, familyData: {} }
 };
 
 function toYearMonth(isoDate) {
@@ -79,26 +78,35 @@ function formatTimestamp(value) {
         : '—';
 }
 
+function unitMaterialYield(row) {
+    const totalMaterialQty = row.recipe.lines.reduce((total, line) => total + Number(line.qty || 0), 0);
+    return totalMaterialQty > 0 && row.market > 0 ? row.market / totalMaterialQty : 0;
+}
+
 function renderAnalysisCard(row, rank) {
     const { recipe, market, material, profit } = row;
-    const percent = material > 0 ? Math.round((profit / material) * 100) : 0;
-    const profitLabel = number(Math.abs(profit));
-    const profitTone = profit > 0 ? 'is-profit' : profit < 0 ? 'is-loss' : 'is-neutral';
+    const missingMarketPrice = market <= 0;
+    const totalMaterialQty = recipe.lines.reduce((total, line) => total + Number(line.qty || 0), 0);
+    const materialYield = Math.round(unitMaterialYield(row));
+    const percent = !missingMarketPrice && material > 0 ? Math.round((profit / material) * 100) : null;
+    const profitLabel = missingMarketPrice ? '—' : number(Math.abs(profit));
+    const profitTone = missingMarketPrice ? 'is-neutral' : profit > 0 ? 'is-profit' : profit < 0 ? 'is-loss' : 'is-neutral';
     const requirements = recipe.lines.map((line) => `${line.short} · ${number(line.qty)}`).join(' · ');
     const resourceIcons = recipe.lines.map((line) => `<span title="${escapeHtml(`${line.short} · ${number(line.qty)}`)}">${itemIconHtml(line.uniqueName, { size: 28, className: 'item-icon' })}<b>${number(line.qty)}</b></span>`).join('');
     return `
-        <article class="bonus-analysis-card">
+        <article class="bonus-analysis-card is-unit-rank-${rank}">
             <div class="bonus-analysis-card-main">
+                <span class="bonus-analysis-rank is-rank-${rank}" aria-label="Birim getiriye göre sıra ${rank}"><svg viewBox="0 0 40 34" aria-hidden="true"><path fill="currentColor" d="M4 10l8 7 8-12 8 12 8-7-4 17H8zM8 29h24v3H8z"/><g fill="currentColor"><circle cx="4" cy="8" r="2.5"/><circle cx="12" cy="14" r="2"/><circle cx="20" cy="4" r="2.5"/><circle cx="28" cy="14" r="2"/><circle cx="36" cy="8" r="2.5"/></g></svg><b>${rank}</b></span>
                 <div class="bonus-analysis-icon">${itemIconHtml(recipe.uniqueName, { size: 96, className: 'item-icon' })}</div>
                 <div class="bonus-analysis-card-details">
-                    <div class="bonus-analysis-item-copy"><h3>${escapeHtml(recipe.label)}</h3><p>${escapeHtml(getBonusFamilyLabel(recipe.familyKey))}</p></div>
+                    <div class="bonus-analysis-item-copy"><h3>${escapeHtml(recipe.label)}</h3><p>${escapeHtml(getBonusFamilyLabel(recipe.familyKey))}</p><span class="bonus-analysis-profit ${profitTone}"><small>Kâr / Adet</small><b>${profitLabel}${percent !== null ? ` <em>(%${percent})</em>` : ''}</b></span></div>
                     <dl class="bonus-analysis-prices">
-                        <div><dt>BM Fiyatı</dt><dd>${market > 0 ? number(market) : '—'}</dd></div>
-                        <div class="${profitTone}"><dt>Kâr / Adet</dt><dd>${profitLabel} <small>(%${percent})</small></dd></div>
+                        <div class="${missingMarketPrice ? 'is-missing-market-price' : ''}"><dt>BM Fiyatı${missingMarketPrice ? '<span class="bonus-analysis-price-warning" role="img" aria-label="BM fiyatı yok" title="BM fiyatı yok">!</span>' : ''}</dt><dd>${market > 0 ? number(market) : '—'}</dd></div>
+                        <div><dt>Birim Getiri</dt><dd>${materialYield > 0 ? number(materialYield) : '—'}</dd></div>
                     </dl>
                 </div>
             </div>
-            <div class="bonus-analysis-material"><div><span>Hammadde Maliyeti</span><strong>${material > 0 ? number(material) : '—'}</strong></div><div><span title="${escapeHtml(requirements)}">Gerekli Hammadde</span><div class="bonus-analysis-resources" aria-label="${escapeHtml(requirements)}">${resourceIcons}</div></div></div>
+            <div class="bonus-analysis-material"><div><span>Hammadde Maliyeti</span><strong>${material > 0 ? number(material) : '—'}</strong></div><div><span title="${escapeHtml(requirements)}">Toplam Hammadde · ${number(totalMaterialQty)}</span><div class="bonus-analysis-resources" aria-label="${escapeHtml(requirements)}">${resourceIcons}</div></div></div>
         </article>`;
 }
 
@@ -109,16 +117,19 @@ function renderAnalysisLoadingCard() {
     </article>`;
 }
 
-function renderTierColumn(tier) {
-    const rows = state.analysis.rows.filter((row) => row.recipe.tier === tier).slice(0, 3);
-    const content = state.analysis.loading
+function renderTierColumn(tier, analysis) {
+    const rows = analysis.rows.filter((row) => row.recipe.tier === tier).slice(0, 3);
+    const ranks = new Map([...rows]
+        .sort((a, b) => unitMaterialYield(b) - unitMaterialYield(a))
+        .map((row, index) => [row.recipe.id, index + 1]));
+    const content = analysis.loading && rows.length === 0
         ? Array.from({ length: 3 }, renderAnalysisLoadingCard).join('')
         : rows.length
-            ? rows.map((row, index) => renderAnalysisCard(row, index + 1)).join('')
+            ? rows.map((row) => renderAnalysisCard(row, ranks.get(row.recipe.id))).join('')
             : '<p class="bonus-analysis-empty">Bu tier için normal tarif bulunamadı.</p>';
     return `
         <section class="bonus-analysis-tier-column is-tier-${tier}" data-analysis-tier="${tier}">
-            <header><strong>T${tier}</strong><span>En Kârlı 3 Item</span></header>
+            <header><strong>T${tier}</strong><span>İlk 3 Craft</span></header>
             <div>${content}</div>
         </section>`;
 }
@@ -233,26 +244,50 @@ function hydrateAnalysisRecipe(item, familyKey, recipe) {
     };
 }
 
-async function recipesFromGameInfo(familyKey) {
+const ARTIFACT_ITEM_PATTERN = /(?:KEEPER|HELL|MORGANA|UNDEAD|AVALON|CRYSTAL|FEY|ROYAL|@)/;
+
+function normalAnalysisItems(familyKey) {
     const slug = String(familyKey).split('/').pop();
-    const candidates = getAll('items').filter((item) => item.isEquipable && item.enchantment === 0
-        && ANALYSIS_TIERS.includes(Number(item.tier)) && item.shopSubCategory === slug
-        && !/(KEEPER|HELL|MORGANA|UNDEAD|AVALON|CRYSTAL|@)/.test(item.uniqueName));
-    const cache = readAnalysisRecipeCache();
-    const missing = candidates.filter((item) => !cache[item.uniqueName]?.lines?.length);
-    const details = await Promise.all(missing.map(async (item) => {
+    const tierCounts = new Map();
+    return getAll('items').filter((item) => {
+        const tier = Number(item.tier);
+        if (!item.isEquipable || item.enchantment !== 0 || !ANALYSIS_TIERS.includes(tier)
+            || item.shopSubCategory !== slug || ARTIFACT_ITEM_PATTERN.test(item.uniqueName)) {
+            return false;
+        }
+        const count = tierCounts.get(tier) || 0;
+        tierCounts.set(tier, count + 1);
+        return count < 3;
+    });
+}
+
+async function fetchAnalysisRecipe(item) {
+    for (let attempt = 0; attempt < 2; attempt += 1) {
         try {
-            const response = await fetch(`${localPriceHost()}/api/v1/gameinfo/items/${encodeURIComponent(item.uniqueName)}/data`);
-            if (!response.ok) return null;
+            const response = await fetch(`${localPriceHost()}/api/v1/gameinfo/items/${encodeURIComponent(item.uniqueName)}/data`, {
+                signal: AbortSignal.timeout(10000)
+            });
+            if (!response.ok) continue;
             const data = await response.json();
             const resources = data?.craftingRequirements?.craftResourceList || [];
-            if (!resources.length) return null;
-            return { uniqueName: item.uniqueName, lines: resources.map((resource) => ({ uniqueName: resource.uniqueName, qty: Number(resource.count) || 0 })) };
+            if (resources.length) {
+                return {
+                    uniqueName: item.uniqueName,
+                    lines: resources.map((resource) => ({ uniqueName: resource.uniqueName, qty: Number(resource.count) || 0 }))
+                };
+            }
         } catch (error) {
-            console.warn(`Tarif alınamadı: ${item.uniqueName}`, error);
-            return null;
+            if (attempt === 1) console.warn(`Tarif alınamadı: ${item.uniqueName}`, error);
         }
-    }));
+    }
+    return null;
+}
+
+async function recipesFromGameInfo(familyKey) {
+    const candidates = normalAnalysisItems(familyKey);
+    const cache = readAnalysisRecipeCache();
+    const missing = candidates.filter((item) => !cache[item.uniqueName]?.lines?.length);
+    const details = await Promise.all(missing.map(fetchAnalysisRecipe));
     let cacheChanged = false;
     for (const recipe of details.filter(Boolean)) {
         cache[recipe.uniqueName] = recipe;
@@ -266,36 +301,40 @@ async function recipesFromGameInfo(familyKey) {
         .filter(Boolean);
 }
 
-async function loadAnalysisPrices(dialog, familyKey) {
+function analysisData(familyKey) {
+    return state.analysis.familyData[familyKey] || { rows: [], loading: false, error: null, updatedAt: null };
+}
+
+async function loadAnalysisPrices(familyKey, { forcePrices = false } = {}) {
     const family = getBonusFamilyByKey(familyKey);
-    state.analysis = { familyKey, rows: [], loading: true, error: null };
-    renderAnalysisDialog(dialog);
+    const previous = analysisData(familyKey);
+    state.analysis.familyData[familyKey] = { ...previous, loading: true, error: null };
     try {
-        let recipes = getCraftRecipes().filter((recipe) => recipe.familyKey === familyKey && ANALYSIS_TIERS.includes(recipe.tier));
-        if (recipes.length === 0) {
-            recipes = await recipesFromGameInfo(familyKey);
-        }
+        const recipes = await recipesFromGameInfo(familyKey);
         const ids = [...new Set(recipes.flatMap((recipe) => [recipe.uniqueName, ...recipe.lines.map((line) => line.uniqueName)]).filter(Boolean))];
         const locations = ['Black Market', getCityApiName(family?.cityId) || 'Caerleon'];
-        let priceEntry = cachedAnalysisPrices(ids, locations);
+        let priceEntry = forcePrices ? null : cachedAnalysisPrices(ids, locations);
         if (!priceEntry) {
             const rows = await fetchPrices(ids, locations);
             priceEntry = saveAnalysisPrices(ids, locations, rows) || { updatedAt: Date.now(), rows };
         }
-        state.analysis.updatedAt = priceEntry.updatedAt;
         const prices = indexPrices(priceEntry.rows);
         const settings = getSettings();
         const matCity = getCityApiName(family?.cityId) || 'Caerleon';
-        state.analysis.rows = recipes.map((recipe) => {
+        const rows = recipes.map((recipe) => {
             const market = quoteFromRow(cityRow(prices, recipe.uniqueName, 'Black Market'), settings.sellPriceSide, 'sell')?.price || 0;
             const material = recipe.lines.reduce((sum, line) => sum + ((quoteFromRow(cityRow(prices, line.uniqueName, matCity), settings.buyPriceSide, 'buy')?.price || 0) * line.qty), 0);
-            return { recipe, market, material, profit: market - material };
-        }).sort((a, b) => a.recipe.tier - b.recipe.tier || b.profit - a.profit);
+            return { recipe, market, material, profit: market > 0 ? market - material : null };
+        }).sort((a, b) => a.recipe.tier - b.recipe.tier
+            || (Number(a.recipe.sortValue) || 0) - (Number(b.recipe.sortValue) || 0)
+            || String(a.recipe.id).localeCompare(String(b.recipe.id), 'tr'));
+        state.analysis.familyData[familyKey] = { rows, loading: false, error: null, updatedAt: priceEntry.updatedAt };
     } catch (error) {
-        state.analysis.error = error.message || 'Fiyatlar alınamadı.';
-    } finally {
-        state.analysis.loading = false;
-        renderAnalysisDialog(dialog);
+        state.analysis.familyData[familyKey] = {
+            ...previous,
+            loading: false,
+            error: error.message || 'Fiyatlar alınamadı.'
+        };
     }
 }
 
@@ -303,12 +342,20 @@ function renderBonusAnalysisDialog() {
     const defaultTiers = analysisDefaultTiers();
     const families = todayAnalysisFamilies();
     const family = getBonusFamilyByKey(state.analysis.familyKey) || families[0];
+    const activeAnalysis = analysisData(family?.familyKey);
     const familyOptions = families.map((row) => `<button type="button" class="${row.familyKey === family?.familyKey ? 'is-active' : ''}" data-analysis-family="${escapeHtml(row.familyKey)}">${escapeHtml(row.label)}</button>`).join('');
     const preferredTierText = defaultTiers.map((tier) => `T${tier}`).join(' · ');
-    const updatedLabel = formatTimestamp(state.analysis.updatedAt);
-    const analysisNote = state.analysis.error
-        ? escapeHtml(state.analysis.error)
-        : 'Her tier için, bonus grubundaki en kârlı üç normal item gösterilir. Kâr = Black Market fiyatı − hammadde maliyeti.';
+    const updatedLabel = formatTimestamp(activeAnalysis.updatedAt);
+    const analysisNote = activeAnalysis.error
+        ? escapeHtml(activeAnalysis.error)
+        : 'Kartlar istasyondaki craft sırasıyla gösterilir. Rozetler, görünen üç itemi birim getiriye göre sıralar.';
+    const familyGrids = families.map((row) => {
+        const data = analysisData(row.familyKey);
+        const hidden = row.familyKey === family?.familyKey ? '' : ' hidden';
+        return `<section class="bonus-analysis-grid" data-analysis-family-grid="${escapeHtml(row.familyKey)}" data-analysis-family-key="${escapeHtml(row.familyKey)}"${hidden}>
+            ${ANALYSIS_TIERS.map((tier) => renderTierColumn(tier, data)).join('')}
+        </section>`;
+    }).join('');
     return `
         <button type="button" class="app-dialog-close" aria-label="Kapat" data-analysis-close></button>
         <div class="bonus-analysis-sheet">
@@ -329,9 +376,7 @@ function renderBonusAnalysisDialog() {
                     </section>
                     <div class="bonus-analysis-note"><img src="icons/daily-bonus/ui-icons/info.svg" alt="" aria-hidden="true"><span>${analysisNote}</span></div>
                 </aside>
-                <section class="bonus-analysis-grid" id="bonusAnalysisGrid" data-analysis-family-key="${escapeHtml(family?.familyKey || '')}">
-                    ${ANALYSIS_TIERS.map(renderTierColumn).join('')}
-                </section>
+                ${familyGrids}
             </div>
         </div>`;
 }
@@ -349,12 +394,13 @@ async function openBonusAnalysis(container) {
                 return;
             }
             if (event.target.closest('[data-analysis-refresh]')) {
-                loadAnalysisPrices(dialog, state.analysis.familyKey);
+                loadAnalysisPrices(state.analysis.familyKey, { forcePrices: true }).then(() => renderAnalysisDialog(dialog));
                 return;
             }
             const familyButton = event.target.closest('[data-analysis-family]');
             if (familyButton) {
-                loadAnalysisPrices(dialog, familyButton.dataset.analysisFamily);
+                state.analysis.familyKey = familyButton.dataset.analysisFamily;
+                renderAnalysisDialog(dialog);
                 return;
             }
             const tierButton = event.target.closest('[data-analysis-filter]');
@@ -366,8 +412,11 @@ async function openBonusAnalysis(container) {
         showToast('Bugün için kayıtlı craft bonusu yok.', { kind: 'error' });
         return;
     }
-    state.analysis = { familyKey: state.analysis.familyKey && families.some((family) => family.familyKey === state.analysis.familyKey) ? state.analysis.familyKey : families[0].familyKey, rows: [], loading: false, error: null };
-    await loadAnalysisPrices(dialog, state.analysis.familyKey);
+    state.analysis.familyKey = state.analysis.familyKey && families.some((family) => family.familyKey === state.analysis.familyKey)
+        ? state.analysis.familyKey
+        : families[0].familyKey;
+    await Promise.all(families.map((family) => loadAnalysisPrices(family.familyKey)));
+    renderAnalysisDialog(dialog);
     if (typeof dialog.showModal === 'function') {
         dialog.showModal();
     } else {

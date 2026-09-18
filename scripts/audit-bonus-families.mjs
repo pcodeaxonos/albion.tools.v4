@@ -106,7 +106,7 @@ const NAME_TO_FAMILY = {
 };
 
 const REPS = {
-    'weapons/hammer': 'T4_MAIN_HAMMER',
+    'weapons/hammer': ['T4_MAIN_HAMMER', 'T4_2H_HAMMER', 'T4_2H_POLEHAMMER'],
     'weapons/spear': 'T4_MAIN_SPEAR',
     'weapons/holystaff': 'T4_MAIN_HOLYSTAFF',
     'head/plate_helmet': 'T4_HEAD_PLATE_SET1',
@@ -203,19 +203,28 @@ function craftMats(found, uniquename) {
     return mats;
 }
 
-function parseDbMaterials(value) {
-    return String(value || '')
-        .split(',')
-        .map((part) => part.trim())
-        .filter(Boolean);
-}
-
 function sameKeys(a, b) {
     return [...a].sort().join('|') === [...b].sort().join('|');
 }
 
 const bonus = JSON.parse(fs.readFileSync('data/bonus-families.json', 'utf8'));
 const byKey = new Map(bonus.map((row) => [row.familyKey, row]));
+const materialKeys = JSON.parse(fs.readFileSync('data/material-keys.json', 'utf8'));
+const materialKeyById = new Map(materialKeys.map((row) => [Number(row.id), row.key]));
+const bonusFamilyMaterials = JSON.parse(fs.readFileSync('data/bonus-family-materials.json', 'utf8'));
+
+function dbMaterials(familyKey) {
+    const family = byKey.get(familyKey);
+    if (!family) {
+        return [];
+    }
+    return bonusFamilyMaterials
+        .filter((row) => Number(row.bonusFamilyId) === Number(family.id))
+        .sort((a, b) => Number(a.sortValue) - Number(b.sortValue))
+        .map((row) => materialKeyById.get(Number(row.materialKeyId)))
+        .filter(Boolean);
+}
+
 const cities = JSON.parse(fs.readFileSync('data/cities.json', 'utf8'));
 const cityName = new Map(cities.map((row) => [row.id, row.displayName]));
 
@@ -293,7 +302,7 @@ const materialIssues = [];
 for (const [familyKey, rep] of Object.entries(REPS)) {
     if (familyKey.startsWith('resources/')) {
         const mats = craftMats(found, rep);
-        const db = parseDbMaterials(byKey.get(familyKey)?.materials);
+        const db = dbMaterials(familyKey);
         const apiRaw = mats ? [...mats.keys()].filter((key) => ['odun', 'fiber', 'taş', 'hide', 'ore'].includes(key)) : [];
         if (!sameKeys(db, apiRaw)) {
             materialIssues.push({ familyKey, db, api: apiRaw, full: mats ? Object.fromEntries(mats) : null });
@@ -304,7 +313,7 @@ for (const [familyKey, rep] of Object.entries(REPS)) {
         continue;
     }
 
-    const db = parseDbMaterials(byKey.get(familyKey)?.materials);
+    const db = dbMaterials(familyKey);
     if (Array.isArray(rep)) {
         const all = [];
         const variants = [];

@@ -6,6 +6,12 @@
     "sortValue": 10
   },
   {
+    "id": 59,
+    "bonusFamilyId": 1,
+    "materialKeyId": 4,
+    "sortValue": 20
+  },
+  {
     "id": 2,
     "bonusFamilyId": 2,
     "materialKeyId": 1,

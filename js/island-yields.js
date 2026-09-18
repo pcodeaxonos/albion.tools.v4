@@ -22,6 +22,8 @@ const TABLE = 'islandYieldLogs';
 const CITY_STORAGE_KEY = 'albiontools.v4.island-yields.city';
 const SEEDS_PER_PLOT = 9;
 const PLOT_CHOICES = [1, 2, 3, 4, 5];
+const CHANGE_BADGE_VISIBLE_MS = 60_000;
+const CHANGE_BADGE_EXIT_MS = 800;
 
 const PLANT_GROUPS = [
     { kind: 'crop', title: 'Ekin tohumları' },
@@ -100,7 +102,12 @@ function formatSigned(value, { digits = 2, asPctPoints = false } = {}) {
 
 function formatRelativeDifference(actual, expected) {
     if (!Number.isFinite(actual) || !Number.isFinite(expected) || expected === 0) return '—';
-    return `${Math.abs((actual - expected) / expected * 100).toLocaleString('tr-TR', { maximumFractionDigits: 0 })}%`;
+    return formatRelativeRatio((actual - expected) / expected);
+}
+
+function formatRelativeRatio(value) {
+    if (!Number.isFinite(value)) return '—';
+    return `${Math.abs(value * 100).toLocaleString('tr-TR', { maximumFractionDigits: 0 })}%`;
 }
 
 function confidenceLevel(n) {
@@ -415,15 +422,15 @@ function renderAvgCard(plant, islandCity) {
             <section class="yield-metric" aria-label="Ürün getirisi">
                 <div class="yield-metric-title"><img src="icons/yield-product.svg" alt=""><span>Ürün</span></div>
                 <div class="yield-metric-content">
-                    <div class="yield-delta-stack ${deltaTone(yieldRelativeDifference)}"${tipAttr('Varsayılan ürüne göre yüzde farkı')}><strong>${formatRelativeDifference(active ? avg.avgPlantYield : null, wikiYield)}</strong><span>${formatSigned(active ? avg.avgPlantYield - wikiYield : null, { digits: 1 })}</span></div>
-                    <div class="yield-values-stack"><span>Gerçek <b>${active ? formatQty(avg.avgPlantYield) : '—'}</b></span><span>Vars. <b>${formatQty(wikiYield)}</b></span></div>
+                    <div class="yield-delta-stack ${deltaTone(yieldRelativeDifference)}"${tipAttr('Varsayılan ürüne göre yüzde farkı')}><strong data-yield-change="product-relative">${formatRelativeDifference(active ? avg.avgPlantYield : null, wikiYield)}</strong><span>${formatSigned(active ? avg.avgPlantYield - wikiYield : null, { digits: 1 })}</span></div>
+                    <div class="yield-values-stack"><span>Gerçek <b data-yield-change="product">${active ? formatQty(avg.avgPlantYield) : '—'}</b></span><span>Vars. <b>${formatQty(wikiYield)}</b></span></div>
                 </div>
             </section>
             <section class="yield-metric" aria-label="Tohum getirisi">
                 <div class="yield-metric-title"><img src="icons/yield-seed.svg" alt=""><span>Tohum</span></div>
                 <div class="yield-metric-content">
-                    <div class="yield-delta-stack ${deltaTone(seedRelativeDifference)}"${tipAttr('Varsayılan tohum dönüşüne göre yüzde farkı')}><strong>${formatRelativeDifference(active ? avg.avgSeedReturn : null, wikiSeed)}</strong><span>${formatSigned(active ? avg.avgSeedReturn - wikiSeed : null, { asPctPoints: true })}</span></div>
-                    <div class="yield-values-stack"><span>Gerçek <b>${active ? formatPct(avg.avgSeedReturn) : '—'}</b></span><span>Vars. <b>${formatPct(wikiSeed)}</b></span></div>
+                    <div class="yield-delta-stack ${deltaTone(seedRelativeDifference)}"${tipAttr('Varsayılan tohum dönüşüne göre yüzde farkı')}><strong data-yield-change="seed-relative">${formatRelativeDifference(active ? avg.avgSeedReturn : null, wikiSeed)}</strong><span>${formatSigned(active ? avg.avgSeedReturn - wikiSeed : null, { asPctPoints: true })}</span></div>
+                    <div class="yield-values-stack"><span>Gerçek <b data-yield-change="seed">${active ? formatPct(avg.avgSeedReturn) : '—'}</b></span><span>Vars. <b>${formatPct(wikiSeed)}</b></span></div>
                 </div>
             </section>
             <footer class="yield-card-footer"><span title="Ortalamaya giren kayıt sayısı"><img src="icons/yield-log.svg" alt=""> <b>n=${active ? avg.n : 0}</b></span><span class="yield-confidence"${tipAttr(`Güven seviyesi ${confidence}/3`)}><i></i><i></i><i></i></span></footer>
@@ -600,6 +607,113 @@ function renderAverages() {
     `;
 }
 
+function captureAverage(plantKey) {
+    const plant = getPlants().find((item) => item.key === plantKey);
+    const avg = plantYieldAverage(state.islandCity, plantKey, {
+        premium: state.premium,
+        water: state.water
+    });
+    const standardYield = standardPlantYield(plant, state.islandCity, state.premium);
+    const standardSeed = standardSeedReturn(plant, state.water);
+    const active = Boolean(avg && avg.avgPlantYield > 0);
+    const product = active ? avg.avgPlantYield : null;
+    const seed = active && Number.isFinite(avg.avgSeedReturn) ? avg.avgSeedReturn : null;
+    return {
+        plantKey,
+        product,
+        productRelative: product != null ? (product - standardYield) / standardYield : null,
+        seed,
+        seedRelative: seed != null && Number.isFinite(standardSeed) && standardSeed !== 0
+            ? (seed - standardSeed) / standardSeed
+            : null
+    };
+}
+
+function changeTone(before, after) {
+    if (!Number.isFinite(before) && Number.isFinite(after)) {
+        return 'is-up';
+    }
+    if (Number.isFinite(before) && !Number.isFinite(after)) {
+        return 'is-down';
+    }
+    if (!Number.isFinite(before) || !Number.isFinite(after) || before === after) {
+        return '';
+    }
+    return after > before ? 'is-up' : 'is-down';
+}
+
+function showAverageChange(container, before, after) {
+    if (!before || !after || before.plantKey !== after.plantKey) {
+        return;
+    }
+    const card = [...container.querySelectorAll('[data-yield-plant]')]
+        .find((item) => item.dataset.yieldPlant === after.plantKey);
+    if (!card) {
+        return;
+    }
+
+    const productTone = changeTone(before.product, after.product);
+    const seedTone = changeTone(before.seed, after.seed);
+    const changes = [
+        {
+            label: 'Ürün yüzde farkı',
+            target: 'product-relative',
+            before: formatRelativeRatio(before.productRelative),
+            after: formatRelativeRatio(after.productRelative),
+            tone: productTone
+        },
+        {
+            label: 'Ürün',
+            target: 'product',
+            before: formatQty(before.product),
+            after: formatQty(after.product),
+            tone: productTone
+        },
+        {
+            label: 'Tohum yüzde farkı',
+            target: 'seed-relative',
+            before: formatRelativeRatio(before.seedRelative),
+            after: formatRelativeRatio(after.seedRelative),
+            tone: seedTone
+        },
+        {
+            label: 'Tohum',
+            target: 'seed',
+            before: formatPct(before.seed),
+            after: formatPct(after.seed),
+            tone: seedTone
+        }
+    ].filter((change) => change.before !== change.after);
+    if (!changes.length) {
+        return;
+    }
+
+    changes.forEach((change) => {
+        const target = card.querySelector(`[data-yield-change="${change.target}"]`);
+        if (!target) {
+            return;
+        }
+        const badge = document.createElement('i');
+        badge.className = `yield-value-change${change.tone ? ` ${change.tone}` : ''}`;
+        badge.setAttribute('role', 'status');
+        badge.setAttribute('aria-live', 'polite');
+        badge.setAttribute('aria-label', `${change.label} önceki değer: ${change.before}. Yeni değer: ${change.after}`);
+        badge.textContent = change.before;
+        const showBadge = () => {
+            if (!target.isConnected) {
+                return;
+            }
+            target.append(badge);
+            window.setTimeout(() => badge.classList.add('is-leaving'), CHANGE_BADGE_VISIBLE_MS);
+            window.setTimeout(() => badge.remove(), CHANGE_BADGE_VISIBLE_MS + CHANGE_BADGE_EXIT_MS);
+        };
+        showBadge();
+    });
+
+    card.classList.add('is-just-updated');
+    window.setTimeout(() => card.classList.remove('is-just-updated'), 950);
+}
+
 function refreshResult(container) {
     const host = container.querySelector('.tool-split-result');
     if (!host) {
@@ -696,6 +810,7 @@ function saveEntry(container) {
     }
 
     try {
+        const averageBeforeSave = captureAverage(plantKey);
         if (state.editingId) {
             updateRow(TABLE, state.editingId, fd);
             showToast('Güncellendi.');
@@ -706,6 +821,7 @@ function saveEntry(container) {
         state.month = toYearMonth(date);
         fillForm(container, null);
         refreshResult(container);
+        showAverageChange(container, averageBeforeSave, captureAverage(plantKey));
     } catch (error) {
         console.error(error);
         showToast(error.message || 'Kayıt başarısız.', { kind: 'error' });
@@ -835,10 +951,15 @@ function bindPage(container) {
         if (!state.editingId) {
             return;
         }
+        const row = getAll(TABLE).find((item) => String(item.id) === String(state.editingId));
+        const averageBeforeDelete = row ? captureAverage(row.plantKey) : null;
         deleteRow(TABLE, state.editingId);
         showToast('Silindi.');
         fillForm(container, null);
         refreshResult(container);
+        if (row) {
+            showAverageChange(container, averageBeforeDelete, captureAverage(row.plantKey));
+        }
     });
 }
 

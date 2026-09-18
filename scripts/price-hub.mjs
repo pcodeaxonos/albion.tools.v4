@@ -113,7 +113,7 @@ async function route(req, res, url, path) {
         return;
     }
 
-    if (req.method === 'GET' && path === '/api/v2/stats/events') {
+    if (req.method === 'GET' && path === '/api/v2/stats/price-updates') {
         attachSse(req, res);
         return;
     }

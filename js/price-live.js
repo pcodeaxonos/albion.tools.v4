@@ -52,7 +52,7 @@ export function startPriceLive() {
     if (typeof EventSource === 'undefined') {
         return;
     }
-    source = new EventSource(`${localPriceHost()}/api/v2/stats/events`);
+    source = new EventSource(`${localPriceHost()}/api/v2/stats/price-updates`);
     source.addEventListener('market', (event) => {
         try {
             emitPriceUpdate({ ...JSON.parse(event.data), source: 'live' });

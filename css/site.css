@@ -8063,24 +8063,19 @@ a.tool-card:hover {
 .bonus-analysis-sidebar {
   min-width: 0;
 }
-
 .bonus-analysis-sidebar .bonus-analysis-head {
   align-items: stretch;
   flex-direction: column;
 }
-
 .bonus-analysis-sidebar .bonus-analysis-refresh {
   align-self: flex-start;
 }
-
 .bonus-analysis-sidebar .bonus-analysis-controls {
   grid-template-columns: 1fr;
 }
-
 .bonus-analysis-sidebar .bonus-analysis-tiers {
   flex-wrap: wrap;
 }
-
 .bonus-analysis-sidebar .bonus-analysis-note {
   margin-top: 0.1rem;
 }
@@ -8143,7 +8138,7 @@ a.tool-card:hover {
   background: #1a2029;
 }
 
-.bonus-analysis-select span,
+.bonus-analysis-select span small,
 .bonus-analysis-select small {
   color: #99a5b6;
   font-size: 0.66rem;
@@ -8293,6 +8288,10 @@ a.tool-card:hover {
   padding: 0;
 }
 
+.bonus-analysis-grid[hidden] {
+  display: none;
+}
+
 .bonus-analysis-tier-column {
   --tier: var(--color-tier-4);
   min-width: 0;
@@ -8336,7 +8335,7 @@ a.tool-card:hover {
   font-size: 1.2rem;
 }
 
-.bonus-analysis-tier-column.is-tier-4 > header strong,
+.bonus-analysis-tier-column.is-tier-4 > header strong > header strong,
 .bonus-analysis-tier-column.is-tier-5 > header strong {
   color: #fff;
 }
@@ -8488,6 +8487,43 @@ a.tool-card:hover {
   font-size: 0.84rem;
 }
 
+.bonus-analysis-profit {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.28rem;
+  margin-top: 0.18rem;
+  font-family: var(--font-family-mono);
+  font-size: 0.68rem;
+  line-height: 1;
+}
+
+.bonus-analysis-profit small {
+  color: #99a6b6;
+  font-family: inherit;
+  font-size: inherit;
+}
+.bonus-analysis-profit b {
+  font-size: 0.76rem;
+}
+.bonus-analysis-profit em {
+  color: currentColor;
+  font-size: 0.62rem;
+  font-style: normal;
+  font-weight: 500;
+}
+
+.bonus-analysis-profit.is-profit {
+  color: var(--color-success);
+}
+
+.bonus-analysis-profit.is-loss {
+  color: var(--color-danger);
+}
+
+.bonus-analysis-profit.is-neutral {
+  color: #d3dae4;
+}
+
 .bonus-analysis-prices {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -8546,7 +8582,7 @@ a.tool-card:hover {
   min-width: 0;
 }
 
-.bonus-analysis-material > div > span,
+.bonus-analysis-material > div > span strong,
 .bonus-analysis-material strong {
   display: block;
 }
@@ -8800,8 +8836,8 @@ a.tool-card:hover {
   background-image: url("../icons/daily-bonus/families/arcane-staff.png");
 }
 
-.bonus-analysis-grid[data-analysis-family-key="weapons/cursestaff"] .bonus-analysis-card::before,
-.bonus-analysis-grid[data-analysis-family-key="weapons/quarterstaff"] .bonus-analysis-card::before,
+.bonus-analysis-grid[data-analysis-family-key="weapons/cursestaff"] .bonus-analysis-card::before .bonus-analysis-card::before,
+.bonus-analysis-grid[data-analysis-family-key="weapons/quarterstaff"] .bonus-analysis-card::before .bonus-analysis-card::before,
 .bonus-analysis-grid[data-analysis-family-key="weapons/shapeshifterstaff"] .bonus-analysis-card::before {
   background-image: url("../icons/daily-bonus/families/staff.png");
 }
@@ -8993,7 +9029,7 @@ a.tool-card:hover {
   padding: 0.55rem 0.7rem;
 }
 
-.bonus-analysis-icon,
+.bonus-analysis-icon img,
 .bonus-analysis-icon img {
   width: 4.25rem;
   height: 4.25rem;
@@ -9010,7 +9046,7 @@ a.tool-card:hover {
 }
 
 .bonus-analysis-prices dt {
-  font-size: 0.76rem;
+  font-size: 0.66rem;
 }
 
 .bonus-analysis-prices dd {
@@ -9255,13 +9291,13 @@ a.tool-card:hover {
   pointer-events: none;
 }
 
-.bonus-analysis-tier-column > header strong,
+.bonus-analysis-tier-column > header strong > header span,
 .bonus-analysis-tier-column > header span {
   position: relative;
   z-index: 2;
 }
 
-.bonus-analysis-tier-column.is-tier-5 > header,
+.bonus-analysis-tier-column.is-tier-5 > header > header,
 .bonus-analysis-tier-column.is-tier-6 > header {
   background: linear-gradient(90deg, var(--tier-gradient-start) 0%, var(--tier-gradient-mid) 45%, var(--tier-gradient-end) 100%);
 }
@@ -9331,6 +9367,86 @@ a.tool-card:hover {
   border-top: 1px solid rgba(166, 181, 198, 0.08);
 }
 
+.bonus-analysis-rank {
+  grid-column: 1;
+  align-self: stretch;
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  width: auto;
+  height: auto;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: #f7d86b;
+  font-family: var(--font-family-mono);
+  font-weight: 700;
+  line-height: 1;
+}
+
+.bonus-analysis-rank i {
+  font-family: Georgia, serif;
+  font-size: 1.9rem;
+  font-style: normal;
+  line-height: 0.8;
+  text-shadow: 0 0.12rem 0.32rem rgba(0, 0, 0, 0.6);
+}
+
+.bonus-analysis-rank b {
+  margin-top: 0.16rem;
+  font-size: 3rem;
+  text-shadow: 0 0.16rem 0.4rem rgba(0, 0, 0, 0.58);
+}
+
+.bonus-analysis-rank.is-rank-2 {
+  color: #c4d0dc;
+}
+
+.bonus-analysis-rank.is-rank-2 i {
+  font-size: 1.6rem;
+}
+
+.bonus-analysis-rank.is-rank-2 b {
+  font-size: 2.5rem;
+}
+
+.bonus-analysis-rank.is-rank-3 {
+  color: #a77a56;
+}
+
+.bonus-analysis-rank.is-rank-3 i {
+  font-size: 1.35rem;
+}
+
+.bonus-analysis-rank.is-rank-3 b {
+  font-size: 2.1rem;
+}
+
+.bonus-analysis-card.is-unit-rank-1 {
+  border-width: 2px;
+  box-shadow: 0 0 1.1rem color-mix(in srgb, var(--tier) 62%, transparent), inset 0 0 1.5rem color-mix(in srgb, var(--tier) 12%, transparent);
+}
+
+.bonus-analysis-card.is-unit-rank-2 {
+  opacity: 0.76;
+}
+
+.bonus-analysis-card.is-unit-rank-3 {
+  opacity: 0.52;
+}
+
+.bonus-analysis-card-main {
+  grid-template-columns: 3.3rem 4.5rem minmax(0, 1fr);
+}
+
+.bonus-analysis-icon {
+  grid-column: 2;
+}
+
+.bonus-analysis-card-details {
+  grid-column: 3;
+}
+
 @media (max-width: 1100px) {
   .bonus-analysis-layout {
     grid-template-columns: 1fr;
@@ -9372,7 +9488,7 @@ a.tool-card:hover {
     grid-template-columns: 1fr;
   }
   .bonus-analysis-card-main {
-    grid-template-columns: 1.7rem 3.45rem minmax(0, 1fr);
+    grid-template-columns: 2.55rem 3.45rem minmax(0, 1fr);
   }
   .bonus-analysis-prices {
     grid-column: 1/-1;
@@ -9389,6 +9505,341 @@ a.tool-card:hover {
   border-radius: 0.32rem;
 }
 
+/* Layered craft cards: rank changes emphasis, never DOM order. */
+.bonus-analysis-grid .bonus-analysis-tier-column > div {
+  gap: 0;
+  padding-top: 0.8rem;
+  padding-bottom: 1rem;
+}
+
+.bonus-analysis-grid .bonus-analysis-card {
+  --rank-inset: 0px;
+  width: calc(100% - var(--rank-inset) * 2);
+  margin-inline: auto;
+  border-radius: 0.85rem;
+  opacity: 1;
+  background: #051722;
+  overflow: hidden;
+  box-shadow: inset 0 0 1.4rem rgba(var(--tier-rgb), 0.12);
+}
+
+.bonus-analysis-grid .bonus-analysis-card + .bonus-analysis-card {
+  margin-top: -0.25rem;
+}
+
+.bonus-analysis-grid .bonus-analysis-card.is-unit-rank-1 {
+  z-index: 3;
+  border: 2px solid rgba(var(--tier-rgb), 0.95);
+  box-shadow: 0 0 1rem rgba(var(--tier-rgb), 0.3), inset 0 0 1.5rem rgba(var(--tier-rgb), 0.22);
+}
+
+.bonus-analysis-grid .bonus-analysis-card.is-unit-rank-2 {
+  --rank-inset: 0.65rem;
+  z-index: 2;
+  border-color: rgba(var(--tier-rgb), 0.7);
+}
+
+.bonus-analysis-grid .bonus-analysis-card.is-unit-rank-3 {
+  --rank-inset: 1.2rem;
+  z-index: 1;
+  border-color: rgba(var(--tier-rgb), 0.45);
+}
+
+.bonus-analysis-grid .bonus-analysis-card-main {
+  grid-template-columns: 2.6rem 4.8rem minmax(0, 1fr);
+  gap: 0.65rem;
+  padding: 1.25rem 1rem 0.8rem;
+  background: transparent;
+}
+
+.bonus-analysis-grid .bonus-analysis-card-details {
+  display: contents;
+}
+
+.bonus-analysis-grid .bonus-analysis-item-copy {
+  grid-column: 3;
+  min-width: 0;
+}
+
+.bonus-analysis-grid .bonus-analysis-item-copy h3 {
+  white-space: normal;
+  font-size: 1rem;
+  line-height: 1.3;
+  overflow-wrap: anywhere;
+}
+
+.bonus-analysis-grid .bonus-analysis-icon,
+.bonus-analysis-grid .bonus-analysis-icon img {
+  width: 4.8rem;
+  height: 4.8rem;
+}
+
+.bonus-analysis-grid .bonus-analysis-rank {
+  grid-row: 1;
+  align-self: center;
+}
+
+.bonus-analysis-grid .bonus-analysis-rank svg {
+  width: 2rem;
+  height: 1.7rem;
+  filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.5333333333));
+}
+
+.bonus-analysis-grid .bonus-analysis-rank.is-rank-1 {
+  color: #ffe496;
+  filter: drop-shadow(0 0 5px rgba(220, 166, 43, 0.4));
+}
+
+.bonus-analysis-grid .bonus-analysis-rank.is-rank-2 {
+  color: #93a6b9;
+}
+
+.bonus-analysis-grid .bonus-analysis-rank.is-rank-3 {
+  color: #a17c65;
+}
+
+.bonus-analysis-grid .bonus-analysis-rank.is-rank-2 svg {
+  width: 1.7rem;
+}
+
+.bonus-analysis-grid .bonus-analysis-rank.is-rank-3 svg {
+  width: 1.45rem;
+}
+
+.bonus-analysis-grid .bonus-analysis-profit {
+  flex-wrap: wrap;
+  line-height: 1.35;
+  margin-top: 0.5rem;
+}
+
+.bonus-analysis-grid .bonus-analysis-profit b {
+  font-size: 0.95rem;
+}
+
+.bonus-analysis-grid .bonus-analysis-prices {
+  grid-column: 2/-1;
+  grid-row: 2;
+  margin-top: 0.4rem;
+}
+
+.bonus-analysis-grid .bonus-analysis-prices div:first-child {
+  border-left: 0;
+  padding-left: 0;
+}
+
+.bonus-analysis-grid .bonus-analysis-prices dt {
+  font-size: 0.72rem;
+}
+
+.bonus-analysis-grid .bonus-analysis-prices dd {
+  font-size: 1.15rem;
+}
+
+.bonus-analysis-grid .bonus-analysis-material {
+  grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr);
+  padding: 0.85rem 1rem 1rem;
+  background: transparent;
+}
+
+.bonus-analysis-grid .bonus-analysis-material > div > span {
+  font-size: 0.65rem;
+}
+
+.bonus-analysis-grid .bonus-analysis-material strong {
+  font-size: 1.1rem;
+}
+
+.bonus-analysis-grid .bonus-analysis-card.is-unit-rank-2 .bonus-analysis-card-main {
+  padding-top: 1.6rem;
+}
+
+.bonus-analysis-grid .bonus-analysis-card.is-unit-rank-3 .bonus-analysis-card-main {
+  padding-top: 1.5rem;
+}
+
+/* Compact scaled stack. */
+.bonus-analysis-grid .bonus-analysis-tier-column > div {
+  padding-top: 1.3rem;
+  padding-bottom: 1.3rem;
+}
+
+.bonus-analysis-grid .bonus-analysis-card {
+  --rank-scale: 1;
+  width: 90.9090909091%;
+  transform: scale(var(--rank-scale));
+  transform-origin: center;
+  box-shadow: 0 0.65rem 0.85rem -0.15rem rgba(0, 0, 0, 0.8), inset 0 0 0.8rem rgba(var(--tier-rgb), 0.1);
+}
+
+.bonus-analysis-grid .bonus-analysis-card::before {
+  display: none;
+  background-image: none;
+}
+
+.bonus-analysis-grid .bonus-analysis-card + .bonus-analysis-card {
+  margin-top: -0.35rem;
+}
+
+.bonus-analysis-grid .bonus-analysis-card.is-unit-rank-1 {
+  --rank-scale: 1.1;
+  background: radial-gradient(ellipse at 50% 0%, rgba(var(--tier-rgb), 0.2), transparent 58%), linear-gradient(90deg, rgba(var(--tier-rgb), 0.14), transparent 22%, transparent 78%, rgba(var(--tier-rgb), 0.14)), #051722;
+  box-shadow: 0 0.8rem 1rem -0.15rem rgba(0, 0, 0, 0.9), 0 0 0.7rem rgba(var(--tier-rgb), 0.32), inset 0 0 1.15rem rgba(var(--tier-rgb), 0.38), inset 0 0 2.8rem rgba(var(--tier-rgb), 0.14);
+}
+
+.bonus-analysis-grid .bonus-analysis-card.is-unit-rank-2 {
+  --rank-scale: 1.05;
+}
+
+.bonus-analysis-grid .bonus-analysis-card.is-unit-rank-3 {
+  --rank-scale: 1;
+}
+
+.bonus-analysis-prices .is-missing-market-price {
+  position: relative;
+}
+
+.bonus-analysis-prices .is-missing-market-price dd {
+  color: #ffb28f;
+}
+
+.bonus-analysis-price-warning {
+  position: absolute;
+  z-index: 2;
+  top: 50%;
+  right: 0.18rem;
+  display: grid;
+  place-items: center;
+  width: 2.7rem;
+  height: 2.7rem;
+  border-radius: 50%;
+  background: #a63717;
+  box-shadow: 0 0 0.7rem rgba(240, 107, 53, 0.8);
+  color: #fff8f3;
+  font-size: 2rem;
+  font-weight: 900;
+  line-height: 1;
+  animation: bonus-price-warning-heartbeat 1.25s ease-in-out infinite;
+  pointer-events: none;
+}
+
+@keyframes bonus-price-warning-heartbeat {
+  0%, 100% {
+    transform: translateY(-50%) scale(1);
+    box-shadow: 0 0 0.45rem rgba(240, 107, 53, 0.55);
+  }
+  16% {
+    transform: translateY(-50%) scale(1.16);
+    box-shadow: 0 0 1rem rgba(255, 137, 91, 0.9);
+  }
+  32% {
+    transform: translateY(-50%) scale(1);
+  }
+  48% {
+    transform: translateY(-50%) scale(1.09);
+    box-shadow: 0 0 0.8rem rgba(255, 137, 91, 0.75);
+  }
+  64% {
+    transform: translateY(-50%) scale(1);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .bonus-analysis-price-warning {
+    animation: none;
+  }
+}
+.bonus-analysis-grid .bonus-analysis-card .bonus-analysis-card-main {
+  grid-template-columns: 1.6rem 3.4rem minmax(0, 1fr);
+  gap: 0.4rem;
+  padding: 0.55rem 0.7rem;
+}
+
+.bonus-analysis-grid .bonus-analysis-item-copy h3 {
+  font-size: 0.78rem;
+  line-height: 1.2;
+}
+
+.bonus-analysis-grid .bonus-analysis-item-copy p {
+  font-size: 0.72rem;
+}
+
+.bonus-analysis-grid .bonus-analysis-icon,
+.bonus-analysis-grid .bonus-analysis-icon img {
+  width: 3.4rem;
+  height: 3.4rem;
+}
+
+.bonus-analysis-grid .bonus-analysis-rank.is-rank-1 b {
+  font-size: 2.2rem;
+}
+
+.bonus-analysis-grid .bonus-analysis-rank.is-rank-2 b {
+  font-size: 1.9rem;
+}
+
+.bonus-analysis-grid .bonus-analysis-rank.is-rank-3 b {
+  font-size: 1.6rem;
+}
+
+.bonus-analysis-grid > .bonus-analysis-tier-column {
+  border: 0;
+  box-shadow: none;
+  background: transparent;
+}
+
+.bonus-analysis-grid > .bonus-analysis-tier-column::before,
+.bonus-analysis-grid > .bonus-analysis-tier-column::after {
+  display: none;
+}
+
+.bonus-analysis-grid .bonus-analysis-rank svg {
+  width: 1.5rem;
+  height: 1.3rem;
+}
+
+.bonus-analysis-grid .bonus-analysis-profit {
+  font-size: 0.6rem;
+  margin-top: 0.18rem;
+}
+
+.bonus-analysis-grid .bonus-analysis-profit b {
+  font-size: 0.76rem;
+}
+
+.bonus-analysis-grid .bonus-analysis-prices {
+  margin-top: 0.04rem;
+}
+
+.bonus-analysis-grid .bonus-analysis-prices dt {
+  font-size: 0.66rem;
+}
+
+.bonus-analysis-grid .bonus-analysis-prices dd {
+  font-size: 0.96rem;
+}
+
+.bonus-analysis-grid .bonus-analysis-material {
+  padding: 0.45rem 0.7rem 0.52rem;
+}
+
+.bonus-analysis-grid .bonus-analysis-material strong {
+  font-size: 1rem;
+}
+
+@media (max-width: 420px) {
+  .bonus-analysis-grid .bonus-analysis-card-main {
+    grid-template-columns: 1.8rem 3.1rem minmax(0, 1fr);
+    gap: 0.4rem;
+    padding-inline: 0.65rem;
+  }
+  .bonus-analysis-grid .bonus-analysis-icon,
+  .bonus-analysis-grid .bonus-analysis-icon img {
+    width: 3.1rem;
+    height: 3.1rem;
+  }
+  .bonus-analysis-grid .bonus-analysis-material {
+    padding-inline: 0.65rem;
+  }
+}
 .yield-metric + .yield-metric {
   margin-top: 0.25rem;
 }
@@ -9466,6 +9917,102 @@ a.tool-card:hover {
   color: #ffd361;
 }
 
+.yield-avg-card.is-just-updated {
+  animation: yield-card-update-pulse 900ms ease-out;
+}
+
+.yield-avg-card.is-passive.is-just-updated {
+  opacity: 1;
+}
+
+[data-yield-change] {
+  position: relative;
+  display: inline-block;
+}
+
+.yield-delta-stack strong[data-yield-change] {
+  font-size: clamp(0.864rem, 1.8vw, 1.26rem);
+}
+
+.yield-values-stack b[data-yield-change] {
+  font-size: 1.32em;
+}
+
+.yield-value-change {
+  position: absolute;
+  z-index: 5;
+  right: -0.18rem;
+  bottom: calc(100% + 0.12rem);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: max-content;
+  padding: 0.12rem 0.28rem;
+  border: 1px solid rgba(255, 255, 255, 0.72);
+  border-radius: 0.28rem;
+  background: #111a24;
+  font-family: var(--font-family-mono);
+  font-size: clamp(0.52rem, 0.78vw, 0.66rem);
+  font-style: normal;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.01em;
+  line-height: 1.05;
+  pointer-events: none;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.72);
+  white-space: nowrap;
+  animation: yield-change-enter 240ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+.yield-value-change.is-up {
+  background: #157347;
+  color: #fff;
+  box-shadow: 0 0.16rem 0.48rem rgba(0, 0, 0, 0.58), 0 0 0.35rem rgba(48, 210, 115, 0.3);
+}
+.yield-value-change.is-down {
+  background: #b02a37;
+  color: #fff;
+  box-shadow: 0 0.16rem 0.48rem rgba(0, 0, 0, 0.58), 0 0 0.35rem rgba(255, 77, 93, 0.28);
+}
+
+.yield-value-change.is-leaving {
+  animation: yield-change-leave 580ms ease-in both;
+}
+
+@keyframes yield-change-enter {
+  from {
+    opacity: 0;
+    transform: translateY(0.35rem) scale(0.94);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+@keyframes yield-change-leave {
+  from {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-0.45rem) scale(0.96);
+  }
+}
+@keyframes yield-card-update-pulse {
+  0%, 100% {
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--color-item-tier, var(--color-border)) 22%, transparent), 0 4px 10px rgba(0, 0, 0, 0.22);
+  }
+  45% {
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--color-item-tier, #ffd361) 75%, white 10%), 0 0 1rem color-mix(in srgb, var(--color-item-tier, #ffd361) 42%, transparent);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .yield-avg-card.is-just-updated,
+  .yield-value-change,
+  .yield-value-change.is-leaving {
+    animation: none;
+  }
+}
 .yield-card-footer {
   min-height: 1.15rem;
   margin-top: 0.25rem;
@@ -9500,12 +10047,17 @@ a.tool-card:hover {
   .yield-metric {
     padding: 0.16rem;
   }
-  .yield-metric-title img,
-  .yield-avg-bonus-floating img,
+  .yield-metric-title img img,
+  .yield-avg-bonus-floating img img,
   .yield-card-footer img {
     display: none;
   }
   .yield-avg-bonus-floating {
     font-size: 0.4rem;
+  }
+  .yield-value-change {
+    right: -0.1rem;
+    padding: 0.09rem 0.18rem;
+    font-size: 0.5rem;
   }
 }

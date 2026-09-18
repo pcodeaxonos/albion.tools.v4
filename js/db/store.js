@@ -2,7 +2,7 @@ import { getTable, getTableNames, tables } from './schema.js';
 
 const STORAGE_PREFIX = 'albiontools.v4.';
 const SEED_REVISION_KEY = STORAGE_PREFIX + 'seedRevision';
-const SEED_REVISION = 16;
+const SEED_REVISION = 18;
 const RESEED_TABLES = [
     'items',
     'itemCategories',
