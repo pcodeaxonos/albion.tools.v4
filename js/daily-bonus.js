@@ -17,7 +17,8 @@ import { getCityApiName } from './db/relations.js';
 import { getItemByUniqueName } from './db/relations.js';
 import { fetchPrices, indexPrices, cityRow } from './market.js';
 import { quoteFromRow } from './price-side.js';
-import { cityProductionBonus, citySpecialtyProductionBonus } from './catalog.js';
+import { cityProductionBonus, citySpecialtyProductionBonus, getCraftRecipes } from './catalog.js';
+import { dailyBonusStationPosition } from './daily-bonus-station-order.js';
 
 const TABLE = 'dailyBonuses';
 
@@ -150,7 +151,7 @@ function renderAnalysisCard(row, rank, { reorderable = false, isFirst = false, i
     const requirements = recipe.lines.map((line) => `${line.short} · ${number(line.qty)}`).join(' · ');
     const resourceIcons = recipe.lines.map((line) => `<span title="${escapeHtml(`${line.short} · ${number(line.qty)}`)}">${itemIconHtml(line.uniqueName, { size: 28, className: 'item-icon' })}<b>${number(line.qty)}</b></span>`).join('');
     return `
-        <article class="bonus-analysis-card is-unit-rank-${rank}" data-analysis-recipe="${escapeHtml(recipe.id)}">
+        <article class="bonus-analysis-card is-unit-rank-${rank}${reorderable ? ' is-reorderable' : ''}" data-analysis-recipe="${escapeHtml(recipe.id)}">
             <div class="bonus-analysis-card-surface">
             <div class="bonus-analysis-card-main">
                 <span class="bonus-analysis-rank is-rank-${rank}" aria-label="Birim getiriye göre sıra ${rank}"><svg viewBox="0 0 40 34" aria-hidden="true"><path fill="currentColor" d="M4 10l8 7 8-12 8 12 8-7-4 17H8zM8 29h24v3H8z"/><g fill="currentColor"><circle cx="4" cy="8" r="2.5"/><circle cx="12" cy="14" r="2"/><circle cx="20" cy="4" r="2.5"/><circle cx="28" cy="14" r="2"/><circle cx="36" cy="8" r="2.5"/></g></svg><b>${rank}</b></span>
@@ -310,26 +311,46 @@ const ARTIFACT_ITEM_PATTERN = /(?:KEEPER|HELL|MORGANA|UNDEAD|AVALON|CRYSTAL|FEY|
 
 function normalAnalysisItems(familyKey) {
     const slug = String(familyKey).split('/').pop();
-    const tierCounts = new Map();
-    return getAll('items').map((item, sourceOrder) => ({ ...item, sortValue: sourceOrder })).filter((item) => {
+    const matchingItems = getAll('items').map((item, sourceOrder) => ({ ...item, sourceOrder })).filter((item) => {
         const tier = Number(item.tier);
-        if (!item.isEquipable || item.enchantment !== 0 || !ANALYSIS_TIERS.includes(tier)
-            || item.shopSubCategory !== slug || ARTIFACT_ITEM_PATTERN.test(item.uniqueName)) {
+        const enchantment = Number(item.enchantment ?? item.enchantmentLevel ?? 0);
+        const isEquipable = item.isEquipable ?? item.equipable;
+        const stationPosition = dailyBonusStationPosition(familyKey, item.localizedName);
+        const isVerifiedStationItem = stationPosition !== null;
+        if (!ANALYSIS_TIERS.includes(tier)
+            || (!isVerifiedStationItem && (!(isEquipable === true || String(isEquipable).toLowerCase() === 'true')
+                || enchantment !== 0 || item.shopSubCategory !== slug || ARTIFACT_ITEM_PATTERN.test(item.uniqueName)))) {
             return false;
         }
-        const count = tierCounts.get(tier) || 0;
-        tierCounts.set(tier, count + 1);
-        return count < 3;
     });
+
+    // The catalogue's source order is not the station UI order (notably plate armour).
+    // Use the supplied station snapshot when it covers this bonus family, with the
+    // catalogue order retained as a safe fallback for families outside the snapshot.
+    const tierCounts = new Map();
+    return matchingItems
+        .map((item) => ({ ...item, stationPosition: dailyBonusStationPosition(familyKey, item.localizedName) }))
+        .sort((a, b) => (a.stationPosition ?? Number.MAX_SAFE_INTEGER) - (b.stationPosition ?? Number.MAX_SAFE_INTEGER)
+            || a.sourceOrder - b.sourceOrder)
+        .filter((item) => {
+            const count = tierCounts.get(item.tier) || 0;
+            tierCounts.set(item.tier, count + 1);
+            return count < 3;
+        })
+        .map(({ stationPosition, sourceOrder, ...item }) => item);
 }
 
 async function fetchAnalysisRecipe(item) {
+    let lastError = null;
     for (let attempt = 0; attempt < 2; attempt += 1) {
         try {
             const response = await fetch(`${localPriceHost()}/api/v1/gameinfo/items/${encodeURIComponent(item.uniqueName)}/data`, {
                 signal: AbortSignal.timeout(10000)
             });
-            if (!response.ok) continue;
+            if (!response.ok) {
+                lastError = new Error(`HTTP ${response.status}`);
+                continue;
+            }
             const data = await response.json();
             const resources = data?.craftingRequirements?.craftResourceList || [];
             if (resources.length) {
@@ -338,18 +359,44 @@ async function fetchAnalysisRecipe(item) {
                     lines: resources.map((resource) => ({ uniqueName: resource.uniqueName, qty: Number(resource.count) || 0 }))
                 };
             }
+            lastError = new Error('Tarif hammaddesi dönmedi');
         } catch (error) {
-            if (attempt === 1) console.warn(`Tarif alınamadı: ${item.uniqueName}`, error);
+            lastError = error;
         }
     }
-    return null;
+    throw new Error(`${item.uniqueName}: ${lastError?.message || 'tarif alınamadı'}`);
 }
 
 async function recipesFromGameInfo(familyKey) {
+    const storedRecipes = getCraftRecipes({ tool: 'gameinfo' })
+        .filter((recipe) => recipe.familyKey === familyKey && ANALYSIS_TIERS.includes(recipe.tier))
+        .map((recipe) => ({
+            id: `db-${recipe.id}`,
+            uniqueName: recipe.uniqueName,
+            label: recipe.label,
+            tier: recipe.tier,
+            sortValue: recipe.sortValue,
+            familyKey,
+            lines: recipe.lines
+        }));
+    if (storedRecipes.length) {
+        return storedRecipes;
+    }
+
     const candidates = normalAnalysisItems(familyKey);
     const cache = readAnalysisRecipeCache();
     const missing = candidates.filter((item) => !cache[item.uniqueName]?.lines?.length);
-    const details = await Promise.all(missing.map(fetchAnalysisRecipe));
+    const results = await Promise.allSettled(missing.map(fetchAnalysisRecipe));
+    const details = results
+        .filter((result) => result.status === 'fulfilled')
+        .map((result) => result.value);
+    if (candidates.length > 0 && details.length === 0) {
+        const failures = results
+            .filter((result) => result.status === 'rejected')
+            .map((result) => result.reason?.message)
+            .filter(Boolean);
+        throw new Error(`Tarifler alınamadı: ${failures.join(' · ') || 'bilinmeyen hata'}`);
+    }
     let cacheChanged = false;
     for (const recipe of details.filter(Boolean)) {
         cache[recipe.uniqueName] = recipe;
@@ -433,7 +480,7 @@ function renderBonusAnalysisDialog() {
                 <aside class="bonus-analysis-sidebar">
                     <header class="bonus-analysis-head">
                         <div><p class="bonus-analysis-eyebrow"><img src="icons/daily-bonus/ui-icons/chart-bars.svg" alt="" aria-hidden="true">GÜNLÜK CRAFT BONUS ANALİZİ</p><h2>${escapeHtml(family?.label || 'Bonus seçin')} <span>${formatDate(bonusDayIso())}</span></h2><p>Artifactsiz ilk üç item için Black Market fiyatına göre en kârlı seçenekler.</p></div>
-                        <div class="bonus-analysis-refresh-group"><button type="button" class="btn btn-primary bonus-analysis-refresh" data-analysis-refresh${isLoading ? ' disabled aria-busy="true"' : ''}><img src="icons/daily-bonus/ui-icons/refresh.svg" alt="" aria-hidden="true">${isLoading ? 'Yükleniyor…' : 'Fiyatları Yenile'}</button><button type="button" class="btn btn-outline-secondary bonus-analysis-order-toggle" data-analysis-order-toggle>${state.analysis.reorderMode ? 'Sıralamayı Bitir' : 'Kart Sırasını Düzenle'}</button><small>${isLoading ? 'Tarifler ve fiyatlar<br>yükleniyor…' : `Son güncelleme:<br>${updatedLabel}`}</small></div>
+                        <div class="bonus-analysis-refresh-group"><button type="button" class="btn btn-primary bonus-analysis-refresh" data-analysis-refresh${isLoading ? ' disabled aria-busy="true"' : ''}><img src="icons/daily-bonus/ui-icons/refresh.svg" alt="" aria-hidden="true">${isLoading ? 'Yükleniyor…' : 'Fiyatları Yenile'}</button><small>${isLoading ? 'Tarifler ve fiyatlar<br>yükleniyor…' : `Son güncelleme:<br>${updatedLabel}`}</small></div>
                     </header>
                     <section class="bonus-analysis-controls" aria-label="Analiz filtreleri">
                         <div class="bonus-analysis-select"><span>Bonus grubu</span><div class="bonus-analysis-family-tabs">${familyOptions}</div><small>${escapeHtml(getCityApiName(family?.cityId) || 'Caerleon')}</small></div>
@@ -446,6 +493,7 @@ function renderBonusAnalysisDialog() {
                         <small class="bonus-analysis-tier-hint">Öncelikli tierlar: ${preferredTierText}</small>
                     </section>
                     <div class="bonus-analysis-note"><img src="icons/daily-bonus/ui-icons/info.svg" alt="" aria-hidden="true"><span>${analysisNote}</span></div>
+                    <div class="bonus-analysis-order-actions"><button type="button" class="btn btn-outline-secondary bonus-analysis-order-toggle" data-analysis-order-toggle>${state.analysis.reorderMode ? 'Sıralamayı Bitir' : 'Kart Sırasını Düzenle'}</button></div>
                 </aside>
                 ${familyGrids}
             </div>

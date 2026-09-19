@@ -315,10 +315,10 @@ export const tables = {
         columns: [
             COL.id,
             { name: 'code', type: 'string', label: 'Kod' },
-            { name: 'tool', type: 'enum', options: ['furniture', 'ava', 'caerleon', 'faction', 'royal'], label: 'Tool' },
+            { name: 'tool', type: 'enum', options: ['furniture', 'ava', 'caerleon', 'faction', 'royal', 'gameinfo'], label: 'Tool' },
             { name: 'kind', type: 'string', label: 'Tür' },
             { name: 'tier', type: 'number', label: 'Tier' },
-            { name: 'outputItemId', type: 'number', label: 'Çıktı item id' },
+            { name: 'outputItemId', type: 'ref', refTable: 'items', refLabel: 'localizedName', label: 'Çıktı item' },
             { name: 'bonusFamilyId', type: 'ref', refTable: 'bonusFamilies', refLabel: 'familyKey', label: 'Bonus aile' },
             { name: 'sortValue', type: 'number', label: 'Sıra' },
             COL.active
@@ -336,7 +336,7 @@ export const tables = {
             COL.id,
             { name: 'recipeId', type: 'ref', refTable: 'craftRecipes', refLabel: 'code', label: 'Tarif' },
             { name: 'materialKeyId', type: 'ref', refTable: 'materialKeys', refLabel: 'key', label: 'Malzeme türü' },
-            { name: 'inputItemId', type: 'number', label: 'Sabit item id' },
+            { name: 'inputItemId', type: 'ref', refTable: 'items', refLabel: 'localizedName', label: 'Malzeme item' },
             { name: 'qty', type: 'number', label: 'Adet' },
             { name: 'appliesRr', type: 'boolean', label: 'RR alır' },
             { name: 'sortValue', type: 'number', label: 'Sıra' }

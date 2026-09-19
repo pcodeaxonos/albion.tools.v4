@@ -10654,3 +10654,58 @@ a.tool-card:hover {
     display: block;
   }
 }
+.bonus-analysis-order-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 0.85rem;
+  padding-top: 0.85rem;
+  border-top: 1px solid rgba(166, 181, 198, 0.14);
+}
+
+.bonus-analysis-order-actions .bonus-analysis-order-toggle {
+  min-width: 11.8rem;
+}
+
+.bonus-analysis-card {
+  position: relative;
+}
+
+.bonus-analysis-card-order {
+  position: absolute;
+  z-index: 2;
+  right: 0.45rem;
+  top: 0.45rem;
+  display: grid;
+  gap: 0.22rem;
+  padding: 0.22rem;
+  border: 1px solid rgba(145, 163, 184, 0.54);
+  border-radius: 999px;
+  background: rgba(16, 23, 33, 0.88);
+  box-shadow: 0 0.25rem 0.65rem rgba(0, 0, 0, 0.3);
+  -webkit-backdrop-filter: blur(0.25rem);
+  backdrop-filter: blur(0.25rem);
+}
+
+.bonus-analysis-card-order button {
+  display: grid;
+  place-items: center;
+  width: 1.65rem;
+  height: 1.5rem;
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: 50%;
+  background: transparent;
+  color: #eef3fa;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.bonus-analysis-card-order button:not(:disabled):hover {
+  border-color: color-mix(in srgb, var(--tier) 70%, #fff);
+  background: color-mix(in srgb, var(--tier) 52%, #253142);
+}
+
+.bonus-analysis-card-order button:disabled {
+  cursor: not-allowed;
+  opacity: 0.38;
+}
