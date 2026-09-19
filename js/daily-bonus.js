@@ -437,8 +437,8 @@ async function loadAnalysisPrices(familyKey, { forcePrices = false } = {}) {
             const material = grossMaterial * (1 - returnRate);
             return { recipe, market, material, profit: market > 0 ? market - material : null, returnRate };
         }).sort((a, b) => a.recipe.tier - b.recipe.tier
-            || (Number(a.recipe.sortValue) || 0) - (Number(b.recipe.sortValue) || 0)
-            || String(a.recipe.id).localeCompare(String(b.recipe.id), 'tr'));
+            || a.recipe.label.localeCompare(b.recipe.label, 'tr')
+            || Number(a.recipe.id) - Number(b.recipe.id));
         state.analysis.familyData[familyKey] = { rows, loading: false, error: null, updatedAt: priceEntry.updatedAt };
     } catch (error) {
         state.analysis.familyData[familyKey] = {

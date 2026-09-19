@@ -23949,7 +23949,8 @@
     "isEquipable": true,
     "shopCategory": "offhands",
     "shopSubCategory": "shieldtype",
-    "shopSubCategory2": "shieldtype_shield"
+    "shopSubCategory2": "shieldtype_shield",
+    "craftTools": "caerleon"
   },
   {
     "id": 1997,
@@ -25773,7 +25774,8 @@
     "isEquipable": true,
     "shopCategory": "offhands",
     "shopSubCategory": "booktype",
-    "shopSubCategory2": "booktype_book"
+    "shopSubCategory2": "booktype_book",
+    "craftTools": "caerleon"
   },
   {
     "id": 2149,
@@ -29733,7 +29735,8 @@
     "isEquipable": true,
     "shopCategory": "capes",
     "shopSubCategory": "accessoires_capes_bridgewatch",
-    "shopSubCategory2": ""
+    "shopSubCategory2": "",
+    "craftTools": "faction"
   },
   {
     "id": 2479,
@@ -29793,7 +29796,8 @@
     "isEquipable": true,
     "shopCategory": "capes",
     "shopSubCategory": "accessoires_capes_bridgewatch",
-    "shopSubCategory2": ""
+    "shopSubCategory2": "",
+    "craftTools": "faction"
   },
   {
     "id": 2484,
@@ -29853,7 +29857,8 @@
     "isEquipable": true,
     "shopCategory": "capes",
     "shopSubCategory": "accessoires_capes_bridgewatch",
-    "shopSubCategory2": ""
+    "shopSubCategory2": "",
+    "craftTools": "faction"
   },
   {
     "id": 2489,
@@ -29913,7 +29918,8 @@
     "isEquipable": true,
     "shopCategory": "capes",
     "shopSubCategory": "accessoires_capes_bridgewatch",
-    "shopSubCategory2": ""
+    "shopSubCategory2": "",
+    "craftTools": "faction"
   },
   {
     "id": 2494,
@@ -29973,7 +29979,8 @@
     "isEquipable": true,
     "shopCategory": "capes",
     "shopSubCategory": "accessoires_capes_bridgewatch",
-    "shopSubCategory2": ""
+    "shopSubCategory2": "",
+    "craftTools": "faction"
   },
   {
     "id": 2499,
@@ -30033,7 +30040,8 @@
     "isEquipable": true,
     "shopCategory": "capes",
     "shopSubCategory": "accessoires_capes_fortsterling",
-    "shopSubCategory2": ""
+    "shopSubCategory2": "",
+    "craftTools": "faction"
   },
   {
     "id": 2504,
@@ -30093,7 +30101,8 @@
     "isEquipable": true,
     "shopCategory": "capes",
     "shopSubCategory": "accessoires_capes_fortsterling",
-    "shopSubCategory2": ""
+    "shopSubCategory2": "",
+    "craftTools": "faction"
   },
   {
     "id": 2509,
@@ -30153,7 +30162,8 @@
     "isEquipable": true,
     "shopCategory": "capes",
     "shopSubCategory": "accessoires_capes_fortsterling",
-    "shopSubCategory2": ""
+    "shopSubCategory2": "",
+    "craftTools": "faction"
   },
   {
     "id": 2514,
@@ -30213,7 +30223,8 @@
     "isEquipable": true,
     "shopCategory": "capes",
     "shopSubCategory": "accessoires_capes_fortsterling",
-    "shopSubCategory2": ""
+    "shopSubCategory2": "",
+    "craftTools": "faction"
   },
   {
     "id": 2519,
@@ -30273,7 +30284,8 @@
     "isEquipable": true,
     "shopCategory": "capes",
     "shopSubCategory": "accessoires_capes_fortsterling",
-    "shopSubCategory2": ""
+    "shopSubCategory2": "",
+    "craftTools": "faction"
   },
   {
     "id": 2524,
@@ -30333,7 +30345,8 @@
     "isEquipable": true,
     "shopCategory": "capes",
     "shopSubCategory": "accessoires_capes_lymhurst",
-    "shopSubCategory2": ""
+    "shopSubCategory2": "",
+    "craftTools": "faction"
   },
   {
     "id": 2529,
@@ -30393,7 +30406,8 @@
     "isEquipable": true,
     "shopCategory": "capes",
     "shopSubCategory": "accessoires_capes_lymhurst",
-    "shopSubCategory2": ""
+    "shopSubCategory2": "",
+    "craftTools": "faction"
   },
   {
     "id": 2534,
@@ -30453,7 +30467,8 @@
     "isEquipable": true,
     "shopCategory": "capes",
     "shopSubCategory": "accessoires_capes_lymhurst",
-    "shopSubCategory2": ""
+    "shopSubCategory2": "",
+    "craftTools": "faction"
   },
   {
     "id": 2539,
@@ -30513,7 +30528,8 @@
     "isEquipable": true,
     "shopCategory": "capes",
     "shopSubCategory": "accessoires_capes_lymhurst",
-    "shopSubCategory2": ""
+    "shopSubCategory2": "",
+    "craftTools": "faction"
   },
   {
     "id": 2544,
@@ -30573,7 +30589,8 @@
     "isEquipable": true,
     "shopCategory": "capes",
     "shopSubCategory": "accessoires_capes_lymhurst",
-    "shopSubCategory2": ""
+    "shopSubCategory2": "",
+    "craftTools": "faction"
   },
   {
     "id": 2549,
@@ -30633,7 +30650,8 @@
     "isEquipable": true,
     "shopCategory": "capes",
     "shopSubCategory": "accessoires_capes_martlock",
-    "shopSubCategory2": ""
+    "shopSubCategory2": "",
+    "craftTools": "faction"
   },
   {
     "id": 2554,
@@ -30693,7 +30711,8 @@
     "isEquipable": true,
     "shopCategory": "capes",
     "shopSubCategory": "accessoires_capes_martlock",
-    "shopSubCategory2": ""
+    "shopSubCategory2": "",
+    "craftTools": "faction"
   },
   {
     "id": 2559,
@@ -30753,7 +30772,8 @@
     "isEquipable": true,
     "shopCategory": "capes",
     "shopSubCategory": "accessoires_capes_martlock",
-    "shopSubCategory2": ""
+    "shopSubCategory2": "",
+    "craftTools": "faction"
   },
   {
     "id": 2564,
@@ -30813,7 +30833,8 @@
     "isEquipable": true,
     "shopCategory": "capes",
     "shopSubCategory": "accessoires_capes_martlock",
-    "shopSubCategory2": ""
+    "shopSubCategory2": "",
+    "craftTools": "faction"
   },
   {
     "id": 2569,
@@ -30873,7 +30894,8 @@
     "isEquipable": true,
     "shopCategory": "capes",
     "shopSubCategory": "accessoires_capes_martlock",
-    "shopSubCategory2": ""
+    "shopSubCategory2": "",
+    "craftTools": "faction"
   },
   {
     "id": 2574,
@@ -30933,7 +30955,8 @@
     "isEquipable": true,
     "shopCategory": "capes",
     "shopSubCategory": "accessoires_capes_thetford",
-    "shopSubCategory2": ""
+    "shopSubCategory2": "",
+    "craftTools": "faction"
   },
   {
     "id": 2579,
@@ -30993,7 +31016,8 @@
     "isEquipable": true,
     "shopCategory": "capes",
     "shopSubCategory": "accessoires_capes_thetford",
-    "shopSubCategory2": ""
+    "shopSubCategory2": "",
+    "craftTools": "faction"
   },
   {
     "id": 2584,
@@ -31053,7 +31077,8 @@
     "isEquipable": true,
     "shopCategory": "capes",
     "shopSubCategory": "accessoires_capes_thetford",
-    "shopSubCategory2": ""
+    "shopSubCategory2": "",
+    "craftTools": "faction"
   },
   {
     "id": 2589,
@@ -31113,7 +31138,8 @@
     "isEquipable": true,
     "shopCategory": "capes",
     "shopSubCategory": "accessoires_capes_thetford",
-    "shopSubCategory2": ""
+    "shopSubCategory2": "",
+    "craftTools": "faction"
   },
   {
     "id": 2594,
@@ -31173,7 +31199,8 @@
     "isEquipable": true,
     "shopCategory": "capes",
     "shopSubCategory": "accessoires_capes_thetford",
-    "shopSubCategory2": ""
+    "shopSubCategory2": "",
+    "craftTools": "faction"
   },
   {
     "id": 2599,
@@ -31233,7 +31260,8 @@
     "isEquipable": true,
     "shopCategory": "capes",
     "shopSubCategory": "accessoires_capes_caerleon",
-    "shopSubCategory2": ""
+    "shopSubCategory2": "",
+    "craftTools": "faction"
   },
   {
     "id": 2604,
@@ -31293,7 +31321,8 @@
     "isEquipable": true,
     "shopCategory": "capes",
     "shopSubCategory": "accessoires_capes_caerleon",
-    "shopSubCategory2": ""
+    "shopSubCategory2": "",
+    "craftTools": "faction"
   },
   {
     "id": 2609,
@@ -31353,7 +31382,8 @@
     "isEquipable": true,
     "shopCategory": "capes",
     "shopSubCategory": "accessoires_capes_caerleon",
-    "shopSubCategory2": ""
+    "shopSubCategory2": "",
+    "craftTools": "faction"
   },
   {
     "id": 2614,
@@ -31413,7 +31443,8 @@
     "isEquipable": true,
     "shopCategory": "capes",
     "shopSubCategory": "accessoires_capes_caerleon",
-    "shopSubCategory2": ""
+    "shopSubCategory2": "",
+    "craftTools": "faction"
   },
   {
     "id": 2619,
@@ -31473,7 +31504,8 @@
     "isEquipable": true,
     "shopCategory": "capes",
     "shopSubCategory": "accessoires_capes_caerleon",
-    "shopSubCategory2": ""
+    "shopSubCategory2": "",
+    "craftTools": "faction"
   },
   {
     "id": 2624,
@@ -31533,7 +31565,8 @@
     "isEquipable": true,
     "shopCategory": "capes",
     "shopSubCategory": "accessoires_capes_brecilien",
-    "shopSubCategory2": ""
+    "shopSubCategory2": "",
+    "craftTools": "faction"
   },
   {
     "id": 2629,
@@ -31593,7 +31626,8 @@
     "isEquipable": true,
     "shopCategory": "capes",
     "shopSubCategory": "accessoires_capes_brecilien",
-    "shopSubCategory2": ""
+    "shopSubCategory2": "",
+    "craftTools": "faction"
   },
   {
     "id": 2634,
@@ -31653,7 +31687,8 @@
     "isEquipable": true,
     "shopCategory": "capes",
     "shopSubCategory": "accessoires_capes_brecilien",
-    "shopSubCategory2": ""
+    "shopSubCategory2": "",
+    "craftTools": "faction"
   },
   {
     "id": 2639,
@@ -31713,7 +31748,8 @@
     "isEquipable": true,
     "shopCategory": "capes",
     "shopSubCategory": "accessoires_capes_brecilien",
-    "shopSubCategory2": ""
+    "shopSubCategory2": "",
+    "craftTools": "faction"
   },
   {
     "id": 2644,
@@ -31773,7 +31809,8 @@
     "isEquipable": true,
     "shopCategory": "capes",
     "shopSubCategory": "accessoires_capes_brecilien",
-    "shopSubCategory2": ""
+    "shopSubCategory2": "",
+    "craftTools": "faction"
   },
   {
     "id": 2649,
@@ -34677,7 +34714,8 @@
     "isEquipable": true,
     "shopCategory": "gathering",
     "shopSubCategory": "ore",
-    "shopSubCategory2": "picks"
+    "shopSubCategory2": "picks",
+    "craftTools": "ava"
   },
   {
     "id": 2891,
@@ -34689,7 +34727,8 @@
     "isEquipable": true,
     "shopCategory": "gathering",
     "shopSubCategory": "ore",
-    "shopSubCategory2": "picks"
+    "shopSubCategory2": "picks",
+    "craftTools": "ava"
   },
   {
     "id": 2892,
@@ -34701,7 +34740,8 @@
     "isEquipable": true,
     "shopCategory": "gathering",
     "shopSubCategory": "ore",
-    "shopSubCategory2": "picks"
+    "shopSubCategory2": "picks",
+    "craftTools": "ava"
   },
   {
     "id": 2893,
@@ -34713,7 +34753,8 @@
     "isEquipable": true,
     "shopCategory": "gathering",
     "shopSubCategory": "ore",
-    "shopSubCategory2": "picks"
+    "shopSubCategory2": "picks",
+    "craftTools": "ava"
   },
   {
     "id": 2894,
@@ -34725,7 +34766,8 @@
     "isEquipable": true,
     "shopCategory": "gathering",
     "shopSubCategory": "ore",
-    "shopSubCategory2": "picks"
+    "shopSubCategory2": "picks",
+    "craftTools": "ava"
   },
   {
     "id": 2895,
@@ -34833,7 +34875,8 @@
     "isEquipable": true,
     "shopCategory": "gathering",
     "shopSubCategory": "rock",
-    "shopSubCategory2": "hammer"
+    "shopSubCategory2": "hammer",
+    "craftTools": "ava"
   },
   {
     "id": 2904,
@@ -34845,7 +34888,8 @@
     "isEquipable": true,
     "shopCategory": "gathering",
     "shopSubCategory": "rock",
-    "shopSubCategory2": "hammer"
+    "shopSubCategory2": "hammer",
+    "craftTools": "ava"
   },
   {
     "id": 2905,
@@ -34857,7 +34901,8 @@
     "isEquipable": true,
     "shopCategory": "gathering",
     "shopSubCategory": "rock",
-    "shopSubCategory2": "hammer"
+    "shopSubCategory2": "hammer",
+    "craftTools": "ava"
   },
   {
     "id": 2906,
@@ -34869,7 +34914,8 @@
     "isEquipable": true,
     "shopCategory": "gathering",
     "shopSubCategory": "rock",
-    "shopSubCategory2": "hammer"
+    "shopSubCategory2": "hammer",
+    "craftTools": "ava"
   },
   {
     "id": 2907,
@@ -34881,7 +34927,8 @@
     "isEquipable": true,
     "shopCategory": "gathering",
     "shopSubCategory": "rock",
-    "shopSubCategory2": "hammer"
+    "shopSubCategory2": "hammer",
+    "craftTools": "ava"
   },
   {
     "id": 2908,
@@ -34989,7 +35036,8 @@
     "isEquipable": true,
     "shopCategory": "gathering",
     "shopSubCategory": "wood",
-    "shopSubCategory2": "axes"
+    "shopSubCategory2": "axes",
+    "craftTools": "ava"
   },
   {
     "id": 2917,
@@ -35001,7 +35049,8 @@
     "isEquipable": true,
     "shopCategory": "gathering",
     "shopSubCategory": "wood",
-    "shopSubCategory2": "axes"
+    "shopSubCategory2": "axes",
+    "craftTools": "ava"
   },
   {
     "id": 2918,
@@ -35013,7 +35062,8 @@
     "isEquipable": true,
     "shopCategory": "gathering",
     "shopSubCategory": "wood",
-    "shopSubCategory2": "axes"
+    "shopSubCategory2": "axes",
+    "craftTools": "ava"
   },
   {
     "id": 2919,
@@ -35025,7 +35075,8 @@
     "isEquipable": true,
     "shopCategory": "gathering",
     "shopSubCategory": "wood",
-    "shopSubCategory2": "axes"
+    "shopSubCategory2": "axes",
+    "craftTools": "ava"
   },
   {
     "id": 2920,
@@ -35037,7 +35088,8 @@
     "isEquipable": true,
     "shopCategory": "gathering",
     "shopSubCategory": "wood",
-    "shopSubCategory2": "axes"
+    "shopSubCategory2": "axes",
+    "craftTools": "ava"
   },
   {
     "id": 2921,
@@ -35145,7 +35197,8 @@
     "isEquipable": true,
     "shopCategory": "gathering",
     "shopSubCategory": "fiber",
-    "shopSubCategory2": "sickle"
+    "shopSubCategory2": "sickle",
+    "craftTools": "ava"
   },
   {
     "id": 2930,
@@ -35157,7 +35210,8 @@
     "isEquipable": true,
     "shopCategory": "gathering",
     "shopSubCategory": "fiber",
-    "shopSubCategory2": "sickle"
+    "shopSubCategory2": "sickle",
+    "craftTools": "ava"
   },
   {
     "id": 2931,
@@ -35169,7 +35223,8 @@
     "isEquipable": true,
     "shopCategory": "gathering",
     "shopSubCategory": "fiber",
-    "shopSubCategory2": "sickle"
+    "shopSubCategory2": "sickle",
+    "craftTools": "ava"
   },
   {
     "id": 2932,
@@ -35181,7 +35236,8 @@
     "isEquipable": true,
     "shopCategory": "gathering",
     "shopSubCategory": "fiber",
-    "shopSubCategory2": "sickle"
+    "shopSubCategory2": "sickle",
+    "craftTools": "ava"
   },
   {
     "id": 2933,
@@ -35193,7 +35249,8 @@
     "isEquipable": true,
     "shopCategory": "gathering",
     "shopSubCategory": "fiber",
-    "shopSubCategory2": "sickle"
+    "shopSubCategory2": "sickle",
+    "craftTools": "ava"
   },
   {
     "id": 2934,
@@ -35301,7 +35358,8 @@
     "isEquipable": true,
     "shopCategory": "gathering",
     "shopSubCategory": "hide",
-    "shopSubCategory2": "knifes"
+    "shopSubCategory2": "knifes",
+    "craftTools": "ava"
   },
   {
     "id": 2943,
@@ -35313,7 +35371,8 @@
     "isEquipable": true,
     "shopCategory": "gathering",
     "shopSubCategory": "hide",
-    "shopSubCategory2": "knifes"
+    "shopSubCategory2": "knifes",
+    "craftTools": "ava"
   },
   {
     "id": 2944,
@@ -35325,7 +35384,8 @@
     "isEquipable": true,
     "shopCategory": "gathering",
     "shopSubCategory": "hide",
-    "shopSubCategory2": "knifes"
+    "shopSubCategory2": "knifes",
+    "craftTools": "ava"
   },
   {
     "id": 2945,
@@ -35337,7 +35397,8 @@
     "isEquipable": true,
     "shopCategory": "gathering",
     "shopSubCategory": "hide",
-    "shopSubCategory2": "knifes"
+    "shopSubCategory2": "knifes",
+    "craftTools": "ava"
   },
   {
     "id": 2946,
@@ -35349,7 +35410,8 @@
     "isEquipable": true,
     "shopCategory": "gathering",
     "shopSubCategory": "hide",
-    "shopSubCategory2": "knifes"
+    "shopSubCategory2": "knifes",
+    "craftTools": "ava"
   },
   {
     "id": 2947,
@@ -35577,7 +35639,8 @@
     "isEquipable": true,
     "shopCategory": "gathering",
     "shopSubCategory": "fish",
-    "shopSubCategory2": "fishingrods"
+    "shopSubCategory2": "fishingrods",
+    "craftTools": "ava"
   },
   {
     "id": 2966,
@@ -35589,7 +35652,8 @@
     "isEquipable": true,
     "shopCategory": "gathering",
     "shopSubCategory": "fish",
-    "shopSubCategory2": "fishingrods"
+    "shopSubCategory2": "fishingrods",
+    "craftTools": "ava"
   },
   {
     "id": 2967,
@@ -35601,7 +35665,8 @@
     "isEquipable": true,
     "shopCategory": "gathering",
     "shopSubCategory": "fish",
-    "shopSubCategory2": "fishingrods"
+    "shopSubCategory2": "fishingrods",
+    "craftTools": "ava"
   },
   {
     "id": 2968,
@@ -35613,7 +35678,8 @@
     "isEquipable": true,
     "shopCategory": "gathering",
     "shopSubCategory": "fish",
-    "shopSubCategory2": "fishingrods"
+    "shopSubCategory2": "fishingrods",
+    "craftTools": "ava"
   },
   {
     "id": 2969,
@@ -35625,7 +35691,8 @@
     "isEquipable": true,
     "shopCategory": "gathering",
     "shopSubCategory": "fish",
-    "shopSubCategory2": "fishingrods"
+    "shopSubCategory2": "fishingrods",
+    "craftTools": "ava"
   },
   {
     "id": 2970,
@@ -37329,7 +37396,8 @@
     "isEquipable": false,
     "shopCategory": "other",
     "shopSubCategory": "labourers",
-    "shopSubCategory2": "beds"
+    "shopSubCategory2": "beds",
+    "craftTools": "furniture"
   },
   {
     "id": 3112,
@@ -37341,7 +37409,8 @@
     "isEquipable": false,
     "shopCategory": "other",
     "shopSubCategory": "labourers",
-    "shopSubCategory2": "beds"
+    "shopSubCategory2": "beds",
+    "craftTools": "furniture"
   },
   {
     "id": 3113,
@@ -37353,7 +37422,8 @@
     "isEquipable": false,
     "shopCategory": "other",
     "shopSubCategory": "labourers",
-    "shopSubCategory2": "beds"
+    "shopSubCategory2": "beds",
+    "craftTools": "furniture"
   },
   {
     "id": 3114,
@@ -37365,7 +37435,8 @@
     "isEquipable": false,
     "shopCategory": "other",
     "shopSubCategory": "labourers",
-    "shopSubCategory2": "beds"
+    "shopSubCategory2": "beds",
+    "craftTools": "furniture"
   },
   {
     "id": 3115,
@@ -37377,7 +37448,8 @@
     "isEquipable": false,
     "shopCategory": "other",
     "shopSubCategory": "labourers",
-    "shopSubCategory2": "beds"
+    "shopSubCategory2": "beds",
+    "craftTools": "furniture"
   },
   {
     "id": 3116,
@@ -37389,7 +37461,8 @@
     "isEquipable": false,
     "shopCategory": "other",
     "shopSubCategory": "labourers",
-    "shopSubCategory2": "beds"
+    "shopSubCategory2": "beds",
+    "craftTools": "furniture"
   },
   {
     "id": 3117,
@@ -37401,7 +37474,8 @@
     "isEquipable": false,
     "shopCategory": "other",
     "shopSubCategory": "labourers",
-    "shopSubCategory2": "beds"
+    "shopSubCategory2": "beds",
+    "craftTools": "furniture"
   },
   {
     "id": 3118,
@@ -37413,7 +37487,8 @@
     "isEquipable": false,
     "shopCategory": "furniture",
     "shopSubCategory": "chest",
-    "shopSubCategory2": "house"
+    "shopSubCategory2": "house",
+    "craftTools": "furniture"
   },
   {
     "id": 3119,
@@ -37425,7 +37500,8 @@
     "isEquipable": false,
     "shopCategory": "furniture",
     "shopSubCategory": "chest",
-    "shopSubCategory2": "house"
+    "shopSubCategory2": "house",
+    "craftTools": "furniture"
   },
   {
     "id": 3120,
@@ -37437,7 +37513,8 @@
     "isEquipable": false,
     "shopCategory": "furniture",
     "shopSubCategory": "chest",
-    "shopSubCategory2": "house"
+    "shopSubCategory2": "house",
+    "craftTools": "furniture"
   },
   {
     "id": 3121,
@@ -37449,7 +37526,8 @@
     "isEquipable": false,
     "shopCategory": "furniture",
     "shopSubCategory": "chest",
-    "shopSubCategory2": "house"
+    "shopSubCategory2": "house",
+    "craftTools": "furniture"
   },
   {
     "id": 3122,
@@ -37629,7 +37707,8 @@
     "isEquipable": false,
     "shopCategory": "other",
     "shopSubCategory": "labourers",
-    "shopSubCategory2": "tables"
+    "shopSubCategory2": "tables",
+    "craftTools": "furniture"
   },
   {
     "id": 3137,
@@ -37641,7 +37720,8 @@
     "isEquipable": false,
     "shopCategory": "other",
     "shopSubCategory": "labourers",
-    "shopSubCategory2": "tables"
+    "shopSubCategory2": "tables",
+    "craftTools": "furniture"
   },
   {
     "id": 3138,
@@ -37653,7 +37733,8 @@
     "isEquipable": false,
     "shopCategory": "other",
     "shopSubCategory": "labourers",
-    "shopSubCategory2": "tables"
+    "shopSubCategory2": "tables",
+    "craftTools": "furniture"
   },
   {
     "id": 3139,
@@ -37665,7 +37746,8 @@
     "isEquipable": false,
     "shopCategory": "other",
     "shopSubCategory": "labourers",
-    "shopSubCategory2": "tables"
+    "shopSubCategory2": "tables",
+    "craftTools": "furniture"
   },
   {
     "id": 3140,
@@ -37677,7 +37759,8 @@
     "isEquipable": false,
     "shopCategory": "other",
     "shopSubCategory": "labourers",
-    "shopSubCategory2": "tables"
+    "shopSubCategory2": "tables",
+    "craftTools": "furniture"
   },
   {
     "id": 3141,
@@ -37689,7 +37772,8 @@
     "isEquipable": false,
     "shopCategory": "other",
     "shopSubCategory": "labourers",
-    "shopSubCategory2": "tables"
+    "shopSubCategory2": "tables",
+    "craftTools": "furniture"
   },
   {
     "id": 3142,
@@ -37701,7 +37785,8 @@
     "isEquipable": false,
     "shopCategory": "other",
     "shopSubCategory": "labourers",
-    "shopSubCategory2": "tables"
+    "shopSubCategory2": "tables",
+    "craftTools": "furniture"
   },
   {
     "id": 3143,
@@ -40641,7 +40726,8 @@
     "isEquipable": true,
     "shopCategory": "head",
     "shopSubCategory": "plate_helmet",
-    "shopSubCategory2": "head_plate_set1"
+    "shopSubCategory2": "head_plate_set1",
+    "craftTools": "caerleon"
   },
   {
     "id": 3388,
@@ -40965,7 +41051,8 @@
     "isEquipable": true,
     "shopCategory": "armors",
     "shopSubCategory": "plate_armor",
-    "shopSubCategory2": "armors_plate_set1"
+    "shopSubCategory2": "armors_plate_set1",
+    "craftTools": "caerleon"
   },
   {
     "id": 3415,
@@ -41289,7 +41376,8 @@
     "isEquipable": true,
     "shopCategory": "shoes",
     "shopSubCategory": "plate_shoes",
-    "shopSubCategory2": "shoes_plate_set1"
+    "shopSubCategory2": "shoes_plate_set1",
+    "craftTools": "caerleon"
   },
   {
     "id": 3442,
@@ -47925,7 +48013,8 @@
     "isEquipable": true,
     "shopCategory": "head",
     "shopSubCategory": "leather_helmet",
-    "shopSubCategory2": "head_leather_set1"
+    "shopSubCategory2": "head_leather_set1",
+    "craftTools": "caerleon"
   },
   {
     "id": 3995,
@@ -48261,7 +48350,8 @@
     "isEquipable": true,
     "shopCategory": "armors",
     "shopSubCategory": "leather_armor",
-    "shopSubCategory2": "armors_leather_set1"
+    "shopSubCategory2": "armors_leather_set1",
+    "craftTools": "caerleon"
   },
   {
     "id": 4023,
@@ -48597,7 +48687,8 @@
     "isEquipable": true,
     "shopCategory": "shoes",
     "shopSubCategory": "leather_shoes",
-    "shopSubCategory2": "shoes_leather_set1"
+    "shopSubCategory2": "shoes_leather_set1",
+    "craftTools": "caerleon"
   },
   {
     "id": 4051,
@@ -55221,7 +55312,8 @@
     "isEquipable": true,
     "shopCategory": "head",
     "shopSubCategory": "cloth_helmet",
-    "shopSubCategory2": "head_cloth_set1"
+    "shopSubCategory2": "head_cloth_set1",
+    "craftTools": "caerleon"
   },
   {
     "id": 4603,
@@ -55545,7 +55637,8 @@
     "isEquipable": true,
     "shopCategory": "armors",
     "shopSubCategory": "cloth_armor",
-    "shopSubCategory2": "armors_cloth_set1"
+    "shopSubCategory2": "armors_cloth_set1",
+    "craftTools": "caerleon"
   },
   {
     "id": 4630,
@@ -55869,7 +55962,8 @@
     "isEquipable": true,
     "shopCategory": "shoes",
     "shopSubCategory": "cloth_shoes",
-    "shopSubCategory2": "shoes_cloth_set1"
+    "shopSubCategory2": "shoes_cloth_set1",
+    "craftTools": "caerleon"
   },
   {
     "id": 4657,
@@ -62493,7 +62587,8 @@
     "isEquipable": true,
     "shopCategory": "head",
     "shopSubCategory": "cloth_helmet",
-    "shopSubCategory2": "head_cloth_royal"
+    "shopSubCategory2": "head_cloth_royal",
+    "craftTools": "royal"
   },
   {
     "id": 5209,
@@ -62553,7 +62648,8 @@
     "isEquipable": true,
     "shopCategory": "head",
     "shopSubCategory": "cloth_helmet",
-    "shopSubCategory2": "head_cloth_royal"
+    "shopSubCategory2": "head_cloth_royal",
+    "craftTools": "royal"
   },
   {
     "id": 5214,
@@ -62613,7 +62709,8 @@
     "isEquipable": true,
     "shopCategory": "head",
     "shopSubCategory": "cloth_helmet",
-    "shopSubCategory2": "head_cloth_royal"
+    "shopSubCategory2": "head_cloth_royal",
+    "craftTools": "royal"
   },
   {
     "id": 5219,
@@ -62673,7 +62770,8 @@
     "isEquipable": true,
     "shopCategory": "head",
     "shopSubCategory": "cloth_helmet",
-    "shopSubCategory2": "head_cloth_royal"
+    "shopSubCategory2": "head_cloth_royal",
+    "craftTools": "royal"
   },
   {
     "id": 5224,
@@ -62733,7 +62831,8 @@
     "isEquipable": true,
     "shopCategory": "head",
     "shopSubCategory": "cloth_helmet",
-    "shopSubCategory2": "head_cloth_royal"
+    "shopSubCategory2": "head_cloth_royal",
+    "craftTools": "royal"
   },
   {
     "id": 5229,
@@ -62793,7 +62892,8 @@
     "isEquipable": true,
     "shopCategory": "armors",
     "shopSubCategory": "cloth_armor",
-    "shopSubCategory2": "armors_cloth_royal"
+    "shopSubCategory2": "armors_cloth_royal",
+    "craftTools": "royal"
   },
   {
     "id": 5234,
@@ -62853,7 +62953,8 @@
     "isEquipable": true,
     "shopCategory": "armors",
     "shopSubCategory": "cloth_armor",
-    "shopSubCategory2": "armors_cloth_royal"
+    "shopSubCategory2": "armors_cloth_royal",
+    "craftTools": "royal"
   },
   {
     "id": 5239,
@@ -62913,7 +63014,8 @@
     "isEquipable": true,
     "shopCategory": "armors",
     "shopSubCategory": "cloth_armor",
-    "shopSubCategory2": "armors_cloth_royal"
+    "shopSubCategory2": "armors_cloth_royal",
+    "craftTools": "royal"
   },
   {
     "id": 5244,
@@ -62973,7 +63075,8 @@
     "isEquipable": true,
     "shopCategory": "armors",
     "shopSubCategory": "cloth_armor",
-    "shopSubCategory2": "armors_cloth_royal"
+    "shopSubCategory2": "armors_cloth_royal",
+    "craftTools": "royal"
   },
   {
     "id": 5249,
@@ -63033,7 +63136,8 @@
     "isEquipable": true,
     "shopCategory": "armors",
     "shopSubCategory": "cloth_armor",
-    "shopSubCategory2": "armors_cloth_royal"
+    "shopSubCategory2": "armors_cloth_royal",
+    "craftTools": "royal"
   },
   {
     "id": 5254,
@@ -63093,7 +63197,8 @@
     "isEquipable": true,
     "shopCategory": "shoes",
     "shopSubCategory": "cloth_shoes",
-    "shopSubCategory2": "shoes_cloth_royal"
+    "shopSubCategory2": "shoes_cloth_royal",
+    "craftTools": "royal"
   },
   {
     "id": 5259,
@@ -63153,7 +63258,8 @@
     "isEquipable": true,
     "shopCategory": "shoes",
     "shopSubCategory": "cloth_shoes",
-    "shopSubCategory2": "shoes_cloth_royal"
+    "shopSubCategory2": "shoes_cloth_royal",
+    "craftTools": "royal"
   },
   {
     "id": 5264,
@@ -63213,7 +63319,8 @@
     "isEquipable": true,
     "shopCategory": "shoes",
     "shopSubCategory": "cloth_shoes",
-    "shopSubCategory2": "shoes_cloth_royal"
+    "shopSubCategory2": "shoes_cloth_royal",
+    "craftTools": "royal"
   },
   {
     "id": 5269,
@@ -63273,7 +63380,8 @@
     "isEquipable": true,
     "shopCategory": "shoes",
     "shopSubCategory": "cloth_shoes",
-    "shopSubCategory2": "shoes_cloth_royal"
+    "shopSubCategory2": "shoes_cloth_royal",
+    "craftTools": "royal"
   },
   {
     "id": 5274,
@@ -63333,7 +63441,8 @@
     "isEquipable": true,
     "shopCategory": "shoes",
     "shopSubCategory": "cloth_shoes",
-    "shopSubCategory2": "shoes_cloth_royal"
+    "shopSubCategory2": "shoes_cloth_royal",
+    "craftTools": "royal"
   },
   {
     "id": 5279,
@@ -63393,7 +63502,8 @@
     "isEquipable": true,
     "shopCategory": "head",
     "shopSubCategory": "leather_helmet",
-    "shopSubCategory2": "head_leather_royal"
+    "shopSubCategory2": "head_leather_royal",
+    "craftTools": "royal"
   },
   {
     "id": 5284,
@@ -63453,7 +63563,8 @@
     "isEquipable": true,
     "shopCategory": "head",
     "shopSubCategory": "leather_helmet",
-    "shopSubCategory2": "head_leather_royal"
+    "shopSubCategory2": "head_leather_royal",
+    "craftTools": "royal"
   },
   {
     "id": 5289,
@@ -63513,7 +63624,8 @@
     "isEquipable": true,
     "shopCategory": "head",
     "shopSubCategory": "leather_helmet",
-    "shopSubCategory2": "head_leather_royal"
+    "shopSubCategory2": "head_leather_royal",
+    "craftTools": "royal"
   },
   {
     "id": 5294,
@@ -63573,7 +63685,8 @@
     "isEquipable": true,
     "shopCategory": "head",
     "shopSubCategory": "leather_helmet",
-    "shopSubCategory2": "head_leather_royal"
+    "shopSubCategory2": "head_leather_royal",
+    "craftTools": "royal"
   },
   {
     "id": 5299,
@@ -63633,7 +63746,8 @@
     "isEquipable": true,
     "shopCategory": "head",
     "shopSubCategory": "leather_helmet",
-    "shopSubCategory2": "head_leather_royal"
+    "shopSubCategory2": "head_leather_royal",
+    "craftTools": "royal"
   },
   {
     "id": 5304,
@@ -63693,7 +63807,8 @@
     "isEquipable": true,
     "shopCategory": "armors",
     "shopSubCategory": "leather_armor",
-    "shopSubCategory2": "armors_leather_royal"
+    "shopSubCategory2": "armors_leather_royal",
+    "craftTools": "royal"
   },
   {
     "id": 5309,
@@ -63753,7 +63868,8 @@
     "isEquipable": true,
     "shopCategory": "armors",
     "shopSubCategory": "leather_armor",
-    "shopSubCategory2": "armors_leather_royal"
+    "shopSubCategory2": "armors_leather_royal",
+    "craftTools": "royal"
   },
   {
     "id": 5314,
@@ -63813,7 +63929,8 @@
     "isEquipable": true,
     "shopCategory": "armors",
     "shopSubCategory": "leather_armor",
-    "shopSubCategory2": "armors_leather_royal"
+    "shopSubCategory2": "armors_leather_royal",
+    "craftTools": "royal"
   },
   {
     "id": 5319,
@@ -63873,7 +63990,8 @@
     "isEquipable": true,
     "shopCategory": "armors",
     "shopSubCategory": "leather_armor",
-    "shopSubCategory2": "armors_leather_royal"
+    "shopSubCategory2": "armors_leather_royal",
+    "craftTools": "royal"
   },
   {
     "id": 5324,
@@ -63933,7 +64051,8 @@
     "isEquipable": true,
     "shopCategory": "armors",
     "shopSubCategory": "leather_armor",
-    "shopSubCategory2": "armors_leather_royal"
+    "shopSubCategory2": "armors_leather_royal",
+    "craftTools": "royal"
   },
   {
     "id": 5329,
@@ -63993,7 +64112,8 @@
     "isEquipable": true,
     "shopCategory": "shoes",
     "shopSubCategory": "leather_shoes",
-    "shopSubCategory2": "shoes_leather_royal"
+    "shopSubCategory2": "shoes_leather_royal",
+    "craftTools": "royal"
   },
   {
     "id": 5334,
@@ -64053,7 +64173,8 @@
     "isEquipable": true,
     "shopCategory": "shoes",
     "shopSubCategory": "leather_shoes",
-    "shopSubCategory2": "shoes_leather_royal"
+    "shopSubCategory2": "shoes_leather_royal",
+    "craftTools": "royal"
   },
   {
     "id": 5339,
@@ -64113,7 +64234,8 @@
     "isEquipable": true,
     "shopCategory": "shoes",
     "shopSubCategory": "leather_shoes",
-    "shopSubCategory2": "shoes_leather_royal"
+    "shopSubCategory2": "shoes_leather_royal",
+    "craftTools": "royal"
   },
   {
     "id": 5344,
@@ -64173,7 +64295,8 @@
     "isEquipable": true,
     "shopCategory": "shoes",
     "shopSubCategory": "leather_shoes",
-    "shopSubCategory2": "shoes_leather_royal"
+    "shopSubCategory2": "shoes_leather_royal",
+    "craftTools": "royal"
   },
   {
     "id": 5349,
@@ -64233,7 +64356,8 @@
     "isEquipable": true,
     "shopCategory": "shoes",
     "shopSubCategory": "leather_shoes",
-    "shopSubCategory2": "shoes_leather_royal"
+    "shopSubCategory2": "shoes_leather_royal",
+    "craftTools": "royal"
   },
   {
     "id": 5354,
@@ -64293,7 +64417,8 @@
     "isEquipable": true,
     "shopCategory": "head",
     "shopSubCategory": "plate_helmet",
-    "shopSubCategory2": "head_plate_royal"
+    "shopSubCategory2": "head_plate_royal",
+    "craftTools": "royal"
   },
   {
     "id": 5359,
@@ -64353,7 +64478,8 @@
     "isEquipable": true,
     "shopCategory": "head",
     "shopSubCategory": "plate_helmet",
-    "shopSubCategory2": "head_plate_royal"
+    "shopSubCategory2": "head_plate_royal",
+    "craftTools": "royal"
   },
   {
     "id": 5364,
@@ -64413,7 +64539,8 @@
     "isEquipable": true,
     "shopCategory": "head",
     "shopSubCategory": "plate_helmet",
-    "shopSubCategory2": "head_plate_royal"
+    "shopSubCategory2": "head_plate_royal",
+    "craftTools": "royal"
   },
   {
     "id": 5369,
@@ -64473,7 +64600,8 @@
     "isEquipable": true,
     "shopCategory": "head",
     "shopSubCategory": "plate_helmet",
-    "shopSubCategory2": "head_plate_royal"
+    "shopSubCategory2": "head_plate_royal",
+    "craftTools": "royal"
   },
   {
     "id": 5374,
@@ -64533,7 +64661,8 @@
     "isEquipable": true,
     "shopCategory": "head",
     "shopSubCategory": "plate_helmet",
-    "shopSubCategory2": "head_plate_royal"
+    "shopSubCategory2": "head_plate_royal",
+    "craftTools": "royal"
   },
   {
     "id": 5379,
@@ -64593,7 +64722,8 @@
     "isEquipable": true,
     "shopCategory": "armors",
     "shopSubCategory": "plate_armor",
-    "shopSubCategory2": "armors_plate_royal"
+    "shopSubCategory2": "armors_plate_royal",
+    "craftTools": "royal"
   },
   {
     "id": 5384,
@@ -64653,7 +64783,8 @@
     "isEquipable": true,
     "shopCategory": "armors",
     "shopSubCategory": "plate_armor",
-    "shopSubCategory2": "armors_plate_royal"
+    "shopSubCategory2": "armors_plate_royal",
+    "craftTools": "royal"
   },
   {
     "id": 5389,
@@ -64713,7 +64844,8 @@
     "isEquipable": true,
     "shopCategory": "armors",
     "shopSubCategory": "plate_armor",
-    "shopSubCategory2": "armors_plate_royal"
+    "shopSubCategory2": "armors_plate_royal",
+    "craftTools": "royal"
   },
   {
     "id": 5394,
@@ -64773,7 +64905,8 @@
     "isEquipable": true,
     "shopCategory": "armors",
     "shopSubCategory": "plate_armor",
-    "shopSubCategory2": "armors_plate_royal"
+    "shopSubCategory2": "armors_plate_royal",
+    "craftTools": "royal"
   },
   {
     "id": 5399,
@@ -64833,7 +64966,8 @@
     "isEquipable": true,
     "shopCategory": "armors",
     "shopSubCategory": "plate_armor",
-    "shopSubCategory2": "armors_plate_royal"
+    "shopSubCategory2": "armors_plate_royal",
+    "craftTools": "royal"
   },
   {
     "id": 5404,
@@ -64893,7 +65027,8 @@
     "isEquipable": true,
     "shopCategory": "shoes",
     "shopSubCategory": "plate_shoes",
-    "shopSubCategory2": "shoes_plate_royal"
+    "shopSubCategory2": "shoes_plate_royal",
+    "craftTools": "royal"
   },
   {
     "id": 5409,
@@ -64953,7 +65088,8 @@
     "isEquipable": true,
     "shopCategory": "shoes",
     "shopSubCategory": "plate_shoes",
-    "shopSubCategory2": "shoes_plate_royal"
+    "shopSubCategory2": "shoes_plate_royal",
+    "craftTools": "royal"
   },
   {
     "id": 5414,
@@ -65013,7 +65149,8 @@
     "isEquipable": true,
     "shopCategory": "shoes",
     "shopSubCategory": "plate_shoes",
-    "shopSubCategory2": "shoes_plate_royal"
+    "shopSubCategory2": "shoes_plate_royal",
+    "craftTools": "royal"
   },
   {
     "id": 5419,
@@ -65073,7 +65210,8 @@
     "isEquipable": true,
     "shopCategory": "shoes",
     "shopSubCategory": "plate_shoes",
-    "shopSubCategory2": "shoes_plate_royal"
+    "shopSubCategory2": "shoes_plate_royal",
+    "craftTools": "royal"
   },
   {
     "id": 5424,
@@ -65133,7 +65271,8 @@
     "isEquipable": true,
     "shopCategory": "shoes",
     "shopSubCategory": "plate_shoes",
-    "shopSubCategory2": "shoes_plate_royal"
+    "shopSubCategory2": "shoes_plate_royal",
+    "craftTools": "royal"
   },
   {
     "id": 5429,
@@ -74913,7 +75052,8 @@
     "isEquipable": true,
     "shopCategory": "weapons",
     "shopSubCategory": "bow",
-    "shopSubCategory2": "bow_bow"
+    "shopSubCategory2": "bow_bow",
+    "craftTools": "caerleon"
   },
   {
     "id": 6244,
@@ -82161,7 +82301,8 @@
     "isEquipable": true,
     "shopCategory": "weapons",
     "shopSubCategory": "firestaff",
-    "shopSubCategory2": "firestaff_main_firestaff"
+    "shopSubCategory2": "firestaff_main_firestaff",
+    "craftTools": "caerleon"
   },
   {
     "id": 6848,
@@ -101721,7 +101862,8 @@
     "isEquipable": true,
     "shopCategory": "weapons",
     "shopSubCategory": "sword",
-    "shopSubCategory2": "sword_sword"
+    "shopSubCategory2": "sword_sword",
+    "craftTools": "caerleon"
   },
   {
     "id": 8478,

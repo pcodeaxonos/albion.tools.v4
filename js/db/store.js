@@ -2,7 +2,7 @@ import { getTable, getTableNames, tables } from './schema.js';
 
 const STORAGE_PREFIX = 'albiontools.v4.';
 const SEED_REVISION_KEY = STORAGE_PREFIX + 'seedRevision';
-const SEED_REVISION = 19;
+const SEED_REVISION = 20;
 const RESEED_TABLES = [
     'items',
     'itemCategories',
@@ -19,8 +19,7 @@ const RESEED_TABLES = [
     'animalBonusCities',
     'economyConstants',
     'islandPlots',
-    'craftRecipes',
-    'craftRecipeLines',
+    'recipeMaterials',
     'refineFamilies',
     'refineTiers',
     'factions',

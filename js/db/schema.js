@@ -68,7 +68,8 @@ export const tables = {
             { name: 'isEquipable', type: 'boolean', label: 'Equipable' },
             { name: 'shopCategory', type: 'string', label: 'Kategori', match: 'exact', filter: 'shopCategory' },
             { name: 'shopSubCategory', type: 'string', label: 'Alt kategori', match: 'exact', filter: 'shopSubCategory' },
-            { name: 'shopSubCategory2', type: 'string', label: 'Alt kategori 2', match: 'exact' }
+            { name: 'shopSubCategory2', type: 'string', label: 'Alt kategori 2', match: 'exact' },
+            { name: 'craftTools', type: 'string', label: 'Craft araçları', match: 'exact' }
         ]
     },
     itemCategories: {
@@ -303,39 +304,17 @@ export const tables = {
             { name: 'plots', type: 'number', label: 'Plot' }
         ]
     },
-    craftRecipes: {
-        displayName: 'Craft tarifleri',
+    recipeMaterials: {
+        displayName: 'Tarif malzemeleri',
         group: 'craft',
         source: 'curated',
-        description: 'Çıktı item + tool + bonus ailesi',
+        description: 'Üretilen eşya ↔ gereken eşya malzemesi',
         key: 'id',
         autoKey: true,
-        defaultSort: { column: 'sortValue', direction: 'asc' },
-        seedUrl: './data/craft-recipes.json',
+        seedUrl: './data/recipe-materials.json',
         columns: [
             COL.id,
-            { name: 'code', type: 'string', label: 'Kod' },
-            { name: 'tool', type: 'enum', options: ['furniture', 'ava', 'caerleon', 'faction', 'royal', 'gameinfo'], label: 'Tool' },
-            { name: 'kind', type: 'string', label: 'Tür' },
-            { name: 'tier', type: 'number', label: 'Tier' },
-            { name: 'outputItemId', type: 'ref', refTable: 'items', refLabel: 'localizedName', label: 'Çıktı item' },
-            { name: 'bonusFamilyId', type: 'ref', refTable: 'bonusFamilies', refLabel: 'familyKey', label: 'Bonus aile' },
-            { name: 'sortValue', type: 'number', label: 'Sıra' },
-            COL.active
-        ]
-    },
-    craftRecipeLines: {
-        displayName: 'Craft tarifi satırları',
-        group: 'craft',
-        source: 'curated',
-        description: 'Malzeme satırı — materialKey veya inputItem',
-        key: 'id',
-        autoKey: true,
-        seedUrl: './data/craft-recipe-lines.json',
-        columns: [
-            COL.id,
-            { name: 'recipeId', type: 'ref', refTable: 'craftRecipes', refLabel: 'code', label: 'Tarif' },
-            { name: 'materialKeyId', type: 'ref', refTable: 'materialKeys', refLabel: 'key', label: 'Malzeme türü' },
+            { name: 'outputItemId', type: 'ref', refTable: 'items', refLabel: 'localizedName', label: 'Üretilen eşya' },
             { name: 'inputItemId', type: 'ref', refTable: 'items', refLabel: 'localizedName', label: 'Malzeme item' },
             { name: 'qty', type: 'number', label: 'Adet' },
             { name: 'appliesRr', type: 'boolean', label: 'RR alır' },

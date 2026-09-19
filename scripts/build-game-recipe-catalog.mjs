@@ -1,6 +1,6 @@
 /**
- * Imports Albion's static crafting recipes into the relational seed tables.
- * Keeps curated recipes and appends game recipes with item-id relationships.
+ * Imports Albion's static crafting recipes into the recipe-materials seed.
+ * Keeps curated recipe materials and appends game recipes with item-id relationships.
  * Run: node scripts/build-game-recipe-catalog.mjs
  */
 import fs from 'node:fs';
@@ -52,63 +52,33 @@ function collectRecipes(node, output) {
     });
 }
 
-const [itemsXml, items, recipes, lines, families] = await Promise.all([
+const [itemsXml, items, recipeMaterials] = await Promise.all([
     fetchJson('https://raw.githubusercontent.com/ao-data/ao-bin-dumps/master/items.json'),
-    read('items.json'), read('craft-recipes.json'), read('craft-recipe-lines.json'), read('bonus-families.json')
+    read('items.json'), read('recipe-materials.json')
 ]);
 const itemId = new Map(items.map((item) => [item.uniqueName, Number(item.id)]));
-const familyId = new Map(families.map((family) => [family.familyKey, Number(family.id)]));
 const gameRecipes = new Map();
 collectRecipes(itemsXml.items, gameRecipes);
 
-const existingOutputIds = new Set(recipes.map((recipe) => Number(recipe.outputItemId)));
-let nextRecipeId = Math.max(0, ...recipes.map((recipe) => Number(recipe.id))) + 1;
-let nextLineId = Math.max(0, ...lines.map((line) => Number(line.id))) + 1;
+const existingOutputIds = new Set(recipeMaterials.map((material) => Number(material.outputItemId)));
+let nextLineId = Math.max(0, ...recipeMaterials.map((material) => Number(material.id))) + 1;
 let imported = 0;
 let skipped = 0;
 
-function bonusFamilyId(item) {
-    const sub = String(item.shopSubCategory || '');
-    const category = String(item.shopCategory || '');
-    const candidates = [
-        `${category}/${sub}`,
-        `weapons/${sub}`,
-        `head/${sub}`,
-        `armors/${sub}`,
-        `shoes/${sub}`,
-        `category/${sub}`
-    ];
-    return candidates.map((key) => familyId.get(key)).find(Boolean) ?? null;
-}
-
-for (const [uniqueName, materials] of gameRecipes) {
+for (const [uniqueName, inputMaterials] of gameRecipes) {
     const outputItemId = itemId.get(uniqueName);
-    const materialRows = materials.map((material) => ({ ...material, inputItemId: itemId.get(material.uniqueName) }));
+    const materialRows = inputMaterials.map((material) => ({ ...material, inputItemId: itemId.get(material.uniqueName) }));
     if (!outputItemId || existingOutputIds.has(outputItemId) || materialRows.some((material) => !material.inputItemId)) {
         skipped += 1;
         continue;
     }
-    const output = items.find((item) => Number(item.id) === outputItemId);
-    const recipeId = nextRecipeId++;
-    recipes.push({
-        id: recipeId,
-        code: `game-${uniqueName.toLowerCase()}`,
-        tool: 'gameinfo',
-        kind: output?.shopSubCategory || output?.itemType || 'game',
-        tier: Number(output?.tier) || null,
-        outputItemId,
-        bonusFamilyId: bonusFamilyId(output || {}),
-        sortValue: recipeId * 10,
-        isActive: true
-    });
-    materialRows.forEach((material, index) => lines.push({
-        id: nextLineId++, recipeId, materialKeyId: null, inputItemId: material.inputItemId,
+    materialRows.forEach((material, index) => recipeMaterials.push({
+        id: nextLineId++, outputItemId, inputItemId: material.inputItemId,
         qty: material.qty, appliesRr: true, sortValue: index + 1
     }));
     existingOutputIds.add(outputItemId);
     imported += 1;
 }
 
-write('craft-recipes.json', recipes);
-write('craft-recipe-lines.json', lines);
+write('recipe-materials.json', recipeMaterials);
 console.log(`Imported ${imported} game recipes; skipped ${skipped}.`);

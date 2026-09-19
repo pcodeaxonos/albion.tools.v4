@@ -1,5 +1,5 @@
 /**
- * Builds craftRecipes, craftRecipeLines, refineFamilies, factions seeds.
+ * Builds recipeMaterials, craft item tags, refineFamilies and faction seeds.
  * Run: node scripts/build-craft-catalog.mjs
  */
 import fs from 'fs';
@@ -56,32 +56,25 @@ const materialKeys = [
 
 const matByKey = new Map(materialKeys.map((row) => [row.key, row]));
 
-const craftRecipes = [];
-const craftRecipeLines = [];
-let recipeId = 1;
+const recipeMaterials = [];
 let lineId = 1;
 
 function addRecipe({ code, tool, uniqueName, kind, tier, familyKey, lines, sortValue }) {
-    const id = recipeId++;
-    craftRecipes.push({
-        id,
-        code,
-        tool,
-        kind: kind || '',
-        tier: tier ?? null,
-        outputItemId: itemId(uniqueName),
-        bonusFamilyId: familyId(familyKey),
-        sortValue: sortValue ?? id * 10,
-        isActive: true
-    });
+    const outputItemId = itemId(uniqueName);
+    const output = itemByUnique.get(uniqueName);
+    const tags = new Set(String(output.craftTools || '').split('|').filter(Boolean));
+    tags.add(tool);
+    output.craftTools = [...tags].sort().join('|');
 
     for (const line of lines) {
         const mat = line.materialKey ? matByKey.get(line.materialKey) : null;
-        craftRecipeLines.push({
+        const inputItemId = line.inputUniqueName
+            ? itemId(line.inputUniqueName)
+            : itemId(mat.stem ? `T${tier}_${mat.stem}` : itemByUnique.get('QUESTITEM_TOKEN_AVALON').uniqueName);
+        recipeMaterials.push({
             id: lineId++,
-            recipeId: id,
-            materialKeyId: mat?.id ?? null,
-            inputItemId: line.inputUniqueName ? itemId(line.inputUniqueName) : null,
+            outputItemId,
+            inputItemId,
             qty: line.qty,
             appliesRr: line.appliesRr !== false && (mat ? mat.appliesRr !== false : true),
             sortValue: line.sortValue ?? lineId
@@ -339,9 +332,9 @@ function write(name, data) {
     console.log(`wrote data/${name}.json (${data.length})`);
 }
 
+write('items', items);
 write('material-keys', materialKeys);
-write('craft-recipes', craftRecipes);
-write('craft-recipe-lines', craftRecipeLines);
+write('recipe-materials', recipeMaterials);
 write('refine-families', refineFamilies);
 write('refine-tiers', refineTiers);
 write('factions', factions);

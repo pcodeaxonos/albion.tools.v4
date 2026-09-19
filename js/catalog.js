@@ -202,13 +202,6 @@ export function getCityByIdSafe(id) {
     return getCityById(id);
 }
 
-function materialKeyById(id) {
-    if (id == null || id === '') {
-        return null;
-    }
-    return getAll('materialKeys').find((row) => Number(row.id) === Number(id)) ?? null;
-}
-
 function bonusFamilyById(id) {
     if (id == null || id === '') {
         return null;
@@ -216,69 +209,67 @@ function bonusFamilyById(id) {
     return getAll('bonusFamilies').find((row) => Number(row.id) === Number(id)) ?? null;
 }
 
-export function materialUniqueName(materialRow, tier) {
-    if (!materialRow) {
-        return null;
-    }
-    const stem = String(materialRow.stem || '').trim();
-    if (stem && tier != null) {
-        return `T${tier}_${stem}`;
-    }
-    return getItemUniqueName(materialRow.itemId);
+function recipeMaterialKey(uniqueName) {
+    const value = String(uniqueName || '');
+    if (value.includes('_PLANKS')) return 'plank';
+    if (value.includes('_METALBAR')) return 'bar';
+    if (value.includes('_LEATHER')) return 'leather';
+    if (value.includes('_CLOTH')) return 'cloth';
+    if (value.includes('_STONEBLOCK')) return 'block';
+    if (value === 'QUESTITEM_TOKEN_AVALON') return 'energy';
+    return value;
 }
 
-function hydrateRecipeLine(line, recipeTier) {
-    const mat = materialKeyById(line.materialKeyId);
-    let uniqueName = null;
-    let key = null;
-    let short = null;
-    let appliesRr = line.appliesRr !== false;
+function craftTools(item) {
+    return String(item?.craftTools || '').split('|').map((tool) => tool.trim()).filter(Boolean);
+}
 
-    if (mat) {
-        key = mat.key;
-        uniqueName = materialUniqueName(mat, recipeTier);
-        short = mat.stem && recipeTier != null
-            ? `T${recipeTier} ${mat.label}`
-            : (mat.label || key);
-        if (line.appliesRr == null) {
-            appliesRr = mat.appliesRr !== false;
-        }
-    } else if (line.inputItemId != null) {
-        const item = getItemById(line.inputItemId);
-        uniqueName = item?.uniqueName || getItemUniqueName(line.inputItemId);
-        key = uniqueName;
-        short = item?.localizedName || getItemLocalizedName(line.inputItemId, uniqueName);
+function craftKind(item, tool) {
+    const uniqueName = String(item?.uniqueName || '');
+    if (tool === 'furniture') return uniqueName.match(/FURNITUREITEM_(CHEST|BED|TABLE)/)?.[1]?.toLowerCase() || '';
+    if (tool === 'ava') {
+        return Object.entries({ PICK: 'pickaxe', HAMMER: 'hammer', AXE: 'axe', SICKLE: 'sickle', KNIFE: 'knife', FISHINGROD: 'rod' })
+            .find(([stem]) => uniqueName.includes(`_${stem}_`))?.[1] || '';
     }
+    if (tool === 'royal') {
+        const match = uniqueName.match(/_(HEAD|ARMOR|SHOES)_(PLATE|LEATHER|CLOTH)_ROYAL/);
+        return match ? `${match[2].toLowerCase()}-${({ HEAD: 'head', ARMOR: 'armor', SHOES: 'shoes' })[match[1]]}` : '';
+    }
+    return item?.shopSubCategory || item?.itemType || '';
+}
 
+function bonusFamilyForItem(item) {
+    const category = String(item?.shopCategory || '');
+    const sub = String(item?.shopSubCategory || '');
+    const candidates = [`${category}/${sub}`, `weapons/${sub}`, `head/${sub}`, `armors/${sub}`, `shoes/${sub}`, `category/${sub}`];
+    return getAll('bonusFamilies').find((family) => candidates.includes(family.familyKey)) ?? null;
+}
+
+function hydrateRecipeLine(line) {
+    const input = getItemById(line.inputItemId);
+    const uniqueName = input?.uniqueName || getItemUniqueName(line.inputItemId);
     return {
         id: Number(line.id),
-        key,
+        key: recipeMaterialKey(uniqueName),
         uniqueName,
-        short,
+        short: input?.localizedName || getItemLocalizedName(line.inputItemId, uniqueName),
         qty: num(line.qty),
-        appliesRr,
-        materialKeyId: line.materialKeyId != null ? Number(line.materialKeyId) : null,
-        inputItemId: line.inputItemId != null ? Number(line.inputItemId) : null
+        appliesRr: line.appliesRr !== false,
+        inputItemId: Number(line.inputItemId)
     };
 }
 
-/**
- * Hydrated craft recipe for furniture / ava / caerleon / faction / royal tools.
- */
-export function hydrateCraftRecipe(row) {
-    if (!row || row.isActive === false) {
-        return null;
-    }
-
-    const output = getItemById(row.outputItemId);
-    const family = bonusFamilyById(row.bonusFamilyId);
-    const tier = row.tier == null || row.tier === '' ? null : Number(row.tier);
-    const lines = getAll('craftRecipeLines')
-        .filter((line) => Number(line.recipeId) === Number(row.id))
+/** Hydrated craftable item and its concrete input items. */
+export function hydrateCraftRecipe(outputItemId, tool = '') {
+    const output = getItemById(outputItemId);
+    if (!output) return null;
+    const lines = getAll('recipeMaterials')
+        .filter((line) => Number(line.outputItemId) === Number(outputItemId))
         .slice()
         .sort((a, b) => num(a.sortValue) - num(b.sortValue) || Number(a.id) - Number(b.id))
-        .map((line) => hydrateRecipeLine(line, tier))
+        .map(hydrateRecipeLine)
         .filter((line) => line.uniqueName);
+    if (!lines.length) return null;
 
     const recipe = {};
     for (const line of lines) {
@@ -288,29 +279,36 @@ export function hydrateCraftRecipe(row) {
     }
 
     return {
-        id: Number(row.id),
-        code: row.code,
-        tool: row.tool,
-        kind: row.kind || '',
-        tier,
-        uniqueName: output?.uniqueName || getItemUniqueName(row.outputItemId),
-        label: output?.localizedName || getItemLocalizedName(row.outputItemId, row.code),
-        outputItemId: Number(row.outputItemId),
-        bonusFamilyId: row.bonusFamilyId != null ? Number(row.bonusFamilyId) : null,
-        familyKey: family?.familyKey || null,
+        id: Number(output.id),
+        code: String(output.uniqueName || '').toLowerCase(),
+        tool,
+        kind: craftKind(output, tool),
+        tier: Number(output.tier) || null,
+        uniqueName: output.uniqueName || getItemUniqueName(outputItemId),
+        label: output.localizedName || getItemLocalizedName(outputItemId, output.uniqueName),
+        outputItemId: Number(output.id),
+        bonusFamilyId: bonusFamilyForItem(output)?.id ?? null,
+        familyKey: bonusFamilyForItem(output)?.familyKey || null,
         recipe,
         lines,
-        sortValue: num(row.sortValue)
+        sortValue: Number(output.tier) * 100000 + Number(output.id)
     };
 }
 
 export function getCraftRecipes({ tool, kind } = {}) {
-    return getAll('craftRecipes')
-        .map(hydrateCraftRecipe)
+    const outputIds = [...new Set(getAll('recipeMaterials').map((line) => Number(line.outputItemId)))];
+    return outputIds
+        .map((outputItemId) => {
+            const item = getItemById(outputItemId);
+            const matchesTool = tool === 'gameinfo'
+                ? !craftTools(item).length
+                : !tool || craftTools(item).includes(tool);
+            return matchesTool ? hydrateCraftRecipe(outputItemId, tool || '') : null;
+        })
         .filter(Boolean)
         .filter((row) => !tool || row.tool === tool)
         .filter((row) => !kind || kind === 'all' || row.kind === kind)
-        .sort((a, b) => a.sortValue - b.sortValue || a.id - b.id);
+        .sort((a, b) => a.tier - b.tier || a.label.localeCompare(b.label, 'tr') || a.id - b.id);
 }
 
 export function getCraftKindOptions(tool) {
