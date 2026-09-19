@@ -9,8 +9,9 @@ import {
 } from './bonus-cities.js';
 import { itemIconHtml } from './item-icon.js';
 
-const SIDEBAR_ID = 'sidebarToday';
-const TOPBAR_ID = 'topbarToday';
+const SIDEBAR_SELECTOR = '[data-app-sidebar]';
+const SIDEBAR_CHIP_SELECTOR = '[data-today-bonus="sidebar"]';
+const TOPBAR_CHIP_SELECTOR = '[data-today-bonus="topbar"]';
 
 function compactPackLine(bonus, { includeCity = true } = {}) {
     return bonusPackLine(bonus, { includeCity });
@@ -159,8 +160,8 @@ function renderTopbarSlots(bonuses) {
 
 function paint() {
     const bonuses = todayCraftBonuses();
-    const sidebar = document.getElementById(SIDEBAR_ID);
-    const topbar = document.getElementById(TOPBAR_ID);
+    const sidebar = document.querySelector(SIDEBAR_CHIP_SELECTOR);
+    const topbar = document.querySelector(TOPBAR_CHIP_SELECTOR);
     const empty = bonuses.length === 0;
 
     if (sidebar) {
@@ -180,14 +181,14 @@ function paint() {
     }
 }
 
-function ensureChip(root, { id, className, compact }) {
-    let el = document.getElementById(id);
+function ensureChip(root, { placement, className, compact }) {
+    let el = root.querySelector(`[data-today-bonus="${placement}"]`);
     if (el) {
         return el;
     }
 
     el = document.createElement('a');
-    el.id = id;
+    el.dataset.todayBonus = placement;
     el.href = 'daily-bonus.html';
     el.className = className;
     if (compact) {
@@ -207,21 +208,21 @@ export function refreshTodayBonusChip() {
 }
 
 export function initTodayBonusChip() {
-    const sidebar = document.getElementById('appSidebar');
+    const sidebar = document.querySelector(SIDEBAR_SELECTOR);
     if (sidebar) {
-        ensureChip(sidebar, { id: SIDEBAR_ID, className: 'sidebar-today', compact: false });
+        ensureChip(sidebar, { placement: 'sidebar', className: 'sidebar-today', compact: false });
     }
 
     const topbar = document.querySelector('.app-topbar');
     if (topbar) {
-        ensureChip(topbar, { id: TOPBAR_ID, className: 'topbar-today', compact: true });
+        ensureChip(topbar, { placement: 'topbar', className: 'topbar-today', compact: true });
     }
 
     initStore()
         .then(paint)
         .catch(() => {
-            const sidebarChip = document.getElementById(SIDEBAR_ID);
-            const topbarChip = document.getElementById(TOPBAR_ID);
+            const sidebarChip = document.querySelector(SIDEBAR_CHIP_SELECTOR);
+            const topbarChip = document.querySelector(TOPBAR_CHIP_SELECTOR);
             if (sidebarChip) {
                 sidebarChip.classList.add('is-empty');
                 const slots = sidebarChip.querySelector('.sidebar-today-slots');

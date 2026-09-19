@@ -2456,7 +2456,7 @@ body.is-page-loading {
 .area-loader {
   background-color: var(--loader-overlay-bg);
   backdrop-filter: blur(8px);
-  z-index: 100;
+  z-index: 10;
 }
 .page-loader[hidden],
 .area-loader[hidden] {
@@ -2466,6 +2466,7 @@ body.is-page-loading {
 .page-loader {
   position: fixed;
   inset: 0;
+  z-index: 13;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -8047,6 +8048,7 @@ a.tool-card:hover {
   border-color: #ff6b6b;
   color: #fff;
 }
+
 .bonus-analysis-trigger-spinner {
   width: 0.9rem;
   height: 0.9rem;
@@ -8055,12 +8057,12 @@ a.tool-card:hover {
   border-radius: 50%;
   animation: bonus-analysis-spin 0.75s linear infinite;
 }
+
 @keyframes bonus-analysis-spin {
   to {
     transform: rotate(360deg);
   }
 }
-
 .bonus-analysis-dialog {
   width: min(360px + 60rem + 4rem, 100vw - 5.5rem);
   max-width: calc(100vw - 5.5rem);
@@ -8146,6 +8148,32 @@ a.tool-card:hover {
 
 .bonus-analysis-refresh {
   white-space: nowrap;
+}
+
+.bonus-analysis-refresh-group {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.45rem;
+}
+.bonus-analysis-refresh-group small {
+  flex-basis: 100%;
+}
+
+.bonus-analysis-order-toggle {
+  white-space: nowrap;
+}
+
+.bonus-analysis-order-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 0.85rem;
+  padding-top: 0.85rem;
+  border-top: 1px solid rgba(166, 181, 198, 0.14);
+}
+
+.bonus-analysis-order-actions .bonus-analysis-order-toggle {
+  min-width: 11.8rem;
 }
 
 .bonus-analysis-controls {
@@ -8441,6 +8469,7 @@ a.tool-card:hover {
 
 .bonus-analysis-card {
   --tier: var(--color-tier-4);
+  position: relative;
   min-height: 15rem;
   border: 1px solid color-mix(in srgb, var(--tier) 78%, #495464);
   border-radius: 0.55rem;
@@ -8450,6 +8479,42 @@ a.tool-card:hover {
 
 .bonus-analysis-tier-column.is-tier-5 .bonus-analysis-card {
   --tier: var(--color-tier-5);
+}
+
+.bonus-analysis-card-order {
+  position: absolute;
+  z-index: 2;
+  right: 0.45rem;
+  top: 0.45rem;
+  display: grid;
+  gap: 0.22rem;
+  padding: 0.22rem;
+  border: 1px solid rgba(145, 163, 184, 0.54);
+  border-radius: 999px;
+  background: rgba(16, 23, 33, 0.88);
+  box-shadow: 0 0.25rem 0.65rem rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(0.25rem);
+}
+.bonus-analysis-card-order button {
+  display: grid;
+  place-items: center;
+  width: 1.65rem;
+  height: 1.5rem;
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: 50%;
+  background: transparent;
+  color: #eef3fa;
+  font-weight: 700;
+  line-height: 1;
+}
+.bonus-analysis-card-order button:not(:disabled):hover {
+  border-color: color-mix(in srgb, var(--tier) 70%, #fff);
+  background: color-mix(in srgb, var(--tier) 52%, #253142);
+}
+.bonus-analysis-card-order button:disabled {
+  cursor: not-allowed;
+  opacity: 0.38;
 }
 
 .bonus-analysis-tier-column.is-tier-6 .bonus-analysis-card {
@@ -10680,59 +10745,4 @@ a.tool-card:hover {
   .yield-metric-title img, .yield-avg-bonus-floating img, .yield-card-footer img {
     display: block;
   }
-}
-.bonus-analysis-order-actions {
-  display: flex;
-  justify-content: flex-end;
-  margin-top: 0.85rem;
-  padding-top: 0.85rem;
-  border-top: 1px solid rgba(166, 181, 198, 0.14);
-}
-
-.bonus-analysis-order-actions .bonus-analysis-order-toggle {
-  min-width: 11.8rem;
-}
-
-.bonus-analysis-card {
-  position: relative;
-}
-
-.bonus-analysis-card-order {
-  position: absolute;
-  z-index: 2;
-  right: 0.45rem;
-  top: 0.45rem;
-  display: grid;
-  gap: 0.22rem;
-  padding: 0.22rem;
-  border: 1px solid rgba(145, 163, 184, 0.54);
-  border-radius: 999px;
-  background: rgba(16, 23, 33, 0.88);
-  box-shadow: 0 0.25rem 0.65rem rgba(0, 0, 0, 0.3);
-  -webkit-backdrop-filter: blur(0.25rem);
-  backdrop-filter: blur(0.25rem);
-}
-
-.bonus-analysis-card-order button {
-  display: grid;
-  place-items: center;
-  width: 1.65rem;
-  height: 1.5rem;
-  padding: 0;
-  border: 1px solid transparent;
-  border-radius: 50%;
-  background: transparent;
-  color: #eef3fa;
-  font-weight: 700;
-  line-height: 1;
-}
-
-.bonus-analysis-card-order button:not(:disabled):hover {
-  border-color: color-mix(in srgb, var(--tier) 70%, #fff);
-  background: color-mix(in srgb, var(--tier) 52%, #253142);
-}
-
-.bonus-analysis-card-order button:disabled {
-  cursor: not-allowed;
-  opacity: 0.38;
 }
