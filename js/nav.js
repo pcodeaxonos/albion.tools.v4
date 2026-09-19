@@ -119,7 +119,7 @@ function ensureBackdrop() {
 export function initNav() {
     recordCurrentToolVisit();
 
-    const sidebar = document.getElementById(SIDEBAR_ID);
+    const sidebar = document.querySelector('[data-app-sidebar]');
     if (!sidebar) {
         return;
     }

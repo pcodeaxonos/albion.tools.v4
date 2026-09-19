@@ -7,6 +7,14 @@ export function escapeHtml(value) {
         .replaceAll("'", '&#39;');
 }
 
+export function uiSelector(name) {
+    return `[data-${String(name).trim()}]`;
+}
+
+export function findUi(root, name) {
+    return root?.querySelector(uiSelector(name)) ?? null;
+}
+
 export function pageFileStem(pathOrHref) {
     const raw = String(pathOrHref || '').split(/[?#]/)[0];
     let name = raw.split('/').pop() || '';

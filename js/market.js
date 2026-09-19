@@ -1,4 +1,6 @@
 import { getSettings, getServer, localPriceHost } from './settings.js';
+
+const PRICE_REQUEST_TIMEOUT_MS = 10000;
 import { isStalePriceDate } from './price-side.js';
 
 export function priceLoaderMessage(source, fallback = 'Fiyatlar alınıyor…') {
@@ -131,7 +133,9 @@ async function fetchPricesFromHost(host, ids, locations, qualityParam) {
     });
     const pathIds = ids.map((id) => encodeURIComponent(id)).join(',');
     const url = `${host}/api/v2/stats/prices/${pathIds}?${params}`;
-    const response = await fetch(url);
+    const response = await fetch(url, {
+        signal: AbortSignal.timeout(PRICE_REQUEST_TIMEOUT_MS)
+    });
     if (!response.ok) {
         throw new Error(`Fiyat alınamadı (${response.status})`);
     }

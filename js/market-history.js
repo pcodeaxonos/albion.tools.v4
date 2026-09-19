@@ -1,4 +1,6 @@
 import { getServer } from './settings.js';
+
+const HISTORY_REQUEST_TIMEOUT_MS = 10000;
 import { priceIndexKey } from './market.js';
 
 const CACHE = new Map();
@@ -83,7 +85,9 @@ async function fetchHistoryBatch(host, ids, locations, { date, endDate, timeScal
     });
     const pathIds = ids.map((id) => encodeURIComponent(id)).join(',');
     const url = `${host}/api/v2/stats/history/${pathIds}.json?${params}`;
-    const response = await fetch(url);
+    const response = await fetch(url, {
+        signal: AbortSignal.timeout(HISTORY_REQUEST_TIMEOUT_MS)
+    });
     if (!response.ok) {
         throw new Error(`Geçmiş fiyat alınamadı (${response.status})`);
     }

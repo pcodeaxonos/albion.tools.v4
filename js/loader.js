@@ -174,7 +174,7 @@ export function yieldToMain() {
 }
 
 export function showPageLoader(message) {
-    const loader = document.getElementById(PAGE_LOADER_ID);
+    const loader = document.querySelector('[data-page-loader]');
     if (!loader) {
         return;
     }
@@ -186,7 +186,7 @@ export function showPageLoader(message) {
 }
 
 export function hidePageLoader() {
-    const loader = document.getElementById(PAGE_LOADER_ID);
+    const loader = document.querySelector('[data-page-loader]');
     if (!loader) {
         return;
     }
@@ -278,7 +278,7 @@ export function pageLoaderTemplate(message) {
         : '<p class="loader-message" hidden></p>';
 
     return `
-        <div id="${PAGE_LOADER_ID}" class="page-loader" hidden aria-hidden="true" aria-live="polite">
+        <div data-page-loader class="page-loader" hidden aria-hidden="true" aria-live="polite">
             <div class="page-loader__inner">
                 ${spinnerMarkup()}
                 ${messageMarkup}

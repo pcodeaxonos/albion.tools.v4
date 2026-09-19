@@ -31,3 +31,10 @@ Pages with filters/forms plus a result or table use `.tool-split`:
 - Include an empty `<button class="app-dialog-close" aria-label="Kapat" data-*-close></button>` as the direct close control.
 - The shared CSS draws its X with pseudo-elements; do not add an X glyph, SVG, or text.
 - The close button sits outside the dialog on the right. Keep the dialog `overflow: visible`, scroll the inner sheet, and reserve room in the dialog max-width.
+
+## DOM selectors
+
+- Do not introduce HTML `id` attributes for application controls or JavaScript selectors.
+- Use descriptive `data-*` hooks instead: `data-price-check`, or value-bearing attributes such as `data-product="milk"`.
+- Scope attribute selectors to their owning tool container where possible.
+- Retain an `id` only where an HTML accessibility relationship requires an ID reference; never use it as a JavaScript selector.
