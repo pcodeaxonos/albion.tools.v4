@@ -1,56 +1,187 @@
 @echo off
-cd /d "%~dp0"
+setlocal
+
+REM ============================================================
+REM AYARLAR
+REM ============================================================
+
+set "ROOT=%~dp0"
+if "%ROOT:~-1%"=="\" set "ROOT=%ROOT:~0,-1%"
+
+cd /d "%ROOT%"
 
 set "ADC=F:\Program Files\Albion Data Client\albiondata-client.exe"
+set "LOGDIR=%ROOT%\logs"
 
-netstat -ano | findstr /C:":3000" | findstr LISTENING >nul 2>&1
+if not exist "%LOGDIR%" mkdir "%LOGDIR%"
+
+
+REM ============================================================
+REM WEB SERVER :3000
+REM ============================================================
+
+netstat -ano | findstr /C:":3000" | findstr "LISTENING" >nul 2>&1
+
 if errorlevel 1 (
-  start "albion.tools.v4" cmd /k npm run serve
+    powershell.exe -NoProfile -WindowStyle Hidden -Command "Start-Process -FilePath $env:ComSpec -ArgumentList '/d','/c','npm run serve' -WorkingDirectory '%ROOT%' -WindowStyle Hidden -RedirectStandardOutput '%LOGDIR%\serve.log' -RedirectStandardError '%LOGDIR%\serve-error.log'"
 )
 
-netstat -ano | findstr /C:":3001" | findstr LISTENING >nul 2>&1
+
+REM ============================================================
+REM PRICE SERVER :3001
+REM ============================================================
+
+netstat -ano | findstr /C:":3001" | findstr "LISTENING" >nul 2>&1
+
 if errorlevel 1 (
-  start "albion.tools prices" cmd /k npm run prices
+    powershell.exe -NoProfile -WindowStyle Hidden -Command "Start-Process -FilePath $env:ComSpec -ArgumentList '/d','/c','npm run prices' -WorkingDirectory '%ROOT%' -WindowStyle Hidden -RedirectStandardOutput '%LOGDIR%\prices.log' -RedirectStandardError '%LOGDIR%\prices-error.log'"
 )
 
-set /a n=0
-:wait3000
-netstat -ano | findstr /C:":3000" | findstr LISTENING >nul 2>&1
-if not errorlevel 1 goto wait3001
-set /a n+=1
-if %n% GEQ 30 goto wait3001
-timeout /t 1 /nobreak >nul
-goto wait3000
 
-:wait3001
-set /a n=0
-:wait3001loop
-netstat -ano | findstr /C:":3001" | findstr LISTENING >nul 2>&1
-if not errorlevel 1 goto adc
-set /a n+=1
-if %n% GEQ 30 goto adc
-timeout /t 1 /nobreak >nul
-goto wait3001loop
+REM ============================================================
+REM 3000 PORTUNU BEKLE
+REM ============================================================
 
-:adc
-set "KEEPADC=0"
-powershell -NoProfile -Command "$p = @(Get-CimInstance Win32_Process -Filter \"Name='albiondata-client.exe'\"); if ($p | Where-Object { $_.CommandLine -match '127\.0\.0\.1:3001' }) { exit 0 }; exit 1" >nul 2>&1
-if not errorlevel 1 set "KEEPADC=1"
-if "%KEEPADC%"=="1" goto open
+set /a WAIT3000=0
+
+:WAIT3000
+
+netstat -ano | findstr /C:":3000" | findstr "LISTENING" >nul 2>&1
+
+if not errorlevel 1 goto OPENBROWSER
+
+set /a WAIT3000+=1
+
+if %WAIT3000% GEQ 30 goto OPENBROWSER
+
+timeout /t 1 /nobreak >nul
+goto WAIT3000
+
+
+REM ============================================================
+REM BROWSER
+REM
+REM ADC'DEN ONCE ACILIR.
+REM ADC TARAFINDA HATA OLSA BILE BURAYA ULASILMIS OLUR.
+REM ============================================================
+
+:OPENBROWSER
+
+start "" "http://localhost:3000/"
+
+
+REM ============================================================
+REM 3001 PORTUNU BEKLE
+REM ============================================================
+
+set /a WAIT3001=0
+
+:WAIT3001
+
+netstat -ano | findstr /C:":3001" | findstr "LISTENING" >nul 2>&1
+
+if not errorlevel 1 goto CHECKADC
+
+set /a WAIT3001+=1
+
+if %WAIT3001% GEQ 30 goto CHECKADC
+
+timeout /t 1 /nobreak >nul
+goto WAIT3001
+
+
+REM ============================================================
+REM ADC CALISIYOR MU?
+REM ============================================================
+
+:CHECKADC
+
+tasklist /FI "IMAGENAME eq albiondata-client.exe" 2>nul | find /I "albiondata-client.exe" >nul 2>&1
+
+if errorlevel 1 goto STARTADC
+
+
+REM ============================================================
+REM ADC DOGRU ENDPOINT ILE MI CALISIYOR?
+REM ============================================================
+
+powershell.exe -NoProfile -WindowStyle Hidden -Command "$p=Get-CimInstance Win32_Process -Filter \"Name='albiondata-client.exe'\"; if($p | Where-Object {$_.CommandLine -match '127\.0\.0\.1:3001'}){exit 0}else{exit 1}" >nul 2>&1
+
+if not errorlevel 1 goto HIDEADC
+
+
+REM ============================================================
+REM ADC CALISIYOR AMA YANLIS PARAMETREYLE
+REM ============================================================
 
 taskkill /IM albiondata-client.exe /F >nul 2>&1
+
 timeout /t 1 /nobreak >nul
-powershell -NoProfile -Command "$p = @(Get-CimInstance Win32_Process -Filter \"Name='albiondata-client.exe'\"); if ($p.Count -gt 0) { exit 1 }; exit 0" >nul 2>&1
-if errorlevel 1 (
-  echo ADC yonetici olarak acik; kamu AODP'ye gidiyor. ADC penceresini kapat, sonra start.bat tekrar calistir.
-  timeout /t 5 /nobreak >nul
-)
-if exist "%ADC%" (
-  start "" "%ADC%" -i http://127.0.0.1:3001,http+pow://pow.europe.albion-online-data.com
-) else (
-  echo Albion Data Client bulunamadi: %ADC%
-  timeout /t 3 /nobreak >nul
+
+goto STARTADC
+
+
+REM ============================================================
+REM ADC'YI BASLAT
+REM ============================================================
+
+:STARTADC
+
+if not exist "%ADC%" (
+    echo Albion Data Client bulunamadi:
+    echo %ADC%
+    timeout /t 3 /nobreak >nul
+    goto FINISH
 )
 
-:open
-start "" http://localhost:3000
+powershell.exe -NoProfile -WindowStyle Hidden -Command "Start-Process -FilePath '%ADC%' -ArgumentList '-minimize','-i','http://127.0.0.1:3001,http+pow://pow.europe.albion-online-data.com' -WindowStyle Hidden"
+
+
+REM ============================================================
+REM ADC PROCESS'INI BEKLE
+REM ============================================================
+
+set /a WAITADC=0
+
+:WAITADC
+
+tasklist /FI "IMAGENAME eq albiondata-client.exe" 2>nul | find /I "albiondata-client.exe" >nul 2>&1
+
+if not errorlevel 1 goto HIDEADC
+
+set /a WAITADC+=1
+
+if %WAITADC% GEQ 15 goto FINISH
+
+timeout /t 1 /nobreak >nul
+goto WAITADC
+
+
+REM ============================================================
+REM ADC GUI'YI TASKBAR'DAN VE EKRANDAN GIZLE
+REM
+REM Debug ile tespit edilen pencere:
+REM Class = WailsWebviewWindow
+REM Title = Albion Data Client
+REM
+REM WS_EX_TOOLWINDOW eklenir
+REM WS_EX_APPWINDOW kaldirilir
+REM SW_HIDE ile pencere tamamen gizlenir
+REM Tray ikonu ve ADC process calismaya devam eder
+REM ============================================================
+
+:HIDEADC
+
+timeout /t 1 /nobreak >nul
+
+powershell.exe -NoProfile -WindowStyle Hidden -Command "$code='using System; using System.Runtime.InteropServices; public static class W { [DllImport(\"user32.dll\",CharSet=CharSet.Unicode)] public static extern IntPtr FindWindow(string c,string t); [DllImport(\"user32.dll\",EntryPoint=\"GetWindowLongPtrW\")] public static extern IntPtr GetWindowLongPtr(IntPtr h,int i); [DllImport(\"user32.dll\",EntryPoint=\"SetWindowLongPtrW\")] public static extern IntPtr SetWindowLongPtr(IntPtr h,int i,IntPtr v); [DllImport(\"user32.dll\")] public static extern bool SetWindowPos(IntPtr h,IntPtr a,int x,int y,int cx,int cy,uint f); [DllImport(\"user32.dll\")] public static extern bool ShowWindow(IntPtr h,int n); }'; Add-Type -TypeDefinition $code; $end=(Get-Date).AddSeconds(10); do { $h=[W]::FindWindow('WailsWebviewWindow','Albion Data Client'); if($h -ne [IntPtr]::Zero){ $s=[W]::GetWindowLongPtr($h,-20).ToInt64(); $s=($s -bor 0x80) -band (-bnot 0x40000); [void][W]::SetWindowLongPtr($h,-20,[IntPtr]$s); [void][W]::SetWindowPos($h,[IntPtr]::Zero,0,0,0,0,0x27); [void][W]::ShowWindow($h,0); break }; Start-Sleep -Milliseconds 250 } while((Get-Date) -lt $end)" >nul 2>&1
+
+
+REM ============================================================
+REM BITIR
+REM ============================================================
+
+:FINISH
+
+endlocal
+exit /b

@@ -9,7 +9,7 @@ import { showPageLoader, hidePageLoader } from './loader.js';
 const TIERS = [2, 3, 4, 5, 6, 7, 8];
 
 function refineRaw(tier) {
-    return getRefineTier()[tier]?.rawQty ?? 0;
+    return getRefineTiers()[tier]?.rawQty ?? 0;
 }
 
 function buildingsMap() {

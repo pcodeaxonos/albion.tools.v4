@@ -84,6 +84,12 @@
     "label": "City craft production bonus %"
   },
   {
+    "id": 35,
+    "key": "city_specialty_production",
+    "value": "15",
+    "label": "City specialty craft production bonus %"
+  },
+  {
     "id": 15,
     "key": "city_resource",
     "value": "40",

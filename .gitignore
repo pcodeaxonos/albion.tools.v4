@@ -20,3 +20,5 @@ icons/*
 !icons/daily-bonus/ui-icons/*.svg
 !icons/daily-bonus/families/
 !icons/daily-bonus/families/*.png
+!icons/royal-wizard/
+!icons/royal-wizard/*.svg

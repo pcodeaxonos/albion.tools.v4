@@ -299,13 +299,14 @@ function seedMark(usedPrice, vendor) {
         return null;
     }
     const delta = (usedPrice - vendor) / vendor;
+    const percent = Math.round(Math.abs(delta) * 100).toLocaleString('tr-TR');
     if (delta <= -0.01) {
-        return { tone: 'cheap', label: `NPC ${formatPct(delta)}` };
+        return { tone: 'cheap', label: `${percent}%` };
     }
     if (delta >= 0.01) {
-        return { tone: 'dear', label: `NPC +${formatPct(delta)}` };
+        return { tone: 'dear', label: `${percent}%` };
     }
-    return { tone: 'even', label: 'NPC ≈' };
+    return { tone: 'even', label: '0%' };
 }
 
 function computeRow(item) {
@@ -516,6 +517,7 @@ function renderTable() {
                         mark
                     })}
                 </td>
+                <td class="num farming-num" data-sort-value="${row.item.vendor ?? ''}">${formatSilver(row.item.vendor)}</td>
                 <td class="num farming-num farming-price-cell" data-sort-value="${row.plant?.price ?? ''}">
                     ${priceFieldHtml({
                         id: `plantPrice-${row.item.id}`,
@@ -544,6 +546,7 @@ function renderTable() {
                 <colgroup>
                     <col class="farming-col-item">
                     <col class="farming-col-price">
+                    <col class="farming-col-npc">
                     <col class="farming-col-price">
                     <col class="farming-col-num">
                     <col class="farming-col-pct">
@@ -556,6 +559,7 @@ function renderTable() {
                     <tr>
                         ${sortHeaderHtml('Ürün', { key: 'item', type: 'number', direction: dir('item'), title: 'Ekin veya ot' })}
                         ${sortHeaderHtml('Tohum', { key: 'seed', type: 'number', className: 'num farming-num', direction: dir('seed'), title: 'Tohum alış fiyatı' })}
+                        ${sortHeaderHtml('NPC', { key: 'npc', type: 'number', className: 'num farming-num', direction: dir('npc'), title: 'Tohumun sabit NPC satış fiyatı' })}
                         ${sortHeaderHtml('Hasat alış', { key: 'plant', type: 'number', className: 'num farming-num', direction: dir('plant'), title: 'Hasat ürününün piyasa alış fiyatı' })}
                         ${sortHeaderHtml('Verim', { key: 'qty', type: 'number', className: 'num farming-num', direction: dir('qty'), title: 'Hasat miktarı' })}
                         ${sortHeaderHtml('Tohum %', { key: 'seedPct', type: 'number', className: 'num farming-num', direction: dir('seedPct'), title: 'Tohumun geri dönme oranı' })}
@@ -603,7 +607,7 @@ function renderOutput() {
             <p class="farming-note">
                 ${escapeHtml(cityLabel(state.city))} · tohum ${escapeHtml(seedNote)} · hasat ${escapeHtml(plantNote)}.
                 Birim = net tohum / verim. Fark = birim − hasat alış; negatifse üret, değilse al.
-                Tohum işareti NPC fiyatına göre.${focusNote}
+                NPC sütunu tohumun sabit satış fiyatıdır; fiyat güncellemesinden etkilenmez. Tohum işareti NPC fiyatına göre.${focusNote}
                 Elle yazılan fiyat API’nin yerine geçer. Kırmızı fiyat API’de yok; mavi 6 saatten eski. Hesap da kırmızı kalır, elle doldur.${stamp ? ` ${stamp}` : ''}
             </p>
         </div>

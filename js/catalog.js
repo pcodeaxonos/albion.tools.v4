@@ -389,6 +389,10 @@ export function cityProductionBonus() {
     return getEconomyConstant('city_production', 18);
 }
 
+export function citySpecialtyProductionBonus() {
+    return getEconomyConstant('city_specialty_production', 15);
+}
+
 export function cityResourceBonus() {
     return getEconomyConstant('city_resource', 40);
 }
@@ -540,4 +544,3 @@ export function getLocalPriceHost() {
 export function getNewToolLiveCount() {
     return getEconomyConstant('new_tool_live_count', 2);
 }
-

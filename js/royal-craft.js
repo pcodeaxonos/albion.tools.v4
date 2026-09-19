@@ -94,6 +94,8 @@ const state = {
     priceIndex: null,
     manualMats: {},
     manualItems: {},
+    wizardRecent: [],
+    wizardPriceState: new Map(),
     error: null,
     loaded: false,
     livePaused: false,
@@ -1361,7 +1363,7 @@ function renderPlanDialogBody(plan) {
 
 function renderPlanFab() {
     return `
-        <button type="button" class="royal-plan-fab" id="royalPlanFab" aria-label="Craft planlama" title="Craft planlama">
+        <button type="button" class="royal-plan-fab" id="royalPlanFab" aria-label="Royal Crafting Wizard" title="Royal Crafting Wizard">
             <svg class="royal-plan-fab-icon" width="28" height="28" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
                 <path fill="currentColor" d="M4 4h7v7H4V4Zm9 0h7v7h-7V4ZM4 13h7v7H4v-7Zm9 2.5 1.5-1.5 2 2 3.5-3.5 1.5 1.5-5 5-3.5-3.5Z"/>
             </svg>
@@ -1399,9 +1401,482 @@ function bindCraftPlan() {
     fab.dataset.planBound = 'on';
     fab.addEventListener('click', () => {
         if (planHost) {
-            openCraftPlan(planHost);
+            openRoyalWizard(planHost);
         }
     });
+}
+
+function wizardPriceGroups() {
+    const groups = [
+        {
+            id: 'sigil',
+            label: 'Sigil fiyatları',
+            description: 'Royal Sigil fiyatları',
+            entries: [
+                ...TIERS.map((tier) => ({
+                    key: `sigil:QUESTITEM_TOKEN_ROYAL_T${tier}`,
+                    uniqueName: `QUESTITEM_TOKEN_ROYAL_T${tier}`,
+                    label: `Royal Sigil T${tier}`
+                })),
+                { key: SEALED_SIGIL_KEY, uniqueName: SEALED_ROYAL_SIGIL, label: 'Sealed Royal Sigil' }
+            ]
+        },
+        {
+            id: 'enchant',
+            label: 'Rune / Soul / Relic',
+            description: 'Enchant malzemesi fiyatları',
+            entries: TIERS.flatMap((tier) => steps().map((step) => ({
+                key: matKey(step.kind, tier),
+                uniqueName: enchantMatUniqueName(step.kind, tier),
+                label: `${step.label || step.kind} T${tier}`
+            })))
+        },
+        {
+            id: 'materials',
+            label: 'Malzeme fiyatları',
+            description: 'SET üretim malzemesi fiyatları',
+            entries: TIERS.flatMap((tier) => REFINED_KINDS.map((refined) => ({
+                key: `refined:${refined.kind}-${tier}`,
+                uniqueName: `T${tier}_${refined.stem}`,
+                label: `${refined.label} T${tier}`
+            })))
+        }
+    ];
+
+    return groups.map((group) => {
+        // Shared market logic marks timestamped prices older than six hours as stale.
+        // A manual value is intentionally accepted: it is the user's explicit market update.
+        const complete = group.entries.filter((entry) => {
+            const quote = matQuote(entry.key, entry.uniqueName, 1);
+            return quote && !quote.stale;
+        });
+        return { ...group, complete, total: group.entries.length };
+    });
+}
+
+function syncWizardRecent() {
+    const current = new Map();
+    const changed = [];
+    for (const group of wizardPriceGroups()) {
+        for (const entry of group.entries) {
+            const quote = matQuote(entry.key, entry.uniqueName, 1);
+            if (!quote || quote.stale) continue;
+            const signature = `${quote.price}|${quote.date || 'manual'}`;
+            current.set(entry.key, signature);
+            if (state.wizardPriceState.get(entry.key) !== signature) {
+                changed.push(entry);
+            }
+        }
+    }
+    state.wizardPriceState = current;
+    if (!changed.length) return;
+    const changedKeys = new Set(changed.map((entry) => entry.key));
+    state.wizardRecent = [
+        ...changed.reverse(),
+        ...state.wizardRecent.filter((entry) => !changedKeys.has(entry.key))
+    ].slice(0, 12);
+}
+
+function wizardProgressCard(group) {
+    const done = group.complete.length === group.total;
+    const active = !done && group.complete.length > 0;
+    const stateClass = done ? 'is-complete' : active ? 'is-active' : 'is-pending';
+    const stateLabel = done ? 'Tamamlandı' : active ? 'Güncelleniyor' : 'Bekliyor';
+    return `
+        <article class="royal-wizard-group ${stateClass}">
+            <span class="royal-wizard-group-icon ${done ? 'is-complete' : active ? 'is-active' : ''}" aria-hidden="true">${done ? '<img src="icons/royal-wizard/check.svg" alt="">' : `<svg viewBox="0 0 36 36" focusable="false"><circle class="royal-wizard-group-track" cx="18" cy="18" r="15"/>${active ? `<circle class="royal-wizard-group-fill" cx="18" cy="18" r="15" pathLength="100" stroke-dasharray="${(group.complete.length / group.total) * 100} 100" transform="rotate(-90 18 18)"/>` : ''}</svg>`}</span>
+            <div>
+                <h3>${escapeHtml(group.label)}</h3>
+                <strong>${escapeHtml(stateLabel)}</strong>
+                <p>${done
+                    ? `${group.total} fiyat güncellendi.`
+                    : `${group.complete.length} / ${group.total} fiyat hazır.`}</p>
+            </div>
+        </article>
+    `;
+}
+
+function renderWizardProgress(group) {
+    const percent = group.total ? Math.round((group.complete.length / group.total) * 100) : 0;
+    return `
+        <article class="royal-wizard-recent-card">
+            ${itemIconHtml(group.uniqueName, { className: 'item-icon royal-wizard-recent-icon', size: 48 })}
+            <span>${escapeHtml(group.label)}</span>
+            <small>Fiyat güncellendi</small>
+            <b>✓</b>
+        </article>
+    `;
+}
+
+function renderRoyalWizardStepOne(checked = 0) {
+    const sourceGroups = wizardPriceGroups();
+    let left = checked;
+    const groups = sourceGroups.map((group) => {
+        const complete = group.complete.slice(0, Math.max(0, Math.min(group.complete.length, left)));
+        left -= complete.length;
+        return { ...group, complete };
+    });
+    const readyGroups = groups.filter((group) => group.complete.length === group.total).length;
+    const total = groups.reduce((sum, group) => sum + group.total, 0);
+    const complete = groups.reduce((sum, group) => sum + group.complete.length, 0);
+    const percent = total ? Math.round((complete / total) * 100) : 0;
+    const recent = state.wizardRecent.slice(0, 5);
+    const isReady = readyGroups === groups.length;
+
+    return `
+        <button type="button" class="app-dialog-close" aria-label="Kapat" data-wizard-close></button>
+        <div class="royal-wizard-sheet">
+            <header class="royal-wizard-header">
+                <img class="royal-wizard-crown" src="icons/royal-wizard/crown.svg" alt="">
+                <div><h2>Royal Crafting Wizard</h2><p>En kârlı Royal ekipmanı bulman ve üretim sürecini tamamlaman için rehber.</p></div>
+                <button type="button" class="royal-wizard-help" data-wizard-help><img src="icons/royal-wizard/info.svg" alt="">Nasıl çalışır?</button>
+            </header>
+            <ol class="royal-wizard-steps" aria-label="Wizard adımları" style="--wizard-rail-progress:${percent}%">
+                <li class="is-current"><b>1</b><span>Fiyat Verileri<small>Hazırlanıyor</small></span></li>
+                <li><b>2</b><span>Royal Fiyatları<small>Bekliyor</small></span></li>
+                <li><b>3</b><span>Sonuçlar<small>Bekliyor</small></span></li>
+            </ol>
+            <div class="royal-wizard-body">
+                <section class="royal-wizard-main">
+                    <h1>1. Fiyat verileri hazırlanıyor</h1>
+                    <p>Hesaplamalarda kullanılacak temel fiyat verileri güncelleniyor.</p>
+                    <div class="royal-wizard-progress" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${percent}"><i style="width:${percent}%"></i></div>
+                    <div class="royal-wizard-progress-meta"><strong>%${percent}</strong><span>${readyGroups} / ${groups.length} kaynak grubu hazır</span></div>
+                    <div class="royal-wizard-groups">${groups.map(wizardProgressCard).join('')}</div>
+                </section>
+                <aside class="royal-wizard-aside">
+                    <section><h3><img src="icons/royal-wizard/info.svg" alt="">Hazırlık kuralı</h3><p>Royal item fiyatları hesaplanmadan önce gerekli tüm temel fiyat grupları (Sigil, Rune/Soul/Relic ve malzemeler) güncellenir. Bu veriler, hesaplamaların doğru ve kararlı olması için kullanılır.</p></section>
+                    <section><h3><img src="icons/royal-wizard/crown.svg" alt="">Geçiş kuralı</h3><p>Tüm gerekli fiyat grupları hazır olduğunda sihirbaz otomatik olarak bir sonraki adıma geçer. Herhangi bir işlem yapmana gerek yoktur.</p></section>
+                </aside>
+                <section class="royal-wizard-recent-section">
+                    <h2 class="royal-wizard-recent-title">Son güncellenen</h2>
+                    <div class="royal-wizard-recent">${recent.length ? recent.map(renderWizardProgress).join('') : '<p>Henüz güncellenen bir fiyat yok.</p>'}</div>
+                </section>
+            </div>
+            <footer class="royal-wizard-footer">
+                <span><img src="icons/royal-wizard/info.svg" alt="">${isReady ? 'Tamamlandığında otomatik ilerler' : `${total - complete} fiyat hâlâ eksik.`}</span>
+                <button type="button" class="btn btn-outline-secondary royal-wizard-pause" data-wizard-pause aria-pressed="false" disabled>Duraklat</button>
+                <button type="button" class="royal-wizard-skip" data-wizard-continue data-wizard-ready="${isReady}">${isReady ? 'Sonraki adım' : 'Eksiklerle devam et'} <span aria-hidden="true">→</span></button>
+            </footer>
+        </div>
+    `;
+}
+
+function wizardRoyalItems() {
+    return filteredRecipes().flatMap((recipe) => ENCHANTS
+        .filter((enchant) => state.scope === 'all' || standardRank(recipe.tier, enchant) != null)
+        .map((enchant) => ({ id: royalUniqueName(recipe.uniqueName, enchant),
+            label: shortItemName(recipe.label), tier: `T${recipe.tier}.${enchant}` })));
+}
+
+function wizardRoyalStatus(item) {
+    const count = QUALITIES.filter((quality) => itemQuote(`sell:${item.id}|q${quality.id}`, item.id, quality.id)).length;
+    return count === 2 ? 'complete' : count === 1 ? 'proxy' : 'missing';
+}
+
+function renderWizardRoyalCard(item) {
+    const status = wizardRoyalStatus(item);
+    const label = { complete: 'Tam · Ex + MP', proxy: 'Proxy · 1 kalite bulundu', missing: 'Eksik · fiyat bulunamadı' }[status];
+    return `<article class="royal-wizard-recent-card is-${status}">
+        ${itemIconHtml(item.id, { className: 'item-icon royal-wizard-recent-icon', size: 64 })}
+        <span>${escapeHtml(item.tier)}</span><small>${escapeHtml(item.label)}</small>
+        <b title="${label}" aria-label="${label}">${status === 'complete' ? '✓' : status === 'proxy' ? '◐' : '!'}</b>
+    </article>`;
+}
+
+function renderRoyalWizardStepTwo(run) {
+    const checked = run.items.filter((item) => run.checked.has(item.id));
+    const counts = { complete: 0, proxy: 0, missing: 0 };
+    checked.forEach((item) => counts[wizardRoyalStatus(item)]++);
+    const percent = run.items.length ? Math.round(checked.length / run.items.length * 100) : 100;
+    const missing = checked.filter((item) => wizardRoyalStatus(item) === 'missing');
+    const incomplete = missing.length || run.error || !run.baseReady;
+    const stats = [
+        ['complete', '✓', counts.complete, 'Tam', 'Ex + MP'],
+        ['proxy', '◐', counts.proxy, 'Proxy', '1 kalite bulundu'],
+        ['missing', '⊘', counts.missing, 'Eksik', 'Fiyat bulunamadı'],
+        ['pending', '◷', run.items.length - checked.length, 'Kalan', 'Kontrol bekliyor']
+    ];
+    return `
+        <button type="button" class="app-dialog-close" aria-label="Kapat" data-wizard-close></button>
+        <div class="royal-wizard-sheet royal-wizard-step-two">
+            <header class="royal-wizard-header">
+                <img class="royal-wizard-crown" src="icons/royal-wizard/crown.svg" alt="">
+                <div><h2>Royal Crafting Wizard</h2><p>En kârlı Royal ekipmanı bulman ve üretim sürecini tamamlaman için rehber.</p></div>
+                <button type="button" class="royal-wizard-help" data-wizard-help><img src="icons/royal-wizard/info.svg" alt="">Nasıl çalışır?</button>
+            </header>
+            <ol class="royal-wizard-steps" aria-label="Wizard adımları" style="--wizard-rail-progress:${percent}%">
+                <li class="is-done"><b>✓</b><span>Fiyat Verileri<small>${run.baseReady ? 'Tamamlandı' : 'Eksiklerle geçildi'}</small></span></li>
+                <li class="is-current" aria-current="step"><b>2</b><span>Royal Fiyatları<small>${run.loading ? 'Güncelleniyor…' : 'Kontrol tamamlandı'}</small></span></li>
+                <li><b>3</b><span>Sonuçlar<small>Bekliyor</small></span></li>
+            </ol>
+            <div class="royal-wizard-body">
+                <section class="royal-wizard-main">
+                    <h1>2. Royal item fiyatları ${run.loading ? 'güncelleniyor' : 'kontrol edildi'}</h1>
+                    <p>Seçilen filtrelere göre Royal itemların Excellent ve Masterpiece fiyatları kontrol edilir.</p>
+                    <div class="royal-wizard-progress" role="progressbar" aria-label="Royal fiyat kontrolü" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${percent}"><i style="width:${percent}%"></i></div>
+                    <div class="royal-wizard-progress-meta"><strong>%${percent}</strong><span>${checked.length} / ${run.items.length} item işlendi</span></div>
+                    <div class="royal-wizard-stats">${stats.map(([status, icon, count, label, detail]) => `<div class="royal-wizard-stat is-${status}"><i aria-hidden="true">${icon}</i><div><strong>${count}</strong><b>${label}</b><small>${detail}</small></div></div>`).join('')}</div>
+                    ${!run.items.length ? '<p>Seçilen filtrelerde Royal item bulunamadı.</p>' : ''}
+                    ${run.error ? `<p class="royal-wizard-error" role="alert">${escapeHtml(run.error)} Mevcut kayıtlı fiyatlar gösteriliyor.</p>` : ''}
+                </section>
+                <aside class="royal-wizard-aside" id="royalWizardRules" tabindex="-1">
+                    <section><h3><img src="icons/royal-wizard/info.svg" alt="">Fiyat ve kâr hesaplama kuralları</h3><h4>Proxy fiyat kuralı</h4><p>Yalnızca Excellent veya Masterpiece fiyatı bulunursa, bulunan fiyat diğer kalite için proxy olarak kullanılır.</p></section>
+                    <section><h3><img src="icons/royal-wizard/crown.svg" alt="">Kâr hesabı</h3><p>Hesaplamalar seçili kalite, şehir ve alış/satış ayarlarına göre yapılır. Proxy fiyat kullanılan sonuçlar ayrıca işaretlenir.</p></section>
+                </aside>
+                <section class="royal-wizard-recent-section">
+                    <h2 class="royal-wizard-recent-title">Son kontrol edilenler</h2>
+                    <div class="royal-wizard-recent">${checked.length ? checked.slice(-4).reverse().map(renderWizardRoyalCard).join('') : '<p>Royal fiyatları bekleniyor…</p>'}</div>
+                    <details class="royal-wizard-item-list" data-wizard-list="all" ${run.allOpen ? 'open' : ''}><summary>Tümünü gör <span>${checked.length} item</span></summary><div class="royal-wizard-item-grid">${checked.map(renderWizardRoyalCard).join('')}</div></details>
+                </section>
+                ${missing.length ? `<details class="royal-wizard-missing" data-wizard-list="missing" ${run.missingOpen ? 'open' : ''}><summary><b class="royal-wizard-alert" aria-hidden="true">!</b><span><strong>${missing.length} itemin fiyatı bulunamadı</strong><small>Bu itemlar sonuçlarda ayrı bir bölümde listelenecek.</small></span><em>Listeyi göster →</em></summary><div class="royal-wizard-item-grid">${missing.map(renderWizardRoyalCard).join('')}</div></details>` : ''}
+            </div>
+            <footer class="royal-wizard-footer">
+                <button type="button" class="btn btn-outline-secondary royal-wizard-back" data-wizard-back><img src="icons/royal-wizard/back.svg" alt="">Geri</button>
+                <span role="status">${run.loading ? 'Market fiyatları kontrol ediliyor…' : run.error ? 'Bazı fiyatlar yenilenemedi.' : 'Fiyat kontrolü tamamlandı.'}</span>
+                <button type="button" class="royal-wizard-skip" data-wizard-continue data-wizard-ready="${!incomplete}" ${run.loading || !run.items.length ? 'disabled' : ''}>${incomplete ? 'Eksiklerle Devam Et' : 'Sonuçları Gör'} <span aria-hidden="true">→</span></button>
+            </footer>
+        </div>`;
+}
+
+function updateWizardStepTwo(dialog) {
+    const run = dialog.wizardRoyalRun;
+    if (!dialog.open || dialog.dataset.wizardStep !== '2' || !run) return;
+    const scrollTop = dialog.querySelector('.royal-wizard-body')?.scrollTop || 0;
+    const active = document.activeElement;
+    const focusedList = active?.closest('[data-wizard-list]')?.dataset.wizardList;
+    const focusAttribute = ['data-wizard-continue', 'data-wizard-back', 'data-wizard-help', 'data-wizard-close'].find((name) => active?.hasAttribute(name));
+    for (const name of ['all', 'missing']) {
+        run[`${name}Open`] = dialog.querySelector(`[data-wizard-list="${name}"]`)?.open || false;
+    }
+    dialog.innerHTML = renderRoyalWizardStepTwo(run);
+    dialog.querySelector('.royal-wizard-body').scrollTop = scrollTop;
+    if (focusAttribute) dialog.querySelector(`[${focusAttribute}]`)?.focus({ preventScroll: true });
+    if (focusedList) dialog.querySelector(`[data-wizard-list="${focusedList}"] > summary`)?.focus({ preventScroll: true });
+}
+
+function renderRoyalWizardResults(plan) {
+    return `
+        <button type="button" class="app-dialog-close" aria-label="Kapat" data-wizard-close></button>
+        <div class="royal-wizard-results">
+            <header><img class="royal-wizard-crown" src="icons/royal-wizard/crown.svg" alt=""><div><h2>Royal Crafting Wizard</h2><p>3. Sonuçlar · Kâr potansiyeline göre craft planın</p></div></header>
+            ${renderPlanDialogBody(plan).replace(/<button[^>]*data-plan-close[\s\S]*?<\/button>/, '')}
+            <footer class="royal-wizard-footer"><button type="button" class="btn btn-outline-secondary royal-wizard-back" data-wizard-back><img src="icons/royal-wizard/back.svg" alt="">Geri</button></footer>
+        </div>
+    `;
+}
+
+async function showWizardStepTwo(dialog) {
+    if (!dialog.open) return;
+    stopWizardTransition(dialog);
+    const run = {
+        items: wizardRoyalItems(), checked: new Set(), loading: true, error: null,
+        baseReady: wizardPriceGroups().every((group) => group.complete.length === group.total)
+    };
+    dialog.wizardRoyalRun = run;
+    updateWizardStepTwo(dialog);
+    // Advance only after a real batch completes. Closing or going back invalidates this run.
+    for (let start = 0; start < run.items.length; start += 12) {
+        const batch = run.items.slice(start, start + 12);
+        try {
+            const data = await fetchPrices(batch.map((item) => item.id), [state.sellCity], { qualities: [4, 5] });
+            if (dialog.wizardRoyalRun !== run || !dialog.open) return;
+            state.priceIndex ??= new Map();
+            for (const item of batch) {
+                for (const quality of QUALITIES) state.priceIndex.delete(`${item.id}|${state.sellCity}|${quality.id}`);
+            }
+            for (const [key, value] of indexPrices(data)) state.priceIndex.set(key, value);
+            refreshCalc(dialog.parentElement);
+        } catch (error) {
+            if (dialog.wizardRoyalRun !== run || !dialog.open) return;
+            run.error = error.message || 'Fiyatlar yenilenemedi.';
+        }
+        batch.forEach((item) => run.checked.add(item.id));
+        updateWizardStepTwo(dialog);
+    }
+    run.loading = false;
+    updateWizardStepTwo(dialog);
+}
+
+function stopWizardTransition(dialog) {
+    dialog.wizardRoyalRun = null;
+    window.clearTimeout(dialog.wizardCompletionTimer);
+    window.cancelAnimationFrame(dialog.wizardPrepareFrame);
+    window.clearInterval(dialog.wizardCountdownTimer);
+    dialog.wizardTransitionCleanup?.();
+    dialog.wizardTransitionCleanup = null;
+    dialog.wizardCountdown = null;
+}
+
+function updateWizardCountdown(dialog) {
+    const countdown = dialog.wizardCountdown;
+    const paused = dialog.dataset.wizardPaused === 'true';
+    const remaining = countdown?.startedAt != null && !paused
+        ? Math.max(0, countdown.remaining - (performance.now() - countdown.startedAt))
+        : countdown?.remaining ?? 15000;
+    const seconds = Math.ceil(remaining / 1000);
+    const label = dialog.querySelector('.royal-wizard-footer > span');
+    const button = dialog.querySelector('[data-wizard-pause]');
+    if (label) label.textContent = paused
+        ? 'Otomatik geçiş duraklatıldı. Kalan süre: ' + seconds + ' sn.'
+        : 'Fiyatlar güncel. Bar boşaldığında Royal fiyatlarına geçilecek (' + seconds + ' sn)…';
+    if (button) {
+        button.disabled = false;
+        button.textContent = paused ? 'Devam et' : 'Duraklat';
+        button.setAttribute('aria-pressed', String(paused));
+    }
+}
+
+function resumeWizardCountdown(dialog) {
+    const countdown = dialog.wizardCountdown;
+    if (!countdown) return;
+    countdown.startedAt = performance.now();
+    countdown.bar.style.transitionDuration = countdown.remaining + 'ms';
+    countdown.bar.style.width = '0%';
+}
+
+function toggleWizardCountdown(dialog) {
+    const paused = dialog.dataset.wizardPaused !== 'true';
+    const countdown = dialog.wizardCountdown;
+    if (countdown && paused) {
+        // Freeze at the rendered width without jumping to the transition target.
+        const width = getComputedStyle(countdown.bar).width;
+        countdown.remaining = Math.max(0, countdown.remaining - (performance.now() - countdown.startedAt));
+        countdown.startedAt = null;
+        countdown.bar.style.transitionDuration = '0ms';
+        countdown.bar.style.width = width;
+        void countdown.bar.offsetWidth;
+    }
+    dialog.dataset.wizardPaused = String(paused);
+    if (countdown && !paused) resumeWizardCountdown(dialog);
+    updateWizardCountdown(dialog);
+}
+
+function completeWizardStepOne(dialog, done) {
+    if (!dialog.open || dialog.dataset.wizardCompleting === 'true') return;
+    dialog.dataset.wizardCompleting = 'true';
+    dialog.dataset.wizardPaused = 'false';
+    updateWizardCountdown(dialog);
+    // Allow the preparation transition to reach 100% before draining it.
+    dialog.wizardCompletionTimer = window.setTimeout(() => {
+        if (!dialog.open || dialog.dataset.wizardStep !== '1') return;
+        const bar = dialog.querySelector('.royal-wizard-progress i');
+        if (!bar) return;
+        dialog.wizardCountdown = { bar, remaining: 15000, startedAt: null };
+        bar.style.transitionTimingFunction = 'linear';
+        const onEnd = (event) => {
+            if (event.target === bar && event.propertyName === 'width'
+                && dialog.open && dialog.dataset.wizardStep === '1'
+                && dialog.dataset.wizardPaused !== 'true' && bar.style.width === '0%') done();
+        };
+        bar.addEventListener('transitionend', onEnd);
+        dialog.wizardTransitionCleanup = () => bar.removeEventListener('transitionend', onEnd);
+        if (dialog.dataset.wizardPaused !== 'true') resumeWizardCountdown(dialog);
+        dialog.wizardCountdownTimer = window.setInterval(() => updateWizardCountdown(dialog), 100);
+    }, 680);
+}
+
+// All forward/back actions use this single ordered route list.
+const ROYAL_WIZARD_STEPS = [showWizardStepOne, showWizardStepTwo, showWizardResults];
+
+function moveRoyalWizard(dialog, direction, fromStep = Number(dialog.dataset.wizardStep)) {
+    if (!dialog.open || Number(dialog.dataset.wizardStep) !== fromStep) return;
+    if (direction !== 1 && direction !== -1) return;
+    const currentIndex = fromStep - 1;
+    const nextIndex = currentIndex + direction;
+    if (!ROYAL_WIZARD_STEPS[currentIndex] || !ROYAL_WIZARD_STEPS[nextIndex]) return;
+    if (direction === 1 && ROYAL_WIZARD_STEPS[currentIndex] === showWizardStepTwo
+        && (!dialog.wizardRoyalRun || dialog.wizardRoyalRun.loading || !dialog.wizardRoyalRun.items.length)) return;
+    stopWizardTransition(dialog);
+    dialog.dataset.wizardStep = String(nextIndex + 1);
+    ROYAL_WIZARD_STEPS[nextIndex](dialog);
+}
+
+function showWizardStepOne(dialog) {
+    delete dialog.dataset.wizardPaused;
+    delete dialog.dataset.wizardCompleting;
+    dialog.innerHTML = renderRoyalWizardStepOne(0);
+    dialog.wizardPrepareFrame = window.requestAnimationFrame(() => refreshOpenRoyalWizard(dialog.parentElement));
+}
+
+function showWizardResults(dialog) {
+    const container = dialog.parentElement;
+    dialog.innerHTML = renderRoyalWizardResults(buildCraftPlan(sortedRows()));
+    dialog.querySelectorAll('[data-plan-row]').forEach((button) => button.addEventListener('click', () => {
+        dialog.close();
+        focusPlanRow(container, button.dataset.planRow);
+    }));
+}
+
+function openRoyalWizard(container) {
+    let dialog = container.querySelector('#royalWizardDialog');
+    if (!dialog) {
+        dialog = document.createElement('dialog');
+        dialog.id = 'royalWizardDialog';
+        container.appendChild(dialog);
+        // Delegate once: rendering or refreshing a step must not add another navigation listener.
+        dialog.addEventListener('click', (event) => {
+            if (event.target === dialog || event.target.closest('[data-wizard-close]')) {
+                dialog.close();
+                return;
+            }
+            const button = event.target.closest('button');
+            if (!button || !dialog.contains(button) || button.disabled) return;
+            if (button.hasAttribute('data-wizard-continue')) {
+                moveRoyalWizard(dialog, 1);
+                return;
+            }
+            if (button.hasAttribute('data-wizard-back')) {
+                moveRoyalWizard(dialog, -1);
+                return;
+            }
+            if (button.hasAttribute('data-wizard-pause')) toggleWizardCountdown(dialog);
+            if (button.hasAttribute('data-wizard-help')) {
+                const rules = dialog.querySelector('#royalWizardRules');
+                if (rules) rules.focus();
+                else button.textContent = 'Fiyatlar hazır oldukça ilerleme güncellenir.';
+            }
+        });
+        dialog.addEventListener('close', () => stopWizardTransition(dialog));
+    }
+    dialog.className = 'app-dialog royal-wizard-dialog';
+    stopWizardTransition(dialog);
+    dialog.dataset.wizardStep = '1';
+    ROYAL_WIZARD_STEPS[0](dialog);
+    if (!dialog.open) {
+        if (typeof dialog.showModal === 'function') dialog.showModal();
+        else dialog.setAttribute('open', '');
+    }
+}
+
+function refreshOpenRoyalWizard(container) {
+    const dialog = container.querySelector('#royalWizardDialog');
+    if (dialog?.open && dialog.dataset.wizardStep === '2') {
+        updateWizardStepTwo(dialog);
+        return;
+    }
+    if (!dialog?.open || dialog.dataset.wizardStep !== '1') {
+        return;
+    }
+    const total = wizardPriceGroups().reduce((sum, group) => sum + group.total, 0);
+    if (dialog.dataset.wizardCompleting === 'true') return;
+    // Keep the bar and step rail mounted so their CSS transitions remain continuous.
+    const template = document.createElement('template');
+    template.innerHTML = renderRoyalWizardStepOne(total);
+    const next = template.content;
+    const progress = dialog.querySelector('.royal-wizard-progress');
+    const nextProgress = next.querySelector('.royal-wizard-progress');
+    progress.setAttribute('aria-valuenow', nextProgress.getAttribute('aria-valuenow'));
+    void progress.offsetWidth;
+    progress.querySelector('i').style.width = nextProgress.querySelector('i').style.width;
+    dialog.querySelector('.royal-wizard-steps').style.cssText = next.querySelector('.royal-wizard-steps').style.cssText;
+    for (const selector of ['.royal-wizard-progress-meta', '.royal-wizard-groups', '.royal-wizard-recent', '.royal-wizard-footer']) {
+        dialog.querySelector(selector).innerHTML = next.querySelector(selector).innerHTML;
+    }
+    if (wizardPriceGroups().every((group) => group.complete.length === group.total)) {
+        const fromStep = Number(dialog.dataset.wizardStep);
+        completeWizardStepOne(dialog, () => moveRoyalWizard(dialog, 1, fromStep));
+    }
 }
 
 function focusPlanRow(container, rowId) {
@@ -2111,7 +2586,7 @@ async function loadPrices(container, { source, showLoader = true } = {}) {
     ensureManualMaps();
     applyPriceLoadMode(state, { source, showLoader });
     const ids = allPriceIds();
-        const qualities = [...new Set([1, SET_BUY_QUALITY, ...selectedQualities().map((row) => row.id)])];
+    const qualities = [...new Set([1, SET_BUY_QUALITY, ...QUALITIES.map((row) => row.id)])];
     if (showLoader) {
         showPageLoader(priceLoaderMessage(source));
     }
@@ -2121,6 +2596,7 @@ async function loadPrices(container, { source, showLoader = true } = {}) {
             qualities
         });
         state.priceIndex = indexPrices(rowsData);
+        syncWizardRecent();
         state.error = null;
         state.loaded = true;
     } catch (error) {
@@ -2133,6 +2609,7 @@ async function loadPrices(container, { source, showLoader = true } = {}) {
         applyControls(container);
         patchMatStrip(container);
         refreshCalc(container);
+        refreshOpenRoyalWizard(container);
     }
 }
 

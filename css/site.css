@@ -7119,6 +7119,10 @@ a.tool-card:hover {
   width: 13%;
 }
 
+.farming-col-npc {
+  width: 8%;
+}
+
 .farming-col-num {
   width: 9%;
 }
@@ -8138,6 +8142,48 @@ a.tool-card:hover {
   background: #1a2029;
 }
 
+.bonus-analysis-rr-badge {
+  display: inline-flex;
+  align-items: center;
+  align-self: center;
+  gap: 0.42rem;
+  min-height: 2.35rem;
+  padding: 0.28rem 0.68rem 0.28rem 0.32rem;
+  border: 1px solid #6550a4;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #312155, #171f42);
+  box-shadow: inset 0 1px rgba(255, 255, 255, 0.12), 0 0.25rem 0.7rem rgba(58, 39, 123, 0.28);
+  white-space: nowrap;
+}
+.bonus-analysis-rr-badge > i {
+  display: grid;
+  place-items: center;
+  width: 1.72rem;
+  height: 1.72rem;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #9d7af1, #5b3eb9);
+  box-shadow: inset 0 1px rgba(255, 255, 255, 0.3);
+  color: #fff;
+  font-size: 1.15rem;
+  font-style: normal;
+  line-height: 1;
+}
+.bonus-analysis-rr-badge > span {
+  display: grid;
+  gap: 0.02rem;
+}
+.bonus-analysis-rr-badge b {
+  color: #f0eaff;
+  font-size: 0.78rem;
+  line-height: 1.1;
+}
+.bonus-analysis-rr-badge small {
+  color: #bfb3e1;
+  font-size: 0.58rem;
+  font-weight: var(--font-weight-normal);
+  line-height: 1.1;
+}
+
 .bonus-analysis-select span small,
 .bonus-analysis-select small {
   color: #99a5b6;
@@ -8172,14 +8218,16 @@ a.tool-card:hover {
 }
 
 .bonus-analysis-family-tabs {
-  display: inline-flex;
+  display: flex;
   align-items: center;
-  gap: 0.14rem;
+  gap: 0.04rem;
   min-width: 0;
   padding: 0.12rem;
 }
 
 .bonus-analysis-family-tabs button {
+  box-sizing: border-box;
+  flex: 0 0 auto;
   min-width: 2.7rem;
   height: 1.82rem;
   padding: 0 0.58rem;
@@ -8189,14 +8237,27 @@ a.tool-card:hover {
   color: #aeb8c8;
   font: inherit;
   font-size: 0.72rem;
+  font-weight: var(--font-weight-semibold);
   cursor: pointer;
   white-space: nowrap;
 }
 
+.bonus-analysis-family-tabs + small {
+  min-width: 5.8rem;
+  text-align: right;
+}
+
 .bonus-analysis-family-tabs button.is-active {
-  border-color: #78a9e7;
+  border-color: transparent;
+  outline: 1px solid #78a9e7;
+  outline-offset: -1px;
   color: #d9eaff;
-  box-shadow: inset 0 0 0 1px rgba(176, 213, 255, 0.18);
+  box-shadow: inset 0 0 0 1px rgba(176, 213, 255, 0.12);
+}
+
+.bonus-analysis-select > span {
+  font-size: 0.6rem;
+  letter-spacing: 0.01em;
 }
 
 .bonus-analysis-family-tabs button:not(.is-active):hover {
@@ -9694,6 +9755,57 @@ a.tool-card:hover {
   --rank-scale: 1;
 }
 
+/* Cards stay in normal document flow: transforms scale the paint, not the grid row,
+   which previously let the emphasized card cover its neighbours. */
+.bonus-analysis-grid .bonus-analysis-tier-column > div {
+  gap: 0.55rem;
+  padding-top: 0.65rem;
+  padding-bottom: 0.65rem;
+}
+
+.bonus-analysis-grid .bonus-analysis-card {
+  width: calc(100% - var(--rank-inset) * 2);
+  transform: none;
+}
+
+.bonus-analysis-grid .bonus-analysis-card + .bonus-analysis-card {
+  margin-top: 0;
+}
+
+.bonus-analysis-grid .bonus-analysis-card.is-unit-rank-2 .bonus-analysis-card-main,
+.bonus-analysis-grid .bonus-analysis-card.is-unit-rank-3 .bonus-analysis-card-main {
+  padding-top: 0.78rem;
+}
+
+.bonus-analysis-grid .bonus-analysis-material {
+  padding: 0.38rem 0.65rem 0.44rem;
+}
+
+.bonus-analysis-grid .bonus-analysis-material > div > span {
+  font-size: 0.58rem;
+  line-height: 1.2;
+}
+
+.bonus-analysis-grid .bonus-analysis-material strong {
+  margin-top: 0.02rem;
+  font-size: 0.9rem;
+  line-height: 1.15;
+}
+
+.bonus-analysis-grid .bonus-analysis-resources {
+  gap: 0.32rem;
+  margin-top: 0.02rem;
+}
+
+.bonus-analysis-grid .bonus-analysis-resources img {
+  width: 1.16rem;
+  height: 1.16rem;
+}
+
+.bonus-analysis-grid .bonus-analysis-resources b {
+  font-size: 0.72rem;
+}
+
 .bonus-analysis-prices .is-missing-market-price {
   position: relative;
 }
@@ -9840,6 +9952,108 @@ a.tool-card:hover {
     padding-inline: 0.65rem;
   }
 }
+/* Keep the compact material row compact after the narrow-card refinements above. */
+.bonus-analysis-grid .bonus-analysis-material {
+  padding: 0.38rem 0.65rem 0.44rem;
+}
+
+.bonus-analysis-grid .bonus-analysis-material > div > span {
+  font-size: 0.58rem;
+  line-height: 1.2;
+}
+
+.bonus-analysis-grid .bonus-analysis-material strong {
+  margin-top: 0.02rem;
+  font-size: 0.9rem;
+  line-height: 1.15;
+}
+
+.bonus-analysis-grid .bonus-analysis-resources {
+  gap: 0.32rem;
+  margin-top: 0.02rem;
+}
+
+.bonus-analysis-grid .bonus-analysis-resources img {
+  width: 1.16rem;
+  height: 1.16rem;
+}
+
+.bonus-analysis-grid .bonus-analysis-resources b {
+  font-size: 0.72rem;
+}
+
+/* The cards deliberately form a compact ranked stack. Their fixed flow height
+   reserves room for the scaled paint, so the emphasis never changes layout. */
+.bonus-analysis-grid .bonus-analysis-tier-column > div {
+  gap: 0;
+  padding-top: 0.85rem;
+  padding-bottom: 0.85rem;
+}
+
+.bonus-analysis-grid .bonus-analysis-card {
+  --rank-scale: 1;
+  box-sizing: border-box;
+  width: calc(100% - var(--rank-inset) * 2);
+  height: 10.4rem;
+  min-height: 0;
+  transform: scale(var(--rank-scale));
+  transform-origin: center;
+}
+
+.bonus-analysis-grid .bonus-analysis-card + .bonus-analysis-card {
+  margin-top: -0.18rem;
+}
+
+.bonus-analysis-grid .bonus-analysis-card.is-unit-rank-1 {
+  --rank-scale: 1.045;
+}
+
+.bonus-analysis-grid .bonus-analysis-card.is-unit-rank-2 {
+  --rank-scale: 1.022;
+}
+
+.bonus-analysis-grid .bonus-analysis-card.is-unit-rank-3 {
+  --rank-scale: 1;
+}
+
+/* The grid item owns the natural height.  Only its visual surface scales, while
+   the surrounding padding reserves the transformed edge so no content is cut. */
+.bonus-analysis-grid .bonus-analysis-card {
+  width: auto;
+  height: auto;
+  min-height: 0;
+  margin-inline: 0;
+  padding-block: 0.5rem;
+  overflow: visible;
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  transform: none;
+}
+
+.bonus-analysis-grid .bonus-analysis-card + .bonus-analysis-card {
+  margin-top: -1rem;
+}
+
+.bonus-analysis-grid .bonus-analysis-card-surface {
+  position: relative;
+  box-sizing: border-box;
+  margin-inline: var(--rank-inset);
+  overflow: hidden;
+  border: 1px solid rgba(var(--tier-rgb), 0.7);
+  border-radius: 0.85rem;
+  background: #051722;
+  box-shadow: 0 0.65rem 0.85rem -0.15rem rgba(0, 0, 0, 0.8), inset 0 0 0.8rem rgba(var(--tier-rgb), 0.1);
+  transform: scale(var(--rank-scale));
+  transform-origin: center;
+}
+
+.bonus-analysis-grid .bonus-analysis-card.is-unit-rank-1 .bonus-analysis-card-surface {
+  border: 2px solid rgba(var(--tier-rgb), 0.95);
+  background: radial-gradient(ellipse at 50% 0%, rgba(var(--tier-rgb), 0.2), transparent 58%), linear-gradient(90deg, rgba(var(--tier-rgb), 0.14), transparent 22%, transparent 78%, rgba(var(--tier-rgb), 0.14)), #051722;
+  box-shadow: 0 0.8rem 1rem -0.15rem rgba(0, 0, 0, 0.9), 0 0 0.7rem rgba(var(--tier-rgb), 0.32), inset 0 0 1.15rem rgba(var(--tier-rgb), 0.38), inset 0 0 2.8rem rgba(var(--tier-rgb), 0.14);
+}
+
 .yield-metric + .yield-metric {
   margin-top: 0.25rem;
 }
@@ -10059,5 +10273,384 @@ a.tool-card:hover {
     right: -0.1rem;
     padding: 0.09rem 0.18rem;
     font-size: 0.5rem;
+  }
+}
+.yield-avg-row {
+  grid-template-columns: repeat(8, minmax(12.5rem, 1fr));
+  gap: 0.75rem;
+  padding: 0.35rem 0.2rem 0.7rem;
+  scroll-snap-type: x proximity;
+}
+
+.yield-avg-card {
+  --yield-product: #d8505c;
+  --yield-seed: #45dc8a;
+  scroll-snap-align: start;
+  padding: 0.8rem;
+  border: 2px solid color-mix(in srgb, var(--color-item-tier, #d8505c) 72%, #d8505c);
+  border-radius: 1rem;
+  background: radial-gradient(circle at 50% 13%, color-mix(in srgb, var(--color-item-tier, #d8505c) 18%, transparent), transparent 30%), linear-gradient(145deg, #21171c 0%, #0b1115 100%);
+  box-shadow: inset 0 0 2.5rem rgba(0, 0, 0, 0.34), 0 0.7rem 1.5rem rgba(0, 0, 0, 0.3);
+  overflow: visible;
+}
+
+.yield-avg-card-visual {
+  height: 6.8rem;
+  margin: 0.35rem 0 0.25rem;
+}
+
+.yield-avg-card-icon,
+.yield-avg-card-icon-fallback {
+  width: 6.8rem;
+  height: 6.8rem;
+}
+
+.yield-avg-card-name {
+  margin: 0 0 0.65rem;
+  font-size: 1.15rem;
+  line-height: 1.2;
+  white-space: normal;
+  overflow: visible;
+  text-overflow: clip;
+}
+
+.yield-avg-tier {
+  top: 0.7rem;
+  left: 0.7rem;
+  padding: 0.3rem 0.5rem;
+  border: 1px solid color-mix(in srgb, var(--color-item-tier, #d8505c) 80%, white 20%);
+  border-radius: 0.45rem;
+  font-size: 0.78rem;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.1);
+}
+
+.yield-avg-bonus-floating {
+  top: 0.7rem;
+  right: 0.7rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.26rem 0.45rem;
+  border-color: rgba(255, 196, 55, 0.85);
+  border-radius: 0.45rem;
+  box-shadow: 0 0 0.6rem rgba(255, 196, 55, 0.12);
+  font-size: 0.72rem;
+}
+.yield-avg-bonus-floating img {
+  width: 0.9rem;
+  height: 0.9rem;
+}
+
+.yield-metric {
+  padding: 0.7rem;
+  border-radius: 0.85rem;
+  background: linear-gradient(145deg, rgba(25, 19, 24, 0.96), rgba(10, 14, 18, 0.92));
+}
+
+.yield-metric:first-of-type {
+  border-color: color-mix(in srgb, var(--yield-product) 46%, #404953);
+}
+
+.yield-metric:last-of-type {
+  border-color: color-mix(in srgb, var(--yield-seed) 43%, #404953);
+  background: linear-gradient(145deg, rgba(10, 36, 30, 0.88), rgba(8, 16, 19, 0.94));
+}
+
+.yield-metric + .yield-metric {
+  margin-top: 0.6rem;
+}
+
+.yield-metric-title {
+  gap: 0.4rem;
+  font-size: 0.92rem;
+}
+
+.yield-metric-title img {
+  width: 1.2rem;
+  height: 1.2rem;
+}
+
+.yield-metric-content {
+  grid-template-columns: minmax(0, 1fr) minmax(5.6rem, 0.9fr);
+  gap: 0.55rem;
+  min-height: 5.5rem;
+  margin-top: 0.45rem;
+}
+
+.yield-values-stack {
+  align-content: stretch;
+  gap: 0;
+  padding-right: 0.65rem;
+  border-right: 1px solid rgba(185, 196, 209, 0.28);
+  font-size: 0.72rem;
+}
+
+.yield-values-stack span {
+  display: grid;
+  gap: 0.15rem;
+  justify-content: start;
+  padding: 0.1rem 0;
+}
+
+.yield-values-stack span + span {
+  margin-top: auto;
+  padding-top: 0.5rem;
+  border-top: 1px solid rgba(185, 196, 209, 0.26);
+}
+
+.yield-values-stack b,
+.yield-values-stack span:first-child b {
+  font-family: var(--font-family-mono);
+  font-size: 1.45rem;
+  line-height: 1;
+}
+
+.yield-metric:first-of-type .yield-values-stack span:first-child b {
+  color: #ffd361;
+}
+
+.yield-metric:last-of-type .yield-values-stack span:first-child b {
+  color: var(--yield-seed);
+}
+
+.yield-delta-stack {
+  position: relative;
+  grid-template-columns: 1fr 1.15rem;
+  grid-template-rows: auto auto;
+  align-content: center;
+  gap: 0.25rem 0.4rem;
+  padding: 0.15rem 0;
+  text-align: left;
+}
+
+.yield-delta-stack strong {
+  grid-column: 1;
+  font-size: 1.55rem;
+}
+
+.yield-delta-stack span {
+  grid-column: 1;
+  margin: 0;
+  font-size: 0.78rem;
+}
+
+.yield-delta-gauge {
+  grid-column: 2;
+  grid-row: 1/span 2;
+  position: relative;
+  width: 0.42rem;
+  height: 4.1rem;
+  margin: auto;
+  border-radius: 999px;
+  background: linear-gradient(180deg, rgba(205, 218, 232, 0.35), rgba(205, 218, 232, 0.18));
+}
+
+.yield-delta-gauge::before {
+  content: "";
+  position: absolute;
+  left: -0.18rem;
+  top: 50%;
+  width: 0.78rem;
+  height: 0.16rem;
+  border-radius: 999px;
+  background: #dbe4ed;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.65);
+}
+
+.yield-delta-gauge::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: 50%;
+  width: 100%;
+  height: 0;
+  border-radius: 999px 999px 0 0;
+  background: #aeb8c4;
+}
+
+.yield-delta-stack.is-pos .yield-delta-gauge::after {
+  bottom: 50%;
+  height: var(--yield-gauge-fill, 0%);
+  background: var(--yield-seed);
+  box-shadow: 0 0 0.4rem rgba(69, 220, 138, 0.36);
+}
+
+.yield-delta-stack.is-neg .yield-delta-gauge::after {
+  top: 50%;
+  bottom: auto;
+  height: var(--yield-gauge-fill, 0%);
+  border-radius: 0 0 999px 999px;
+  background: var(--yield-product);
+  box-shadow: 0 0 0.4rem rgba(216, 80, 92, 0.35);
+}
+
+.yield-card-footer {
+  min-height: 2.2rem;
+  margin-top: 0.7rem;
+  padding: 0.35rem 0.5rem;
+  border-radius: 0.65rem;
+  font-size: 0.72rem;
+}
+
+.yield-card-footer img {
+  width: 1rem;
+  height: 1rem;
+}
+
+.yield-confidence i {
+  width: 0.58rem;
+  height: 0.58rem;
+}
+
+.yield-avg-row {
+  grid-template-columns: repeat(8, minmax(10.5rem, 1fr));
+  gap: 0.5rem;
+}
+
+.yield-avg-card {
+  padding: 0.55rem;
+  border-radius: 0.72rem;
+}
+
+.yield-avg-card-visual {
+  height: 4.75rem;
+  margin: 0.25rem 0 0.12rem;
+}
+
+.yield-avg-card-icon,
+.yield-avg-card-icon-fallback {
+  width: 4.75rem;
+  height: 4.75rem;
+}
+
+.yield-avg-card-name {
+  margin-bottom: 0.4rem;
+  font-size: 0.88rem;
+}
+
+.yield-avg-tier {
+  top: 0.5rem;
+  left: 0.5rem;
+  padding: 0.2rem 0.35rem;
+  font-size: 0.62rem;
+}
+
+.yield-avg-bonus-floating {
+  top: 0.5rem;
+  right: 0.5rem;
+  padding: 0.18rem 0.3rem;
+  font-size: 0.58rem;
+}
+
+.yield-avg-bonus-floating img {
+  width: 0.7rem;
+  height: 0.7rem;
+}
+
+.yield-metric {
+  padding: 0.45rem;
+  border-radius: 0.6rem;
+}
+
+.yield-metric + .yield-metric {
+  margin-top: 0.38rem;
+}
+
+.yield-metric-title {
+  gap: 0.25rem;
+  font-size: 0.7rem;
+}
+
+.yield-metric-title img {
+  width: 0.9rem;
+  height: 0.9rem;
+}
+
+.yield-metric-content {
+  grid-template-columns: minmax(0, 1fr) minmax(4.35rem, 0.82fr);
+  gap: 0.38rem;
+  min-height: 4.25rem;
+  margin-top: 0.25rem;
+}
+
+.yield-values-stack {
+  padding-right: 0.45rem;
+  font-size: 0.58rem;
+}
+
+.yield-values-stack span + span {
+  padding-top: 0.35rem;
+}
+
+.yield-values-stack b,
+.yield-values-stack span:first-child b {
+  font-size: 1.08rem;
+}
+
+.yield-delta-stack {
+  grid-template-columns: 1fr 0.85rem;
+  gap: 0.16rem 0.25rem;
+}
+
+.yield-delta-stack strong {
+  font-size: 1.08rem;
+}
+
+.yield-delta-stack span {
+  font-size: 0.6rem;
+}
+
+.yield-delta-gauge {
+  width: 0.32rem;
+  height: 3.15rem;
+}
+
+.yield-delta-gauge::before {
+  z-index: 2;
+  left: -0.16rem;
+  width: 0.64rem;
+  height: 0.13rem;
+}
+
+.yield-delta-gauge::after {
+  z-index: 1;
+}
+
+.yield-card-footer {
+  min-height: 1.65rem;
+  margin-top: 0.45rem;
+  padding: 0.22rem 0.35rem;
+  border-radius: 0.48rem;
+  font-size: 0.58rem;
+}
+
+.yield-card-footer img {
+  width: 0.75rem;
+  height: 0.75rem;
+}
+
+.yield-confidence {
+  gap: 0.14rem;
+}
+
+.yield-confidence i {
+  width: 0.42rem;
+  height: 0.42rem;
+}
+
+.yield-avg-card.is-confidence-1 .yield-confidence i:nth-child(-n+1),
+.yield-avg-card.is-confidence-2 .yield-confidence i:nth-child(-n+2),
+.yield-avg-card.is-confidence-3 .yield-confidence i:nth-child(-n+3),
+.yield-avg-card.is-confidence-4 .yield-confidence i:nth-child(-n+4) {
+  background: #ffd361;
+  box-shadow: 0 0 5px rgba(255, 211, 97, 0.3);
+}
+
+@media (max-width: 640px) {
+  .yield-avg-row {
+    grid-template-columns: repeat(8, minmax(11.75rem, 1fr));
+  }
+  .yield-metric-title img, .yield-avg-bonus-floating img, .yield-card-footer img {
+    display: block;
   }
 }

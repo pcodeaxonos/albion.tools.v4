@@ -17,6 +17,7 @@ import { getCityApiName } from './db/relations.js';
 import { getItemByUniqueName } from './db/relations.js';
 import { fetchPrices, indexPrices, cityRow } from './market.js';
 import { quoteFromRow } from './price-side.js';
+import { cityProductionBonus, citySpecialtyProductionBonus } from './catalog.js';
 
 const TABLE = 'dailyBonuses';
 
@@ -24,7 +25,7 @@ const state = {
     month: toYearMonth(bonusDayIso()),
     editingId: null,
     sort: { key: 'date', direction: 'desc' },
-    analysis: { familyKey: null, familyData: {} }
+    analysis: { familyKey: null, familyData: {}, reorderMode: false }
 };
 
 function toYearMonth(isoDate) {
@@ -59,6 +60,7 @@ const ANALYSIS_TIERS = [4, 5, 6, 7, 8];
 const ANALYSIS_RECIPE_CACHE_KEY = 'albiontools.v4.dailyBonusRecipeCache';
 const ANALYSIS_PRICE_CACHE_KEY = 'albiontools.v4.dailyBonusPriceCache';
 const ANALYSIS_PRICE_CACHE_MS = 60 * 60 * 1000;
+const ANALYSIS_CARD_ORDER_KEY = 'albiontools.v4.dailyBonusCardOrder';
 
 function analysisDefaultTiers() {
     const tiers = [...new Set(getStandardCombos()
@@ -68,7 +70,7 @@ function analysisDefaultTiers() {
 }
 
 function number(value) {
-    return new Intl.NumberFormat('tr-TR').format(value);
+    return new Intl.NumberFormat('tr-TR', { maximumFractionDigits: 0 }).format(Math.round(Number(value) || 0));
 }
 
 function formatTimestamp(value) {
@@ -83,8 +85,62 @@ function unitMaterialYield(row) {
     return totalMaterialQty > 0 && row.market > 0 ? row.market / totalMaterialQty : 0;
 }
 
-function renderAnalysisCard(row, rank) {
-    const { recipe, market, material, profit } = row;
+function analysisBonusRate(familyKey) {
+    const today = findByDate(bonusDayIso());
+    const slot = ['slot1', 'slot2'].find((key) => today?.[`${key}FamilyKey`] === familyKey);
+    const rate = slot ? Number(today?.[`${slot}Rate`]) : 0;
+    return Number.isFinite(rate) ? rate : 0;
+}
+
+function analysisSpecialtyBonus(familyKey) {
+    return getBonusFamilyByKey(familyKey)?.cityId ? citySpecialtyProductionBonus() : 0;
+}
+
+function analysisProductionBonus(familyKey) {
+    return cityProductionBonus() + analysisSpecialtyBonus(familyKey) + analysisBonusRate(familyKey);
+}
+
+function analysisReturnRate(familyKey) {
+    const productionBonus = analysisProductionBonus(familyKey);
+    return productionBonus / (100 + productionBonus);
+}
+
+function readAnalysisCardOrders() {
+    try {
+        const orders = JSON.parse(localStorage.getItem(ANALYSIS_CARD_ORDER_KEY) || '{}');
+        return orders && typeof orders === 'object' ? orders : {};
+    } catch {
+        return {};
+    }
+}
+
+function analysisCardOrderKey(familyKey, tier) {
+    return `${familyKey}|${tier}`;
+}
+
+function orderedAnalysisRows(rows, familyKey, tier) {
+    const order = readAnalysisCardOrders()[analysisCardOrderKey(familyKey, tier)] || [];
+    const positions = new Map(order.map((id, index) => [id, index]));
+    return rows.slice().sort((a, b) => (positions.get(a.recipe.id) ?? Number.MAX_SAFE_INTEGER) - (positions.get(b.recipe.id) ?? Number.MAX_SAFE_INTEGER));
+}
+
+function moveAnalysisCard(familyKey, tier, recipeId, direction) {
+    const rows = orderedAnalysisRows(analysisData(familyKey).rows.filter((row) => row.recipe.tier === Number(tier)), familyKey, tier);
+    const from = rows.findIndex((row) => row.recipe.id === recipeId);
+    const to = from + direction;
+    if (from < 0 || to < 0 || to >= rows.length) return;
+    [rows[from], rows[to]] = [rows[to], rows[from]];
+    const orders = readAnalysisCardOrders();
+    orders[analysisCardOrderKey(familyKey, tier)] = rows.map((row) => row.recipe.id);
+    localStorage.setItem(ANALYSIS_CARD_ORDER_KEY, JSON.stringify(orders));
+}
+
+function formatAnalysisPercent(ratio) {
+    return number(Math.round(ratio * 1000) / 10);
+}
+
+function renderAnalysisCard(row, rank, { reorderable = false, isFirst = false, isLast = false } = {}) {
+    const { recipe, market, material, profit, returnRate } = row;
     const missingMarketPrice = market <= 0;
     const totalMaterialQty = recipe.lines.reduce((total, line) => total + Number(line.qty || 0), 0);
     const materialYield = Math.round(unitMaterialYield(row));
@@ -94,7 +150,8 @@ function renderAnalysisCard(row, rank) {
     const requirements = recipe.lines.map((line) => `${line.short} · ${number(line.qty)}`).join(' · ');
     const resourceIcons = recipe.lines.map((line) => `<span title="${escapeHtml(`${line.short} · ${number(line.qty)}`)}">${itemIconHtml(line.uniqueName, { size: 28, className: 'item-icon' })}<b>${number(line.qty)}</b></span>`).join('');
     return `
-        <article class="bonus-analysis-card is-unit-rank-${rank}">
+        <article class="bonus-analysis-card is-unit-rank-${rank}" data-analysis-recipe="${escapeHtml(recipe.id)}">
+            <div class="bonus-analysis-card-surface">
             <div class="bonus-analysis-card-main">
                 <span class="bonus-analysis-rank is-rank-${rank}" aria-label="Birim getiriye göre sıra ${rank}"><svg viewBox="0 0 40 34" aria-hidden="true"><path fill="currentColor" d="M4 10l8 7 8-12 8 12 8-7-4 17H8zM8 29h24v3H8z"/><g fill="currentColor"><circle cx="4" cy="8" r="2.5"/><circle cx="12" cy="14" r="2"/><circle cx="20" cy="4" r="2.5"/><circle cx="28" cy="14" r="2"/><circle cx="36" cy="8" r="2.5"/></g></svg><b>${rank}</b></span>
                 <div class="bonus-analysis-icon">${itemIconHtml(recipe.uniqueName, { size: 96, className: 'item-icon' })}</div>
@@ -106,26 +163,30 @@ function renderAnalysisCard(row, rank) {
                     </dl>
                 </div>
             </div>
-            <div class="bonus-analysis-material"><div><span>Hammadde Maliyeti</span><strong>${material > 0 ? number(material) : '—'}</strong></div><div><span title="${escapeHtml(requirements)}">Toplam Hammadde · ${number(totalMaterialQty)}</span><div class="bonus-analysis-resources" aria-label="${escapeHtml(requirements)}">${resourceIcons}</div></div></div>
+            <div class="bonus-analysis-material"><div><span>Hammadde Maliyeti</span><strong>${material > 0 ? number(material) : '—'}</strong></div><div><span title="${escapeHtml(requirements)}">Tarif Hammadde · ${number(totalMaterialQty)}</span><div class="bonus-analysis-resources" aria-label="${escapeHtml(requirements)}">${resourceIcons}</div></div></div>
+            ${reorderable ? `<div class="bonus-analysis-card-order" aria-label="Kart sırası"><button type="button" data-analysis-card-move="up"${isFirst ? ' disabled' : ''} aria-label="Yukarı taşı">↑</button><button type="button" data-analysis-card-move="down"${isLast ? ' disabled' : ''} aria-label="Aşağı taşı">↓</button></div>` : ''}
+            </div>
         </article>`;
 }
 
 function renderAnalysisLoadingCard() {
     return `<article class="bonus-analysis-card is-loading" aria-label="Tarifler ve fiyatlar yükleniyor">
+        <div class="bonus-analysis-card-surface">
         <div class="bonus-analysis-card-main" aria-hidden="true"><div class="bonus-analysis-icon"></div><div class="bonus-analysis-card-details"><div class="bonus-analysis-item-copy"><i></i><i></i></div><dl class="bonus-analysis-prices"><div><i></i><i></i></div><div><i></i><i></i></div></dl></div></div>
         <div class="bonus-analysis-material" aria-hidden="true"><div><i></i><i></i></div><div><i></i><i></i></div></div>
+        </div>
     </article>`;
 }
 
-function renderTierColumn(tier, analysis) {
-    const rows = analysis.rows.filter((row) => row.recipe.tier === tier).slice(0, 3);
+function renderTierColumn(tier, analysis, familyKey) {
+    const rows = orderedAnalysisRows(analysis.rows.filter((row) => row.recipe.tier === tier), familyKey, tier).slice(0, 3);
     const ranks = new Map([...rows]
         .sort((a, b) => unitMaterialYield(b) - unitMaterialYield(a))
         .map((row, index) => [row.recipe.id, index + 1]));
     const content = analysis.loading && rows.length === 0
         ? Array.from({ length: 3 }, renderAnalysisLoadingCard).join('')
         : rows.length
-            ? rows.map((row) => renderAnalysisCard(row, ranks.get(row.recipe.id))).join('')
+            ? rows.map((row, index) => renderAnalysisCard(row, ranks.get(row.recipe.id), { reorderable: state.analysis.reorderMode, isFirst: index === 0, isLast: index === rows.length - 1 })).join('')
             : '<p class="bonus-analysis-empty">Bu tier için normal tarif bulunamadı.</p>';
     return `
         <section class="bonus-analysis-tier-column is-tier-${tier}" data-analysis-tier="${tier}">
@@ -236,6 +297,7 @@ function hydrateAnalysisRecipe(item, familyKey, recipe) {
         uniqueName: item.uniqueName,
         label: item.localizedName,
         tier: Number(item.tier),
+        sortValue: Number(item.sortValue) || 0,
         familyKey,
         lines: (recipe.lines || []).map((resource) => {
             const material = getItemByUniqueName(resource.uniqueName);
@@ -249,7 +311,7 @@ const ARTIFACT_ITEM_PATTERN = /(?:KEEPER|HELL|MORGANA|UNDEAD|AVALON|CRYSTAL|FEY|
 function normalAnalysisItems(familyKey) {
     const slug = String(familyKey).split('/').pop();
     const tierCounts = new Map();
-    return getAll('items').filter((item) => {
+    return getAll('items').map((item, sourceOrder) => ({ ...item, sortValue: sourceOrder })).filter((item) => {
         const tier = Number(item.tier);
         if (!item.isEquipable || item.enchantment !== 0 || !ANALYSIS_TIERS.includes(tier)
             || item.shopSubCategory !== slug || ARTIFACT_ITEM_PATTERN.test(item.uniqueName)) {
@@ -323,8 +385,10 @@ async function loadAnalysisPrices(familyKey, { forcePrices = false } = {}) {
         const matCity = getCityApiName(family?.cityId) || 'Caerleon';
         const rows = recipes.map((recipe) => {
             const market = quoteFromRow(cityRow(prices, recipe.uniqueName, 'Black Market'), settings.sellPriceSide, 'sell')?.price || 0;
-            const material = recipe.lines.reduce((sum, line) => sum + ((quoteFromRow(cityRow(prices, line.uniqueName, matCity), settings.buyPriceSide, 'buy')?.price || 0) * line.qty), 0);
-            return { recipe, market, material, profit: market > 0 ? market - material : null };
+            const grossMaterial = recipe.lines.reduce((sum, line) => sum + ((quoteFromRow(cityRow(prices, line.uniqueName, matCity), settings.buyPriceSide, 'buy')?.price || 0) * line.qty), 0);
+            const returnRate = analysisReturnRate(familyKey);
+            const material = grossMaterial * (1 - returnRate);
+            return { recipe, market, material, profit: market > 0 ? market - material : null, returnRate };
         }).sort((a, b) => a.recipe.tier - b.recipe.tier
             || (Number(a.recipe.sortValue) || 0) - (Number(b.recipe.sortValue) || 0)
             || String(a.recipe.id).localeCompare(String(b.recipe.id), 'tr'));
@@ -346,14 +410,20 @@ function renderBonusAnalysisDialog() {
     const familyOptions = families.map((row) => `<button type="button" class="${row.familyKey === family?.familyKey ? 'is-active' : ''}" data-analysis-family="${escapeHtml(row.familyKey)}">${escapeHtml(row.label)}</button>`).join('');
     const preferredTierText = defaultTiers.map((tier) => `T${tier}`).join(' · ');
     const updatedLabel = formatTimestamp(activeAnalysis.updatedAt);
+    const isLoading = activeAnalysis.loading;
+    const dailyBonus = analysisBonusRate(family?.familyKey);
+    const returnRate = analysisReturnRate(family?.familyKey);
+    const specialtyBonus = analysisSpecialtyBonus(family?.familyKey);
+    const productionBonus = analysisProductionBonus(family?.familyKey);
+    const rrTitle = `Royal şehir bonusu %${cityProductionBonus()} + yerel şehir bonusu %${specialtyBonus} + günlük bonus %${dailyBonus}; RR = ${productionBonus} / ${100 + productionBonus}`;
     const analysisNote = activeAnalysis.error
         ? escapeHtml(activeAnalysis.error)
-        : 'Kartlar istasyondaki craft sırasıyla gösterilir. Rozetler, görünen üç itemi birim getiriye göre sıralar.';
+        : `Hammadde maliyeti, %${cityProductionBonus()} Royal şehir + %${specialtyBonus} yerel şehir + %${dailyBonus} günlük üretim bonusunun RRR'a çevrilmesiyle hesaplanır. Kartlar API tarif sırasıyla gösterilir; Kart Sırasını Düzenle ile kalıcı olarak elle değiştirilebilir.`;
     const familyGrids = families.map((row) => {
         const data = analysisData(row.familyKey);
         const hidden = row.familyKey === family?.familyKey ? '' : ' hidden';
         return `<section class="bonus-analysis-grid" data-analysis-family-grid="${escapeHtml(row.familyKey)}" data-analysis-family-key="${escapeHtml(row.familyKey)}"${hidden}>
-            ${ANALYSIS_TIERS.map((tier) => renderTierColumn(tier, data)).join('')}
+            ${ANALYSIS_TIERS.map((tier) => renderTierColumn(tier, data, row.familyKey)).join('')}
         </section>`;
     }).join('');
     return `
@@ -363,11 +433,12 @@ function renderBonusAnalysisDialog() {
                 <aside class="bonus-analysis-sidebar">
                     <header class="bonus-analysis-head">
                         <div><p class="bonus-analysis-eyebrow"><img src="icons/daily-bonus/ui-icons/chart-bars.svg" alt="" aria-hidden="true">GÜNLÜK CRAFT BONUS ANALİZİ</p><h2>${escapeHtml(family?.label || 'Bonus seçin')} <span>${formatDate(bonusDayIso())}</span></h2><p>Artifactsiz ilk üç item için Black Market fiyatına göre en kârlı seçenekler.</p></div>
-                        <div class="bonus-analysis-refresh-group"><button type="button" class="btn btn-primary bonus-analysis-refresh" data-analysis-refresh><img src="icons/daily-bonus/ui-icons/refresh.svg" alt="" aria-hidden="true">Fiyatları Yenile</button><small>Son güncelleme:<br>${updatedLabel}</small></div>
+                        <div class="bonus-analysis-refresh-group"><button type="button" class="btn btn-primary bonus-analysis-refresh" data-analysis-refresh${isLoading ? ' disabled aria-busy="true"' : ''}><img src="icons/daily-bonus/ui-icons/refresh.svg" alt="" aria-hidden="true">${isLoading ? 'Yükleniyor…' : 'Fiyatları Yenile'}</button><button type="button" class="btn btn-outline-secondary bonus-analysis-order-toggle" data-analysis-order-toggle>${state.analysis.reorderMode ? 'Sıralamayı Bitir' : 'Kart Sırasını Düzenle'}</button><small>${isLoading ? 'Tarifler ve fiyatlar<br>yükleniyor…' : `Son güncelleme:<br>${updatedLabel}`}</small></div>
                     </header>
                     <section class="bonus-analysis-controls" aria-label="Analiz filtreleri">
                         <div class="bonus-analysis-select"><span>Bonus grubu</span><div class="bonus-analysis-family-tabs">${familyOptions}</div><small>${escapeHtml(getCityApiName(family?.cityId) || 'Caerleon')}</small></div>
                         <div class="bonus-analysis-select"><span>Market</span><strong>Black Market</strong><small>Satış fiyatı</small></div>
+                        <span class="bonus-analysis-rr-badge" title="${escapeHtml(rrTitle)}"><i aria-hidden="true">↻</i><span><b>RR %${formatAnalysisPercent(returnRate)}</b><small>Royal %${cityProductionBonus()} + yerel %${specialtyBonus} + günlük %${dailyBonus}</small></span></span>
                         <div class="bonus-analysis-tiers" role="group" aria-label="Tier seçimi">
                             ${ANALYSIS_TIERS.map((tier) => `<button type="button" class="is-tier-${tier}${defaultTiers.includes(tier) ? ' is-active' : ''}" data-analysis-filter="${tier}">T${tier}</button>`).join('')}
                             <button type="button" data-analysis-filter="all">Tüm Tierlar</button>
@@ -394,7 +465,23 @@ async function openBonusAnalysis(container) {
                 return;
             }
             if (event.target.closest('[data-analysis-refresh]')) {
-                loadAnalysisPrices(state.analysis.familyKey, { forcePrices: true }).then(() => renderAnalysisDialog(dialog));
+                void refreshBonusAnalysis(dialog, state.analysis.familyKey, { forcePrices: true });
+                return;
+            }
+            if (event.target.closest('[data-analysis-order-toggle]')) {
+                state.analysis.reorderMode = !state.analysis.reorderMode;
+                renderAnalysisDialog(dialog);
+                return;
+            }
+            const moveButton = event.target.closest('[data-analysis-card-move]');
+            if (moveButton) {
+                const card = moveButton.closest('[data-analysis-recipe]');
+                const column = moveButton.closest('[data-analysis-tier]');
+                const grid = moveButton.closest('[data-analysis-family-key]');
+                if (card && column && grid) {
+                    moveAnalysisCard(grid.dataset.analysisFamilyKey, column.dataset.analysisTier, card.dataset.analysisRecipe, moveButton.dataset.analysisCardMove === 'up' ? -1 : 1);
+                    renderAnalysisDialog(dialog);
+                }
                 return;
             }
             const familyButton = event.target.closest('[data-analysis-family]');
@@ -407,6 +494,9 @@ async function openBonusAnalysis(container) {
             if (tierButton) toggleAnalysisTier(dialog, tierButton);
         });
     }
+    if (dialog.open) {
+        return;
+    }
     const families = todayAnalysisFamilies();
     if (families.length === 0) {
         showToast('Bugün için kayıtlı craft bonusu yok.', { kind: 'error' });
@@ -415,12 +505,22 @@ async function openBonusAnalysis(container) {
     state.analysis.familyKey = state.analysis.familyKey && families.some((family) => family.familyKey === state.analysis.familyKey)
         ? state.analysis.familyKey
         : families[0].familyKey;
-    await Promise.all(families.map((family) => loadAnalysisPrices(family.familyKey)));
     renderAnalysisDialog(dialog);
     if (typeof dialog.showModal === 'function') {
         dialog.showModal();
     } else {
         dialog.setAttribute('open', '');
+    }
+    showToast('Craft analizi hazırlanıyor; tarifler ve fiyatlar yükleniyor…', { kind: 'info', duration: 5000 });
+    await Promise.all(families.map((family) => refreshBonusAnalysis(dialog, family.familyKey)));
+}
+
+async function refreshBonusAnalysis(dialog, familyKey, options) {
+    const pending = loadAnalysisPrices(familyKey, options);
+    renderAnalysisDialog(dialog);
+    await pending;
+    if (dialog.isConnected) {
+        renderAnalysisDialog(dialog);
     }
 }
 
