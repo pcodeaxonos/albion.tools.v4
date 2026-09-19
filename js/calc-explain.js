@@ -263,10 +263,8 @@ export function explainEmptyHtml(message) {
     return `<p class="calc-explain-empty">${escapeHtml(message)}</p>`;
 }
 
-export function explainHint(hovered) {
-    return hovered
-        ? 'Satırın üzerine gelindi · tıklayınca bu satır kilitlenir'
-        : 'Seçili satır · başka satıra gelince formül geçici değişir';
+export function explainHint() {
+    return 'Seçili satır · güncellemek için başka bir satırı tıklayın';
 }
 
 export function bindCalcExplain({
@@ -282,7 +280,7 @@ export function bindCalcExplain({
     }
 
     const id = panel.id || table.className;
-    const session = sessions.get(id) ?? { selected: null, hovered: null };
+    const session = sessions.get(id) ?? { selected: null };
     session.opts = { panel, table, rowKey, keys, defaultKey, render };
     session.paint = () => paint(session);
     sessions.set(id, session);
@@ -290,31 +288,6 @@ export function bindCalcExplain({
     table.classList.add('has-explain');
     if (table.dataset.explainBound !== 'on') {
         table.dataset.explainBound = 'on';
-        table.addEventListener('pointerover', (event) => {
-            const tr = rowFromEvent(table, event);
-            if (!tr) {
-                return;
-            }
-            const key = rowKey(tr);
-            if (!key || session.hovered === key) {
-                return;
-            }
-            session.hovered = key;
-            session.paint();
-        });
-        table.addEventListener('pointerout', (event) => {
-            const next = event.relatedTarget instanceof Element
-                ? event.relatedTarget.closest('tbody tr')
-                : null;
-            if (next && table.contains(next)) {
-                return;
-            }
-            if (session.hovered == null) {
-                return;
-            }
-            session.hovered = null;
-            session.paint();
-        });
         table.addEventListener('click', (event) => {
             const tr = rowFromEvent(table, event);
             if (!tr) {
@@ -354,11 +327,7 @@ function availableKeys(session) {
 
 function resolveKey(session) {
     const known = availableKeys(session);
-    const hovered = session.hovered && known.has(session.hovered) ? session.hovered : null;
     const selected = session.selected && known.has(session.selected) ? session.selected : null;
-    if (hovered) {
-        return hovered;
-    }
     if (selected) {
         return selected;
     }
@@ -375,13 +344,13 @@ function paint(session) {
     table.querySelectorAll('tbody tr').forEach((tr) => {
         const id = rowKey(tr);
         tr.classList.toggle('is-explain', Boolean(session.selected) && id === session.selected);
-        tr.classList.toggle('is-explain-hover', Boolean(session.hovered) && id === session.hovered);
+        tr.classList.remove('is-explain-hover');
     });
 
     if (!key) {
-        panel.innerHTML = explainEmptyHtml('Hesaplamak için tabloda bir satıra gelin veya tıklayın.');
+        panel.innerHTML = explainEmptyHtml('Hesaplamak için tablodan bir satır seçin.');
         return;
     }
 
-    panel.innerHTML = render(key, { hovered: session.hovered === key });
+    panel.innerHTML = render(key, { hovered: false });
 }
