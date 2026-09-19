@@ -1496,6 +1496,19 @@ function wizardProgressCard(group) {
     `;
 }
 
+function wizardStatusGroup({ status, icon, title, value, detail }) {
+    return `
+        <article class="royal-wizard-group is-${status}">
+            <span class="royal-wizard-group-icon is-${status}" aria-hidden="true">${icon}</span>
+            <div>
+                <h3>${escapeHtml(title)}</h3>
+                <strong>${escapeHtml(value)}</strong>
+                <p>${escapeHtml(detail)}</p>
+            </div>
+        </article>
+    `;
+}
+
 function renderWizardProgress(group) {
     const percent = group.total ? Math.round((group.complete.length / group.total) * 100) : 0;
     return `
@@ -1505,6 +1518,129 @@ function renderWizardProgress(group) {
             <small>Fiyat güncellendi</small>
             <b>✓</b>
         </article>
+    `;
+}
+
+// The step rail is deliberately driven from the same interpolated value as the
+// main progress bar. Keeping the last visible value when markup is refreshed
+// prevents a burst of price responses from making the connector jump wide.
+function setWizardRailTarget(dialog, target, initialValue, duration) {
+    const rail = dialog.querySelector('.royal-wizard-steps');
+    if (!rail) return;
+    const safeTarget = Math.max(0, Math.min(100, Number(target) || 0));
+    if (dialog.wizardRail !== rail) {
+        const start = Number.isFinite(initialValue) ? initialValue : safeTarget;
+        rail.style.setProperty('--wizard-rail-progress', `${start}%`);
+        void rail.offsetWidth;
+        dialog.wizardRail = rail;
+    }
+    rail.style.setProperty('--wizard-rail-duration', `${duration}ms`);
+    rail.style.setProperty('--wizard-rail-progress', `${safeTarget}%`);
+}
+
+// Price responses can arrive in bursts. Keep the currently rendered width,
+// then use one CSS transition toward the latest target. The duration scales
+// with the remaining distance so large batches are brisk and small updates are
+// still readable.
+function setWizardProgressTarget(dialog, target) {
+    const bar = dialog.querySelector('.royal-wizard-progress i');
+    if (!bar) return;
+    const safeTarget = Math.max(0, Math.min(100, Number(target) || 0));
+    let progress = dialog.wizardProgress;
+    if (!progress || progress.bar !== bar) {
+        progress?.cleanup?.();
+        const previous = progress?.value;
+        progress = {
+            bar,
+            value: Number.isFinite(previous) ? previous : safeTarget,
+            target: safeTarget,
+            settled: [],
+            cleanup: null,
+            isAnimating: false
+        };
+        dialog.wizardProgress = progress;
+        // A newly rendered step must begin from the currently displayed value,
+        // not from the target baked into its HTML.
+        bar.style.transition = 'none';
+        bar.style.width = `${progress.value}%`;
+        void bar.offsetWidth;
+    } else {
+        // Freeze the in-flight CSS transition at its computed width before
+        // retargeting it. This is what prevents rapid data responses from
+        // snapping the bar to the previous transition's destination.
+        const trackWidth = bar.parentElement.getBoundingClientRect().width;
+        const barWidth = bar.getBoundingClientRect().width;
+        progress.value = trackWidth ? Math.max(0, Math.min(100, barWidth / trackWidth * 100)) : progress.value;
+        bar.style.transition = 'none';
+        bar.style.width = `${progress.value}%`;
+        void bar.offsetWidth;
+    }
+    progress.target = safeTarget;
+    progress.cleanup?.();
+    const distance = Math.abs(progress.target - progress.value);
+    const duration = Math.round(Math.min(900, Math.max(160, 120 + distance * 10)));
+    setWizardRailTarget(dialog, safeTarget, progress.value, duration);
+    if (distance < 0.08) {
+        progress.value = progress.target;
+        progress.isAnimating = false;
+        bar.style.width = `${progress.target}%`;
+        progress.settled.splice(0).forEach((callback) => callback());
+        return;
+    }
+    progress.isAnimating = true;
+    bar.style.transition = `width ${duration}ms cubic-bezier(0.22, 0.8, 0.25, 1)`;
+    bar.style.width = `${progress.target}%`;
+    const onEnd = (event) => {
+        if (event.target !== bar || event.propertyName !== 'width') return;
+        progress.value = progress.target;
+        progress.isAnimating = false;
+        progress.cleanup = null;
+        progress.settled.splice(0).forEach((callback) => callback());
+    };
+    bar.addEventListener('transitionend', onEnd);
+    progress.cleanup = () => bar.removeEventListener('transitionend', onEnd);
+}
+
+function afterWizardProgressSettles(dialog, callback) {
+    const progress = dialog.wizardProgress;
+    if (!progress || !progress.isAnimating) {
+        callback();
+        return;
+    }
+    progress.settled.push(callback);
+}
+
+const ROYAL_WIZARD_TITLE = 'Royal Crafting Wizard';
+const ROYAL_WIZARD_DESCRIPTION = 'En kârlı Royal ekipmanı bulman ve üretim sürecini tamamlaman için rehber.';
+const ROYAL_WIZARD_STEP_TITLES = ['Fiyat Verileri', 'Royal Fiyatları', 'Sonuçlar'];
+
+function renderWizardHeader() {
+    return `<header class="royal-wizard-header">
+        <img class="royal-wizard-crown" src="icons/royal-wizard/crown.svg" alt="">
+        <div><h2>${ROYAL_WIZARD_TITLE}</h2><p>${ROYAL_WIZARD_DESCRIPTION}</p></div>
+        <button type="button" class="royal-wizard-help" data-wizard-help><img src="icons/royal-wizard/info.svg" alt="">Nasıl çalışır?</button>
+    </header>`;
+}
+
+function renderWizardSteps(currentStep, labels, progress = 0) {
+    return `<ol class="royal-wizard-steps" aria-label="Wizard adımları" style="--wizard-rail-progress:${progress}%">
+        ${ROYAL_WIZARD_STEP_TITLES.map((title, index) => {
+            const step = index + 1;
+            const state = step < currentStep ? 'is-done' : step === currentStep ? 'is-current' : '';
+            return `<li class="${state}"${step === currentStep ? ' aria-current="step"' : ''}><b>${step < currentStep ? '✓' : step}</b><span>${title}<small>${escapeHtml(labels[index])}</small></span></li>`;
+        }).join('')}
+    </ol>`;
+}
+
+function renderWizardShell({ currentStep, labels, progress, body, footer, className = '' }) {
+    return `
+        <button type="button" class="app-dialog-close" aria-label="Kapat" data-wizard-close></button>
+        <div class="royal-wizard-sheet ${className}">
+            ${renderWizardHeader()}
+            ${renderWizardSteps(currentStep, labels, progress)}
+            <div class="royal-wizard-body">${body}</div>
+            <footer class="royal-wizard-footer">${footer}</footer>
+        </div>
     `;
 }
 
@@ -1520,46 +1656,33 @@ function renderRoyalWizardStepOne(checked = 0) {
     const total = groups.reduce((sum, group) => sum + group.total, 0);
     const complete = groups.reduce((sum, group) => sum + group.complete.length, 0);
     const percent = total ? Math.round((complete / total) * 100) : 0;
-    const recent = state.wizardRecent.slice(0, 5);
+    const recent = state.wizardRecent.slice(0, 8);
     const isReady = readyGroups === groups.length;
 
-    return `
-        <button type="button" class="app-dialog-close" aria-label="Kapat" data-wizard-close></button>
-        <div class="royal-wizard-sheet">
-            <header class="royal-wizard-header">
-                <img class="royal-wizard-crown" src="icons/royal-wizard/crown.svg" alt="">
-                <div><h2>Royal Crafting Wizard</h2><p>En kârlı Royal ekipmanı bulman ve üretim sürecini tamamlaman için rehber.</p></div>
-                <button type="button" class="royal-wizard-help" data-wizard-help><img src="icons/royal-wizard/info.svg" alt="">Nasıl çalışır?</button>
-            </header>
-            <ol class="royal-wizard-steps" aria-label="Wizard adımları" style="--wizard-rail-progress:${percent}%">
-                <li class="is-current"><b>1</b><span>Fiyat Verileri<small>Hazırlanıyor</small></span></li>
-                <li><b>2</b><span>Royal Fiyatları<small>Bekliyor</small></span></li>
-                <li><b>3</b><span>Sonuçlar<small>Bekliyor</small></span></li>
-            </ol>
-            <div class="royal-wizard-body">
-                <section class="royal-wizard-main">
-                    <h1>1. Fiyat verileri hazırlanıyor</h1>
-                    <p>Hesaplamalarda kullanılacak temel fiyat verileri güncelleniyor.</p>
-                    <div class="royal-wizard-progress" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${percent}"><i style="width:${percent}%"></i></div>
-                    <div class="royal-wizard-progress-meta"><strong>%${percent}</strong><span>${readyGroups} / ${groups.length} kaynak grubu hazır</span></div>
-                    <div class="royal-wizard-groups">${groups.map(wizardProgressCard).join('')}</div>
-                </section>
-                <aside class="royal-wizard-aside">
-                    <section><h3><img src="icons/royal-wizard/info.svg" alt="">Hazırlık kuralı</h3><p>Royal item fiyatları hesaplanmadan önce gerekli tüm temel fiyat grupları (Sigil, Rune/Soul/Relic ve malzemeler) güncellenir. Bu veriler, hesaplamaların doğru ve kararlı olması için kullanılır.</p></section>
-                    <section><h3><img src="icons/royal-wizard/crown.svg" alt="">Geçiş kuralı</h3><p>Tüm gerekli fiyat grupları hazır olduğunda sihirbaz otomatik olarak bir sonraki adıma geçer. Herhangi bir işlem yapmana gerek yoktur.</p></section>
-                </aside>
-                <section class="royal-wizard-recent-section">
-                    <h2 class="royal-wizard-recent-title">Son güncellenen</h2>
-                    <div class="royal-wizard-recent">${recent.length ? recent.map(renderWizardProgress).join('') : '<p>Henüz güncellenen bir fiyat yok.</p>'}</div>
-                </section>
-            </div>
-            <footer class="royal-wizard-footer">
-                <span><img src="icons/royal-wizard/info.svg" alt="">${isReady ? 'Tamamlandığında otomatik ilerler' : `${total - complete} fiyat hâlâ eksik.`}</span>
-                <button type="button" class="btn btn-outline-secondary royal-wizard-pause" data-wizard-pause aria-pressed="false" disabled>Duraklat</button>
-                <button type="button" class="royal-wizard-skip" data-wizard-continue data-wizard-ready="${isReady}">${isReady ? 'Sonraki adım' : 'Eksiklerle devam et'} <span aria-hidden="true">→</span></button>
-            </footer>
-        </div>
-    `;
+    return renderWizardShell({
+        currentStep: 1,
+        labels: ['Hazırlanıyor', 'Bekliyor', 'Bekliyor'],
+        progress: percent,
+        body: `
+            <section class="royal-wizard-main">
+                <h1>1. Fiyat verileri hazırlanıyor</h1>
+                <p>Hesaplamalarda kullanılacak temel fiyat verileri güncelleniyor.</p>
+                <div class="royal-wizard-progress" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${percent}"><i style="width:${percent}%"></i></div>
+                <div class="royal-wizard-progress-meta"><strong>%${percent}</strong><span>${readyGroups} / ${groups.length} kaynak grubu hazır</span></div>
+                <div class="royal-wizard-groups">${groups.map(wizardProgressCard).join('')}</div>
+            </section>
+            <aside class="royal-wizard-aside">
+                <section><h3><img src="icons/royal-wizard/info.svg" alt="">Hazırlık kuralı</h3><p>Royal item fiyatları hesaplanmadan önce gerekli tüm temel fiyat grupları (Sigil, Rune/Soul/Relic ve malzemeler) güncellenir. Bu veriler, hesaplamaların doğru ve kararlı olması için kullanılır.</p></section>
+                <section><h3><img src="icons/royal-wizard/crown.svg" alt="">Geçiş kuralı</h3><p>Tüm gerekli fiyat grupları hazır olduğunda sihirbaz otomatik olarak bir sonraki adıma geçer. Herhangi bir işlem yapmana gerek yoktur.</p></section>
+            </aside>
+            <section class="royal-wizard-recent-section">
+                <h2 class="royal-wizard-recent-title">Son güncellenen</h2>
+                <div class="royal-wizard-recent">${recent.length ? recent.map(renderWizardProgress).join('') : '<p>Henüz güncellenen bir fiyat yok.</p>'}</div>
+            </section>`,
+        footer: `<span><img src="icons/royal-wizard/info.svg" alt="">${isReady ? 'Tamamlandığında otomatik ilerler' : `${total - complete} fiyat hâlâ eksik.`}</span>
+            <button type="button" class="btn btn-outline-secondary royal-wizard-pause" data-wizard-pause aria-pressed="false" disabled>Duraklat</button>
+            <button type="button" class="royal-wizard-skip" data-wizard-continue data-wizard-ready="${isReady}">${isReady ? 'Sonraki adım' : 'Eksiklerle devam et'} <span aria-hidden="true">→</span></button>`
+    });
 }
 
 function wizardRoyalItems() {
@@ -1588,55 +1711,60 @@ function renderRoyalWizardStepTwo(run) {
     const checked = run.items.filter((item) => run.checked.has(item.id));
     const counts = { complete: 0, proxy: 0, missing: 0 };
     checked.forEach((item) => counts[wizardRoyalStatus(item)]++);
-    const percent = run.items.length ? Math.round(checked.length / run.items.length * 100) : 100;
     const missing = checked.filter((item) => wizardRoyalStatus(item) === 'missing');
+    const available = counts.complete + counts.proxy;
+    const percent = run.items.length ? Math.round(available / run.items.length * 100) : 100;
     const incomplete = missing.length || run.error || !run.baseReady;
-    const stats = [
-        ['complete', '✓', counts.complete, 'Tam', 'Ex + MP'],
-        ['proxy', '◐', counts.proxy, 'Proxy', '1 kalite bulundu'],
-        ['missing', '⊘', counts.missing, 'Eksik', 'Fiyat bulunamadı'],
-        ['pending', '◷', run.items.length - checked.length, 'Kalan', 'Kontrol bekliyor']
+    const statusGroups = [
+        { status: 'complete', icon: '✓', title: 'Tam', value: `${counts.complete} item`, detail: 'Excellent + Masterpiece hazır' },
+        { status: 'proxy', icon: '◐', title: 'Proxy', value: `${counts.proxy} item`, detail: 'Tek kalite fiyatı bulundu' },
+        { status: 'missing', icon: '⊘', title: 'Eksik', value: `${counts.missing} item`, detail: 'Fiyat bulunamadı' }
     ];
-    return `
-        <button type="button" class="app-dialog-close" aria-label="Kapat" data-wizard-close></button>
-        <div class="royal-wizard-sheet royal-wizard-step-two">
-            <header class="royal-wizard-header">
-                <img class="royal-wizard-crown" src="icons/royal-wizard/crown.svg" alt="">
-                <div><h2>Royal Crafting Wizard</h2><p>En kârlı Royal ekipmanı bulman ve üretim sürecini tamamlaman için rehber.</p></div>
-                <button type="button" class="royal-wizard-help" data-wizard-help><img src="icons/royal-wizard/info.svg" alt="">Nasıl çalışır?</button>
-            </header>
-            <ol class="royal-wizard-steps" aria-label="Wizard adımları" style="--wizard-rail-progress:${percent}%">
-                <li class="is-done"><b>✓</b><span>Fiyat Verileri<small>${run.baseReady ? 'Tamamlandı' : 'Eksiklerle geçildi'}</small></span></li>
-                <li class="is-current" aria-current="step"><b>2</b><span>Royal Fiyatları<small>${run.loading ? 'Güncelleniyor…' : 'Kontrol tamamlandı'}</small></span></li>
-                <li><b>3</b><span>Sonuçlar<small>Bekliyor</small></span></li>
-            </ol>
-            <div class="royal-wizard-body">
-                <section class="royal-wizard-main">
-                    <h1>2. Royal item fiyatları ${run.loading ? 'güncelleniyor' : 'kontrol edildi'}</h1>
-                    <p>Seçilen filtrelere göre Royal itemların Excellent ve Masterpiece fiyatları kontrol edilir.</p>
-                    <div class="royal-wizard-progress" role="progressbar" aria-label="Royal fiyat kontrolü" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${percent}"><i style="width:${percent}%"></i></div>
-                    <div class="royal-wizard-progress-meta"><strong>%${percent}</strong><span>${checked.length} / ${run.items.length} item işlendi</span></div>
-                    <div class="royal-wizard-stats">${stats.map(([status, icon, count, label, detail]) => `<div class="royal-wizard-stat is-${status}"><i aria-hidden="true">${icon}</i><div><strong>${count}</strong><b>${label}</b><small>${detail}</small></div></div>`).join('')}</div>
-                    ${!run.items.length ? '<p>Seçilen filtrelerde Royal item bulunamadı.</p>' : ''}
-                    ${run.error ? `<p class="royal-wizard-error" role="alert">${escapeHtml(run.error)} Mevcut kayıtlı fiyatlar gösteriliyor.</p>` : ''}
+    const stateLabel = run.loading
+        ? 'Güncelleniyor…'
+        : missing.length
+            ? `${missing.length} veri eksik`
+            : run.error
+                ? 'Kontrol tamamlanamadı'
+                : 'Tamamlandı';
+    const footerStatus = run.loading
+        ? `Market fiyatları kontrol ediliyor… ${checked.length} / ${run.items.length} item işlendi.`
+        : missing.length
+            ? `${missing.length} item için fiyat bulunamadı; eksiklerle devam edebilirsin.`
+            : run.error
+                ? 'Bazı fiyatlar yenilenemedi.'
+                : 'Fiyat kontrolü tamamlandı.';
+    const missingPreview = missing.slice(0, 9);
+    return renderWizardShell({
+        currentStep: 2,
+        labels: [run.baseReady ? 'Tamamlandı' : 'Eksiklerle geçildi', stateLabel, 'Bekliyor'],
+        progress: percent,
+        className: 'royal-wizard-step-two',
+        body: `
+            <section class="royal-wizard-main">
+                <h1>2. Royal item fiyatları</h1>
+                <p>Seçilen filtrelere göre Royal itemların Excellent ve Masterpiece fiyatları kontrol edilir.</p>
+                <div class="royal-wizard-progress" role="progressbar" aria-label="Kullanılabilir Royal fiyat oranı" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${percent}"><i style="width:${percent}%"></i></div>
+                <div class="royal-wizard-progress-meta"><strong>%${percent}</strong><span>${available} / ${run.items.length} item kullanılabilir fiyatla hazır</span></div>
+                <div class="royal-wizard-groups">${statusGroups.map(wizardStatusGroup).join('')}</div>
+                ${!run.items.length ? '<p>Seçilen filtrelerde Royal item bulunamadı.</p>' : ''}
+                ${run.error ? `<p class="royal-wizard-error" role="alert">${escapeHtml(run.error)} Mevcut kayıtlı fiyatlar gösteriliyor.</p>` : ''}
+            </section>
+            <aside class="royal-wizard-aside" id="royalWizardRules" tabindex="-1" data-wizard-list="missing">
+                <section class="royal-wizard-missing-preview">
+                    <h3><span class="royal-wizard-alert" aria-hidden="true">!</span>Eksik fiyatlar</h3>
+                    <p>${missing.length ? `${missing.length} item için fiyat bulunamadı. Sonuçlarda ayrı işaretlenecek.` : 'Kontrol edilen itemlarda eksik fiyat yok.'}</p>
+                    ${missingPreview.length ? `<div class="royal-wizard-item-grid">${missingPreview.map(renderWizardRoyalCard).join('')}</div>${missing.length > missingPreview.length ? `<small>İlk ${missingPreview.length} item gösteriliyor.</small>` : ''}` : ''}
                 </section>
-                <aside class="royal-wizard-aside" id="royalWizardRules" tabindex="-1">
-                    <section><h3><img src="icons/royal-wizard/info.svg" alt="">Fiyat ve kâr hesaplama kuralları</h3><h4>Proxy fiyat kuralı</h4><p>Yalnızca Excellent veya Masterpiece fiyatı bulunursa, bulunan fiyat diğer kalite için proxy olarak kullanılır.</p></section>
-                    <section><h3><img src="icons/royal-wizard/crown.svg" alt="">Kâr hesabı</h3><p>Hesaplamalar seçili kalite, şehir ve alış/satış ayarlarına göre yapılır. Proxy fiyat kullanılan sonuçlar ayrıca işaretlenir.</p></section>
-                </aside>
-                <section class="royal-wizard-recent-section">
-                    <h2 class="royal-wizard-recent-title">Son kontrol edilenler</h2>
-                    <div class="royal-wizard-recent">${checked.length ? checked.slice(-4).reverse().map(renderWizardRoyalCard).join('') : '<p>Royal fiyatları bekleniyor…</p>'}</div>
-                    <details class="royal-wizard-item-list" data-wizard-list="all" ${run.allOpen ? 'open' : ''}><summary>Tümünü gör <span>${checked.length} item</span></summary><div class="royal-wizard-item-grid">${checked.map(renderWizardRoyalCard).join('')}</div></details>
-                </section>
-                ${missing.length ? `<details class="royal-wizard-missing" data-wizard-list="missing" ${run.missingOpen ? 'open' : ''}><summary><b class="royal-wizard-alert" aria-hidden="true">!</b><span><strong>${missing.length} itemin fiyatı bulunamadı</strong><small>Bu itemlar sonuçlarda ayrı bir bölümde listelenecek.</small></span><em>Listeyi göster →</em></summary><div class="royal-wizard-item-grid">${missing.map(renderWizardRoyalCard).join('')}</div></details>` : ''}
-            </div>
-            <footer class="royal-wizard-footer">
-                <button type="button" class="btn btn-outline-secondary royal-wizard-back" data-wizard-back><img src="icons/royal-wizard/back.svg" alt="">Geri</button>
-                <span role="status">${run.loading ? 'Market fiyatları kontrol ediliyor…' : run.error ? 'Bazı fiyatlar yenilenemedi.' : 'Fiyat kontrolü tamamlandı.'}</span>
-                <button type="button" class="royal-wizard-skip" data-wizard-continue data-wizard-ready="${!incomplete}" ${run.loading || !run.items.length ? 'disabled' : ''}>${incomplete ? 'Eksiklerle Devam Et' : 'Sonuçları Gör'} <span aria-hidden="true">→</span></button>
-            </footer>
-        </div>`;
+            </aside>
+            <section class="royal-wizard-recent-section">
+                <h2 class="royal-wizard-recent-title">Son kontrol edilenler</h2>
+                <div class="royal-wizard-recent">${checked.length ? checked.slice(-8).reverse().map(renderWizardRoyalCard).join('') : '<p>Royal fiyatları bekleniyor…</p>'}</div>
+            </section>`,
+        footer: `<button type="button" class="btn btn-outline-secondary royal-wizard-back" data-wizard-back><img src="icons/royal-wizard/back.svg" alt="">Geri</button>
+            <span role="status">${footerStatus}</span>
+            <button type="button" class="royal-wizard-skip" data-wizard-continue data-wizard-ready="${!incomplete}" ${run.loading || !run.items.length ? 'disabled' : ''}>${incomplete ? 'Eksiklerle Devam Et' : 'Sonuçları Gör'} <span aria-hidden="true">→</span></button>`
+    });
 }
 
 function updateWizardStepTwo(dialog) {
@@ -1649,21 +1777,41 @@ function updateWizardStepTwo(dialog) {
     for (const name of ['all', 'missing']) {
         run[`${name}Open`] = dialog.querySelector(`[data-wizard-list="${name}"]`)?.open || false;
     }
+    // Preserve a CSS transition's visible midpoint before this render replaces
+    // the progress element with new markup.
+    const previousProgress = dialog.wizardProgress;
+    // Step two rerenders its cards for every price response. Capture the
+    // rendered width before replacing its bar, otherwise a burst restarts the
+    // next transition from an outdated target value.
+    if (previousProgress?.bar?.isConnected) {
+        const trackWidth = previousProgress.bar.parentElement?.getBoundingClientRect().width;
+        const barWidth = previousProgress.bar.getBoundingClientRect().width;
+        if (trackWidth) previousProgress.value = Math.max(0, Math.min(100, barWidth / trackWidth * 100));
+    }
+    if (previousProgress?.bar.isConnected) {
+        const trackWidth = previousProgress.bar.parentElement.getBoundingClientRect().width;
+        const barWidth = previousProgress.bar.getBoundingClientRect().width;
+        if (trackWidth) previousProgress.value = Math.max(0, Math.min(100, barWidth / trackWidth * 100));
+    }
     dialog.innerHTML = renderRoyalWizardStepTwo(run);
+    const visibleAvailable = run.items.filter((item) => run.checked.has(item.id) && wizardRoyalStatus(item) !== 'missing').length;
+    setWizardProgressTarget(dialog, run.items.length
+        ? Math.round((visibleAvailable / run.items.length) * 100)
+        : 100);
     dialog.querySelector('.royal-wizard-body').scrollTop = scrollTop;
     if (focusAttribute) dialog.querySelector(`[${focusAttribute}]`)?.focus({ preventScroll: true });
     if (focusedList) dialog.querySelector(`[data-wizard-list="${focusedList}"] > summary`)?.focus({ preventScroll: true });
 }
 
 function renderRoyalWizardResults(plan) {
-    return `
-        <button type="button" class="app-dialog-close" aria-label="Kapat" data-wizard-close></button>
-        <div class="royal-wizard-results">
-            <header><img class="royal-wizard-crown" src="icons/royal-wizard/crown.svg" alt=""><div><h2>Royal Crafting Wizard</h2><p>3. Sonuçlar · Kâr potansiyeline göre craft planın</p></div></header>
-            ${renderPlanDialogBody(plan).replace(/<button[^>]*data-plan-close[\s\S]*?<\/button>/, '')}
-            <footer class="royal-wizard-footer"><button type="button" class="btn btn-outline-secondary royal-wizard-back" data-wizard-back><img src="icons/royal-wizard/back.svg" alt="">Geri</button></footer>
-        </div>
-    `;
+    return renderWizardShell({
+        currentStep: 3,
+        labels: ['Tamamlandı', 'Tamamlandı', 'Plan hazır'],
+        progress: 100,
+        className: 'royal-wizard-results',
+        body: renderPlanDialogBody(plan).replace(/<button[^>]*data-plan-close[\s\S]*?<\/button>/, ''),
+        footer: '<button type="button" class="btn btn-outline-secondary royal-wizard-back" data-wizard-back><img src="icons/royal-wizard/back.svg" alt="">Geri</button>'
+    });
 }
 
 async function showWizardStepTwo(dialog) {
@@ -1703,6 +1851,9 @@ function stopWizardTransition(dialog) {
     window.clearTimeout(dialog.wizardCompletionTimer);
     window.cancelAnimationFrame(dialog.wizardPrepareFrame);
     window.clearInterval(dialog.wizardCountdownTimer);
+    dialog.wizardProgress?.cleanup?.();
+    dialog.wizardProgress = null;
+    dialog.wizardRail = null;
     dialog.wizardTransitionCleanup?.();
     dialog.wizardTransitionCleanup = null;
     dialog.wizardCountdown = null;
@@ -1731,6 +1882,7 @@ function resumeWizardCountdown(dialog) {
     const countdown = dialog.wizardCountdown;
     if (!countdown) return;
     countdown.startedAt = performance.now();
+    countdown.bar.style.transitionProperty = 'width';
     countdown.bar.style.transitionDuration = countdown.remaining + 'ms';
     countdown.bar.style.width = '0%';
 }
@@ -1757,12 +1909,13 @@ function completeWizardStepOne(dialog, done) {
     dialog.dataset.wizardCompleting = 'true';
     dialog.dataset.wizardPaused = 'false';
     updateWizardCountdown(dialog);
-    // Allow the preparation transition to reach 100% before draining it.
-    dialog.wizardCompletionTimer = window.setTimeout(() => {
+    // Do not drain until the organic preparation fill has visibly reached 100%.
+    afterWizardProgressSettles(dialog, () => {
         if (!dialog.open || dialog.dataset.wizardStep !== '1') return;
         const bar = dialog.querySelector('.royal-wizard-progress i');
         if (!bar) return;
         dialog.wizardCountdown = { bar, remaining: 15000, startedAt: null };
+        bar.style.transitionProperty = 'width';
         bar.style.transitionTimingFunction = 'linear';
         const onEnd = (event) => {
             if (event.target === bar && event.propertyName === 'width'
@@ -1773,7 +1926,7 @@ function completeWizardStepOne(dialog, done) {
         dialog.wizardTransitionCleanup = () => bar.removeEventListener('transitionend', onEnd);
         if (dialog.dataset.wizardPaused !== 'true') resumeWizardCountdown(dialog);
         dialog.wizardCountdownTimer = window.setInterval(() => updateWizardCountdown(dialog), 100);
-    }, 680);
+    });
 }
 
 // All forward/back actions use this single ordered route list.
@@ -1796,6 +1949,7 @@ function showWizardStepOne(dialog) {
     delete dialog.dataset.wizardPaused;
     delete dialog.dataset.wizardCompleting;
     dialog.innerHTML = renderRoyalWizardStepOne(0);
+    setWizardProgressTarget(dialog, 0);
     dialog.wizardPrepareFrame = window.requestAnimationFrame(() => refreshOpenRoyalWizard(dialog.parentElement));
 }
 
@@ -1868,8 +2022,7 @@ function refreshOpenRoyalWizard(container) {
     const nextProgress = next.querySelector('.royal-wizard-progress');
     progress.setAttribute('aria-valuenow', nextProgress.getAttribute('aria-valuenow'));
     void progress.offsetWidth;
-    progress.querySelector('i').style.width = nextProgress.querySelector('i').style.width;
-    dialog.querySelector('.royal-wizard-steps').style.cssText = next.querySelector('.royal-wizard-steps').style.cssText;
+    setWizardProgressTarget(dialog, nextProgress.getAttribute('aria-valuenow'));
     for (const selector of ['.royal-wizard-progress-meta', '.royal-wizard-groups', '.royal-wizard-recent', '.royal-wizard-footer']) {
         dialog.querySelector(selector).innerHTML = next.querySelector(selector).innerHTML;
     }
