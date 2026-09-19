@@ -4677,6 +4677,32 @@ a.tool-card {
         outline: var(--focus-outline-width) solid var(--color-focus-ring);
         outline-offset: 2px;
     }
+    &:disabled {
+        cursor: wait;
+        opacity: 0.72;
+    }
+    &.has-recipe-warning {
+        border-color: #d84a4a;
+        background: #4a171b;
+        color: #ffd9d9;
+        box-shadow: 0 0 0 1px rgba(216, 74, 74, 0.18), 0 0.35rem 1rem rgba(96, 15, 22, 0.28);
+
+        &:hover {
+            border-color: #ff6b6b;
+            color: #fff;
+        }
+    }
+}
+.bonus-analysis-trigger-spinner {
+    width: 0.9rem;
+    height: 0.9rem;
+    border: 2px solid currentColor;
+    border-right-color: transparent;
+    border-radius: 50%;
+    animation: bonus-analysis-spin 0.75s linear infinite;
+}
+@keyframes bonus-analysis-spin {
+    to { transform: rotate(360deg); }
 }
 
 .bonus-analysis-dialog {

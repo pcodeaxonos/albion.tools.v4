@@ -37,6 +37,10 @@ function stationItemName(localizedName) {
     return String(localizedName || '').replace(/^[^']+'s\s+/, '').trim();
 }
 
+export function hasDailyBonusStationOrder(familyKey) {
+    return Object.hasOwn(FIRST_THREE_BY_FAMILY, familyKey);
+}
+
 /** Returns the zero-based station position, or null when this family has no snapshot. */
 export function dailyBonusStationPosition(familyKey, localizedName) {
     const items = FIRST_THREE_BY_FAMILY[familyKey];

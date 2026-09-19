@@ -17,8 +17,8 @@ import { getCityApiName } from './db/relations.js';
 import { getItemByUniqueName } from './db/relations.js';
 import { fetchPrices, indexPrices, cityRow } from './market.js';
 import { quoteFromRow } from './price-side.js';
-import { cityProductionBonus, citySpecialtyProductionBonus, getCraftRecipes } from './catalog.js';
-import { dailyBonusStationPosition } from './daily-bonus-station-order.js';
+import { cityProductionBonus, citySpecialtyProductionBonus } from './catalog.js';
+import { dailyBonusStationPosition, hasDailyBonusStationOrder } from './daily-bonus-station-order.js';
 
 const TABLE = 'dailyBonuses';
 
@@ -26,7 +26,7 @@ const state = {
     month: toYearMonth(bonusDayIso()),
     editingId: null,
     sort: { key: 'date', direction: 'desc' },
-    analysis: { familyKey: null, familyData: {}, reorderMode: false }
+    analysis: { familyKey: null, familyData: {}, reorderMode: false, preparing: false, usedRecipeFallback: false }
 };
 
 function toYearMonth(isoDate) {
@@ -62,6 +62,8 @@ const ANALYSIS_RECIPE_CACHE_KEY = 'albiontools.v4.dailyBonusRecipeCache';
 const ANALYSIS_PRICE_CACHE_KEY = 'albiontools.v4.dailyBonusPriceCache';
 const ANALYSIS_PRICE_CACHE_MS = 60 * 60 * 1000;
 const ANALYSIS_CARD_ORDER_KEY = 'albiontools.v4.dailyBonusCardOrder';
+const analysisPendingLoads = new Map();
+let analysisCatalog = null;
 
 function analysisDefaultTiers() {
     const tiers = [...new Set(getStandardCombos()
@@ -309,19 +311,24 @@ function hydrateAnalysisRecipe(item, familyKey, recipe) {
 
 const ARTIFACT_ITEM_PATTERN = /(?:KEEPER|HELL|MORGANA|UNDEAD|AVALON|CRYSTAL|FEY|ROYAL|@)/;
 
-function normalAnalysisItems(familyKey) {
+function normalAnalysisItems(familyKey, items) {
     const slug = String(familyKey).split('/').pop();
-    const matchingItems = getAll('items').map((item, sourceOrder) => ({ ...item, sourceOrder })).filter((item) => {
+    const hasStationOrder = hasDailyBonusStationOrder(familyKey);
+    const matchingItems = items.map((item, sourceOrder) => ({ ...item, sourceOrder })).filter((item) => {
         const tier = Number(item.tier);
         const enchantment = Number(item.enchantment ?? item.enchantmentLevel ?? 0);
         const isEquipable = item.isEquipable ?? item.equipable;
         const stationPosition = dailyBonusStationPosition(familyKey, item.localizedName);
         const isVerifiedStationItem = stationPosition !== null;
+        const isBaseItem = enchantment === 0 && !String(item.uniqueName || '').includes('@');
         if (!ANALYSIS_TIERS.includes(tier)
-            || (!isVerifiedStationItem && (!(isEquipable === true || String(isEquipable).toLowerCase() === 'true')
-                || enchantment !== 0 || item.shopSubCategory !== slug || ARTIFACT_ITEM_PATTERN.test(item.uniqueName)))) {
+            || !isBaseItem
+            || !(isEquipable === true || String(isEquipable).toLowerCase() === 'true')
+            || ARTIFACT_ITEM_PATTERN.test(item.uniqueName)
+            || (hasStationOrder ? !isVerifiedStationItem : item.shopSubCategory !== slug)) {
             return false;
         }
+        return true;
     });
 
     // The catalogue's source order is not the station UI order (notably plate armour).
@@ -338,6 +345,45 @@ function normalAnalysisItems(familyKey) {
             return count < 3;
         })
         .map(({ stationPosition, sourceOrder, ...item }) => item);
+}
+
+function analysisRecipeCatalog() {
+    if (analysisCatalog) return analysisCatalog;
+
+    const items = getAll('items');
+    const itemsById = new Map(items.map((item) => [Number(item.id), item]));
+    const materialsByOutput = new Map();
+    for (const line of getAll('recipeMaterials')) {
+        const outputId = Number(line.outputItemId);
+        const lines = materialsByOutput.get(outputId) || [];
+        lines.push(line);
+        materialsByOutput.set(outputId, lines);
+    }
+    for (const lines of materialsByOutput.values()) {
+        lines.sort((a, b) => Number(a.sortValue || 0) - Number(b.sortValue || 0) || Number(a.id) - Number(b.id));
+    }
+    analysisCatalog = { items, itemsById, materialsByOutput };
+    return analysisCatalog;
+}
+
+function storedAnalysisRecipe(item, familyKey, catalog) {
+    const lines = (catalog.materialsByOutput.get(Number(item.id)) || []).map((line) => {
+        const material = catalog.itemsById.get(Number(line.inputItemId));
+        return material && {
+            uniqueName: material.uniqueName,
+            qty: Number(line.qty) || 0,
+            short: material.localizedName || material.uniqueName
+        };
+    }).filter(Boolean);
+    return lines.length ? {
+        id: `db-${item.id}`,
+        uniqueName: item.uniqueName,
+        label: item.localizedName,
+        tier: Number(item.tier),
+        sortValue: Number(item.sortValue) || 0,
+        familyKey,
+        lines
+    } : null;
 }
 
 async function fetchAnalysisRecipe(item) {
@@ -368,29 +414,22 @@ async function fetchAnalysisRecipe(item) {
 }
 
 async function recipesFromGameInfo(familyKey) {
-    const storedRecipes = getCraftRecipes({ tool: 'gameinfo' })
-        .filter((recipe) => recipe.familyKey === familyKey && ANALYSIS_TIERS.includes(recipe.tier))
-        .map((recipe) => ({
-            id: `db-${recipe.id}`,
-            uniqueName: recipe.uniqueName,
-            label: recipe.label,
-            tier: recipe.tier,
-            sortValue: recipe.sortValue,
-            familyKey,
-            lines: recipe.lines
-        }));
-    if (storedRecipes.length) {
-        return storedRecipes;
-    }
+    const catalog = analysisRecipeCatalog();
+    const candidates = normalAnalysisItems(familyKey, catalog.items);
+    const storedRecipes = candidates.map((item) => storedAnalysisRecipe(item, familyKey, catalog)).filter(Boolean);
+    if (storedRecipes.length === candidates.length) return storedRecipes;
 
-    const candidates = normalAnalysisItems(familyKey);
     const cache = readAnalysisRecipeCache();
-    const missing = candidates.filter((item) => !cache[item.uniqueName]?.lines?.length);
+    const missing = candidates.filter((item) => !storedRecipes.some((recipe) => recipe.uniqueName === item.uniqueName)
+        && !cache[item.uniqueName]?.lines?.length);
+    if (missing.length) {
+        state.analysis.usedRecipeFallback = true;
+    }
     const results = await Promise.allSettled(missing.map(fetchAnalysisRecipe));
     const details = results
         .filter((result) => result.status === 'fulfilled')
         .map((result) => result.value);
-    if (candidates.length > 0 && details.length === 0) {
+    if (candidates.length > 0 && storedRecipes.length === 0 && details.length === 0) {
         const failures = results
             .filter((result) => result.status === 'rejected')
             .map((result) => result.reason?.message)
@@ -405,9 +444,11 @@ async function recipesFromGameInfo(familyKey) {
     if (cacheChanged) {
         saveAnalysisRecipeCache(cache);
     }
-    return candidates
+    const fallbackRecipes = candidates
+        .filter((item) => !storedRecipes.some((recipe) => recipe.uniqueName === item.uniqueName))
         .map((item) => cache[item.uniqueName] && hydrateAnalysisRecipe(item, familyKey, cache[item.uniqueName]))
         .filter(Boolean);
+    return [...storedRecipes, ...fallbackRecipes];
 }
 
 function analysisData(familyKey) {
@@ -447,6 +488,58 @@ async function loadAnalysisPrices(familyKey, { forcePrices = false } = {}) {
             error: error.message || 'Fiyatlar alınamadı.'
         };
     }
+}
+
+function requestAnalysisLoad(familyKey, options = {}) {
+    const current = analysisPendingLoads.get(familyKey);
+    if (current && !options.forcePrices) {
+        return current;
+    }
+
+    const pending = loadAnalysisPrices(familyKey, options)
+        .finally(() => {
+            if (analysisPendingLoads.get(familyKey) === pending) {
+                analysisPendingLoads.delete(familyKey);
+            }
+        });
+    analysisPendingLoads.set(familyKey, pending);
+    return pending;
+}
+
+function deferUntilAfterPaint(callback) {
+    window.requestAnimationFrame(() => window.setTimeout(callback, 0));
+}
+
+async function warmBonusAnalysis() {
+    const families = todayAnalysisFamilies();
+    if (!families.length) return;
+
+    await Promise.all(families.map((family) => requestAnalysisLoad(family.familyKey)));
+}
+
+function updateAnalysisTrigger(container) {
+    const button = container.querySelector('#openBonusAnalysis');
+    if (!button) return;
+    button.disabled = state.analysis.preparing;
+    button.classList.toggle('has-recipe-warning', state.analysis.usedRecipeFallback);
+    if (state.analysis.usedRecipeFallback) {
+        button.title = 'Veritabanında eksik tarif bulundu; GameInfo fallback kullanıldı.';
+    } else {
+        button.removeAttribute('title');
+    }
+    button.innerHTML = state.analysis.preparing
+        ? '<i class="bonus-analysis-trigger-spinner" aria-hidden="true"></i><span>Analiz hazırlanıyor…</span>'
+        : '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 19V5m0 14h16M7 15l3-3 3 2 5-6"/><path d="M15 8h3v3"/></svg><span>Craft Analizi</span>';
+}
+
+function scheduleBonusAnalysisWarmup(container) {
+    if (!state.analysis.preparing) return;
+    deferUntilAfterPaint(() => {
+        void warmBonusAnalysis().finally(() => {
+            state.analysis.preparing = false;
+            updateAnalysisTrigger(container);
+        });
+    });
 }
 
 function renderBonusAnalysisDialog() {
@@ -559,15 +652,16 @@ async function openBonusAnalysis(container) {
     } else {
         dialog.setAttribute('open', '');
     }
-    showToast('Craft analizi hazırlanıyor; tarifler ve fiyatlar yükleniyor…', { kind: 'info', duration: 5000 });
-    await Promise.all(families.map((family) => refreshBonusAnalysis(dialog, family.familyKey)));
+    deferUntilAfterPaint(() => {
+        void Promise.all(families.map((family) => refreshBonusAnalysis(dialog, family.familyKey)));
+    });
 }
 
 async function refreshBonusAnalysis(dialog, familyKey, options) {
-    const pending = loadAnalysisPrices(familyKey, options);
+    const pending = requestAnalysisLoad(familyKey, options);
     renderAnalysisDialog(dialog);
     await pending;
-    if (dialog.isConnected) {
+    if (dialog.open) {
         renderAnalysisDialog(dialog);
     }
 }
@@ -893,7 +987,7 @@ function renderPage(container) {
 
     container.innerHTML = `
         <section class="bonus-hero">
-            <div class="bonus-hero-head"><h1>Günlük Bonus</h1><button type="button" class="bonus-analysis-trigger" id="openBonusAnalysis"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 19V5m0 14h16M7 15l3-3 3 2 5-6"/><path d="M15 8h3v3"/></svg><span>Craft Analizi</span></button></div>
+            <div class="bonus-hero-head"><h1>Günlük Bonus</h1><button type="button" class="bonus-analysis-trigger${state.analysis.usedRecipeFallback ? ' has-recipe-warning' : ''}" id="openBonusAnalysis"${state.analysis.preparing ? ' disabled' : ''}${state.analysis.usedRecipeFallback ? ' title="Veritabanında eksik tarif bulundu; GameInfo fallback kullanıldı."' : ''}>${state.analysis.preparing ? '<i class="bonus-analysis-trigger-spinner" aria-hidden="true"></i><span>Analiz hazırlanıyor…</span>' : '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 19V5m0 14h16M7 15l3-3 3 2 5-6"/><path d="M15 8h3v3"/></svg><span>Craft Analizi</span>'}</button></div>
             <p>Her gün iki craft / refine bonusu. Gün 13:00’te yenilenir. Oyun API’sinden gelmez; buraya kaydedilir. Unutulan günler boş bırakılabilir.</p>
         </section>
 
@@ -1121,7 +1215,9 @@ async function init() {
     try {
         await initStore();
         state.month = toYearMonth(bonusDayIso());
+        state.analysis.preparing = todayAnalysisFamilies().length > 0;
         renderPage(container);
+        scheduleBonusAnalysisWarmup(container);
     } catch (error) {
         console.error(error);
         container.innerHTML = '<div class="alert alert-info">Günlük bonus yüklenemedi. Sayfayı bir static server ile açın.</div>';
