@@ -65,6 +65,19 @@
     "isActive": true
   },
   {
+    "id": 15,
+    "code": "island-planner-v2",
+    "title": "Ada Planlayıcı V2",
+    "description": "Slot tabanlı ada planı; V1 bağımsız olarak korunur.",
+    "icon": "🏝️",
+    "href": "island-planner-v2.html",
+    "addedAt": "2026-09-20",
+    "groupLabel": "Ada",
+    "frequent": false,
+    "sortValue": 41,
+    "isActive": true
+  },
+  {
     "id": 5,
     "code": "malzemeler",
     "title": "Şehir Makası",
