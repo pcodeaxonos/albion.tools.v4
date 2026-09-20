@@ -1,0 +1,36 @@
+{
+  "desktopTarget": {
+    "width": 1600,
+    "height": 850
+  },
+  "areas": {
+    "area1": "controls",
+    "area2": "island",
+    "area3": "slotGrid",
+    "area4": "summary",
+    "area5": "selectedSlotDetail"
+  },
+  "gridAreas": [
+    [
+      "controls",
+      "island",
+      "right"
+    ],
+    [
+      "controls",
+      "summary",
+      "summary"
+    ]
+  ],
+  "rightNestedRows": [
+    "slotGrid",
+    "selectedSlotDetail"
+  ],
+  "hardConstraints": [
+    "island aspect-ratio must remain 1:1",
+    "summary spans island + right column",
+    "no header",
+    "all non-island regions responsive",
+    "do not remove content to make it fit"
+  ]
+}

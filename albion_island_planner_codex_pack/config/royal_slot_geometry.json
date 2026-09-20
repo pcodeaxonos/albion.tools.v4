@@ -1,0 +1,166 @@
+{
+  "referenceImageWidth": 1555,
+  "referenceImageHeight": 995,
+  "layoutGroup": "royal",
+  "cities": [
+    "martlock",
+    "thetford",
+    "fort_sterling",
+    "lymhurst",
+    "bridgewatch"
+  ],
+  "coordinateMode": "normalized",
+  "slots": {
+    "R1": {
+      "x": 0.34,
+      "y": 0.297,
+      "sourcePx": [
+        529,
+        296
+      ]
+    },
+    "R2": {
+      "x": 0.336,
+      "y": 0.349,
+      "sourcePx": [
+        522,
+        347
+      ]
+    },
+    "R3": {
+      "x": 0.435,
+      "y": 0.329,
+      "sourcePx": [
+        676,
+        327
+      ]
+    },
+    "R4": {
+      "x": 0.488,
+      "y": 0.321,
+      "sourcePx": [
+        759,
+        319
+      ]
+    },
+    "R5": {
+      "x": 0.382,
+      "y": 0.392,
+      "sourcePx": [
+        594,
+        390
+      ]
+    },
+    "R6": {
+      "x": 0.363,
+      "y": 0.446,
+      "sourcePx": [
+        565,
+        444
+      ]
+    },
+    "R7": {
+      "x": 0.486,
+      "y": 0.375,
+      "sourcePx": [
+        756,
+        373
+      ]
+    },
+    "R8": {
+      "x": 0.538,
+      "y": 0.375,
+      "sourcePx": [
+        837,
+        373
+      ]
+    },
+    "R9": {
+      "x": 0.572,
+      "y": 0.395,
+      "sourcePx": [
+        889,
+        393
+      ]
+    },
+    "R10": {
+      "x": 0.465,
+      "y": 0.439,
+      "sourcePx": [
+        723,
+        437
+      ],
+      "note": "main building physical position"
+    },
+    "R11": {
+      "x": 0.538,
+      "y": 0.477,
+      "sourcePx": [
+        836,
+        475
+      ]
+    },
+    "R12": {
+      "x": 0.43,
+      "y": 0.523,
+      "sourcePx": [
+        669,
+        520
+      ]
+    },
+    "R13": {
+      "x": 0.486,
+      "y": 0.523,
+      "sourcePx": [
+        756,
+        520
+      ]
+    },
+    "R14": {
+      "x": 0.551,
+      "y": 0.589,
+      "sourcePx": [
+        857,
+        586
+      ]
+    },
+    "R15": {
+      "x": 0.591,
+      "y": 0.56,
+      "sourcePx": [
+        919,
+        557
+      ]
+    },
+    "R16": {
+      "x": 0.573,
+      "y": 0.64,
+      "sourcePx": [
+        890,
+        637
+      ]
+    }
+  },
+  "overlayReference": {
+    "outerDiamondPx": [
+      76,
+      56
+    ],
+    "halfWidthPx": 38,
+    "halfHeightPx": 28,
+    "innerApproxPx": [
+      66,
+      48
+    ],
+    "itemIconApproxPx": [
+      26,
+      30
+    ],
+    "slotNumberBadgeApproxPx": [
+      24,
+      20
+    ],
+    "selectedOutlinePx": "2-3",
+    "note": "Reference dimensions only; scale uniformly with the square island viewport."
+  }
+}
