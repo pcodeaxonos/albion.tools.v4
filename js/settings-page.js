@@ -300,6 +300,14 @@ function renderPage(container, cities) {
                                     <span class="settings-fee-meta">Ore → Thetford, hide → Martlock. Kapalıysa işle şehri senin seçtiğin yerde kalır.</span>
                                 </span>
                             </label>
+                            <label class="form-check">
+                                <input class="form-check-input" type="checkbox" id="settingIslandYieldAutoPlots"
+                                    ${settings.islandYieldAutoPlots ? 'checked' : ''}>
+                                <span class="form-check-label">
+                                    Ada Çıktı parselini otomatik tahmin et
+                                    <span class="settings-fee-meta">Dönen tohum ve hasat miktarına göre en yakın uygun parseli seçer. Varsayılan: açık.</span>
+                                </span>
+                            </label>
                         </div>
                     `)}
 
@@ -387,6 +395,7 @@ function persist(container) {
         enchantPower,
         standardCombos,
         refineFollowSpecialty: Boolean(container.querySelector('#settingRefineFollowSpecialty')?.checked),
+        islandYieldAutoPlots: Boolean(container.querySelector('#settingIslandYieldAutoPlots')?.checked),
         ...(islandCities !== null ? { islandCities } : {})
     });
 
@@ -524,6 +533,7 @@ function bindPage(container) {
     container.querySelector('#settingPremium')?.addEventListener('change', () => persist(container));
     container.querySelector('#settingFarmWater')?.addEventListener('change', () => persist(container));
     container.querySelector('#settingRefineFollowSpecialty')?.addEventListener('change', () => persist(container));
+    container.querySelector('#settingIslandYieldAutoPlots')?.addEventListener('change', () => persist(container));
     container.querySelector('#settingPriceSource')?.addEventListener('change', () => persist(container));
     container.querySelector('#settingServer')?.addEventListener('change', () => persist(container));
     container.querySelector('#settingDefaultCity')?.addEventListener('change', () => persist(container));

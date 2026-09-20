@@ -83,7 +83,8 @@ export const DEFAULT_SETTINGS = {
     plantPickerStyle: 'icons',
     dataSync: true,
     islandCities: [],
-    refineFollowSpecialty: false
+    refineFollowSpecialty: false,
+    islandYieldAutoPlots: true
 };
 
 export const CITY_PICKER_STYLES = [
@@ -345,7 +346,8 @@ export function getSettings() {
             plantPickerStyle: normalizePlantPickerStyle(parsed.plantPickerStyle),
             dataSync: parsed.dataSync !== false,
             islandCities: normalizeIslandCities(parsed.islandCities),
-            refineFollowSpecialty: parsed.refineFollowSpecialty === true
+            refineFollowSpecialty: parsed.refineFollowSpecialty === true,
+            islandYieldAutoPlots: parsed.islandYieldAutoPlots !== false
         };
     } catch {
         return {
@@ -377,6 +379,7 @@ export function saveSettings(partial) {
     next.dataSync = next.dataSync !== false;
     next.islandCities = normalizeIslandCities(next.islandCities);
     next.refineFollowSpecialty = Boolean(next.refineFollowSpecialty);
+    next.islandYieldAutoPlots = next.islandYieldAutoPlots !== false;
     localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
     return next;
 }

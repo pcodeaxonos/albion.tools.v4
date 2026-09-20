@@ -39,6 +39,7 @@ import {
     explainProfitFoot
 } from './calc-explain.js';
 import { getAnimals, getEconomyConstant } from './catalog.js';
+import { effectiveAnimalReturn, effectiveAnimalProductYield } from './island-yield-stats.js';
 
 const CITY_STORAGE_KEY = 'albiontools.v4.pasture.city';
 const PREFS_STORAGE_KEY = 'albiontools.v4.pasture.prefs';
@@ -64,8 +65,11 @@ function meatQty() {
     return getEconomyConstant('meatQty()', 18);
 }
 
-function productQty() {
-    return getEconomyConstant('productQty()', 18);
+function productQty(item) {
+    return effectiveAnimalProductYield(item, state.city, {
+        premium: state.premium,
+        focus: state.focus
+    }).qty;
 }
 
 function animals() {
@@ -110,7 +114,10 @@ function seedReturnRate(item, watered) {
 }
 
 function babyChance(item, focused) {
-    return focused ? item.seedReturn + item.waterBonus : item.seedReturn;
+    return effectiveAnimalReturn(item, state.city, {
+        premium: state.premium,
+        focus: focused
+    }).rate;
 }
 
 function formatSilver(value, { unsigned = false, digits = 0, signed = false } = {}) {
@@ -334,7 +341,7 @@ function pathProfits(item, focused) {
     let feedCost = null;
     if (item.productId && unit != null && product) {
         feedCost = feedQty() * unit;
-        const feedRev = saleProceeds(product.price, { premium: state.premium, setup: product.setup }) * productQty();
+        const feedRev = saleProceeds(product.price, { premium: state.premium, setup: product.setup }) * productQty(item);
         profitFeed = feedRev - feedCost;
     }
 
@@ -504,7 +511,7 @@ function pathRevenue(row, pathId) {
         return meatNet != null && babyCredit != null ? meatNet * meatQty() + babyCredit : null;
     }
     if (pathId === 'feed' && row.item.productId && row.product) {
-        return saleProceeds(row.product.price, { premium: state.premium, setup: row.product.setup }) * productQty();
+        return saleProceeds(row.product.price, { premium: state.premium, setup: row.product.setup }) * productQty(row.item);
     }
     return null;
 }
@@ -759,12 +766,12 @@ function renderPastureExplain(key, { hovered } = {}) {
             icon: explainIcon(item.productId)
         });
         feedSale.push(explainStep({
-            label: `Ürün ×${productQty()}`,
+            label: `Ürün ×${productQty(item)}`,
             note: 'Besleme geliri (yavru kredisi yok; yalnız yem maliyeti)',
             formula: [
                 explainNum(productNetSale, { tone: 'sell', cap: 'net ürün' }),
                 explainOp('×'),
-                explainNum(productQty(), { kind: 'qty', cap: 'adet' })
+                explainNum(productQty(item), { kind: 'qty', cap: 'adet' })
             ],
             result: feedRev,
             resultKind: 'sell',
@@ -1185,7 +1192,7 @@ function renderOutput() {
                 Satış: büyümüş ${escapeHtml(priceSideHint(state.grownSide, 'sell'))}${grownSetup ? ` · setup ${formatPct(SETUP_FEE)}` : ''},
                 et ${escapeHtml(priceSideHint(state.meatSide, 'sell'))}${meatSetup ? ` · setup ${formatPct(SETUP_FEE)}` : ''},
                 ürün ${escapeHtml(priceSideHint(state.productSide, 'sell'))}${productSetup ? ` · setup ${formatPct(SETUP_FEE)}` : ''}.
-                Büyütme / besleme yem ×${feedQty()}, kesme et ×${meatQty()}, ürün ×${productQty()}. Domuzda süt yok.
+                Büyütme / besleme yem ×${feedQty()}, kesme et ×${meatQty()}, ürün ×${productQty(animals()[0])}. Domuzda süt yok.
                 Kâr sütunlarında üstte % (maliyete oran), altta gümüş. En iyi = en yüksek %.
                 Yavru işareti NPC fiyatına göre.${focusNote}
                 Elle yazılan fiyat API’nin yerine geçer. Kırmızı fiyat API’de yok; mavi 6 saatten eski.${stamp ? ` ${stamp}` : ''}

@@ -614,10 +614,13 @@ export const tables = {
             COL.id,
             { name: 'date', type: 'string', label: 'Tarih' },
             { name: 'islandCity', type: 'string', label: 'Ada şehri' },
+            { name: 'itemType', type: 'enum', options: ['plant', 'animal', 'animalProduct'], label: 'Kayıt türü' },
+            { name: 'itemKey', type: 'string', label: 'Ürün / hayvan' },
             { name: 'plantKey', type: 'string', label: 'Bitki' },
             { name: 'seedsPlanted', type: 'number', label: 'Dikilen tohum' },
             { name: 'seedsReturned', type: 'number', label: 'Dönen tohum' },
             { name: 'plantsHarvested', type: 'number', label: 'Hasat ürün' },
+            { name: 'linkedLogId', type: 'number', label: 'Bağlı kayıt' },
             { name: 'premium', type: 'boolean', label: 'Premium' },
             { name: 'water', type: 'boolean', label: 'Sulama' }
         ]

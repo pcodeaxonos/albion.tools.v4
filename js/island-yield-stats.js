@@ -1,5 +1,5 @@
 import { getAll } from './db/store.js';
-import { getEconomyConstant, getPlants } from './catalog.js';
+import { getEconomyConstant, getPlants, getAnimals } from './catalog.js';
 
 const TABLE = 'islandYieldLogs';
 
@@ -46,8 +46,16 @@ export function standardSeedReturn(plant, watered) {
     return watered ? base + bonus : base;
 }
 
-export function yieldLogKey(islandCity, plantKey, premium, water) {
-    return `${islandCity}|${plantKey}|${premium ? 1 : 0}|${water ? 1 : 0}`;
+function rowItemType(row) {
+    return row.itemType || 'plant';
+}
+
+function rowItemKey(row) {
+    return row.itemKey || row.plantKey;
+}
+
+export function yieldLogKey(islandCity, itemKey, premium, water, itemType = 'plant') {
+    return `${itemType}|${islandCity}|${itemKey}|${premium ? 1 : 0}|${water ? 1 : 0}`;
 }
 
 export function listYieldLogs() {
@@ -55,17 +63,22 @@ export function listYieldLogs() {
 }
 
 /**
- * Aggregate user observations for one island + plant + premium/water context.
+ * Aggregate user observations for one island + item + premium/water-or-focus context.
  */
-export function plantYieldAverage(islandCity, plantKey, { premium = true, water = false } = {}) {
-    if (!islandCity || !plantKey) {
+export function yieldAverage(islandCity, itemKey, {
+    premium = true,
+    water = false,
+    itemType = 'plant'
+} = {}) {
+    if (!islandCity || !itemKey) {
         return null;
     }
     const wantPremium = bool(premium);
     const wantWater = bool(water);
     const rows = listYieldLogs().filter((row) =>
         row.islandCity === islandCity
-        && row.plantKey === plantKey
+        && rowItemType(row) === itemType
+        && rowItemKey(row) === itemKey
         && bool(row.premium) === wantPremium
         && bool(row.water) === wantWater
     );
@@ -94,6 +107,19 @@ export function plantYieldAverage(islandCity, plantKey, { premium = true, water 
         avgSeedReturn: returned / planted,
         source: 'user'
     };
+}
+
+export function plantYieldAverage(islandCity, plantKey, options = {}) {
+    return yieldAverage(islandCity, plantKey, { ...options, itemType: 'plant' });
+}
+
+export function animalYieldAverage(islandCity, animalKey, options = {}) {
+    return yieldAverage(islandCity, animalKey, { ...options, itemType: 'animal' });
+}
+
+/** Observed egg/milk yield per fed animal; product logs never affect offspring data. */
+export function animalProductYieldAverage(islandCity, animalKey, options = {}) {
+    return yieldAverage(islandCity, animalKey, { ...options, itemType: 'animalProduct' });
 }
 
 /**
@@ -142,37 +168,76 @@ export function effectiveSeedReturn(plant, islandCity, { premium = true, water =
     };
 }
 
-/** Summary rows for UI: one line per island×plant×premium×water with data. */
+/** Effective offspring return: observed average if present, else the game ladder. */
+export function effectiveAnimalReturn(animal, islandCity, { premium = true, focus = false } = {}) {
+    const avg = animalYieldAverage(islandCity, animal?.key, { premium, water: focus });
+    if (avg && Number.isFinite(avg.avgSeedReturn)) {
+        return {
+            rate: Math.max(0, avg.avgSeedReturn),
+            source: 'user',
+            n: avg.n,
+            avg
+        };
+    }
+    return {
+        rate: (Number(animal?.seedReturn) || 0) + (focus ? (Number(animal?.waterBonus) || 0) : 0),
+        source: 'standard',
+        n: 0,
+        avg: null
+    };
+}
+
+/** Effective egg/milk yield, using the separate feeding log when present. */
+export function effectiveAnimalProductYield(animal, islandCity, { premium = true, focus = false } = {}) {
+    const avg = animalProductYieldAverage(islandCity, animal?.key, { premium, water: focus });
+    if (avg && avg.avgPlantYield > 0) {
+        return { qty: avg.avgPlantYield, source: 'user', n: avg.n, avg };
+    }
+    const base = getEconomyConstant('product_qty', 18);
+    const bonus = hasBonus(animal?.bonusCities, islandCity) ? cityYieldBonus() : 0;
+    return { qty: base * (1 + bonus), source: 'standard', n: 0, avg: null };
+}
+
+/** Summary rows for UI: one line per island×item×premium×water-or-focus with data. */
 export function summarizeYieldAverages({ islandCity = null } = {}) {
     const groups = new Map();
     for (const row of listYieldLogs()) {
         if (islandCity && row.islandCity !== islandCity) {
             continue;
         }
-        const key = yieldLogKey(row.islandCity, row.plantKey, row.premium, row.water);
+        const itemType = rowItemType(row);
+        const itemKey = rowItemKey(row);
+        const key = yieldLogKey(row.islandCity, itemKey, row.premium, row.water, itemType);
         const list = groups.get(key) ?? [];
         list.push(row);
         groups.set(key, list);
     }
 
-    const plantByKey = new Map(getPlants().map((p) => [p.key, p]));
+    const itemByKey = new Map([
+        ...getPlants().map((item) => [`plant|${item.key}`, item]),
+        ...getAnimals().flatMap((item) => [['animal', item], ['animalProduct', item]].map(([type, row]) => [`${type}|${row.key}`, row]))
+    ]);
     const out = [];
     for (const [key, rows] of groups) {
         const sample = rows[0];
-        const avg = plantYieldAverage(sample.islandCity, sample.plantKey, {
+        const itemType = rowItemType(sample);
+        const itemKey = rowItemKey(sample);
+        const avg = yieldAverage(sample.islandCity, itemKey, {
             premium: sample.premium,
-            water: sample.water
+            water: sample.water,
+            itemType
         });
         if (!avg) {
             continue;
         }
-        const plant = plantByKey.get(sample.plantKey);
+        const item = itemByKey.get(`${itemType}|${itemKey}`);
         out.push({
             key,
             islandCity: sample.islandCity,
-            plantKey: sample.plantKey,
-            plantLabel: plant?.label || sample.plantKey,
-            plantId: plant?.plantId || null,
+            itemType,
+            itemKey,
+            itemLabel: item?.label || itemKey,
+            itemId: itemType === 'plant' ? item?.plantId : (itemType === 'animalProduct' ? item?.productId : item?.grownId),
             premium: bool(sample.premium),
             water: bool(sample.water),
             ...avg,
@@ -182,7 +247,7 @@ export function summarizeYieldAverages({ islandCity = null } = {}) {
 
     out.sort((a, b) =>
         a.islandCity.localeCompare(b.islandCity, 'tr')
-        || a.plantLabel.localeCompare(b.plantLabel, 'tr')
+        || a.itemLabel.localeCompare(b.itemLabel, 'tr')
         || Number(b.premium) - Number(a.premium)
         || Number(b.water) - Number(a.water)
     );

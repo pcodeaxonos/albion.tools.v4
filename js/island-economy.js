@@ -14,7 +14,7 @@ import {
     getEconomyConstant,
     getIslandPlotsByLevel
 } from './catalog.js';
-import { effectivePlantYield, effectiveSeedReturn } from './island-yield-stats.js';
+import { effectivePlantYield, effectiveSeedReturn, effectiveAnimalReturn, effectiveAnimalProductYield } from './island-yield-stats.js';
 
 export function islandPlotsByLevel() {
     return getIslandPlotsByLevel();
@@ -226,7 +226,10 @@ function hasBonus(bonusCities, city) {
     return Array.isArray(bonusCities) && bonusCities.includes(city);
 }
 
-function babyChance(item, focused) {
+function babyChance(item, focused, islandCity = null, premium = true) {
+    if (islandCity) {
+        return effectiveAnimalReturn(item, islandCity, { premium, focus: focused }).rate;
+    }
     return focused ? item.seedReturn + item.waterBonus : item.seedReturn;
 }
 
@@ -628,8 +631,10 @@ function butcherQty(animal, ctx) {
 }
 
 function productQty(animal, ctx) {
-    const base = productQtyConst();
-    return hasAnimalCityBonus(animal, ctx.islandCity) ? base * (1 + cityYieldBonus()) : base;
+    return effectiveAnimalProductYield(animal, ctx.islandCity, {
+        premium: ctx.premium,
+        focus: ctx.focus
+    }).qty;
 }
 
 function animalPathProfits(animal, feedUnit, ctx, { spot = false } = {}) {
@@ -641,7 +646,7 @@ function animalPathProfits(animal, feedUnit, ctx, { spot = false } = {}) {
         return [];
     }
 
-    const chance = babyChance(animal, ctx.focus);
+    const chance = babyChance(animal, ctx.focus, ctx.islandCity, ctx.premium);
     const babyNet = purchaseCost(baby.price, { setup: baby.setup });
     const feedCost = animal.feedQty * feedUnit;
     const growCost = babyNet + feedCost;
@@ -1834,7 +1839,7 @@ function animalLedgerRow({
         babyPrice: baby?.price ?? null,
         babyNet: baby ? purchaseCost(baby.price, { setup: baby.setup }) : null,
         babySetup: baby?.setup === true,
-        chance: babyChance(animal, ctx.focus),
+        chance: babyChance(animal, ctx.focus, ctx.islandCity, ctx.premium),
         feedCost: null,
         feedUnit: feed?.unit ?? null,
         feedQty: animal.feedQty,
