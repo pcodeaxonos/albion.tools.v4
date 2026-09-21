@@ -166,6 +166,8 @@ for (const { t, sr, wb } of horseYield) {
             ladderId: null,
             seedReturn: sr,
             waterBonus: wb,
+            offspringChancePerNurture: wb,
+            maxNurtureCount: t - 2,
             plotType: 'pasture',
             pens: 9,
             baseHours: mountHours[t],
@@ -219,7 +221,7 @@ const factionMounts = [
     { key: 'faction-moabird', stem: 'MOABIRD_FW_BRIDGEWATCH', city: 'Bridgewatch' },
     { key: 'faction-direbear', stem: 'DIREBEAR_FW_FORTSTERLING', city: 'Fort Sterling' },
     { key: 'faction-direboar', stem: 'DIREBOAR_FW_LYMHURST', city: 'Lymhurst' },
-    { key: 'faction-ram', stem: 'RAM_FW_MARTLOCK', city: 'Martlock' },
+    { key: 'faction-ram', stem: 'RAM_FW_MARTLOCK', city: 'Martlock', nurtureByTier: { 5: { chance: 0.1, count: 3 } } },
     { key: 'faction-swampdragon', stem: 'SWAMPDRAGON_FW_THETFORD', city: 'Thetford' },
     { key: 'faction-greywolf', stem: 'GREYWOLF_FW_CAERLEON', city: 'Caerleon' },
     { key: 'faction-owl', stem: 'OWL_FW_BRECILIEN', city: 'Brecilien' }
@@ -232,6 +234,7 @@ const factionYield = {
 for (const tier of [5, 8]) {
     const y = factionYield[tier];
     for (const def of factionMounts) {
+        const nurture = def.nurtureByTier?.[tier] ?? null;
         animals.push({
             id: animalId++,
             key: `${def.key}-t${tier}`,
@@ -247,6 +250,8 @@ for (const tier of [5, 8]) {
             ladderId: null,
             seedReturn: y.sr,
             waterBonus: y.wb,
+            offspringChancePerNurture: nurture?.chance ?? null,
+            maxNurtureCount: nurture?.count ?? null,
             plotType: 'kennel',
             pens: 4,
             baseHours: mountHours[tier],

@@ -168,8 +168,28 @@ export function effectiveSeedReturn(plant, islandCity, { premium = true, water =
     };
 }
 
+/**
+ * Standard offspring return from the curated animal record.
+ * Records with nurture metadata apply the per-nurture bonus independently from
+ * their base chance. Legacy records retain the existing focus/waterBonus value.
+ */
+export function standardAnimalReturn(animal, { focus = false, nurtureCount = null } = {}) {
+    const base = Number(animal?.seedReturn) || 0;
+    if (!focus) {
+        return Math.max(0, base);
+    }
+    const perNurture = Number(animal?.offspringChancePerNurture);
+    const maximumNurtures = Number(animal?.maxNurtureCount);
+    if (Number.isFinite(perNurture) && perNurture >= 0 && Number.isFinite(maximumNurtures) && maximumNurtures >= 0) {
+        const requested = nurtureCount == null ? maximumNurtures : Number(nurtureCount);
+        const applied = Math.min(maximumNurtures, Math.max(0, Number.isFinite(requested) ? requested : 0));
+        return Math.max(0, base + (perNurture * applied));
+    }
+    return Math.max(0, base + (Number(animal?.waterBonus) || 0));
+}
+
 /** Effective offspring return: observed average if present, else the game ladder. */
-export function effectiveAnimalReturn(animal, islandCity, { premium = true, focus = false } = {}) {
+export function effectiveAnimalReturn(animal, islandCity, { premium = true, focus = false, nurtureCount = null } = {}) {
     const avg = animalYieldAverage(islandCity, animal?.key, { premium, water: focus });
     if (avg && Number.isFinite(avg.avgSeedReturn)) {
         return {
@@ -180,7 +200,7 @@ export function effectiveAnimalReturn(animal, islandCity, { premium = true, focu
         };
     }
     return {
-        rate: (Number(animal?.seedReturn) || 0) + (focus ? (Number(animal?.waterBonus) || 0) : 0),
+        rate: standardAnimalReturn(animal, { focus, nurtureCount }),
         source: 'standard',
         n: 0,
         avg: null

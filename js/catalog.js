@@ -145,6 +145,8 @@ export function hydrateAnimal(row) {
         feedPlantRefId: feedPlant?.id ?? null,
         seedReturn: yieldInfo.seedReturn,
         waterBonus: yieldInfo.waterBonus,
+        offspringChancePerNurture: row.offspringChancePerNurture == null || row.offspringChancePerNurture === '' ? null : num(row.offspringChancePerNurture),
+        maxNurtureCount: row.maxNurtureCount == null || row.maxNurtureCount === '' ? null : num(row.maxNurtureCount),
         babyItemId: Number(row.babyItemId),
         grownItemId: Number(row.grownItemId),
         meatItemId: row.meatItemId != null ? Number(row.meatItemId) : null,

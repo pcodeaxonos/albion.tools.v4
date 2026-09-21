@@ -249,6 +249,8 @@ export const tables = {
             { name: 'ladderId', type: 'ref', refTable: 'yieldLadders', refLabel: 'code', label: 'Merdiven' },
             { name: 'seedReturn', type: 'number', label: 'Seed return override' },
             { name: 'waterBonus', type: 'number', label: 'Water override' },
+            { name: 'offspringChancePerNurture', type: 'number', label: 'Nurture başına yavru şansı' },
+            { name: 'maxNurtureCount', type: 'number', label: 'Maksimum nurture' },
             { name: 'plotType', type: 'enum', options: ['pasture', 'kennel'], label: 'Plot' },
             { name: 'pens', type: 'number', label: 'Pens' },
             { name: 'baseHours', type: 'number', label: 'Saat' },

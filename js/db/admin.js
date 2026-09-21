@@ -46,6 +46,11 @@ const PAGE_SIZE = 25;
 const CODE_CHAR_LIMIT = 20;
 const NAME_COLUMNS = new Set(['localizedName', 'displayName', 'name', 'marketApiName']);
 const CODE_COLUMNS = new Set(['uniqueName', 'slug', 'parentSlug', 'index', 'familyKey']);
+const FIXED_PRICE_ROLE_STORAGE_KEY = 'albiontools.v4.fixed-price.role';
+const PLANNER_ITEM_ID_FIELDS = Object.freeze([
+    'itemId', 'inputItemId', 'outputItemId', 'feedItemId', 'seedItemId',
+    'plantItemId', 'babyItemId', 'grownItemId', 'meatItemId', 'productItemId'
+]);
 
 const state = {
     tableName: null,
@@ -1445,6 +1450,7 @@ function renderFormView() {
                 ${getEditableColumns(table).map((col) => renderField(col, record)).join('')}
                 <div class="form-actions">
                     <button type="submit" class="btn btn-primary">${isEdit ? 'Kaydet' : 'Oluştur'}</button>
+                    ${isEdit ? '' : '<button type="submit" class="btn btn-outline-primary" data-create-another>Oluştur ve yeni kayıt</button>'}
                     <button type="button" class="btn btn-outline-secondary" id="btnCancelSecondary">İptal</button>
                 </div>
             </form>
@@ -1477,6 +1483,9 @@ function renderField(column, record) {
     }
 
     if (column.type === 'enum') {
+        if (state.tableName === 'islandPlannerV2FixedPrices' && column.name === 'role') {
+            return renderFixedPriceRoleField(column, value);
+        }
         const options = column.options.map((opt) => {
             const selected = value === opt ? ' selected' : '';
             return `<option value="${escapeHtml(opt)}"${selected}>${escapeHtml(column.optionLabels?.[opt] ?? opt)}</option>`;
@@ -1499,7 +1508,9 @@ function renderField(column, record) {
                 </div>
             `;
         }
-        const rows = getAll(column.refTable).slice().sort((a, b) => {
+        const rows = fixedPriceItemSelectRows(value, column)
+            ?? getAll(column.refTable).slice();
+        rows.sort((a, b) => {
             const la = String(a[column.refLabel] ?? a.id);
             const lb = String(b[column.refLabel] ?? b.id);
             return la.localeCompare(lb, 'tr', { numeric: true });
@@ -1570,6 +1581,113 @@ function renderField(column, record) {
     `;
 }
 
+function itemHasDisplayName(item) {
+    return Boolean(String(item?.localizedName ?? item?.displayName ?? '').trim());
+}
+
+function itemMarketplaceVisible(item) {
+    const visibilityKey = ['showInMarketplace', 'showinmarketplace', 'showInMarketPlace']
+        .find((key) => Object.hasOwn(item ?? {}, key));
+    if (visibilityKey) {
+        const value = item[visibilityKey];
+        return value === true || value === 1 || value === '1' || value === 'true';
+    }
+    // The current ao-bin-dumps item rows do not expose a marketplace flag.
+    // Their shop category is the most reliable available market-facing metadata.
+    return Boolean(item?.shopCategory);
+}
+
+function isTechnicalItem(item) {
+    return item?.itemType === 'UNTRADEABLE'
+        || ['vanity', 'avatar', 'avatarring'].includes(String(item?.shopCategory || '').toLowerCase())
+        || ['avatar', 'avatarring'].includes(String(item?.shopSubCategory || '').toLowerCase());
+}
+
+function islandPlannerRelatedItemIds() {
+    const ids = new Set();
+    const add = (value) => {
+        const id = Number(value);
+        if (Number.isInteger(id) && id > 0) ids.add(id);
+    };
+    const plants = getAll('plants');
+    const plantsById = new Map(plants.map((plant) => [Number(plant.id), plant]));
+
+    for (const plant of plants) {
+        PLANNER_ITEM_ID_FIELDS.forEach((field) => add(plant[field]));
+    }
+    for (const animal of getAll('animals')) {
+        PLANNER_ITEM_ID_FIELDS.forEach((field) => add(animal[field]));
+        // feedPlantId is a plant FK rather than an item FK; Island Planner buys
+        // that plant's output as feed.
+        add(plantsById.get(Number(animal.feedPlantId))?.plantItemId);
+    }
+    return ids;
+}
+
+function fixedPriceItemSelectRows(selectedValue, column) {
+    if (state.tableName !== 'islandPlannerV2FixedPrices'
+        || column.name !== 'itemId'
+        || column.refTable !== 'items') {
+        return null;
+    }
+
+    const allItems = getAll('items');
+    const marketable = allItems.filter((item) =>
+        itemMarketplaceVisible(item) && itemHasDisplayName(item) && !isTechnicalItem(item)
+    );
+    const relatedIds = islandPlannerRelatedItemIds();
+    const related = relatedIds.size
+        ? marketable.filter((item) => relatedIds.has(Number(item.id)))
+        : [];
+    const rows = related.length ? related : marketable;
+    const selected = allItems.find((item) => String(item.id) === String(selectedValue));
+
+    // Existing fixed-price records must always remain editable, even if their
+    // old item is no longer part of the current planner catalogue.
+    return selected && !rows.some((item) => String(item.id) === String(selected.id))
+        ? [...rows, selected]
+        : rows;
+}
+
+function savedFixedPriceRole() {
+    try {
+        const saved = localStorage.getItem(FIXED_PRICE_ROLE_STORAGE_KEY);
+        return saved === 'input' || saved === 'output' ? saved : 'input';
+    } catch {
+        return 'input';
+    }
+}
+
+function saveFixedPriceRole(role) {
+    try {
+        localStorage.setItem(FIXED_PRICE_ROLE_STORAGE_KEY, role);
+    } catch {
+        // The database form remains usable when browser storage is unavailable.
+    }
+}
+
+function renderFixedPriceRoleField(column, value) {
+    const role = value ?? savedFixedPriceRole();
+    const label = getColumnLabel(column);
+    const options = column.options.map((option) => {
+        const active = option === role;
+        return `
+            <button type="button" class="price-side-btn${active ? ' is-active' : ''}"
+                data-fixed-price-role="${escapeHtml(option)}" aria-pressed="${active ? 'true' : 'false'}">
+                ${escapeHtml(option === 'input' ? 'Buy' : 'Sell')}
+            </button>
+        `;
+    }).join('');
+
+    return `
+        <div class="price-side-field">
+            <span class="price-side-label">${escapeHtml(label)}</span>
+            <input type="hidden" name="${escapeHtml(column.name)}" value="${escapeHtml(role)}" data-fixed-price-role-input>
+            <div class="price-side" role="radiogroup" aria-label="${escapeHtml(label)}">${options}</div>
+        </div>
+    `;
+}
+
 function materialIconHtml(row) {
     const uniqueName = bonusMaterialItemId(row.key) || getItemUniqueName(row.itemId);
     return itemIconHtml(uniqueName, { size: 28, className: 'item-icon db-refs-mat-icon' }) || '';
@@ -1624,13 +1742,31 @@ function bindFormEvents(root) {
     root.querySelector('#btnCancel')?.addEventListener('click', close);
     root.querySelector('#btnCancelSecondary')?.addEventListener('click', close);
 
+    root.querySelectorAll('[data-fixed-price-role]').forEach((button) => {
+        button.addEventListener('click', () => {
+            const role = button.dataset.fixedPriceRole;
+            if (role !== 'input' && role !== 'output') {
+                return;
+            }
+            root.querySelector('[data-fixed-price-role-input]').value = role;
+            root.querySelectorAll('[data-fixed-price-role]').forEach((option) => {
+                const active = option.dataset.fixedPriceRole === role;
+                option.classList.toggle('is-active', active);
+                option.setAttribute('aria-pressed', String(active));
+            });
+            saveFixedPriceRole(role);
+        });
+    });
+
     root.querySelector('#recordForm')?.addEventListener('submit', (event) => {
         event.preventDefault();
-        void handleFormSubmit(document.getElementById('dbContent'), event.target);
+        void handleFormSubmit(document.getElementById('dbContent'), event.target, {
+            createAnother: event.submitter?.hasAttribute('data-create-another')
+        });
     });
 }
 
-async function handleFormSubmit(container, form) {
+async function handleFormSubmit(container, form, { createAnother = false } = {}) {
     showAreaLoader(container, 'Kaydediliyor…');
     await yieldToMain();
 
@@ -1643,10 +1779,21 @@ async function handleFormSubmit(container, form) {
             createRow(state.tableName, formData);
         }
 
+        if (state.tableName === 'islandPlannerV2FixedPrices') {
+            const role = formData.get('role');
+            if (role === 'input' || role === 'output') {
+                saveFixedPriceRole(role);
+            }
+        }
+
+        const tableName = state.tableName;
         clearFormState();
         syncTableHash();
         renderSidebar();
         await renderContent({ showLoader: false });
+        if (createAnother) {
+            await openCreateForm(tableName, { showLoader: false });
+        }
     } catch (error) {
         alert(error.message);
     } finally {
