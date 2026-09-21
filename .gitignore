@@ -4,6 +4,7 @@ Thumbs.db
 *.log
 *.log.*
 albiondata-client.log*
+Albion_Launcher.bat
 _tmp_xlsm_report/
 .price-hub.json
 .albion-tools-data.json
