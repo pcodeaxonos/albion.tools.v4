@@ -23,6 +23,7 @@ import {
     yieldAverage,
     standardPlantYield,
     standardSeedReturn,
+    standardAnimalReturn,
     effectiveAnimalProductYield
 } from './island-yield-stats.js';
 
@@ -260,7 +261,7 @@ function standardReturn(item, islandCity = state.islandCity) {
     if (state.yieldKind === 'plant') {
         return standardSeedReturn(item, state.water);
     }
-    return (Number(item?.seedReturn) || 0) + (state.water ? (Number(item?.waterBonus) || 0) : 0);
+    return standardAnimalReturn(item, { focus: state.water });
 }
 
 function metricCopy() {
