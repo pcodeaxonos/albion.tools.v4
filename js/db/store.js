@@ -183,6 +183,16 @@ function coerceValue(column, rawValue) {
         return rawValue;
     }
 
+    if (column.type === 'json') {
+        const text = String(rawValue ?? '').trim();
+        if (!text) return '';
+        try {
+            return JSON.stringify(JSON.parse(text));
+        } catch {
+            throw new Error(`${column.label || column.name} geçerli JSON olmalı`);
+        }
+    }
+
     return rawValue ?? '';
 }
 
@@ -283,6 +293,9 @@ export function createRow(tableName, formData) {
         }
         record[column.name] = formValuesForColumn(column, formData);
     }
+    for (const column of table.columns.filter((entry) => entry.autoTimestamp === true)) {
+        record[column.name] = new Date().toISOString();
+    }
 
     if (!table.autoKey && !record[table.key]) {
         throw new Error(`${table.key} zorunlu`);
@@ -318,6 +331,9 @@ export function updateRow(tableName, id, formData) {
             continue;
         }
         record[column.name] = formValuesForColumn(column, formData);
+    }
+    for (const column of table.columns.filter((entry) => entry.autoTimestamp === true)) {
+        record[column.name] = new Date().toISOString();
     }
 
     rows[index] = record;

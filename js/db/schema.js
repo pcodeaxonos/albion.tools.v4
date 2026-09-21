@@ -581,6 +581,78 @@ export const tables = {
             { name: 'appliesRr', type: 'boolean', label: 'RR alır' }
         ]
     },
+    islandPlannerV2Geometry: {
+        displayName: 'Ada Planlayıcı V2 Geometry',
+        group: 'user',
+        source: 'user',
+        description: 'V2 slot merkezleri — DB değerleri runtime geometry config üzerinde önceliklidir',
+        key: 'id',
+        autoKey: true,
+        userData: true,
+        defaultSort: { column: 'geometryGroup', direction: 'asc' },
+        seedUrl: './data/island-planner-v2-geometry.json',
+        columns: [
+            COL.id,
+            { name: 'geometryGroup', type: 'enum', options: ['royal', 'brecilien', 'caerleon'], label: 'Geometry Group' },
+            { name: 'slot', type: 'enum', options: Array.from({ length: 16 }, (_, index) => `R${index + 1}`), label: 'Slot' },
+            { name: 'x', type: 'number', step: 'any', label: 'X' },
+            { name: 'y', type: 'number', step: 'any', label: 'Y' },
+            { name: 'updatedAt', type: 'string', label: 'Updated' }
+        ]
+    },
+    islandPlannerV2DraftPlans: {
+        displayName: 'Ada Planlayıcı V2 Draft Planları',
+        group: 'user',
+        source: 'user',
+        description: 'Ada şehri bazında otomatik kaydedilen V2 çalışma planları',
+        key: 'id',
+        autoKey: true,
+        userData: true,
+        defaultSort: { column: 'city', direction: 'asc' },
+        seedUrl: './data/island-planner-v2-draft-plans.json',
+        columns: [
+            COL.id,
+            { name: 'city', type: 'enum', options: ['Martlock', 'Thetford', 'Fort Sterling', 'Lymhurst', 'Bridgewatch', 'Brecilien', 'Caerleon'], label: 'Ada Şehri' },
+            { name: 'plan', type: 'json', label: 'Plan JSON' },
+            { name: 'active', type: 'boolean', label: 'Aktif' },
+            { name: 'updatedAt', type: 'string', label: 'Updated' }
+        ]
+    },
+    islandPlannerV2CommittedPlans: {
+        displayName: 'Ada Planlayıcı V2 Kayıtlı Planlar',
+        group: 'user',
+        source: 'user',
+        description: 'Kaydet ile oluşturulan şehir bazlı V2 committed planları',
+        key: 'id',
+        autoKey: true,
+        userData: true,
+        defaultSort: { column: 'city', direction: 'asc' },
+        seedUrl: './data/island-planner-v2-committed-plans.json',
+        columns: [
+            COL.id,
+            { name: 'city', type: 'enum', options: ['Martlock', 'Thetford', 'Fort Sterling', 'Lymhurst', 'Bridgewatch', 'Brecilien', 'Caerleon'], label: 'Ada Şehri' },
+            { name: 'plan', type: 'json', label: 'Plan JSON' },
+            { name: 'updatedAt', type: 'string', label: 'Updated' }
+        ]
+    },
+    islandPlannerV2FixedPrices: {
+        displayName: 'Ada Planlayıcı V2 Sabit Fiyat Kayıtları',
+        group: 'user',
+        source: 'user',
+        description: 'V2 Sabit modu için item + giriş/çıkış rolü bazlı order fiyatları',
+        key: 'id',
+        autoKey: true,
+        userData: true,
+        defaultSort: { column: 'itemId', direction: 'asc' },
+        seedUrl: './data/island-planner-v2-fixed-prices.json',
+        columns: [
+            COL.id,
+            { name: 'itemId', type: 'ref', refTable: 'items', refLabel: 'localizedName', label: 'Eşya' },
+            { name: 'role', type: 'enum', options: ['input', 'output'], optionLabels: { input: 'Buy — tohum / yavru / yem', output: 'Sell — ürün / hayvan / et / süt / yumurta' }, label: 'Fiyat Kullanımı' },
+            { name: 'price', type: 'number', step: 'any', label: 'Sabit Emir Fiyatı' },
+            { name: 'updatedAt', type: 'string', label: 'Son Güncelleme', editable: false, autoTimestamp: true }
+        ]
+    },
     dailyBonuses: {
         displayName: 'Günlük Bonuslar',
         group: 'user',

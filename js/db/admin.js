@@ -719,7 +719,7 @@ function renderColumnFilter(column) {
     if (column.type === 'enum') {
         const options = [
             { value: '', label: 'Tümü' },
-            ...column.options.map((opt) => ({ value: opt, label: opt }))
+            ...column.options.map((opt) => ({ value: opt, label: column.optionLabels?.[opt] ?? opt }))
         ];
         return `
             <select class="form-select form-select-sm db-col-filter" data-col="${escapeHtml(column.name)}">
@@ -981,6 +981,10 @@ function formatCellValue(value, column, parentId = null, row = null) {
         return value
             ? '<span class="badge bg-success">Evet</span>'
             : '<span class="badge bg-secondary">Hayır</span>';
+    }
+
+    if (column.type === 'enum') {
+        return escapeHtml(column.optionLabels?.[value] ?? value);
     }
 
     if (column.type === 'ref' && column.refTable === 'materialKeys') {
@@ -1475,7 +1479,7 @@ function renderField(column, record) {
     if (column.type === 'enum') {
         const options = column.options.map((opt) => {
             const selected = value === opt ? ' selected' : '';
-            return `<option value="${escapeHtml(opt)}"${selected}>${escapeHtml(opt)}</option>`;
+            return `<option value="${escapeHtml(opt)}"${selected}>${escapeHtml(column.optionLabels?.[opt] ?? opt)}</option>`;
         }).join('');
 
         return `
@@ -1544,12 +1548,23 @@ function renderField(column, record) {
         `;
     }
 
+    if (column.type === 'json') {
+        const jsonValue = value ?? '';
+        return `
+            <div class="form-floating db-json-field">
+                <textarea class="form-control" name="${escapeHtml(column.name)}" id="field-${escapeHtml(column.name)}" placeholder=" " rows="10">${escapeHtml(jsonValue)}</textarea>
+                <label for="field-${escapeHtml(column.name)}">${escapeHtml(label)}</label>
+            </div>
+        `;
+    }
+
     const inputType = column.type === 'number' ? 'number' : 'text';
     const inputValue = value ?? '';
+    const stepAttr = column.type === 'number' && column.step ? ` step="${escapeHtml(column.step)}"` : '';
 
     return `
         <div class="form-floating">
-            <input type="${inputType}" class="form-control" name="${escapeHtml(column.name)}" id="field-${escapeHtml(column.name)}" value="${escapeHtml(inputValue)}" placeholder=" ">
+            <input type="${inputType}" class="form-control" name="${escapeHtml(column.name)}" id="field-${escapeHtml(column.name)}" value="${escapeHtml(inputValue)}" placeholder=" "${stepAttr}>
             <label for="field-${escapeHtml(column.name)}">${escapeHtml(label)}</label>
         </div>
     `;

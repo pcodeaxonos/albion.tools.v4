@@ -126,6 +126,37 @@ export function mergePriceRows(gameRows = [], apiRows = []) {
     });
 }
 
+/**
+ * Keep the selected source for each book side, then use the other source only
+ * where that side is absent. This preserves the user setting while retaining
+ * the existing missing-side fallback behavior.
+ */
+function mergePreferredPriceRows(primaryRows = [], fallbackRows = []) {
+    const primary = new Map(mergePriceRows(primaryRows, []).map((row) => [priceIndexKey(row.item_id, row.city, priceQuality(row)), row]));
+    for (const fallback of mergePriceRows(fallbackRows, [])) {
+        const key = priceIndexKey(fallback.item_id, fallback.city, priceQuality(fallback));
+        const current = primary.get(key) || {
+            item_id: fallback.item_id,
+            city: fallback.city,
+            quality: priceQuality(fallback),
+            sell_price_min: 0,
+            sell_price_min_date: null,
+            buy_price_max: 0,
+            buy_price_max_date: null
+        };
+        if (!hasSell(current) && hasSell(fallback)) {
+            current.sell_price_min = fallback.sell_price_min;
+            current.sell_price_min_date = fallback.sell_price_min_date;
+        }
+        if (!hasBuy(current) && hasBuy(fallback)) {
+            current.buy_price_max = fallback.buy_price_max;
+            current.buy_price_max_date = fallback.buy_price_max_date;
+        }
+        primary.set(key, current);
+    }
+    return [...primary.values()];
+}
+
 async function fetchPricesFromHost(host, ids, locations, qualityParam) {
     const params = new URLSearchParams({
         locations: locations.join(','),
@@ -152,8 +183,8 @@ async function fetchPricesQuiet(host, ids, locations, qualityParam) {
 }
 
 /**
- * Loads prices from game packets hub and AODP, then merges.
- * Missing side falls back to the other source; when both exist, newer date wins (tie → game).
+ * Loads the configured price source, with the other provider as a per-side fallback.
+ * A configured packet/API quote is never silently replaced by the other source.
  */
 export async function fetchPrices(itemIds, locations = ['Black Market', 'Caerleon'], { source, qualities = '1' } = {}) {
     const ids = [...new Set(itemIds.filter(Boolean))];
@@ -167,6 +198,7 @@ export async function fetchPrices(itemIds, locations = ['Black Market', 'Caerleo
 
     const gameHost = localPriceHost();
     const apiHost = getServer().host;
+    const preferred = source ?? getSettings().priceSource;
 
     const [gameRows, apiRows] = await Promise.all([
         fetchPricesQuiet(gameHost, ids, locations, qualityParam),
@@ -174,14 +206,15 @@ export async function fetchPrices(itemIds, locations = ['Black Market', 'Caerleo
     ]);
 
     if (gameRows.length === 0 && apiRows.length === 0) {
-        const preferred = source ?? getSettings().priceSource;
         if (preferred === 'packets') {
             throw new Error('Yerel paket sunucusu kapalı ve AODP’den fiyat alınamadı. start.bat ile açın veya ağı kontrol edin.');
         }
         throw new Error('Fiyat alınamadı (oyun hub ve AODP)');
     }
 
-    return mergePriceRows(gameRows, apiRows);
+    return preferred === 'packets'
+        ? mergePreferredPriceRows(gameRows, apiRows)
+        : mergePreferredPriceRows(apiRows, gameRows);
 }
 
 function priceQuality(row) {

@@ -1,6 +1,10 @@
 export const V2_STORAGE_KEY = 'albiontools.v4.island-planner-v2.draft';
 export const V2_COMMITTED_STORAGE_KEY = 'albiontools.v4.island-planner-v2.committed';
 export const V2_GEOMETRY_URL = './data/island-planner-v2-royal-slot-geometry.json';
+export const V2_GEOMETRY_TABLE = 'islandPlannerV2Geometry';
+export const V2_DRAFT_TABLE = 'islandPlannerV2DraftPlans';
+export const V2_COMMITTED_TABLE = 'islandPlannerV2CommittedPlans';
+export const V2_FIXED_PRICE_TABLE = 'islandPlannerV2FixedPrices';
 
 export const V2_CITIES = ['martlock', 'thetford', 'fort_sterling', 'lymhurst', 'bridgewatch', 'brecilien', 'caerleon'];
 export const V2_ROYAL_CITIES = new Set(['martlock', 'thetford', 'fort_sterling', 'lymhurst', 'bridgewatch']);

@@ -625,7 +625,7 @@ function hasAnimalCityBonus(animal, city) {
     return hasBonus(animal.bonusCities, city);
 }
 
-function butcherQty(animal, ctx) {
+export function butcherQty(animal, ctx) {
     const base = meatQtyConst();
     return hasAnimalCityBonus(animal, ctx.islandCity) ? base * (1 + cityYieldBonus()) : base;
 }
