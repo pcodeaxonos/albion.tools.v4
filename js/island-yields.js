@@ -217,12 +217,19 @@ function rowMatchesKind(row, kind = state.yieldKind) {
     return ['animal', 'animalProduct'].includes(rowItemType(row)) && animal?.plotType === kind;
 }
 
-function rowsForMonth(month, islandCity = null, plantKey = null) {
+function rowsForMonth(month, {
+    islandCity = null,
+    plantKey = null,
+    premium = null,
+    water = null
+} = {}) {
     return getAll(TABLE)
         .filter((row) => toYearMonth(row.date) === month)
         .filter((row) => !islandCity || row.islandCity === islandCity)
         .filter((row) => rowMatchesKind(row))
         .filter((row) => !plantKey || rowItemKey(row) === plantKey)
+        .filter((row) => premium == null || Boolean(row.premium) === premium)
+        .filter((row) => water == null || Boolean(row.water) === water)
         .slice()
         .sort((a, b) => b.date.localeCompare(a.date) || b.id - a.id);
 }
@@ -555,11 +562,18 @@ function syncToggles(container) {
 
 function renderLogTable(month) {
     const copy = metricCopy();
-    const rows = rowsForMonth(month, state.islandCity, state.filteredPlantKey);
+    const selectedItem = state.filteredPlantKey || null;
+    const rows = rowsForMonth(month, {
+        islandCity: state.islandCity,
+        plantKey: selectedItem,
+        premium: state.premium,
+        water: state.water
+    });
     if (!rows.length) {
         const city = state.islandCity ? cityLabel(state.islandCity) : 'seçili ada';
-        const plant = state.filteredPlantKey ? ` · ${itemLabel(state.filteredPlantKey)}` : '';
-        return `<div class="alert alert-info">${escapeHtml(month)} · ${escapeHtml(city)}${escapeHtml(plant)} için kayıt yok. Soldan hasat sonucu ekle.</div>`;
+        const plant = selectedItem ? ` · ${itemLabel(selectedItem)}` : '';
+        const context = `${state.premium ? 'Premium' : 'Free'} · ${state.water ? copy.on : copy.off}`;
+        return `<div class="alert alert-info">${escapeHtml(month)} · ${escapeHtml(city)}${escapeHtml(plant)} · ${escapeHtml(context)} için kayıt yok. Soldan hasat sonucu ekle.</div>`;
     }
     const body = rows.map((row) => {
         const type = rowItemType(row);
@@ -1281,11 +1295,17 @@ function bindPage(container) {
         refreshResult(container);
     });
     if (state.yieldKind === 'plant') {
-        bindPlantField(container, 'plantKey', () => syncAutomaticPlots(container));
+        bindPlantField(container, 'plantKey', (value) => {
+            state.filteredPlantKey = value || null;
+            syncAutomaticPlots(container);
+            refreshResult(container);
+        });
     } else {
-        bindAnimalField(container, 'plantKey', () => {
+        bindAnimalField(container, 'plantKey', (value) => {
+            state.filteredPlantKey = value || null;
             syncAnimalProductField(container);
             syncAutomaticPlots(container);
+            refreshResult(container);
         });
     }
     container.querySelectorAll('[data-plots]').forEach((button) => {
