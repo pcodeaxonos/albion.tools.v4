@@ -24,7 +24,7 @@ Editable month/day record tables (daily bonus, island yields, …) share one pat
 
 ## JS
 
-Use `bindLogTableRows` from `js/log-table.js` — do not re-bind `tbody tr[data-id]` click handlers ad hoc.
+Use `bindLogTableRows` from `js/components/log-table.js` — do not re-bind `tbody tr[data-id]` click handlers ad hoc.
 
 ```js
 import { bindLogTableRows } from './log-table.js';

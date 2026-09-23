@@ -1,4 +1,4 @@
-import { escapeHtml } from '../utils.js';
+import { escapeHtml } from '../utils/utils.js';
 import {
     getTable,
     getTableNames,
@@ -27,19 +27,19 @@ import {
     tableHasLocalChanges,
     getJunctionChildIds
 } from './store.js';
-import { initNav } from '../nav.js';
-import { initFloatingLabels } from '../forms.js';
+import { initNav } from '../core/nav.js';
+import { initFloatingLabels } from '../components/forms.js';
 import {
     showPageLoader,
     hidePageLoader,
     showAreaLoader,
     hideAreaLoader,
     yieldToMain
-} from '../loader.js';
-import { initTableSort, sortHeaderHtml } from '../table-sort.js';
-import { renderMatsHtml, renderRecipesHtml } from '../today-bonus.js';
-import { parseFamilyVariants, bonusMaterialItemId } from '../bonus-cities.js';
-import { itemIconHtml } from '../item-icon.js';
+} from '../components/loader.js';
+import { initTableSort, sortHeaderHtml } from '../utils/table-sort.js';
+import { renderMatsHtml, renderRecipesHtml } from '../core/today-bonus.js';
+import { parseFamilyVariants, bonusMaterialItemId } from '../core/bonus-cities.js';
+import { itemIconHtml } from '../components/item-icon.js';
 import { getItemUniqueName } from './relations.js';
 
 const PAGE_SIZE = 25;

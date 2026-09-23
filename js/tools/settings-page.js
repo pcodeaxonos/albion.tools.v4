@@ -1,0 +1,861 @@
+import { initNav } from '../core/nav.js';
+import { initFloatingLabels } from '../components/forms.js';
+import {
+    getSettings,
+    saveSettings,
+    SERVERS,
+    PRICE_SOURCES,
+    ENCHANT_POWERS,
+    enchantPowerLabel,
+    getStandardCombos,
+    allEnchantCombos,
+    enchantPowerCombos,
+    normalizeEnchantPower,
+    cityHasIsland,
+    localPriceHost,
+    CITY_PICKER_STYLES,
+    PLANT_PICKER_STYLES
+} from '../core/settings.js';
+import { initStore } from '../db/store.js';
+import { loadActiveCities } from '../core/cities.js';
+import { priceSideToggleHtml } from '../core/price-side.js';
+import { feeMetaText } from '../core/market-fees.js';
+import { escapeHtml } from '../utils/utils.js';
+import { sessionAdcState } from '../core/pipeline-status.js';
+import { showToast } from '../components/toast.js';
+import {
+    localDataSummary,
+    formatDataBytes,
+    downloadLocalData,
+    parseLocalDataSnapshot,
+    applyLocalData,
+    syncWithHub,
+    setLocalDataAutoPush,
+    fetchHubDataMeta
+} from '../core/local-data.js';
+
+const CLIENT_RELEASES = 'https://github.com/ao-data/albiondata-client/releases';
+
+function clientCommand() {
+    return `albiondata-client.exe -i ${localPriceHost()}`;
+}
+
+let hubPollTimer = 0;
+
+function renderServerOptions(selected) {
+    return SERVERS.map((server) => {
+        const current = server.id === selected ? ' selected' : '';
+        return `<option value="${escapeHtml(server.id)}"${current}>${escapeHtml(server.label)}</option>`;
+    }).join('');
+}
+
+function renderDefaultCityOptions(cities, selected) {
+    if (!cities.length) {
+        return `<option value="${escapeHtml(selected || 'Martlock')}">${escapeHtml(selected || 'Martlock')}</option>`;
+    }
+    return cities.map((city) => {
+        const current = city.marketApiName === selected ? ' selected' : '';
+        return `<option value="${escapeHtml(city.marketApiName)}"${current}>${escapeHtml(city.displayName)}</option>`;
+    }).join('');
+}
+
+function renderPriceSourceOptions(selected) {
+    return PRICE_SOURCES.map((source) => {
+        const current = source.id === selected ? ' selected' : '';
+        return `<option value="${escapeHtml(source.id)}"${current}>${escapeHtml(source.label)}</option>`;
+    }).join('');
+}
+
+function renderEnchantPowerOptions(selected) {
+    return ENCHANT_POWERS.map((power) => {
+        const current = power === selected ? ' selected' : '';
+        return `<option value="${power}"${current}>${escapeHtml(enchantPowerLabel(power))}</option>`;
+    }).join('');
+}
+
+function renderStandardComboList(settings) {
+    const combos = getStandardCombos(settings);
+    if (combos.length === 0) {
+        return `<p class="text-muted settings-note" id="settingStandardCombosEmpty">Liste boş — aşağıdan combo ekle.</p>
+            <div class="settings-combo-order" id="settingEnchantPowerOrder" role="list"></div>`;
+    }
+
+    return `
+        <div class="settings-combo-order" id="settingEnchantPowerOrder" role="list">
+            ${combos.map((combo, index) => {
+                const label = `${combo.tier}.${combo.enchant}`;
+                const upDisabled = index === 0 ? ' disabled' : '';
+                const downDisabled = index === combos.length - 1 ? ' disabled' : '';
+                return `
+                    <div class="settings-combo-order-row" role="listitem" data-combo="${escapeHtml(label)}">
+                        <span class="settings-combo-order-label">${escapeHtml(label)}</span>
+                        <div class="settings-combo-order-actions">
+                            <button type="button" class="btn btn-outline-secondary btn-sm" data-combo-move="up"${upDisabled} aria-label="${escapeHtml(label)} yukarı">↑</button>
+                            <button type="button" class="btn btn-outline-secondary btn-sm" data-combo-move="down"${downDisabled} aria-label="${escapeHtml(label)} aşağı">↓</button>
+                            <button type="button" class="btn btn-outline-secondary btn-sm" data-combo-remove aria-label="${escapeHtml(label)} çıkar">✕</button>
+                        </div>
+                    </div>
+                `;
+            }).join('')}
+        </div>
+    `;
+}
+
+function renderAddComboOptions(settings) {
+    const taken = new Set(getStandardCombos(settings).map((combo) => `${combo.tier}.${combo.enchant}`));
+    const available = allEnchantCombos().filter((combo) => !taken.has(`${combo.tier}.${combo.enchant}`));
+    if (available.length === 0) {
+        return '<option value="">Tümü eklendi</option>';
+    }
+    return [
+        '<option value="">Combo seç…</option>',
+        ...available.map((combo) => {
+            const label = `${combo.tier}.${combo.enchant}`;
+            return `<option value="${escapeHtml(label)}">${escapeHtml(label)}</option>`;
+        })
+    ].join('');
+}
+
+function readStandardCombos(container) {
+    return [...container.querySelectorAll('#settingEnchantPowerOrder [data-combo]')]
+        .map((row) => row.dataset.combo)
+        .filter(Boolean);
+}
+
+function renderIslandCityChecks(cities, islandCities) {
+    if (cities.length === 0) {
+        return '<p class="text-muted settings-note">Şehir listesi yüklenemedi.</p>';
+    }
+
+    return `
+        <div class="settings-island-grid">
+            ${cities.map((city) => {
+                const checked = cityHasIsland(city.marketApiName, islandCities) ? ' checked' : '';
+                return `
+                    <label class="form-check">
+                        <input class="form-check-input" type="checkbox"
+                            data-island-city="${escapeHtml(city.marketApiName)}"${checked}>
+                        <span class="form-check-label">${escapeHtml(city.displayName)}</span>
+                    </label>
+                `;
+            }).join('')}
+        </div>
+    `;
+}
+
+function settingsSection(id, title, lead, body) {
+    return `
+        <section class="settings-section" id="${id}" aria-labelledby="${id}-title">
+            <header class="settings-section-head">
+                <h2 id="${id}-title">${escapeHtml(title)}</h2>
+                ${lead ? `<p class="settings-section-lead">${lead}</p>` : ''}
+            </header>
+            <div class="settings-section-body">
+                ${body}
+            </div>
+        </section>
+    `;
+}
+
+function renderPage(container, cities) {
+    const settings = getSettings();
+    const packets = settings.priceSource === 'packets';
+
+    container.innerHTML = `
+        <section class="settings-hero">
+            <h1>Ayarlar</h1>
+            <p>Tool’lar bunları varsayılan alır; sayfa içinde geçici seçim yapılabilir.</p>
+        </section>
+
+        <div class="settings-layout">
+            <nav class="settings-toc" aria-label="Ayar bölümleri">
+                <p class="settings-toc-label">Bölümler</p>
+                <a href="#settings-genel">Genel</a>
+                <a href="#settings-fiyat">Fiyatlar</a>
+                <a href="#settings-tool">Tool tercihler</a>
+                <a href="#settings-adalar">Ada şehirleri</a>
+                <a href="#settings-veri">Veri</a>
+            </nav>
+
+            <div class="settings-main">
+                <form class="settings-form" id="settingsForm" action="#">
+                    ${settingsSection('settings-genel', 'Genel', 'Hesap ve sunucu varsayılanları.', `
+                        <div class="form-grid">
+                            <label class="form-check">
+                                <input class="form-check-input" type="checkbox" id="settingPremium"
+                                    ${settings.premium ? 'checked' : ''}>
+                                <span class="form-check-label">
+                                    Premium
+                                    <span class="settings-fee-meta" id="settingFeeNote">${escapeHtml(feeMetaText(settings.premium))}</span>
+                                </span>
+                            </label>
+                            <div class="form-floating">
+                                <select class="form-select is-filled" id="settingServer">
+                                    ${renderServerOptions(settings.server)}
+                                </select>
+                                <label for="settingServer">Sunucu</label>
+                            </div>
+                            <div class="form-floating">
+                                <select class="form-select is-filled" id="settingDefaultCity">
+                                    ${renderDefaultCityOptions(cities, settings.defaultCity)}
+                                </select>
+                                <label for="settingDefaultCity">Varsayılan şehir</label>
+                            </div>
+                            <div class="form-floating">
+                                <select class="form-select is-filled" id="settingCityPickerStyle">
+                                    ${CITY_PICKER_STYLES.map((style) => {
+                                        const selected = style.id === settings.cityPickerStyle ? ' selected' : '';
+                                        return `<option value="${escapeHtml(style.id)}"${selected}>${escapeHtml(style.label)}</option>`;
+                                    }).join('')}
+                                </select>
+                                <label for="settingCityPickerStyle">Şehir seçimi</label>
+                            </div>
+                            <div class="form-floating">
+                                <select class="form-select is-filled" id="settingPlantPickerStyle">
+                                    ${PLANT_PICKER_STYLES.map((style) => {
+                                        const selected = style.id === settings.plantPickerStyle ? ' selected' : '';
+                                        return `<option value="${escapeHtml(style.id)}"${selected}>${escapeHtml(style.label)}</option>`;
+                                    }).join('')}
+                                </select>
+                                <label for="settingPlantPickerStyle">Bitki seçimi</label>
+                            </div>
+                            <div class="form-floating">
+                                <select class="form-select is-filled" id="settingEnchantPower">
+                                    ${renderEnchantPowerOptions(settings.enchantPower)}
+                                </select>
+                                <label for="settingEnchantPower">IP bandı (hızlı doldur)</label>
+                            </div>
+                        </div>
+                        <p class="text-muted settings-note">Varsayılan şehir, tool’da kayıtlı şehir yoksa alış/satış seçiminde gelir (Martlock). Şehir seçimi: standart liste veya diagonal renkli harita. Bitki seçimi: liste veya ekin/ot ikon satırları.</p>
+                        <div class="settings-combo-order-wrap">
+                            <p class="settings-combo-order-title">Standart combolar</p>
+                            ${renderStandardComboList(settings)}
+                            <div class="settings-combo-add">
+                                <div class="form-floating">
+                                    <select class="form-select" id="settingAddCombo">
+                                        ${renderAddComboOptions(settings)}
+                                    </select>
+                                    <label for="settingAddCombo">Combo ekle</label>
+                                </div>
+                                <button type="button" class="btn btn-outline-secondary" id="settingAddComboBtn">Ekle</button>
+                                <button type="button" class="btn btn-outline-secondary" id="settingFillBandBtn" title="IP bandındaki combolarla listeyi değiştir">Bandı uygula</button>
+                            </div>
+                        </div>
+                        <p class="text-muted settings-note">Standart combolar Royal Crafting varsayılan filtresi ve Enchanting vurgusudur. Ekle / çıkar / sırala; IP bandı ile hızlı doldurabilirsin.</p>
+                    `)}
+
+                    ${settingsSection('settings-fiyat', 'Fiyatlar', 'Kaynak, alım/satış tarafı ve yerel paket hub’ı.', `
+                        <div class="form-grid">
+                            <div class="form-floating">
+                                <select class="form-select is-filled" id="settingPriceSource">
+                                    ${renderPriceSourceOptions(settings.priceSource)}
+                                </select>
+                                <label for="settingPriceSource">Fiyat kaynağı</label>
+                            </div>
+                        </div>
+                        <div class="settings-sides">
+                            <div class="price-side-field">
+                                <span class="price-side-label" id="settingBuySideLabel">Alım</span>
+                                <div class="price-side" role="radiogroup" aria-labelledby="settingBuySideLabel">
+                                    ${priceSideToggleHtml('buy', settings.buyPriceSide)}
+                                </div>
+                            </div>
+                            <div class="price-side-field">
+                                <span class="price-side-label" id="settingSellSideLabel">Satış</span>
+                                <div class="price-side" role="radiogroup" aria-labelledby="settingSellSideLabel">
+                                    ${priceSideToggleHtml('sell', settings.sellPriceSide)}
+                                </div>
+                            </div>
+                        </div>
+                        <p class="text-muted settings-note" id="settingsNote">${escapeHtml(sourceNote(settings.priceSource))}</p>
+                        <div class="settings-packet" id="settingsPacket" ${packets ? '' : 'hidden'}>
+                            <p class="settings-packet-status" id="settingsPacketStatus">Yerel hub kontrol ediliyor…</p>
+                            <p class="settings-packet-copy">Albion Data Client oyun paketlerini çözer ve bu makinedeki huba gönderir. Kısayoldan açılan ADC kamu AODP’ye gider; start.bat client’ı <code>-i http://127.0.0.1:3001</code> ile yeniden açar. ADC konumu Join paketinden öğrenir — zone geçmeden market verisi göndermez. Fiyatı istediğin marketi açman gerekir.</p>
+                            <div class="settings-command">
+                                <code id="settingsClientCommand">${escapeHtml(clientCommand())}</code>
+                                <button type="button" class="btn btn-outline-secondary" id="settingsCopyCommand">Kopyala</button>
+                            </div>
+                            <p class="settings-packet-links">
+                                <a href="${CLIENT_RELEASES}" target="_blank" rel="noreferrer">Client indir</a>
+                                <span>· start.bat hem siteyi hem fiyat hub’ını açar</span>
+                            </p>
+                        </div>
+                    `)}
+
+                    ${settingsSection('settings-tool', 'Tool tercihler', 'Belirli tool’ların varsayılan davranışı.', `
+                        <div class="settings-checks">
+                            <label class="form-check">
+                                <input class="form-check-input" type="checkbox" id="settingFarmWater"
+                                    ${settings.farmWater ? 'checked' : ''}>
+                                <span class="form-check-label">
+                                    Ekin sulama
+                                    <span class="settings-fee-meta">Farming, Pasture yemi ve Ada Planlayıcı. Kapalıysa seed return sulamasız. Varsayılan: sulama yok.</span>
+                                </span>
+                            </label>
+                            <label class="form-check">
+                                <input class="form-check-input" type="checkbox" id="settingRefineFollowSpecialty"
+                                    ${settings.refineFollowSpecialty ? 'checked' : ''}>
+                                <span class="form-check-label">
+                                    Refine şehri hammaddeyle değişsin
+                                    <span class="settings-fee-meta">Ore → Thetford, hide → Martlock. Kapalıysa işle şehri senin seçtiğin yerde kalır.</span>
+                                </span>
+                            </label>
+                            <label class="form-check">
+                                <input class="form-check-input" type="checkbox" id="settingIslandYieldAutoPlots"
+                                    ${settings.islandYieldAutoPlots ? 'checked' : ''}>
+                                <span class="form-check-label">
+                                    Ada Çıktı parselini otomatik tahmin et
+                                    <span class="settings-fee-meta">Dönen tohum ve hasat miktarına göre en yakın uygun parseli seçer. Varsayılan: açık.</span>
+                                </span>
+                            </label>
+                        </div>
+                    `)}
+
+                    ${settingsSection('settings-adalar', 'Ada şehirleri', 'Farming ve ada listelerinde yardımcı işaretler.', `
+                        <p class="text-muted settings-island-hint">Ada kurduğun şehirleri işaretle. Boş bırakırsan hepsi ada sayılır — Farming listesi birden silikleşmez. Ada olmayan şehirler silik görünür, yine seçilebilir.</p>
+                        ${renderIslandCityChecks(cities, settings.islandCities)}
+                    `)}
+
+                </form>
+
+                ${settingsSection('settings-veri', 'Veri', 'Yedekleme ve origin’ler arası eşleme. Live Server (:5500) ile yerel sunucu (:3000) ayrı hafızadır.', `
+                    <div class="settings-subblock">
+                        <h3 class="settings-subblock-title">Yedek</h3>
+                        <p class="settings-subblock-lead">Ayarlar, günlük bonuslar, ada çıktı, tool tercihleri ve veritabanı tabloları bu tarayıcı origin’inde saklanır.</p>
+                        <div class="settings-data-actions">
+                            <button type="button" class="btn btn-outline-primary" id="settingsExportData">Dışa aktar</button>
+                            <button type="button" class="btn btn-outline-secondary" id="settingsImportData">İçe aktar</button>
+                            <input type="file" id="settingsImportFile" accept="application/json,.json" hidden>
+                        </div>
+                        <p class="settings-data-meta" id="settingsDataMeta">${escapeHtml(localMetaText())}</p>
+                    </div>
+                    <div class="settings-subblock">
+                        <h3 class="settings-subblock-title">Hub eşleme</h3>
+                        <label class="form-check">
+                            <input class="form-check-input" type="checkbox" id="settingDataSync"
+                                ${settings.dataSync ? 'checked' : ''}>
+                            <span class="form-check-label">
+                                Hub ile otomatik eşle
+                                <span class="settings-fee-meta">start.bat fiyat hub’ını (:3001) açınca 5500 ve 3000 birleşir. Günlük bonuslar silinmez, tarihe göre toplanır.</span>
+                            </span>
+                        </label>
+                        <p class="settings-packet-status" id="settingsDataSyncStatus">Hub kontrol ediliyor…</p>
+                        <div class="settings-data-actions">
+                            <button type="button" class="btn btn-outline-secondary" id="settingsPullData">Hub’dan al</button>
+                            <button type="button" class="btn btn-outline-secondary" id="settingsPushData">Hub’a gönder</button>
+                        </div>
+                    </div>
+                `)}
+            </div>
+        </div>
+    `;
+
+    bindPage(container);
+}
+
+function sourceNote(priceSource) {
+    if (priceSource === 'packets') {
+        return 'Fiyatlar senin gördüğün market paketlerinden gelir. Sunucu seçimi bu kaynakta kullanılmaz. Alım: buy +1 veya sell. Satış: sell −1 veya buy.';
+    }
+    return 'Sunucu market API’yi seçer. Alım: buy +1 veya sell fiyatı. Satış: sell −1 veya buy fiyatı.';
+}
+
+function selectedSide(container, name, fallback) {
+    return container.querySelector(`[data-price-for="${name}"].is-active`)?.dataset.priceSide ?? fallback;
+}
+
+function selectedIslandCities(container) {
+    const inputs = [...container.querySelectorAll('[data-island-city]')];
+    if (inputs.length === 0) {
+        return null;
+    }
+    return inputs
+        .filter((input) => input.checked)
+        .map((input) => input.dataset.islandCity)
+        .filter(Boolean);
+}
+
+function persist(container) {
+    const premium = Boolean(container.querySelector('#settingPremium')?.checked);
+    const priceSource = container.querySelector('#settingPriceSource')?.value;
+    const islandCities = selectedIslandCities(container);
+    const enchantPower = container.querySelector('#settingEnchantPower')?.value;
+    const standardCombos = readStandardCombos(container);
+
+    saveSettings({
+        premium,
+        farmWater: Boolean(container.querySelector('#settingFarmWater')?.checked),
+        priceSource,
+        server: container.querySelector('#settingServer')?.value,
+        defaultCity: container.querySelector('#settingDefaultCity')?.value,
+        cityPickerStyle: container.querySelector('#settingCityPickerStyle')?.value,
+        plantPickerStyle: container.querySelector('#settingPlantPickerStyle')?.value,
+        buyPriceSide: selectedSide(container, 'buy', 'buy'),
+        sellPriceSide: selectedSide(container, 'sell', 'sell'),
+        enchantPower,
+        standardCombos,
+        refineFollowSpecialty: Boolean(container.querySelector('#settingRefineFollowSpecialty')?.checked),
+        islandYieldAutoPlots: Boolean(container.querySelector('#settingIslandYieldAutoPlots')?.checked),
+        ...(islandCities !== null ? { islandCities } : {})
+    });
+
+    const feeNote = container.querySelector('#settingFeeNote');
+    if (feeNote) {
+        feeNote.textContent = feeMetaText(premium);
+    }
+
+    const packet = container.querySelector('#settingsPacket');
+    if (packet) {
+        packet.hidden = priceSource !== 'packets';
+    }
+
+    const note = container.querySelector('#settingsNote');
+    if (note) {
+        note.textContent = sourceNote(priceSource);
+    }
+
+    showToast('Kaydedildi.', { duration: 2000 });
+    syncHubPolling(container);
+}
+
+function refreshStandardCombos(container) {
+    const wrap = container.querySelector('.settings-combo-order-wrap');
+    if (!wrap) {
+        return;
+    }
+    const settings = getSettings();
+    wrap.innerHTML = `
+        <p class="settings-combo-order-title">Standart combolar</p>
+        ${renderStandardComboList(settings)}
+        <div class="settings-combo-add">
+            <div class="form-floating">
+                <select class="form-select" id="settingAddCombo">
+                    ${renderAddComboOptions(settings)}
+                </select>
+                <label for="settingAddCombo">Combo ekle</label>
+            </div>
+            <button type="button" class="btn btn-outline-secondary" id="settingAddComboBtn">Ekle</button>
+            <button type="button" class="btn btn-outline-secondary" id="settingFillBandBtn" title="IP bandındaki combolarla listeyi değiştir">Bandı uygula</button>
+        </div>
+    `;
+    initFloatingLabels(wrap);
+    bindStandardCombos(container);
+}
+
+function bindStandardCombos(container) {
+    container.querySelectorAll('[data-combo-move]').forEach((button) => {
+        button.addEventListener('click', () => {
+            const row = button.closest('[data-combo]');
+            const list = row?.parentElement;
+            if (!row || !list) {
+                return;
+            }
+            if (button.dataset.comboMove === 'up' && row.previousElementSibling) {
+                list.insertBefore(row, row.previousElementSibling);
+            }
+            if (button.dataset.comboMove === 'down' && row.nextElementSibling) {
+                list.insertBefore(row.nextElementSibling, row);
+            }
+            persist(container);
+            refreshStandardCombos(container);
+        });
+    });
+
+    container.querySelectorAll('[data-combo-remove]').forEach((button) => {
+        button.addEventListener('click', () => {
+            button.closest('[data-combo]')?.remove();
+            persist(container);
+            refreshStandardCombos(container);
+        });
+    });
+
+    container.querySelector('#settingAddComboBtn')?.addEventListener('click', () => {
+        const select = container.querySelector('#settingAddCombo');
+        const value = select?.value;
+        if (!value) {
+            return;
+        }
+        const list = container.querySelector('#settingEnchantPowerOrder');
+        if (!list) {
+            return;
+        }
+        const empty = container.querySelector('#settingStandardCombosEmpty');
+        empty?.remove();
+        const row = document.createElement('div');
+        row.className = 'settings-combo-order-row';
+        row.setAttribute('role', 'listitem');
+        row.dataset.combo = value;
+        row.innerHTML = `
+            <span class="settings-combo-order-label">${escapeHtml(value)}</span>
+            <div class="settings-combo-order-actions">
+                <button type="button" class="btn btn-outline-secondary btn-sm" data-combo-move="up" aria-label="${escapeHtml(value)} yukarı">↑</button>
+                <button type="button" class="btn btn-outline-secondary btn-sm" data-combo-move="down" aria-label="${escapeHtml(value)} aşağı">↓</button>
+                <button type="button" class="btn btn-outline-secondary btn-sm" data-combo-remove aria-label="${escapeHtml(value)} çıkar">✕</button>
+            </div>
+        `;
+        list.appendChild(row);
+        persist(container);
+        refreshStandardCombos(container);
+    });
+
+    container.querySelector('#settingFillBandBtn')?.addEventListener('click', () => {
+        const power = normalizeEnchantPower(container.querySelector('#settingEnchantPower')?.value);
+        const combos = enchantPowerCombos(power).map((combo) => `${combo.tier}.${combo.enchant}`);
+        saveSettings({ enchantPower: power, standardCombos: combos });
+        refreshStandardCombos(container);
+        persist(container);
+    });
+}
+
+function localMetaText() {
+    const summary = localDataSummary();
+    if (summary.keys === 0) {
+        return 'Bu origin’de henüz kayıtlı veri yok.';
+    }
+    return `Bu origin’de ${summary.keys} anahtar · ${formatDataBytes(summary.bytes)}`;
+}
+
+function setDataStatus(message, kind = 'ok') {
+    if (!message) {
+        return;
+    }
+    showToast(message, { kind: kind === 'error' ? 'error' : 'success' });
+}
+
+function bindPage(container) {
+    initFloatingLabels(container);
+
+    container.querySelector('#settingsForm')?.addEventListener('submit', (event) => {
+        event.preventDefault();
+        persist(container);
+    });
+
+    container.querySelector('#settingPremium')?.addEventListener('change', () => persist(container));
+    container.querySelector('#settingFarmWater')?.addEventListener('change', () => persist(container));
+    container.querySelector('#settingRefineFollowSpecialty')?.addEventListener('change', () => persist(container));
+    container.querySelector('#settingIslandYieldAutoPlots')?.addEventListener('change', () => persist(container));
+    container.querySelector('#settingPriceSource')?.addEventListener('change', () => persist(container));
+    container.querySelector('#settingServer')?.addEventListener('change', () => persist(container));
+    container.querySelector('#settingDefaultCity')?.addEventListener('change', () => persist(container));
+    container.querySelector('#settingCityPickerStyle')?.addEventListener('change', () => persist(container));
+    container.querySelector('#settingEnchantPower')?.addEventListener('change', () => persist(container));
+    bindStandardCombos(container);
+    container.querySelectorAll('[data-island-city]').forEach((input) => {
+        input.addEventListener('change', () => persist(container));
+    });
+
+    container.querySelector('#settingsCopyCommand')?.addEventListener('click', async () => {
+        const button = container.querySelector('#settingsCopyCommand');
+        try {
+            await navigator.clipboard.writeText(clientCommand());
+            if (button) {
+                button.textContent = 'Kopyalandı';
+                setTimeout(() => {
+                    button.textContent = 'Kopyala';
+                }, 1500);
+            }
+        } catch {
+            if (button) {
+                button.textContent = 'Kopyalanamadı';
+            }
+        }
+    });
+
+    container.querySelectorAll('[data-price-for]').forEach((button) => {
+        button.addEventListener('click', () => {
+            const name = button.dataset.priceFor;
+            const side = button.dataset.priceSide;
+            container.querySelectorAll(`[data-price-for="${name}"]`).forEach((option) => {
+                const pressed = option.dataset.priceSide === side;
+                option.classList.toggle('is-active', pressed);
+                option.setAttribute('aria-pressed', pressed ? 'true' : 'false');
+            });
+            persist(container);
+        });
+    });
+
+    bindDataSection(container);
+    syncHubPolling(container);
+    refreshDataSyncStatus(container);
+    bindSettingsToc(container);
+}
+
+function bindSettingsToc(container) {
+    const toc = container.querySelector('.settings-toc');
+    if (!toc) {
+        return;
+    }
+
+    const links = [...toc.querySelectorAll('a[href^="#"]')];
+    const sections = links
+        .map((link) => container.querySelector(link.getAttribute('href')))
+        .filter(Boolean);
+
+    if (sections.length === 0) {
+        return;
+    }
+
+    const setActive = (id) => {
+        links.forEach((link) => {
+            link.classList.toggle('is-active', link.getAttribute('href') === `#${id}`);
+        });
+    };
+
+    setActive(sections[0].id);
+
+    const observer = new IntersectionObserver((entries) => {
+        const visible = entries
+            .filter((entry) => entry.isIntersecting)
+            .sort((a, b) => b.intersectionRatio - a.intersectionRatio);
+        if (visible[0]?.target?.id) {
+            setActive(visible[0].target.id);
+        }
+    }, {
+        root: document.querySelector('.app-content'),
+        rootMargin: '-15% 0px -55% 0px',
+        threshold: [0.1, 0.35, 0.6]
+    });
+
+    sections.forEach((section) => observer.observe(section));
+}
+
+function bindDataSection(container) {
+    const fileInput = container.querySelector('#settingsImportFile');
+
+    container.querySelector('#settingsExportData')?.addEventListener('click', () => {
+        try {
+            downloadLocalData();
+            setDataStatus('JSON indirildi.');
+        } catch (error) {
+            setDataStatus(error.message || 'Dışa aktarılamadı.', 'error');
+        }
+    });
+
+    container.querySelector('#settingsImportData')?.addEventListener('click', () => {
+        fileInput?.click();
+    });
+
+    fileInput?.addEventListener('change', async () => {
+        const file = fileInput.files?.[0];
+        fileInput.value = '';
+        if (!file) {
+            return;
+        }
+        if (!window.confirm('Bu dosyadaki veri mevcut tarayıcı verisinin üzerine yazılır. Devam edilsin mi?')) {
+            return;
+        }
+        try {
+            const snapshot = parseLocalDataSnapshot(await file.text());
+            applyLocalData(snapshot);
+            if (getSettings().dataSync) {
+                await syncWithHub('push').catch(() => {});
+            }
+            location.reload();
+        } catch (error) {
+            setDataStatus(error.message || 'İçe aktarılamadı.', 'error');
+        }
+    });
+
+    container.querySelector('#settingDataSync')?.addEventListener('change', async (event) => {
+        const enabled = Boolean(event.target.checked);
+        saveSettings({ dataSync: enabled });
+        setLocalDataAutoPush(enabled);
+        if (enabled) {
+            try {
+                const result = await syncWithHub('auto');
+                if (result.status === 'pulled' || result.status === 'merged') {
+                    location.reload();
+                    return;
+                }
+                setDataStatus(syncResultText(result));
+            } catch {
+                setDataStatus('Hub kapalı; eşleme bekleniyor.', 'error');
+            }
+        } else {
+            setDataStatus('Otomatik eşleme kapalı.');
+        }
+        refreshDataSyncStatus(container);
+    });
+
+    container.querySelector('#settingsPullData')?.addEventListener('click', async () => {
+        if (!window.confirm('Hub’daki kayıtlar buradakilerle birleştirilir. Günlük bonuslar silinmez. Devam edilsin mi?')) {
+            return;
+        }
+        try {
+            const result = await syncWithHub('pull');
+            if (result.status === 'pulled' || result.status === 'merged') {
+                location.reload();
+                return;
+            }
+            setDataStatus(syncResultText(result));
+            refreshDataSyncStatus(container);
+        } catch {
+            setDataStatus('Hub kapalı. start.bat çalıştır.', 'error');
+            refreshDataSyncStatus(container);
+        }
+    });
+
+    container.querySelector('#settingsPushData')?.addEventListener('click', async () => {
+        try {
+            const result = await syncWithHub('push');
+            setDataStatus(syncResultText(result));
+            refreshDataSyncStatus(container);
+        } catch {
+            setDataStatus('Hub kapalı. start.bat çalıştır.', 'error');
+            refreshDataSyncStatus(container);
+        }
+    });
+}
+
+function syncResultText(result) {
+    if (result.status === 'pushed') {
+        return 'Hub’a gönderildi.';
+    }
+    if (result.status === 'pulled') {
+        return 'Hub’dan alındı.';
+    }
+    if (result.status === 'merged') {
+        return 'Hub ile birleştirildi.';
+    }
+    if (result.status === 'empty') {
+        return 'Aktarılacak veri yok.';
+    }
+    return 'Tamam.';
+}
+
+async function refreshDataSyncStatus(container) {
+    const status = container.querySelector('#settingsDataSyncStatus');
+    const metaLine = container.querySelector('#settingsDataMeta');
+    if (metaLine) {
+        metaLine.textContent = localMetaText();
+    }
+    if (!status) {
+        return;
+    }
+
+    if (!getSettings().dataSync) {
+        status.classList.remove('is-up', 'is-down');
+        status.textContent = 'Otomatik eşleme kapalı. JSON ile taşıyabilir veya kutuyu açabilirsin.';
+        return;
+    }
+
+    try {
+        const meta = await fetchHubDataMeta();
+        status.classList.remove('is-down');
+        status.classList.add('is-up');
+        if (meta.empty) {
+            status.textContent = 'Hub açık · henüz ortak kayıt yok. Bu origin’den “Hub’a gönder” veya bir tool kullan.';
+            return;
+        }
+        const when = meta.exportedAt ? relativeTime(meta.exportedAt) : '—';
+        const origin = meta.origin ? shortOrigin(meta.origin) : '—';
+        status.textContent = `Hub açık · son kayıt ${when} · ${meta.keyCount ?? 0} anahtar · kaynak ${origin}`;
+    } catch {
+        status.classList.remove('is-up');
+        status.classList.add('is-down');
+        status.textContent = 'Hub kapalı. start.bat çalışınca Live Server ve :3000 otomatik eşlenir.';
+    }
+}
+
+function shortOrigin(origin) {
+    try {
+        const url = new URL(origin);
+        return url.port ? `${url.hostname}:${url.port}` : url.host;
+    } catch {
+        return origin;
+    }
+}
+
+function syncHubPolling(container) {
+    stopHubPolling();
+    if (getSettings().priceSource !== 'packets') {
+        return;
+    }
+    refreshHubStatus(container);
+    hubPollTimer = window.setInterval(() => refreshHubStatus(container), 4000);
+}
+
+function stopHubPolling() {
+    if (hubPollTimer) {
+        window.clearInterval(hubPollTimer);
+        hubPollTimer = 0;
+    }
+}
+
+async function refreshHubStatus(container) {
+    const status = container.querySelector('#settingsPacketStatus');
+    if (!status || getSettings().priceSource !== 'packets') {
+        return;
+    }
+
+    try {
+        const response = await fetch(`${localPriceHost()}/api/v2/stats/status`);
+        if (!response.ok) {
+            throw new Error('bad status');
+        }
+        const data = await response.json();
+        const adc = sessionAdcState(data, true);
+        const when = data.sessionMarketAt
+            ? relativeTime(data.sessionMarketAt)
+            : 'bu oturumda yok';
+        const cities = Array.isArray(data.cities) && data.cities.length > 0
+            ? data.cities.join(', ')
+            : '—';
+        status.classList.remove('is-down', 'is-up', 'is-warn');
+        if (adc.state === 'ok' || adc.code === 'idle') {
+            status.classList.add('is-up');
+        } else {
+            status.classList.add('is-warn');
+        }
+        status.textContent = adc.state === 'ok'
+            ? `Hub açık · son emir ${when} · ${data.orders ?? 0} sipariş · ${cities}`
+            : adc.code === 'idle'
+                ? `Hub açık · beklemede · son emir ${when} · ${data.orders ?? 0} sipariş · ${cities}`
+                : `${adc.detail}. ${adc.fix || ''}`.trim();
+    } catch {
+        status.classList.remove('is-up');
+        status.classList.add('is-down');
+        status.textContent = 'Hub kapalı. start.bat çalıştır, sonra Albion Data Client’ı yukarıdaki komutla aç.';
+    }
+}
+
+function relativeTime(iso) {
+    const then = Date.parse(iso);
+    if (!Number.isFinite(then)) {
+        return iso;
+    }
+    const delta = Math.max(0, Date.now() - then);
+    const seconds = Math.round(delta / 1000);
+    if (seconds < 10) {
+        return 'şimdi';
+    }
+    if (seconds < 60) {
+        return `${seconds} sn önce`;
+    }
+    const minutes = Math.round(seconds / 60);
+    if (minutes < 60) {
+        return `${minutes} dk önce`;
+    }
+    return `${Math.round(minutes / 60)} sa önce`;
+}
+
+async function init() {
+    initNav();
+    const container = document.getElementById('settingsPage');
+    if (!container) {
+        return;
+    }
+
+    let cities = [];
+    try {
+        await initStore();
+        cities = loadActiveCities();
+    } catch (error) {
+        console.error(error);
+    }
+
+    renderPage(container, cities);
+    window.addEventListener('pagehide', stopHubPolling);
+}
+
+init();

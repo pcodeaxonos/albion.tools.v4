@@ -22,7 +22,7 @@ Pages with filters/forms plus a result or table use `.tool-split`:
 
 - Use `.table.table-striped.log-table.calc-table` for editable day/month logs.
 - Apply `is-editing` to the selected row while the form is in update mode.
-- Use `bindLogTableRows` from `js/log-table.js`; do not bind row click handlers ad hoc.
+- Use `bindLogTableRows` from `js/components/log-table.js`; do not bind row click handlers ad hoc.
 - Keep shared log styling on `.log-table`; use page-specific classes only for additional states.
 
 ## Dialogs
