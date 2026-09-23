@@ -4,7 +4,13 @@ Thumbs.db
 *.log
 *.log.*
 albiondata-client.log*
+logs/
+
+# Local launchers — machine paths, Chrome profile, ADC / tool installs
 Albion_Launcher.bat
+start.bat
+start.bat_yedek
+
 _tmp_xlsm_report/
 .price-hub.json
 .albion-tools-data.json
