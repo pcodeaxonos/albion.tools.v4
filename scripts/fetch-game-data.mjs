@@ -89,11 +89,21 @@ function englishName(item) {
         ?? item.UniqueName;
 }
 
-function emptyShop() {
-    return { shopCategory: '', shopSubCategory: '', shopSubCategory2: '' };
+function emptyItemMetadata() {
+    return {
+        shopCategory: '',
+        shopSubCategory: '',
+        shopSubCategory2: '',
+        tradeable: null
+    };
 }
 
-function collectShopFields(itemsRoot) {
+function parseBooleanAttribute(value) {
+    if (value == null || value === '') return null;
+    return String(value).trim().toLowerCase() === 'true' || value === '1';
+}
+
+function collectItemMetadata(itemsRoot) {
     const map = new Map();
 
     function visit(node) {
@@ -110,14 +120,15 @@ function collectShopFields(itemsRoot) {
 
         const uniqueName = node['@uniquename'];
         if (typeof uniqueName === 'string' && uniqueName) {
-            const shop = {
+            const metadata = {
                 shopCategory: node['@shopcategory'] ?? '',
                 shopSubCategory: node['@shopsubcategory1'] ?? '',
-                shopSubCategory2: node['@shopsubcategory2'] ?? ''
+                shopSubCategory2: node['@shopsubcategory2'] ?? '',
+                tradeable: parseBooleanAttribute(node['@tradable'])
             };
 
-            if ((shop.shopCategory || shop.shopSubCategory || shop.shopSubCategory2) && !map.has(uniqueName)) {
-                map.set(uniqueName, shop);
+            if ((metadata.shopCategory || metadata.shopSubCategory || metadata.shopSubCategory2 || metadata.tradeable != null) && !map.has(uniqueName)) {
+                map.set(uniqueName, metadata);
             }
         }
 
@@ -136,19 +147,19 @@ function collectShopFields(itemsRoot) {
     return map;
 }
 
-function lookupShop(uniqueName, shopMap) {
-    if (shopMap.has(uniqueName)) {
-        return shopMap.get(uniqueName);
+function lookupItemMetadata(uniqueName, metadataMap) {
+    if (metadataMap.has(uniqueName)) {
+        return metadataMap.get(uniqueName);
     }
 
     const baseName = uniqueName.replace(/@\d+$/, '');
-    return shopMap.get(baseName) ?? emptyShop();
+    return metadataMap.get(baseName) ?? emptyItemMetadata();
 }
 
-function normalizeItems(rawItems, shopMap) {
+function normalizeItems(rawItems, metadataMap) {
     return rawItems.map((item) => {
         const uniqueName = item.UniqueName;
-        const shop = lookupShop(uniqueName, shopMap);
+        const metadata = lookupItemMetadata(uniqueName, metadataMap);
 
         return {
             id: Number(item.Index),
@@ -158,9 +169,10 @@ function normalizeItems(rawItems, shopMap) {
             enchantment: parseEnchantment(uniqueName),
             itemType: parseItemType(uniqueName),
             isEquipable: isEquipable(uniqueName),
-            shopCategory: shop.shopCategory,
-            shopSubCategory: shop.shopSubCategory,
-            shopSubCategory2: shop.shopSubCategory2
+            shopCategory: metadata.shopCategory,
+            shopSubCategory: metadata.shopSubCategory,
+            shopSubCategory2: metadata.shopSubCategory2,
+            tradeable: metadata.tradeable
         };
     });
 }
@@ -260,24 +272,26 @@ async function main() {
 
     console.log('Fetching Albion Online reference data...\n');
 
-    console.log('Item dump (items.json → shopcategories + shop fields)...');
+    console.log('Item dump (items.json → shopcategories + item metadata)...');
     const itemsXml = await fetchJson(SOURCES.itemsXml);
     const categories = flattenShopCategories(itemsXml?.items?.shopcategories);
     writeJson('item-categories.json', categories);
 
-    const shopMap = collectShopFields(itemsXml?.items);
-    console.log(`  shop map: ${shopMap.size} unique names with category fields`);
+    const metadataMap = collectItemMetadata(itemsXml?.items);
+    console.log(`  item metadata: ${metadataMap.size} unique names with category or tradeability fields`);
 
-    console.log('Items (formatted/items.json, EN-US names + shop classification)...');
+    console.log('Items (formatted/items.json, EN-US names + market metadata)...');
     const rawItems = await fetchJson(SOURCES.items);
-    const items = normalizeItems(rawItems, shopMap);
+    const items = normalizeItems(rawItems, metadataMap);
     writeJson('items.json', items);
 
     const classified = items.filter((item) => item.shopCategory).length;
     const withSub = items.filter((item) => item.shopCategory && item.shopSubCategory).length;
     const withSub2 = items.filter((item) => item.shopSubCategory2).length;
+    const tradeable = items.filter((item) => item.tradeable === true).length;
     console.log(`  classified ${classified}/${items.length} (category)`);
     console.log(`  subcategory ${withSub}/${items.length}; subcategory2 ${withSub2}/${items.length}`);
+    console.log(`  tradeable ${tradeable}/${items.length}`);
 
     console.log('Locations (formatted/world.json)...');
     const rawWorld = await fetchJson(SOURCES.world);

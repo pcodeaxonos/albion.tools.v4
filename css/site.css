@@ -2375,6 +2375,112 @@ input[type=month].form-control {
   width: 100%;
 }
 
+.fixed-price-item-filters {
+  margin: 0.75rem 0 1rem;
+  padding: 0.65rem 0;
+  border-top: 1px solid var(--color-primary-dark);
+  border-bottom: 1px solid var(--color-primary-dark);
+  background: #1c1b18;
+}
+
+.fixed-price-item-filters-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0 0.7rem 0.45rem;
+  margin-bottom: 0.3rem;
+  color: var(--bs-warning-text-emphasis);
+  font-size: 0.84rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.fixed-price-item-filters-head output {
+  padding: 0.15rem 0.45rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--bs-warning) 20%, transparent);
+}
+
+.fixed-price-item-filters-list {
+  display: grid;
+  gap: 0.25rem;
+}
+
+.fixed-price-item-filter-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.18rem 0.7rem;
+  color: var(--color-text-muted);
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.2;
+}
+
+.fixed-price-item-filter-row > span {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.fixed-price-item-filter-options {
+  display: inline-flex;
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--bs-warning) 48%, var(--bs-border-color));
+  border-radius: 0;
+}
+
+.fixed-price-item-filter-option {
+  min-width: 3.4rem;
+  padding: 0.18rem 0.38rem;
+  border: 0;
+  border-right: 1px solid color-mix(in srgb, var(--bs-warning) 36%, var(--bs-border-color));
+  background: color-mix(in srgb, var(--bs-body-bg) 82%, transparent);
+  color: var(--bs-secondary-color);
+  font: inherit;
+  font-size: 0.71rem;
+}
+
+.fixed-price-item-filter-option:last-child {
+  border-right: 0;
+}
+
+.fixed-price-item-filter-option.is-yes {
+  color: var(--color-success);
+}
+
+.fixed-price-item-filter-option.is-no {
+  color: var(--color-danger);
+}
+
+.fixed-price-item-filter-option.is-all {
+  color: var(--color-text-muted);
+}
+
+.fixed-price-item-filter-option:hover,
+.fixed-price-item-filter-option:focus-visible {
+  background: color-mix(in srgb, var(--bs-warning) 22%, transparent);
+}
+
+.fixed-price-item-filter-option.is-active {
+  background: var(--color-primary);
+  color: var(--color-on-accent);
+}
+
+.fixed-price-item-filter-option:focus-visible {
+  outline: 2px solid var(--bs-warning);
+  outline-offset: -2px;
+}
+
+@media (max-width: 991.98px) {
+  .fixed-price-item-filter-row {
+    padding-inline: 0.5rem;
+  }
+}
 .plant-icon-row {
   display: grid;
   grid-template-columns: repeat(8, minmax(0, 1fr));

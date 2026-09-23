@@ -9945,5 +9945,47 @@
     "uniqueName": "Redstone Pass",
     "displayName": "Redstone Pass",
     "locationType": "Other"
+  },
+  {
+    "id": 1422,
+    "index": "DebugDungeon",
+    "uniqueName": "DebugDungeon",
+    "displayName": "DebugDungeon",
+    "locationType": "Dungeon"
+  },
+  {
+    "id": 1423,
+    "index": "0368-HALL-09",
+    "uniqueName": "Conquerors' Hall Lvl. 9",
+    "displayName": "Conquerors' Hall Lvl. 9",
+    "locationType": "Other"
+  },
+  {
+    "id": 1424,
+    "index": "1021-HALL-09",
+    "uniqueName": "Conquerors' Hall Lvl. 9",
+    "displayName": "Conquerors' Hall Lvl. 9",
+    "locationType": "Other"
+  },
+  {
+    "id": 1425,
+    "index": "2018-HALL-09",
+    "uniqueName": "Conquerors' Hall Lvl. 9",
+    "displayName": "Conquerors' Hall Lvl. 9",
+    "locationType": "Other"
+  },
+  {
+    "id": 1426,
+    "index": "3022-HALL-09",
+    "uniqueName": "Conquerors' Hall Lvl. 9",
+    "displayName": "Conquerors' Hall Lvl. 9",
+    "locationType": "Other"
+  },
+  {
+    "id": 1427,
+    "index": "4015-HALL-09",
+    "uniqueName": "Conquerors' Hall Lvl. 9",
+    "displayName": "Conquerors' Hall Lvl. 9",
+    "locationType": "Other"
   }
 ]

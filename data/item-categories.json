@@ -274,14 +274,14 @@
   },
   {
     "id": 40,
-    "slug": "hammer_2h_hammer",
+    "slug": "hammer_polehammer",
     "level": "subcategory2",
     "parentSlug": "hammer",
     "sortValue": 200
   },
   {
     "id": 41,
-    "slug": "hammer_polehammer",
+    "slug": "hammer_2h_hammer",
     "level": "subcategory2",
     "parentSlug": "hammer",
     "sortValue": 300
@@ -1240,3198 +1240,3261 @@
   },
   {
     "id": 178,
+    "slug": "armors_leather_dragon",
+    "level": "subcategory2",
+    "parentSlug": "leather_armor",
+    "sortValue": 1000
+  },
+  {
+    "id": 179,
     "slug": "plate_armor",
     "level": "subcategory",
     "parentSlug": "armors",
     "sortValue": 30000
   },
   {
-    "id": 179,
+    "id": 180,
     "slug": "armors_plate_set1",
     "level": "subcategory2",
     "parentSlug": "plate_armor",
     "sortValue": 100
   },
   {
-    "id": 180,
+    "id": 181,
     "slug": "armors_plate_set2",
     "level": "subcategory2",
     "parentSlug": "plate_armor",
     "sortValue": 200
   },
   {
-    "id": 181,
+    "id": 182,
     "slug": "armors_plate_set3",
     "level": "subcategory2",
     "parentSlug": "plate_armor",
     "sortValue": 300
   },
   {
-    "id": 182,
+    "id": 183,
     "slug": "armors_plate_undead",
     "level": "subcategory2",
     "parentSlug": "plate_armor",
     "sortValue": 400
   },
   {
-    "id": 183,
+    "id": 184,
     "slug": "armors_plate_royal",
     "level": "subcategory2",
     "parentSlug": "plate_armor",
     "sortValue": 500
   },
   {
-    "id": 184,
+    "id": 185,
     "slug": "armors_plate_hell",
     "level": "subcategory2",
     "parentSlug": "plate_armor",
     "sortValue": 600
   },
   {
-    "id": 185,
+    "id": 186,
     "slug": "armors_plate_keeper",
     "level": "subcategory2",
     "parentSlug": "plate_armor",
     "sortValue": 700
   },
   {
-    "id": 186,
+    "id": 187,
     "slug": "armors_plate_fey",
     "level": "subcategory2",
     "parentSlug": "plate_armor",
     "sortValue": 800
   },
   {
-    "id": 187,
+    "id": 188,
     "slug": "armors_plate_avalon",
     "level": "subcategory2",
     "parentSlug": "plate_armor",
     "sortValue": 900
   },
   {
-    "id": 188,
+    "id": 189,
     "slug": "other",
     "level": "subcategory",
     "parentSlug": "armors",
     "sortValue": 40000
   },
   {
-    "id": 189,
+    "id": 190,
     "slug": "head",
     "level": "category",
     "parentSlug": "",
     "sortValue": 3000000
   },
   {
-    "id": 190,
+    "id": 191,
     "slug": "cloth_helmet",
     "level": "subcategory",
     "parentSlug": "head",
     "sortValue": 10000
   },
   {
-    "id": 191,
+    "id": 192,
     "slug": "head_cloth_set1",
     "level": "subcategory2",
     "parentSlug": "cloth_helmet",
     "sortValue": 100
   },
   {
-    "id": 192,
+    "id": 193,
     "slug": "head_cloth_set2",
     "level": "subcategory2",
     "parentSlug": "cloth_helmet",
     "sortValue": 200
   },
   {
-    "id": 193,
+    "id": 194,
     "slug": "head_cloth_set3",
     "level": "subcategory2",
     "parentSlug": "cloth_helmet",
     "sortValue": 300
   },
   {
-    "id": 194,
+    "id": 195,
     "slug": "head_cloth_keeper",
     "level": "subcategory2",
     "parentSlug": "cloth_helmet",
     "sortValue": 400
   },
   {
-    "id": 195,
+    "id": 196,
     "slug": "head_cloth_royal",
     "level": "subcategory2",
     "parentSlug": "cloth_helmet",
     "sortValue": 500
   },
   {
-    "id": 196,
+    "id": 197,
     "slug": "head_cloth_hell",
     "level": "subcategory2",
     "parentSlug": "cloth_helmet",
     "sortValue": 600
   },
   {
-    "id": 197,
+    "id": 198,
     "slug": "head_cloth_morgana",
     "level": "subcategory2",
     "parentSlug": "cloth_helmet",
     "sortValue": 700
   },
   {
-    "id": 198,
+    "id": 199,
     "slug": "head_cloth_fey",
     "level": "subcategory2",
     "parentSlug": "cloth_helmet",
     "sortValue": 800
   },
   {
-    "id": 199,
+    "id": 200,
     "slug": "head_cloth_avalon",
     "level": "subcategory2",
     "parentSlug": "cloth_helmet",
     "sortValue": 900
   },
   {
-    "id": 200,
+    "id": 201,
     "slug": "leather_helmet",
     "level": "subcategory",
     "parentSlug": "head",
     "sortValue": 20000
   },
   {
-    "id": 201,
+    "id": 202,
     "slug": "head_leather_set1",
     "level": "subcategory2",
     "parentSlug": "leather_helmet",
     "sortValue": 100
   },
   {
-    "id": 202,
+    "id": 203,
     "slug": "head_leather_set2",
     "level": "subcategory2",
     "parentSlug": "leather_helmet",
     "sortValue": 200
   },
   {
-    "id": 203,
+    "id": 204,
     "slug": "head_leather_set3",
     "level": "subcategory2",
     "parentSlug": "leather_helmet",
     "sortValue": 300
   },
   {
-    "id": 204,
+    "id": 205,
     "slug": "head_leather_morgana",
     "level": "subcategory2",
     "parentSlug": "leather_helmet",
     "sortValue": 400
   },
   {
-    "id": 205,
+    "id": 206,
     "slug": "head_leather_royal",
     "level": "subcategory2",
     "parentSlug": "leather_helmet",
     "sortValue": 500
   },
   {
-    "id": 206,
+    "id": 207,
     "slug": "head_leather_hell",
     "level": "subcategory2",
     "parentSlug": "leather_helmet",
     "sortValue": 600
   },
   {
-    "id": 207,
+    "id": 208,
     "slug": "head_leather_undead",
     "level": "subcategory2",
     "parentSlug": "leather_helmet",
     "sortValue": 700
   },
   {
-    "id": 208,
+    "id": 209,
     "slug": "head_leather_fey",
     "level": "subcategory2",
     "parentSlug": "leather_helmet",
     "sortValue": 800
   },
   {
-    "id": 209,
+    "id": 210,
     "slug": "head_leather_avalon",
     "level": "subcategory2",
     "parentSlug": "leather_helmet",
     "sortValue": 900
   },
   {
-    "id": 210,
+    "id": 211,
+    "slug": "head_leather_dragon",
+    "level": "subcategory2",
+    "parentSlug": "leather_helmet",
+    "sortValue": 1000
+  },
+  {
+    "id": 212,
     "slug": "plate_helmet",
     "level": "subcategory",
     "parentSlug": "head",
     "sortValue": 30000
   },
   {
-    "id": 211,
+    "id": 213,
     "slug": "head_plate_set1",
     "level": "subcategory2",
     "parentSlug": "plate_helmet",
     "sortValue": 100
   },
   {
-    "id": 212,
+    "id": 214,
     "slug": "head_plate_set2",
     "level": "subcategory2",
     "parentSlug": "plate_helmet",
     "sortValue": 200
   },
   {
-    "id": 213,
+    "id": 215,
     "slug": "head_plate_set3",
     "level": "subcategory2",
     "parentSlug": "plate_helmet",
     "sortValue": 300
   },
   {
-    "id": 214,
+    "id": 216,
     "slug": "head_plate_undead",
     "level": "subcategory2",
     "parentSlug": "plate_helmet",
     "sortValue": 400
   },
   {
-    "id": 215,
+    "id": 217,
     "slug": "head_plate_royal",
     "level": "subcategory2",
     "parentSlug": "plate_helmet",
     "sortValue": 500
   },
   {
-    "id": 216,
+    "id": 218,
     "slug": "head_plate_hell",
     "level": "subcategory2",
     "parentSlug": "plate_helmet",
     "sortValue": 600
   },
   {
-    "id": 217,
+    "id": 219,
     "slug": "head_plate_keeper",
     "level": "subcategory2",
     "parentSlug": "plate_helmet",
     "sortValue": 700
   },
   {
-    "id": 218,
+    "id": 220,
     "slug": "head_plate_fey",
     "level": "subcategory2",
     "parentSlug": "plate_helmet",
     "sortValue": 800
   },
   {
-    "id": 219,
+    "id": 221,
     "slug": "head_plate_avalon",
     "level": "subcategory2",
     "parentSlug": "plate_helmet",
     "sortValue": 900
   },
   {
-    "id": 220,
+    "id": 222,
     "slug": "other",
     "level": "subcategory",
     "parentSlug": "head",
     "sortValue": 40000
   },
   {
-    "id": 221,
+    "id": 223,
     "slug": "shoes",
     "level": "category",
     "parentSlug": "",
     "sortValue": 4000000
   },
   {
-    "id": 222,
+    "id": 224,
     "slug": "cloth_shoes",
     "level": "subcategory",
     "parentSlug": "shoes",
     "sortValue": 10000
   },
   {
-    "id": 223,
+    "id": 225,
     "slug": "shoes_cloth_set1",
     "level": "subcategory2",
     "parentSlug": "cloth_shoes",
     "sortValue": 100
   },
   {
-    "id": 224,
+    "id": 226,
     "slug": "shoes_cloth_set2",
     "level": "subcategory2",
     "parentSlug": "cloth_shoes",
     "sortValue": 200
   },
   {
-    "id": 225,
+    "id": 227,
     "slug": "shoes_cloth_set3",
     "level": "subcategory2",
     "parentSlug": "cloth_shoes",
     "sortValue": 300
   },
   {
-    "id": 226,
+    "id": 228,
     "slug": "shoes_cloth_keeper",
     "level": "subcategory2",
     "parentSlug": "cloth_shoes",
     "sortValue": 400
   },
   {
-    "id": 227,
+    "id": 229,
     "slug": "shoes_cloth_royal",
     "level": "subcategory2",
     "parentSlug": "cloth_shoes",
     "sortValue": 500
   },
   {
-    "id": 228,
+    "id": 230,
     "slug": "shoes_cloth_hell",
     "level": "subcategory2",
     "parentSlug": "cloth_shoes",
     "sortValue": 600
   },
   {
-    "id": 229,
+    "id": 231,
     "slug": "shoes_cloth_morgana",
     "level": "subcategory2",
     "parentSlug": "cloth_shoes",
     "sortValue": 700
   },
   {
-    "id": 230,
+    "id": 232,
     "slug": "shoes_cloth_fey",
     "level": "subcategory2",
     "parentSlug": "cloth_shoes",
     "sortValue": 800
   },
   {
-    "id": 231,
+    "id": 233,
     "slug": "shoes_cloth_avalon",
     "level": "subcategory2",
     "parentSlug": "cloth_shoes",
     "sortValue": 900
   },
   {
-    "id": 232,
+    "id": 234,
     "slug": "leather_shoes",
     "level": "subcategory",
     "parentSlug": "shoes",
     "sortValue": 20000
   },
   {
-    "id": 233,
+    "id": 235,
     "slug": "shoes_leather_set1",
     "level": "subcategory2",
     "parentSlug": "leather_shoes",
     "sortValue": 100
   },
   {
-    "id": 234,
+    "id": 236,
     "slug": "shoes_leather_set2",
     "level": "subcategory2",
     "parentSlug": "leather_shoes",
     "sortValue": 200
   },
   {
-    "id": 235,
+    "id": 237,
     "slug": "shoes_leather_set3",
     "level": "subcategory2",
     "parentSlug": "leather_shoes",
     "sortValue": 300
   },
   {
-    "id": 236,
+    "id": 238,
     "slug": "shoes_leather_morgana",
     "level": "subcategory2",
     "parentSlug": "leather_shoes",
     "sortValue": 400
   },
   {
-    "id": 237,
+    "id": 239,
     "slug": "shoes_leather_royal",
     "level": "subcategory2",
     "parentSlug": "leather_shoes",
     "sortValue": 500
   },
   {
-    "id": 238,
+    "id": 240,
     "slug": "shoes_leather_hell",
     "level": "subcategory2",
     "parentSlug": "leather_shoes",
     "sortValue": 600
   },
   {
-    "id": 239,
+    "id": 241,
     "slug": "shoes_leather_undead",
     "level": "subcategory2",
     "parentSlug": "leather_shoes",
     "sortValue": 700
   },
   {
-    "id": 240,
+    "id": 242,
     "slug": "shoes_leather_fey",
     "level": "subcategory2",
     "parentSlug": "leather_shoes",
     "sortValue": 800
   },
   {
-    "id": 241,
+    "id": 243,
     "slug": "shoes_leather_avalon",
     "level": "subcategory2",
     "parentSlug": "leather_shoes",
     "sortValue": 900
   },
   {
-    "id": 242,
+    "id": 244,
+    "slug": "shoes_leather_dragon",
+    "level": "subcategory2",
+    "parentSlug": "leather_shoes",
+    "sortValue": 1000
+  },
+  {
+    "id": 245,
     "slug": "plate_shoes",
     "level": "subcategory",
     "parentSlug": "shoes",
     "sortValue": 30000
   },
   {
-    "id": 243,
+    "id": 246,
     "slug": "shoes_plate_set1",
     "level": "subcategory2",
     "parentSlug": "plate_shoes",
     "sortValue": 100
   },
   {
-    "id": 244,
+    "id": 247,
     "slug": "shoes_plate_set2",
     "level": "subcategory2",
     "parentSlug": "plate_shoes",
     "sortValue": 200
   },
   {
-    "id": 245,
+    "id": 248,
     "slug": "shoes_plate_set3",
     "level": "subcategory2",
     "parentSlug": "plate_shoes",
     "sortValue": 300
   },
   {
-    "id": 246,
+    "id": 249,
     "slug": "shoes_plate_undead",
     "level": "subcategory2",
     "parentSlug": "plate_shoes",
     "sortValue": 400
   },
   {
-    "id": 247,
+    "id": 250,
     "slug": "shoes_plate_royal",
     "level": "subcategory2",
     "parentSlug": "plate_shoes",
     "sortValue": 500
   },
   {
-    "id": 248,
+    "id": 251,
     "slug": "shoes_plate_hell",
     "level": "subcategory2",
     "parentSlug": "plate_shoes",
     "sortValue": 600
   },
   {
-    "id": 249,
+    "id": 252,
     "slug": "shoes_plate_keeper",
     "level": "subcategory2",
     "parentSlug": "plate_shoes",
     "sortValue": 700
   },
   {
-    "id": 250,
+    "id": 253,
     "slug": "shoes_plate_fey",
     "level": "subcategory2",
     "parentSlug": "plate_shoes",
     "sortValue": 800
   },
   {
-    "id": 251,
+    "id": 254,
     "slug": "shoes_plate_avalon",
     "level": "subcategory2",
     "parentSlug": "plate_shoes",
     "sortValue": 900
   },
   {
-    "id": 252,
+    "id": 255,
     "slug": "other",
     "level": "subcategory",
     "parentSlug": "shoes",
     "sortValue": 40000
   },
   {
-    "id": 253,
+    "id": 256,
     "slug": "offhands",
     "level": "category",
     "parentSlug": "",
     "sortValue": 5000000
   },
   {
-    "id": 254,
+    "id": 257,
     "slug": "booktype",
     "level": "subcategory",
     "parentSlug": "offhands",
     "sortValue": 10000
   },
   {
-    "id": 255,
+    "id": 258,
     "slug": "booktype_book",
     "level": "subcategory2",
     "parentSlug": "booktype",
     "sortValue": 100
   },
   {
-    "id": 256,
+    "id": 259,
     "slug": "booktype_morgana",
     "level": "subcategory2",
     "parentSlug": "booktype",
     "sortValue": 200
   },
   {
-    "id": 257,
+    "id": 260,
     "slug": "booktype_hellsskull",
     "level": "subcategory2",
     "parentSlug": "booktype",
     "sortValue": 300
   },
   {
-    "id": 258,
+    "id": 261,
     "slug": "booktype_keeper",
     "level": "subcategory2",
     "parentSlug": "booktype",
     "sortValue": 400
   },
   {
-    "id": 259,
+    "id": 262,
     "slug": "booktype_avalon",
     "level": "subcategory2",
     "parentSlug": "booktype",
     "sortValue": 500
   },
   {
-    "id": 260,
+    "id": 263,
     "slug": "booktype_crystal",
     "level": "subcategory2",
     "parentSlug": "booktype",
     "sortValue": 600
   },
   {
-    "id": 261,
+    "id": 264,
     "slug": "torchtype",
     "level": "subcategory",
     "parentSlug": "offhands",
     "sortValue": 20000
   },
   {
-    "id": 262,
+    "id": 265,
     "slug": "torchtype_torch",
     "level": "subcategory2",
     "parentSlug": "torchtype",
     "sortValue": 100
   },
   {
-    "id": 263,
+    "id": 266,
     "slug": "torchtype_keeperhorn",
     "level": "subcategory2",
     "parentSlug": "torchtype",
     "sortValue": 200
   },
   {
-    "id": 264,
+    "id": 267,
     "slug": "torchtype_hell",
     "level": "subcategory2",
     "parentSlug": "torchtype",
     "sortValue": 300
   },
   {
-    "id": 265,
+    "id": 268,
     "slug": "torchtype_undead",
     "level": "subcategory2",
     "parentSlug": "torchtype",
     "sortValue": 400
   },
   {
-    "id": 266,
+    "id": 269,
     "slug": "torchtype_avalon",
     "level": "subcategory2",
     "parentSlug": "torchtype",
     "sortValue": 500
   },
   {
-    "id": 267,
+    "id": 270,
     "slug": "torchtype_crystal",
     "level": "subcategory2",
     "parentSlug": "torchtype",
     "sortValue": 600
   },
   {
-    "id": 268,
+    "id": 271,
     "slug": "shieldtype",
     "level": "subcategory",
     "parentSlug": "offhands",
     "sortValue": 30000
   },
   {
-    "id": 269,
+    "id": 272,
     "slug": "shieldtype_shield",
     "level": "subcategory2",
     "parentSlug": "shieldtype",
     "sortValue": 100
   },
   {
-    "id": 270,
+    "id": 273,
     "slug": "shieldtype_undead",
     "level": "subcategory2",
     "parentSlug": "shieldtype",
     "sortValue": 200
   },
   {
-    "id": 271,
+    "id": 274,
     "slug": "shieldtype_hell",
     "level": "subcategory2",
     "parentSlug": "shieldtype",
     "sortValue": 300
   },
   {
-    "id": 272,
+    "id": 275,
     "slug": "shieldtype_morgana",
     "level": "subcategory2",
     "parentSlug": "shieldtype",
     "sortValue": 400
   },
   {
-    "id": 273,
+    "id": 276,
     "slug": "shieldtype_avalon",
     "level": "subcategory2",
     "parentSlug": "shieldtype",
     "sortValue": 500
   },
   {
-    "id": 274,
+    "id": 277,
     "slug": "shieldtype_crystal",
     "level": "subcategory2",
     "parentSlug": "shieldtype",
     "sortValue": 600
   },
   {
-    "id": 275,
+    "id": 278,
     "slug": "other",
     "level": "subcategory",
     "parentSlug": "offhands",
     "sortValue": 40000
   },
   {
-    "id": 276,
+    "id": 279,
     "slug": "capes",
     "level": "category",
     "parentSlug": "",
     "sortValue": 6000000
   },
   {
-    "id": 277,
+    "id": 280,
     "slug": "accessoires_capes_capes",
     "level": "subcategory",
     "parentSlug": "capes",
     "sortValue": 10000
   },
   {
-    "id": 278,
+    "id": 281,
     "slug": "accessoires_capes_bridgewatch",
     "level": "subcategory",
     "parentSlug": "capes",
     "sortValue": 20000
   },
   {
-    "id": 279,
+    "id": 282,
     "slug": "accessoires_capes_fortsterling",
     "level": "subcategory",
     "parentSlug": "capes",
     "sortValue": 30000
   },
   {
-    "id": 280,
+    "id": 283,
     "slug": "accessoires_capes_lymhurst",
     "level": "subcategory",
     "parentSlug": "capes",
     "sortValue": 40000
   },
   {
-    "id": 281,
+    "id": 284,
     "slug": "accessoires_capes_martlock",
     "level": "subcategory",
     "parentSlug": "capes",
     "sortValue": 50000
   },
   {
-    "id": 282,
+    "id": 285,
     "slug": "accessoires_capes_thetford",
     "level": "subcategory",
     "parentSlug": "capes",
     "sortValue": 60000
   },
   {
-    "id": 283,
+    "id": 286,
     "slug": "accessoires_capes_caerleon",
     "level": "subcategory",
     "parentSlug": "capes",
     "sortValue": 70000
   },
   {
-    "id": 284,
+    "id": 287,
     "slug": "accessoires_capes_brecilien",
     "level": "subcategory",
     "parentSlug": "capes",
     "sortValue": 80000
   },
   {
-    "id": 285,
+    "id": 288,
     "slug": "accessoires_capes_heretic",
     "level": "subcategory",
     "parentSlug": "capes",
     "sortValue": 90000
   },
   {
-    "id": 286,
+    "id": 289,
     "slug": "accessoires_capes_undead",
     "level": "subcategory",
     "parentSlug": "capes",
     "sortValue": 100000
   },
   {
-    "id": 287,
+    "id": 290,
     "slug": "accessoires_capes_keeper",
     "level": "subcategory",
     "parentSlug": "capes",
     "sortValue": 110000
   },
   {
-    "id": 288,
+    "id": 291,
     "slug": "accessoires_capes_morgana",
     "level": "subcategory",
     "parentSlug": "capes",
     "sortValue": 120000
   },
   {
-    "id": 289,
+    "id": 292,
     "slug": "accessoires_capes_avalon",
     "level": "subcategory",
     "parentSlug": "capes",
     "sortValue": 130000
   },
   {
-    "id": 290,
+    "id": 293,
     "slug": "accessoires_capes_demon",
     "level": "subcategory",
     "parentSlug": "capes",
     "sortValue": 140000
   },
   {
-    "id": 291,
+    "id": 294,
     "slug": "accessoires_capes_smuggler",
     "level": "subcategory",
     "parentSlug": "capes",
     "sortValue": 150000
   },
   {
-    "id": 292,
+    "id": 295,
     "slug": "other",
     "level": "subcategory",
     "parentSlug": "capes",
     "sortValue": 160000
   },
   {
-    "id": 293,
+    "id": 296,
     "slug": "bags",
     "level": "category",
     "parentSlug": "",
     "sortValue": 7000000
   },
   {
-    "id": 294,
+    "id": 297,
     "slug": "bags",
     "level": "subcategory",
     "parentSlug": "bags",
     "sortValue": 10000
   },
   {
-    "id": 295,
+    "id": 298,
     "slug": "satchels",
     "level": "subcategory",
     "parentSlug": "bags",
     "sortValue": 20000
   },
   {
-    "id": 296,
+    "id": 299,
     "slug": "other",
     "level": "subcategory",
     "parentSlug": "bags",
     "sortValue": 30000
   },
   {
-    "id": 297,
+    "id": 300,
     "slug": "mounts",
     "level": "category",
     "parentSlug": "",
     "sortValue": 8000000
   },
   {
-    "id": 298,
+    "id": 301,
     "slug": "basemounts",
     "level": "subcategory",
     "parentSlug": "mounts",
     "sortValue": 10000
   },
   {
-    "id": 299,
+    "id": 302,
     "slug": "horse",
     "level": "subcategory2",
     "parentSlug": "basemounts",
     "sortValue": 100
   },
   {
-    "id": 300,
+    "id": 303,
     "slug": "armoredhorse",
     "level": "subcategory2",
     "parentSlug": "basemounts",
     "sortValue": 200
   },
   {
-    "id": 301,
+    "id": 304,
     "slug": "ox",
     "level": "subcategory2",
     "parentSlug": "basemounts",
     "sortValue": 300
   },
   {
-    "id": 302,
+    "id": 305,
     "slug": "ram",
     "level": "subcategory2",
     "parentSlug": "basemounts",
     "sortValue": 400
   },
   {
-    "id": 303,
+    "id": 306,
     "slug": "direwolf",
     "level": "subcategory2",
     "parentSlug": "basemounts",
     "sortValue": 500
   },
   {
-    "id": 304,
+    "id": 307,
     "slug": "stag",
     "level": "subcategory2",
     "parentSlug": "basemounts",
     "sortValue": 600
   },
   {
-    "id": 305,
+    "id": 308,
     "slug": "cougar",
     "level": "subcategory2",
     "parentSlug": "basemounts",
     "sortValue": 700
   },
   {
-    "id": 306,
+    "id": 309,
     "slug": "direboar",
     "level": "subcategory2",
     "parentSlug": "basemounts",
     "sortValue": 800
   },
   {
-    "id": 307,
+    "id": 310,
     "slug": "direbear",
     "level": "subcategory2",
     "parentSlug": "basemounts",
     "sortValue": 900
   },
   {
-    "id": 308,
+    "id": 311,
     "slug": "swampdragon",
     "level": "subcategory2",
     "parentSlug": "basemounts",
     "sortValue": 1000
   },
   {
-    "id": 309,
+    "id": 312,
     "slug": "donkey",
     "level": "subcategory2",
     "parentSlug": "basemounts",
     "sortValue": 1100
   },
   {
-    "id": 310,
+    "id": 313,
     "slug": "mammoth",
     "level": "subcategory2",
     "parentSlug": "basemounts",
     "sortValue": 1200
   },
   {
-    "id": 311,
+    "id": 314,
     "slug": "moabird",
     "level": "subcategory2",
     "parentSlug": "basemounts",
     "sortValue": 1300
   },
   {
-    "id": 312,
+    "id": 315,
     "slug": "raremounts",
     "level": "subcategory",
     "parentSlug": "mounts",
     "sortValue": 20000
   },
   {
-    "id": 313,
+    "id": 316,
     "slug": "horse",
     "level": "subcategory2",
     "parentSlug": "raremounts",
     "sortValue": 100
   },
   {
-    "id": 314,
+    "id": 317,
     "slug": "armoredhorse",
     "level": "subcategory2",
     "parentSlug": "raremounts",
     "sortValue": 200
   },
   {
-    "id": 315,
+    "id": 318,
     "slug": "ram",
     "level": "subcategory2",
     "parentSlug": "raremounts",
     "sortValue": 300
   },
   {
-    "id": 316,
+    "id": 319,
     "slug": "direwolf",
     "level": "subcategory2",
     "parentSlug": "raremounts",
     "sortValue": 400
   },
   {
-    "id": 317,
+    "id": 320,
     "slug": "stag",
     "level": "subcategory2",
     "parentSlug": "raremounts",
     "sortValue": 600
   },
   {
-    "id": 318,
+    "id": 321,
     "slug": "cougar",
     "level": "subcategory2",
     "parentSlug": "raremounts",
     "sortValue": 700
   },
   {
-    "id": 319,
+    "id": 322,
     "slug": "direboar",
     "level": "subcategory2",
     "parentSlug": "raremounts",
     "sortValue": 800
   },
   {
-    "id": 320,
+    "id": 323,
     "slug": "direbear",
     "level": "subcategory2",
     "parentSlug": "raremounts",
     "sortValue": 900
   },
   {
-    "id": 321,
+    "id": 324,
     "slug": "swampdragon",
     "level": "subcategory2",
     "parentSlug": "raremounts",
     "sortValue": 1000
   },
   {
-    "id": 322,
+    "id": 325,
     "slug": "donkey",
     "level": "subcategory2",
     "parentSlug": "raremounts",
     "sortValue": 1100
   },
   {
-    "id": 323,
+    "id": 326,
     "slug": "bat",
     "level": "subcategory2",
     "parentSlug": "raremounts",
     "sortValue": 1200
   },
   {
-    "id": 324,
+    "id": 327,
     "slug": "moabird",
     "level": "subcategory2",
     "parentSlug": "raremounts",
     "sortValue": 1300
   },
   {
-    "id": 325,
+    "id": 328,
     "slug": "owl",
     "level": "subcategory2",
     "parentSlug": "raremounts",
     "sortValue": 1400
   },
   {
-    "id": 326,
+    "id": 329,
     "slug": "rabbit",
     "level": "subcategory2",
     "parentSlug": "raremounts",
     "sortValue": 1500
   },
   {
-    "id": 327,
+    "id": 330,
     "slug": "raven",
     "level": "subcategory2",
     "parentSlug": "raremounts",
     "sortValue": 1600
   },
   {
-    "id": 328,
+    "id": 331,
     "slug": "spider",
     "level": "subcategory2",
     "parentSlug": "raremounts",
     "sortValue": 1700
   },
   {
-    "id": 329,
+    "id": 332,
     "slug": "toad",
     "level": "subcategory2",
     "parentSlug": "raremounts",
     "sortValue": 1800
   },
   {
-    "id": 330,
+    "id": 333,
+    "slug": "drake",
+    "level": "subcategory2",
+    "parentSlug": "raremounts",
+    "sortValue": 1900
+  },
+  {
+    "id": 334,
     "slug": "battle_mount",
     "level": "subcategory",
     "parentSlug": "mounts",
     "sortValue": 30000
   },
   {
-    "id": 331,
+    "id": 335,
     "slug": "bastion",
     "level": "subcategory2",
     "parentSlug": "battle_mount",
     "sortValue": 100
   },
   {
-    "id": 332,
+    "id": 336,
     "slug": "beetle",
     "level": "subcategory2",
     "parentSlug": "battle_mount",
     "sortValue": 200
   },
   {
-    "id": 333,
+    "id": 337,
     "slug": "behemenoth",
     "level": "subcategory2",
     "parentSlug": "battle_mount",
     "sortValue": 300
   },
   {
-    "id": 334,
+    "id": 338,
     "slug": "chariot",
     "level": "subcategory2",
     "parentSlug": "battle_mount",
     "sortValue": 400
   },
   {
-    "id": 335,
+    "id": 339,
     "slug": "eagle",
     "level": "subcategory2",
     "parentSlug": "battle_mount",
     "sortValue": 500
   },
   {
-    "id": 336,
+    "id": 340,
     "slug": "ent",
     "level": "subcategory2",
     "parentSlug": "battle_mount",
     "sortValue": 600
   },
   {
-    "id": 337,
+    "id": 341,
     "slug": "juggernaut",
     "level": "subcategory2",
     "parentSlug": "battle_mount",
     "sortValue": 700
   },
   {
-    "id": 338,
+    "id": 342,
     "slug": "mammoth",
     "level": "subcategory2",
     "parentSlug": "battle_mount",
     "sortValue": 800
   },
   {
-    "id": 339,
+    "id": 343,
     "slug": "rhino",
     "level": "subcategory2",
     "parentSlug": "battle_mount",
     "sortValue": 900
   },
   {
-    "id": 340,
+    "id": 344,
     "slug": "siegeballista",
     "level": "subcategory2",
     "parentSlug": "battle_mount",
     "sortValue": 1000
   },
   {
-    "id": 341,
+    "id": 345,
     "slug": "spider",
     "level": "subcategory2",
     "parentSlug": "battle_mount",
     "sortValue": 1100
   },
   {
-    "id": 342,
+    "id": 346,
     "slug": "swampdragon",
     "level": "subcategory2",
     "parentSlug": "battle_mount",
     "sortValue": 1200
   },
   {
-    "id": 343,
+    "id": 347,
     "slug": "tankbeetle",
     "level": "subcategory2",
     "parentSlug": "battle_mount",
     "sortValue": 1300
   },
   {
-    "id": 344,
+    "id": 348,
     "slug": "consumables",
     "level": "category",
     "parentSlug": "",
     "sortValue": 9000000
   },
   {
-    "id": 345,
+    "id": 349,
     "slug": "food",
     "level": "subcategory",
     "parentSlug": "consumables",
     "sortValue": 10000
   },
   {
-    "id": 346,
+    "id": 350,
     "slug": "soups",
     "level": "subcategory2",
     "parentSlug": "food",
     "sortValue": 200
   },
   {
-    "id": 347,
+    "id": 351,
     "slug": "salads",
     "level": "subcategory2",
     "parentSlug": "food",
     "sortValue": 300
   },
   {
-    "id": 348,
+    "id": 352,
     "slug": "pies",
     "level": "subcategory2",
     "parentSlug": "food",
     "sortValue": 400
   },
   {
-    "id": 349,
+    "id": 353,
     "slug": "roasts",
     "level": "subcategory2",
     "parentSlug": "food",
     "sortValue": 500
   },
   {
-    "id": 350,
+    "id": 354,
     "slug": "omelettes",
     "level": "subcategory2",
     "parentSlug": "food",
     "sortValue": 600
   },
   {
-    "id": 351,
+    "id": 355,
     "slug": "stews",
     "level": "subcategory2",
     "parentSlug": "food",
     "sortValue": 700
   },
   {
-    "id": 352,
+    "id": 356,
     "slug": "sandwiches",
     "level": "subcategory2",
     "parentSlug": "food",
     "sortValue": 800
   },
   {
-    "id": 353,
+    "id": 357,
     "slug": "grilledfish",
     "level": "subcategory2",
     "parentSlug": "food",
     "sortValue": 900
   },
   {
-    "id": 354,
+    "id": 358,
     "slug": "event",
     "level": "subcategory2",
     "parentSlug": "food",
     "sortValue": 1000
   },
   {
-    "id": 355,
+    "id": 359,
+    "slug": "other",
+    "level": "subcategory2",
+    "parentSlug": "food",
+    "sortValue": 1100
+  },
+  {
+    "id": 360,
     "slug": "potions",
     "level": "subcategory",
     "parentSlug": "consumables",
     "sortValue": 20000
   },
   {
-    "id": 356,
+    "id": 361,
     "slug": "heal",
     "level": "subcategory2",
     "parentSlug": "potions",
     "sortValue": 200
   },
   {
-    "id": 357,
+    "id": 362,
     "slug": "energy",
     "level": "subcategory2",
     "parentSlug": "potions",
     "sortValue": 300
   },
   {
-    "id": 358,
+    "id": 363,
     "slug": "gigantify",
     "level": "subcategory2",
     "parentSlug": "potions",
     "sortValue": 400
   },
   {
-    "id": 359,
+    "id": 364,
     "slug": "resistance",
     "level": "subcategory2",
     "parentSlug": "potions",
     "sortValue": 500
   },
   {
-    "id": 360,
+    "id": 365,
     "slug": "slowfield",
     "level": "subcategory2",
     "parentSlug": "potions",
     "sortValue": 600
   },
   {
-    "id": 361,
+    "id": 366,
     "slug": "poison",
     "level": "subcategory2",
     "parentSlug": "potions",
     "sortValue": 700
   },
   {
-    "id": 362,
+    "id": 367,
     "slug": "invisibility",
     "level": "subcategory2",
     "parentSlug": "potions",
     "sortValue": 800
   },
   {
-    "id": 363,
+    "id": 368,
     "slug": "calming",
     "level": "subcategory2",
     "parentSlug": "potions",
     "sortValue": 900
   },
   {
-    "id": 364,
+    "id": 369,
     "slug": "cleanse",
     "level": "subcategory2",
     "parentSlug": "potions",
     "sortValue": 1000
   },
   {
-    "id": 365,
+    "id": 370,
     "slug": "acid",
     "level": "subcategory2",
     "parentSlug": "potions",
     "sortValue": 1100
   },
   {
-    "id": 366,
+    "id": 371,
     "slug": "berserk",
     "level": "subcategory2",
     "parentSlug": "potions",
     "sortValue": 1200
   },
   {
-    "id": 367,
+    "id": 372,
     "slug": "lava",
     "level": "subcategory2",
     "parentSlug": "potions",
     "sortValue": 1300
   },
   {
-    "id": 368,
+    "id": 373,
     "slug": "gather",
     "level": "subcategory2",
     "parentSlug": "potions",
     "sortValue": 1400
   },
   {
-    "id": 369,
+    "id": 374,
     "slug": "tornado",
     "level": "subcategory2",
     "parentSlug": "potions",
     "sortValue": 1400
   },
   {
-    "id": 370,
-    "slug": "focus",
+    "id": 375,
+    "slug": "lifeward",
     "level": "subcategory2",
     "parentSlug": "potions",
     "sortValue": 1500
   },
   {
-    "id": 371,
-    "slug": "event",
+    "id": 376,
+    "slug": "focus",
     "level": "subcategory2",
     "parentSlug": "potions",
     "sortValue": 1600
   },
   {
-    "id": 372,
+    "id": 377,
+    "slug": "event",
+    "level": "subcategory2",
+    "parentSlug": "potions",
+    "sortValue": 1700
+  },
+  {
+    "id": 378,
     "slug": "other",
     "level": "subcategory2",
     "parentSlug": "potions",
     "sortValue": 2000
   },
   {
-    "id": 373,
+    "id": 379,
     "slug": "tomes",
     "level": "subcategory",
     "parentSlug": "consumables",
     "sortValue": 30000
   },
   {
-    "id": 374,
+    "id": 380,
     "slug": "fame",
     "level": "subcategory2",
     "parentSlug": "tomes",
     "sortValue": 100
   },
   {
-    "id": 375,
+    "id": 381,
     "slug": "fiber",
     "level": "subcategory2",
     "parentSlug": "tomes",
     "sortValue": 200
   },
   {
-    "id": 376,
+    "id": 382,
     "slug": "hide",
     "level": "subcategory2",
     "parentSlug": "tomes",
     "sortValue": 300
   },
   {
-    "id": 377,
+    "id": 383,
     "slug": "ore",
     "level": "subcategory2",
     "parentSlug": "tomes",
     "sortValue": 400
   },
   {
-    "id": 378,
+    "id": 384,
     "slug": "rock",
     "level": "subcategory2",
     "parentSlug": "tomes",
     "sortValue": 500
   },
   {
-    "id": 379,
+    "id": 385,
     "slug": "wood",
     "level": "subcategory2",
     "parentSlug": "tomes",
     "sortValue": 600
   },
   {
-    "id": 380,
+    "id": 386,
     "slug": "learningpoints",
     "level": "subcategory2",
     "parentSlug": "tomes",
     "sortValue": 300
   },
   {
-    "id": 381,
+    "id": 387,
     "slug": "other",
     "level": "subcategory",
     "parentSlug": "consumables",
     "sortValue": 40000
   },
   {
-    "id": 382,
+    "id": 388,
     "slug": "repairpowder",
     "level": "subcategory2",
     "parentSlug": "other",
     "sortValue": 100
   },
   {
-    "id": 383,
+    "id": 389,
     "slug": "firework",
     "level": "subcategory2",
     "parentSlug": "other",
     "sortValue": 200
   },
   {
-    "id": 384,
+    "id": 390,
     "slug": "other",
     "level": "subcategory2",
     "parentSlug": "other",
     "sortValue": 300
   },
   {
-    "id": 385,
+    "id": 391,
     "slug": "silverbag",
     "level": "subcategory",
     "parentSlug": "consumables",
     "sortValue": 70000
   },
   {
-    "id": 386,
+    "id": 392,
     "slug": "gathering",
     "level": "category",
     "parentSlug": "",
     "sortValue": 10000000
   },
   {
-    "id": 387,
+    "id": 393,
     "slug": "fish",
     "level": "subcategory",
     "parentSlug": "gathering",
     "sortValue": 10000
   },
   {
-    "id": 388,
+    "id": 394,
     "slug": "fishingrods",
     "level": "subcategory2",
     "parentSlug": "fish",
     "sortValue": 100
   },
   {
-    "id": 389,
+    "id": 395,
     "slug": "gathering_armor",
     "level": "subcategory2",
     "parentSlug": "fish",
     "sortValue": 200
   },
   {
-    "id": 390,
+    "id": 396,
     "slug": "gathering_head",
     "level": "subcategory2",
     "parentSlug": "fish",
     "sortValue": 300
   },
   {
-    "id": 391,
+    "id": 397,
     "slug": "gathering_shoes",
     "level": "subcategory2",
     "parentSlug": "fish",
     "sortValue": 400
   },
   {
-    "id": 392,
+    "id": 398,
     "slug": "gathering_capes",
     "level": "subcategory2",
     "parentSlug": "fish",
     "sortValue": 500
   },
   {
-    "id": 393,
+    "id": 399,
     "slug": "bait",
     "level": "subcategory2",
     "parentSlug": "fish",
     "sortValue": 600
   },
   {
-    "id": 394,
+    "id": 400,
     "slug": "fiber",
     "level": "subcategory",
     "parentSlug": "gathering",
     "sortValue": 20000
   },
   {
-    "id": 395,
+    "id": 401,
     "slug": "sickle",
     "level": "subcategory2",
     "parentSlug": "fiber",
     "sortValue": 100
   },
   {
-    "id": 396,
-    "slug": "gathering_armor",
-    "level": "subcategory2",
-    "parentSlug": "fiber",
-    "sortValue": 200
-  },
-  {
-    "id": 397,
-    "slug": "gathering_head",
-    "level": "subcategory2",
-    "parentSlug": "fiber",
-    "sortValue": 300
-  },
-  {
-    "id": 398,
-    "slug": "gathering_shoes",
-    "level": "subcategory2",
-    "parentSlug": "fiber",
-    "sortValue": 400
-  },
-  {
-    "id": 399,
-    "slug": "gathering_capes",
-    "level": "subcategory2",
-    "parentSlug": "fiber",
-    "sortValue": 500
-  },
-  {
-    "id": 400,
-    "slug": "hide",
-    "level": "subcategory",
-    "parentSlug": "gathering",
-    "sortValue": 30000
-  },
-  {
-    "id": 401,
-    "slug": "knifes",
-    "level": "subcategory2",
-    "parentSlug": "hide",
-    "sortValue": 100
-  },
-  {
     "id": 402,
     "slug": "gathering_armor",
     "level": "subcategory2",
-    "parentSlug": "hide",
+    "parentSlug": "fiber",
     "sortValue": 200
   },
   {
     "id": 403,
     "slug": "gathering_head",
     "level": "subcategory2",
-    "parentSlug": "hide",
+    "parentSlug": "fiber",
     "sortValue": 300
   },
   {
     "id": 404,
     "slug": "gathering_shoes",
     "level": "subcategory2",
-    "parentSlug": "hide",
+    "parentSlug": "fiber",
     "sortValue": 400
   },
   {
     "id": 405,
     "slug": "gathering_capes",
     "level": "subcategory2",
-    "parentSlug": "hide",
+    "parentSlug": "fiber",
     "sortValue": 500
   },
   {
     "id": 406,
-    "slug": "ore",
+    "slug": "hide",
     "level": "subcategory",
     "parentSlug": "gathering",
-    "sortValue": 40000
+    "sortValue": 30000
   },
   {
     "id": 407,
-    "slug": "picks",
+    "slug": "knifes",
     "level": "subcategory2",
-    "parentSlug": "ore",
+    "parentSlug": "hide",
     "sortValue": 100
   },
   {
     "id": 408,
     "slug": "gathering_armor",
     "level": "subcategory2",
-    "parentSlug": "ore",
+    "parentSlug": "hide",
     "sortValue": 200
   },
   {
     "id": 409,
     "slug": "gathering_head",
     "level": "subcategory2",
-    "parentSlug": "ore",
+    "parentSlug": "hide",
     "sortValue": 300
   },
   {
     "id": 410,
     "slug": "gathering_shoes",
     "level": "subcategory2",
-    "parentSlug": "ore",
+    "parentSlug": "hide",
     "sortValue": 400
   },
   {
     "id": 411,
     "slug": "gathering_capes",
     "level": "subcategory2",
-    "parentSlug": "ore",
+    "parentSlug": "hide",
     "sortValue": 500
   },
   {
     "id": 412,
-    "slug": "rock",
+    "slug": "ore",
     "level": "subcategory",
     "parentSlug": "gathering",
-    "sortValue": 50000
+    "sortValue": 40000
   },
   {
     "id": 413,
-    "slug": "hammer",
+    "slug": "picks",
     "level": "subcategory2",
-    "parentSlug": "rock",
+    "parentSlug": "ore",
     "sortValue": 100
   },
   {
     "id": 414,
     "slug": "gathering_armor",
     "level": "subcategory2",
-    "parentSlug": "rock",
+    "parentSlug": "ore",
     "sortValue": 200
   },
   {
     "id": 415,
     "slug": "gathering_head",
     "level": "subcategory2",
-    "parentSlug": "rock",
+    "parentSlug": "ore",
     "sortValue": 300
   },
   {
     "id": 416,
     "slug": "gathering_shoes",
     "level": "subcategory2",
-    "parentSlug": "rock",
+    "parentSlug": "ore",
     "sortValue": 400
   },
   {
     "id": 417,
     "slug": "gathering_capes",
     "level": "subcategory2",
-    "parentSlug": "rock",
+    "parentSlug": "ore",
     "sortValue": 500
   },
   {
     "id": 418,
-    "slug": "wood",
+    "slug": "rock",
     "level": "subcategory",
     "parentSlug": "gathering",
-    "sortValue": 60000
+    "sortValue": 50000
   },
   {
     "id": 419,
-    "slug": "axes",
+    "slug": "hammer",
     "level": "subcategory2",
-    "parentSlug": "wood",
+    "parentSlug": "rock",
     "sortValue": 100
   },
   {
     "id": 420,
     "slug": "gathering_armor",
     "level": "subcategory2",
-    "parentSlug": "wood",
+    "parentSlug": "rock",
     "sortValue": 200
   },
   {
     "id": 421,
     "slug": "gathering_head",
     "level": "subcategory2",
-    "parentSlug": "wood",
+    "parentSlug": "rock",
     "sortValue": 300
   },
   {
     "id": 422,
     "slug": "gathering_shoes",
     "level": "subcategory2",
-    "parentSlug": "wood",
+    "parentSlug": "rock",
     "sortValue": 400
   },
   {
     "id": 423,
     "slug": "gathering_capes",
     "level": "subcategory2",
-    "parentSlug": "wood",
+    "parentSlug": "rock",
     "sortValue": 500
   },
   {
     "id": 424,
+    "slug": "wood",
+    "level": "subcategory",
+    "parentSlug": "gathering",
+    "sortValue": 60000
+  },
+  {
+    "id": 425,
+    "slug": "axes",
+    "level": "subcategory2",
+    "parentSlug": "wood",
+    "sortValue": 100
+  },
+  {
+    "id": 426,
+    "slug": "gathering_armor",
+    "level": "subcategory2",
+    "parentSlug": "wood",
+    "sortValue": 200
+  },
+  {
+    "id": 427,
+    "slug": "gathering_head",
+    "level": "subcategory2",
+    "parentSlug": "wood",
+    "sortValue": 300
+  },
+  {
+    "id": 428,
+    "slug": "gathering_shoes",
+    "level": "subcategory2",
+    "parentSlug": "wood",
+    "sortValue": 400
+  },
+  {
+    "id": 429,
+    "slug": "gathering_capes",
+    "level": "subcategory2",
+    "parentSlug": "wood",
+    "sortValue": 500
+  },
+  {
+    "id": 430,
     "slug": "tracking",
     "level": "subcategory",
     "parentSlug": "gathering",
     "sortValue": 70000
   },
   {
-    "id": 425,
+    "id": 431,
     "slug": "toolkit",
     "level": "subcategory2",
     "parentSlug": "tracking",
     "sortValue": 100
   },
   {
-    "id": 426,
+    "id": 432,
     "slug": "crafting",
     "level": "category",
     "parentSlug": "",
     "sortValue": 11000000
   },
   {
-    "id": 427,
+    "id": 433,
     "slug": "resources",
     "level": "subcategory",
     "parentSlug": "crafting",
     "sortValue": 10000
   },
   {
-    "id": 428,
+    "id": 434,
     "slug": "fiber",
     "level": "subcategory2",
     "parentSlug": "resources",
     "sortValue": 100
   },
   {
-    "id": 429,
+    "id": 435,
     "slug": "hide",
     "level": "subcategory2",
     "parentSlug": "resources",
     "sortValue": 200
   },
   {
-    "id": 430,
+    "id": 436,
     "slug": "ore",
     "level": "subcategory2",
     "parentSlug": "resources",
     "sortValue": 300
   },
   {
-    "id": 431,
+    "id": 437,
     "slug": "rock",
     "level": "subcategory2",
     "parentSlug": "resources",
     "sortValue": 400
   },
   {
-    "id": 432,
+    "id": 438,
     "slug": "wood",
     "level": "subcategory2",
     "parentSlug": "resources",
     "sortValue": 500
   },
   {
-    "id": 433,
+    "id": 439,
     "slug": "refinedresources",
     "level": "subcategory",
     "parentSlug": "crafting",
     "sortValue": 20000
   },
   {
-    "id": 434,
+    "id": 440,
     "slug": "cloth",
     "level": "subcategory2",
     "parentSlug": "refinedresources",
     "sortValue": 100
   },
   {
-    "id": 435,
+    "id": 441,
     "slug": "leather",
     "level": "subcategory2",
     "parentSlug": "refinedresources",
     "sortValue": 200
   },
   {
-    "id": 436,
+    "id": 442,
     "slug": "metalbars",
     "level": "subcategory2",
     "parentSlug": "refinedresources",
     "sortValue": 300
   },
   {
-    "id": 437,
+    "id": 443,
     "slug": "stoneblock",
     "level": "subcategory2",
     "parentSlug": "refinedresources",
     "sortValue": 400
   },
   {
-    "id": 438,
+    "id": 444,
     "slug": "planks",
     "level": "subcategory2",
     "parentSlug": "refinedresources",
     "sortValue": 500
   },
   {
-    "id": 439,
+    "id": 445,
     "slug": "tokens",
     "level": "subcategory",
     "parentSlug": "crafting",
     "sortValue": 90000
   },
   {
-    "id": 440,
+    "id": 446,
     "slug": "mountupgrades",
     "level": "subcategory2",
     "parentSlug": "tokens",
     "sortValue": 200
   },
   {
-    "id": 441,
+    "id": 447,
     "slug": "royalsigils",
     "level": "subcategory2",
     "parentSlug": "tokens",
     "sortValue": 300
   },
   {
-    "id": 442,
+    "id": 448,
     "slug": "other",
     "level": "subcategory2",
     "parentSlug": "tokens",
     "sortValue": 500
   },
   {
-    "id": 443,
+    "id": 449,
     "slug": "cityresources",
     "level": "subcategory",
     "parentSlug": "crafting",
     "sortValue": 100000
   },
   {
-    "id": 444,
+    "id": 450,
     "slug": "beastheart",
     "level": "subcategory2",
     "parentSlug": "cityresources",
     "sortValue": 100
   },
   {
-    "id": 445,
+    "id": 451,
     "slug": "treeheart",
     "level": "subcategory2",
     "parentSlug": "cityresources",
     "sortValue": 200
   },
   {
-    "id": 446,
+    "id": 452,
     "slug": "mountainheart",
     "level": "subcategory2",
     "parentSlug": "cityresources",
     "sortValue": 300
   },
   {
-    "id": 447,
+    "id": 453,
     "slug": "rockheart",
     "level": "subcategory2",
     "parentSlug": "cityresources",
     "sortValue": 400
   },
   {
-    "id": 448,
+    "id": 454,
     "slug": "vineheart",
     "level": "subcategory2",
     "parentSlug": "cityresources",
     "sortValue": 500
   },
   {
-    "id": 449,
+    "id": 455,
     "slug": "blackheart",
     "level": "subcategory2",
     "parentSlug": "cityresources",
     "sortValue": 600
   },
   {
-    "id": 450,
+    "id": 456,
     "slug": "fish",
     "level": "subcategory",
     "parentSlug": "crafting",
     "sortValue": 120000
   },
   {
-    "id": 451,
+    "id": 457,
     "slug": "common",
     "level": "subcategory2",
     "parentSlug": "fish",
     "sortValue": 100
   },
   {
-    "id": 452,
+    "id": 458,
     "slug": "rare",
     "level": "subcategory2",
     "parentSlug": "fish",
     "sortValue": 200
   },
   {
-    "id": 453,
+    "id": 459,
     "slug": "other",
     "level": "subcategory2",
     "parentSlug": "fish",
     "sortValue": 300
   },
   {
-    "id": 454,
+    "id": 460,
     "slug": "alchemy",
     "level": "subcategory",
     "parentSlug": "crafting",
     "sortValue": 130000
   },
   {
-    "id": 455,
+    "id": 461,
     "slug": "remains_panther",
     "level": "subcategory2",
     "parentSlug": "alchemy",
     "sortValue": 100
   },
   {
-    "id": 456,
+    "id": 462,
     "slug": "remains_ent",
     "level": "subcategory2",
     "parentSlug": "alchemy",
     "sortValue": 200
   },
   {
-    "id": 457,
+    "id": 463,
     "slug": "remains_direbear",
     "level": "subcategory2",
     "parentSlug": "alchemy",
     "sortValue": 300
   },
   {
-    "id": 458,
+    "id": 464,
     "slug": "remains_werewolf",
     "level": "subcategory2",
     "parentSlug": "alchemy",
     "sortValue": 400
   },
   {
-    "id": 459,
+    "id": 465,
     "slug": "remains_imp",
     "level": "subcategory2",
     "parentSlug": "alchemy",
     "sortValue": 500
   },
   {
-    "id": 460,
+    "id": 466,
     "slug": "remains_elemental",
     "level": "subcategory2",
     "parentSlug": "alchemy",
     "sortValue": 600
   },
   {
-    "id": 461,
+    "id": 467,
     "slug": "remains_eagle",
     "level": "subcategory2",
     "parentSlug": "alchemy",
     "sortValue": 700
   },
   {
-    "id": 462,
+    "id": 468,
     "slug": "remains",
     "level": "subcategory2",
     "parentSlug": "alchemy",
     "sortValue": 800
   },
   {
-    "id": 463,
+    "id": 469,
     "slug": "extract",
     "level": "subcategory2",
     "parentSlug": "alchemy",
     "sortValue": 900
   },
   {
-    "id": 464,
+    "id": 470,
     "slug": "essence",
     "level": "subcategory2",
     "parentSlug": "alchemy",
     "sortValue": 1000
   },
   {
-    "id": 465,
+    "id": 471,
+    "slug": "dragonblood",
+    "level": "subcategory2",
+    "parentSlug": "alchemy",
+    "sortValue": 1100
+  },
+  {
+    "id": 472,
     "slug": "artefacts",
     "level": "category",
     "parentSlug": "",
     "sortValue": 12000000
   },
   {
-    "id": 466,
+    "id": 473,
     "slug": "weapons",
     "level": "subcategory",
     "parentSlug": "artefacts",
     "sortValue": 30000
   },
   {
-    "id": 467,
+    "id": 474,
     "slug": "bow",
     "level": "subcategory2",
     "parentSlug": "weapons",
     "sortValue": 100
   },
   {
-    "id": 468,
+    "id": 475,
     "slug": "crossbow",
     "level": "subcategory2",
     "parentSlug": "weapons",
     "sortValue": 200
   },
   {
-    "id": 469,
+    "id": 476,
     "slug": "axe",
     "level": "subcategory2",
     "parentSlug": "weapons",
     "sortValue": 300
   },
   {
-    "id": 470,
+    "id": 477,
     "slug": "dagger",
     "level": "subcategory2",
     "parentSlug": "weapons",
     "sortValue": 400
   },
   {
-    "id": 471,
+    "id": 478,
     "slug": "hammer",
     "level": "subcategory2",
     "parentSlug": "weapons",
     "sortValue": 500
   },
   {
-    "id": 472,
+    "id": 479,
     "slug": "knuckles",
     "level": "subcategory2",
     "parentSlug": "weapons",
     "sortValue": 600
   },
   {
-    "id": 473,
+    "id": 480,
     "slug": "mace",
     "level": "subcategory2",
     "parentSlug": "weapons",
     "sortValue": 700
   },
   {
-    "id": 474,
+    "id": 481,
     "slug": "quarterstaff",
     "level": "subcategory2",
     "parentSlug": "weapons",
     "sortValue": 800
   },
   {
-    "id": 475,
+    "id": 482,
     "slug": "spear",
     "level": "subcategory2",
     "parentSlug": "weapons",
     "sortValue": 900
   },
   {
-    "id": 476,
+    "id": 483,
     "slug": "sword",
     "level": "subcategory2",
     "parentSlug": "weapons",
     "sortValue": 1000
   },
   {
-    "id": 477,
+    "id": 484,
     "slug": "arcanestaff",
     "level": "subcategory2",
     "parentSlug": "weapons",
     "sortValue": 1100
   },
   {
-    "id": 478,
+    "id": 485,
     "slug": "cursestaff",
     "level": "subcategory2",
     "parentSlug": "weapons",
     "sortValue": 1200
   },
   {
-    "id": 479,
+    "id": 486,
     "slug": "firestaff",
     "level": "subcategory2",
     "parentSlug": "weapons",
     "sortValue": 1300
   },
   {
-    "id": 480,
+    "id": 487,
     "slug": "froststaff",
     "level": "subcategory2",
     "parentSlug": "weapons",
     "sortValue": 1400
   },
   {
-    "id": 481,
+    "id": 488,
     "slug": "holystaff",
     "level": "subcategory2",
     "parentSlug": "weapons",
     "sortValue": 1500
   },
   {
-    "id": 482,
+    "id": 489,
     "slug": "naturestaff",
     "level": "subcategory2",
     "parentSlug": "weapons",
     "sortValue": 1600
   },
   {
-    "id": 483,
+    "id": 490,
     "slug": "shapeshifterstaff",
     "level": "subcategory2",
     "parentSlug": "weapons",
     "sortValue": 1700
   },
   {
-    "id": 484,
+    "id": 491,
     "slug": "armors",
     "level": "subcategory",
     "parentSlug": "artefacts",
     "sortValue": 40000
   },
   {
-    "id": 485,
+    "id": 492,
     "slug": "cloth_armor",
     "level": "subcategory2",
     "parentSlug": "armors",
     "sortValue": 100
   },
   {
-    "id": 486,
+    "id": 493,
     "slug": "leather_armor",
     "level": "subcategory2",
     "parentSlug": "armors",
     "sortValue": 200
   },
   {
-    "id": 487,
+    "id": 494,
     "slug": "plate_armor",
     "level": "subcategory2",
     "parentSlug": "armors",
     "sortValue": 300
   },
   {
-    "id": 488,
+    "id": 495,
     "slug": "head",
     "level": "subcategory",
     "parentSlug": "artefacts",
     "sortValue": 50000
   },
   {
-    "id": 489,
+    "id": 496,
     "slug": "cloth_helmet",
     "level": "subcategory2",
     "parentSlug": "head",
     "sortValue": 100
   },
   {
-    "id": 490,
+    "id": 497,
     "slug": "leather_helmet",
     "level": "subcategory2",
     "parentSlug": "head",
     "sortValue": 200
   },
   {
-    "id": 491,
+    "id": 498,
     "slug": "plate_helmet",
     "level": "subcategory2",
     "parentSlug": "head",
     "sortValue": 300
   },
   {
-    "id": 492,
+    "id": 499,
     "slug": "shoes",
     "level": "subcategory",
     "parentSlug": "artefacts",
     "sortValue": 60000
   },
   {
-    "id": 493,
+    "id": 500,
     "slug": "cloth_shoes",
     "level": "subcategory2",
     "parentSlug": "shoes",
     "sortValue": 100
   },
   {
-    "id": 494,
+    "id": 501,
     "slug": "leather_shoes",
     "level": "subcategory2",
     "parentSlug": "shoes",
     "sortValue": 200
   },
   {
-    "id": 495,
+    "id": 502,
     "slug": "plate_shoes",
     "level": "subcategory2",
     "parentSlug": "shoes",
     "sortValue": 300
   },
   {
-    "id": 496,
+    "id": 503,
     "slug": "offhands",
     "level": "subcategory",
     "parentSlug": "artefacts",
     "sortValue": 70000
   },
   {
-    "id": 497,
+    "id": 504,
     "slug": "booktype",
     "level": "subcategory2",
     "parentSlug": "offhands",
     "sortValue": 100
   },
   {
-    "id": 498,
+    "id": 505,
     "slug": "torchtype",
     "level": "subcategory2",
     "parentSlug": "offhands",
     "sortValue": 200
   },
   {
-    "id": 499,
+    "id": 506,
     "slug": "shieldtype",
     "level": "subcategory2",
     "parentSlug": "offhands",
     "sortValue": 300
   },
   {
-    "id": 500,
+    "id": 507,
     "slug": "fragments",
     "level": "subcategory",
     "parentSlug": "artefacts",
     "sortValue": 80000
   },
   {
-    "id": 501,
+    "id": 508,
     "slug": "runes",
     "level": "subcategory2",
     "parentSlug": "fragments",
     "sortValue": 100
   },
   {
-    "id": 502,
+    "id": 509,
     "slug": "souls",
     "level": "subcategory2",
     "parentSlug": "fragments",
     "sortValue": 200
   },
   {
-    "id": 503,
+    "id": 510,
     "slug": "relics",
     "level": "subcategory2",
     "parentSlug": "fragments",
     "sortValue": 300
   },
   {
-    "id": 504,
+    "id": 511,
     "slug": "avalonianshards",
     "level": "subcategory2",
     "parentSlug": "fragments",
     "sortValue": 400
   },
   {
-    "id": 505,
+    "id": 512,
     "slug": "crystalshards",
     "level": "subcategory2",
     "parentSlug": "fragments",
     "sortValue": 500
   },
   {
-    "id": 506,
+    "id": 513,
+    "slug": "dragonshards",
+    "level": "subcategory2",
+    "parentSlug": "fragments",
+    "sortValue": 600
+  },
+  {
+    "id": 514,
     "slug": "capes",
     "level": "subcategory",
     "parentSlug": "artefacts",
     "sortValue": 90000
   },
   {
-    "id": 507,
+    "id": 515,
     "slug": "tokens_capes_bridgewatch",
     "level": "subcategory2",
     "parentSlug": "capes",
     "sortValue": 100
   },
   {
-    "id": 508,
+    "id": 516,
     "slug": "tokens_capes_fortsterling",
     "level": "subcategory2",
     "parentSlug": "capes",
     "sortValue": 200
   },
   {
-    "id": 509,
+    "id": 517,
     "slug": "tokens_capes_lymhurst",
     "level": "subcategory2",
     "parentSlug": "capes",
     "sortValue": 300
   },
   {
-    "id": 510,
+    "id": 518,
     "slug": "tokens_capes_martlock",
     "level": "subcategory2",
     "parentSlug": "capes",
     "sortValue": 400
   },
   {
-    "id": 511,
+    "id": 519,
     "slug": "tokens_capes_thetford",
     "level": "subcategory2",
     "parentSlug": "capes",
     "sortValue": 500
   },
   {
-    "id": 512,
+    "id": 520,
     "slug": "tokens_capes_caerleon",
     "level": "subcategory2",
     "parentSlug": "capes",
     "sortValue": 600
   },
   {
-    "id": 513,
+    "id": 521,
     "slug": "tokens_capes_brecilien",
     "level": "subcategory2",
     "parentSlug": "capes",
     "sortValue": 700
   },
   {
-    "id": 514,
+    "id": 522,
     "slug": "tokens_capes_heretics",
     "level": "subcategory2",
     "parentSlug": "capes",
     "sortValue": 800
   },
   {
-    "id": 515,
+    "id": 523,
     "slug": "tokens_capes_undead",
     "level": "subcategory2",
     "parentSlug": "capes",
     "sortValue": 900
   },
   {
-    "id": 516,
+    "id": 524,
     "slug": "tokens_capes_keeper",
     "level": "subcategory2",
     "parentSlug": "capes",
     "sortValue": 1000
   },
   {
-    "id": 517,
+    "id": 525,
     "slug": "tokens_capes_morgana",
     "level": "subcategory2",
     "parentSlug": "capes",
     "sortValue": 1100
   },
   {
-    "id": 518,
+    "id": 526,
     "slug": "tokens_capes_demon",
     "level": "subcategory2",
     "parentSlug": "capes",
     "sortValue": 1200
   },
   {
-    "id": 519,
+    "id": 527,
     "slug": "tokens_capes_avalon",
     "level": "subcategory2",
     "parentSlug": "capes",
     "sortValue": 1300
   },
   {
-    "id": 520,
+    "id": 528,
     "slug": "tokens_capes_smuggler",
     "level": "subcategory2",
     "parentSlug": "capes",
     "sortValue": 1400
   },
   {
-    "id": 521,
+    "id": 529,
     "slug": "favor",
     "level": "subcategory",
     "parentSlug": "artefacts",
     "sortValue": 100000
   },
   {
-    "id": 522,
+    "id": 530,
     "slug": "farming",
     "level": "category",
     "parentSlug": "",
     "sortValue": 13000000
   },
   {
-    "id": 523,
+    "id": 531,
     "slug": "farm",
     "level": "subcategory",
     "parentSlug": "farming",
     "sortValue": 10000
   },
   {
-    "id": 524,
+    "id": 532,
     "slug": "seeds",
     "level": "subcategory2",
     "parentSlug": "farm",
     "sortValue": 100
   },
   {
-    "id": 525,
+    "id": 533,
     "slug": "plants",
     "level": "subcategory2",
     "parentSlug": "farm",
     "sortValue": 200
   },
   {
-    "id": 526,
+    "id": 534,
     "slug": "herbgarden",
     "level": "subcategory",
     "parentSlug": "farming",
     "sortValue": 20000
   },
   {
-    "id": 527,
+    "id": 535,
     "slug": "seeds",
     "level": "subcategory2",
     "parentSlug": "herbgarden",
     "sortValue": 100
   },
   {
-    "id": 528,
+    "id": 536,
     "slug": "herbs",
     "level": "subcategory2",
     "parentSlug": "herbgarden",
     "sortValue": 200
   },
   {
-    "id": 529,
+    "id": 537,
     "slug": "pasture",
     "level": "subcategory",
     "parentSlug": "farming",
     "sortValue": 30000
   },
   {
-    "id": 530,
+    "id": 538,
     "slug": "babys",
     "level": "subcategory2",
     "parentSlug": "pasture",
     "sortValue": 100
   },
   {
-    "id": 531,
+    "id": 539,
     "slug": "animals",
     "level": "subcategory2",
     "parentSlug": "pasture",
     "sortValue": 200
   },
   {
-    "id": 532,
+    "id": 540,
     "slug": "egg",
     "level": "subcategory2",
     "parentSlug": "pasture",
     "sortValue": 300
   },
   {
-    "id": 533,
+    "id": 541,
     "slug": "milk",
     "level": "subcategory2",
     "parentSlug": "pasture",
     "sortValue": 400
   },
   {
-    "id": 534,
+    "id": 542,
     "slug": "kennel",
     "level": "subcategory",
     "parentSlug": "farming",
     "sortValue": 40000
   },
   {
-    "id": 535,
+    "id": 543,
     "slug": "babys",
     "level": "subcategory2",
     "parentSlug": "kennel",
     "sortValue": 100
   },
   {
-    "id": 536,
+    "id": 544,
     "slug": "animals",
     "level": "subcategory2",
     "parentSlug": "kennel",
     "sortValue": 200
   },
   {
-    "id": 537,
+    "id": 545,
     "slug": "farmingproducts",
     "level": "subcategory",
     "parentSlug": "farming",
     "sortValue": 50000
   },
   {
-    "id": 538,
+    "id": 546,
     "slug": "alcohol",
     "level": "subcategory2",
     "parentSlug": "farmingproducts",
     "sortValue": 100
   },
   {
-    "id": 539,
+    "id": 547,
     "slug": "bread",
     "level": "subcategory2",
     "parentSlug": "farmingproducts",
     "sortValue": 200
   },
   {
-    "id": 540,
+    "id": 548,
     "slug": "butter",
     "level": "subcategory2",
     "parentSlug": "farmingproducts",
     "sortValue": 300
   },
   {
-    "id": 541,
+    "id": 549,
     "slug": "flour",
     "level": "subcategory2",
     "parentSlug": "farmingproducts",
     "sortValue": 400
   },
   {
-    "id": 542,
+    "id": 550,
     "slug": "meat",
     "level": "subcategory2",
     "parentSlug": "farmingproducts",
     "sortValue": 500
   },
   {
-    "id": 543,
+    "id": 551,
     "slug": "furniture",
     "level": "category",
     "parentSlug": "",
     "sortValue": 14000000
   },
   {
-    "id": 544,
+    "id": 552,
     "slug": "repairkit",
     "level": "subcategory",
     "parentSlug": "furniture",
     "sortValue": 10000
   },
   {
-    "id": 545,
+    "id": 553,
     "slug": "chest",
     "level": "subcategory",
     "parentSlug": "furniture",
     "sortValue": 20000
   },
   {
-    "id": 546,
+    "id": 554,
     "slug": "house",
     "level": "subcategory2",
     "parentSlug": "chest",
     "sortValue": 100
   },
   {
-    "id": 547,
+    "id": 555,
     "slug": "world",
     "level": "subcategory2",
     "parentSlug": "chest",
     "sortValue": 200
   },
   {
-    "id": 548,
+    "id": 556,
     "slug": "house",
     "level": "subcategory",
     "parentSlug": "furniture",
     "sortValue": 30000
   },
   {
-    "id": 549,
+    "id": 557,
     "slug": "island",
     "level": "subcategory",
     "parentSlug": "furniture",
     "sortValue": 40000
   },
   {
-    "id": 550,
+    "id": 558,
     "slug": "world",
     "level": "subcategory",
     "parentSlug": "furniture",
     "sortValue": 50000
   },
   {
-    "id": 551,
+    "id": 559,
     "slug": "banner",
     "level": "subcategory2",
     "parentSlug": "world",
     "sortValue": 100
   },
   {
-    "id": 552,
+    "id": 560,
     "slug": "statue",
     "level": "subcategory2",
     "parentSlug": "world",
     "sortValue": 200
   },
   {
-    "id": 553,
+    "id": 561,
     "slug": "other",
     "level": "subcategory2",
     "parentSlug": "world",
     "sortValue": 300
   },
   {
-    "id": 554,
+    "id": 562,
     "slug": "other",
     "level": "subcategory",
     "parentSlug": "furniture",
     "sortValue": 60000
   },
   {
-    "id": 555,
+    "id": 563,
     "slug": "vanity",
     "level": "category",
     "parentSlug": "",
     "sortValue": 15000000
   },
   {
-    "id": 556,
+    "id": 564,
     "slug": "avatar",
     "level": "subcategory",
     "parentSlug": "vanity",
     "sortValue": 10000
   },
   {
-    "id": 557,
+    "id": 565,
     "slug": "journal",
     "level": "subcategory2",
     "parentSlug": "avatar",
     "sortValue": 100
   },
   {
-    "id": 558,
+    "id": 566,
     "slug": "adventurerchallenge",
     "level": "subcategory2",
     "parentSlug": "avatar",
     "sortValue": 200
   },
   {
-    "id": 559,
+    "id": 567,
     "slug": "gvgseason",
     "level": "subcategory2",
     "parentSlug": "avatar",
     "sortValue": 300
   },
   {
-    "id": 560,
+    "id": 568,
     "slug": "anniversary",
     "level": "subcategory2",
     "parentSlug": "avatar",
     "sortValue": 400
   },
   {
-    "id": 561,
+    "id": 569,
     "slug": "other",
     "level": "subcategory2",
     "parentSlug": "avatar",
     "sortValue": 500
   },
   {
-    "id": 562,
+    "id": 570,
     "slug": "avatarring",
     "level": "subcategory",
     "parentSlug": "vanity",
     "sortValue": 20000
   },
   {
-    "id": 563,
+    "id": 571,
     "slug": "journal",
     "level": "subcategory2",
     "parentSlug": "avatarring",
     "sortValue": 100
   },
   {
-    "id": 564,
+    "id": 572,
     "slug": "adventurerchallenge",
     "level": "subcategory2",
     "parentSlug": "avatarring",
     "sortValue": 200
   },
   {
-    "id": 565,
+    "id": 573,
     "slug": "gvgseason",
     "level": "subcategory2",
     "parentSlug": "avatarring",
     "sortValue": 300
   },
   {
-    "id": 566,
+    "id": 574,
     "slug": "anniversary",
     "level": "subcategory2",
     "parentSlug": "avatarring",
     "sortValue": 400
   },
   {
-    "id": 567,
+    "id": 575,
     "slug": "other",
     "level": "subcategory2",
     "parentSlug": "avatarring",
     "sortValue": 500
   },
   {
-    "id": 568,
+    "id": 576,
     "slug": "mounts",
     "level": "subcategory",
     "parentSlug": "vanity",
     "sortValue": 30000
   },
   {
-    "id": 569,
+    "id": 577,
     "slug": "horse",
     "level": "subcategory2",
     "parentSlug": "mounts",
     "sortValue": 100
   },
   {
-    "id": 570,
+    "id": 578,
     "slug": "armoredhorse",
     "level": "subcategory2",
     "parentSlug": "mounts",
     "sortValue": 200
   },
   {
-    "id": 571,
+    "id": 579,
     "slug": "ox",
     "level": "subcategory2",
     "parentSlug": "mounts",
     "sortValue": 300
   },
   {
-    "id": 572,
+    "id": 580,
     "slug": "direwolf",
     "level": "subcategory2",
     "parentSlug": "mounts",
     "sortValue": 400
   },
   {
-    "id": 573,
+    "id": 581,
     "slug": "giantstag",
     "level": "subcategory2",
     "parentSlug": "mounts",
     "sortValue": 500
   },
   {
-    "id": 574,
+    "id": 582,
     "slug": "cougar",
     "level": "subcategory2",
     "parentSlug": "mounts",
     "sortValue": 600
   },
   {
-    "id": 575,
+    "id": 583,
     "slug": "direboar",
     "level": "subcategory2",
     "parentSlug": "mounts",
     "sortValue": 700
   },
   {
-    "id": 576,
+    "id": 584,
     "slug": "direbear",
     "level": "subcategory2",
     "parentSlug": "mounts",
     "sortValue": 800
   },
   {
-    "id": 577,
+    "id": 585,
     "slug": "lizard",
     "level": "subcategory2",
     "parentSlug": "mounts",
     "sortValue": 900
   },
   {
-    "id": 578,
+    "id": 586,
     "slug": "donkey",
     "level": "subcategory2",
     "parentSlug": "mounts",
     "sortValue": 1000
   },
   {
-    "id": 579,
+    "id": 587,
     "slug": "mammoth",
     "level": "subcategory2",
     "parentSlug": "mounts",
     "sortValue": 1100
   },
   {
-    "id": 580,
+    "id": 588,
     "slug": "weapons",
     "level": "subcategory",
     "parentSlug": "vanity",
     "sortValue": 40000
   },
   {
-    "id": 581,
+    "id": 589,
     "slug": "armors",
     "level": "subcategory",
     "parentSlug": "vanity",
     "sortValue": 50000
   },
   {
-    "id": 582,
+    "id": 590,
     "slug": "head",
     "level": "subcategory",
     "parentSlug": "vanity",
     "sortValue": 60000
   },
   {
-    "id": 583,
+    "id": 591,
     "slug": "shoes",
     "level": "subcategory",
     "parentSlug": "vanity",
     "sortValue": 70000
   },
   {
-    "id": 584,
+    "id": 592,
     "slug": "offhands",
     "level": "subcategory",
     "parentSlug": "vanity",
     "sortValue": 80000
   },
   {
-    "id": 585,
+    "id": 593,
     "slug": "capes",
     "level": "subcategory",
     "parentSlug": "vanity",
     "sortValue": 90000
   },
   {
-    "id": 586,
+    "id": 594,
     "slug": "killemotes",
     "level": "subcategory",
     "parentSlug": "vanity",
     "sortValue": 100000
   },
   {
-    "id": 587,
+    "id": 595,
     "slug": "other",
     "level": "category",
     "parentSlug": "",
     "sortValue": 16000000
   },
   {
-    "id": 588,
+    "id": 596,
     "slug": "lootitem",
     "level": "subcategory",
     "parentSlug": "other",
     "sortValue": 10000
   },
   {
-    "id": 589,
+    "id": 597,
     "slug": "guilds",
     "level": "subcategory",
     "parentSlug": "other",
     "sortValue": 20000
   },
   {
-    "id": 590,
+    "id": 598,
     "slug": "hideout",
     "level": "subcategory2",
     "parentSlug": "guilds",
     "sortValue": 100
   },
   {
-    "id": 591,
+    "id": 599,
     "slug": "siegehammer",
     "level": "subcategory2",
     "parentSlug": "guilds",
     "sortValue": 200
   },
   {
-    "id": 592,
+    "id": 600,
     "slug": "siegebanners",
     "level": "subcategory2",
     "parentSlug": "guilds",
     "sortValue": 300
   },
   {
-    "id": 593,
+    "id": 601,
     "slug": "labourers",
     "level": "subcategory",
     "parentSlug": "other",
     "sortValue": 30000
   },
   {
-    "id": 594,
+    "id": 602,
     "slug": "journals",
     "level": "subcategory2",
     "parentSlug": "labourers",
     "sortValue": 100
   },
   {
-    "id": 595,
+    "id": 603,
     "slug": "trophies",
     "level": "subcategory2",
     "parentSlug": "labourers",
     "sortValue": 200
   },
   {
-    "id": 596,
+    "id": 604,
     "slug": "contracts",
     "level": "subcategory2",
     "parentSlug": "labourers",
     "sortValue": 300
   },
   {
-    "id": 597,
+    "id": 605,
     "slug": "beds",
     "level": "subcategory2",
     "parentSlug": "labourers",
     "sortValue": 400
   },
   {
-    "id": 598,
+    "id": 606,
     "slug": "tables",
     "level": "subcategory2",
     "parentSlug": "labourers",
     "sortValue": 500
   },
   {
-    "id": 599,
+    "id": 607,
     "slug": "tokens",
     "level": "subcategory",
     "parentSlug": "other",
     "sortValue": 40000
   },
   {
-    "id": 600,
+    "id": 608,
     "slug": "vanity",
     "level": "subcategory2",
     "parentSlug": "tokens",
     "sortValue": 100
   },
   {
-    "id": 601,
+    "id": 609,
     "slug": "crystalleague",
     "level": "subcategory2",
     "parentSlug": "tokens",
     "sortValue": 200
   },
   {
-    "id": 602,
+    "id": 610,
     "slug": "anchors",
     "level": "subcategory2",
     "parentSlug": "tokens",
     "sortValue": 300
   },
   {
-    "id": 603,
+    "id": 611,
     "slug": "other",
     "level": "subcategory2",
     "parentSlug": "tokens",
     "sortValue": 400
   },
   {
-    "id": 604,
+    "id": 612,
     "slug": "luxurygoods",
     "level": "subcategory",
     "parentSlug": "other",
     "sortValue": 50000
   },
   {
-    "id": 605,
+    "id": 613,
     "slug": "bridgewatch",
     "level": "subcategory2",
     "parentSlug": "luxurygoods",
     "sortValue": 100
   },
   {
-    "id": 606,
+    "id": 614,
     "slug": "fortsterling",
     "level": "subcategory2",
     "parentSlug": "luxurygoods",
     "sortValue": 200
   },
   {
-    "id": 607,
+    "id": 615,
     "slug": "lymhurst",
     "level": "subcategory2",
     "parentSlug": "luxurygoods",
     "sortValue": 300
   },
   {
-    "id": 608,
+    "id": 616,
     "slug": "martlock",
     "level": "subcategory2",
     "parentSlug": "luxurygoods",
     "sortValue": 400
   },
   {
-    "id": 609,
+    "id": 617,
     "slug": "thetford",
     "level": "subcategory2",
     "parentSlug": "luxurygoods",
     "sortValue": 500
   },
   {
-    "id": 610,
+    "id": 618,
     "slug": "caerleon",
     "level": "subcategory2",
     "parentSlug": "luxurygoods",
     "sortValue": 600
   },
   {
-    "id": 611,
+    "id": 619,
     "slug": "any",
     "level": "subcategory2",
     "parentSlug": "luxurygoods",
     "sortValue": 700
   },
   {
-    "id": 612,
+    "id": 620,
     "slug": "maps",
     "level": "subcategory",
     "parentSlug": "other",
     "sortValue": 60000
   },
   {
-    "id": 613,
+    "id": 621,
     "slug": "randomdungeons",
     "level": "subcategory2",
     "parentSlug": "maps",
     "sortValue": 100
   },
   {
-    "id": 614,
+    "id": 622,
+    "slug": "randomdungeons_fragments",
+    "level": "subcategory2",
+    "parentSlug": "maps",
+    "sortValue": 100
+  },
+  {
+    "id": 623,
     "slug": "corrupteddungeons",
     "level": "subcategory2",
     "parentSlug": "maps",
     "sortValue": 200
   },
   {
-    "id": 615,
+    "id": 624,
     "slug": "hellgates",
     "level": "subcategory2",
     "parentSlug": "maps",
     "sortValue": 300
   },
   {
-    "id": 616,
+    "id": 625,
     "slug": "other",
     "level": "subcategory2",
     "parentSlug": "maps",
     "sortValue": 400
   },
   {
-    "id": 617,
+    "id": 626,
     "slug": "hardcoreexpeditions",
     "level": "subcategory",
     "parentSlug": "other",
     "sortValue": 70000
   },
   {
-    "id": 618,
+    "id": 627,
     "slug": "event",
     "level": "subcategory2",
     "parentSlug": "hardcoreexpeditions",
     "sortValue": 100
   },
   {
-    "id": 619,
+    "id": 628,
     "slug": "fishybusiness",
     "level": "subcategory2",
     "parentSlug": "hardcoreexpeditions",
     "sortValue": 200
   },
   {
-    "id": 620,
+    "id": 629,
     "slug": "fistfulofsilver",
     "level": "subcategory2",
     "parentSlug": "hardcoreexpeditions",
     "sortValue": 300
   },
   {
-    "id": 621,
+    "id": 630,
     "slug": "lumbercamp",
     "level": "subcategory2",
     "parentSlug": "hardcoreexpeditions",
     "sortValue": 400
   },
   {
-    "id": 622,
+    "id": 631,
     "slug": "mushroom",
     "level": "subcategory2",
     "parentSlug": "hardcoreexpeditions",
     "sortValue": 500
   },
   {
-    "id": 623,
+    "id": 632,
     "slug": "recruitment",
     "level": "subcategory2",
     "parentSlug": "hardcoreexpeditions",
     "sortValue": 600
   },
   {
-    "id": 624,
+    "id": 633,
     "slug": "sewerscrypt",
     "level": "subcategory2",
     "parentSlug": "hardcoreexpeditions",
     "sortValue": 700
   },
   {
-    "id": 625,
+    "id": 634,
     "slug": "stonewars",
     "level": "subcategory2",
     "parentSlug": "hardcoreexpeditions",
     "sortValue": 800
   },
   {
-    "id": 626,
+    "id": 635,
     "slug": "threesisters",
     "level": "subcategory2",
     "parentSlug": "hardcoreexpeditions",
     "sortValue": 900
   },
   {
-    "id": 627,
+    "id": 636,
     "slug": "torturer",
     "level": "subcategory2",
     "parentSlug": "hardcoreexpeditions",
     "sortValue": 1000
   },
   {
-    "id": 628,
+    "id": 637,
     "slug": "eternalbattle",
     "level": "subcategory2",
     "parentSlug": "hardcoreexpeditions",
     "sortValue": 1100
   },
   {
-    "id": 629,
+    "id": 638,
     "slug": "questitems",
     "level": "subcategory",
     "parentSlug": "other",
     "sortValue": 80000
   },
   {
-    "id": 630,
+    "id": 639,
     "slug": "cities",
     "level": "subcategory2",
     "parentSlug": "questitems",
     "sortValue": 100
   },
   {
-    "id": 631,
+    "id": 640,
     "slug": "other",
     "level": "subcategory2",
     "parentSlug": "questitems",
     "sortValue": 200
   },
   {
-    "id": 632,
+    "id": 641,
     "slug": "killtrophy",
     "level": "subcategory",
     "parentSlug": "other",
     "sortValue": 100000
   },
   {
-    "id": 633,
+    "id": 642,
     "slug": "trash",
     "level": "subcategory",
     "parentSlug": "other",
     "sortValue": 110000
   },
   {
-    "id": 634,
+    "id": 643,
     "slug": "other",
     "level": "subcategory",
     "parentSlug": "other",
