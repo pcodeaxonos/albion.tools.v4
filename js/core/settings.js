@@ -65,6 +65,11 @@ export function localPriceHost() {
     return getLocalPriceHost();
 }
 
+/** SAT Trade Hub (scripts/trade-hub.mjs) — independent of price-hub */
+export function localTradeHost() {
+    return 'http://127.0.0.1:3002';
+}
+
 /** @deprecated use localPriceHost() — static fallback for early imports */
 export const LOCAL_PRICE_HOST = 'http://127.0.0.1:3001';
 
