@@ -700,7 +700,8 @@ export const tables = {
             { name: 'plantsHarvested', type: 'number', label: 'Hasat ürün' },
             { name: 'linkedLogId', type: 'number', label: 'Bağlı kayıt' },
             { name: 'premium', type: 'boolean', label: 'Premium' },
-            { name: 'water', type: 'boolean', label: 'Sulama' }
+            { name: 'water', type: 'boolean', label: 'Sulama' },
+            { name: 'isOutlier', type: 'boolean', label: 'Şüpheli kayıt' }
         ]
     }
 };

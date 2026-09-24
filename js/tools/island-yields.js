@@ -1,7 +1,7 @@
 import { escapeHtml } from '../utils/utils.js';
 import { initNav } from '../core/nav.js';
 import { initFloatingLabels } from '../components/forms.js';
-import { initStore, getAll, createRow, updateRow, deleteRow } from '../db/store.js';
+import { initStore, getAll, createRow, updateRow, deleteRow, replaceAllRows } from '../db/store.js';
 import { showPageLoader, hidePageLoader } from '../components/loader.js';
 import { bindCalcSticky } from '../utils/calc-sticky.js';
 import { bindLogTableRows } from '../components/log-table.js';
@@ -23,8 +23,7 @@ import {
     yieldAverage,
     standardPlantYield,
     standardSeedReturn,
-    standardAnimalReturn,
-    effectiveAnimalProductYield
+    standardAnimalReturn
 } from '../core/island-yield-stats.js';
 
 const TABLE = 'islandYieldLogs';
@@ -33,6 +32,9 @@ const SEEDS_PER_PLOT = 9;
 const PLOT_CHOICES = [1, 2, 3, 4, 5];
 const CHANGE_BADGE_VISIBLE_MS = 60_000;
 const CHANGE_BADGE_EXIT_MS = 800;
+
+const OUTLIER_SEED_RATE_DELTA = 0.20;
+const OUTLIER_HARVEST_RATE_DELTA = 0.18;
 
 const YIELD_KINDS = [
     { id: 'plant', label: 'Tarla' },
@@ -271,6 +273,15 @@ function standardReturn(item, islandCity = state.islandCity) {
     return standardAnimalReturn(item, { focus: state.water });
 }
 
+// This must always use the game baseline.  `effectiveAnimalProductYield` is
+// deliberately data-aware for calculations, so using it here made the
+// “Varsayılan” comparison value mirror a saved observation.
+function standardAnimalProductOutput(animal, islandCity = state.islandCity) {
+    const base = getEconomyConstant('product_qty', 18);
+    const bonus = hasCityBonus(animal, islandCity) ? cityBonusPct() : 0;
+    return base * (1 + bonus);
+}
+
 function metricCopy() {
     return state.yieldKind === 'plant'
         ? { input: 'Tohum', returned: 'Dönen tohum', output: 'Hasat ürün', outputShort: 'Ürün', returnShort: 'Tohum', mode: 'Sulama', on: 'Su', off: 'Kuru' }
@@ -333,7 +344,7 @@ function syncPlotButtons(container, plotCount) {
 
 function applyPlotChoice(container, plots) {
     const n = Number(plots);
-    if (!PLOT_CHOICES.includes(n)) {
+    if (!Number.isInteger(n) || n < 1) {
         return;
     }
     state.plotsSelected = n;
@@ -368,6 +379,29 @@ function outputQuantity(container, selector) {
     return Number.isFinite(value) && value >= 0 ? value : null;
 }
 
+function plotCandidates({ returned, harvested, animalProduct, harvestPerSeed, seedReturnRate, animalProductPerSeed }) {
+    const estimates = [PLOT_CHOICES.at(-1)];
+    const seedsPerPlot = unitsPerPlot();
+
+    if (returned != null) {
+        // A returned seed cannot exceed the number planted; retain this hard
+        // lower bound even when no historical return rate is available.
+        estimates.push(returned / seedsPerPlot);
+        if (seedReturnRate > 0) estimates.push(returned / (seedsPerPlot * seedReturnRate));
+    }
+    if (harvested != null && harvestPerSeed > 0) {
+        estimates.push(harvested / (seedsPerPlot * harvestPerSeed));
+    }
+    if (animalProduct != null && animalProductPerSeed > 0) {
+        estimates.push(animalProduct / (seedsPerPlot * animalProductPerSeed));
+    }
+
+    // Include one value above the largest estimate so rounding and imperfect
+    // observed yields do not artificially cap the automatic estimate at five.
+    const maxPlots = Math.max(1, Math.ceil(Math.max(...estimates)) + 1);
+    return Array.from({ length: maxPlots }, (_, index) => index + 1);
+}
+
 function estimatedPlotForOutputs(container) {
     const returned = outputQuantity(container, '#seedsReturned');
     const harvested = state.yieldKind === 'plant'
@@ -388,11 +422,21 @@ function estimatedPlotForOutputs(container) {
         ? average.avgSeedReturn
         : standardReturn(plant);
 
-    const candidates = PLOT_CHOICES.filter((plots) =>
+    const animalProductPerSeed = animalProduct != null && state.yieldKind === 'pasture' && plant?.productId
+        ? standardAnimalProductOutput(plant, state.islandCity)
+        : null;
+    const candidates = plotCandidates({
+        returned,
+        harvested,
+        animalProduct,
+        harvestPerSeed,
+        seedReturnRate,
+        animalProductPerSeed
+    }).filter((plots) =>
         state.yieldKind !== 'plant' || returned == null || returned <= plots * unitsPerPlot()
     );
     if (!candidates.length) {
-        return PLOT_CHOICES.at(-1);
+        return 1;
     }
 
     return candidates.reduce((best, plots) => {
@@ -404,14 +448,8 @@ function estimatedPlotForOutputs(container) {
         if (harvested != null && Number.isFinite(harvestPerSeed) && harvestPerSeed > 0) {
             score += Math.abs(harvested - (seeds * harvestPerSeed)) / Math.max(1, harvested);
         }
-        if (animalProduct != null && state.yieldKind === 'pasture' && plant?.productId) {
-            const perAnimal = effectiveAnimalProductYield(plant, state.islandCity, {
-                premium: state.premium,
-                focus: state.water
-            }).qty;
-            if (perAnimal > 0) {
-                score += Math.abs(animalProduct - (seeds * perAnimal)) / Math.max(1, animalProduct);
-            }
+        if (animalProduct != null && animalProductPerSeed > 0) {
+            score += Math.abs(animalProduct - (seeds * animalProductPerSeed)) / Math.max(1, animalProduct);
         }
         return best == null || score < best.score ? { plots, score } : best;
     }, null)?.plots ?? candidates[0];
@@ -583,7 +621,7 @@ function renderLogTable(month) {
         const perSeed = row.seedsPlanted > 0 ? row.plantsHarvested / row.seedsPlanted : null;
         const seedRate = row.seedsPlanted > 0 ? row.seedsReturned / row.seedsPlanted : null;
         return `
-            <tr data-id="${row.id}"${String(state.editingId) === String(row.id) ? ' class="is-editing"' : ''}>
+            <tr data-id="${row.id}" class="${[String(state.editingId) === String(row.id) ? 'is-editing' : '', isOutlier(row) ? 'is-outlier' : ''].filter(Boolean).join(' ')}">
                 <td class="text-nowrap">${escapeHtml(formatDate(row.date))}</td>
                 <td>${escapeHtml(cityLabel(row.islandCity))}</td>
                 <td>
@@ -622,6 +660,58 @@ function renderLogTable(month) {
             </table>
         </div>
     `;
+}
+
+function isOutlier(row) {
+    return row.isOutlier === true || row.isOutlier === 'true';
+}
+
+function outlierGroupKey(row) {
+    return [row.islandCity, rowItemType(row), rowItemKey(row), Boolean(row.premium), Boolean(row.water)].join('|');
+}
+
+function rowRates(row) {
+    const planted = Number(row.seedsPlanted);
+    if (!(planted > 0)) return null;
+    return {
+        seed: Number(row.seedsReturned || 0) / planted,
+        harvest: Number(row.plantsHarvested || 0) / planted,
+        planted
+    };
+}
+
+function markYieldOutliers() {
+    const groups = new Map();
+    for (const row of getAll(TABLE)) {
+        const key = outlierGroupKey(row);
+        const rows = groups.get(key) ?? [];
+        rows.push(row);
+        groups.set(key, rows);
+    }
+
+    const markedIds = new Set();
+    for (const rows of groups.values()) {
+        const ordered = rows.slice().sort((a, b) => String(b.date).localeCompare(String(a.date)) || Number(b.id) - Number(a.id));
+        const baseline = ordered.slice(0, 3).map(rowRates).filter(Boolean);
+        const planted = baseline.reduce((total, row) => total + row.planted, 0);
+        if (baseline.length < 3 || !(planted > 0)) continue;
+        const seed = baseline.reduce((total, row) => total + (row.seed * row.planted), 0) / planted;
+        const harvest = baseline.reduce((total, row) => total + (row.harvest * row.planted), 0) / planted;
+        for (const row of ordered.slice(3)) {
+            const rates = rowRates(row);
+            if (!rates) continue;
+            const seedOutlier = Math.abs(rates.seed - seed) >= OUTLIER_SEED_RATE_DELTA;
+            const harvestOutlier = harvest > 0 && Math.abs(rates.harvest - harvest) / harvest >= OUTLIER_HARVEST_RATE_DELTA;
+            if (seedOutlier || harvestOutlier) markedIds.add(String(row.id));
+        }
+    }
+
+    replaceAllRows(TABLE, getAll(TABLE).map((row) => ({ ...row, isOutlier: markedIds.has(String(row.id)) })));
+    return markedIds.size;
+}
+
+function clearYieldOutliers() {
+    replaceAllRows(TABLE, getAll(TABLE).map((row) => ({ ...row, isOutlier: false })));
 }
 
 function tipAttr(label) {
@@ -837,10 +927,7 @@ function renderAnimalProductAvgCard(animal, islandCity) {
         water: state.water,
         itemType: 'animalProduct'
     });
-    const standard = effectiveAnimalProductYield(animal, islandCity, {
-        premium: state.premium,
-        focus: state.water
-    }).qty;
+    const standard = standardAnimalProductOutput(animal, islandCity);
     const active = avg && avg.avgPlantYield > 0;
     const thin = active && avg.n < 3;
     const relative = active ? (avg.avgPlantYield - standard) / standard : null;
@@ -1036,6 +1123,8 @@ function refreshResult(container) {
             </div>
             <div class="yield-log-heading">
                 <h3 class="island-planner-subhead">Kayıtlar${state.filteredPlantKey ? ` · ${escapeHtml(itemLabel(state.filteredPlantKey))}` : ''}</h3>
+                <button type="button" class="btn btn-sm btn-outline-warning" data-yield-outliers-mark>Şüpheli kayıtları işaretle</button>
+                <button type="button" class="btn btn-sm btn-outline-secondary" data-yield-outliers-clear>İşaretleri kaldır</button>
                 ${state.filteredPlantKey ? '<button type="button" class="btn btn-sm btn-outline-secondary" data-clear-yield-filter>Filtreyi kaldır</button>' : ''}
             </div>
             <div id="yieldLog">${renderLogTable(state.month)}</div>
@@ -1065,6 +1154,16 @@ function bindResult(container) {
     container.querySelector('[data-clear-yield-filter]')?.addEventListener('click', () => {
         state.filteredPlantKey = null;
         refreshResult(container);
+    });
+    container.querySelector('[data-yield-outliers-mark]')?.addEventListener('click', () => {
+        const count = markYieldOutliers();
+        refreshResult(container);
+        showToast(count ? `${count} kayıt şüpheli olarak işaretlendi ve ortalamadan çıkarıldı.` : 'Son üç kayda göre aykırı kayıt bulunmadı.');
+    });
+    container.querySelector('[data-yield-outliers-clear]')?.addEventListener('click', () => {
+        clearYieldOutliers();
+        refreshResult(container);
+        showToast('Tüm şüpheli kayıt işaretleri kaldırıldı; kayıtlar yeniden ortalamaya dahil edildi.');
     });
     container.querySelector('#yieldMonth')?.addEventListener('change', (event) => {
         if (event.target.value) {
@@ -1132,6 +1231,12 @@ function saveEntry(container) {
     }
     if (state.water) {
         fd.set('water', 'on');
+    }
+    const editedRow = state.editingId
+        ? getAll(TABLE).find((row) => String(row.id) === String(state.editingId))
+        : null;
+    if (editedRow && isOutlier(editedRow)) {
+        fd.set('isOutlier', 'on');
     }
 
     try {
@@ -1220,7 +1325,7 @@ function renderPage(container) {
                     </div>
                     <label class="form-check yield-auto-plots-check">
                         <input class="form-check-input" type="checkbox" data-yield-auto-plots ${state.autoPlots ? 'checked' : ''}>
-                        <span class="form-check-label">Parseli çıktılara göre otomatik tahmin et</span>
+                        <span class="form-check-label">Otomatik parsel tahmini</span>
                     </label>
                     <div class="yield-harvest-pair">
                         <div class="form-floating farming-city-field">

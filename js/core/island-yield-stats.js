@@ -81,6 +81,8 @@ export function yieldAverage(islandCity, itemKey, {
         && rowItemKey(row) === itemKey
         && bool(row.premium) === wantPremium
         && bool(row.water) === wantWater
+        && row.isOutlier !== true
+        && row.isOutlier !== 'true'
     );
 
     let planted = 0;

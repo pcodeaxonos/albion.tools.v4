@@ -42,6 +42,11 @@
     }
 }
 
+.log-table tbody tr.is-outlier > * {
+    background-color: color-mix(in srgb, var(--color-warning) 18%, transparent) !important;
+    color: var(--color-text);
+}
+
 .btn-primary {
     background-color: var(--color-primary);
     border-color: var(--color-primary);
