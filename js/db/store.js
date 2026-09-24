@@ -2,7 +2,7 @@ import { getTable, getTableNames, tables } from './schema.js';
 
 const STORAGE_PREFIX = 'albiontools.v4.';
 const SEED_REVISION_KEY = STORAGE_PREFIX + 'seedRevision';
-const SEED_REVISION = 23;
+const SEED_REVISION = 25;
 const RESEED_TABLES = [
     'items',
     'itemCategories',
@@ -38,21 +38,70 @@ const RESEED_TABLES = [
 const DAILY_BONUSES_IMPORT_KEY = STORAGE_PREFIX + 'dailyBonusesImport';
 const DAILY_BONUSES_IMPORT_REV = 1;
 
+/** Session fallback when localStorage is full or persistSeed is false */
+const memoryStore = new Map();
+
 function storageKey(tableName) {
     return STORAGE_PREFIX + tableName;
 }
 
+function isQuotaError(error) {
+    return error?.name === 'QuotaExceededError'
+        || error?.code === 22
+        || error?.code === 1014
+        || /quota/i.test(String(error?.message || ''));
+}
+
+function persistRows(tableName, rows, { allowMemory = true } = {}) {
+    const table = tables[tableName];
+    const key = storageKey(tableName);
+    const json = JSON.stringify(rows);
+
+    if (table?.persistSeed === false) {
+        memoryStore.set(tableName, rows);
+        try {
+            localStorage.removeItem(key);
+        } catch {
+            // ignore
+        }
+        return 'memory';
+    }
+
+    try {
+        localStorage.setItem(key, json);
+        memoryStore.delete(tableName);
+        return 'disk';
+    } catch (error) {
+        if (allowMemory && isQuotaError(error)) {
+            memoryStore.set(tableName, rows);
+            try {
+                localStorage.removeItem(key);
+            } catch {
+                // ignore
+            }
+            console.warn(`[store] localStorage quota — "${tableName}" session memory'de tutuluyor`);
+            return 'memory';
+        }
+        throw error;
+    }
+}
+
 function applySeedRevision() {
     const current = Number(localStorage.getItem(SEED_REVISION_KEY) || '1');
-    if (current >= SEED_REVISION) {
-        return;
+    if (current < SEED_REVISION) {
+        for (const tableName of RESEED_TABLES) {
+            localStorage.removeItem(storageKey(tableName));
+            memoryStore.delete(tableName);
+        }
+        localStorage.setItem(SEED_REVISION_KEY, String(SEED_REVISION));
     }
 
-    for (const tableName of RESEED_TABLES) {
-        localStorage.removeItem(storageKey(tableName));
+    // Oversized catalogs must never sit in localStorage (quota ~5MB).
+    for (const tableName of ['items', 'recipeMaterials']) {
+        if (localStorage.getItem(storageKey(tableName))) {
+            localStorage.removeItem(storageKey(tableName));
+        }
     }
-
-    localStorage.setItem(SEED_REVISION_KEY, String(SEED_REVISION));
 }
 
 function applyDailyBonusesImport() {
@@ -82,12 +131,16 @@ async function seedTableIfEmpty(tableName) {
     const table = tables[tableName];
     const key = storageKey(tableName);
 
-    if (localStorage.getItem(key)) {
+    if (memoryStore.has(tableName)) {
+        return false;
+    }
+
+    if (table?.persistSeed !== false && localStorage.getItem(key)) {
         return false;
     }
 
     const data = await fetchSeedRows(table);
-    localStorage.setItem(key, JSON.stringify(data));
+    persistRows(tableName, data);
     return true;
 }
 
@@ -101,12 +154,15 @@ export async function initStore() {
 }
 
 function readRows(tableName) {
+    if (memoryStore.has(tableName)) {
+        return memoryStore.get(tableName);
+    }
     const raw = localStorage.getItem(storageKey(tableName));
     return raw ? JSON.parse(raw) : [];
 }
 
 function writeRows(tableName, rows) {
-    localStorage.setItem(storageKey(tableName), JSON.stringify(rows));
+    persistRows(tableName, rows);
     if (typeof window !== 'undefined') {
         window.dispatchEvent(new CustomEvent('albiontools:db-write', { detail: { tableName } }));
     }

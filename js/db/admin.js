@@ -851,6 +851,12 @@ function getCellClass(column, value) {
         return 'db-cell-mats';
     }
 
+    if (state.tableName === 'islandPlannerV2FixedPrices'
+        && column.name === 'itemId'
+        && column.refTable === 'items') {
+        return 'db-cell-item';
+    }
+
     if (column.name === 'notes') {
         return 'db-cell-notes';
     }
@@ -1008,6 +1014,15 @@ function formatCellValue(value, column, parentId = null, row = null) {
         const refRow = getAll(column.refTable).find((entry) => String(entry.id) === String(value));
         if (refRow) {
             const text = column.refLabel ? String(refRow[column.refLabel] ?? refRow.id) : String(refRow.id);
+            if (state.tableName === 'islandPlannerV2FixedPrices'
+                && column.name === 'itemId'
+                && column.refTable === 'items') {
+                const uniqueName = refRow.uniqueName || getItemUniqueName(refRow.id);
+                const icon = itemIconHtml(uniqueName, { size: 56, className: 'item-icon db-cell-item-icon' });
+                if (icon) {
+                    return `<span class="db-cell-item-row" title="${escapeHtml(text)}">${icon}<span class="db-cell-item-name">${escapeHtml(text)}</span></span>`;
+                }
+            }
             return escapeHtml(text);
         }
     }

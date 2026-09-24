@@ -1721,13 +1721,32 @@ input[type=month].form-control {
   width: 1.25rem;
   height: 1.25rem;
 }
-.db-data-table td.db-cell-mats .db-cell-mats-text,
-.db-data-table td.db-cell-mats .db-cell-mats-id {
-  margin-left: 0.35rem;
-}
 .db-data-table td.db-cell-mats .db-cell-mats-id {
   color: var(--color-text-muted);
   font-size: 0.75rem;
+}
+.db-data-table span.db-cell-mats {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+.db-data-table td.db-cell-item {
+  padding: 0;
+  white-space: nowrap;
+  vertical-align: middle;
+}
+.db-data-table td.db-cell-item .db-cell-item-row {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  vertical-align: middle;
+}
+.db-data-table td.db-cell-item .db-cell-item-icon {
+  display: block;
+  flex: 0 0 auto;
+  width: 2.5rem;
+  height: 2.5rem;
+  object-fit: contain;
 }
 .db-data-table td.db-cell-recipes {
   white-space: normal;

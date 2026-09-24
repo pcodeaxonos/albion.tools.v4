@@ -58,6 +58,8 @@ export const tables = {
         key: 'id',
         autoKey: false,
         seedUrl: './data/items.json',
+        /** Too large for localStorage (~4MB); session memory only */
+        persistSeed: false,
         columns: [
             COL.id,
             { name: 'uniqueName', type: 'string', label: 'Unique Name' },
@@ -314,6 +316,8 @@ export const tables = {
         key: 'id',
         autoKey: true,
         seedUrl: './data/recipe-materials.json',
+        /** Large curated dump; keep out of localStorage quota */
+        persistSeed: false,
         columns: [
             COL.id,
             { name: 'outputItemId', type: 'ref', refTable: 'items', refLabel: 'localizedName', label: 'Üretilen eşya' },
@@ -567,7 +571,7 @@ export const tables = {
         displayName: 'Malzeme anahtarları',
         group: 'lookup',
         source: 'curated',
-        description: 'plank/bar… → stem + items.id',
+        description: 'plank/bar… → stem + sabit item uniqueName',
         key: 'id',
         autoKey: true,
         defaultSort: { column: 'sortValue', direction: 'asc' },
@@ -576,7 +580,7 @@ export const tables = {
             COL.id,
             { name: 'key', type: 'string', label: 'Anahtar' },
             { name: 'stem', type: 'string', label: 'Stem' },
-            { name: 'itemId', type: 'number', label: 'Item id (ikon)' },
+            { name: 'itemId', type: 'string', label: 'Item uniqueName (ikon)' },
             { name: 'label', type: 'string', label: 'Ad' },
             { name: 'matGroup', type: 'enum', options: ['craft', 'refine', 'other'], label: 'Grup' },
             { name: 'sortValue', type: 'number', label: 'Sıra' },

@@ -1388,14 +1388,37 @@ input[type="month"].form-control {
             height: 1.25rem;
         }
 
-        .db-cell-mats-text,
-        .db-cell-mats-id {
-            margin-left: 0.35rem;
-        }
-
         .db-cell-mats-id {
             color: var(--color-text-muted);
             font-size: 0.75rem;
+        }
+    }
+
+    span.db-cell-mats {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+    }
+
+    // Fixed-price item column: no cell padding so a 2× icon fits the usual row height.
+    td.db-cell-item {
+        padding: 0;
+        white-space: nowrap;
+        vertical-align: middle;
+
+        .db-cell-item-row {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            vertical-align: middle;
+        }
+
+        .db-cell-item-icon {
+            display: block;
+            flex: 0 0 auto;
+            width: 2.5rem;
+            height: 2.5rem;
+            object-fit: contain;
         }
     }
 

@@ -5,7 +5,7 @@
     "label": "helmet · boot · cape · offhand",
     "short": "Helmet / off",
     "qty": 96,
-    "iconItemId": 3389,
+    "iconItemId": 3445,
     "sortValue": 10
   },
   {
@@ -14,7 +14,7 @@
     "label": "armor · bag",
     "short": "Armor / bag",
     "qty": 192,
-    "iconItemId": 3416,
+    "iconItemId": 3472,
     "sortValue": 20
   },
   {
@@ -23,7 +23,7 @@
     "label": "1H weapon",
     "short": "1H",
     "qty": 288,
-    "iconItemId": 8479,
+    "iconItemId": 8610,
     "sortValue": 30
   },
   {
@@ -32,7 +32,7 @@
     "label": "2H weapon",
     "short": "2H",
     "qty": 384,
-    "iconItemId": 6245,
+    "iconItemId": 6376,
     "sortValue": 40
   }
 ]
