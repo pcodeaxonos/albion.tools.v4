@@ -10,6 +10,7 @@
  */
 
 import { mkdirSync, writeFileSync } from 'node:fs';
+import { spawnSync } from 'node:child_process';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import https from 'node:https';
@@ -96,6 +97,13 @@ function emptyItemMetadata() {
         shopSubCategory2: '',
         tradeable: null
     };
+}
+
+function rebuildDependentCatalog(script) {
+    const result = spawnSync(process.execPath, [script], { stdio: 'inherit' });
+    if (result.status !== 0) {
+        throw new Error(`${script} failed`);
+    }
 }
 
 function parseBooleanAttribute(value) {
@@ -299,6 +307,11 @@ async function main() {
     writeJson('locations.json', locations);
 
     console.log('\nSkipping cities.json — maintained manually in data/cities.json');
+    console.log('\nRebuilding item-ID dependent catalogs...');
+    rebuildDependentCatalog('scripts/build-craft-catalog.mjs');
+    rebuildDependentCatalog('scripts/build-game-recipe-catalog.mjs');
+    rebuildDependentCatalog('scripts/build-farm-catalog.mjs');
+    rebuildDependentCatalog('scripts/build-app-catalog.mjs');
     console.log('Done.');
 }
 

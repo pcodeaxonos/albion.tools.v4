@@ -318,28 +318,6 @@ write('plants', plants);
 write('plant-bonus-cities', plantBonusCities);
 write('animals', animals);
 write('animal-bonus-cities', animalBonusCities);
-write('economy-constants', economyConstants);
 write('island-plots', islandPlots);
-
-// Rewrite bonus-families with cityId
-const bonus = JSON.parse(fs.readFileSync('data/bonus-families.json', 'utf8'));
-const bonusOut = bonus.map((row) => {
-    const { city, ...rest } = row;
-    return {
-        ...rest,
-        cityId: city ? cityId(city) : null
-    };
-});
-write('bonus-families', bonusOut);
-
-// material-keys: itemId as numeric FK
-const mats = JSON.parse(fs.readFileSync('data/material-keys.json', 'utf8'));
-const matsOut = mats.map((row) => ({
-    id: row.id,
-    key: row.key,
-    itemId: itemId(row.itemId),
-    label: row.label
-}));
-write('material-keys', matsOut);
 
 console.log('done');

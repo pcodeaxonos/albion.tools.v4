@@ -3,54 +3,54 @@
     "id": 1,
     "cityId": 1,
     "stem": "BRIDGEWATCH",
-    "heartItemId": 9819,
-    "babyItemId": 61,
-    "eliteItemId": 69,
+    "heartItemId": 9950,
+    "babyItemId": 63,
+    "eliteItemId": 71,
     "isActive": true
   },
   {
     "id": 2,
     "cityId": 2,
     "stem": "FORTSTERLING",
-    "heartItemId": 9818,
-    "babyItemId": 62,
-    "eliteItemId": 70,
+    "heartItemId": 9949,
+    "babyItemId": 64,
+    "eliteItemId": 72,
     "isActive": true
   },
   {
     "id": 3,
     "cityId": 3,
     "stem": "LYMHURST",
-    "heartItemId": 9817,
-    "babyItemId": 63,
-    "eliteItemId": 71,
+    "heartItemId": 9948,
+    "babyItemId": 65,
+    "eliteItemId": 73,
     "isActive": true
   },
   {
     "id": 4,
     "cityId": 4,
     "stem": "MARTLOCK",
-    "heartItemId": 9820,
-    "babyItemId": 64,
-    "eliteItemId": 72,
+    "heartItemId": 9951,
+    "babyItemId": 66,
+    "eliteItemId": 74,
     "isActive": true
   },
   {
     "id": 5,
     "cityId": 5,
     "stem": "THETFORD",
-    "heartItemId": 9821,
-    "babyItemId": 65,
-    "eliteItemId": 73,
+    "heartItemId": 9952,
+    "babyItemId": 67,
+    "eliteItemId": 75,
     "isActive": true
   },
   {
     "id": 6,
     "cityId": 6,
     "stem": "CAERLEON",
-    "heartItemId": 9822,
-    "babyItemId": 66,
-    "eliteItemId": 74,
+    "heartItemId": 9953,
+    "babyItemId": 68,
+    "eliteItemId": 76,
     "isActive": true
   },
   {
@@ -58,8 +58,8 @@
     "cityId": 7,
     "stem": "BRECILIEN",
     "heartItemId": null,
-    "babyItemId": 67,
-    "eliteItemId": 75,
+    "babyItemId": 69,
+    "eliteItemId": 77,
     "isActive": true
   }
 ]
