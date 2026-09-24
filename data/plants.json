@@ -6,7 +6,7 @@
     "tier": 1,
     "vendorSilver": 2312,
     "seedItemId": 8,
-    "plantItemId": 122,
+    "plantItemId": 124,
     "ladderId": 1,
     "plotType": "farm",
     "isActive": true
@@ -18,7 +18,7 @@
     "tier": 2,
     "vendorSilver": 3468,
     "seedItemId": 9,
-    "plantItemId": 123,
+    "plantItemId": 125,
     "ladderId": 1,
     "plotType": "farm",
     "isActive": true
@@ -30,7 +30,7 @@
     "tier": 3,
     "vendorSilver": 5780,
     "seedItemId": 10,
-    "plantItemId": 124,
+    "plantItemId": 126,
     "ladderId": 1,
     "plotType": "farm",
     "isActive": true
@@ -42,7 +42,7 @@
     "tier": 4,
     "vendorSilver": 8670,
     "seedItemId": 11,
-    "plantItemId": 125,
+    "plantItemId": 127,
     "ladderId": 1,
     "plotType": "farm",
     "isActive": true
@@ -54,7 +54,7 @@
     "tier": 5,
     "vendorSilver": 11560,
     "seedItemId": 12,
-    "plantItemId": 126,
+    "plantItemId": 128,
     "ladderId": 1,
     "plotType": "farm",
     "isActive": true
@@ -66,7 +66,7 @@
     "tier": 6,
     "vendorSilver": 17340,
     "seedItemId": 13,
-    "plantItemId": 127,
+    "plantItemId": 129,
     "ladderId": 1,
     "plotType": "farm",
     "isActive": true
@@ -78,7 +78,7 @@
     "tier": 7,
     "vendorSilver": 26010,
     "seedItemId": 14,
-    "plantItemId": 128,
+    "plantItemId": 130,
     "ladderId": 1,
     "plotType": "farm",
     "isActive": true
@@ -90,7 +90,7 @@
     "tier": 8,
     "vendorSilver": 34680,
     "seedItemId": 15,
-    "plantItemId": 129,
+    "plantItemId": 131,
     "ladderId": 1,
     "plotType": "farm",
     "isActive": true
@@ -102,7 +102,7 @@
     "tier": 2,
     "vendorSilver": 3468,
     "seedItemId": 16,
-    "plantItemId": 130,
+    "plantItemId": 132,
     "ladderId": 1,
     "plotType": "herb",
     "isActive": true
@@ -114,7 +114,7 @@
     "tier": 3,
     "vendorSilver": 5780,
     "seedItemId": 17,
-    "plantItemId": 131,
+    "plantItemId": 133,
     "ladderId": 1,
     "plotType": "herb",
     "isActive": true
@@ -126,7 +126,7 @@
     "tier": 4,
     "vendorSilver": 8670,
     "seedItemId": 18,
-    "plantItemId": 132,
+    "plantItemId": 134,
     "ladderId": 1,
     "plotType": "herb",
     "isActive": true
@@ -138,7 +138,7 @@
     "tier": 5,
     "vendorSilver": 11560,
     "seedItemId": 19,
-    "plantItemId": 133,
+    "plantItemId": 135,
     "ladderId": 1,
     "plotType": "herb",
     "isActive": true
@@ -150,7 +150,7 @@
     "tier": 6,
     "vendorSilver": 17340,
     "seedItemId": 20,
-    "plantItemId": 134,
+    "plantItemId": 136,
     "ladderId": 1,
     "plotType": "herb",
     "isActive": true
@@ -162,7 +162,7 @@
     "tier": 7,
     "vendorSilver": 26010,
     "seedItemId": 21,
-    "plantItemId": 135,
+    "plantItemId": 137,
     "ladderId": 1,
     "plotType": "herb",
     "isActive": true
@@ -174,7 +174,7 @@
     "tier": 8,
     "vendorSilver": 34680,
     "seedItemId": 22,
-    "plantItemId": 136,
+    "plantItemId": 138,
     "ladderId": 1,
     "plotType": "herb",
     "isActive": true
