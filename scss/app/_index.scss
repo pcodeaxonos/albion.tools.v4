@@ -17,3 +17,10 @@
 @use "island-yield-base";
 @use "bonus-analysis";
 @use "island-yield-cards";
+
+// Tool-specific modules are compiled into the shared bundle so pages never
+// need to ship source stylesheets from css/tools.
+@use "trades";
+@use "royal-wizard";
+@use "island-yields";
+@use "island-planner-v2";
