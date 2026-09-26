@@ -26,7 +26,9 @@ for (const entry of SITE_ROUTES) {
     if (entry.path) {
         const html = fs.readFileSync(path.join(entry.path, 'index.html'), 'utf8');
         const baseHref = '../'.repeat(entry.path.split('/').filter(Boolean).length);
-        assert.ok(html.indexOf(`<base href="${baseHref}">`) < html.indexOf('output/css/site.css'), `base must precede assets: ${entry.path}`);
+        const baseIndex = html.indexOf(`<base href="${baseHref}">`);
+        assert.ok(baseIndex >= 0, `missing canonical base href: ${entry.path}`);
+        assert.ok(baseIndex < html.indexOf('output/css/site.css'), `base must precede assets: ${entry.path}`);
         assert.equal(path.normalize(entry.source), path.join(entry.path, 'index.html'), `source/output mismatch: ${entry.id}`);
     }
 }

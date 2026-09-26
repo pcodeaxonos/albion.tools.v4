@@ -8882,18 +8882,18 @@ a.tool-card:hover {
   min-height: 4.7rem;
   border-radius: 0.6rem;
   background-color: color-mix(in srgb, var(--tier) 35%, #061a29);
-  background-image: url("../icons/daily-bonus/decor/t4-header-art.png");
+  background-image: url("../../content/icons/daily-bonus/decor/t4-header-art.png");
   background-position: right center;
   background-repeat: no-repeat;
   background-size: auto 100%;
 }
 
 .bonus-analysis-tier-column[data-tier="5"] > header {
-  background-image: url("../icons/daily-bonus/decor/t5-header-art.png");
+  background-image: url("../../content/icons/daily-bonus/decor/t5-header-art.png");
 }
 
 .bonus-analysis-tier-column[data-tier="6"] > header {
-  background-image: url("../icons/daily-bonus/decor/t6-header-art.png");
+  background-image: url("../../content/icons/daily-bonus/decor/t6-header-art.png");
 }
 
 .bonus-analysis-tier-column > header strong {
@@ -8953,77 +8953,77 @@ a.tool-card:hover {
 }
 
 .bonus-analysis-grid[data-analysis-family-key="gathering/tool"] .bonus-analysis-card::before {
-  background-image: url("../icons/daily-bonus/families/tool.png");
+  background-image: url("../../content/icons/daily-bonus/families/tool.png");
 }
 
 .bonus-analysis-grid[data-analysis-family-key="weapons/spear"] .bonus-analysis-card::before {
-  background-image: url("../icons/daily-bonus/families/spear-header-v2.png");
+  background-image: url("../../content/icons/daily-bonus/families/spear-header-v2.png");
 }
 
 .bonus-analysis-grid[data-analysis-family-key="armors/cloth_armor"] .bonus-analysis-card::before {
-  background-image: url("../icons/daily-bonus/families/cloth-robe.png");
+  background-image: url("../../content/icons/daily-bonus/families/cloth-robe.png");
 }
 
 .bonus-analysis-grid[data-analysis-family-key="armors/plate_armor"] .bonus-analysis-card::before {
-  background-image: url("../icons/daily-bonus/families/plate-armor.png");
+  background-image: url("../../content/icons/daily-bonus/families/plate-armor.png");
 }
 
 .bonus-analysis-grid[data-analysis-family-key="armors/leather_armor"] .bonus-analysis-card::before {
-  background-image: url("../icons/daily-bonus/families/leather-armor.png");
+  background-image: url("../../content/icons/daily-bonus/families/leather-armor.png");
 }
 
 .bonus-analysis-grid[data-analysis-family-key="weapons/sword"] .bonus-analysis-card::before {
-  background-image: url("../icons/daily-bonus/families/sword.png");
+  background-image: url("../../content/icons/daily-bonus/families/sword.png");
 }
 
 .bonus-analysis-grid[data-analysis-family-key="weapons/axe"] .bonus-analysis-card::before {
-  background-image: url("../icons/daily-bonus/families/axe.png");
+  background-image: url("../../content/icons/daily-bonus/families/axe.png");
 }
 
 .bonus-analysis-grid[data-analysis-family-key="weapons/bow"] .bonus-analysis-card::before {
-  background-image: url("../icons/daily-bonus/families/bow.png");
+  background-image: url("../../content/icons/daily-bonus/families/bow.png");
 }
 
 .bonus-analysis-grid[data-analysis-family-key="weapons/crossbow"] .bonus-analysis-card::before {
-  background-image: url("../icons/daily-bonus/families/crossbow.png");
+  background-image: url("../../content/icons/daily-bonus/families/crossbow.png");
 }
 
 .bonus-analysis-grid[data-analysis-family-key="weapons/hammer"] .bonus-analysis-card::before {
-  background-image: url("../icons/daily-bonus/families/hammer.png");
+  background-image: url("../../content/icons/daily-bonus/families/hammer.png");
 }
 
 .bonus-analysis-grid[data-analysis-family-key="weapons/mace"] .bonus-analysis-card::before {
-  background-image: url("../icons/daily-bonus/families/mace.png");
+  background-image: url("../../content/icons/daily-bonus/families/mace.png");
 }
 
 .bonus-analysis-grid[data-analysis-family-key="weapons/dagger"] .bonus-analysis-card::before {
-  background-image: url("../icons/daily-bonus/families/dagger.png");
+  background-image: url("../../content/icons/daily-bonus/families/dagger.png");
 }
 
 .bonus-analysis-grid[data-analysis-family-key="weapons/naturestaff"] .bonus-analysis-card::before {
-  background-image: url("../icons/daily-bonus/families/nature-staff.png");
+  background-image: url("../../content/icons/daily-bonus/families/nature-staff.png");
 }
 
 .bonus-analysis-grid[data-analysis-family-key="weapons/holystaff"] .bonus-analysis-card::before {
-  background-image: url("../icons/daily-bonus/families/holy-staff.png");
+  background-image: url("../../content/icons/daily-bonus/families/holy-staff.png");
 }
 
 .bonus-analysis-grid[data-analysis-family-key="weapons/firestaff"] .bonus-analysis-card::before {
-  background-image: url("../icons/daily-bonus/families/fire-staff.png");
+  background-image: url("../../content/icons/daily-bonus/families/fire-staff.png");
 }
 
 .bonus-analysis-grid[data-analysis-family-key="weapons/froststaff"] .bonus-analysis-card::before {
-  background-image: url("../icons/daily-bonus/families/frost-staff.png");
+  background-image: url("../../content/icons/daily-bonus/families/frost-staff.png");
 }
 
 .bonus-analysis-grid[data-analysis-family-key="weapons/arcanestaff"] .bonus-analysis-card::before {
-  background-image: url("../icons/daily-bonus/families/arcane-staff.png");
+  background-image: url("../../content/icons/daily-bonus/families/arcane-staff.png");
 }
 
 .bonus-analysis-grid[data-analysis-family-key="weapons/cursestaff"] .bonus-analysis-card::before .bonus-analysis-card::before,
 .bonus-analysis-grid[data-analysis-family-key="weapons/quarterstaff"] .bonus-analysis-card::before .bonus-analysis-card::before,
 .bonus-analysis-grid[data-analysis-family-key="weapons/shapeshifterstaff"] .bonus-analysis-card::before {
-  background-image: url("../icons/daily-bonus/families/staff.png");
+  background-image: url("../../content/icons/daily-bonus/families/staff.png");
 }
 
 .bonus-analysis-tier-column > header {
@@ -9189,18 +9189,18 @@ a.tool-card:hover {
 }
 
 .bonus-analysis-tier-column > header {
-  background-image: linear-gradient(90deg, color-mix(in srgb, var(--tier) 76%, #071a2a) 0%, color-mix(in srgb, var(--tier) 42%, transparent) 52%, transparent 78%), url("../icons/daily-bonus/decor/t4-header-art.png");
+  background-image: linear-gradient(90deg, color-mix(in srgb, var(--tier) 76%, #071a2a) 0%, color-mix(in srgb, var(--tier) 42%, transparent) 52%, transparent 78%), url("../../content/icons/daily-bonus/decor/t4-header-art.png");
   background-position: center, right center;
   background-repeat: no-repeat;
   background-size: 100% 100%, auto 100%;
 }
 
 .bonus-analysis-tier-column[data-tier="5"] > header {
-  background-image: linear-gradient(90deg, color-mix(in srgb, var(--tier) 76%, #071a2a) 0%, color-mix(in srgb, var(--tier) 42%, transparent) 52%, transparent 78%), url("../icons/daily-bonus/decor/t5-header-art.png");
+  background-image: linear-gradient(90deg, color-mix(in srgb, var(--tier) 76%, #071a2a) 0%, color-mix(in srgb, var(--tier) 42%, transparent) 52%, transparent 78%), url("../../content/icons/daily-bonus/decor/t5-header-art.png");
 }
 
 .bonus-analysis-tier-column[data-tier="6"] > header {
-  background-image: linear-gradient(90deg, color-mix(in srgb, var(--tier) 76%, #071a2a) 0%, color-mix(in srgb, var(--tier) 42%, transparent) 52%, transparent 78%), url("../icons/daily-bonus/decor/t6-header-art.png");
+  background-image: linear-gradient(90deg, color-mix(in srgb, var(--tier) 76%, #071a2a) 0%, color-mix(in srgb, var(--tier) 42%, transparent) 52%, transparent 78%), url("../../content/icons/daily-bonus/decor/t6-header-art.png");
 }
 
 .bonus-analysis-tier-column > div {
@@ -9265,7 +9265,7 @@ a.tool-card:hover {
 .bonus-analysis-tier-column {
   --tier-rgb: 22, 136, 244;
   --tier-dark-rgb: 5, 65, 112;
-  --tier-image: var(--bonus-analysis-family-image, url("../icons/daily-bonus/decor/t4-header-art.png"));
+  --tier-image: var(--bonus-analysis-family-image, url("../../content/icons/daily-bonus/decor/t4-header-art.png"));
   --tier-gradient-start: #2874bc;
   --tier-gradient-mid: #174f85;
   --tier-gradient-end: #053b66;
@@ -9274,7 +9274,7 @@ a.tool-card:hover {
 .bonus-analysis-tier-column[data-tier="5"] {
   --tier-rgb: 238, 55, 75;
   --tier-dark-rgb: 105, 24, 36;
-  --tier-image: var(--bonus-analysis-family-image, url("../icons/daily-bonus/decor/t5-header-art.png"));
+  --tier-image: var(--bonus-analysis-family-image, url("../../content/icons/daily-bonus/decor/t5-header-art.png"));
   --tier-gradient-start: #9c353e;
   --tier-gradient-mid: #762631;
   --tier-gradient-end: #521923;
@@ -9283,162 +9283,162 @@ a.tool-card:hover {
 .bonus-analysis-tier-column[data-tier="6"] {
   --tier-rgb: 230, 156, 29;
   --tier-dark-rgb: 102, 68, 16;
-  --tier-image: var(--bonus-analysis-family-image, url("../icons/daily-bonus/decor/t6-header-art.png"));
+  --tier-image: var(--bonus-analysis-family-image, url("../../content/icons/daily-bonus/decor/t6-header-art.png"));
   --tier-gradient-start: #9c681c;
   --tier-gradient-mid: #763f14;
   --tier-gradient-end: #52270c;
 }
 
 .bonus-analysis-grid[data-analysis-family-key="gathering/tool"] {
-  --bonus-analysis-family-image: url("../icons/daily-bonus/group-headers/tool.png");
+  --bonus-analysis-family-image: url("../../content/icons/daily-bonus/group-headers/tool.png");
 }
 
 .bonus-analysis-grid[data-analysis-family-key="weapons/spear"] {
-  --bonus-analysis-family-image: url("../icons/daily-bonus/group-headers/spear.png");
+  --bonus-analysis-family-image: url("../../content/icons/daily-bonus/group-headers/spear.png");
 }
 
 .bonus-analysis-grid[data-analysis-family-key="armors/cloth_armor"] {
-  --bonus-analysis-family-image: url("../icons/daily-bonus/group-headers/cloth_robe.png");
+  --bonus-analysis-family-image: url("../../content/icons/daily-bonus/group-headers/cloth_robe.png");
 }
 
 .bonus-analysis-grid[data-analysis-family-key="armors/plate_armor"] {
-  --bonus-analysis-family-image: url("../icons/daily-bonus/group-headers/plate_armor.png");
+  --bonus-analysis-family-image: url("../../content/icons/daily-bonus/group-headers/plate_armor.png");
 }
 
 .bonus-analysis-grid[data-analysis-family-key="armors/leather_armor"] {
-  --bonus-analysis-family-image: url("../icons/daily-bonus/group-headers/leather_armor.png");
+  --bonus-analysis-family-image: url("../../content/icons/daily-bonus/group-headers/leather_armor.png");
 }
 
 .bonus-analysis-grid[data-analysis-family-key="weapons/sword"] {
-  --bonus-analysis-family-image: url("../icons/daily-bonus/group-headers/sword.png");
+  --bonus-analysis-family-image: url("../../content/icons/daily-bonus/group-headers/sword.png");
 }
 
 .bonus-analysis-grid[data-analysis-family-key="weapons/axe"] {
-  --bonus-analysis-family-image: url("../icons/daily-bonus/group-headers/axe.png");
+  --bonus-analysis-family-image: url("../../content/icons/daily-bonus/group-headers/axe.png");
 }
 
 .bonus-analysis-grid[data-analysis-family-key="weapons/bow"] {
-  --bonus-analysis-family-image: url("../icons/daily-bonus/group-headers/bow.png");
+  --bonus-analysis-family-image: url("../../content/icons/daily-bonus/group-headers/bow.png");
 }
 
 .bonus-analysis-grid[data-analysis-family-key="weapons/crossbow"] {
-  --bonus-analysis-family-image: url("../icons/daily-bonus/group-headers/crossbow.png");
+  --bonus-analysis-family-image: url("../../content/icons/daily-bonus/group-headers/crossbow.png");
 }
 
 .bonus-analysis-grid[data-analysis-family-key="weapons/hammer"] {
-  --bonus-analysis-family-image: url("../icons/daily-bonus/group-headers/hammer.png");
+  --bonus-analysis-family-image: url("../../content/icons/daily-bonus/group-headers/hammer.png");
 }
 
 .bonus-analysis-grid[data-analysis-family-key="weapons/mace"] {
-  --bonus-analysis-family-image: url("../icons/daily-bonus/group-headers/mace.png");
+  --bonus-analysis-family-image: url("../../content/icons/daily-bonus/group-headers/mace.png");
 }
 
 .bonus-analysis-grid[data-analysis-family-key="weapons/dagger"] {
-  --bonus-analysis-family-image: url("../icons/daily-bonus/group-headers/dagger.png");
+  --bonus-analysis-family-image: url("../../content/icons/daily-bonus/group-headers/dagger.png");
 }
 
 .bonus-analysis-grid[data-analysis-family-key="weapons/naturestaff"] {
-  --bonus-analysis-family-image: url("../icons/daily-bonus/group-headers/nature_staff.png");
+  --bonus-analysis-family-image: url("../../content/icons/daily-bonus/group-headers/nature_staff.png");
 }
 
 .bonus-analysis-grid[data-analysis-family-key="weapons/holystaff"] {
-  --bonus-analysis-family-image: url("../icons/daily-bonus/group-headers/holy_staff.png");
+  --bonus-analysis-family-image: url("../../content/icons/daily-bonus/group-headers/holy_staff.png");
 }
 
 .bonus-analysis-grid[data-analysis-family-key="weapons/firestaff"] {
-  --bonus-analysis-family-image: url("../icons/daily-bonus/group-headers/fire_staff.png");
+  --bonus-analysis-family-image: url("../../content/icons/daily-bonus/group-headers/fire_staff.png");
 }
 
 .bonus-analysis-grid[data-analysis-family-key="weapons/froststaff"] {
-  --bonus-analysis-family-image: url("../icons/daily-bonus/group-headers/frost_staff.png");
+  --bonus-analysis-family-image: url("../../content/icons/daily-bonus/group-headers/frost_staff.png");
 }
 
 .bonus-analysis-grid[data-analysis-family-key="weapons/arcanestaff"] {
-  --bonus-analysis-family-image: url("../icons/daily-bonus/group-headers/arcane_staff.png");
+  --bonus-analysis-family-image: url("../../content/icons/daily-bonus/group-headers/arcane_staff.png");
 }
 
 .bonus-analysis-grid[data-analysis-family-key="weapons/cursestaff"] {
-  --bonus-analysis-family-image: url("../icons/daily-bonus/group-headers/cursed_staff.png");
+  --bonus-analysis-family-image: url("../../content/icons/daily-bonus/group-headers/cursed_staff.png");
 }
 
 .bonus-analysis-grid[data-analysis-family-key="weapons/quarterstaff"] {
-  --bonus-analysis-family-image: url("../icons/daily-bonus/group-headers/quarterstaff.png");
+  --bonus-analysis-family-image: url("../../content/icons/daily-bonus/group-headers/quarterstaff.png");
 }
 
 .bonus-analysis-grid[data-analysis-family-key="weapons/shapeshifterstaff"] {
-  --bonus-analysis-family-image: url("../icons/daily-bonus/group-headers/shapeshifter_staff.png");
+  --bonus-analysis-family-image: url("../../content/icons/daily-bonus/group-headers/shapeshifter_staff.png");
 }
 
 .bonus-analysis-grid[data-analysis-family-key="weapons/knuckles"] {
-  --bonus-analysis-family-image: url("../icons/daily-bonus/group-headers/war_gloves.png");
+  --bonus-analysis-family-image: url("../../content/icons/daily-bonus/group-headers/war_gloves.png");
 }
 
 .bonus-analysis-grid[data-analysis-family-key="head/plate_helmet"] {
-  --bonus-analysis-family-image: url("../icons/daily-bonus/group-headers/plate_helmet.png");
+  --bonus-analysis-family-image: url("../../content/icons/daily-bonus/group-headers/plate_helmet.png");
 }
 
 .bonus-analysis-grid[data-analysis-family-key="head/leather_helmet"] {
-  --bonus-analysis-family-image: url("../icons/daily-bonus/group-headers/leather_hood.png");
+  --bonus-analysis-family-image: url("../../content/icons/daily-bonus/group-headers/leather_hood.png");
 }
 
 .bonus-analysis-grid[data-analysis-family-key="head/cloth_helmet"] {
-  --bonus-analysis-family-image: url("../icons/daily-bonus/group-headers/cloth_cowl.png");
+  --bonus-analysis-family-image: url("../../content/icons/daily-bonus/group-headers/cloth_cowl.png");
 }
 
 .bonus-analysis-grid[data-analysis-family-key="shoes/plate_shoes"] {
-  --bonus-analysis-family-image: url("../icons/daily-bonus/group-headers/plate_boots.png");
+  --bonus-analysis-family-image: url("../../content/icons/daily-bonus/group-headers/plate_boots.png");
 }
 
 .bonus-analysis-grid[data-analysis-family-key="shoes/leather_shoes"] {
-  --bonus-analysis-family-image: url("../icons/daily-bonus/group-headers/leather_shoes.png");
+  --bonus-analysis-family-image: url("../../content/icons/daily-bonus/group-headers/leather_shoes.png");
 }
 
 .bonus-analysis-grid[data-analysis-family-key="shoes/cloth_shoes"] {
-  --bonus-analysis-family-image: url("../icons/daily-bonus/group-headers/cloth_sandals.png");
+  --bonus-analysis-family-image: url("../../content/icons/daily-bonus/group-headers/cloth_sandals.png");
 }
 
 .bonus-analysis-grid[data-analysis-family-key="category/offhands"] {
-  --bonus-analysis-family-image: url("../icons/daily-bonus/group-headers/off_hand.png");
+  --bonus-analysis-family-image: url("../../content/icons/daily-bonus/group-headers/off_hand.png");
 }
 
 .bonus-analysis-grid[data-analysis-family-key="gathering/gear"] {
-  --bonus-analysis-family-image: url("../icons/daily-bonus/group-headers/gathering_gear.png");
+  --bonus-analysis-family-image: url("../../content/icons/daily-bonus/group-headers/gathering_gear.png");
 }
 
 .bonus-analysis-grid[data-analysis-family-key="category/bags"] {
-  --bonus-analysis-family-image: url("../icons/daily-bonus/group-headers/bag.png");
+  --bonus-analysis-family-image: url("../../content/icons/daily-bonus/group-headers/bag.png");
 }
 
 .bonus-analysis-grid[data-analysis-family-key="category/capes"] {
-  --bonus-analysis-family-image: url("../icons/daily-bonus/group-headers/cape.png");
+  --bonus-analysis-family-image: url("../../content/icons/daily-bonus/group-headers/cape.png");
 }
 
 .bonus-analysis-grid[data-analysis-family-key="consumables/food"] {
-  --bonus-analysis-family-image: url("../icons/daily-bonus/group-headers/food.png");
+  --bonus-analysis-family-image: url("../../content/icons/daily-bonus/group-headers/food.png");
 }
 
 .bonus-analysis-grid[data-analysis-family-key="consumables/potions"] {
-  --bonus-analysis-family-image: url("../icons/daily-bonus/group-headers/potion.png");
+  --bonus-analysis-family-image: url("../../content/icons/daily-bonus/group-headers/potion.png");
 }
 
 .bonus-analysis-grid[data-analysis-family-key="resources/wood"] {
-  --bonus-analysis-family-image: url("../icons/daily-bonus/group-headers/wood.png");
+  --bonus-analysis-family-image: url("../../content/icons/daily-bonus/group-headers/wood.png");
 }
 
 .bonus-analysis-grid[data-analysis-family-key="resources/fiber"] {
-  --bonus-analysis-family-image: url("../icons/daily-bonus/group-headers/fiber.png");
+  --bonus-analysis-family-image: url("../../content/icons/daily-bonus/group-headers/fiber.png");
 }
 
 .bonus-analysis-grid[data-analysis-family-key="resources/rock"] {
-  --bonus-analysis-family-image: url("../icons/daily-bonus/group-headers/stone.png");
+  --bonus-analysis-family-image: url("../../content/icons/daily-bonus/group-headers/stone.png");
 }
 
 .bonus-analysis-grid[data-analysis-family-key="resources/hide"] {
-  --bonus-analysis-family-image: url("../icons/daily-bonus/group-headers/hide.png");
+  --bonus-analysis-family-image: url("../../content/icons/daily-bonus/group-headers/hide.png");
 }
 
 .bonus-analysis-grid[data-analysis-family-key="resources/ore"] {
-  --bonus-analysis-family-image: url("../icons/daily-bonus/group-headers/ore.png");
+  --bonus-analysis-family-image: url("../../content/icons/daily-bonus/group-headers/ore.png");
 }
 
 .bonus-analysis-tier-column > header {
