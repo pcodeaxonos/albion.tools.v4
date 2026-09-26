@@ -16,9 +16,15 @@ import {
     setAnimalFieldValue
 } from '../components/plant-picker.js?v=20260919-animal-picker-4';
 import { getSettings, saveSettings, cityHasIsland, getDefaultCity } from '../core/settings.js';
-import { getPlants, getAnimals, getEconomyConstant } from '../core/catalog.js';
+import { cityYieldBonus, productQtyConst } from '../core/island/economy-config.js';
+import { getPlants, getAnimals } from '../core/catalog.js';
 import { itemIconHtml } from '../components/item-icon.js';
 import { showToast } from '../components/toast.js';
+import { formatPct as formatPercent, formatQuantity, formatIsoDate as formatDate } from '../utils/format.js';
+import { cityLabel as getCityLabel, readStoredCity, saveStoredCity } from '../core/city-utils.js';
+
+const formatPct = (ratio) => formatPercent(ratio, { digits: 0 });
+const formatQty = (value) => formatQuantity(value, { digits: 2 });
 import {
     yieldAverage,
     standardPlantYield,
@@ -68,25 +74,6 @@ function todayIso() {
 
 function toYearMonth(isoDate) {
     return String(isoDate || '').slice(0, 7);
-}
-
-function formatDate(isoDate) {
-    const [y, m, d] = isoDate.split('-');
-    return `${d}.${m}.${y}`;
-}
-
-function formatPct(ratio) {
-    if (!Number.isFinite(ratio)) {
-        return '—';
-    }
-    return `${(ratio * 100).toLocaleString('tr-TR', { maximumFractionDigits: 0 })}%`;
-}
-
-function formatQty(value) {
-    if (!Number.isFinite(value)) {
-        return '—';
-    }
-    return value.toLocaleString('tr-TR', { maximumFractionDigits: 2 });
 }
 
 function parseQuantityExpression(value) {
@@ -162,7 +149,7 @@ function gaugeFill(value) {
 }
 
 function cityLabel(apiName) {
-    return state.cities.find((city) => city.marketApiName === apiName)?.displayName ?? apiName;
+    return getCityLabel(state.cities, apiName);
 }
 
 function normalizeCityName(city) {
@@ -243,9 +230,7 @@ function cityIslandDecorate(city) {
     return { muted: true, hint: 'ada yok' };
 }
 
-function cityBonusPct() {
-    return getEconomyConstant('city_yield_bonus', 0.1);
-}
+const cityBonusPct = cityYieldBonus;
 
 function hasCityBonus(plant, islandCity) {
     return Array.isArray(plant?.bonusCities) && plant.bonusCities.includes(islandCity);
@@ -277,7 +262,7 @@ function standardReturn(item, islandCity = state.islandCity) {
 // deliberately data-aware for calculations, so using it here made the
 // “Varsayılan” comparison value mirror a saved observation.
 function standardAnimalProductOutput(animal, islandCity = state.islandCity) {
-    const base = getEconomyConstant('product_qty', 18);
+    const base = productQtyConst();
     const bonus = hasCityBonus(animal, islandCity) ? cityBonusPct() : 0;
     return base * (1 + bonus);
 }
@@ -1388,11 +1373,7 @@ function bindPage(container) {
             return;
         }
         state.islandCity = value;
-        try {
-            localStorage.setItem(CITY_STORAGE_KEY, value);
-        } catch {
-            /* ignore */
-        }
+        saveStoredCity(CITY_STORAGE_KEY, value);
         syncAutomaticPlots(container);
         refreshResult(container);
     });
@@ -1478,16 +1459,7 @@ async function init() {
     try {
         await initStore();
         state.cities = await loadActiveCities();
-        try {
-            const saved = localStorage.getItem(CITY_STORAGE_KEY);
-            if (saved && state.cities.some((c) => c.marketApiName === saved)) {
-                state.islandCity = saved;
-            } else {
-                state.islandCity = getDefaultCity();
-            }
-        } catch {
-            state.islandCity = getDefaultCity();
-        }
+        state.islandCity = readStoredCity(CITY_STORAGE_KEY, state.cities, getDefaultCity());
         renderPage(container);
     } catch (error) {
         console.error(error);

@@ -1,42 +1,7 @@
 import { getSettings, getServer, localPriceHost } from './settings.js';
-
-const PRICE_REQUEST_TIMEOUT_MS = 10000;
 import { isStalePriceDate } from './price-side.js';
 
-export function priceLoaderMessage(source, fallback = 'Fiyatlar alınıyor…') {
-    if (source === 'api') {
-        return 'AODP fiyatları alınıyor (oyun verisiyle birleştirilecek)…';
-    }
-    return fallback;
-}
-
-export function priceRefreshActionsHtml({ refreshId, apiId }) {
-    return `
-        <div class="tool-price-actions">
-            <button type="button" class="btn btn-outline-secondary" id="${refreshId}" title="Önce oyun (paket) verisi, yoksa veya daha eskiyse AODP ile birleştirir.">Fiyatları yenile</button>
-            <button type="button" class="btn btn-outline-secondary" id="${apiId}" title="AODP’yi yeniden çeker; oyun verisi varsa güncel olan kazanır. Eksikler için oyunda marketi aç.">Fiyatları API’den çek</button>
-        </div>
-    `;
-}
-
-export function applyPriceLoadMode(state, { source, showLoader = true } = {}) {
-    if (source === 'api') {
-        state.livePaused = true;
-        return;
-    }
-    if (showLoader) {
-        state.livePaused = false;
-    }
-}
-
-export function bindPriceRefresh(container, { refreshId, apiId, load }) {
-    container.querySelector(`#${refreshId}`)?.addEventListener('click', () => {
-        load();
-    });
-    container.querySelector(`#${apiId}`)?.addEventListener('click', () => {
-        load({ source: 'api' });
-    });
-}
+const PRICE_REQUEST_TIMEOUT_MS = 10000;
 
 function isLiveDate(value) {
     return Boolean(value) && !String(value).startsWith('0001');

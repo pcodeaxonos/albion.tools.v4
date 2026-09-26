@@ -1,5 +1,6 @@
 import { getAll } from '../db/store.js';
-import { getEconomyConstant, getPlants, getAnimals } from './catalog.js';
+import { getPlants, getAnimals } from './catalog.js';
+import { baseYield, premiumYield, cityYieldBonus } from './island/economy-config.js';
 
 const TABLE = 'islandYieldLogs';
 
@@ -12,15 +13,6 @@ function bool(value) {
     return value === true || value === 'true' || value === 1 || value === '1';
 }
 
-function baseYield(premium) {
-    return premium
-        ? getEconomyConstant('premium_yield', 9)
-        : getEconomyConstant('base_yield', 4.5);
-}
-
-function cityYieldBonus() {
-    return getEconomyConstant('city_yield_bonus', 0.1);
-}
 
 function hasBonus(bonusCities, city) {
     return Array.isArray(bonusCities) && bonusCities.includes(city);
@@ -28,7 +20,7 @@ function hasBonus(bonusCities, city) {
 
 /** Standard game harvest qty (city bonus included). */
 export function standardPlantYield(plant, islandCity, premium) {
-    const base = baseYield(premium);
+    const base = premium ? premiumYield() : baseYield();
     if (!hasBonus(plant?.bonusCities, islandCity)) {
         return base;
     }

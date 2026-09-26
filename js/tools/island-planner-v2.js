@@ -3,7 +3,6 @@ import { initNav } from '../core/nav.js';
 import { getAll, initStore, replaceAllRows } from '../db/store.js';
 import { getSettings, getDefaultCity } from '../core/settings.js';
 import { loadActiveCities } from '../core/cities.js';
-import { getPlants, getAnimals, getBuildings } from '../core/catalog.js';
 import { getItemLocalizedName, getItemUniqueName } from '../db/relations.js';
 import { itemIconHtml } from '../components/item-icon.js';
 import { cityRow, fetchPrices, indexPrices } from '../core/market.js';
@@ -13,6 +12,21 @@ import { butcherQty, cropHours, listCrops, planCycleHours, planDayHours, plantSl
 import { effectiveAnimalProductYield, effectiveAnimalReturn, effectivePlantYield, effectiveSeedReturn, yieldAverage } from '../core/island-yield-stats.js';
 import { bindLivePrices } from '../core/price-live.js';
 import { V2_CITIES, V2_COMMITTED_STORAGE_KEY, V2_COMMITTED_TABLE, V2_DRAFT_TABLE, V2_FIXED_PRICE_TABLE, V2_GEOMETRY_TABLE, V2_GEOMETRY_URL, V2_ROYAL_CITIES, V2_SPECIAL_CITY_GEOMETRY, V2_STORAGE_KEY, V2_UNLOCKED_SLOTS_BY_LEVEL } from './island-planner-v2-config.js';
+import { blankSlot, clone, clamp01, cityKey, normalizeDraft as normalizeDraftModel } from './island-planner-v2/model.js';
+import {
+    animalProductionModes,
+    cityBonusItems,
+    isEconomicItem,
+    itemCategory,
+    itemForSlot,
+    itemName,
+    itemRows,
+    itemUniqueName,
+    productionModeFor,
+    productionModeUsesFocus,
+    typeLabel
+} from './island-planner-v2/items.js';
+import { readPlanTable, writePlanTable } from './island-planner-v2/persistence.js';
 
 const OVERLAY_DEBUG = new URLSearchParams(location.search).has('islandOverlayDebug');
 const TOOLBAR_TYPE_ICONS = Object.freeze({
@@ -24,13 +38,9 @@ const TOOLBAR_TYPE_ICONS = Object.freeze({
 });
 const state = { cities: [], geometry: null, geometryRows: [], fixedPrices: [], selectedSlotId: 'R1', hoveredSlotId: null, toolbar: { stage: 'type', type: null }, draftsByCity: {}, committedByCity: {}, draft: null, committed: null, priceIndex: null, priceLoading: false, priceError: null, priceRequestId: 0, priceDiagnosticSignature: null, derivedDiagnosticSignature: null, openDependencyPopover: null, drag: null, pointerDrag: null, dragPreviewFrame: null, dragPreviewPoint: null, suppressClick: false, derived: { slots: new Map(), summary: null }, calculationTimer: null, overlayDebugSignature: null };
 
-function blankSlot(id) { return { id, item: null, type: null, tier: null, focus: false, productionMode: null }; }
 function defaultDraft(islandCity = getDefaultCity()) { const settings = getSettings(); return { premium: settings.premium !== false, focus: false, islandCity, sellCity: getDefaultCity(), islandLevel: 6, seedSide: settings.buyPriceSide, harvestSide: settings.sellPriceSide, slots: Array.from({ length: 16 }, (_, i) => blankSlot(`R${i + 1}`)), pricesUpdatedAt: null }; }
-function clone(value) { return JSON.parse(JSON.stringify(value)); }
-function read(key) { try { const raw = localStorage.getItem(key); return raw ? JSON.parse(raw) : null; } catch { return null; } }
-function clamp01(value) { return Math.min(1, Math.max(0, Number(value) || 0)); }
+function normalizeDraft(value, islandCity) { return normalizeDraftModel(value, islandCity, defaultDraft(islandCity)); }
 function slot(id) { return state.draft.slots.find((entry) => entry.id === id) ?? null; }
-function cityKey(value) { return String(value || '').toLowerCase().replace(/[\s-]+/g, '_'); }
 function cityName(value) { return state.cities.find((city) => city.marketApiName === value)?.displayName ?? value; }
 function cityImage(value) { return `assets/island-planner-v2/city-buttons/${cityKey(value)}.png`; }
 function islandImage(value) { return `assets/island-planner-v2/islands/${cityKey(value)}.png`; }
@@ -47,109 +57,14 @@ function geometryForCity() {
 }
 function displayedSlot() { return state.hoveredSlotId ? slot(state.hoveredSlotId) : slot(state.selectedSlotId); }
 function isEditableDetail() { return !state.hoveredSlotId || state.hoveredSlotId === state.selectedSlotId; }
-function buildingRows() {
-    return getBuildings().flatMap((building) => {
-        const tiers = [...new Set([...Object.keys(building.wood), ...Object.keys(building.stone)].map(Number).filter(Number.isFinite))];
-        return tiers.map((tier) => ({
-            key: `building:${building.id}:T${tier}`,
-            kind: 'building', plotType: 'house', tier,
-            label: `${building.label} · T${tier}`,
-            iconUniqueName: 'PLAYERISLAND_FURNITUREITEM_WOOD_GATE_BIG_B',
-            buildingId: building.id
-        }));
-    });
-}
-function itemRows() { return [...getPlants(), ...getAnimals(), ...buildingRows()]; }
-function itemForSlot(entry) { return entry?.item ? itemRows().find((item) => item.key === entry.item) ?? null : null; }
-function itemUniqueName(item) { return item?.iconUniqueName ?? getItemUniqueName(item?.plantItemId ?? item?.grownItemId); }
-function isEconomicItem(item) { return Boolean(item?.seedId || item?.plantId || item?.babyId || item?.grownId); }
-function itemName(item) { return item?.label || item?.key || '—'; }
-function itemCategory(item) { return ({ crop: 'Sebze', herb: 'Ot', livestock: 'Hayvan', mount: 'Binek', 'faction-mount': 'Faction Bineği' })[item?.kind] ?? typeLabel(item?.plotType); }
-function hasCityBonus(item) { return Array.isArray(item?.bonusCities) && item.bonusCities.includes(state.draft.islandCity); }
-function cityBonusItems() {
-    return [...getPlants(), ...getAnimals()]
-        .filter(hasCityBonus)
-        .sort((a, b) => a.tier - b.tier || itemName(a).localeCompare(itemName(b), 'tr'));
-}
 function renderIslandCityBonuses() {
-    const bonuses = cityBonusItems();
+    const bonuses = cityBonusItems(state.draft.islandCity);
     if (!bonuses.length) return '';
     const city = cityName(state.draft.islandCity);
     return `<aside class="island-v2-island-bonuses" aria-label="${escapeHtml(city)} şehir bonusları"><span class="island-v2-island-bonuses-label">Şehir Bonusu</span><span class="island-v2-island-bonuses-items">${bonuses.map((item) => `<span class="island-v2-island-bonus" data-tier="${item.tier}" title="${escapeHtml(`${city} · ${itemName(item)} üretim bonusu`)}">${itemIconHtml(itemUniqueName(item), { size: 30 })}</span>`).join('')}</span></aside>`;
 }
-function animalProductionModes(item) {
-    if (!item?.babyId) return [];
-    const modes = [{ value: 'live', label: 'Canlı Sat' }];
-    if (item.meatId) modes.push({ value: 'butcher', label: 'Kes' });
-    if (item.productId) modes.push({ value: 'product', label: getItemLocalizedName(item.productItemId, 'Ürün') || 'Ürün' });
-    return modes;
-}
-function productionModeFor(item, value) {
-    if (!item?.babyId) return null;
-    return animalProductionModes(item).some((mode) => mode.value === value) ? value : 'live';
-}
-function productionModeUsesFocus(item, value) {
-    return !item?.babyId || productionModeFor(item, value) !== 'product';
-}
 function effectiveSlotFocus(entry, item) {
     return Boolean(state.draft.focus && entry?.focus && productionModeUsesFocus(item, entry.productionMode));
-}
-function normalizeSlot(entry, id) {
-    const normalized = { ...blankSlot(id), ...(entry && typeof entry === 'object' ? entry : {}), id };
-    const item = itemForSlot(normalized);
-    if (item) {
-        normalized.type = item.plotType;
-        normalized.tier = item.tier;
-        normalized.productionMode = productionModeFor(item, normalized.productionMode);
-    } else {
-        normalized.item = null;
-        normalized.type = null;
-        normalized.tier = null;
-    }
-    return normalized;
-}
-function normalizeDraft(value, islandCity) {
-    const base = defaultDraft(islandCity);
-    const source = value && typeof value === 'object' ? value : {};
-    return { ...base, ...source, islandCity, slots: Array.from({ length: 16 }, (_, index) => normalizeSlot(source.slots?.[index], `R${index + 1}`)) };
-}
-function parsePlan(value) { try { return typeof value === 'string' ? JSON.parse(value) : value; } catch { return null; } }
-function legacyCityPlans(key) {
-    const stored = read(key);
-    if (!stored) return { activeCity: null, plans: {} };
-    if (stored.plans && typeof stored.plans === 'object') return { activeCity: stored.activeCity ?? null, plans: stored.plans };
-    const legacyCity = stored.islandCity || getDefaultCity();
-    return { activeCity: legacyCity, plans: { [cityKey(legacyCity)]: stored } };
-}
-function writePlanTable(tableName, plans, activeCity = null, hasActive = false) {
-    const existing = getAll(tableName);
-    const ids = new Map(existing.map((row) => [cityKey(row.city), row.id]));
-    let nextId = existing.reduce((max, row) => Math.max(max, Number(row.id) || 0), 0) + 1;
-    const now = new Date().toISOString();
-    replaceAllRows(tableName, Object.entries(plans).map(([key, plan]) => ({
-        id: ids.get(key) ?? nextId++, city: plan.islandCity || key, plan: JSON.stringify(plan),
-        ...(hasActive ? { active: cityKey(activeCity) === key } : {}), updatedAt: now
-    })));
-}
-function readPlanTable(tableName, legacyKey, hasActive = false) {
-    let rows = getAll(tableName);
-    if (!rows.length) {
-        const legacy = legacyCityPlans(legacyKey);
-        if (Object.keys(legacy.plans).length) {
-            writePlanTable(tableName, legacy.plans, legacy.activeCity, hasActive);
-            localStorage.removeItem(legacyKey);
-            rows = getAll(tableName);
-        }
-    }
-    const plans = {};
-    let activeCity = null;
-    rows.forEach((row) => {
-        const plan = parsePlan(row.plan);
-        if (!plan || typeof plan !== 'object') return;
-        plans[cityKey(row.city)] = plan;
-        if (hasActive && row.active) activeCity = row.city;
-    });
-    return { activeCity, plans };
 }
 function persistDrafts() {
     if (!state.draft) return;
@@ -188,7 +103,6 @@ function priceText() {
     if (state.draft?.slots?.some((entry) => isEconomicItem(itemForSlot(entry))) && !v2PriceItemIds().length) return 'Sabit fiyatlar kullanılıyor';
     return state.draft.pricesUpdatedAt ? new Date(state.draft.pricesUpdatedAt).toLocaleString('tr-TR') : 'Fiyat verisi henüz yenilenmedi';
 }
-function typeLabel(type) { return ({ farm: 'Tarla', herb: 'Ot', pasture: 'Mera', kennel: 'Kennel', house: 'Ev' })[type] ?? type; }
 function toolbarOptionRank(item) {
     // The catalog key and feedFixed rule already distinguish the pasture groups:
     // transport oxen, horses, then animals with a fixed favourite feed.

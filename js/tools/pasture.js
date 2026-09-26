@@ -2,11 +2,10 @@ import { escapeHtml } from '../utils/utils.js';
 import { initNav } from '../core/nav.js';
 import { initStore } from '../db/store.js';
 import { getSettings, cityHasIsland, getDefaultCity } from '../core/settings.js';
-import { fetchPrices, indexPrices, cityRow, priceRefreshActionsHtml, bindPriceRefresh, priceLoaderMessage, applyPriceLoadMode } from '../core/market.js';
+import { fetchPrices, indexPrices, cityRow } from '../core/market.js';
 import { itemIconHtml, itemLabel } from '../components/item-icon.js';
 import { showPageLoader, hidePageLoader } from '../components/loader.js';
-import { initFloatingLabels } from '../components/forms.js';
-import { initTableSort, parseSortNumber, sortHeaderHtml } from '../utils/table-sort.js';
+import { initTableSort, sortHeaderHtml } from '../utils/table-sort.js';
 import {
     quoteFromRow,
     priceSideHint,
@@ -38,32 +37,26 @@ import {
     explainSaleSteps,
     explainProfitFoot
 } from '../utils/calc-explain.js';
-import { getAnimals, getEconomyConstant } from '../core/catalog.js';
+import { getAnimals } from '../core/catalog.js';
 import { effectiveAnimalReturn, effectiveAnimalProductYield } from '../core/island-yield-stats.js';
+import { formatSilver as formatSilverValue, formatPct, formatDateTime } from '../utils/format.js';
+import { formatQuantity as formatQty } from '../utils/format.js';
+import { parsePrice, isManualPrice, manualQuote } from '../core/manual-pricing.js';
+import { cityNames as listCityNames, cityLabel as getCityLabel, readStoredCity, saveStoredCity } from '../core/city-utils.js';
+import { profitClass } from '../utils/profit.js';
+import { priceRefreshActionsHtml, bindPriceRefresh } from '../components/price-refresh.js';
+import { runPriceLoad } from './shared/price-load.js';
+import { readJsonStorage, writeJsonStorage } from '../core/storage.js';
+import { baseYield, premiumYield, cityYieldBonus, livestockFeedPasture, meatQtyConst } from '../core/island/economy-config.js';
+import { bindManualPriceFields } from '../components/manual-price-fields.js';
+
+const formatSilver = (value, options = {}) => formatSilverValue(value, { ...options, rounding: 'locale' });
 
 const CITY_STORAGE_KEY = 'albiontools.v4.pasture.city';
 const PREFS_STORAGE_KEY = 'albiontools.v4.pasture.prefs';
 
-function baseYield() {
-    return getEconomyConstant('base_yield', 4.5);
-}
-
-function premiumYield() {
-    return getEconomyConstant('premium_yield', 9);
-}
-
-function cityYieldBonus() {
-    return getEconomyConstant('city_yield_bonus', 0.1);
-}
-
-function feedQty() {
-    return getAnimals({ kind: 'livestock' })[0]?.feedQtyPasture
-        ?? 9;
-}
-
-function meatQty() {
-    return getEconomyConstant('meatQty()', 18);
-}
+const feedQty = livestockFeedPasture;
+const meatQty = meatQtyConst;
 
 function productQty(item) {
     return effectiveAnimalProductYield(item, state.city, {
@@ -120,130 +113,38 @@ function babyChance(item, focused) {
     }).rate;
 }
 
-function formatSilver(value, { unsigned = false, digits = 0, signed = false } = {}) {
-    if (!Number.isFinite(value)) {
-        return '—';
-    }
-    const amount = unsigned ? Math.abs(value) : value;
-    let text = amount.toLocaleString('tr-TR', {
-        maximumFractionDigits: digits,
-        minimumFractionDigits: digits > 0 && Math.abs(amount) < 10 ? Math.min(digits, 1) : 0
-    });
-    if (signed && value > 0) {
-        text = `+${text}`;
-    }
-    return text;
-}
-
-function formatPct(ratio) {
-    if (!Number.isFinite(ratio)) {
-        return '—';
-    }
-    return `${(ratio * 100).toLocaleString('tr-TR', { maximumFractionDigits: 1 })}%`;
-}
-
-function formatQty(value) {
-    if (!Number.isFinite(value)) {
-        return '—';
-    }
-    return value.toLocaleString('tr-TR', { maximumFractionDigits: 1 });
-}
-
-function formatDateTime(iso) {
-    if (!iso) {
-        return '';
-    }
-    const date = new Date(iso);
-    if (Number.isNaN(date.getTime())) {
-        return '';
-    }
-    const dd = String(date.getDate()).padStart(2, '0');
-    const mm = String(date.getMonth() + 1).padStart(2, '0');
-    const hh = String(date.getHours()).padStart(2, '0');
-    const min = String(date.getMinutes()).padStart(2, '0');
-    return `${dd}.${mm} ${hh}:${min}`;
-}
-
 function cityNames() {
-    return state.cities.map((city) => city.marketApiName).filter(Boolean);
+    return listCityNames(state.cities);
 }
 
 function cityLabel(apiName) {
-    return state.cities.find((city) => city.marketApiName === apiName)?.displayName ?? apiName;
+    return getCityLabel(state.cities, apiName);
 }
 
 function readSavedCity(cities) {
-    try {
-        const saved = localStorage.getItem(CITY_STORAGE_KEY);
-        if (cities.some((city) => city.marketApiName === saved)) {
-            return saved;
-        }
-    } catch {
-        /* ignore */
-    }
-    const preferred = getDefaultCity();
-    const match = cities.find((city) => city.marketApiName === preferred);
-    return match?.marketApiName ?? cities[0]?.marketApiName ?? preferred;
+    return readStoredCity(CITY_STORAGE_KEY, cities, getDefaultCity());
 }
 
 function saveCity(apiName) {
-    try {
-        localStorage.setItem(CITY_STORAGE_KEY, apiName);
-    } catch {
-        /* ignore */
-    }
+    saveStoredCity(CITY_STORAGE_KEY, apiName);
 }
 
 function readPrefs() {
-    try {
-        const raw = localStorage.getItem(PREFS_STORAGE_KEY);
-        if (!raw) {
-            return;
-        }
-        const parsed = JSON.parse(raw);
-        if (parsed.feedMode === 'grow' || parsed.feedMode === 'market') {
-            state.feedMode = parsed.feedMode;
-        }
-        state.focus = parsed.focus === true;
-    } catch {
-        /* ignore */
+    const parsed = readJsonStorage(PREFS_STORAGE_KEY);
+    if (!parsed) {
+        return;
     }
+    if (parsed.feedMode === 'grow' || parsed.feedMode === 'market') {
+        state.feedMode = parsed.feedMode;
+    }
+    state.focus = parsed.focus === true;
 }
 
 function savePrefs() {
-    try {
-        localStorage.setItem(PREFS_STORAGE_KEY, JSON.stringify({
-            feedMode: state.feedMode,
-            focus: state.focus
-        }));
-    } catch {
-        /* ignore */
-    }
-}
-
-function parsePrice(raw) {
-    if (raw == null) {
-        return null;
-    }
-    const value = parseSortNumber(raw);
-    return value != null && value >= 0 ? value : null;
-}
-
-function isManualPrice(raw) {
-    return parsePrice(raw) != null;
-}
-
-function manualQuote(price, side, intent) {
-    return {
-        price,
-        book: price,
-        date: null,
-        side,
-        intent,
-        tick: 0,
-        setup: placesOrder(intent, side),
-        manual: true
-    };
+    writeJsonStorage(PREFS_STORAGE_KEY, {
+        feedMode: state.feedMode,
+        focus: state.focus
+    });
 }
 
 function fetchedQuote(itemId, side, intent) {
@@ -969,13 +870,6 @@ function sortedCities() {
     );
 }
 
-function profitClass(value) {
-    if (!Number.isFinite(value) || value === 0) {
-        return '';
-    }
-    return value > 0 ? ' is-profit' : ' is-loss';
-}
-
 function pathLabel(path) {
     if (!path) {
         return '—';
@@ -1333,74 +1227,17 @@ function refreshCalc(container) {
 }
 
 function bindPriceInputs(container) {
-    initFloatingLabels(container);
-
-    const binders = [
-        { sel: '[data-baby-price]', map: 'manualBabies', key: 'babyPrice' },
-        { sel: '[data-feed-price]', map: 'manualFeeds', key: 'feedPrice' },
-        { sel: '[data-grown-price]', map: 'manualGrowns', key: 'grownPrice' },
-        { sel: '[data-meat-price]', map: 'manualMeats', key: 'meatPrice' },
-        { sel: '[data-product-price]', map: 'manualProducts', key: 'productPrice' }
-    ];
-
-    const resolveFetched = (item, key) => {
-        if (key === 'babyPrice') {
-            return fetchedQuote(item.babyId, state.babySide, 'buy');
-        }
-        if (key === 'feedPrice') {
-            return fetchedFeedQuote(item);
-        }
-        if (key === 'grownPrice') {
-            return fetchedQuote(item.grownId, state.grownSide, 'sell');
-        }
-        if (key === 'meatPrice') {
-            return fetchedQuote(item.meatId, state.meatSide, 'sell');
-        }
-        return item.productId ? fetchedQuote(item.productId, state.productSide, 'sell') : null;
-    };
-
-    const dataKey = (input, key) => {
-        if (key === 'babyPrice') {
-            return input.dataset.babyPrice;
-        }
-        if (key === 'feedPrice') {
-            return input.dataset.feedPrice;
-        }
-        if (key === 'grownPrice') {
-            return input.dataset.grownPrice;
-        }
-        if (key === 'meatPrice') {
-            return input.dataset.meatPrice;
-        }
-        return input.dataset.productPrice;
-    };
-
-    for (const binder of binders) {
-        container.querySelectorAll(binder.sel).forEach((input) => {
-            if (input.dataset.priceBound === 'on') {
-                return;
-            }
-            input.dataset.priceBound = 'on';
-
-            input.addEventListener('input', () => {
-                const id = dataKey(input, binder.key);
-                state[binder.map][id] = input.value;
-                refreshCalc(container);
-            });
-
-            input.addEventListener('change', () => {
-                const id = dataKey(input, binder.key);
-                const item = animals().find((row) => row.id === id);
-                if (parsePrice(input.value) == null) {
-                    state[binder.map][id] = null;
-                    const fetched = item ? resolveFetched(item, binder.key) : null;
-                    input.value = fetched ? formatSilver(fetched.price) : '';
-                    input.classList.toggle('is-filled', input.value.length > 0);
-                }
-                refreshCalc(container);
-            });
-        });
-    }
+    const resolveItem = (id) => animals().find((row) => row.id === id);
+    bindManualPriceFields(container, {
+        fields: [
+            { selector: '[data-baby-price]', dataKey: 'babyPrice', values: state.manualBabies, resolveFallbackPrice: (id) => { const item = resolveItem(id); return item ? fetchedQuote(item.babyId, state.babySide, 'buy')?.price : null; } },
+            { selector: '[data-feed-price]', dataKey: 'feedPrice', values: state.manualFeeds, resolveFallbackPrice: (id) => { const item = resolveItem(id); return item ? fetchedFeedQuote(item)?.price : null; } },
+            { selector: '[data-grown-price]', dataKey: 'grownPrice', values: state.manualGrowns, resolveFallbackPrice: (id) => { const item = resolveItem(id); return item ? fetchedQuote(item.grownId, state.grownSide, 'sell')?.price : null; } },
+            { selector: '[data-meat-price]', dataKey: 'meatPrice', values: state.manualMeats, resolveFallbackPrice: (id) => { const item = resolveItem(id); return item ? fetchedQuote(item.meatId, state.meatSide, 'sell')?.price : null; } },
+            { selector: '[data-product-price]', dataKey: 'productPrice', values: state.manualProducts, resolveFallbackPrice: (id) => { const item = resolveItem(id); return item?.productId ? fetchedQuote(item.productId, state.productSide, 'sell')?.price : null; } }
+        ],
+        onRefresh: () => refreshCalc(container)
+    });
 }
 
 function refreshOutput(container) {
@@ -1480,7 +1317,7 @@ function renderPage(container) {
                         cities: sortedCities(),
                         decorate: cityIslandDecorate
                     })}
-                    ${priceRefreshActionsHtml({ refreshId: 'pastureRefresh', apiId: 'pastureRefreshApi' })}
+                    ${priceRefreshActionsHtml()}
                 </div>
             </div>
             <div class="tool-split-result">
@@ -1550,8 +1387,6 @@ function bindPage(container) {
     });
 
     bindPriceRefresh(container, {
-        refreshId: 'pastureRefresh',
-        apiId: 'pastureRefreshApi',
         load: (options) => loadPrices(container, options)
     });
 }
@@ -1572,34 +1407,27 @@ function priceItemIds() {
 }
 
 async function loadPrices(container, { showLoader = true, source } = {}) {
-    applyPriceLoadMode(state, { source, showLoader });
-    state.error = null;
-    if (showLoader) {
-        showPageLoader(priceLoaderMessage(source, 'Şehir fiyatları alınıyor…'));
-    }
-
-    try {
-        const locations = cityNames();
-        if (locations.length === 0) {
-            throw new Error('Aktif şehir yok.');
+    await runPriceLoad({
+        state,
+        source,
+        showLoader,
+        loadingText: 'Şehir fiyatları alınıyor…',
+        load: async () => {
+            const locations = cityNames();
+            if (locations.length === 0) {
+                throw new Error('Aktif şehir yok.');
+            }
+            const rows = await fetchPrices(priceItemIds(), locations, { source });
+            state.priceIndex = indexPrices(rows);
+        },
+        onFinally: () => {
+            if (container.querySelector('#pastureResult')) {
+                refreshOutput(container);
+            } else {
+                renderPage(container);
+            }
         }
-        const rows = await fetchPrices(priceItemIds(), locations, { source });
-        state.priceIndex = indexPrices(rows);
-        state.loaded = true;
-    } catch (error) {
-        console.error(error);
-        state.error = error.message || 'Fiyatlar alınamadı.';
-        state.loaded = true;
-    } finally {
-        if (showLoader) {
-            hidePageLoader();
-        }
-        if (container.querySelector('#pastureResult')) {
-            refreshOutput(container);
-        } else {
-            renderPage(container);
-        }
-    }
+    });
 }
 
 async function init() {

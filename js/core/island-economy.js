@@ -8,212 +8,87 @@ import { purchaseCost, saleProceeds, salesTaxRate } from './market-fees.js';
 import { quoteFromRow } from './price-side.js';
 import { cityRow } from './market.js';
 import { historyAt } from './market-history.js';
-import {
-    getPlants,
-    getAnimals,
-    getEconomyConstant,
-    getIslandPlotsByLevel
-} from './catalog.js';
+import { getEconomyConstant } from './catalog.js';
 import { effectivePlantYield, effectiveSeedReturn, effectiveAnimalReturn, effectiveAnimalProductYield } from './island-yield-stats.js';
+import {
+    plantSlots,
+    pasturePens,
+    kennelPens,
+    cropHours,
+    livestockHours,
+    livestockFeed,
+    livestockFeedPasture,
+    meatQtyConst,
+    productQtyConst,
+    albionDayHours,
+    planDayHours,
+    planCycleHours,
+    cityYieldBonus,
+    historyDays
+} from './island/economy-config.js';
+import {
+    listCrops,
+    listHerbs,
+    listLivestock,
+    listPastureMounts,
+    listKennelMounts,
+    listFactionMounts,
+    listAllAnimals,
+    listAllPlants,
+    plotsForLevel,
+    factionMountForCity,
+    allPriceItemIds
+} from './island/economy-catalog.js';
 
-export function islandPlotsByLevel() {
-    return getIslandPlotsByLevel();
-}
 
-/** @deprecated use islandPlotsByLevel() — kept as live object for planners */
-export const ISLAND_PLOTS_BY_LEVEL = new Proxy({}, {
-    get(_target, prop) {
-        if (prop === Symbol.toStringTag) {
-            return 'Object';
-        }
-        if (prop === 'then') {
-            return undefined;
-        }
-        const map = getIslandPlotsByLevel();
-        if (prop === Symbol.iterator) {
-            return undefined;
-        }
-        if (typeof prop === 'string' && prop in Object.prototype) {
-            return undefined;
-        }
-        return map[prop];
-    },
-    ownKeys() {
-        return Object.keys(getIslandPlotsByLevel());
-    },
-    getOwnPropertyDescriptor(_target, prop) {
-        const map = getIslandPlotsByLevel();
-        if (Object.prototype.hasOwnProperty.call(map, prop)) {
-            return { configurable: true, enumerable: true, value: map[prop] };
-        }
-        return undefined;
-    }
-});
+export {
+    islandPlotsByLevel,
+    ISLAND_PLOTS_BY_LEVEL,
+    plantSlots,
+    pasturePens,
+    kennelPens,
+    cropHours,
+    livestockHours,
+    livestockFeed,
+    livestockFeedPasture,
+    meatQtyConst,
+    productQtyConst,
+    albionDayHours,
+    planDayHours,
+    PLANT_SLOTS,
+    PASTURE_PENS,
+    KENNEL_PENS,
+    CROP_HOURS,
+    LIVESTOCK_HOURS,
+    LIVESTOCK_FEED,
+    MEAT_QTY,
+    PRODUCT_QTY,
+    ALBION_DAY_HOURS,
+    PLAN_DAY_HOURS,
+    PRICE_BASIS,
+    planCycleHours
+} from './island/economy-config.js';
 
-export function plantSlots() {
-    return getEconomyConstant('plant_slots', 9);
-}
-
-export function pasturePens() {
-    return getEconomyConstant('pasture_pens', 9);
-}
-
-export function kennelPens() {
-    return getEconomyConstant('kennel_pens', 4);
-}
-
-export function cropHours() {
-    return getEconomyConstant('crop_hours', 22);
-}
-
-export function livestockHours() {
-    return getEconomyConstant('livestock_hours', 44);
-}
-
-export function livestockFeed() {
-    return getAnimals({ kind: 'livestock' })[0]?.feedQtyIsland ?? 18;
-}
-
-export function livestockFeedPasture() {
-    return getAnimals({ kind: 'livestock' })[0]?.feedQtyPasture ?? 9;
-}
-
-export function meatQtyConst() {
-    return getEconomyConstant('meat_qty', 18);
-}
-
-export function productQtyConst() {
-    return getEconomyConstant('product_qty', 18);
-}
-
-export function albionDayHours() {
-    return getEconomyConstant('albion_day_hours', 22);
-}
-
-export function planDayHours() {
-    return getEconomyConstant('plan_day_hours', 24);
-}
-
-export const PLANT_SLOTS = 9;
-export const PASTURE_PENS = 9;
-export const KENNEL_PENS = 4;
-export const CROP_HOURS = 22;
-export const LIVESTOCK_HOURS = 44;
-export const LIVESTOCK_FEED = 18;
-export const MEAT_QTY = 18;
-export const PRODUCT_QTY = 18;
-export const ALBION_DAY_HOURS = 22;
-export const PLAN_DAY_HOURS = 24;
-
-export const PRICE_BASIS = {
-    buy: 'Alış: max(spot, tarih medyanı) — maliyetin düşük görünmemesi için',
-    sell: 'Satış: tarih medyanı (yoksa spot)'
-};
-
-export function planCycleHours(albionHours) {
-    if (!Number.isFinite(albionHours) || albionHours <= 0) {
-        return null;
-    }
-    const dayAlbion = albionDayHours();
-    const dayPlan = planDayHours();
-    const raw = (albionHours / dayAlbion) * dayPlan;
-    const days = Math.max(1, Math.ceil(raw / dayPlan - 1e-9));
-    return days * dayPlan;
-}
-
-function cityYieldBonus() {
-    return getEconomyConstant('city_yield_bonus', 0.1);
-}
-
-function historyDays() {
-    return getEconomyConstant('farm_history_days', 14);
-}
-
-function islandAnimal(row) {
-    return {
-        ...row,
-        feedQty: row.feedQtyIsland
-    };
-}
-
-export function listCrops() {
-    return getPlants({ kind: 'crop' });
-}
-
-export function listHerbs() {
-    return getPlants({ kind: 'herb' });
-}
-
-export function listLivestock() {
-    return getAnimals({ kind: 'livestock' }).map(islandAnimal);
-}
-
-export function listPastureMounts() {
-    return getAnimals({ kind: 'mount', plotType: 'pasture' }).map(islandAnimal);
-}
-
-export function listKennelMounts() {
-    return getAnimals({ kind: 'mount', plotType: 'kennel' }).map(islandAnimal);
-}
-
-export function listFactionMounts() {
-    return getAnimals({ kind: 'faction-mount' }).map(islandAnimal);
-}
-
-export function listAllAnimals() {
-    return getAnimals().map(islandAnimal);
-}
-
-export function listAllPlants() {
-    return getPlants();
-}
-
-export const CROPS = listCrops;
-export const HERBS = listHerbs;
-export const LIVESTOCK = listLivestock;
-export const PASTURE_MOUNTS = listPastureMounts;
-export const KENNEL_MOUNTS = listKennelMounts;
-export const ALL_ANIMALS = listAllAnimals;
-export const ALL_PLANTS = listAllPlants;
-
-export function plotsForLevel(level) {
-    const map = islandPlotsByLevel();
-    const n = map[level];
-    return Number.isFinite(n) ? n : map[6];
-}
-
-export function factionMountForCity(city, tier = 5) {
-    const t = Number(tier) || 5;
-    return listFactionMounts().find((animal) => animal.factionCity === city && animal.tier === t) ?? null;
-}
-
-export function allPriceItemIds() {
-    const ids = new Set();
-    for (const item of listAllPlants()) {
-        ids.add(item.seedId);
-        ids.add(item.plantId);
-    }
-    for (const item of listAllAnimals()) {
-        ids.add(item.babyId);
-        ids.add(item.grownId);
-        if (item.meatId) {
-            ids.add(item.meatId);
-        }
-        if (item.productId) {
-            ids.add(item.productId);
-        }
-        if (item.feedSeedId) {
-            ids.add(item.feedSeedId);
-        }
-        if (item.feedPlantId) {
-            ids.add(item.feedPlantId);
-        }
-    }
-    for (let t = 3; t <= 8; t += 1) {
-        ids.add(`T${t}_MEAT`);
-    }
-    return [...ids];
-}
+export {
+    listCrops,
+    listHerbs,
+    listLivestock,
+    listPastureMounts,
+    listKennelMounts,
+    listFactionMounts,
+    listAllAnimals,
+    listAllPlants,
+    CROPS,
+    HERBS,
+    LIVESTOCK,
+    PASTURE_MOUNTS,
+    KENNEL_MOUNTS,
+    ALL_ANIMALS,
+    ALL_PLANTS,
+    plotsForLevel,
+    factionMountForCity,
+    allPriceItemIds
+} from './island/economy-catalog.js';
 
 function quoteAt(priceIndex, itemId, city, side, intent) {
     if (!priceIndex || !itemId || !city) {

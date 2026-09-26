@@ -2,14 +2,7 @@ import { escapeHtml } from '../utils/utils.js';
 import { initNav } from '../core/nav.js';
 import { initStore } from '../db/store.js';
 import { getSettings, cityHasIsland, getDefaultCity } from '../core/settings.js';
-import {
-    fetchPrices,
-    indexPrices,
-    priceRefreshActionsHtml,
-    bindPriceRefresh,
-    priceLoaderMessage,
-    applyPriceLoadMode
-} from '../core/market.js';
+import { fetchPrices, indexPrices } from '../core/market.js';
 import { fetchHistoryIndex } from '../core/market-history.js';
 import { itemIconHtml } from '../components/item-icon.js';
 import { showPageLoader, hidePageLoader } from '../components/loader.js';
@@ -20,6 +13,11 @@ import { loadActiveCities } from '../core/cities.js';
 import { cityFieldHtml, bindCityField, setCityFieldValue } from '../components/city-picker.js';
 import { bindLivePrices } from '../core/price-live.js';
 import { getEconomyConstant } from '../core/catalog.js';
+import { formatSilver, formatPct, formatDateTime } from '../utils/format.js';
+import { cityNames as listCityNames, cityLabel as getCityLabel, readStoredCity, saveStoredCity } from '../core/city-utils.js';
+import { priceRefreshActionsHtml, bindPriceRefresh } from '../components/price-refresh.js';
+import { runPriceLoad } from './shared/price-load.js';
+import { readJsonStorage, writeJsonStorage } from '../core/storage.js';
 import {
     calcExplainShell,
     bindCalcExplain,
@@ -74,40 +72,12 @@ const state = {
     cityCompare: []
 };
 
-function formatSilver(value, { digits = 0, signed = false } = {}) {
-    if (!Number.isFinite(value)) {
-        return '—';
-    }
-    let text = Math.round(value).toLocaleString('tr-TR', {
-        maximumFractionDigits: digits
-    });
-    if (signed && value > 0) {
-        text = `+${text}`;
-    }
-    return text;
-}
-
-function formatDateTime(iso) {
-    if (!iso) {
-        return '';
-    }
-    const date = new Date(iso);
-    if (Number.isNaN(date.getTime())) {
-        return '';
-    }
-    const dd = String(date.getDate()).padStart(2, '0');
-    const mm = String(date.getMonth() + 1).padStart(2, '0');
-    const hh = String(date.getHours()).padStart(2, '0');
-    const min = String(date.getMinutes()).padStart(2, '0');
-    return `${dd}.${mm} ${hh}:${min}`;
-}
-
 function cityNames() {
-    return state.cities.map((city) => city.marketApiName).filter(Boolean);
+    return listCityNames(state.cities);
 }
 
 function cityLabel(apiName) {
-    return state.cities.find((city) => city.marketApiName === apiName)?.displayName ?? apiName;
+    return getCityLabel(state.cities, apiName);
 }
 
 function effectivePlots() {
@@ -118,79 +88,47 @@ function effectivePlots() {
 }
 
 function readSavedCity(key, cities, fallback) {
-    try {
-        const saved = localStorage.getItem(key);
-        if (cities.some((city) => city.marketApiName === saved)) {
-            return saved;
-        }
-    } catch {
-        /* ignore */
-    }
-    const preferred = fallback || getDefaultCity();
-    if (cities.some((city) => city.marketApiName === preferred)) {
-        return preferred;
-    }
-    return cities[0]?.marketApiName ?? preferred;
+    return readStoredCity(key, cities, fallback || getDefaultCity());
 }
 
 function saveCity(key, apiName) {
-    try {
-        localStorage.setItem(key, apiName);
-    } catch {
-        /* ignore */
-    }
+    saveStoredCity(key, apiName);
 }
 
 function readPrefs() {
-    try {
-        const raw = localStorage.getItem(PREFS_STORAGE_KEY);
-        if (!raw) {
-            return;
-        }
-        const parsed = JSON.parse(raw);
-        state.focus = parsed.focus === true;
-        // water comes from settings.farmWater
-        const level = Number(parsed.islandLevel);
-        if (ISLAND_PLOTS_BY_LEVEL[level]) {
-            state.islandLevel = level;
-        }
-        if (parsed.plotsOverride != null && Number.isFinite(Number(parsed.plotsOverride))) {
-            state.plotsOverride = Math.max(1, Math.min(16, Math.round(Number(parsed.plotsOverride))));
-        }
-        const fp = Number(parsed.factionPlots);
-        if (Number.isFinite(fp)) {
-            state.factionPlots = Math.max(0, Math.min(16, Math.round(fp)));
-        }
-        state.factionTier = Number(parsed.factionTier) === 8 ? 8 : 5;
-        const mv = Number(parsed.minVolume);
-        if (Number.isFinite(mv) && mv >= 0) {
-            state.minVolume = mv;
-        }
-    } catch {
-        /* ignore */
+    const parsed = readJsonStorage(PREFS_STORAGE_KEY);
+    if (!parsed) {
+        return;
+    }
+    state.focus = parsed.focus === true;
+    // water comes from settings.farmWater
+    const level = Number(parsed.islandLevel);
+    if (ISLAND_PLOTS_BY_LEVEL[level]) {
+        state.islandLevel = level;
+    }
+    if (parsed.plotsOverride != null && Number.isFinite(Number(parsed.plotsOverride))) {
+        state.plotsOverride = Math.max(1, Math.min(16, Math.round(Number(parsed.plotsOverride))));
+    }
+    const fp = Number(parsed.factionPlots);
+    if (Number.isFinite(fp)) {
+        state.factionPlots = Math.max(0, Math.min(16, Math.round(fp)));
+    }
+    state.factionTier = Number(parsed.factionTier) === 8 ? 8 : 5;
+    const mv = Number(parsed.minVolume);
+    if (Number.isFinite(mv) && mv >= 0) {
+        state.minVolume = mv;
     }
 }
 
 function savePrefs() {
-    try {
-        localStorage.setItem(PREFS_STORAGE_KEY, JSON.stringify({
-            focus: state.focus,
-            islandLevel: state.islandLevel,
-            plotsOverride: state.plotsOverride,
-            factionPlots: state.factionPlots,
-            factionTier: state.factionTier,
-            minVolume: state.minVolume
-        }));
-    } catch {
-        /* ignore */
-    }
-}
-
-function formatPct(ratio) {
-    if (!Number.isFinite(ratio)) {
-        return '—';
-    }
-    return `${(ratio * 100).toLocaleString('tr-TR', { maximumFractionDigits: 1 })}%`;
+    writeJsonStorage(PREFS_STORAGE_KEY, {
+        focus: state.focus,
+        islandLevel: state.islandLevel,
+        plotsOverride: state.plotsOverride,
+        factionPlots: state.factionPlots,
+        factionTier: state.factionTier,
+        minVolume: state.minVolume
+    });
 }
 
 function formatHours(hours) {
@@ -1426,7 +1364,7 @@ function renderPage(container) {
                     ${factionAvail
                         ? `<p class="farming-note">${escapeHtml(factionAvail.label)} bu şehirde kilitlenebilir.</p>`
                         : `<p class="farming-note">Bu şehirde faction bineği yok / bilinmiyor.</p>`}
-                    ${priceRefreshActionsHtml({ refreshId: 'islandPlannerRefresh', apiId: 'islandPlannerRefreshApi' })}
+                    ${priceRefreshActionsHtml()}
                 </div>
             </div>
             <div class="tool-split-result">
@@ -1530,53 +1468,46 @@ function bindPage(container) {
     container.querySelector('#minVolume')?.addEventListener('input', onMinVolume);
 
     bindPriceRefresh(container, {
-        refreshId: 'islandPlannerRefresh',
-        apiId: 'islandPlannerRefreshApi',
         load: (options) => loadPrices(container, options)
     });
 }
 
 async function loadPrices(container, { showLoader = true, source } = {}) {
-    applyPriceLoadMode(state, { source, showLoader });
-    state.error = null;
-    if (showLoader) {
-        showPageLoader(priceLoaderMessage(source, 'Şehir fiyatları ve geçmiş alınıyor…'));
-    }
-
-    try {
-        const locations = cityNames();
-        if (locations.length === 0) {
-            throw new Error('Aktif şehir yok.');
+    await runPriceLoad({
+        state,
+        source,
+        showLoader,
+        loadingText: 'Şehir fiyatları ve geçmiş alınıyor…',
+        load: async () => {
+            const locations = cityNames();
+            if (locations.length === 0) {
+                throw new Error('Aktif şehir yok.');
+            }
+            const ids = allPriceItemIds();
+            const days = getEconomyConstant('farm_history_days', 14);
+            const [rows, historyIndex] = await Promise.all([
+                fetchPrices(ids, locations, { source }),
+                fetchHistoryIndex(ids, locations, { days }).catch((err) => {
+                    console.warn(err);
+                    return new Map();
+                })
+            ]);
+            state.priceIndex = indexPrices(rows);
+            state.historyIndex = historyIndex;
+        },
+        onSuccess: runPlan,
+        onError: () => {
+            state.plan = null;
+            state.cityCompare = [];
+        },
+        onFinally: () => {
+            if (container.querySelector('#islandPlannerResult')) {
+                refreshOutput(container);
+            } else {
+                renderPage(container);
+            }
         }
-        const ids = allPriceItemIds();
-        const days = getEconomyConstant('farm_history_days', 14);
-        const [rows, historyIndex] = await Promise.all([
-            fetchPrices(ids, locations, { source }),
-            fetchHistoryIndex(ids, locations, { days }).catch((err) => {
-                console.warn(err);
-                return new Map();
-            })
-        ]);
-        state.priceIndex = indexPrices(rows);
-        state.historyIndex = historyIndex;
-        state.loaded = true;
-        runPlan();
-    } catch (error) {
-        console.error(error);
-        state.error = error.message || 'Fiyatlar alınamadı.';
-        state.loaded = true;
-        state.plan = null;
-        state.cityCompare = [];
-    } finally {
-        if (showLoader) {
-            hidePageLoader();
-        }
-        if (container.querySelector('#islandPlannerResult')) {
-            refreshOutput(container);
-        } else {
-            renderPage(container);
-        }
-    }
+    });
 }
 
 async function init() {

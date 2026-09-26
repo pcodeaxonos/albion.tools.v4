@@ -2,24 +2,21 @@ import { escapeHtml } from '../utils/utils.js';
 import { initNav } from '../core/nav.js';
 import { initStore } from '../db/store.js';
 import { getSettings, getStandardCombos, getDefaultCity } from '../core/settings.js';
-import {
-    fetchPrices,
-    indexPrices,
-    cityRow,
-    priceRefreshActionsHtml,
-    bindPriceRefresh,
-    priceLoaderMessage,
-    applyPriceLoadMode
-} from '../core/market.js';
+import { fetchPrices, indexPrices, cityRow } from '../core/market.js';
 import { itemIconHtml } from '../components/item-icon.js';
-import { showPageLoader, hidePageLoader } from '../components/loader.js';
-import { initFloatingLabels } from '../components/forms.js';
-import { initTableSort, parseSortNumber, sortHeaderHtml } from '../utils/table-sort.js';
+import { initTableSort, sortHeaderHtml } from '../utils/table-sort.js';
 import { purchaseCost, saleProceeds, placesOrder, feeMetaText, SETUP_FEE, salesTaxRate } from '../core/market-fees.js';
 import { bindCalcSticky } from '../utils/calc-sticky.js';
 import { bindLivePrices } from '../core/price-live.js';
 import { loadActiveCities } from '../core/cities.js';
 import { cityFieldHtml, bindCityField, setCityFieldValue } from '../components/city-picker.js';
+import { formatSilver, formatDateTime, formatPct as formatPercent } from '../utils/format.js';
+import { parsePrice, isManualPrice, manualQuote } from '../core/manual-pricing.js';
+import { cityLabel as getCityLabel } from '../core/city-utils.js';
+
+import { priceRefreshActionsHtml, bindPriceRefresh } from '../components/price-refresh.js';
+import { parseKind, setVariants, shortItemName } from './royal-craft/domain.js';
+import { buildCraftPlan, renderPlanDialogBody, renderPlanFab } from './royal-craft/plan.js';
 import {
     getCraftRecipes,
     cityProductionBonus,
@@ -35,22 +32,13 @@ import {
     applyPriceFieldState,
     incompleteClass
 } from '../core/price-side.js';
-import {
-    bindCalcExplain,
-    refreshCalcExplain,
-    calcExplainShell,
-    explainNum,
-    explainOp,
-    explainStep,
-    explainChips,
-    explainFlow,
-    explainSaleSteps,
-    explainProfitFoot,
-    explainPanelHtml,
-    explainEmptyHtml,
-    explainHint
-} from '../utils/calc-explain.js';
+import { bindCalcExplain, calcExplainShell, explainNum, explainOp, explainStep, explainChips, explainFlow, explainSaleSteps, explainProfitFoot, explainPanelHtml, explainEmptyHtml, explainHint } from '../utils/calc-explain.js';
 
+import { runPriceLoad } from './shared/price-load.js';
+import { readJsonStorage, writeJsonStorage } from '../core/storage.js';
+import { bindManualPriceFields } from '../components/manual-price-fields.js';
+
+import { returnRateFromProductionBonus } from '../core/economy-math.js';
 const PREFS_KEY = 'albiontools.v4.royal.prefs';
 const TIERS = [4, 5, 6, 7, 8];
 const ENCHANTS = [1, 2, 3];
@@ -69,14 +57,6 @@ const REFINED_KINDS = [
     { kind: 'leather', stem: 'LEATHER', label: 'Leather' },
     { kind: 'cloth', stem: 'CLOTH', label: 'Cloth' }
 ];
-/** Craft-plan station boxes (one building each). */
-const PLAN_STATIONS = [
-    { id: 'plate', label: 'Plate' },
-    { id: 'cloth', label: 'Cloth' },
-    { id: 'leather', label: 'Leather' }
-];
-const PLAN_STATION_LIMIT = 6;
-
 const state = {
     premium: true,
     matSide: 'buy',
@@ -123,12 +103,7 @@ function slots() {
 }
 
 function cityLabel(apiName) {
-    return state.cities.find((city) => city.marketApiName === apiName)?.displayName ?? apiName;
-}
-
-function parseKind(kind) {
-    const [type, slot] = String(kind || '').split('-');
-    return { type: type || '', slot: slot || '' };
+    return getCityLabel(state.cities, apiName);
 }
 
 function enchantSlotCode(kind) {
@@ -139,13 +114,6 @@ function enchantSlotCode(kind) {
 function enchantSlotQty(kind) {
     const code = enchantSlotCode(kind);
     return slots().find((slot) => slot.id === code)?.qty ?? (code === 'armor' ? 192 : 96);
-}
-
-function setVariants(setUniqueName) {
-    if (!setUniqueName || !/_SET1$/.test(setUniqueName)) {
-        return setUniqueName ? [setUniqueName] : [];
-    }
-    return [1, 2, 3].map((n) => setUniqueName.replace(/_SET1$/, `_SET${n}`));
 }
 
 function royalUniqueName(base, enchant) {
@@ -241,12 +209,6 @@ function enchantMatUniqueName(kind, tier) {
     return step ? `T${tier}_${step.itemType}` : null;
 }
 
-function shortItemName(label) {
-    return String(label || '')
-        .replace(/^(Adept|Expert|Master|Grandmaster|Elder)'s\s+/i, '')
-        .trim();
-}
-
 function allPriceIds() {
     const ids = new Set();
     ids.add(SEALED_ROYAL_SIGIL);
@@ -271,71 +233,12 @@ function allPriceIds() {
     return [...ids].filter(Boolean);
 }
 
-function formatSilver(value, { signed = false } = {}) {
-    if (!Number.isFinite(value)) {
-        return '—';
-    }
-    const text = Math.round(value).toLocaleString('tr-TR');
-    if (signed && value > 0) {
-        return `+${text}`;
-    }
-    return text;
-}
-
-function formatPct(ratio) {
-    if (!Number.isFinite(ratio)) {
-        return '—';
-    }
-    return `${Math.round(ratio * 100).toLocaleString('tr-TR')}%`;
-}
-
-function formatDateTime(iso) {
-    if (!iso) {
-        return '';
-    }
-    const date = new Date(iso);
-    if (Number.isNaN(date.getTime())) {
-        return '';
-    }
-    const dd = String(date.getDate()).padStart(2, '0');
-    const mm = String(date.getMonth() + 1).padStart(2, '0');
-    const hh = String(date.getHours()).padStart(2, '0');
-    const min = String(date.getMinutes()).padStart(2, '0');
-    return `${dd}.${mm} ${hh}:${min}`;
-}
-
-function parsePrice(raw) {
-    if (raw == null) {
-        return null;
-    }
-    const value = parseSortNumber(raw);
-    return value != null && value >= 0 ? value : null;
-}
-
-function isManualPrice(raw) {
-    return parsePrice(raw) != null;
-}
-
 function productionBonus() {
     return cityProductionBonus();
 }
 
 function returnRate() {
-    const bonus = productionBonus();
-    return bonus / (100 + bonus);
-}
-
-function manualQuote(price, side, intent) {
-    return {
-        price,
-        book: price,
-        date: null,
-        side,
-        intent,
-        tick: 0,
-        setup: placesOrder(intent, side),
-        manual: true
-    };
+    return returnRateFromProductionBonus(productionBonus());
 }
 
 function fetchedQuote(uniqueName, city, side, intent, quality = 1) {
@@ -709,55 +612,49 @@ function ensureManualMaps() {
 }
 
 function loadPrefs() {
-    try {
-        const raw = localStorage.getItem(PREFS_KEY);
-        if (!raw) {
-            return;
-        }
-        const parsed = JSON.parse(raw);
-        if (typeof parsed.buyCity === 'string') {
-            state.buyCity = parsed.buyCity;
-        }
-        if (typeof parsed.sellCity === 'string') {
-            state.sellCity = parsed.sellCity;
-        }
-        if (parsed.type) {
-            state.type = parsed.type;
-        }
-        if (parsed.slot) {
-            state.slot = parsed.slot;
-        }
-        if (parsed.quality) {
-            state.quality = parsed.quality;
-        }
-        if (parsed.scope === 'all' || parsed.scope === 'standard') {
-            state.scope = parsed.scope;
-        }
-        if (parsed.tier != null) {
-            state.tier = normalizeTierFilter(parsed.tier);
-        }
-        if (parsed.matSide) {
-            state.matSide = parsed.matSide;
-        }
-        if (parsed.itemSide) {
-            state.itemSide = parsed.itemSide;
-        }
-        if (parsed.premium != null) {
-            state.premium = Boolean(parsed.premium);
-        }
-        if (parsed.sealedSigil != null) {
-            state.sealedSigil = Boolean(parsed.sealedSigil);
-        }
-        if (parsed.setPath === 'min' || parsed.setPath === 'craft' || parsed.setPath === 'buy') {
-            state.setPath = parsed.setPath;
-        }
-    } catch {
-        // ignore
+    const parsed = readJsonStorage(PREFS_KEY);
+    if (!parsed) {
+        return;
+    }
+    if (typeof parsed.buyCity === 'string') {
+        state.buyCity = parsed.buyCity;
+    }
+    if (typeof parsed.sellCity === 'string') {
+        state.sellCity = parsed.sellCity;
+    }
+    if (parsed.type) {
+        state.type = parsed.type;
+    }
+    if (parsed.slot) {
+        state.slot = parsed.slot;
+    }
+    if (parsed.quality) {
+        state.quality = parsed.quality;
+    }
+    if (parsed.scope === 'all' || parsed.scope === 'standard') {
+        state.scope = parsed.scope;
+    }
+    if (parsed.tier != null) {
+        state.tier = normalizeTierFilter(parsed.tier);
+    }
+    if (parsed.matSide) {
+        state.matSide = parsed.matSide;
+    }
+    if (parsed.itemSide) {
+        state.itemSide = parsed.itemSide;
+    }
+    if (parsed.premium != null) {
+        state.premium = Boolean(parsed.premium);
+    }
+    if (parsed.sealedSigil != null) {
+        state.sealedSigil = Boolean(parsed.sealedSigil);
+    }
+    if (parsed.setPath === 'min' || parsed.setPath === 'craft' || parsed.setPath === 'buy') {
+        state.setPath = parsed.setPath;
     }
 }
-
 function savePrefs() {
-    localStorage.setItem(PREFS_KEY, JSON.stringify({
+    writeJsonStorage(PREFS_KEY, {
         buyCity: state.buyCity,
         sellCity: state.sellCity,
         type: state.type,
@@ -770,7 +667,7 @@ function savePrefs() {
         premium: state.premium,
         sealedSigil: state.sealedSigil,
         setPath: state.setPath
-    }));
+    });
 }
 
 function renderToggle(options, selected, dataAttr) {
@@ -1024,7 +921,7 @@ function renderTable(list) {
                                 <td class="num${incompleteClass(row.cost)}" data-sort-value="${row.cost ?? ''}"${costTitle ? ` title="${escapeHtml(costTitle)}"` : ''}>${formatSilver(row.cost)}</td>
                                 <td class="num${sellProxyClass}${incompleteClass(row.sell)}" data-sort-value="${row.sell ?? ''}"${sellProxyTitle ? ` title="${escapeHtml(sellProxyTitle)}"` : ''}>${formatSilver(row.sell)}</td>
                                 <td class="num${profitClass(row.profit)}${sellProxyClass}${incompleteClass(row.profit)}" data-sort-value="${row.profit ?? ''}"${sellProxyTitle ? ` title="${escapeHtml(sellProxyTitle)}"` : ''}>${formatSilver(row.profit, { signed: true })}</td>
-                                <td class="num royal-pct${profitClass(row.pct)}${sellProxyClass}${incompleteClass(row.pct)}" data-sort-value="${row.pct ?? ''}"${sellProxyTitle ? ` title="${escapeHtml(sellProxyTitle)}"` : ''}>${formatPct(row.pct)}</td>
+                                <td class="num royal-pct${profitClass(row.pct)}${sellProxyClass}${incompleteClass(row.pct)}" data-sort-value="${row.pct ?? ''}"${sellProxyTitle ? ` title="${escapeHtml(sellProxyTitle)}"` : ''}>${formatPercent(row.pct, { digits: 0, rounding: 'math' })}</td>
                             </tr>
                         `;
                     }).join('')}
@@ -1067,7 +964,7 @@ function renderSummary(list) {
             Kapsam: solda <strong>${state.scope === 'all' ? 'Tüm T.E' : 'Standart T.E'}</strong>
             ${state.scope !== 'all' && combos ? ` (${escapeHtml(combos)})` : ''} —
             <a href="settings">standart listesini ayarlardan değiştir</a>.
-            ${best ? ` En kârlı: ${escapeHtml(shortItemName(best.recipe.label))} ${escapeHtml(best.tierEnchant)} ${escapeHtml(best.quality.short)} · ${formatSilver(best.profit, { signed: true })} · ${formatPct(best.pct)}.` : ''}
+            ${best ? ` En kârlı: ${escapeHtml(shortItemName(best.recipe.label))} ${escapeHtml(best.tierEnchant)} ${escapeHtml(best.quality.short)} · ${formatSilver(best.profit, { signed: true })} · ${formatPercent(best.pct, { digits: 0, rounding: 'math' })}.` : ''}
         </p>
     `;
 }
@@ -1084,290 +981,6 @@ function latestDate(list) {
 
 function bestExplainKey(list) {
     return bestRow(list)?.id ?? list[0]?.id ?? null;
-}
-
-function byProfitPct(a, b) {
-    const ap = Number.isFinite(a.pct) ? a.pct : -Infinity;
-    const bp = Number.isFinite(b.pct) ? b.pct : -Infinity;
-    if (bp !== ap) {
-        return bp - ap;
-    }
-    const aProfit = Number.isFinite(a.profit) ? a.profit : -Infinity;
-    const bProfit = Number.isFinite(b.profit) ? b.profit : -Infinity;
-    return bProfit - aProfit;
-}
-
-/**
- * A–D from this table's profit% shape: prefer natural gaps, else even bands.
- * Cutoffs change with the visible rows — not fixed global % buckets.
- */
-function assignProfitTiers(scoredRows) {
-    const ranked = scoredRows.slice().sort(byProfitPct);
-    const tiers = new Map();
-    const n = ranked.length;
-    const labels = ['A', 'B', 'C', 'D'];
-    if (!n) {
-        return tiers;
-    }
-    if (n <= 4) {
-        ranked.forEach((row, index) => {
-            tiers.set(row.id, labels[index] || 'D');
-        });
-        return tiers;
-    }
-
-    const values = ranked.map((row) => row.pct);
-    const span = values[0] - values[n - 1];
-    const minGap = span > 0 ? Math.max(span * 0.045, Math.abs(values[0]) * 0.008) : 0;
-    const minSep = Math.max(1, Math.floor(n / 18));
-    const gaps = [];
-    for (let i = 0; i < n - 1; i++) {
-        gaps.push({ after: i, gap: values[i] - values[i + 1] });
-    }
-
-    const chosen = [];
-    const rankedGaps = gaps
-        .filter((entry) => entry.gap >= minGap)
-        .sort((a, b) => b.gap - a.gap || a.after - b.after);
-    for (const entry of rankedGaps) {
-        if (chosen.length >= 3) {
-            break;
-        }
-        if (chosen.some((index) => Math.abs(index - entry.after) < minSep)) {
-            continue;
-        }
-        if (entry.after < 0 || entry.after > n - 2) {
-            continue;
-        }
-        chosen.push(entry.after);
-    }
-
-    const fallback = [
-        Math.floor((n - 1) / 4),
-        Math.floor((2 * (n - 1)) / 4),
-        Math.floor((3 * (n - 1)) / 4)
-    ];
-    for (const target of fallback) {
-        if (chosen.length >= 3) {
-            break;
-        }
-        let best = null;
-        let bestDist = Infinity;
-        for (let i = 0; i <= n - 2; i++) {
-            if (chosen.some((index) => Math.abs(index - i) < minSep || index === i)) {
-                continue;
-            }
-            const dist = Math.abs(i - target);
-            if (dist < bestDist) {
-                bestDist = dist;
-                best = i;
-            }
-        }
-        if (best != null) {
-            chosen.push(best);
-        }
-    }
-
-    const splits = chosen.sort((a, b) => a - b).slice(0, 3);
-    while (splits.length < 3) {
-        const next = splits.length ? splits[splits.length - 1] + Math.max(1, minSep) : fallback[splits.length];
-        if (next > n - 2) {
-            break;
-        }
-        if (!splits.includes(next)) {
-            splits.push(next);
-        } else {
-            splits.push(Math.min(n - 2, next + 1));
-        }
-    }
-    splits.sort((a, b) => a - b);
-
-    ranked.forEach((row, index) => {
-        let tier = 'D';
-        if (index <= splits[0]) {
-            tier = 'A';
-        } else if (index <= splits[1]) {
-            tier = 'B';
-        } else if (index <= splits[2]) {
-            tier = 'C';
-        }
-        tiers.set(row.id, tier);
-    });
-    return tiers;
-}
-
-/** Mix A–D so lower bands still appear in the plan (not only top profits). */
-function pickStationRows(rows, tiers, limit = PLAN_STATION_LIMIT) {
-    const queues = { A: [], B: [], C: [], D: [] };
-    for (const row of rows.slice().sort(byProfitPct)) {
-        const tier = tiers.get(row.id) || 'D';
-        (queues[tier] || queues.D).push(row);
-    }
-    const picked = [];
-    let progressed = true;
-    while (picked.length < limit && progressed) {
-        progressed = false;
-        for (const key of ['A', 'B', 'C', 'D']) {
-            if (picked.length >= limit) {
-                break;
-            }
-            const next = queues[key].shift();
-            if (next) {
-                picked.push(next);
-                progressed = true;
-            }
-        }
-    }
-    return picked.sort(byProfitPct);
-}
-
-/** Snapshot of current table rows for the craft-plan dialog. */
-function buildCraftPlan(list) {
-    const stations = Object.fromEntries(PLAN_STATIONS.map((station) => [station.id, []]));
-    const missingSell = [];
-    const scored = [];
-
-    for (const row of list) {
-        const type = parseKind(row.recipe.kind).type;
-        if (!stations[type]) {
-            continue;
-        }
-        if (row.sell == null) {
-            missingSell.push(row);
-            continue;
-        }
-        if (row.cost == null || !Number.isFinite(row.pct)) {
-            continue;
-        }
-        stations[type].push(row);
-        scored.push(row);
-    }
-
-    const tiers = assignProfitTiers(scored);
-
-    for (const station of PLAN_STATIONS) {
-        stations[station.id] = pickStationRows(stations[station.id], tiers);
-    }
-
-    missingSell.sort((a, b) => {
-        const typeCmp = parseKind(a.recipe.kind).type.localeCompare(parseKind(b.recipe.kind).type);
-        if (typeCmp) {
-            return typeCmp;
-        }
-        return String(a.tierEnchant).localeCompare(String(b.tierEnchant));
-    });
-
-    return { stations, missingSell, tiers };
-}
-
-function planPctText(ratio) {
-    if (!Number.isFinite(ratio)) {
-        return '—';
-    }
-    const pct = Math.round(ratio * 100);
-    return `${pct > 0 ? '+' : ''}${pct.toLocaleString('tr-TR')}%`;
-}
-
-function planRowTitle(row, tier) {
-    const tierLabel = tier ? ` · Tier ${tier}` : '';
-    return `${shortItemName(row.recipe.label)} · ${row.tierEnchant}${tierLabel} · ${planPctText(row.pct)}`;
-}
-
-function planSetIconsHtml(row) {
-    const variants = setVariants(row.setLine?.uniqueName);
-    return `
-        <span class="royal-plan-sets" aria-hidden="true">
-            ${variants.map((id) => itemIconHtml(id, { className: 'item-icon royal-plan-set-icon', size: 48 })).join('')}
-        </span>
-    `;
-}
-
-function planTeHtml(row) {
-    const tier = Number(row.recipe?.tier);
-    const tierAttribute = Number.isFinite(tier) ? ` data-tier="${tier}"` : '';
-    return `<span class="royal-plan-te"${tierAttribute}>${escapeHtml(row.tierEnchant)}</span>`;
-}
-
-function renderPlanStationItem(row, profitTier = 'D') {
-    const itemTier = Number(row.recipe?.tier);
-    const tierAttribute = Number.isFinite(itemTier) ? ` data-tier="${itemTier}"` : '';
-    return `
-        <button type="button" class="royal-plan-item is-profit-tier-${escapeHtml(profitTier)}"${tierAttribute} data-plan-row="${escapeHtml(row.id)}"
-            title="${escapeHtml(planRowTitle(row, profitTier))}">
-            <span class="royal-plan-item-visual">
-                ${itemIconHtml(row.sellId, { className: 'item-icon royal-plan-item-icon', size: 80 })}
-                ${planTeHtml(row)}
-            </span>
-            ${planSetIconsHtml(row)}
-            <span class="royal-plan-item-stats">
-                <span class="royal-plan-item-pct">${escapeHtml(planPctText(row.pct))}</span>
-            </span>
-            <span class="royal-plan-tier" aria-label="Kâr tier ${escapeHtml(profitTier)}">${escapeHtml(profitTier)}</span>
-        </button>
-    `;
-}
-
-function renderPlanStationBox(station, rows, tiers) {
-    const body = rows.length
-        ? rows.map((row) => renderPlanStationItem(row, tiers.get(row.id) || 'D')).join('')
-        : '<p class="royal-plan-empty">—</p>';
-    return `
-        <section class="royal-plan-station" data-plan-station="${escapeHtml(station.id)}">
-            <header class="royal-plan-station-head">
-                <span class="royal-plan-station-label">${escapeHtml(station.label)}</span>
-            </header>
-            <div class="royal-plan-station-list">${body}</div>
-        </section>
-    `;
-}
-
-function renderPlanMissingItem(row) {
-    const type = parseKind(row.recipe.kind).type;
-    return `
-        <button type="button" class="royal-plan-miss-item" data-plan-row="${escapeHtml(row.id)}"
-            title="${escapeHtml(`${shortItemName(row.recipe.label)} · ${row.tierEnchant} · satış yok`)}">
-            ${itemIconHtml(row.sellId, { className: 'item-icon royal-plan-miss-icon', size: 48 })}
-            ${planTeHtml(row)}
-            <span class="royal-plan-chip">${escapeHtml(type || '?')}</span>
-        </button>
-    `;
-}
-
-function renderPlanDialogBody(plan) {
-    const stations = PLAN_STATIONS.map((station) =>
-        renderPlanStationBox(station, plan.stations[station.id] || [], plan.tiers)
-    ).join('');
-
-    const missing = plan.missingSell.length
-        ? `
-            <section class="royal-plan-missing">
-                <header class="royal-plan-missing-head">
-                    <span class="royal-plan-missing-label">Satış yok</span>
-                </header>
-                <div class="royal-plan-missing-list">
-                    ${plan.missingSell.map(renderPlanMissingItem).join('')}
-                </div>
-            </section>
-        `
-        : '';
-
-    return `
-        <button type="button" class="app-dialog-close" aria-label="Kapat" data-plan-close></button>
-        <div class="royal-plan-sheet">
-            <div class="royal-plan-stations">${stations}</div>
-            ${missing}
-        </div>
-    `;
-}
-
-function renderPlanFab() {
-    return `
-        <button type="button" class="royal-plan-fab" id="royalPlanFab" aria-label="Royal Crafting Wizard" title="Royal Crafting Wizard">
-            <svg class="royal-plan-fab-icon" width="28" height="28" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-                <path fill="currentColor" d="M4 4h7v7H4V4Zm9 0h7v7h-7V4ZM4 13h7v7H4v-7Zm9 2.5 1.5-1.5 2 2 3.5-3.5 1.5 1.5-5 5-3.5-3.5Z"/>
-            </svg>
-        </button>
-    `;
 }
 
 let planHost = null;
@@ -2126,7 +1739,7 @@ function renderRoyalExplain(key, { hovered } = {}) {
         }));
         setCraftLines.push(explainStep({
             label: 'SET craft (RR sonrası)',
-            note: `Classic SET craft · ödenen pay ${formatPct(keep)} · royal craft’ta ek RR yok`,
+            note: `Classic SET craft · ödenen pay ${formatPercent(keep, { digits: 0, rounding: 'math' })} · royal craft’ta ek RR yok`,
             formula: [
                 explainNum(row.setMatRaw, { tone: 'cost', cap: 'ham' }),
                 explainOp('×'),
@@ -2313,7 +1926,7 @@ function renderRoyalExplain(key, { hovered } = {}) {
         ]),
         groups: [
             {
-                title: `İade  ${formatPct(rr)}`,
+                title: `İade  ${formatPercent(rr, { digits: 0, rounding: 'math' })}`,
                 tone: 'rr',
                 intro: explainChips([
                     { label: 'şehir', value: cityProductionBonus(), tone: 'city', title: 'Şehir craft üretim bonusu' }
@@ -2488,7 +2101,7 @@ function renderPage(container) {
                         selected: state.sellCity,
                         cities: state.cities
                     })}
-                    ${priceRefreshActionsHtml({ refreshId: 'royalRefresh', apiId: 'royalRefreshApi' })}
+                    ${priceRefreshActionsHtml()}
                 </div>
             </div>
             <div class="tool-split-result">
@@ -2578,24 +2191,15 @@ function refreshView(container, { remountMats = false } = {}) {
 }
 
 function bindPriceInputs(container) {
-    initFloatingLabels(container);
-    container.querySelectorAll('[data-mat-price]').forEach((input) => {
-        if (input.dataset.priceBound === 'on') {
-            return;
-        }
-        input.dataset.priceBound = 'on';
-        input.addEventListener('input', () => {
-            state.manualMats[input.dataset.matPrice] = input.value;
-            refreshCalc(container);
-        });
-        input.addEventListener('change', () => {
-            const key = input.dataset.matPrice;
-            if (parsePrice(input.value) == null) {
-                state.manualMats[key] = null;
-            }
-            patchMatStrip(container);
-            refreshCalc(container);
-        });
+    bindManualPriceFields(container, {
+        fields: [{
+            selector: '[data-mat-price]',
+            dataKey: 'matPrice',
+            values: state.manualMats,
+            restoreInvalid: false
+        }],
+        afterChange: () => patchMatStrip(container),
+        onRefresh: () => refreshCalc(container)
     });
 }
 
@@ -2728,41 +2332,37 @@ function bindPage(container) {
         state.sellCity = value;
     });
     bindPriceRefresh(container, {
-        refreshId: 'royalRefresh',
-        apiId: 'royalRefreshApi',
         load: (options) => loadPrices(container, options)
     });
 }
 
 async function loadPrices(container, { source, showLoader = true } = {}) {
     ensureManualMaps();
-    applyPriceLoadMode(state, { source, showLoader });
     const ids = allPriceIds();
     const qualities = [...new Set([1, SET_BUY_QUALITY, ...QUALITIES.map((row) => row.id)])];
-    if (showLoader) {
-        showPageLoader(priceLoaderMessage(source));
-    }
-    try {
-        const rowsData = await fetchPrices(ids, [state.buyCity, state.sellCity], {
-            source,
-            qualities
-        });
-        state.priceIndex = indexPrices(rowsData);
-        syncWizardRecent();
-        state.error = null;
-        state.loaded = true;
-    } catch (error) {
-        state.error = error.message || 'Fiyat alınamadı';
-        state.loaded = true;
-    } finally {
-        if (showLoader) {
-            hidePageLoader();
+
+    await runPriceLoad({
+        state,
+        source,
+        showLoader,
+        loadingText: 'Fiyatlar alınıyor…',
+        errorText: 'Fiyat alınamadı',
+        logError: false,
+        load: async () => {
+            const rowsData = await fetchPrices(ids, [state.buyCity, state.sellCity], {
+                source,
+                qualities
+            });
+            state.priceIndex = indexPrices(rowsData);
+        },
+        onSuccess: syncWizardRecent,
+        onFinally: () => {
+            applyControls(container);
+            patchMatStrip(container);
+            refreshCalc(container);
+            refreshOpenRoyalWizard(container);
         }
-        applyControls(container);
-        patchMatStrip(container);
-        refreshCalc(container);
-        refreshOpenRoyalWizard(container);
-    }
+    });
 }
 
 async function boot() {

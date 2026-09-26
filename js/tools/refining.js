@@ -5,11 +5,10 @@ import { getBonusFamilyLabel } from '../core/bonus-families.js';
 import { bonusDayIso, bonusWindowLabel } from '../core/bonus-day.js';
 import { defaultCraftBonusRate, normalizeCraftBonusRate, todayCraftBonuses, craftBonusToggleHtml } from '../core/craft-bonus.js';
 import { getSettings, getDefaultCity } from '../core/settings.js';
-import { fetchPrices, indexPrices, cityRow, priceRefreshActionsHtml, bindPriceRefresh, priceLoaderMessage, applyPriceLoadMode } from '../core/market.js';
+import { fetchPrices, indexPrices, cityRow } from '../core/market.js';
 import { itemIconHtml, itemLabel } from '../components/item-icon.js';
-import { showPageLoader, hidePageLoader, showAreaLoader, hideAreaLoader } from '../components/loader.js';
-import { initFloatingLabels } from '../components/forms.js';
-import { initTableSort, parseSortNumber, sortHeaderHtml } from '../utils/table-sort.js';
+import { showPageLoader, hidePageLoader } from '../components/loader.js';
+import { initTableSort, sortHeaderHtml } from '../utils/table-sort.js';
 import {
     quoteFromRow,
     priceSideHint,
@@ -25,6 +24,17 @@ import { loadActiveCities } from '../core/cities.js';
 import { cityFieldHtml, bindCityField, syncCityField } from '../components/city-picker.js';
 import { bonusCityApiName } from '../core/bonus-cities.js';
 import { bindLivePrices } from '../core/price-live.js';
+import { formatSilver, formatPct, formatDateTime } from '../utils/format.js';
+import { parsePrice, isManualPrice, manualQuote } from '../core/manual-pricing.js';
+import { cityNames as listCityNames, cityLabel as getCityLabel } from '../core/city-utils.js';
+import { profitClass } from '../utils/profit.js';
+
+import { priceRefreshActionsHtml, bindPriceRefresh } from '../components/price-refresh.js';
+
+import { runPriceLoad } from './shared/price-load.js';
+import { bindManualPriceFields } from '../components/manual-price-fields.js';
+
+import { readJsonStorage, writeJsonStorage } from '../core/storage.js';
 import {
     bindCalcExplain,
     refreshCalcExplain,
@@ -48,6 +58,7 @@ import {
     focusProductionBonus
 } from '../core/catalog.js';
 
+import { returnRateFromProductionBonus } from '../core/economy-math.js';
 const PREFS_STORAGE_KEY = 'albiontools.v4.refining.prefs';
 const TIERS = [2, 3, 4, 5, 6, 7, 8];
 
@@ -147,47 +158,12 @@ function itemDisplayName(uniqueName, enchant) {
     return enchant > 0 ? `${name} .${enchant}` : name;
 }
 
-function formatSilver(value, { unsigned = false, signed = false } = {}) {
-    if (!Number.isFinite(value)) {
-        return '—';
-    }
-    const amount = unsigned ? Math.abs(value) : value;
-    const text = Math.round(amount).toLocaleString('tr-TR');
-    if (signed && value > 0) {
-        return `+${text}`;
-    }
-    return text;
-}
-
-function formatPct(ratio, { unsigned = false } = {}) {
-    if (!Number.isFinite(ratio)) {
-        return '—';
-    }
-    const amount = unsigned ? Math.abs(ratio) : ratio;
-    return `${(amount * 100).toLocaleString('tr-TR', { maximumFractionDigits: 1 })}%`;
-}
-
-function formatDateTime(iso) {
-    if (!iso) {
-        return '';
-    }
-    const date = new Date(iso);
-    if (Number.isNaN(date.getTime())) {
-        return '';
-    }
-    const dd = String(date.getDate()).padStart(2, '0');
-    const mm = String(date.getMonth() + 1).padStart(2, '0');
-    const hh = String(date.getHours()).padStart(2, '0');
-    const min = String(date.getMinutes()).padStart(2, '0');
-    return `${dd}.${mm} ${hh}:${min}`;
-}
-
 function cityNames() {
-    return state.cities.map((city) => city.marketApiName).filter(Boolean);
+    return listCityNames(state.cities);
 }
 
 function cityLabel(apiName) {
-    return state.cities.find((city) => city.marketApiName === apiName)?.displayName ?? apiName;
+    return getCityLabel(state.cities, apiName);
 }
 
 function hasCityBonus() {
@@ -202,33 +178,7 @@ function productionBonus() {
 }
 
 function returnRate() {
-    const bonus = productionBonus();
-    return bonus / (100 + bonus);
-}
-
-function parsePrice(raw) {
-    if (raw == null) {
-        return null;
-    }
-    const value = parseSortNumber(raw);
-    return value != null && value >= 0 ? value : null;
-}
-
-function isManualPrice(raw) {
-    return parsePrice(raw) != null;
-}
-
-function manualQuote(price, side, intent) {
-    return {
-        price,
-        book: price,
-        date: null,
-        side,
-        intent,
-        tick: 0,
-        setup: placesOrder(intent, side),
-        manual: true
-    };
+    return returnRateFromProductionBonus(productionBonus());
 }
 
 function fetchedQuote(uniqueName, city, side, intent) {
@@ -269,50 +219,41 @@ function quoteLower(uniqueName) {
 }
 
 function readPrefs(cities) {
-    try {
-        const raw = localStorage.getItem(PREFS_STORAGE_KEY);
-        if (!raw) {
-            return false;
-        }
-        const parsed = JSON.parse(raw);
-        if (families().some((family) => family.id === parsed.family)) {
-            state.family = parsed.family;
-        }
-        const enchant = Number(parsed.enchant);
-        if ([0, 1, 2, 3].includes(enchant)) {
-            state.enchant = enchant;
-        }
-        if (parsed.chain === 'full' || parsed.chain === 'market') {
-            state.chain = parsed.chain;
-        }
-        state.focus = parsed.focus === true;
-        const pick = (value, fallback) => (
-            cities.some((city) => city.marketApiName === value) ? value : fallback
-        );
-        const fallback = specialtyCityName(cities);
-        state.buyCity = pick(parsed.buyCity, fallback);
-        state.refineCity = pick(parsed.refineCity, fallback);
-        state.sellCity = pick(parsed.sellCity, state.buyCity);
-        return true;
-    } catch {
+    const parsed = readJsonStorage(PREFS_STORAGE_KEY);
+    if (!parsed) {
         return false;
     }
+    if (families().some((family) => family.id === parsed.family)) {
+        state.family = parsed.family;
+    }
+    const enchant = Number(parsed.enchant);
+    if ([0, 1, 2, 3].includes(enchant)) {
+        state.enchant = enchant;
+    }
+    if (parsed.chain === 'full' || parsed.chain === 'market') {
+        state.chain = parsed.chain;
+    }
+    state.focus = parsed.focus === true;
+    const pick = (value, fallback) => (
+        cities.some((city) => city.marketApiName === value) ? value : fallback
+    );
+    const fallback = specialtyCityName(cities);
+    state.buyCity = pick(parsed.buyCity, fallback);
+    state.refineCity = pick(parsed.refineCity, fallback);
+    state.sellCity = pick(parsed.sellCity, state.buyCity);
+    return true;
 }
 
 function savePrefs() {
-    try {
-        localStorage.setItem(PREFS_STORAGE_KEY, JSON.stringify({
-            family: state.family,
-            enchant: state.enchant,
-            chain: state.chain,
-            focus: state.focus,
-            buyCity: state.buyCity,
-            refineCity: state.refineCity,
-            sellCity: state.sellCity
-        }));
-    } catch {
-        /* ignore */
-    }
+    writeJsonStorage(PREFS_STORAGE_KEY, {
+        family: state.family,
+        enchant: state.enchant,
+        chain: state.chain,
+        focus: state.focus,
+        buyCity: state.buyCity,
+        refineCity: state.refineCity,
+        sellCity: state.sellCity
+    });
 }
 
 function specialtyCityName(cities) {
@@ -440,19 +381,6 @@ function bestRow(list) {
         }
     }
     return best;
-}
-
-function profitClass(profit) {
-    if (profit == null) {
-        return '';
-    }
-    if (profit > 0) {
-        return ' is-profit';
-    }
-    if (profit < 0) {
-        return ' is-loss';
-    }
-    return '';
 }
 
 function chainNodes(tier, enchant) {
@@ -990,7 +918,7 @@ function renderPage(container) {
                         cities: state.cities,
                         decorate: cityDecorate
                     })}
-                    ${priceRefreshActionsHtml({ refreshId: 'refiningRefresh', apiId: 'refiningRefreshApi' })}
+                    ${priceRefreshActionsHtml()}
                 </div>
             </div>
             <div class="tool-split-result">
@@ -1095,46 +1023,27 @@ function refreshCalc(container) {
 }
 
 function bindPriceInputs(container) {
-    initFloatingLabels(container);
-
-    const bindField = (input, kind) => {
-        if (input.dataset.priceBound === 'on') {
-            return;
-        }
-        input.dataset.priceBound = 'on';
-
-        input.addEventListener('input', () => {
-            const id = kind === 'raw' ? input.dataset.rawId : input.dataset.outId;
-            const parsed = parsePrice(input.value);
-            if (kind === 'raw') {
-                state.manualRaw[id] = parsed != null ? input.value : null;
-            } else {
-                state.manualOut[id] = parsed != null ? input.value : null;
+    bindManualPriceFields(container, {
+        fields: [
+            {
+                selector: '[data-raw-id]',
+                dataKey: 'rawId',
+                values: state.manualRaw,
+                validOnlyOnInput: true,
+                syncFilledOnInput: true,
+                resolveFallbackPrice: (id) => fetchedQuote(id, state.buyCity, state.rawSide, 'buy')?.price
+            },
+            {
+                selector: '[data-out-id]',
+                dataKey: 'outId',
+                values: state.manualOut,
+                validOnlyOnInput: true,
+                syncFilledOnInput: true,
+                resolveFallbackPrice: (id) => fetchedQuote(id, state.sellCity, state.itemSide, 'sell')?.price
             }
-            input.classList.toggle('is-filled', input.value.length > 0);
-            refreshCalc(container);
-        });
-
-        input.addEventListener('change', () => {
-            const id = kind === 'raw' ? input.dataset.rawId : input.dataset.outId;
-            if (parsePrice(input.value) == null) {
-                if (kind === 'raw') {
-                    state.manualRaw[id] = null;
-                    const fetched = fetchedQuote(id, state.buyCity, state.rawSide, 'buy');
-                    input.value = fetched ? formatSilver(fetched.price) : '';
-                } else {
-                    state.manualOut[id] = null;
-                    const fetched = fetchedQuote(id, state.sellCity, state.itemSide, 'sell');
-                    input.value = fetched ? formatSilver(fetched.price) : '';
-                }
-                input.classList.toggle('is-filled', input.value.length > 0);
-            }
-            refreshCalc(container);
-        });
-    };
-
-    container.querySelectorAll('[data-raw-id]').forEach((input) => bindField(input, 'raw'));
-    container.querySelectorAll('[data-out-id]').forEach((input) => bindField(input, 'out'));
+        ],
+        onRefresh: () => refreshCalc(container)
+    });
 }
 
 function syncToggleGroup(container, attr, selected) {
@@ -1298,8 +1207,6 @@ function bindPage(container) {
     });
 
     bindPriceRefresh(container, {
-        refreshId: 'refiningRefresh',
-        apiId: 'refiningRefreshApi',
         load: (options) => loadPrices(container, options)
     });
 }
@@ -1319,40 +1226,29 @@ function refreshOutput(container) {
 }
 
 async function loadPrices(container, { showLoader = true, source, areaLoader = false } = {}) {
-    applyPriceLoadMode(state, { source, showLoader });
-    state.error = null;
     const area = areaLoader ? container.querySelector('.tool-split-result') : null;
-    if (showLoader) {
-        showPageLoader(priceLoaderMessage(source, 'Şehir fiyatları alınıyor…'));
-    } else if (area) {
-        showAreaLoader(area, priceLoaderMessage(source, 'Şehir fiyatları alınıyor…'));
-    }
-
-    try {
-        const locations = cityNames();
-        if (locations.length === 0) {
-            throw new Error('Aktif şehir yok.');
+    await runPriceLoad({
+        state,
+        source,
+        showLoader,
+        area,
+        loadingText: 'Şehir fiyatları alınıyor…',
+        load: async () => {
+            const locations = cityNames();
+            if (locations.length === 0) {
+                throw new Error('Aktif şehir yok.');
+            }
+            const rows = await fetchPrices(allUniqueNames(), locations, { source });
+            state.priceIndex = indexPrices(rows);
+        },
+        onFinally: () => {
+            if (container.querySelector('#refiningResult')) {
+                refreshOutput(container);
+            } else {
+                renderPage(container);
+            }
         }
-        const rows = await fetchPrices(allUniqueNames(), locations, { source });
-        state.priceIndex = indexPrices(rows);
-        state.loaded = true;
-    } catch (error) {
-        console.error(error);
-        state.error = error.message || 'Fiyatlar alınamadı.';
-        state.loaded = true;
-    } finally {
-        if (showLoader) {
-            hidePageLoader();
-        }
-        if (area) {
-            hideAreaLoader(area);
-        }
-        if (container.querySelector('#refiningResult')) {
-            refreshOutput(container);
-        } else {
-            renderPage(container);
-        }
-    }
+    });
 }
 
 async function init() {

@@ -19,6 +19,9 @@ import { fetchPrices, indexPrices, cityRow } from '../core/market.js';
 import { quoteFromRow } from '../core/price-side.js';
 import { cityProductionBonus, citySpecialtyProductionBonus } from '../core/catalog.js';
 import { dailyBonusStationPosition, hasDailyBonusStationOrder } from './daily-bonus-station-order.js';
+import { formatIsoDate as formatDate } from '../utils/format.js';
+import { readJsonStorage, writeJsonStorage } from '../core/storage.js';
+import { returnRateFromProductionBonus } from '../core/economy-math.js';
 
 const TABLE = 'dailyBonuses';
 
@@ -50,11 +53,6 @@ function datesForLogMonth(month, recordedDates) {
         dates.push(iso);
     }
     return dates;
-}
-
-function formatDate(isoDate) {
-    const [y, m, d] = isoDate.split('-');
-    return `${d}.${m}.${y}`;
 }
 
 const ANALYSIS_TIERS = [4, 5, 6, 7, 8];
@@ -105,16 +103,12 @@ function analysisProductionBonus(familyKey) {
 
 function analysisReturnRate(familyKey) {
     const productionBonus = analysisProductionBonus(familyKey);
-    return productionBonus / (100 + productionBonus);
+    return returnRateFromProductionBonus(productionBonus);
 }
 
 function readAnalysisCardOrders() {
-    try {
-        const orders = JSON.parse(localStorage.getItem(ANALYSIS_CARD_ORDER_KEY) || '{}');
-        return orders && typeof orders === 'object' ? orders : {};
-    } catch {
-        return {};
-    }
+    const orders = readJsonStorage(ANALYSIS_CARD_ORDER_KEY);
+    return orders && typeof orders === 'object' ? orders : {};
 }
 
 function analysisCardOrderKey(familyKey, tier) {
@@ -135,7 +129,7 @@ function moveAnalysisCard(familyKey, tier, recipeId, direction) {
     [rows[from], rows[to]] = [rows[to], rows[from]];
     const orders = readAnalysisCardOrders();
     orders[analysisCardOrderKey(familyKey, tier)] = rows.map((row) => row.recipe.id);
-    localStorage.setItem(ANALYSIS_CARD_ORDER_KEY, JSON.stringify(orders));
+    writeJsonStorage(ANALYSIS_CARD_ORDER_KEY, orders);
 }
 
 function formatAnalysisPercent(ratio) {
@@ -245,29 +239,19 @@ function todayAnalysisFamilies() {
 }
 
 function readAnalysisRecipeCache() {
-    try {
-        const cache = JSON.parse(localStorage.getItem(ANALYSIS_RECIPE_CACHE_KEY) || '{}');
-        return cache && typeof cache === 'object' ? cache : {};
-    } catch {
-        return {};
-    }
+    const cache = readJsonStorage(ANALYSIS_RECIPE_CACHE_KEY);
+    return cache && typeof cache === 'object' ? cache : {};
 }
 
 function saveAnalysisRecipeCache(cache) {
-    try {
-        localStorage.setItem(ANALYSIS_RECIPE_CACHE_KEY, JSON.stringify(cache));
-    } catch (error) {
-        console.warn('Günlük bonus tarif önbelleği yazılamadı.', error);
+    if (!writeJsonStorage(ANALYSIS_RECIPE_CACHE_KEY, cache)) {
+        console.warn('Günlük bonus tarif önbelleği yazılamadı.');
     }
 }
 
 function readAnalysisPriceCache() {
-    try {
-        const cache = JSON.parse(localStorage.getItem(ANALYSIS_PRICE_CACHE_KEY) || '{}');
-        return cache && typeof cache === 'object' ? cache : {};
-    } catch {
-        return {};
-    }
+    const cache = readJsonStorage(ANALYSIS_PRICE_CACHE_KEY);
+    return cache && typeof cache === 'object' ? cache : {};
 }
 
 function analysisPriceCacheKey(ids, locations) {
@@ -283,15 +267,14 @@ function cachedAnalysisPrices(ids, locations) {
 }
 
 function saveAnalysisPrices(ids, locations, rows) {
-    try {
-        const cache = readAnalysisPriceCache();
-        const entry = { updatedAt: Date.now(), rows };
-        cache[analysisPriceCacheKey(ids, locations)] = entry;
-        localStorage.setItem(ANALYSIS_PRICE_CACHE_KEY, JSON.stringify(cache));
-        return entry;
-    } catch (error) {
-        console.warn('Günlük bonus fiyat önbelleği yazılamadı.', error);
+    const cache = readAnalysisPriceCache();
+    const entry = { updatedAt: Date.now(), rows };
+    cache[analysisPriceCacheKey(ids, locations)] = entry;
+    if (!writeJsonStorage(ANALYSIS_PRICE_CACHE_KEY, cache)) {
+        console.warn('Günlük bonus fiyat önbelleği yazılamadı.');
+        return null;
     }
+    return entry;
 }
 
 function hydrateAnalysisRecipe(item, familyKey, recipe) {

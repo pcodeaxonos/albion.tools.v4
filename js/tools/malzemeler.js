@@ -2,11 +2,10 @@ import { escapeHtml } from '../utils/utils.js';
 import { initNav } from '../core/nav.js';
 import { initStore } from '../db/store.js';
 import { getSettings, getDefaultCity } from '../core/settings.js';
-import { fetchPrices, indexPrices, cityRow, priceRefreshActionsHtml, bindPriceRefresh, priceLoaderMessage, applyPriceLoadMode } from '../core/market.js';
+import { fetchPrices, indexPrices, cityRow } from '../core/market.js';
 import { itemIconHtml, itemLabel } from '../components/item-icon.js';
-import { showPageLoader, hidePageLoader, showAreaLoader, hideAreaLoader } from '../components/loader.js';
-import { initFloatingLabels } from '../components/forms.js';
-import { initTableSort, parseSortNumber, sortHeaderHtml } from '../utils/table-sort.js';
+import { showPageLoader, hidePageLoader } from '../components/loader.js';
+import { initTableSort, sortHeaderHtml } from '../utils/table-sort.js';
 import {
     quoteFromRow,
     priceSideHint,
@@ -22,6 +21,14 @@ import { loadActiveCities } from '../core/cities.js';
 import { cityFieldHtml, bindCityField, syncCityField } from '../components/city-picker.js';
 import { bindLivePrices } from '../core/price-live.js';
 import { getMaterialGroups } from '../core/catalog.js';
+import { formatSilver, formatPct, formatDateTime } from '../utils/format.js';
+import { parsePrice, isManualPrice, manualQuote } from '../core/manual-pricing.js';
+import { cityNames as listCityNames, cityLabel as getCityLabel } from '../core/city-utils.js';
+import { profitClass } from '../utils/profit.js';
+import { priceRefreshActionsHtml, bindPriceRefresh } from '../components/price-refresh.js';
+import { runPriceLoad } from './shared/price-load.js';
+import { bindManualPriceFields } from '../components/manual-price-fields.js';
+import { readJsonStorage, writeJsonStorage } from '../core/storage.js';
 
 const PREFS_STORAGE_KEY = 'albiontools.v4.malzemeler.prefs';
 
@@ -87,72 +94,12 @@ function itemDisplayName(uniqueName, enchant) {
     return enchant > 0 ? `${name} .${enchant}` : name;
 }
 
-function formatSilver(value, { unsigned = false, signed = false } = {}) {
-    if (!Number.isFinite(value)) {
-        return '—';
-    }
-    const amount = unsigned ? Math.abs(value) : value;
-    const text = Math.round(amount).toLocaleString('tr-TR');
-    if (signed && value > 0) {
-        return `+${text}`;
-    }
-    return text;
-}
-
-function formatPct(ratio, { unsigned = false } = {}) {
-    if (!Number.isFinite(ratio)) {
-        return '—';
-    }
-    const amount = unsigned ? Math.abs(ratio) : ratio;
-    return `${(amount * 100).toLocaleString('tr-TR', { maximumFractionDigits: 1 })}%`;
-}
-
-function formatDateTime(iso) {
-    if (!iso) {
-        return '';
-    }
-    const date = new Date(iso);
-    if (Number.isNaN(date.getTime())) {
-        return '';
-    }
-    const dd = String(date.getDate()).padStart(2, '0');
-    const mm = String(date.getMonth() + 1).padStart(2, '0');
-    const hh = String(date.getHours()).padStart(2, '0');
-    const min = String(date.getMinutes()).padStart(2, '0');
-    return `${dd}.${mm} ${hh}:${min}`;
-}
-
 function cityNames() {
-    return state.cities.map((city) => city.marketApiName).filter(Boolean);
+    return listCityNames(state.cities);
 }
 
 function cityLabel(apiName) {
-    return state.cities.find((city) => city.marketApiName === apiName)?.displayName ?? apiName;
-}
-
-function parsePrice(raw) {
-    if (raw == null) {
-        return null;
-    }
-    const value = parseSortNumber(raw);
-    return value != null && value >= 0 ? value : null;
-}
-
-function isManualPrice(raw) {
-    return parsePrice(raw) != null;
-}
-
-function manualQuote(price, side, intent) {
-    return {
-        price,
-        book: price,
-        date: null,
-        side,
-        intent,
-        tick: 0,
-        setup: placesOrder(intent, side),
-        manual: true
-    };
+    return getCityLabel(state.cities, apiName);
 }
 
 function fetchedQuote(uniqueName, city, side, intent) {
@@ -185,42 +132,33 @@ function defaultCityName(cities) {
 }
 
 function readPrefs(cities) {
-    try {
-        const raw = localStorage.getItem(PREFS_STORAGE_KEY);
-        if (!raw) {
-            return false;
-        }
-        const parsed = JSON.parse(raw);
-        if (groups().some((group) => group.id === parsed.group)) {
-            state.group = parsed.group;
-        }
-        const enchant = Number(parsed.enchant);
-        if ([0, 1, 2, 3].includes(enchant)) {
-            state.enchant = enchant;
-        }
-        const pick = (value, fallback) => (
-            cities.some((city) => city.marketApiName === value) ? value : fallback
-        );
-        const fallback = defaultCityName(cities);
-        state.buyCity = pick(parsed.buyCity, fallback);
-        state.sellCity = pick(parsed.sellCity, state.buyCity);
-        return true;
-    } catch {
+    const parsed = readJsonStorage(PREFS_STORAGE_KEY);
+    if (!parsed) {
         return false;
     }
+    if (groups().some((group) => group.id === parsed.group)) {
+        state.group = parsed.group;
+    }
+    const enchant = Number(parsed.enchant);
+    if ([0, 1, 2, 3].includes(enchant)) {
+        state.enchant = enchant;
+    }
+    const pick = (value, fallback) => (
+        cities.some((city) => city.marketApiName === value) ? value : fallback
+    );
+    const fallback = defaultCityName(cities);
+    state.buyCity = pick(parsed.buyCity, fallback);
+    state.sellCity = pick(parsed.sellCity, state.buyCity);
+    return true;
 }
 
 function savePrefs() {
-    try {
-        localStorage.setItem(PREFS_STORAGE_KEY, JSON.stringify({
-            group: state.group,
-            enchant: state.enchant,
-            buyCity: state.buyCity,
-            sellCity: state.sellCity
-        }));
-    } catch {
-        /* ignore */
-    }
+    writeJsonStorage(PREFS_STORAGE_KEY, {
+        group: state.group,
+        enchant: state.enchant,
+        buyCity: state.buyCity,
+        sellCity: state.sellCity
+    });
 }
 
 function applyCityDefaults(cities) {
@@ -281,19 +219,6 @@ function bestRow(list) {
         }
     }
     return best;
-}
-
-function profitClass(profit) {
-    if (profit == null) {
-        return '';
-    }
-    if (profit > 0) {
-        return ' is-profit';
-    }
-    if (profit < 0) {
-        return ' is-loss';
-    }
-    return '';
 }
 
 function renderToggleGroup(options, selected, attr) {
@@ -523,7 +448,7 @@ function renderPage(container) {
                         selected: state.sellCity,
                         cities: state.cities
                     })}
-                    ${priceRefreshActionsHtml({ refreshId: 'malzemelerRefresh', apiId: 'malzemelerRefreshApi' })}
+                    ${priceRefreshActionsHtml()}
                 </div>
             </div>
             <div class="tool-split-result">
@@ -625,46 +550,27 @@ function refreshCalc(container) {
 }
 
 function bindPriceInputs(container) {
-    initFloatingLabels(container);
-
-    const bindField = (input, kind) => {
-        if (input.dataset.priceBound === 'on') {
-            return;
-        }
-        input.dataset.priceBound = 'on';
-
-        input.addEventListener('input', () => {
-            const id = kind === 'buy' ? input.dataset.buyId : input.dataset.sellId;
-            const parsed = parsePrice(input.value);
-            if (kind === 'buy') {
-                state.manualBuy[id] = parsed != null ? input.value : null;
-            } else {
-                state.manualSell[id] = parsed != null ? input.value : null;
+    bindManualPriceFields(container, {
+        fields: [
+            {
+                selector: '[data-buy-id]',
+                dataKey: 'buyId',
+                values: state.manualBuy,
+                validOnlyOnInput: true,
+                syncFilledOnInput: true,
+                resolveFallbackPrice: (id) => fetchedQuote(id, state.buyCity, state.buySide, 'buy')?.price
+            },
+            {
+                selector: '[data-sell-id]',
+                dataKey: 'sellId',
+                values: state.manualSell,
+                validOnlyOnInput: true,
+                syncFilledOnInput: true,
+                resolveFallbackPrice: (id) => fetchedQuote(id, state.sellCity, state.sellSide, 'sell')?.price
             }
-            input.classList.toggle('is-filled', input.value.length > 0);
-            refreshCalc(container);
-        });
-
-        input.addEventListener('change', () => {
-            const id = kind === 'buy' ? input.dataset.buyId : input.dataset.sellId;
-            if (parsePrice(input.value) == null) {
-                if (kind === 'buy') {
-                    state.manualBuy[id] = null;
-                    const fetched = fetchedQuote(id, state.buyCity, state.buySide, 'buy');
-                    input.value = fetched ? formatSilver(fetched.price) : '';
-                } else {
-                    state.manualSell[id] = null;
-                    const fetched = fetchedQuote(id, state.sellCity, state.sellSide, 'sell');
-                    input.value = fetched ? formatSilver(fetched.price) : '';
-                }
-                input.classList.toggle('is-filled', input.value.length > 0);
-            }
-            refreshCalc(container);
-        });
-    };
-
-    container.querySelectorAll('[data-buy-id]').forEach((input) => bindField(input, 'buy'));
-    container.querySelectorAll('[data-sell-id]').forEach((input) => bindField(input, 'sell'));
+        ],
+        onRefresh: () => refreshCalc(container)
+    });
 }
 
 function syncToggleGroup(container, attr, selected) {
@@ -787,8 +693,6 @@ function bindPage(container) {
     });
 
     bindPriceRefresh(container, {
-        refreshId: 'malzemelerRefresh',
-        apiId: 'malzemelerRefreshApi',
         load: (options) => loadPrices(container, options)
     });
 }
@@ -807,40 +711,29 @@ function refreshOutput(container) {
 }
 
 async function loadPrices(container, { showLoader = true, source, areaLoader = false } = {}) {
-    applyPriceLoadMode(state, { source, showLoader });
-    state.error = null;
     const area = areaLoader ? container.querySelector('.tool-split-result') : null;
-    if (showLoader) {
-        showPageLoader(priceLoaderMessage(source, 'Şehir fiyatları alınıyor…'));
-    } else if (area) {
-        showAreaLoader(area, priceLoaderMessage(source, 'Şehir fiyatları alınıyor…'));
-    }
-
-    try {
-        const locations = cityNames();
-        if (locations.length === 0) {
-            throw new Error('Aktif şehir yok.');
+    await runPriceLoad({
+        state,
+        source,
+        showLoader,
+        area,
+        loadingText: 'Şehir fiyatları alınıyor…',
+        load: async () => {
+            const locations = cityNames();
+            if (locations.length === 0) {
+                throw new Error('Aktif şehir yok.');
+            }
+            const data = await fetchPrices(allUniqueNames(), locations, { source });
+            state.priceIndex = indexPrices(data);
+        },
+        onFinally: () => {
+            if (container.querySelector('#malzemelerResult')) {
+                refreshOutput(container);
+            } else {
+                renderPage(container);
+            }
         }
-        const data = await fetchPrices(allUniqueNames(), locations, { source });
-        state.priceIndex = indexPrices(data);
-        state.loaded = true;
-    } catch (error) {
-        console.error(error);
-        state.error = error.message || 'Fiyatlar alınamadı.';
-        state.loaded = true;
-    } finally {
-        if (showLoader) {
-            hidePageLoader();
-        }
-        if (area) {
-            hideAreaLoader(area);
-        }
-        if (container.querySelector('#malzemelerResult')) {
-            refreshOutput(container);
-        } else {
-            renderPage(container);
-        }
-    }
+    });
 }
 
 async function init() {

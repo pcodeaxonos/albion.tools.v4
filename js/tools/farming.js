@@ -2,11 +2,10 @@ import { escapeHtml } from '../utils/utils.js';
 import { initNav } from '../core/nav.js';
 import { initStore } from '../db/store.js';
 import { getSettings, cityHasIsland, getDefaultCity } from '../core/settings.js';
-import { fetchPrices, indexPrices, cityRow, priceRefreshActionsHtml, bindPriceRefresh, priceLoaderMessage, applyPriceLoadMode } from '../core/market.js';
+import { fetchPrices, indexPrices, cityRow } from '../core/market.js';
 import { itemIconHtml, itemLabel } from '../components/item-icon.js';
 import { showPageLoader, hidePageLoader } from '../components/loader.js';
-import { initFloatingLabels } from '../components/forms.js';
-import { initTableSort, parseSortNumber, sortHeaderHtml } from '../utils/table-sort.js';
+import { initTableSort, sortHeaderHtml } from '../utils/table-sort.js';
 import {
     quoteFromRow,
     priceSideHint,
@@ -22,27 +21,23 @@ import { bindCalcSticky } from '../utils/calc-sticky.js';
 import { loadActiveCities } from '../core/cities.js';
 import { cityFieldHtml, bindCityField } from '../components/city-picker.js';
 import { bindLivePrices } from '../core/price-live.js';
-import { getPlants, getEconomyConstant } from '../core/catalog.js';
+import { getPlants } from '../core/catalog.js';
 import { effectivePlantYield, effectiveSeedReturn } from '../core/island-yield-stats.js';
+import { formatSilver as formatSilverValue, formatPct, formatDateTime } from '../utils/format.js';
+import { formatQuantity as formatQty } from '../utils/format.js';
+import { parsePrice, isManualPrice, manualQuote } from '../core/manual-pricing.js';
+import { cityNames as listCityNames, cityLabel as getCityLabel, readStoredCity, saveStoredCity } from '../core/city-utils.js';
+import { priceRefreshActionsHtml, bindPriceRefresh } from '../components/price-refresh.js';
+import { runPriceLoad } from './shared/price-load.js';
+import { readJsonStorage, writeJsonStorage } from '../core/storage.js';
+import { focusBase } from '../core/island/economy-config.js';
+import { bindManualPriceFields } from '../components/manual-price-fields.js';
+
+const formatSilver = (value, options = {}) => formatSilverValue(value, { ...options, rounding: 'locale' });
 
 const CITY_STORAGE_KEY = 'albiontools.v4.farming.city';
 const PREFS_STORAGE_KEY = 'albiontools.v4.farming.prefs';
 
-function baseYield() {
-    return getEconomyConstant('base_yield', 4.5);
-}
-
-function premiumYield() {
-    return getEconomyConstant('premium_yield', 9);
-}
-
-function cityYieldBonus() {
-    return getEconomyConstant('city_yield_bonus', 0.1);
-}
-
-function focusBase() {
-    return getEconomyConstant('focus_base', 1000);
-}
 
 function crops() {
     return getPlants({ kind: 'crop' });
@@ -136,132 +131,44 @@ function yieldMeta(item) {
     });
 }
 
-function formatSilver(value, { unsigned = false, digits = 0 } = {}) {
-    if (!Number.isFinite(value)) {
-        return '—';
-    }
-    const amount = unsigned ? Math.abs(value) : value;
-    return amount.toLocaleString('tr-TR', {
-        maximumFractionDigits: digits,
-        minimumFractionDigits: digits > 0 && Math.abs(amount) < 10 ? Math.min(digits, 1) : 0
-    });
-}
-
-function formatPct(ratio) {
-    if (!Number.isFinite(ratio)) {
-        return '—';
-    }
-    return `${(ratio * 100).toLocaleString('tr-TR', { maximumFractionDigits: 1 })}%`;
-}
-
-function formatQty(value) {
-    if (!Number.isFinite(value)) {
-        return '—';
-    }
-    return value.toLocaleString('tr-TR', { maximumFractionDigits: 1 });
-}
-
-function formatDateTime(iso) {
-    if (!iso) {
-        return '';
-    }
-    const date = new Date(iso);
-    if (Number.isNaN(date.getTime())) {
-        return '';
-    }
-    const dd = String(date.getDate()).padStart(2, '0');
-    const mm = String(date.getMonth() + 1).padStart(2, '0');
-    const hh = String(date.getHours()).padStart(2, '0');
-    const min = String(date.getMinutes()).padStart(2, '0');
-    return `${dd}.${mm} ${hh}:${min}`;
-}
-
 function cityNames() {
-    return state.cities.map((city) => city.marketApiName).filter(Boolean);
+    return listCityNames(state.cities);
 }
 
 function cityLabel(apiName) {
-    return state.cities.find((city) => city.marketApiName === apiName)?.displayName ?? apiName;
+    return getCityLabel(state.cities, apiName);
 }
 
 function readSavedCity(cities) {
-    try {
-        const saved = localStorage.getItem(CITY_STORAGE_KEY);
-        if (cities.some((city) => city.marketApiName === saved)) {
-            return saved;
-        }
-    } catch {
-        /* ignore */
-    }
-    const preferred = getDefaultCity();
-    const match = cities.find((city) => city.marketApiName === preferred);
-    return match?.marketApiName ?? cities[0]?.marketApiName ?? preferred;
+    return readStoredCity(CITY_STORAGE_KEY, cities, getDefaultCity());
 }
 
 function saveCity(apiName) {
-    try {
-        localStorage.setItem(CITY_STORAGE_KEY, apiName);
-    } catch {
-        /* ignore */
-    }
+    saveStoredCity(CITY_STORAGE_KEY, apiName);
 }
 
 function readPrefs() {
-    try {
-        const raw = localStorage.getItem(PREFS_STORAGE_KEY);
-        if (!raw) {
-            return;
-        }
-        const parsed = JSON.parse(raw);
-        if (parsed.kind === 'herb' || parsed.kind === 'crop') {
-            state.kind = parsed.kind;
-        }
-        state.cropGeneral = clampSpec(parsed.cropGeneral);
-        state.cropSpec = clampSpec(parsed.cropSpec);
-        state.herbGeneral = clampSpec(parsed.herbGeneral);
-        state.herbSpec = clampSpec(parsed.herbSpec);
-    } catch {
-        /* ignore */
+    const parsed = readJsonStorage(PREFS_STORAGE_KEY);
+    if (!parsed) {
+        return;
     }
+    if (parsed.kind === 'herb' || parsed.kind === 'crop') {
+        state.kind = parsed.kind;
+    }
+    state.cropGeneral = clampSpec(parsed.cropGeneral);
+    state.cropSpec = clampSpec(parsed.cropSpec);
+    state.herbGeneral = clampSpec(parsed.herbGeneral);
+    state.herbSpec = clampSpec(parsed.herbSpec);
 }
 
 function savePrefs() {
-    try {
-        localStorage.setItem(PREFS_STORAGE_KEY, JSON.stringify({
-            kind: state.kind,
-            cropGeneral: state.cropGeneral,
-            cropSpec: state.cropSpec,
-            herbGeneral: state.herbGeneral,
-            herbSpec: state.herbSpec
-        }));
-    } catch {
-        /* ignore */
-    }
-}
-
-function parsePrice(raw) {
-    if (raw == null) {
-        return null;
-    }
-    const value = parseSortNumber(raw);
-    return value != null && value >= 0 ? value : null;
-}
-
-function isManualPrice(raw) {
-    return parsePrice(raw) != null;
-}
-
-function manualQuote(price, side, intent) {
-    return {
-        price,
-        book: price,
-        date: null,
-        side,
-        intent,
-        tick: 0,
-        setup: placesOrder(intent, side),
-        manual: true
-    };
+    writeJsonStorage(PREFS_STORAGE_KEY, {
+        kind: state.kind,
+        cropGeneral: state.cropGeneral,
+        cropSpec: state.cropSpec,
+        herbGeneral: state.herbGeneral,
+        herbSpec: state.herbSpec
+    });
 }
 
 function fetchedSeedQuote(item) {
@@ -725,45 +632,30 @@ function refreshCalc(container) {
 }
 
 function bindPriceInputs(container) {
-    initFloatingLabels(container);
-
-    const bindField = (input, kind) => {
-        if (input.dataset.priceBound === 'on') {
-            return;
-        }
-        input.dataset.priceBound = 'on';
-
-        input.addEventListener('input', () => {
-            const id = kind === 'seed' ? input.dataset.seedPrice : input.dataset.plantPrice;
-            if (kind === 'seed') {
-                state.manualSeeds[id] = input.value;
-            } else {
-                state.manualPlants[id] = input.value;
-            }
-            refreshCalc(container);
-        });
-
-        input.addEventListener('change', () => {
-            const id = kind === 'seed' ? input.dataset.seedPrice : input.dataset.plantPrice;
-            const item = allItems().find((row) => String(row.id) === String(id));
-            if (parsePrice(input.value) == null) {
-                if (kind === 'seed') {
-                    state.manualSeeds[id] = null;
-                    const fetched = item ? fetchedSeedQuote(item) : null;
-                    input.value = fetched ? formatSilver(fetched.price) : '';
-                } else {
-                    state.manualPlants[id] = null;
-                    const fetched = item ? fetchedPlantQuote(item) : null;
-                    input.value = fetched ? formatSilver(fetched.price) : '';
+    const itemForId = (id) => allItems().find((row) => String(row.id) === String(id));
+    bindManualPriceFields(container, {
+        fields: [
+            {
+                selector: '[data-seed-price]',
+                dataKey: 'seedPrice',
+                values: state.manualSeeds,
+                resolveFallbackPrice: (id) => {
+                    const item = itemForId(id);
+                    return item ? fetchedSeedQuote(item)?.price : null;
                 }
-                input.classList.toggle('is-filled', input.value.length > 0);
+            },
+            {
+                selector: '[data-plant-price]',
+                dataKey: 'plantPrice',
+                values: state.manualPlants,
+                resolveFallbackPrice: (id) => {
+                    const item = itemForId(id);
+                    return item ? fetchedPlantQuote(item)?.price : null;
+                }
             }
-            refreshCalc(container);
-        });
-    };
-
-    container.querySelectorAll('[data-seed-price]').forEach((input) => bindField(input, 'seed'));
-    container.querySelectorAll('[data-plant-price]').forEach((input) => bindField(input, 'plant'));
+        ],
+        onRefresh: () => refreshCalc(container)
+    });
 }
 
 function refreshOutput(container) {
@@ -815,7 +707,7 @@ function renderPage(container) {
                         decorate: cityIslandDecorate
                     })}
                     ${specFieldsHtml()}
-                    ${priceRefreshActionsHtml({ refreshId: 'farmingRefresh', apiId: 'farmingRefreshApi' })}
+                    ${priceRefreshActionsHtml()}
                 </div>
             </div>
             <div class="tool-split-result">
@@ -903,44 +795,35 @@ function bindPage(container) {
     });
 
     bindPriceRefresh(container, {
-        refreshId: 'farmingRefresh',
-        apiId: 'farmingRefreshApi',
         load: (options) => loadPrices(container, options)
     });
 }
 
 async function loadPrices(container, { showLoader = true, source } = {}) {
-    applyPriceLoadMode(state, { source, showLoader });
-    state.error = null;
-    if (showLoader) {
-        showPageLoader(priceLoaderMessage(source, 'Şehir fiyatları alınıyor…'));
-    }
-
-    try {
-        const locations = cityNames();
-        if (locations.length === 0) {
-            throw new Error('Aktif şehir yok.');
+    await runPriceLoad({
+        state,
+        source,
+        showLoader,
+        loadingText: 'Şehir fiyatları alınıyor…',
+        load: async () => {
+            const locations = cityNames();
+            if (locations.length === 0) {
+                throw new Error('Aktif şehir yok.');
+            }
+            const [seedRows, plantRows] = await Promise.all([
+                fetchPrices(allItems().map((item) => item.seedId), locations, { source }),
+                fetchPrices(allItems().map((item) => item.plantId), locations, { source })
+            ]);
+            state.priceIndex = indexPrices([...seedRows, ...plantRows]);
+        },
+        onFinally: () => {
+            if (container.querySelector('#farmingResult')) {
+                refreshOutput(container);
+            } else {
+                renderPage(container);
+            }
         }
-        const [seedRows, plantRows] = await Promise.all([
-            fetchPrices(allItems().map((item) => item.seedId), locations, { source }),
-            fetchPrices(allItems().map((item) => item.plantId), locations, { source })
-        ]);
-        state.priceIndex = indexPrices([...seedRows, ...plantRows]);
-        state.loaded = true;
-    } catch (error) {
-        console.error(error);
-        state.error = error.message || 'Fiyatlar alınamadı.';
-        state.loaded = true;
-    } finally {
-        if (showLoader) {
-            hidePageLoader();
-        }
-        if (container.querySelector('#farmingResult')) {
-            refreshOutput(container);
-        } else {
-            renderPage(container);
-        }
-    }
+    });
 }
 
 async function init() {

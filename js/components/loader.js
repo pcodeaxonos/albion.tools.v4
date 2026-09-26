@@ -1,3 +1,5 @@
+import { escapeHtml } from '../utils/utils.js';
+
 const PAGE_LOADER_ID = 'page-loader';
 const AREA_LOADER_CLASS = 'area-loader';
 const AREA_LOADER_ATTR = 'data-area-loader';
@@ -7,12 +9,6 @@ const activeAreaLoaders = new Set();
 const overlayObservers = new WeakMap();
 
 let pinListening = false;
-
-function escapeHtml(text) {
-    const div = document.createElement('div');
-    div.textContent = text;
-    return div.innerHTML;
-}
 
 function spinnerMarkup() {
     return `

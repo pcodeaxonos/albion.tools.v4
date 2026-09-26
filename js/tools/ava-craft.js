@@ -5,11 +5,10 @@ import { getBonusFamilyLabel } from '../core/bonus-families.js';
 import { bonusDayIso, bonusWindowLabel } from '../core/bonus-day.js';
 import { defaultCraftBonusRate, normalizeCraftBonusRate, todayCraftBonuses, craftBonusToggleHtml } from '../core/craft-bonus.js';
 import { getSettings, getDefaultCity } from '../core/settings.js';
-import { fetchPrices, indexPrices, cityRow, priceRefreshActionsHtml, bindPriceRefresh, priceLoaderMessage, applyPriceLoadMode } from '../core/market.js';
+import { fetchPrices, indexPrices, cityRow } from '../core/market.js';
 import { itemIconHtml, itemLabel } from '../components/item-icon.js';
 import { showPageLoader, hidePageLoader } from '../components/loader.js';
-import { initFloatingLabels } from '../components/forms.js';
-import { initTableSort, parseSortNumber, sortHeaderHtml } from '../utils/table-sort.js';
+import { initTableSort, sortHeaderHtml } from '../utils/table-sort.js';
 import {
     quoteFromRow,
     priceSideHint,
@@ -40,7 +39,17 @@ import {
     explainHint
 } from '../utils/calc-explain.js';
 import { getCraftRecipes, cityProductionBonus } from '../core/catalog.js';
+import { formatSilver, formatPct, formatDateTime } from '../utils/format.js';
+import { parsePrice, isManualPrice, manualQuote } from '../core/manual-pricing.js';
+import { cityNames as listCityNames, cityLabel as getCityLabel, readStoredCity, saveStoredCity } from '../core/city-utils.js';
+import { profitClass } from '../utils/profit.js';
 
+import { priceRefreshActionsHtml, bindPriceRefresh } from '../components/price-refresh.js';
+
+import { runPriceLoad } from './shared/price-load.js';
+import { bindManualPriceFields } from '../components/manual-price-fields.js';
+
+import { returnRateFromProductionBonus } from '../core/economy-math.js';
 const FAMILY_KEY = 'gathering/tool';
 const CITY_STORAGE_KEY = 'albiontools.v4.avaCraft.city';
 const ENERGY_ID = 'QUESTITEM_TOKEN_AVALON';
@@ -113,67 +122,20 @@ function ensureManualMaps() {
     }
 }
 
-function formatSilver(value, { unsigned = false } = {}) {
-    if (!Number.isFinite(value)) {
-        return '—';
-    }
-    const amount = unsigned ? Math.abs(value) : value;
-    return Math.round(amount).toLocaleString('tr-TR');
-}
-
-function formatPct(ratio, { unsigned = false } = {}) {
-    if (!Number.isFinite(ratio)) {
-        return '—';
-    }
-    const amount = unsigned ? Math.abs(ratio) : ratio;
-    return `${(amount * 100).toLocaleString('tr-TR', { maximumFractionDigits: 1 })}%`;
-}
-
-function formatDateTime(iso) {
-    if (!iso) {
-        return '';
-    }
-    const date = new Date(iso);
-    if (Number.isNaN(date.getTime())) {
-        return '';
-    }
-    const dd = String(date.getDate()).padStart(2, '0');
-    const mm = String(date.getMonth() + 1).padStart(2, '0');
-    const hh = String(date.getHours()).padStart(2, '0');
-    const min = String(date.getMinutes()).padStart(2, '0');
-    return `${dd}.${mm} ${hh}:${min}`;
-}
-
 function cityNames() {
-    return state.cities.map((city) => city.marketApiName).filter(Boolean);
+    return listCityNames(state.cities);
 }
 
 function cityLabel(apiName) {
-    return state.cities.find((city) => city.marketApiName === apiName)?.displayName ?? apiName;
+    return getCityLabel(state.cities, apiName);
 }
 
 function readSavedCity(cities) {
-    try {
-        const saved = localStorage.getItem(CITY_STORAGE_KEY);
-        if (cities.some((city) => city.marketApiName === saved)) {
-            return saved;
-        }
-    } catch {
-        /* ignore */
-    }
-    const preferred = getDefaultCity();
-    if (cities.some((city) => city.marketApiName === preferred)) {
-        return preferred;
-    }
-    return cities[0]?.marketApiName ?? preferred;
+    return readStoredCity(CITY_STORAGE_KEY, cities, getDefaultCity());
 }
 
 function saveCity(apiName) {
-    try {
-        localStorage.setItem(CITY_STORAGE_KEY, apiName);
-    } catch {
-        /* ignore */
-    }
+    saveStoredCity(CITY_STORAGE_KEY, apiName);
 }
 
 function productionBonus() {
@@ -181,24 +143,11 @@ function productionBonus() {
 }
 
 function returnRate() {
-    const bonus = productionBonus();
-    return bonus / (100 + bonus);
+    return returnRateFromProductionBonus(productionBonus());
 }
 
 function salesTax() {
     return salesTaxRate(state.premium);
-}
-
-function parsePrice(raw) {
-    if (raw == null) {
-        return null;
-    }
-    const value = parseSortNumber(raw);
-    return value != null && value >= 0 ? value : null;
-}
-
-function isManualPrice(raw) {
-    return parsePrice(raw) != null;
 }
 
 function averageQuote(uniqueName) {
@@ -242,19 +191,6 @@ function fetchedItemQuote(id) {
         return null;
     }
     return quoteFromRow(cityRow(state.priceIndex, item.uniqueName, state.city), state.itemSide, 'sell');
-}
-
-function manualQuote(price, side, intent) {
-    return {
-        price,
-        book: price,
-        date: null,
-        side,
-        intent,
-        tick: 0,
-        setup: placesOrder(intent, side),
-        manual: true
-    };
 }
 
 function matQuote(key) {
@@ -446,19 +382,6 @@ function renderTierMats() {
             }).join('')}
         </ul>
     `;
-}
-
-function profitClass(profit) {
-    if (profit == null) {
-        return '';
-    }
-    if (profit > 0) {
-        return ' is-profit';
-    }
-    if (profit < 0) {
-        return ' is-loss';
-    }
-    return '';
 }
 
 function bestExplainKey(list) {
@@ -841,41 +764,23 @@ function refreshCalc(container) {
 }
 
 function bindPriceInputs(container) {
-    initFloatingLabels(container);
-
-    const bindField = (input, kind) => {
-        if (input.dataset.priceBound === 'on') {
-            return;
-        }
-        input.dataset.priceBound = 'on';
-
-        input.addEventListener('input', () => {
-            if (kind === 'mat') {
-                state.manualMats[input.dataset.matPrice] = input.value;
-            } else {
-                state.manualItems[input.dataset.itemPrice] = input.value;
+    bindManualPriceFields(container, {
+        fields: [
+            {
+                selector: '[data-mat-price]',
+                dataKey: 'matPrice',
+                values: state.manualMats,
+                resolveFallbackPrice: (key) => fetchedMatQuote(key)?.price
+            },
+            {
+                selector: '[data-item-price]',
+                dataKey: 'itemPrice',
+                values: state.manualItems,
+                resolveFallbackPrice: (key) => fetchedItemQuote(key)?.price
             }
-            refreshCalc(container);
-        });
-
-        input.addEventListener('change', () => {
-            const key = kind === 'mat' ? input.dataset.matPrice : input.dataset.itemPrice;
-            if (parsePrice(input.value) == null) {
-                if (kind === 'mat') {
-                    state.manualMats[key] = null;
-                } else {
-                    state.manualItems[key] = null;
-                }
-                const fetched = kind === 'mat' ? fetchedMatQuote(key) : fetchedItemQuote(key);
-                input.value = fetched ? formatSilver(fetched.price) : '';
-                input.classList.toggle('is-filled', input.value.length > 0);
-            }
-            refreshCalc(container);
-        });
-    };
-
-    container.querySelectorAll('[data-mat-price]').forEach((input) => bindField(input, 'mat'));
-    container.querySelectorAll('[data-item-price]').forEach((input) => bindField(input, 'item'));
+        ],
+        onRefresh: () => refreshCalc(container)
+    });
 }
 
 function refreshOutput(container) {
@@ -930,7 +835,7 @@ function renderPage(container) {
                         cities: state.cities,
                         className: 'ava-city-field'
                     })}
-                    ${priceRefreshActionsHtml({ refreshId: 'avaRefresh', apiId: 'avaRefreshApi' })}
+                    ${priceRefreshActionsHtml()}
                 </div>
             </div>
             <div class="tool-split-result">
@@ -983,44 +888,35 @@ function bindPage(container) {
     });
 
     bindPriceRefresh(container, {
-        refreshId: 'avaRefresh',
-        apiId: 'avaRefreshApi',
         load: (options) => loadPrices(container, options)
     });
 }
 
 async function loadPrices(container, { showLoader = true, source } = {}) {
-    applyPriceLoadMode(state, { source, showLoader });
-    state.error = null;
-    if (showLoader) {
-        showPageLoader(priceLoaderMessage(source, 'Şehir fiyatları alınıyor…'));
-    }
-
-    try {
-        const locations = cityNames();
-        if (locations.length === 0) {
-            throw new Error('Aktif şehir yok.');
+    await runPriceLoad({
+        state,
+        source,
+        showLoader,
+        loadingText: 'Şehir fiyatları alınıyor…',
+        load: async () => {
+            const locations = cityNames();
+            if (locations.length === 0) {
+                throw new Error('Aktif şehir yok.');
+            }
+            const [matRows, itemRows] = await Promise.all([
+                fetchPrices(mats().map((mat) => mat.uniqueName), locations, { source }),
+                fetchPrices(items().map((item) => item.uniqueName), locations, { source })
+            ]);
+            state.priceIndex = indexPrices([...matRows, ...itemRows]);
+        },
+        onFinally: () => {
+            if (container.querySelector('#avaResult')) {
+                refreshOutput(container);
+            } else {
+                renderPage(container);
+            }
         }
-        const [matRows, itemRows] = await Promise.all([
-            fetchPrices(mats().map((mat) => mat.uniqueName), locations, { source }),
-            fetchPrices(items().map((item) => item.uniqueName), locations, { source })
-        ]);
-        state.priceIndex = indexPrices([...matRows, ...itemRows]);
-        state.loaded = true;
-    } catch (error) {
-        console.error(error);
-        state.error = error.message || 'Fiyatlar alınamadı.';
-        state.loaded = true;
-    } finally {
-        if (showLoader) {
-            hidePageLoader();
-        }
-        if (container.querySelector('#avaResult')) {
-            refreshOutput(container);
-        } else {
-            renderPage(container);
-        }
-    }
+    });
 }
 
 async function init() {

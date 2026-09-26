@@ -4,7 +4,6 @@ import { initFloatingLabels } from '../components/forms.js';
 import { initStore } from '../db/store.js';
 import { itemIconHtml, itemLabel, rawStoneId, stoneBlockId } from '../components/item-icon.js';
 import { getBuildings, getRefineTiers } from '../core/catalog.js';
-import { showPageLoader, hidePageLoader } from '../components/loader.js';
 
 const TIERS = [2, 3, 4, 5, 6, 7, 8];
 
