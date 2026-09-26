@@ -1,9 +1,5 @@
 import { getSitePages, getSiteTools } from './catalog.js';
 
-function siteBase() {
-    return new URL('.', document.baseURI);
-}
-
 function allPages() {
     return [...getSitePages(), ...getSiteTools()];
 }
@@ -15,7 +11,7 @@ export function pageById(pageId) {
 export function routeHref(pageId) {
     const page = pageById(pageId);
     if (!page) throw new Error(`Unknown page id: ${pageId}`);
-    return new URL(page.path ? `${page.path}/` : '', siteBase()).pathname;
+    return page.path ? `/${page.path}/` : '/';
 }
 
 export function routeFromPathname(pathname = location.pathname) {
