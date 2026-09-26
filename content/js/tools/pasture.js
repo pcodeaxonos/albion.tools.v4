@@ -1292,7 +1292,7 @@ function sideFieldsHtml() {
 
 function renderPage(container) {
     container.innerHTML = `
-        <section class="farming-hero pasture-hero">
+        <section class="page-head" data-page-head="pasture">
             <h1>Pasture</h1>
             <p>Seçilen şehirde hayvan büyütme, kesme ve süt/yumurta kârı. Yemi ada birim maliyetiyle veya piyasa buy+1 ile hesapla; en iyi yolu işaretler.</p>
         </section>

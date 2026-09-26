@@ -1,7 +1,10 @@
 import { escapeHtml } from '../utils/utils.js';
 import { getItemLocalizedName, getItemByUniqueName } from '../db/relations.js';
 
-const ICON_BASE = './icons';
+// Pages now live below `pages/...` and declare the repository root as their
+// document base. Keep generated item-image URLs rooted at the public content
+// directory so every tool resolves the same icon after a page move.
+const ICON_BASE = './content/icons';
 const DEFAULT_SIZE = 64;
 
 /** Label from items table (localizedName). No duplicate map. */

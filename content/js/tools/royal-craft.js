@@ -2017,7 +2017,7 @@ function renderOutput() {
 function renderPage(container) {
     state.tier = normalizeTierFilter(state.tier);
     container.innerHTML = `
-        <section class="farming-hero">
+        <section class="page-head" data-page-head="royal-crafting">
             <h1>Royal Crafting</h1>
             <p>SET’i mat’tan craft veya Excellent buy ile al (min), Royal Sigil (veya Sealed) ekle — royal craft’ta RR yok — sonra 0→.3 enchant ile satış kârını gör.</p>
         </section>

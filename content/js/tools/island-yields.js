@@ -61,7 +61,8 @@ const state = {
     plotsSelected: 1,
     autoPlots: true,
     yieldKind: 'plant',
-    filteredPlantKey: null
+    filteredPlantKey: null,
+    activeAverageGroup: null
 };
 
 function todayIso() {
@@ -837,7 +838,6 @@ function renderCityComparison() {
         <section class="yield-city-comparison" aria-label="Şehir karşılaştırması">
             <div class="yield-city-comparison-head">
                 <div>
-                    <p class="yield-city-comparison-kicker">Şehir karşılaştırması</p>
                     <h3 class="island-planner-subhead yield-city-comparison-title">
                         ${itemIconId(plant) ? itemIconHtml(itemIconId(plant), { size: 40, className: 'item-icon' }) : ''}
                         <span>${escapeHtml(plant.label)}</span>
@@ -884,28 +884,6 @@ function renderCityComparison() {
     `;
 }
 
-function renderAvgGroup(group, plants, islandCity) {
-    const list = plants.filter(group.filter);
-    if (!list.length) {
-        return '';
-    }
-    const slots = state.yieldKind === 'plant'
-        ? Array.from({ length: 8 }, (_, index) => list.find((item) => Number(item.tier) === index + 1) ?? null)
-        : list;
-
-    return `
-        <div class="yield-avg-group" data-kind="${escapeHtml(group.id)}">
-            <h3 class="yield-avg-group-title">${escapeHtml(group.title)}</h3>
-            <div class="yield-avg-row">
-                ${slots.map((plant) => (plant
-                    ? renderAvgCard(plant, islandCity)
-                    : '<div class="yield-avg-slot is-empty" aria-hidden="true"></div>'
-                )).join('')}
-            </div>
-        </div>
-    `;
-}
-
 function renderAnimalProductAvgCard(animal, islandCity) {
     const avg = yieldAverage(islandCity, animal.key, {
         premium: state.premium,
@@ -933,26 +911,8 @@ function renderAnimalProductAvgCard(animal, islandCity) {
     `;
 }
 
-function renderAnimalProductGroup(animals, islandCity) {
-    const productAnimals = animals.filter((animal) => animal.productId);
-    if (!productAnimals.length) return '';
-    return `
-        <div class="yield-avg-group" data-kind="animal-product">
-            <h3 class="yield-avg-group-title">Besleme · üretilen ürün</h3>
-            <div class="yield-avg-row">${productAnimals.map((animal) => renderAnimalProductAvgCard(animal, islandCity)).join('')}</div>
-        </div>
-    `;
-}
-
-function renderAverages() {
-    const islandCity = state.islandCity;
-    if (!islandCity) {
-        return `<p class="farming-note">Ortalamalar için ada şehri seç.</p>`;
-    }
-
+function averageGroups() {
     const plants = itemsForKind();
-    const copy = metricCopy();
-    const contextLabel = `${state.premium ? 'Premium' : 'Free'} · ${state.water ? copy.on : copy.off}`;
     const groups = (state.yieldKind === 'plant'
         ? [
             { id: 'crop', title: 'Ekin tohumları', filter: (item) => item.kind === 'crop' },
@@ -968,19 +928,103 @@ function renderAverages() {
                 { id: 'kennel', title: 'Kennel hayvanları', filter: (item) => item.kind === 'mount' },
                 { id: 'faction-t5', title: 'Faction hayvanları · T5', filter: (item) => item.kind === 'faction-mount' && Number(item.tier) === 5 },
                 { id: 'faction-t8', title: 'Faction hayvanları · T8', filter: (item) => item.kind === 'faction-mount' && Number(item.tier) === 8 }
-            ]).map((group) => renderAvgGroup(group, plants, islandCity)).join('')
-        + (state.yieldKind === 'pasture' ? renderAnimalProductGroup(plants, islandCity) : '');
+            ])
+        .map((group) => ({ ...group, items: plants.filter(group.filter), render: renderAvgCard }));
+
+    if (state.yieldKind === 'pasture') {
+        groups.push({
+            id: 'animal-product',
+            title: 'Besleme · üretilen ürün',
+            items: plants.filter((animal) => animal.productId),
+            render: renderAnimalProductAvgCard
+        });
+    }
+    return groups;
+}
+
+function groupIdForItem(itemKey, itemType = itemTypeForKind()) {
+    const groups = averageGroups();
+    if (itemType === 'animalProduct') {
+        return groups.find((group) => group.id === 'animal-product')?.id ?? null;
+    }
+    return groups.find((group) => group.items.some((item) => item.key === itemKey))?.id ?? null;
+}
+
+function openAverageGroup(itemKey, itemType) {
+    const groupId = groupIdForItem(itemKey, itemType);
+    if (groupId) {
+        state.activeAverageGroup = groupId;
+    }
+}
+
+function yieldGroupIcon(groupId) {
+    const icons = {
+        crop: '<path d="M12 20V4M12 7c-3 0-5 2-5 5 3 0 5-2 5-5ZM12 11c3 0 5 2 5 5-3 0-5-2-5-5Z"/>',
+        herb: '<path d="M5 19c7 0 12-5 12-12-7 0-12 5-12 12Zm1-1c2-4 5-7 9-9"/>',
+        livestock: '<path d="M5 15v-4l2-2 2 2h6l2-2 2 2v4l-2 2h-1v3M8 17v3M12 11v2"/>',
+        horse: '<path d="M8 20v-5l-2-3 2-5 4 2 4-2 2 5-2 3v5M9 9l3 3 3-3M10 20h4"/>',
+        ox: '<path d="M5 10 3 7m16 3 2-3M5 10c0 6 3 9 7 9s7-3 7-9l-3-2H8l-3 2Zm5 4h4"/>',
+        kennel: '<path d="M8 7a2 2 0 1 0-4 0 2 2 0 0 0 4 0Zm8-2a2 2 0 1 0 0 4 2 2 0 0 0 0-4Zm4 7a2 2 0 1 0 0 4 2 2 0 0 0 0-4ZM12 11c-3 0-5 3-5 6 0 2 2 3 5 3s5-1 5-3c0-3-2-6-5-6Z"/>',
+        'faction-t5': '<path d="m12 3 2.4 5 5.6.7-4.1 3.9 1 5.5-4.9-2.7-4.9 2.7 1-5.5L4 8.7 9.6 8 12 3Z"/>',
+        'faction-t8': '<path d="m12 3 2.4 5 5.6.7-4.1 3.9 1 5.5-4.9-2.7-4.9 2.7 1-5.5L4 8.7 9.6 8 12 3Z"/><path d="M12 7v5l3 2"/>'
+    };
+    return `<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${icons[groupId] ?? icons.crop}</svg>`;
+}
+
+function yieldTabArrow(direction) {
+    return `<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="${direction === 'previous' ? 'M18 15 12 9l-6 6' : 'M18 9 12 15 6 9'}"/></svg>`;
+}
+
+function renderTierMatrix(group, islandCity) {
+    const tiers = Array.from({ length: 8 }, (_, index) => index + 1);
+    return `
+        <div class="yield-tier-matrix" aria-label="Tier bazında ada çıktıları">
+            ${tiers.map((tier) => {
+                const entries = group.items
+                    .filter((item) => Number(item.tier) === tier)
+                    .map((item) => `
+                        <section class="yield-tier-list" data-kind="${escapeHtml(group.id)}">
+                            ${group.render(item, islandCity)}
+                        </section>
+                    `);
+                return `
+                    <section class="yield-tier-column" data-tier="${tier}">
+                        <div class="yield-tier-column-content">${entries.join('')}</div>
+                    </section>
+                `;
+            }).join('')}
+        </div>
+    `;
+}
+
+function renderAverages() {
+    const islandCity = state.islandCity;
+    if (!islandCity) {
+        return `<p class="farming-note">Ortalamalar için ada şehri seç.</p>`;
+    }
+
+    const plants = itemsForKind();
+    const groups = averageGroups();
+    const activeGroup = groups.find((group) => group.id === state.activeAverageGroup) ?? groups[0];
+    state.activeAverageGroup = activeGroup?.id ?? null;
     const legendPlant = plants.find((plant) => plant.key === state.filteredPlantKey)
         ?? plants.find((plant) => state.yieldKind === 'plant' && hasCityBonus(plant, islandCity))
         ?? plants[0];
 
     return `
         <section class="yield-averages" data-yield-averages aria-label="Ortalamalar">
-            <div class="yield-averages-head">
-                <h2 class="island-planner-subhead yield-averages-title">Ortalamalar · ${escapeHtml(cityLabel(islandCity))}</h2>
-                <p class="yield-averages-meta"${tipAttr('Seçili ada + premium/su')}>${escapeHtml(contextLabel)}</p>
+            <div class="yield-averages-layout">
+                <nav class="yield-group-tabs" aria-label="Ürün grupları">
+                    <button type="button" class="yield-group-action" data-yield-group-previous aria-label="Önceki grup" title="Önceki grup" ${groups.length < 2 ? 'disabled' : ''}>${yieldTabArrow('previous')}</button>
+                    <div class="yield-group-tab-list" role="tablist">
+                        ${groups.map((group) => `<button type="button" class="yield-group-tab${group.id === activeGroup?.id ? ' is-active' : ''}" data-yield-group="${escapeHtml(group.id)}" role="tab" aria-label="${escapeHtml(group.title)}" aria-selected="${group.id === activeGroup?.id ? 'true' : 'false'}" title="${escapeHtml(group.title)}">${yieldGroupIcon(group.id)}</button>`).join('')}
+                    </div>
+                    <button type="button" class="yield-group-action" data-yield-group-next aria-label="Sonraki grup" title="Sonraki grup" ${groups.length < 2 ? 'disabled' : ''}>${yieldTabArrow('next')}</button>
+                </nav>
+                <div class="yield-group-panel" role="tabpanel" aria-label="${escapeHtml(activeGroup?.title ?? '')}">
+                    ${activeGroup ? renderTierMatrix(activeGroup, islandCity) : ''}
+                </div>
             </div>
-            ${groups}
         </section>
         ${legendPlant ? renderAvgLegend(legendPlant, islandCity) : ''}
     `;
@@ -1133,6 +1177,20 @@ function bindResult(container) {
             }
         });
     });
+    container.querySelectorAll('[data-yield-group]').forEach((button) => {
+        button.addEventListener('click', () => {
+            state.activeAverageGroup = button.dataset.yieldGroup;
+            refreshResult(container);
+        });
+    });
+    const moveAverageGroup = (direction) => {
+        const groups = averageGroups();
+        const currentIndex = Math.max(0, groups.findIndex((group) => group.id === state.activeAverageGroup));
+        state.activeAverageGroup = groups[(currentIndex + direction + groups.length) % groups.length]?.id ?? null;
+        refreshResult(container);
+    };
+    container.querySelector('[data-yield-group-previous]')?.addEventListener('click', () => moveAverageGroup(-1));
+    container.querySelector('[data-yield-group-next]')?.addEventListener('click', () => moveAverageGroup(1));
     container.querySelector('[data-clear-yield-filter]')?.addEventListener('click', () => {
         state.filteredPlantKey = null;
         refreshResult(container);
@@ -1161,6 +1219,7 @@ function bindResult(container) {
         if (!row) {
             return;
         }
+        openAverageGroup(rowItemKey(clicked), rowItemType(clicked));
         fillForm(container, row);
         refreshResult(container);
     });
@@ -1270,7 +1329,7 @@ function saveEntry(container) {
 function renderPage(container) {
     const copy = metricCopy();
     container.innerHTML = `
-        <section class="farming-hero">
+        <section class="page-head" data-page-head="island-yields">
             <h1>Ada Çıktı</h1>
             <p>Tarla, pasture ve kennel için gerçek dönüş / çıktı değerlerini kaydet. Ortalamalar hesaplama araçlarında kullanılır.</p>
         </section>
@@ -1348,6 +1407,7 @@ function bindPage(container) {
             if (button.dataset.yieldKind === state.yieldKind) return;
             state.yieldKind = button.dataset.yieldKind;
             state.filteredPlantKey = null;
+            state.activeAverageGroup = null;
             state.editingId = null;
             renderPage(container);
         });
@@ -1379,13 +1439,19 @@ function bindPage(container) {
     });
     if (state.yieldKind === 'plant') {
         bindPlantField(container, 'plantKey', (value) => {
-            state.filteredPlantKey = value || null;
+            if (!state.editingId) {
+                state.filteredPlantKey = value || null;
+            }
+            openAverageGroup(value);
             syncAutomaticPlots(container);
             refreshResult(container);
         });
     } else {
         bindAnimalField(container, 'plantKey', (value) => {
-            state.filteredPlantKey = value || null;
+            if (!state.editingId) {
+                state.filteredPlantKey = value || null;
+            }
+            openAverageGroup(value);
             syncAnimalProductField(container);
             syncAutomaticPlots(container);
             refreshResult(container);

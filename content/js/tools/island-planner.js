@@ -1303,7 +1303,7 @@ function renderPage(container) {
     const overrideVal = state.plotsOverride != null ? String(state.plotsOverride) : '';
     const factionAvail = factionMountForCity(state.islandCity, state.factionTier);
     container.innerHTML = `
-        <section class="farming-hero">
+        <section class="page-head" data-page-head="island-planner">
             <h1>Ada Planlayıcı</h1>
             <p>Ada plotlarını <strong>ham gümüş/gün</strong> (zaman-normalize kâr) için planlar. Aday defteri her path’in maliyet / gelir / kârını ve ada yemi fırsat maliyetini canlı gösterir. Likidite ve volatilite yalnızca uyarıdır; ince pazar elenmez.</p>
         </section>

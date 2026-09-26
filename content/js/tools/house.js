@@ -266,7 +266,7 @@ function renderPage(container) {
     clampState();
 
     container.innerHTML = `
-        <section class="house-hero">
+        <section class="page-head" data-page-head="house">
             <h1>House</h1>
             <p>Ada evi ve guild hall yükseltmesi. Oyunun istediği T1 + block; yanında isteğe bağlı ham taş (0% RR). Fiyat yok.</p>
         </section>

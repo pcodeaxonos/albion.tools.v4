@@ -1,0 +1,137 @@
+[
+  {
+    "id": "01-gunluk-bonus",
+    "label": "Günlük Bonus",
+    "desktop": "desktop/01-gunluk-bonus.webp",
+    "mobile": "mobile/01-gunluk-bonus.webp",
+    "desktop_size": "2048x420",
+    "mobile_size": "1200x480",
+    "suggested_background_position": "56% center"
+  },
+  {
+    "id": "02-ada-cikti",
+    "label": "Ada Çıktı",
+    "desktop": "desktop/02-ada-cikti.webp",
+    "mobile": "mobile/02-ada-cikti.webp",
+    "desktop_size": "2048x420",
+    "mobile_size": "1200x480",
+    "suggested_background_position": "56% center"
+  },
+  {
+    "id": "03-farming",
+    "label": "Farming",
+    "desktop": "desktop/03-farming.webp",
+    "mobile": "mobile/03-farming.webp",
+    "desktop_size": "2048x420",
+    "mobile_size": "1200x480",
+    "suggested_background_position": "56% center"
+  },
+  {
+    "id": "04-pasture",
+    "label": "Pasture",
+    "desktop": "desktop/04-pasture.webp",
+    "mobile": "mobile/04-pasture.webp",
+    "desktop_size": "2048x420",
+    "mobile_size": "1200x480",
+    "suggested_background_position": "56% center"
+  },
+  {
+    "id": "05-ada-planlayici",
+    "label": "Ada Planlayıcı",
+    "desktop": "desktop/05-ada-planlayici.webp",
+    "mobile": "mobile/05-ada-planlayici.webp",
+    "desktop_size": "2048x420",
+    "mobile_size": "1200x480",
+    "suggested_background_position": "56% center"
+  },
+  {
+    "id": "06-ada-planlayici-v2",
+    "label": "Ada Planlayıcı V2",
+    "desktop": "desktop/06-ada-planlayici-v2.webp",
+    "mobile": "mobile/06-ada-planlayici-v2.webp",
+    "desktop_size": "2048x420",
+    "mobile_size": "1200x480",
+    "suggested_background_position": "56% center"
+  },
+  {
+    "id": "07-sehir-makasi",
+    "label": "Şehir Makası",
+    "desktop": "desktop/07-sehir-makasi.webp",
+    "mobile": "mobile/07-sehir-makasi.webp",
+    "desktop_size": "2048x420",
+    "mobile_size": "1200x480",
+    "suggested_background_position": "56% center"
+  },
+  {
+    "id": "08-faction",
+    "label": "Faction",
+    "desktop": "desktop/08-faction.webp",
+    "mobile": "mobile/08-faction.webp",
+    "desktop_size": "2048x420",
+    "mobile_size": "1200x480",
+    "suggested_background_position": "56% center"
+  },
+  {
+    "id": "09-refining",
+    "label": "Refining",
+    "desktop": "desktop/09-refining.webp",
+    "mobile": "mobile/09-refining.webp",
+    "desktop_size": "2048x420",
+    "mobile_size": "1200x480",
+    "suggested_background_position": "56% center"
+  },
+  {
+    "id": "10-furniture",
+    "label": "Furniture",
+    "desktop": "desktop/10-furniture.webp",
+    "mobile": "mobile/10-furniture.webp",
+    "desktop_size": "2048x420",
+    "mobile_size": "1200x480",
+    "suggested_background_position": "56% center"
+  },
+  {
+    "id": "11-house",
+    "label": "House",
+    "desktop": "desktop/11-house.webp",
+    "mobile": "mobile/11-house.webp",
+    "desktop_size": "2048x420",
+    "mobile_size": "1200x480",
+    "suggested_background_position": "56% center"
+  },
+  {
+    "id": "12-ava-craft",
+    "label": "Ava Craft",
+    "desktop": "desktop/12-ava-craft.webp",
+    "mobile": "mobile/12-ava-craft.webp",
+    "desktop_size": "2048x420",
+    "mobile_size": "1200x480",
+    "suggested_background_position": "56% center"
+  },
+  {
+    "id": "13-caerleon-craft",
+    "label": "Caerleon Craft",
+    "desktop": "desktop/13-caerleon-craft.webp",
+    "mobile": "mobile/13-caerleon-craft.webp",
+    "desktop_size": "2048x420",
+    "mobile_size": "1200x480",
+    "suggested_background_position": "56% center"
+  },
+  {
+    "id": "14-royal-crafting",
+    "label": "Royal Crafting",
+    "desktop": "desktop/14-royal-crafting.webp",
+    "mobile": "mobile/14-royal-crafting.webp",
+    "desktop_size": "2048x420",
+    "mobile_size": "1200x480",
+    "suggested_background_position": "56% center"
+  },
+  {
+    "id": "15-enchanting",
+    "label": "Enchanting",
+    "desktop": "desktop/15-enchanting.webp",
+    "mobile": "mobile/15-enchanting.webp",
+    "desktop_size": "2048x420",
+    "mobile_size": "1200x480",
+    "suggested_background_position": "56% center"
+  }
+]

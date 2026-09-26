@@ -637,7 +637,7 @@ function refreshOutput(container) {
 
 function renderPage(container) {
     container.innerHTML = `
-        <section class="carleon-hero">
+        <section class="page-head" data-page-head="caerleon-craft">
             <h1>Caerleon Craft</h1>
             <p>T2 set1 craft. Malzeme Caerleon, satış Black Market. Alışta buy +1 / sell aynı fiyat. Satışta sell −1 / buy aynı fiyat. Emirde setup fee, satışta vergi. Alış/satış alanına yazınca o fiyat kullanılır.</p>
         </section>

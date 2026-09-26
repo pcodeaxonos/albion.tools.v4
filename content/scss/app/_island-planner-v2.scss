@@ -2,7 +2,7 @@
 /* V2 consumes the shell's remaining flex space instead of adding viewport height
    to main's normal page padding. */
 @media (min-width: 1200px) {
-  main:has([data-island-planner-v2]) { flex: 1 1 auto; min-height: 0; display: flex; padding-block: .5rem; }
+  main:has([data-island-planner-v2]) { flex: 1 1 auto; min-height: 0; display: flex; padding-block: 0; }
   main:has([data-island-planner-v2]) > .container { flex: 1 1 auto; min-height: 0; display: flex; }
   [data-island-planner-v2] { flex: 1 1 auto; min-height: 0; display: flex; }
   .island-v2-page { height: 100%; max-height: none; min-height: 0; flex: 1 1 auto; }
@@ -24,8 +24,8 @@
   .island-v2-actions { margin-top: .1rem; }
 
   /* Shared outer and inter-area rhythm; the geometry observer retains islandSize. */
-  main:has([data-island-planner-v2]) { padding-block: .625rem; }
-  main:has([data-island-planner-v2]) > .container { padding-inline: .625rem; }
+  main:has([data-island-planner-v2]) { padding-block: 0; }
+  main:has([data-island-planner-v2]) > .container { padding-inline: 0; }
   .island-v2-layout { gap: .625rem; }
   .island-v2-controls { gap: .3rem; }
   .island-v2-group-label { margin-bottom: .14rem; }
@@ -35,6 +35,21 @@
   .island-v2-actions { gap: .2rem; margin-top: .18rem; }
   .island-v2-actions .btn { min-height: 1.72rem; }
   .island-v2-right { gap: .625rem; }
+}
+
+.island-v2-page {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.island-v2-page > .page-head {
+  flex: 0 0 auto;
+}
+
+.island-v2-layout {
+  height: auto;
+  flex: 1 1 auto;
 }
 
 /* Locked component details; layout geometry above remains unchanged. */

@@ -64,3 +64,30 @@
 .yield-card-footer { position:absolute; left:.76rem; right:.76rem; bottom:.3rem; z-index:3; display:flex; align-items:center; justify-content:space-between; height:1.13rem; min-height:0; margin:0; padding:0; border:0; border-radius:0; color:#fff; background:transparent; font-size:.64rem; }.yield-card-footer svg { width:13px; height:13px; flex:none; vertical-align:middle; }.yield-confidence { display:flex; align-items:center; gap:.19rem; }.yield-confidence i { width:.6rem; height:.6rem; border-radius:50%; background:color-mix(in srgb,var(--color-item-tier) 42%,#11161d 58%); }.yield-avg-card.is-confidence-1 .yield-confidence i:nth-child(-n + 1),.yield-avg-card.is-confidence-2 .yield-confidence i:nth-child(-n + 2),.yield-avg-card.is-confidence-3 .yield-confidence i:nth-child(-n + 3),.yield-avg-card.is-confidence-4 .yield-confidence i:nth-child(-n + 4) { background:var(--color-item-tier); box-shadow:0 0 .42rem color-mix(in srgb,var(--color-item-tier) 70%,transparent); }
 .yield-avg-card.is-passive { --color-item-tier:var(--color-border-strong); opacity:.28; filter:grayscale(1) saturate(0); }.yield-avg-card.is-selected { outline:2px solid color-mix(in srgb,var(--color-item-tier) 45%,white 55%); outline-offset:2px; }
 @media (max-width:640px) { .yield-avg-row { gap:.2rem; } }
+
+/* Grup sekmeleri solda kalır; seçili grubun tier kartları sağda gösterilir. */
+.yield-averages-layout { display:grid; grid-template-columns:1.5rem minmax(0,1fr); gap:.5rem; align-items:start; }
+.yield-group-tabs { display:flex; flex-direction:column; align-items:center; gap:.35rem; position:sticky; top:calc(var(--app-topbar-height, 0px) + .75rem); }
+.yield-group-tab-list { display:grid; justify-items:center; gap:.35rem; }
+.yield-group-tab,.yield-group-action { display:grid; place-items:center; width:1.5rem; height:1.5rem; min-width:0; min-height:0; margin:0; padding:.2rem; border:1px solid var(--color-border); border-radius:50%; color:var(--color-text-muted); background:var(--color-surface-raised); cursor:pointer; }
+.yield-group-tab svg,.yield-group-action svg { width:100%; height:100%; }
+.yield-group-tab:hover,.yield-group-tab:focus-visible { border-color:var(--color-primary); color:var(--color-text); outline:none; }
+.yield-group-tab:focus-visible { box-shadow:0 0 0 2px color-mix(in srgb,var(--color-primary) 45%,transparent); }
+.yield-group-tab.is-active { border-color:var(--color-primary); color:var(--color-text); background:color-mix(in srgb,var(--color-primary) 18%,var(--color-surface-raised)); box-shadow:0 0 0 1px color-mix(in srgb,var(--color-primary) 45%,transparent); }
+.yield-group-action { padding:.3rem; color:var(--color-text-muted); }
+.yield-group-action:hover,.yield-group-action:focus-visible { border-color:var(--color-primary); color:var(--color-text); outline:none; }
+.yield-group-action:disabled { opacity:.38; cursor:default; }
+.yield-group-panel { min-width:0; }
+
+/* Ada çıktıları seçili grupta tier kolonlarında toplanır. */
+.yield-tier-matrix { display:grid; grid-template-columns:repeat(8,minmax(0,1fr)); gap:.5rem; align-items:start; width:100%; padding:.08rem 0 .46rem; }
+.yield-tier-column { display:grid; gap:.45rem; min-width:0; }
+.yield-tier-column-title { margin:0; padding:.25rem .35rem; border-radius:.3rem; color:var(--color-text-muted); background:var(--color-surface-raised); font-size:.75rem; line-height:1; text-align:center; }
+.yield-tier-column-content { display:grid; gap:.7rem; }
+.yield-tier-list { display:grid; gap:.3rem; min-width:0; }
+.yield-tier-list-title { min-height:1.7rem; margin:0; color:var(--color-text-muted); font-size:.67rem; line-height:1.2; }
+.yield-tier-list .yield-avg-card { width:100%; }
+
+@media (max-width:640px) {
+  .yield-tier-matrix { grid-template-columns:repeat(2,minmax(0,1fr)); gap:.8rem .45rem; }
+}

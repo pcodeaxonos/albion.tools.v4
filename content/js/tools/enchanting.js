@@ -399,7 +399,7 @@ function refreshOutput(container) {
 
 function renderPage(container) {
     container.innerHTML = `
-        <section class="enchant-hero">
+        <section class="page-head" data-page-head="enchanting">
             <h1>Enchanting</h1>
             <p>Seçilen slot’u kaçtan kaça çıkarmanın gümüş maliyeti. Excel tablosu: yol × T4–T8. Standart ayar (4.3 / 5.2 / 6.1 gibi) vurgulanır; sıra Ayarlar’dan değişir ve Royal Crafting’de de kullanılır. Fiyatlar şehirden; boşsa elle yazın.</p>
         </section>

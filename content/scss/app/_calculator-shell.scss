@@ -107,7 +107,7 @@
         overflow-x: hidden;
         overflow-y: auto;
         overscroll-behavior: contain;
-        padding-top: var(--tool-split-float-room);
+        padding-top: 0;
         padding-bottom: var(--spacing-md);
         background-color: var(--color-bg);
     }
@@ -247,7 +247,7 @@
 
     // Same float-label room as the left column so field tops match thead.
     @media (min-width: 992px) {
-        padding-top: var(--tool-split-float-room);
+        padding-top: 0;
     }
 }
 
@@ -316,4 +316,3 @@
         background-color: color-mix(in srgb, var(--color-primary) 14%, var(--color-surface));
     }
 }
-

@@ -1,0 +1,9 @@
+/* Albion Tools header background example */
+.tool-head {
+  background-image: linear-gradient(to bottom, rgba(11,12,14,0) 72%, #0b0c0e 100%), var(--head-bg);
+  background-size: cover;
+  background-position: 56% center;
+}
+@media (max-width: 700px) {
+  .tool-head { background-image: var(--head-bg-mobile, var(--head-bg)); }
+}

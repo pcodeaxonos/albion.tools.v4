@@ -3912,7 +3912,7 @@ a.tool-card:hover {
     overflow-x: hidden;
     overflow-y: auto;
     overscroll-behavior: contain;
-    padding-top: var(--tool-split-float-room);
+    padding-top: 0;
     padding-bottom: var(--spacing-md);
     background-color: var(--color-bg);
   }
@@ -4119,7 +4119,7 @@ a.tool-card:hover {
 }
 @media (min-width: 992px) {
   .tool-split-result {
-    padding-top: var(--tool-split-float-room);
+    padding-top: 0;
   }
 }
 
@@ -4705,36 +4705,217 @@ a.tool-card:hover {
   font-size: 1.125rem;
 }
 
-.bonus-hero,
-.settings-hero,
-.carleon-hero,
-.ava-hero,
-.enchant-hero,
-.farming-hero,
-.pasture-hero {
-  margin-bottom: var(--spacing-lg);
-  padding-bottom: var(--spacing-md);
-  border-bottom: var(--border-width) solid var(--color-border);
+.page-head {
+  --page-head-content-height: 4vw;
+  position: relative;
+  min-height: var(--page-head-content-height);
+  margin: 0;
+  overflow: hidden;
+  background-color: #17202a;
+  background-position: 56% center;
+  background-repeat: no-repeat;
+  background-size: cover;
+  box-shadow: none;
 }
-.bonus-hero h1,
-.settings-hero h1,
-.carleon-hero h1,
-.ava-hero h1,
-.enchant-hero h1,
-.farming-hero h1,
-.pasture-hero h1 {
-  margin-bottom: var(--spacing-sm);
+.page-head::before {
+  position: absolute;
+  z-index: 1;
+  inset: 0;
+  content: "";
+  background: rgba(5, 11, 16, 0.18);
+  pointer-events: none;
 }
-.bonus-hero p,
-.settings-hero p,
-.carleon-hero p,
-.ava-hero p,
-.enchant-hero p,
-.farming-hero p,
-.pasture-hero p {
-  margin-bottom: 0;
-  color: var(--color-text-muted);
+
+.page-head-image {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.page-head-content {
+  display: flex;
+  position: absolute;
+  z-index: 2;
+  top: 0;
+  right: 0;
+  left: 0;
+  height: var(--page-head-content-height);
+  align-items: center;
+  gap: clamp(0.75rem, 2vw, 1.75rem);
+  padding-inline: clamp(1rem, 3vw, 2rem);
+}
+.page-head-content h1,
+.page-head-content p {
+  margin: 0;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8);
+}
+.page-head-content h1 {
+  flex: 0 0 auto;
+  color: var(--color-text);
+  white-space: nowrap;
+}
+.page-head-content p {
+  min-width: 0;
   max-width: 56rem;
+  color: color-mix(in srgb, var(--color-text) 88%, transparent);
+}
+
+.page-head-others {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: var(--spacing-sm);
+  margin-left: auto;
+}
+
+main:has(.page-head) {
+  padding-top: 0;
+}
+
+.tool-page {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.page-body {
+  --page-body-head-overlap: clamp(2rem, 5vw, 4.5rem);
+  position: relative;
+  z-index: 1;
+  isolation: isolate;
+  padding-left: var(--spacing-lg);
+  padding-right: var(--spacing-lg);
+}
+.page-body::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  top: calc(-1 * var(--page-body-head-overlap));
+  right: 0;
+  left: 0;
+  height: var(--page-body-head-overlap);
+  background: linear-gradient(to bottom, transparent, var(--color-bg));
+  pointer-events: none;
+}
+
+@media (min-width: 769px) {
+  .page-head-content p {
+    flex: 0 1 clamp(18rem, 40vw, 42rem);
+    max-width: 40vw;
+  }
+}
+.page-head[data-page-head=daily-bonus] {
+  background-image: url("../../content/images/page-heads/desktop/01-gunluk-bonus.webp");
+}
+
+.page-head[data-page-head=island-yields] {
+  background-image: url("../../content/images/page-heads/desktop/02-ada-cikti.webp");
+}
+
+.page-head[data-page-head=farming] {
+  background-image: url("../../content/images/page-heads/desktop/03-farming.webp");
+}
+
+.page-head[data-page-head=pasture] {
+  background-image: url("../../content/images/page-heads/desktop/04-pasture.webp");
+}
+
+.page-head[data-page-head=island-planner] {
+  background-image: url("../../content/images/page-heads/desktop/05-ada-planlayici.webp");
+}
+
+.page-head[data-page-head=island-planner-v2] {
+  background-image: url("../../content/images/page-heads/desktop/06-ada-planlayici-v2.webp");
+}
+
+.page-head[data-page-head=city-spread] {
+  background-image: url("../../content/images/page-heads/desktop/07-sehir-makasi.webp");
+}
+
+.page-head[data-page-head=faction] {
+  background-image: url("../../content/images/page-heads/desktop/08-faction.webp");
+}
+
+.page-head[data-page-head=refining] {
+  background-image: url("../../content/images/page-heads/desktop/09-refining.webp");
+}
+
+.page-head[data-page-head=furniture] {
+  background-image: url("../../content/images/page-heads/desktop/10-furniture.webp");
+}
+
+.page-head[data-page-head=house] {
+  background-image: url("../../content/images/page-heads/desktop/11-house.webp");
+}
+
+.page-head[data-page-head=ava-craft] {
+  background-image: url("../../content/images/page-heads/desktop/12-ava-craft.webp");
+}
+
+.page-head[data-page-head=caerleon-craft] {
+  background-image: url("../../content/images/page-heads/desktop/13-caerleon-craft.webp");
+}
+
+.page-head[data-page-head=royal-crafting] {
+  background-image: url("../../content/images/page-heads/desktop/14-royal-crafting.webp");
+}
+
+.page-head[data-page-head=enchanting] {
+  background-image: url("../../content/images/page-heads/desktop/15-enchanting.webp");
+}
+
+@media (max-width: 768px) {
+  .page-head {
+    --page-head-content-height: 4vw;
+  }
+  .page-head[data-page-head=daily-bonus] {
+    background-image: url("../../content/images/page-heads/mobile/01-gunluk-bonus.webp");
+  }
+  .page-head[data-page-head=island-yields] {
+    background-image: url("../../content/images/page-heads/mobile/02-ada-cikti.webp");
+  }
+  .page-head[data-page-head=farming] {
+    background-image: url("../../content/images/page-heads/mobile/03-farming.webp");
+  }
+  .page-head[data-page-head=pasture] {
+    background-image: url("../../content/images/page-heads/mobile/04-pasture.webp");
+  }
+  .page-head[data-page-head=island-planner] {
+    background-image: url("../../content/images/page-heads/mobile/05-ada-planlayici.webp");
+  }
+  .page-head[data-page-head=island-planner-v2] {
+    background-image: url("../../content/images/page-heads/mobile/06-ada-planlayici-v2.webp");
+  }
+  .page-head[data-page-head=city-spread] {
+    background-image: url("../../content/images/page-heads/mobile/07-sehir-makasi.webp");
+  }
+  .page-head[data-page-head=faction] {
+    background-image: url("../../content/images/page-heads/mobile/08-faction.webp");
+  }
+  .page-head[data-page-head=refining] {
+    background-image: url("../../content/images/page-heads/mobile/09-refining.webp");
+  }
+  .page-head[data-page-head=furniture] {
+    background-image: url("../../content/images/page-heads/mobile/10-furniture.webp");
+  }
+  .page-head[data-page-head=house] {
+    background-image: url("../../content/images/page-heads/mobile/11-house.webp");
+  }
+  .page-head[data-page-head=ava-craft] {
+    background-image: url("../../content/images/page-heads/mobile/12-ava-craft.webp");
+  }
+  .page-head[data-page-head=caerleon-craft] {
+    background-image: url("../../content/images/page-heads/mobile/13-caerleon-craft.webp");
+  }
+  .page-head[data-page-head=royal-crafting] {
+    background-image: url("../../content/images/page-heads/mobile/14-royal-crafting.webp");
+  }
+  .page-head[data-page-head=enchanting] {
+    background-image: url("../../content/images/page-heads/mobile/15-enchanting.webp");
+  }
+}
+.page-head.has-page-head-image {
+  background-image: none;
 }
 
 .bonus-toolbar {
@@ -4981,20 +5162,6 @@ a.tool-card:hover {
 .db-summary-meta {
   font-size: var(--font-size-sm);
   color: var(--color-text-muted);
-}
-
-.house-hero {
-  margin-bottom: var(--spacing-lg);
-  padding-bottom: var(--spacing-md);
-  border-bottom: var(--border-width) solid var(--color-border);
-}
-.house-hero h1 {
-  margin-bottom: var(--spacing-sm);
-}
-.house-hero p {
-  margin-bottom: 0;
-  color: var(--color-text-muted);
-  max-width: 42rem;
 }
 
 .house-calc {
@@ -7675,6 +7842,15 @@ a.tool-card:hover {
 .yield-log-section {
   min-width: 0;
 }
+.yield-log-section .calc-table-wrap.table-responsive {
+  height: clamp(14rem, 35dvh, 22rem);
+  overflow: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+}
+.yield-log-section .calc-table thead th {
+  top: 0;
+}
 
 .yield-month-field {
   max-width: 12rem;
@@ -8065,24 +8241,9 @@ a.tool-card:hover {
   height: 0.65rem;
 }
 
-.bonus-hero-head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
-}
-
-.bonus-hero-head h1 {
-  margin-bottom: 0;
-}
-
 .yield-auto-plots-check {
   margin: -0.05rem 0 0;
   font-size: var(--font-size-sm);
-}
-
-.bonus-hero > p {
-  margin-top: 0.35rem;
 }
 
 .bonus-analysis-trigger {
@@ -13082,6 +13243,143 @@ a.tool-card:hover {
     gap: 0.2rem;
   }
 }
+/* Grup sekmeleri solda kalır; seçili grubun tier kartları sağda gösterilir. */
+.yield-averages-layout {
+  display: grid;
+  grid-template-columns: 1.5rem minmax(0, 1fr);
+  gap: 0.5rem;
+  align-items: start;
+}
+
+.yield-group-tabs {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.35rem;
+  position: sticky;
+  top: calc(var(--app-topbar-height, 0px) + 0.75rem);
+}
+
+.yield-group-tab-list {
+  display: grid;
+  justify-items: center;
+  gap: 0.35rem;
+}
+
+.yield-group-tab, .yield-group-action {
+  display: grid;
+  place-items: center;
+  width: 1.5rem;
+  height: 1.5rem;
+  min-width: 0;
+  min-height: 0;
+  margin: 0;
+  padding: 0.2rem;
+  border: 1px solid var(--color-border);
+  border-radius: 50%;
+  color: var(--color-text-muted);
+  background: var(--color-surface-raised);
+  cursor: pointer;
+}
+
+.yield-group-tab svg, .yield-group-action svg {
+  width: 100%;
+  height: 100%;
+}
+
+.yield-group-tab:hover, .yield-group-tab:focus-visible {
+  border-color: var(--color-primary);
+  color: var(--color-text);
+  outline: none;
+}
+
+.yield-group-tab:focus-visible {
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-primary) 45%, transparent);
+}
+
+.yield-group-tab.is-active {
+  border-color: var(--color-primary);
+  color: var(--color-text);
+  background: color-mix(in srgb, var(--color-primary) 18%, var(--color-surface-raised));
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--color-primary) 45%, transparent);
+}
+
+.yield-group-action {
+  padding: 0.3rem;
+  color: var(--color-text-muted);
+}
+
+.yield-group-action:hover, .yield-group-action:focus-visible {
+  border-color: var(--color-primary);
+  color: var(--color-text);
+  outline: none;
+}
+
+.yield-group-action:disabled {
+  opacity: 0.38;
+  cursor: default;
+}
+
+.yield-group-panel {
+  min-width: 0;
+}
+
+/* Ada çıktıları seçili grupta tier kolonlarında toplanır. */
+.yield-tier-matrix {
+  display: grid;
+  grid-template-columns: repeat(8, minmax(0, 1fr));
+  gap: 0.5rem;
+  align-items: start;
+  width: 100%;
+  padding: 0.08rem 0 0.46rem;
+}
+
+.yield-tier-column {
+  display: grid;
+  gap: 0.45rem;
+  min-width: 0;
+}
+
+.yield-tier-column-title {
+  margin: 0;
+  padding: 0.25rem 0.35rem;
+  border-radius: 0.3rem;
+  color: var(--color-text-muted);
+  background: var(--color-surface-raised);
+  font-size: 0.75rem;
+  line-height: 1;
+  text-align: center;
+}
+
+.yield-tier-column-content {
+  display: grid;
+  gap: 0.7rem;
+}
+
+.yield-tier-list {
+  display: grid;
+  gap: 0.3rem;
+  min-width: 0;
+}
+
+.yield-tier-list-title {
+  min-height: 1.7rem;
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: 0.67rem;
+  line-height: 1.2;
+}
+
+.yield-tier-list .yield-avg-card {
+  width: 100%;
+}
+
+@media (max-width: 640px) {
+  .yield-tier-matrix {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.8rem 0.45rem;
+  }
+}
 .island-v2-page {
   height: calc(100dvh - var(--chrome-top) - 1rem);
   max-height: 47rem;
@@ -13608,7 +13906,7 @@ a.tool-card:hover {
     flex: 1 1 auto;
     min-height: 0;
     display: flex;
-    padding-block: 0.5rem;
+    padding-block: 0;
   }
   main:has([data-island-planner-v2]) > .container {
     flex: 1 1 auto;
@@ -13680,10 +13978,10 @@ a.tool-card:hover {
   }
   /* Shared outer and inter-area rhythm; the geometry observer retains islandSize. */
   main:has([data-island-planner-v2]) {
-    padding-block: 0.625rem;
+    padding-block: 0;
   }
   main:has([data-island-planner-v2]) > .container {
-    padding-inline: 0.625rem;
+    padding-inline: 0;
   }
   .island-v2-layout {
     gap: 0.625rem;
@@ -13716,6 +14014,21 @@ a.tool-card:hover {
     gap: 0.625rem;
   }
 }
+.island-v2-page {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.island-v2-page > .page-head {
+  flex: 0 0 auto;
+}
+
+.island-v2-layout {
+  height: auto;
+  flex: 1 1 auto;
+}
+
 /* Locked component details; layout geometry above remains unchanged. */
 .island-v2-toolbar-picked {
   display: grid;

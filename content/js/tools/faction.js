@@ -978,7 +978,7 @@ function refreshOutput(container) {
 
 function renderPage(container) {
     container.innerHTML = `
-        <section class="ava-hero">
+        <section class="page-head" data-page-head="faction">
             <h1>Faction</h1>
             <p>Vendor eşyalarının gümüş / puan değeri ve faction cape craft kârı. Crest artefact (RR yok); düz cape RR alır.</p>
         </section>

@@ -1,0 +1,102 @@
+{
+  "desktop_size": [
+    2048,
+    220
+  ],
+  "mobile_size": [
+    1200,
+    260
+  ],
+  "items": [
+    {
+      "slug": "01-gunluk-bonus",
+      "title": "Günlük Bonus",
+      "desktop": "desktop/01-gunluk-bonus.webp",
+      "mobile": "mobile/01-gunluk-bonus.webp"
+    },
+    {
+      "slug": "02-ada-cikti",
+      "title": "Ada Çıktı",
+      "desktop": "desktop/02-ada-cikti.webp",
+      "mobile": "mobile/02-ada-cikti.webp"
+    },
+    {
+      "slug": "03-farming",
+      "title": "Farming",
+      "desktop": "desktop/03-farming.webp",
+      "mobile": "mobile/03-farming.webp"
+    },
+    {
+      "slug": "04-pasture",
+      "title": "Pasture",
+      "desktop": "desktop/04-pasture.webp",
+      "mobile": "mobile/04-pasture.webp"
+    },
+    {
+      "slug": "05-ada-planlayici",
+      "title": "Ada Planlayıcı",
+      "desktop": "desktop/05-ada-planlayici.webp",
+      "mobile": "mobile/05-ada-planlayici.webp"
+    },
+    {
+      "slug": "06-ada-planlayici-v2",
+      "title": "Ada Planlayıcı V2",
+      "desktop": "desktop/06-ada-planlayici-v2.webp",
+      "mobile": "mobile/06-ada-planlayici-v2.webp"
+    },
+    {
+      "slug": "07-sehir-makasi",
+      "title": "Şehir Makası",
+      "desktop": "desktop/07-sehir-makasi.webp",
+      "mobile": "mobile/07-sehir-makasi.webp"
+    },
+    {
+      "slug": "08-faction",
+      "title": "Faction",
+      "desktop": "desktop/08-faction.webp",
+      "mobile": "mobile/08-faction.webp"
+    },
+    {
+      "slug": "09-refining",
+      "title": "Refining",
+      "desktop": "desktop/09-refining.webp",
+      "mobile": "mobile/09-refining.webp"
+    },
+    {
+      "slug": "10-furniture",
+      "title": "Furniture",
+      "desktop": "desktop/10-furniture.webp",
+      "mobile": "mobile/10-furniture.webp"
+    },
+    {
+      "slug": "11-house",
+      "title": "House",
+      "desktop": "desktop/11-house.webp",
+      "mobile": "mobile/11-house.webp"
+    },
+    {
+      "slug": "12-ava-craft",
+      "title": "Ava Craft",
+      "desktop": "desktop/12-ava-craft.webp",
+      "mobile": "mobile/12-ava-craft.webp"
+    },
+    {
+      "slug": "13-caerleon-craft",
+      "title": "Caerleon Craft",
+      "desktop": "desktop/13-caerleon-craft.webp",
+      "mobile": "mobile/13-caerleon-craft.webp"
+    },
+    {
+      "slug": "14-royal-crafting",
+      "title": "Royal Crafting",
+      "desktop": "desktop/14-royal-crafting.webp",
+      "mobile": "mobile/14-royal-crafting.webp"
+    },
+    {
+      "slug": "15-enchanting",
+      "title": "Enchanting",
+      "desktop": "desktop/15-enchanting.webp",
+      "mobile": "mobile/15-enchanting.webp"
+    }
+  ]
+}

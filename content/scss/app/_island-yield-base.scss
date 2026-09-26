@@ -342,6 +342,17 @@
 
 .yield-log-section {
     min-width: 0;
+
+    .calc-table-wrap.table-responsive {
+        height: clamp(14rem, 35dvh, 22rem);
+        overflow: auto;
+        overscroll-behavior: contain;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .calc-table thead th {
+        top: 0;
+    }
 }
 
 .yield-month-field {
@@ -727,4 +738,3 @@
     width: 0.65rem;
     height: 0.65rem;
 }
-

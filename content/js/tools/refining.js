@@ -839,7 +839,7 @@ function renderOutput() {
 
 function renderPage(container) {
     container.innerHTML = `
-        <section class="farming-hero">
+        <section class="page-head" data-page-head="refining">
             <h1>Refining</h1>
             <p>Seçilen hammaddede hangi kademeyi işlemenin kâr bıraktığı. Ham alış, refine ve satış şehirleri ayrı; focus ve günlük bonus RR’yi değiştirir.</p>
         </section>

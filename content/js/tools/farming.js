@@ -673,7 +673,7 @@ function refreshOutput(container) {
 
 function renderPage(container) {
     container.innerHTML = `
-        <section class="farming-hero">
+        <section class="page-head" data-page-head="farming">
             <h1>Farming</h1>
             <p>Seçilen şehirde ekin / ot birim maliyeti. Tohum NPC’ye göre ucuz veya pahalı işaretlenir. Birim hasat alışından düşükse üret; değilse al, plotu daha ucuz ürüne ver.</p>
         </section>

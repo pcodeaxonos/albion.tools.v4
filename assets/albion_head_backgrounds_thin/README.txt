@@ -1,0 +1,1 @@
+Albion Tools thin head backgrounds pack. Desktop 2048x220, mobile 1200x260. Use background-size: cover.

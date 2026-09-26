@@ -763,7 +763,7 @@ function refreshOutput(container) {
 
 function renderPage(container) {
     container.innerHTML = `
-        <section class="ava-hero">
+        <section class="page-head" data-page-head="furniture">
             <h1>Furniture</h1>
             <p>Ada evine konan dekorasyon: sandık, yatak ve masa. Malzeme ve satış aynı şehir; carpenter RR şehir tabanı + bonus.</p>
         </section>

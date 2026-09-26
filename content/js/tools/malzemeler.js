@@ -396,7 +396,7 @@ function renderOutput() {
 function renderPage(container) {
     const group = currentGroup();
     container.innerHTML = `
-        <section class="farming-hero">
+        <section class="page-head" data-page-head="city-spread">
             <h1>Şehir Makası</h1>
             <p>Bir şehirden alıp diğerinde sat: plank, bar, leather, cloth ve binek. Vergi ve setup diğer araçlarla aynı.</p>
         </section>

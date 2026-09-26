@@ -800,7 +800,7 @@ function refreshOutput(container) {
 
 function renderPage(container) {
     container.innerHTML = `
-        <section class="ava-hero">
+        <section class="page-head" data-page-head="ava-craft">
             <h1>Ava Craft</h1>
             <p>Avalonian gathering tool. Malzeme şehir ortalaması, satış seçilen şehir. RR taban + bonus; Avalonian Energy RR almaz.</p>
         </section>

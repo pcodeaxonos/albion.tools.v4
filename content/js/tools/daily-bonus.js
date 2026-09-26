@@ -969,9 +969,10 @@ function renderPage(container) {
     const defaultDate = toYearMonth(today) === state.month ? today : `${state.month}-01`;
 
     container.innerHTML = `
-        <section class="bonus-hero">
-            <div class="bonus-hero-head"><h1>Günlük Bonus</h1><button type="button" class="bonus-analysis-trigger${state.analysis.usedRecipeFallback ? ' has-recipe-warning' : ''}" id="openBonusAnalysis"${state.analysis.preparing ? ' disabled' : ''}${state.analysis.usedRecipeFallback ? ' title="Veritabanında eksik tarif bulundu; GameInfo fallback kullanıldı."' : ''}>${state.analysis.preparing ? '<i class="bonus-analysis-trigger-spinner" aria-hidden="true"></i><span>Analiz hazırlanıyor…</span>' : '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 19V5m0 14h16M7 15l3-3 3 2 5-6"/><path d="M15 8h3v3"/></svg><span>Craft Analizi</span>'}</button></div>
+        <section class="page-head" data-page-head="daily-bonus">
+            <h1>Günlük Bonus</h1>
             <p>Her gün iki craft / refine bonusu. Gün 13:00’te yenilenir. Oyun API’sinden gelmez; buraya kaydedilir. Unutulan günler boş bırakılabilir.</p>
+            <div class="bonus-page-actions"><button type="button" class="bonus-analysis-trigger${state.analysis.usedRecipeFallback ? ' has-recipe-warning' : ''}" id="openBonusAnalysis"${state.analysis.preparing ? ' disabled' : ''}${state.analysis.usedRecipeFallback ? ' title="Veritabanında eksik tarif bulundu; GameInfo fallback kullanıldı."' : ''}>${state.analysis.preparing ? '<i class="bonus-analysis-trigger-spinner" aria-hidden="true"></i><span>Analiz hazırlanıyor…</span>' : '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 19V5m0 14h16M7 15l3-3 3 2 5-6"/><path d="M15 8h3v3"/></svg><span>Craft Analizi</span>'}</button></div>
         </section>
 
         <div class="tool-split">
