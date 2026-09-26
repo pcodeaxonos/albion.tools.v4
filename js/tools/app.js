@@ -18,7 +18,7 @@ async function init() {
     try {
         await initStore();
         if (!hasTodayDailyBonus()) {
-            location.replace('daily-bonus.html?need=today#bonusForm');
+            location.replace('/pages/logs/daily-bonus.html?need=today#bonusForm');
             return;
         }
         await renderDashboard(dashboardContainer);

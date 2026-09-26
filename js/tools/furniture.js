@@ -377,7 +377,7 @@ function renderBonusNote() {
 
     return `<p class="ava-note">RR ${formatPct(returnRate())}${extra}. Carpenter şehir tabanı ${cityProduction()}%.
         Bugün (${escapeHtml(bonusWindowLabel(bonusDayIso()))}): ${today}
-        <a href="daily-bonus.html">Günlük bonus</a></p>`;
+        <a href="/pages/logs/daily-bonus.html">Günlük bonus</a></p>`;
 }
 
 function renderTierMats() {

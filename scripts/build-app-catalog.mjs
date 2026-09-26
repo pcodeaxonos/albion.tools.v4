@@ -90,28 +90,28 @@ for (const group of materialGroups) {
 }
 
 const siteTools = [
-    { id: 1, code: 'daily-bonus', title: 'Günlük Bonus', description: 'Her gün iki craft / refine bonusunu kaydedin. Ay içi tekrar sayıları hesaplanır.', icon: '✨', href: 'daily-bonus.html', addedAt: '2026-06-01', groupLabel: 'Kayıt', frequent: true, sortValue: 10, isActive: true },
-    { id: 14, code: 'island-yields', title: 'Ada Çıktı', description: 'Ada hasat yield’lerini kaydedin; ortalamalar farming ve planlayıcıda kullanılır.', icon: '📊', href: 'island-yields.html', addedAt: '2026-09-13', groupLabel: 'Kayıt', frequent: true, sortValue: 15, isActive: true },
-    { id: 2, code: 'farmin', title: 'Farming', description: 'Tarım verimi ve focus; Martlock, Thetford ve Brecilien.', icon: '🌱', href: 'farming.html', addedAt: '2026-09-05', groupLabel: 'Ada', frequent: true, sortValue: 20, isActive: true },
-    { id: 3, code: 'pasture', title: 'Pasture', description: 'Hayvan büyütme, kesme ve süt/yumurta kârı; yem ada veya piyasa.', icon: '🐑', href: 'pasture.html', addedAt: '2026-09-07', groupLabel: 'Ada', frequent: true, sortValue: 30, isActive: true },
-    { id: 4, code: 'island-planner', title: 'Ada Planlayıcı', description: 'Ham gümüş/gün; sade / zincir / karışık; faction kilit.', icon: '🏝️', href: 'island-planner.html', addedAt: '2026-09-07', groupLabel: 'Ada', frequent: true, sortValue: 40, isActive: true },
-    { id: 15, code: 'island-planner-v2', title: 'Ada Planlayıcı V2', description: 'Slot tabanlı ada planı; V1 bağımsız olarak korunur.', icon: '🏝️', href: 'island-planner-v2.html', addedAt: '2026-09-20', groupLabel: 'Ada', frequent: false, sortValue: 41, isActive: true },
-    { id: 16, code: 'trades', title: 'Trade Dashboard', description: 'SAT trade geçmişi: filtre, özet ve canlı akış.', icon: '📈', href: 'trades.html', addedAt: '2026-09-23', groupLabel: 'Piyasa', frequent: true, sortValue: 45, isActive: true },
-    { id: 5, code: 'malzemeler', title: 'Şehir Makası', description: 'Plank, bar, binek: bir şehirden alıp diğerinde satmanın net kârı.', icon: '🪵', href: 'malzemeler.html', addedAt: '2026-09-06', groupLabel: 'Piyasa', frequent: true, sortValue: 50, isActive: true },
-    { id: 6, code: 'faction', title: 'Faction', description: 'Crest puan değeri ve faction cape maliyeti / kârı.', icon: '🛡️', href: 'faction.html', addedAt: '2026-08-23', groupLabel: 'Piyasa', frequent: false, sortValue: 60, isActive: true },
-    { id: 7, code: 'refining', title: 'Refining', description: 'Ore / logs refine maliyeti, return rate ve kâr.', icon: '🔥', href: 'refining.html', addedAt: '2026-09-05', groupLabel: 'Üretim', frequent: true, sortValue: 70, isActive: true },
-    { id: 8, code: 'furniture', title: 'Furniture', description: 'Ada evi dekorasyonu: sandık, yatak ve masa craft maliyeti / kârı.', icon: '🪑', href: 'furniture.html', addedAt: '2026-09-06', groupLabel: 'Üretim', frequent: true, sortValue: 80, isActive: true },
-    { id: 9, code: 'house', title: 'House', description: 'Ev ve guild hall yükseltme: oyunun istediği T1 + block, isteğe bağlı ham eşdeğer.', icon: '🏠', href: 'house.html', addedAt: '2026-07-01', groupLabel: 'Üretim', frequent: false, sortValue: 90, isActive: true },
-    { id: 10, code: 'ava-craft', title: 'Ava Craft', description: 'Avalonian tool craft maliyeti ve kârı.', icon: '⚡', href: 'ava-craft.html', addedAt: '2026-07-20', groupLabel: 'Üretim', frequent: false, sortValue: 100, isActive: true },
-    { id: 11, code: 'carleon-craft', title: 'Caerleon Craft', description: 'Caerleon / Black Market craft maliyeti ve kârı.', icon: '🗡️', href: 'carleon-craft.html', addedAt: '2026-08-15', groupLabel: 'Üretim', frequent: false, sortValue: 110, isActive: true },
-    { id: 12, code: 'royal-craft', title: 'Royal Crafting', description: 'Royal giyilebilir: SET + sigil craft, enchant ve şehir kârı.', icon: '👑', href: 'royal-craft.html', addedAt: '2026-09-13', groupLabel: 'Üretim', frequent: true, sortValue: 115, isActive: true },
-    { id: 13, code: 'enchantin', title: 'Enchanting', description: 'Rune, soul ve relic: kaçtan kaça çıkarmanın gümüş maliyeti.', icon: '🔮', href: 'enchanting.html', addedAt: '2026-08-23', groupLabel: 'Üretim', frequent: false, sortValue: 120, isActive: true }
+    { id: 1, code: 'daily-bonus', title: 'Günlük Bonus', description: 'Her gün iki craft / refine bonusunu kaydedin. Ay içi tekrar sayıları hesaplanır.', icon: '✨', href: '/pages/logs/daily-bonus.html', addedAt: '2026-06-01', groupLabel: 'Kayıt', frequent: true, sortValue: 10, isActive: true },
+    { id: 14, code: 'island-yields', title: 'Ada Çıktı', description: 'Ada hasat yield’lerini kaydedin; ortalamalar farming ve planlayıcıda kullanılır.', icon: '📊', href: '/pages/logs/island-yields.html', addedAt: '2026-09-13', groupLabel: 'Kayıt', frequent: true, sortValue: 15, isActive: true },
+    { id: 2, code: 'farmin', title: 'Farming', description: 'Tarım verimi ve focus; Martlock, Thetford ve Brecilien.', icon: '🌱', href: '/pages/tools/farming.html', addedAt: '2026-09-05', groupLabel: 'Ada', frequent: true, sortValue: 20, isActive: true },
+    { id: 3, code: 'pasture', title: 'Pasture', description: 'Hayvan büyütme, kesme ve süt/yumurta kârı; yem ada veya piyasa.', icon: '🐑', href: '/pages/tools/pasture.html', addedAt: '2026-09-07', groupLabel: 'Ada', frequent: true, sortValue: 30, isActive: true },
+    { id: 4, code: 'island-planner', title: 'Ada Planlayıcı', description: 'Ham gümüş/gün; sade / zincir / karışık; faction kilit.', icon: '🏝️', href: '/pages/tools/island-planner.html', addedAt: '2026-09-07', groupLabel: 'Ada', frequent: true, sortValue: 40, isActive: true },
+    { id: 15, code: 'island-planner-v2', title: 'Ada Planlayıcı V2', description: 'Slot tabanlı ada planı; V1 bağımsız olarak korunur.', icon: '🏝️', href: '/pages/tools/island-planner-v2.html', addedAt: '2026-09-20', groupLabel: 'Ada', frequent: false, sortValue: 41, isActive: true },
+    { id: 16, code: 'trades', title: 'Trade Dashboard', description: 'SAT trade geçmişi: filtre, özet ve canlı akış.', icon: '📈', href: '/pages/logs/trades.html', addedAt: '2026-09-23', groupLabel: 'Piyasa', frequent: true, sortValue: 45, isActive: true },
+    { id: 5, code: 'malzemeler', title: 'Şehir Makası', description: 'Plank, bar, binek: bir şehirden alıp diğerinde satmanın net kârı.', icon: '🪵', href: '/pages/tools/malzemeler.html', addedAt: '2026-09-06', groupLabel: 'Piyasa', frequent: true, sortValue: 50, isActive: true },
+    { id: 6, code: 'faction', title: 'Faction', description: 'Crest puan değeri ve faction cape maliyeti / kârı.', icon: '🛡️', href: '/pages/tools/faction.html', addedAt: '2026-08-23', groupLabel: 'Piyasa', frequent: false, sortValue: 60, isActive: true },
+    { id: 7, code: 'refining', title: 'Refining', description: 'Ore / logs refine maliyeti, return rate ve kâr.', icon: '🔥', href: '/pages/tools/refining.html', addedAt: '2026-09-05', groupLabel: 'Üretim', frequent: true, sortValue: 70, isActive: true },
+    { id: 8, code: 'furniture', title: 'Furniture', description: 'Ada evi dekorasyonu: sandık, yatak ve masa craft maliyeti / kârı.', icon: '🪑', href: '/pages/tools/furniture.html', addedAt: '2026-09-06', groupLabel: 'Üretim', frequent: true, sortValue: 80, isActive: true },
+    { id: 9, code: 'house', title: 'House', description: 'Ev ve guild hall yükseltme: oyunun istediği T1 + block, isteğe bağlı ham eşdeğer.', icon: '🏠', href: '/pages/tools/house.html', addedAt: '2026-07-01', groupLabel: 'Üretim', frequent: false, sortValue: 90, isActive: true },
+    { id: 10, code: 'ava-craft', title: 'Ava Craft', description: 'Avalonian tool craft maliyeti ve kârı.', icon: '⚡', href: '/pages/tools/ava-craft.html', addedAt: '2026-07-20', groupLabel: 'Üretim', frequent: false, sortValue: 100, isActive: true },
+    { id: 11, code: 'carleon-craft', title: 'Caerleon Craft', description: 'Caerleon / Black Market craft maliyeti ve kârı.', icon: '🗡️', href: '/pages/tools/carleon-craft.html', addedAt: '2026-08-15', groupLabel: 'Üretim', frequent: false, sortValue: 110, isActive: true },
+    { id: 12, code: 'royal-craft', title: 'Royal Crafting', description: 'Royal giyilebilir: SET + sigil craft, enchant ve şehir kârı.', icon: '👑', href: '/pages/tools/royal-craft.html', addedAt: '2026-09-13', groupLabel: 'Üretim', frequent: true, sortValue: 115, isActive: true },
+    { id: 13, code: 'enchantin', title: 'Enchanting', description: 'Rune, soul ve relic: kaçtan kaça çıkarmanın gümüş maliyeti.', icon: '🔮', href: '/pages/tools/enchanting.html', addedAt: '2026-08-23', groupLabel: 'Üretim', frequent: false, sortValue: 120, isActive: true }
 ];
 
 const sitePages = [
     { id: 1, code: 'home', title: 'Home', href: 'index.html', sortValue: 10 },
-    { id: 2, code: 'db', title: 'Veritabanı', href: 'db.html', sortValue: 20 },
-    { id: 3, code: 'settings', title: 'Ayarlar', href: 'settings.html', sortValue: 30 }
+    { id: 2, code: 'db', title: 'Veritabanı', href: '/pages/admin/db.html', sortValue: 20 },
+    { id: 3, code: 'settings', title: 'Ayarlar', href: '/pages/admin/settings.html', sortValue: 30 }
 ];
 
 const priceServers = [

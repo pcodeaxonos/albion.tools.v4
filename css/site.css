@@ -45,6 +45,7 @@
   --font-family-base: "IBM Plex Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   --font-family-mono: "IBM Plex Mono", ui-monospace, monospace;
   --font-size-base: 0.9375rem;
+  --font-size-xs: 0.75rem;
   --font-size-sm: 0.8125rem;
   --font-size-lg: 1.0625rem;
   --line-height-base: 1.5;
@@ -130,11 +131,6 @@ html {
   line-height: var(--line-height-base);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-}
-@media (min-width: 1440px) {
-  html {
-    font-size: clamp(16px, 0.4vw + 10.24px, 19px);
-  }
 }
 
 body {
@@ -10272,7 +10268,7 @@ a.tool-card:hover {
 }
 
 .yield-delta-stack strong[data-yield-change] {
-  font-size: clamp(0.864rem, 1.8vw, 1.26rem);
+  font-size: clamp(0.875rem, 1.8vw, 1.25rem);
 }
 
 .yield-values-stack b[data-yield-change] {

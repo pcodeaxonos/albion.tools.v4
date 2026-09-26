@@ -135,7 +135,7 @@ function setHash(tableName, action, id, search, page) {
     }
 
     const query = params.toString();
-    const url = query ? `db.html?${query}${hash}` : `db.html${hash}`;
+    const url = query ? `/pages/admin/db.html?${query}${hash}` : `/pages/admin/db.html${hash}`;
 
     history.replaceState(null, '', url);
 }

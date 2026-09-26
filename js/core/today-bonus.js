@@ -189,7 +189,7 @@ function ensureChip(root, { placement, className, compact }) {
 
     el = document.createElement('a');
     el.dataset.todayBonus = placement;
-    el.href = 'daily-bonus.html';
+    el.href = '/pages/logs/daily-bonus.html';
     el.className = className;
     if (compact) {
         el.textContent = '…';
