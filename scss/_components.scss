@@ -1907,18 +1907,21 @@ input[type="month"].form-control {
     }
 }
 
-/* Albion item-tier tokens (T1–T8) for badges / tints */
-.is-item-tier-1 { --color-item-tier: var(--color-tier-2); }
-.is-item-tier-2 { --color-item-tier: var(--color-tier-2); }
-.is-item-tier-3 { --color-item-tier: var(--color-tier-3); }
-.is-item-tier-4 { --color-item-tier: var(--color-tier-4); }
-.is-item-tier-5 { --color-item-tier: var(--color-tier-5); }
-.is-item-tier-6 { --color-item-tier: var(--color-tier-6); }
-.is-item-tier-7 { --color-item-tier: var(--color-tier-7); }
-.is-item-tier-8 {
+/* Albion item-tier tokens (T1–T8) for badges / tints. */
+[data-tier="1"],
+[data-tier="2"] { --color-item-tier: var(--color-tier-2); }
+[data-tier="3"] { --color-item-tier: var(--color-tier-3); }
+[data-tier="4"] { --color-item-tier: var(--color-tier-4); }
+[data-tier="5"] { --color-item-tier: var(--color-tier-5); }
+[data-tier="6"] { --color-item-tier: var(--color-tier-6); }
+[data-tier="7"] { --color-item-tier: var(--color-tier-7); }
+[data-tier="8"] {
     --color-item-tier: var(--color-tier-8);
     --color-on-item-tier: var(--color-on-tier-light);
 }
+
+[data-tier="6"],
+[data-tier="7"] { --color-on-item-tier: #161108; }
 
 /*
  * Modal close: hangs outside the dialog (right side, 20px gap), CSS X via ::before/::after.

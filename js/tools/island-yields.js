@@ -292,10 +292,10 @@ function unitsPerPlot() {
     return state.yieldKind === 'kennel' ? 4 : SEEDS_PER_PLOT;
 }
 
-function tierClass(tier) {
+function tierAttribute(tier) {
     const n = Number(tier);
     if (n >= 1 && n <= 8) {
-        return `is-item-tier-${n}`;
+        return `data-tier="${n}"`;
     }
     return '';
 }
@@ -754,7 +754,7 @@ function renderAvgCard(plant, islandCity) {
     const iconId = itemIconId(plant);
 
     return `
-        <article class="yield-avg-card ${tierClass(plant.tier)}${active ? '' : ' is-passive'}${thin ? ' is-thin' : ''}${state.filteredPlantKey === plant.key ? ' is-selected' : ''} is-confidence-${confidence}"
+        <article class="yield-avg-card${active ? '' : ' is-passive'}${thin ? ' is-thin' : ''}${state.filteredPlantKey === plant.key ? ' is-selected' : ''} is-confidence-${confidence}" ${tierAttribute(plant.tier)}
             data-yield-plant="${escapeHtml(plant.key)}" role="button" tabindex="0" aria-pressed="${state.filteredPlantKey === plant.key ? 'true' : 'false'}" ${tipAttr(`${name} — kayıtları filtrele`)}>
             <div class="yield-ref-stage">
                 <span class="yield-avg-tier">T${plant.tier}</span>
@@ -856,7 +856,7 @@ function renderCityComparison() {
                     <h3 class="island-planner-subhead yield-city-comparison-title">
                         ${itemIconId(plant) ? itemIconHtml(itemIconId(plant), { size: 40, className: 'item-icon' }) : ''}
                         <span>${escapeHtml(plant.label)}</span>
-                        <span class="yield-city-comparison-tier ${tierClass(plant.tier)}">T${plant.tier}</span>
+                        <span class="yield-city-comparison-tier" ${tierAttribute(plant.tier)}>T${plant.tier}</span>
                     </h3>
                 </div>
                 <p>Seçili Premium / ${escapeHtml(metricCopy().mode)} ayarındaki tüm ada şehirleri.</p>
@@ -934,7 +934,7 @@ function renderAnimalProductAvgCard(animal, islandCity) {
     const confidence = active ? confidenceLevel(avg.seedsPlanted) : 0;
 
     return `
-        <article class="yield-avg-card ${tierClass(animal.tier)}${active ? '' : ' is-passive'}${thin ? ' is-thin' : ''}${state.filteredPlantKey === animal.key ? ' is-selected' : ''} is-confidence-${confidence}"
+        <article class="yield-avg-card${active ? '' : ' is-passive'}${thin ? ' is-thin' : ''}${state.filteredPlantKey === animal.key ? ' is-selected' : ''} is-confidence-${confidence}" ${tierAttribute(animal.tier)}
             data-yield-plant="${escapeHtml(animal.key)}" role="button" tabindex="0" aria-pressed="${state.filteredPlantKey === animal.key ? 'true' : 'false'}" ${tipAttr(`T${animal.tier} ${animal.label} ürünü — kayıtları filtrele`)}>
             <div class="yield-ref-stage">
                 <span class="yield-avg-tier">T${animal.tier}</span>

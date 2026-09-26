@@ -2185,38 +2185,40 @@ input[type=month].form-control {
   display: none;
 }
 
-/* Albion item-tier tokens (T1–T8) for badges / tints */
-.is-item-tier-1 {
+/* Albion item-tier tokens (T1–T8) for badges / tints. */
+[data-tier="1"],
+[data-tier="2"] {
   --color-item-tier: var(--color-tier-2);
 }
 
-.is-item-tier-2 {
-  --color-item-tier: var(--color-tier-2);
-}
-
-.is-item-tier-3 {
+[data-tier="3"] {
   --color-item-tier: var(--color-tier-3);
 }
 
-.is-item-tier-4 {
+[data-tier="4"] {
   --color-item-tier: var(--color-tier-4);
 }
 
-.is-item-tier-5 {
+[data-tier="5"] {
   --color-item-tier: var(--color-tier-5);
 }
 
-.is-item-tier-6 {
+[data-tier="6"] {
   --color-item-tier: var(--color-tier-6);
 }
 
-.is-item-tier-7 {
+[data-tier="7"] {
   --color-item-tier: var(--color-tier-7);
 }
 
-.is-item-tier-8 {
+[data-tier="8"] {
   --color-item-tier: var(--color-tier-8);
   --color-on-item-tier: var(--color-on-tier-light);
+}
+
+[data-tier="6"],
+[data-tier="7"] {
+  --color-on-item-tier: #161108;
 }
 
 /*
@@ -7117,50 +7119,14 @@ a.tool-card:hover {
 .royal-table td.num.is-quality-proxy {
   font-style: italic;
 }
-.royal-table tbody tr.is-tier-4 {
-  --royal-tier-bar: var(--color-tier-4);
+.royal-table tbody tr[data-tier] {
+  --royal-tier-bar: var(--color-item-tier);
 }
-.royal-table tbody tr.is-tier-5 {
-  --royal-tier-bar: var(--color-tier-5);
+.royal-table tbody tr[data-tier] td {
+  background-color: color-mix(in srgb, var(--color-item-tier) 11%, var(--color-surface));
 }
-.royal-table tbody tr.is-tier-6 {
-  --royal-tier-bar: var(--color-tier-6);
-}
-.royal-table tbody tr.is-tier-7 {
-  --royal-tier-bar: var(--color-tier-7);
-}
-.royal-table tbody tr.is-tier-8 {
-  --royal-tier-bar: var(--color-tier-8);
-}
-.royal-table tbody tr.is-tier-4 td {
-  background-color: color-mix(in srgb, var(--color-tier-4) 11%, var(--color-surface));
-}
-.royal-table tbody tr.is-tier-5 td {
-  background-color: color-mix(in srgb, var(--color-tier-5) 11%, var(--color-surface));
-}
-.royal-table tbody tr.is-tier-6 td {
-  background-color: color-mix(in srgb, var(--color-tier-6) 11%, var(--color-surface));
-}
-.royal-table tbody tr.is-tier-7 td {
-  background-color: color-mix(in srgb, var(--color-tier-7) 11%, var(--color-surface));
-}
-.royal-table tbody tr.is-tier-8 td {
-  background-color: color-mix(in srgb, var(--color-tier-8) 10%, var(--color-surface));
-}
-.royal-table tbody tr.is-standard.is-main.is-tier-4 td {
-  background-color: color-mix(in srgb, var(--color-tier-4) 16%, var(--color-surface));
-}
-.royal-table tbody tr.is-standard.is-main.is-tier-5 td {
-  background-color: color-mix(in srgb, var(--color-tier-5) 16%, var(--color-surface));
-}
-.royal-table tbody tr.is-standard.is-main.is-tier-6 td {
-  background-color: color-mix(in srgb, var(--color-tier-6) 16%, var(--color-surface));
-}
-.royal-table tbody tr.is-standard.is-main.is-tier-7 td {
-  background-color: color-mix(in srgb, var(--color-tier-7) 16%, var(--color-surface));
-}
-.royal-table tbody tr.is-standard.is-main.is-tier-8 td {
-  background-color: color-mix(in srgb, var(--color-tier-8) 14%, var(--color-surface));
+.royal-table tbody tr.is-standard.is-main[data-tier] td {
+  background-color: color-mix(in srgb, var(--color-item-tier) 16%, var(--color-surface));
 }
 .royal-table.has-explain tbody tr.is-explain-hover:not(.is-explain) td {
   background-image: linear-gradient(color-mix(in srgb, var(--color-primary) 14%, transparent), color-mix(in srgb, var(--color-primary) 14%, transparent));
@@ -7168,20 +7134,8 @@ a.tool-card:hover {
 .royal-table.has-explain tbody tr.is-explain td {
   background-image: none;
 }
-.royal-table.has-explain tbody tr.is-explain.is-tier-4 td {
-  background-color: color-mix(in srgb, var(--color-tier-4) 22%, var(--color-surface));
-}
-.royal-table.has-explain tbody tr.is-explain.is-tier-5 td {
-  background-color: color-mix(in srgb, var(--color-tier-5) 22%, var(--color-surface));
-}
-.royal-table.has-explain tbody tr.is-explain.is-tier-6 td {
-  background-color: color-mix(in srgb, var(--color-tier-6) 22%, var(--color-surface));
-}
-.royal-table.has-explain tbody tr.is-explain.is-tier-7 td {
-  background-color: color-mix(in srgb, var(--color-tier-7) 22%, var(--color-surface));
-}
-.royal-table.has-explain tbody tr.is-explain.is-tier-8 td {
-  background-color: color-mix(in srgb, var(--color-tier-8) 20%, var(--color-surface));
+.royal-table.has-explain tbody tr.is-explain[data-tier] td {
+  background-color: color-mix(in srgb, var(--color-item-tier) 22%, var(--color-surface));
 }
 .royal-table.has-explain tbody tr.is-explain td:first-child {
   box-shadow: inset 3px 0 0 var(--royal-tier-bar, var(--color-primary)), 0 1px 0 var(--color-border);
@@ -8484,32 +8438,10 @@ a.tool-card:hover {
   color: #fff;
 }
 
-.bonus-analysis-tiers button.is-tier-4.is-active {
-  border-color: var(--color-tier-4);
-  background: var(--color-tier-4);
-}
-
-.bonus-analysis-tiers button.is-tier-5.is-active {
-  border-color: var(--color-tier-5);
-  background: var(--color-tier-5);
-}
-
-.bonus-analysis-tiers button.is-tier-6.is-active {
-  border-color: var(--color-tier-6);
-  background: var(--color-tier-6);
-  color: #161108;
-}
-
-.bonus-analysis-tiers button.is-tier-7.is-active {
-  border-color: var(--color-tier-7);
-  background: var(--color-tier-7);
-  color: #161108;
-}
-
-.bonus-analysis-tiers button.is-tier-8.is-active {
-  border-color: var(--color-tier-8);
-  background: var(--color-tier-8);
-  color: #161820;
+.bonus-analysis-tiers button[data-tier].is-active {
+  border-color: var(--color-item-tier);
+  background: var(--color-item-tier);
+  color: var(--color-on-item-tier, #fff);
 }
 
 .bonus-analysis-tiers button[data-analysis-filter=all].is-active {
@@ -8544,24 +8476,8 @@ a.tool-card:hover {
 }
 
 .bonus-analysis-tier-column {
-  --tier: var(--color-tier-4);
+  --tier: var(--color-item-tier);
   min-width: 0;
-}
-
-.bonus-analysis-tier-column.is-tier-5 {
-  --tier: var(--color-tier-5);
-}
-
-.bonus-analysis-tier-column.is-tier-6 {
-  --tier: var(--color-tier-6);
-}
-
-.bonus-analysis-tier-column.is-tier-7 {
-  --tier: var(--color-tier-7);
-}
-
-.bonus-analysis-tier-column.is-tier-8 {
-  --tier: var(--color-tier-8);
 }
 
 .bonus-analysis-tier-column > header {
@@ -8586,8 +8502,8 @@ a.tool-card:hover {
   font-size: 1.2rem;
 }
 
-.bonus-analysis-tier-column.is-tier-4 > header strong > header strong,
-.bonus-analysis-tier-column.is-tier-5 > header strong {
+.bonus-analysis-tier-column[data-tier="4"] > header strong > header strong,
+.bonus-analysis-tier-column[data-tier="5"] > header strong {
   color: #fff;
 }
 
@@ -8603,17 +8519,13 @@ a.tool-card:hover {
 }
 
 .bonus-analysis-card {
-  --tier: var(--color-tier-4);
+  --tier: var(--color-item-tier);
   position: relative;
   min-height: 15rem;
   border: 1px solid color-mix(in srgb, var(--tier) 78%, #495464);
   border-radius: 0.55rem;
   background: #1a2028;
   overflow: hidden;
-}
-
-.bonus-analysis-tier-column.is-tier-5 .bonus-analysis-card {
-  --tier: var(--color-tier-5);
 }
 
 .bonus-analysis-card-order {
@@ -8650,18 +8562,6 @@ a.tool-card:hover {
 .bonus-analysis-card-order button:disabled {
   cursor: not-allowed;
   opacity: 0.38;
-}
-
-.bonus-analysis-tier-column.is-tier-6 .bonus-analysis-card {
-  --tier: var(--color-tier-6);
-}
-
-.bonus-analysis-tier-column.is-tier-7 .bonus-analysis-card {
-  --tier: var(--color-tier-7);
-}
-
-.bonus-analysis-tier-column.is-tier-8 .bonus-analysis-card {
-  --tier: var(--color-tier-8);
 }
 
 .bonus-analysis-card.is-loading {
@@ -8992,11 +8892,11 @@ a.tool-card:hover {
   background-size: auto 100%;
 }
 
-.bonus-analysis-tier-column.is-tier-5 > header {
+.bonus-analysis-tier-column[data-tier="5"] > header {
   background-image: url("../icons/daily-bonus/decor/t5-header-art.png");
 }
 
-.bonus-analysis-tier-column.is-tier-6 > header {
+.bonus-analysis-tier-column[data-tier="6"] > header {
   background-image: url("../icons/daily-bonus/decor/t6-header-art.png");
 }
 
@@ -9299,11 +9199,11 @@ a.tool-card:hover {
   background-size: 100% 100%, auto 100%;
 }
 
-.bonus-analysis-tier-column.is-tier-5 > header {
+.bonus-analysis-tier-column[data-tier="5"] > header {
   background-image: linear-gradient(90deg, color-mix(in srgb, var(--tier) 76%, #071a2a) 0%, color-mix(in srgb, var(--tier) 42%, transparent) 52%, transparent 78%), url("../icons/daily-bonus/decor/t5-header-art.png");
 }
 
-.bonus-analysis-tier-column.is-tier-6 > header {
+.bonus-analysis-tier-column[data-tier="6"] > header {
   background-image: linear-gradient(90deg, color-mix(in srgb, var(--tier) 76%, #071a2a) 0%, color-mix(in srgb, var(--tier) 42%, transparent) 52%, transparent 78%), url("../icons/daily-bonus/decor/t6-header-art.png");
 }
 
@@ -9375,7 +9275,7 @@ a.tool-card:hover {
   --tier-gradient-end: #053b66;
 }
 
-.bonus-analysis-tier-column.is-tier-5 {
+.bonus-analysis-tier-column[data-tier="5"] {
   --tier-rgb: 238, 55, 75;
   --tier-dark-rgb: 105, 24, 36;
   --tier-image: var(--bonus-analysis-family-image, url("../icons/daily-bonus/decor/t5-header-art.png"));
@@ -9384,7 +9284,7 @@ a.tool-card:hover {
   --tier-gradient-end: #521923;
 }
 
-.bonus-analysis-tier-column.is-tier-6 {
+.bonus-analysis-tier-column[data-tier="6"] {
   --tier-rgb: 230, 156, 29;
   --tier-dark-rgb: 102, 68, 16;
   --tier-image: var(--bonus-analysis-family-image, url("../icons/daily-bonus/decor/t6-header-art.png"));
@@ -9585,8 +9485,8 @@ a.tool-card:hover {
   z-index: 2;
 }
 
-.bonus-analysis-tier-column.is-tier-5 > header > header,
-.bonus-analysis-tier-column.is-tier-6 > header {
+.bonus-analysis-tier-column[data-tier="5"] > header > header,
+.bonus-analysis-tier-column[data-tier="6"] > header {
   background: linear-gradient(90deg, var(--tier-gradient-start) 0%, var(--tier-gradient-mid) 45%, var(--tier-gradient-end) 100%);
 }
 

@@ -41,7 +41,8 @@ function renderIconNode(item, selected, iconId) {
     const title = `T${item.tier} ${item.label}`;
     return `
         <button type="button"
-            class="plant-icon-node is-item-tier-${Number(item.tier) || 2}${pressed ? ' is-selected' : ''}"
+            class="plant-icon-node${pressed ? ' is-selected' : ''}"
+            data-tier="${Number(item.tier) || 2}"
             data-picker-value="${escapeHtml(item.key)}"
             aria-pressed="${pressed ? 'true' : 'false'}"
             aria-label="${escapeHtml(title)}"

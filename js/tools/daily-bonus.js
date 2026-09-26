@@ -192,7 +192,7 @@ function renderTierColumn(tier, analysis, familyKey) {
             ? rows.map((row, index) => renderAnalysisCard(row, ranks.get(row.recipe.id), { reorderable: state.analysis.reorderMode, isFirst: index === 0, isLast: index === rows.length - 1 })).join('')
             : '<p class="bonus-analysis-empty">Bu tier için normal tarif bulunamadı.</p>';
     return `
-        <section class="bonus-analysis-tier-column is-tier-${tier}" data-analysis-tier="${tier}">
+        <section class="bonus-analysis-tier-column" data-tier="${tier}" data-analysis-tier="${tier}">
             <header><strong>T${tier}</strong><span>İlk 3 Craft</span></header>
             <div>${content}</div>
         </section>`;
@@ -580,7 +580,7 @@ function renderBonusAnalysisDialog() {
                         <div class="bonus-analysis-select"><span>Market</span><strong>Black Market</strong><small>Satış fiyatı</small></div>
                         <span class="bonus-analysis-rr-badge" title="${escapeHtml(rrTitle)}"><i aria-hidden="true">↻</i><span><b>RR %${formatAnalysisPercent(returnRate)}</b><small>Royal %${cityProductionBonus()} + yerel %${specialtyBonus} + günlük %${dailyBonus}</small></span></span>
                         <div class="bonus-analysis-tiers" role="group" aria-label="Tier seçimi">
-                            ${ANALYSIS_TIERS.map((tier) => `<button type="button" class="is-tier-${tier}${defaultTiers.includes(tier) ? ' is-active' : ''}" data-analysis-filter="${tier}">T${tier}</button>`).join('')}
+                            ${ANALYSIS_TIERS.map((tier) => `<button type="button" class="${defaultTiers.includes(tier) ? 'is-active' : ''}" data-tier="${tier}" data-analysis-filter="${tier}">T${tier}</button>`).join('')}
                             <button type="button" data-analysis-filter="all">Tüm Tierlar</button>
                         </div>
                         <small class="bonus-analysis-tier-hint">Öncelikli tierlar: ${preferredTierText}</small>

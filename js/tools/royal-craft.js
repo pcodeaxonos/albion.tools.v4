@@ -966,7 +966,6 @@ function renderTable(list) {
                         const setName = row.setPick ? setLabel(row.setPick.uniqueName) : '—';
                         const setIcons = setVariantIconsHtml(row.setLine?.uniqueName);
                         const rowClass = [
-                            `is-tier-${row.recipe.tier}`,
                             row.standard ? 'is-standard' : '',
                             row.standard && standardRank(row.recipe.tier, row.enchant) === 0 ? 'is-main' : ''
                         ].filter(Boolean).join(' ');
@@ -1285,15 +1284,15 @@ function planSetIconsHtml(row) {
 
 function planTeHtml(row) {
     const tier = Number(row.recipe?.tier);
-    const tierClass = Number.isFinite(tier) ? ` is-item-tier-${tier}` : '';
-    return `<span class="royal-plan-te${tierClass}">${escapeHtml(row.tierEnchant)}</span>`;
+    const tierAttribute = Number.isFinite(tier) ? ` data-tier="${tier}"` : '';
+    return `<span class="royal-plan-te"${tierAttribute}>${escapeHtml(row.tierEnchant)}</span>`;
 }
 
 function renderPlanStationItem(row, profitTier = 'D') {
     const itemTier = Number(row.recipe?.tier);
-    const itemClass = Number.isFinite(itemTier) ? ` is-item-tier-${itemTier}` : '';
+    const tierAttribute = Number.isFinite(itemTier) ? ` data-tier="${itemTier}"` : '';
     return `
-        <button type="button" class="royal-plan-item${itemClass} is-profit-tier-${escapeHtml(profitTier)}" data-plan-row="${escapeHtml(row.id)}"
+        <button type="button" class="royal-plan-item is-profit-tier-${escapeHtml(profitTier)}"${tierAttribute} data-plan-row="${escapeHtml(row.id)}"
             title="${escapeHtml(planRowTitle(row, profitTier))}">
             <span class="royal-plan-item-visual">
                 ${itemIconHtml(row.sellId, { className: 'item-icon royal-plan-item-icon', size: 80 })}
