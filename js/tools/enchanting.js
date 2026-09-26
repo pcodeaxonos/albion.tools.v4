@@ -372,7 +372,7 @@ function renderOutput() {
             ${renderMatStrip()}
             ${renderTable()}
             <p class="enchant-note">${slot.qty} rune / soul / relic · ${escapeHtml(cityLabel(state.city))} ${escapeHtml(hint)}${stamp ? ` · ${stamp}` : ''}. Elle yazılan malzeme fiyatı API’nin yerine geçer. Kırmızı fiyat API’de yok; mavi 6 saatten eski.</p>
-            <p class="enchant-standard-note">Vurgu: ${escapeHtml(standardHighlightNote())}. 0 → hedef yolları daha koyu. <a href="pages/admin/settings.html">Ayarlardan değiştir</a></p>
+            <p class="enchant-standard-note">Vurgu: ${escapeHtml(standardHighlightNote())}. 0 → hedef yolları daha koyu. <a href="settings">Ayarlardan değiştir</a></p>
         </div>
     `;
 }

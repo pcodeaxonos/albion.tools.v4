@@ -6,6 +6,9 @@
 - Do not avoid builds, tests, or debugging when they are needed for correctness.
 - Understand the relevant flow before editing; avoid speculative fixes and unrelated refactors.
 - Run the narrowest useful verification after changes.
+- Solve the underlying cause, not the immediate symptom. Do not add temporary workarounds or one-off compatibility patches when a shared abstraction or source-of-truth can address the problem permanently.
+- Avoid hard-coded duplicated values, paths, selectors, and route lists. Put repeated or cross-cutting configuration behind a named shared primitive, and generate derived artifacts from it so a small change stays local.
+- Before adding a new exception, check whether the existing system can be extended instead. Prefer a coherent design that minimizes future edits across files.
 
 ## Tool split layout
 

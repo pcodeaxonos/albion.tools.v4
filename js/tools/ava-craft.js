@@ -358,7 +358,7 @@ function renderBonusNote() {
 
     return `<p class="ava-note">RR ${formatPct(returnRate())}${extra}. Enerji RR almaz.
         Bugün (${escapeHtml(bonusWindowLabel(bonusDayIso()))}): ${today}
-        <a href="pages/logs/daily-bonus.html">Günlük bonus</a></p>`;
+        <a href="daily-bonus">Günlük bonus</a></p>`;
 }
 
 function matMetaText(mat) {

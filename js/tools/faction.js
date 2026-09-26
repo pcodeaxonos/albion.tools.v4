@@ -364,7 +364,7 @@ function renderBonusNote() {
 
     return `<p class="faction-note">Cape RR ${formatPct(returnRate())}${extra} (yalnız düz cape). Crest artefact, RR yok.
         Bugün (${escapeHtml(bonusWindowLabel(bonusDayIso()))}): ${today}
-        <a href="pages/logs/daily-bonus.html">Günlük bonus</a></p>`;
+        <a href="daily-bonus">Günlük bonus</a></p>`;
 }
 
 function profitClass(profit) {

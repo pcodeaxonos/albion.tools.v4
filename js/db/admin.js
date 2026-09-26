@@ -137,8 +137,8 @@ function setHash(tableName, action, id, search, page) {
 
     const query = params.toString();
     const url = query
-        ? `${siteHref('pages/admin/db.html')}?${query}${hash}`
-        : `${siteHref('pages/admin/db.html')}${hash}`;
+        ? `${siteHref('db')}?${query}${hash}`
+        : `${siteHref('db')}${hash}`;
 
     history.replaceState(null, '', url);
 }

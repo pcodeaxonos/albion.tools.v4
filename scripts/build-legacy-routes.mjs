@@ -1,28 +1,16 @@
 import fs from 'node:fs';
 import path from 'node:path';
 
-const routes = {
-    'daily-bonus': 'pages/logs/daily-bonus.html',
-    'island-yields': 'pages/logs/island-yields.html',
-    trades: 'pages/logs/trades.html',
-    farming: 'pages/tools/farming.html',
-    pasture: 'pages/tools/pasture.html',
-    'island-planner': 'pages/tools/island-planner.html',
-    'island-planner-v2': 'pages/tools/island-planner-v2.html',
-    malzemeler: 'pages/tools/malzemeler.html',
-    faction: 'pages/tools/faction.html',
-    refining: 'pages/tools/refining.html',
-    furniture: 'pages/tools/furniture.html',
-    house: 'pages/tools/house.html',
-    'ava-craft': 'pages/tools/ava-craft.html',
-    'carleon-craft': 'pages/tools/carleon-craft.html',
-    'royal-craft': 'pages/tools/royal-craft.html',
-    enchanting: 'pages/tools/enchanting.html',
-    db: 'pages/admin/db.html',
-    settings: 'pages/admin/settings.html'
-};
+function readCatalog(name) {
+    return JSON.parse(fs.readFileSync(path.join('data', `${name}.json`), 'utf8'));
+}
 
-for (const [route, target] of Object.entries(routes)) {
+const routes = [...readCatalog('site-tools'), ...readCatalog('site-pages')]
+    .map(({ href }) => String(href || '').replace(/^\/+/, ''))
+    .filter((href) => href.startsWith('pages/') && href.endsWith('.html'))
+    .map((href) => [path.basename(href, '.html'), href]);
+
+for (const [route, target] of routes) {
     const dir = path.join(route);
     fs.mkdirSync(dir, { recursive: true });
     const href = `../${target}`;

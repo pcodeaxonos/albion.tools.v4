@@ -1066,7 +1066,7 @@ function renderSummary(list) {
         <p class="farming-note royal-standard-note">
             Kapsam: solda <strong>${state.scope === 'all' ? 'Tüm T.E' : 'Standart T.E'}</strong>
             ${state.scope !== 'all' && combos ? ` (${escapeHtml(combos)})` : ''} —
-            <a href="pages/admin/settings.html">standart listesini ayarlardan değiştir</a>.
+            <a href="settings">standart listesini ayarlardan değiştir</a>.
             ${best ? ` En kârlı: ${escapeHtml(shortItemName(best.recipe.label))} ${escapeHtml(best.tierEnchant)} ${escapeHtml(best.quality.short)} · ${formatSilver(best.profit, { signed: true })} · ${formatPct(best.pct)}.` : ''}
         </p>
     `;
