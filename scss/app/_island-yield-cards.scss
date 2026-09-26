@@ -1,0 +1,541 @@
+.yield-metric {
+    + .yield-metric {
+        margin-top: 0.25rem;
+        }
+}
+.yield-metric-title {
+    display: flex;
+    align-items: center;
+    gap: 0.15rem;
+    font-size: clamp(0.48rem, 0.8vw, 0.64rem);
+}
+.yield-metric-title {
+    img {
+        width: 0.72rem;
+        height: 0.72rem;
+        }
+}
+.yield-metric-content {
+    display: grid;
+    grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.05fr);
+    gap: 0.25rem;
+    margin-top: 0.2rem;
+}
+.yield-delta-stack {
+    display: grid;
+    place-items: center;
+    min-width: 0;
+    padding: 0.12rem;
+    color: #c7d0df;
+    font-variant-numeric: tabular-nums;
+    text-align: center;
+}
+.yield-delta-stack {
+    strong {
+        font-size: clamp(0.72rem, 1.5vw, 1.05rem);
+        line-height: 1;
+        }
+}
+.yield-delta-stack {
+    span {
+        margin-top: 0.12rem;
+        font-family: var(--font-family-mono);
+        font-size: clamp(0.46rem, 0.75vw, 0.62rem);
+        }
+}
+.yield-delta-stack.is-pos {
+    color: var(--color-success);
+}
+.yield-delta-stack.is-neg {
+    color: var(--color-danger);
+}
+.yield-values-stack {
+    display: grid;
+    align-content: center;
+    gap: 0.12rem;
+    min-width: 0;
+    font-size: clamp(0.42rem, 0.7vw, 0.58rem);
+    color: #9aa7b7;
+}
+.yield-values-stack {
+    span {
+        display: flex;
+        justify-content: space-between;
+        gap: 0.15rem;
+        white-space: nowrap;
+        }
+}
+.yield-values-stack {
+    b {
+        color: #c7d0df;
+        font-size: 1.1em;
+        }
+}
+.yield-values-stack {
+    span:first-child b {
+        color: #ffd361;
+        }
+}
+.yield-avg-card.is-just-updated {
+    animation: yield-card-update-pulse 900ms ease-out;
+}
+.yield-avg-card.is-passive.is-just-updated {
+    opacity: 1;
+}
+[data-yield-change] {
+    position: relative;
+    display: inline-block;
+}
+.yield-delta-stack strong[data-yield-change] {
+    font-size: clamp(0.864rem, 1.8vw, 1.26rem);
+}
+.yield-values-stack b[data-yield-change] {
+    font-size: 1.32em;
+}
+.yield-value-change {
+    position: absolute;
+    z-index: 5;
+    right: -0.18rem;
+    bottom: calc(100% + 0.12rem);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: max-content;
+    padding: 0.12rem 0.28rem;
+    border: 1px solid rgba(255, 255, 255, 0.72);
+    border-radius: 0.28rem;
+    background: #111a24;
+    font-family: var(--font-family-mono);
+    font-size: clamp(0.52rem, 0.78vw, 0.66rem);
+    font-style: normal;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.01em;
+    line-height: 1.05;
+    pointer-events: none;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.72);
+    white-space: nowrap;
+    animation: yield-change-enter 240ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+
+    &.is-up {
+        background: #157347;
+        color: #fff;
+        box-shadow: 0 0.16rem 0.48rem rgba(0, 0, 0, 0.58), 0 0 0.35rem rgba(48, 210, 115, 0.3);
+    }
+
+    &.is-down {
+        background: #b02a37;
+        color: #fff;
+        box-shadow: 0 0.16rem 0.48rem rgba(0, 0, 0, 0.58), 0 0 0.35rem rgba(255, 77, 93, 0.28);
+    }
+}
+.yield-value-change.is-leaving {
+    animation: yield-change-leave 580ms ease-in both;
+}
+@keyframes yield-change-enter {
+    from { opacity: 0; transform: translateY(0.35rem) scale(0.94); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+}
+@keyframes yield-change-leave {
+    from { opacity: 1; transform: translateY(0) scale(1); }
+    to { opacity: 0; transform: translateY(-0.45rem) scale(0.96); }
+}
+@keyframes yield-card-update-pulse {
+    0%, 100% { box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--color-item-tier, var(--color-border)) 22%, transparent), 0 4px 10px rgba(0, 0, 0, 0.22); }
+    45% { box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--color-item-tier, #ffd361) 75%, white 10%), 0 0 1rem color-mix(in srgb, var(--color-item-tier, #ffd361) 42%, transparent); }
+}
+@media (prefers-reduced-motion: reduce) {
+    .yield-avg-card.is-just-updated,
+    .yield-value-change,
+    .yield-value-change.is-leaving {
+        animation: none;
+    }
+}
+.yield-card-footer {
+    min-height: 1.15rem;
+    margin-top: 0.25rem;
+    padding: 0.12rem 0.22rem;
+    font-size: clamp(0.45rem, 0.75vw, 0.62rem);
+}
+.yield-card-footer {
+    > span:first-child {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.12rem;
+        }
+}
+.yield-card-footer {
+    img {
+        width: 0.65rem;
+        height: 0.65rem;
+        }
+}
+.yield-confidence {
+    i {
+        width: 0.34rem;
+        height: 0.34rem;
+        }
+}
+
+@media (max-width: 640px) {
+    .yield-avg-row {
+        gap: 0.15rem;
+    }
+    .yield-avg-card {
+        padding: 0.18rem;
+        border-radius: 0.3rem;
+    }
+    .yield-metric {
+        padding: 0.16rem;
+    }
+    .yield-metric-title img,
+    .yield-avg-bonus-floating img,
+    .yield-card-footer {
+        img {
+            display: none;
+        }
+    }
+    .yield-avg-bonus-floating {
+        font-size: 0.4rem;
+    }
+    .yield-value-change {
+        right: -0.1rem;
+        padding: 0.09rem 0.18rem;
+        font-size: 0.5rem;
+    }
+}
+
+// Island yield cards — game-panel layout.
+// The metrics deliberately keep their semantic DOM order (value, then variance)
+// while the visual treatment mirrors the two-panel card used in the yield view.
+.yield-avg-row {
+    grid-template-columns: repeat(8, minmax(12.5rem, 1fr));
+    gap: 0.75rem;
+    padding: 0.35rem 0.2rem 0.7rem;
+    scroll-snap-type: x proximity;
+}
+
+.yield-avg-card {
+    --yield-product: #d8505c;
+    --yield-seed: #45dc8a;
+    scroll-snap-align: start;
+    padding: 0.8rem;
+    border: 2px solid color-mix(in srgb, var(--color-item-tier, #d8505c) 72%, #d8505c);
+    border-radius: 1rem;
+    background:
+        radial-gradient(circle at 50% 13%, color-mix(in srgb, var(--color-item-tier, #d8505c) 18%, transparent), transparent 30%),
+        linear-gradient(145deg, #21171c 0%, #0b1115 100%);
+    box-shadow:
+        inset 0 0 2.5rem rgba(0, 0, 0, 0.34),
+        0 0.7rem 1.5rem rgba(0, 0, 0, 0.3);
+    overflow: visible;
+}
+
+.yield-avg-card-visual {
+    height: 6.8rem;
+    margin: 0.35rem 0 0.25rem;
+}
+
+.yield-avg-card-icon,
+.yield-avg-card-icon-fallback {
+    width: 6.8rem;
+    height: 6.8rem;
+}
+
+.yield-avg-card-name {
+    margin: 0 0 0.65rem;
+    font-size: 1.15rem;
+    line-height: 1.2;
+    white-space: normal;
+    overflow: visible;
+    text-overflow: clip;
+}
+
+.yield-avg-tier {
+    top: 0.7rem;
+    left: 0.7rem;
+    padding: 0.3rem 0.5rem;
+    border: 1px solid color-mix(in srgb, var(--color-item-tier, #d8505c) 80%, white 20%);
+    border-radius: 0.45rem;
+    font-size: 0.78rem;
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.1);
+}
+
+.yield-avg-bonus-floating {
+    top: 0.7rem;
+    right: 0.7rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.26rem 0.45rem;
+    border-color: rgba(255, 196, 55, 0.85);
+    border-radius: 0.45rem;
+    box-shadow: 0 0 0.6rem rgba(255, 196, 55, 0.12);
+    font-size: 0.72rem;
+
+    img {
+        width: 0.9rem;
+        height: 0.9rem;
+    }
+}
+
+.yield-metric {
+    padding: 0.7rem;
+    border-radius: 0.85rem;
+    background: linear-gradient(145deg, rgba(25, 19, 24, 0.96), rgba(10, 14, 18, 0.92));
+}
+
+.yield-metric:first-of-type {
+    border-color: color-mix(in srgb, var(--yield-product) 46%, #404953);
+}
+
+.yield-metric:last-of-type {
+    border-color: color-mix(in srgb, var(--yield-seed) 43%, #404953);
+    background: linear-gradient(145deg, rgba(10, 36, 30, 0.88), rgba(8, 16, 19, 0.94));
+}
+
+.yield-metric + .yield-metric {
+    margin-top: 0.6rem;
+}
+
+.yield-metric-title {
+    gap: 0.4rem;
+    font-size: 0.92rem;
+}
+
+.yield-metric-title img {
+    width: 1.2rem;
+    height: 1.2rem;
+}
+
+.yield-metric-content {
+    grid-template-columns: minmax(0, 1fr) minmax(5.6rem, 0.9fr);
+    gap: 0.55rem;
+    min-height: 5.5rem;
+    margin-top: 0.45rem;
+}
+
+.yield-values-stack {
+    align-content: stretch;
+    gap: 0;
+    padding-right: 0.65rem;
+    border-right: 1px solid rgba(185, 196, 209, 0.28);
+    font-size: 0.72rem;
+}
+
+.yield-values-stack span {
+    display: grid;
+    gap: 0.15rem;
+    justify-content: start;
+    padding: 0.1rem 0;
+}
+
+.yield-values-stack span + span {
+    margin-top: auto;
+    padding-top: 0.5rem;
+    border-top: 1px solid rgba(185, 196, 209, 0.26);
+}
+
+.yield-values-stack b,
+.yield-values-stack span:first-child b {
+    font-family: var(--font-family-mono);
+    font-size: 1.45rem;
+    line-height: 1;
+}
+
+.yield-metric:first-of-type .yield-values-stack span:first-child b { color: #ffd361; }
+.yield-metric:last-of-type .yield-values-stack span:first-child b { color: var(--yield-seed); }
+
+.yield-delta-stack {
+    position: relative;
+    grid-template-columns: 1fr 1.15rem;
+    grid-template-rows: auto auto;
+    align-content: center;
+    gap: 0.25rem 0.4rem;
+    padding: 0.15rem 0;
+    text-align: left;
+}
+
+.yield-delta-stack strong {
+    grid-column: 1;
+    font-size: 1.55rem;
+}
+
+.yield-delta-stack span {
+    grid-column: 1;
+    margin: 0;
+    font-size: 0.78rem;
+}
+
+.yield-delta-gauge {
+    grid-column: 2;
+    grid-row: 1 / span 2;
+    position: relative;
+    width: 0.42rem;
+    height: 4.1rem;
+    margin: auto;
+    border-radius: 999px;
+    background: linear-gradient(180deg, rgba(205, 218, 232, 0.35), rgba(205, 218, 232, 0.18));
+}
+
+.yield-delta-gauge::before {
+    content: "";
+    position: absolute;
+    left: -0.18rem;
+    top: 50%;
+    width: 0.78rem;
+    height: 0.16rem;
+    border-radius: 999px;
+    background: #dbe4ed;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.65);
+}
+
+.yield-delta-gauge::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    bottom: 50%;
+    width: 100%;
+    height: 0;
+    border-radius: 999px 999px 0 0;
+    background: #aeb8c4;
+}
+
+.yield-delta-stack.is-pos .yield-delta-gauge::after {
+    bottom: 50%;
+    height: var(--yield-gauge-fill, 0%);
+    background: var(--yield-seed);
+    box-shadow: 0 0 0.4rem rgba(69, 220, 138, 0.36);
+}
+
+.yield-delta-stack.is-neg .yield-delta-gauge::after {
+    top: 50%;
+    bottom: auto;
+    height: var(--yield-gauge-fill, 0%);
+    border-radius: 0 0 999px 999px;
+    background: var(--yield-product);
+    box-shadow: 0 0 0.4rem rgba(216, 80, 92, 0.35);
+}
+
+.yield-card-footer {
+    min-height: 2.2rem;
+    margin-top: 0.7rem;
+    padding: 0.35rem 0.5rem;
+    border-radius: 0.65rem;
+    font-size: 0.72rem;
+}
+
+.yield-card-footer img { width: 1rem; height: 1rem; }
+.yield-confidence i { width: 0.58rem; height: 0.58rem; }
+
+// Compact pass: show more tiers without losing the two-panel hierarchy.
+.yield-avg-row {
+    grid-template-columns: repeat(8, minmax(10.5rem, 1fr));
+    gap: 0.5rem;
+}
+
+.yield-avg-card {
+    padding: 0.55rem;
+    border-radius: 0.72rem;
+}
+
+.yield-avg-card-visual {
+    height: 4.75rem;
+    margin: 0.25rem 0 0.12rem;
+}
+
+.yield-avg-card-icon,
+.yield-avg-card-icon-fallback {
+    width: 4.75rem;
+    height: 4.75rem;
+}
+
+.yield-avg-card-name {
+    margin-bottom: 0.4rem;
+    font-size: 0.88rem;
+}
+
+.yield-avg-tier {
+    top: 0.5rem;
+    left: 0.5rem;
+    padding: 0.2rem 0.35rem;
+    font-size: 0.62rem;
+}
+
+.yield-avg-bonus-floating {
+    top: 0.5rem;
+    right: 0.5rem;
+    padding: 0.18rem 0.3rem;
+    font-size: 0.58rem;
+}
+
+.yield-avg-bonus-floating img { width: 0.7rem; height: 0.7rem; }
+
+.yield-metric {
+    padding: 0.45rem;
+    border-radius: 0.6rem;
+}
+
+.yield-metric + .yield-metric { margin-top: 0.38rem; }
+.yield-metric-title { gap: 0.25rem; font-size: 0.7rem; }
+.yield-metric-title img { width: 0.9rem; height: 0.9rem; }
+
+.yield-metric-content {
+    grid-template-columns: minmax(0, 1fr) minmax(4.35rem, 0.82fr);
+    gap: 0.38rem;
+    min-height: 4.25rem;
+    margin-top: 0.25rem;
+}
+
+.yield-values-stack {
+    padding-right: 0.45rem;
+    font-size: 0.58rem;
+}
+
+.yield-values-stack span + span { padding-top: 0.35rem; }
+
+.yield-values-stack b,
+.yield-values-stack span:first-child b { font-size: 1.08rem; }
+
+.yield-delta-stack { grid-template-columns: 1fr 0.85rem; gap: 0.16rem 0.25rem; }
+.yield-delta-stack strong { font-size: 1.08rem; }
+.yield-delta-stack span { font-size: 0.6rem; }
+
+.yield-delta-gauge {
+    width: 0.32rem;
+    height: 3.15rem;
+}
+
+.yield-delta-gauge::before {
+    z-index: 2;
+    left: -0.16rem;
+    width: 0.64rem;
+    height: 0.13rem;
+}
+
+.yield-delta-gauge::after { z-index: 1; }
+
+.yield-card-footer {
+    min-height: 1.65rem;
+    margin-top: 0.45rem;
+    padding: 0.22rem 0.35rem;
+    border-radius: 0.48rem;
+    font-size: 0.58rem;
+}
+
+.yield-card-footer img { width: 0.75rem; height: 0.75rem; }
+.yield-confidence { gap: 0.14rem; }
+.yield-confidence i { width: 0.42rem; height: 0.42rem; }
+
+.yield-avg-card.is-confidence-1 .yield-confidence i:nth-child(-n + 1),
+.yield-avg-card.is-confidence-2 .yield-confidence i:nth-child(-n + 2),
+.yield-avg-card.is-confidence-3 .yield-confidence i:nth-child(-n + 3),
+.yield-avg-card.is-confidence-4 .yield-confidence i:nth-child(-n + 4) {
+    background: #ffd361;
+    box-shadow: 0 0 5px rgba(255, 211, 97, 0.3);
+}
+
+@media (max-width: 640px) {
+    .yield-avg-row { grid-template-columns: repeat(8, minmax(11.75rem, 1fr)); }
+    .yield-metric-title img, .yield-avg-bonus-floating img, .yield-card-footer img { display: block; }
+}

@@ -1,0 +1,216 @@
+.farming-type-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.35rem;
+    min-width: 0;
+    padding-inline: 0.75rem;
+
+    &.has-icon {
+        padding-inline: 0.55rem 0.75rem;
+    }
+}
+
+.farming-type-btn-icon {
+    width: 1.25rem;
+    height: 1.25rem;
+    flex-shrink: 0;
+}
+
+.farming-type-btn-label {
+    min-width: 0;
+}
+
+.farming-spec {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: var(--spacing-sm);
+    width: 100%;
+    min-width: 0;
+}
+
+.farming-table {
+    table-layout: fixed;
+    width: 100%;
+
+    th,
+    td {
+        min-width: 0;
+        overflow: hidden;
+        vertical-align: middle;
+    }
+
+    th,
+    th .table-sort-btn {
+        white-space: normal;
+        line-height: 1.2;
+        flex-wrap: wrap;
+    }
+}
+
+.farming-col-item {
+    width: auto;
+}
+
+.farming-col-price {
+    width: 13%;
+}
+
+.farming-col-npc {
+    width: 8%;
+}
+
+.farming-col-num {
+    width: 9%;
+}
+
+.farming-col-pct {
+    width: 8%;
+}
+
+.farming-col-verdict {
+    width: 8%;
+}
+
+// 7 columns (refining): give leftover to numbers, not only the item name.
+.farming-table:not(:has(.farming-col-verdict)) {
+    .farming-col-item {
+        width: 24%;
+    }
+
+    .farming-col-price {
+        width: 15%;
+    }
+
+    .farming-col-num {
+        width: 12%;
+    }
+
+    .farming-col-pct {
+        width: 10%;
+    }
+}
+
+.farming-price-field {
+    --input-height: var(--input-height-sm);
+    --floating-label-inset: 0.5rem;
+    --floating-label-pad: 0.25rem;
+    --floating-label-scale: calc(var(--floating-label-float-size) / var(--font-size-sm));
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+    margin-top: 0;
+    overflow: visible;
+
+    > .form-control {
+        min-width: 0;
+        width: 100%;
+        max-width: 100%;
+        font-family: var(--font-family-mono);
+        font-size: var(--font-size-sm);
+        font-weight: var(--font-weight-semibold);
+        letter-spacing: -0.03em;
+    }
+
+    > label {
+        font-size: var(--font-size-sm);
+        max-width: calc(100% - 0.25rem);
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+}
+
+.farming-price-cell {
+    overflow: hidden;
+    padding-top: 0.7rem;
+    padding-bottom: 0.7rem;
+    padding-inline: 0.5rem;
+    vertical-align: top;
+
+    .farming-price-field {
+        margin-left: 0;
+        max-width: 100%;
+    }
+}
+
+.farming-seed-mark {
+    font-size: 0.5rem;
+    text-transform: uppercase;
+
+    &.is-cheap {
+        background-color: var(--color-success);
+        color: var(--color-on-accent);
+    }
+
+    &.is-dear {
+        background-color: #ffb4b5;
+        color: var(--color-on-accent);
+    }
+}
+
+.farming-seed-icon {
+    width: 0.875rem;
+    height: 0.875rem;
+    vertical-align: -0.1rem;
+}
+
+.farming-item-name {
+    flex-wrap: wrap;
+    white-space: normal;
+}
+
+.farming-item-meta {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    min-width: 0;
+    white-space: nowrap;
+}
+
+.farming-verdict {
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-semibold);
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+.farming-table tbody tr.is-best td,
+.pasture-table tbody tr.is-best td,
+.ava-table tbody tr.is-best td {
+    background-color: color-mix(in srgb, var(--color-success) 12%, var(--color-surface));
+}
+
+.farming-num.is-path-best .pasture-profit-pct,
+.pasture-profit-cell.is-path-best .pasture-profit-pct {
+    font-weight: var(--font-weight-bold);
+    text-decoration: underline;
+    text-decoration-color: color-mix(in srgb, var(--color-success) 65%, transparent);
+    text-underline-offset: 0.2em;
+}
+
+.pasture-profit-cell {
+    vertical-align: middle;
+    line-height: 1.15;
+}
+
+.pasture-profit-pct {
+    display: block;
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-semibold);
+}
+
+.pasture-profit-silver {
+    display: block;
+    margin-top: 0.1rem;
+    font-size: 0.7rem;
+    font-weight: var(--font-weight-medium);
+    color: var(--color-text-muted);
+    opacity: 0.95;
+}
+
+.pasture-profit-cell.is-profit .pasture-profit-silver,
+.pasture-profit-cell.is-loss .pasture-profit-silver {
+    color: inherit;
+    opacity: 0.8;
+}
+

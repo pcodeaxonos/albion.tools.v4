@@ -1,0 +1,526 @@
+.calc-explain {
+    margin: var(--spacing-md) 0 0;
+    padding: 0.875rem 1rem 1rem;
+    background-color: var(--color-surface);
+    border: var(--border-width) solid var(--color-border);
+}
+
+.calc-explain-head {
+    position: sticky;
+    top: calc(var(--chrome-top) + var(--calc-toolbar-height));
+    z-index: 9;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin: -0.875rem -1rem 0.85rem;
+    padding: 0.875rem 1rem 0.75rem;
+    background-color: var(--color-surface);
+    border-bottom: var(--border-width) solid var(--color-border);
+    box-shadow: 0 1px 0 transparent;
+}
+
+.calc-explain-head > .item-icon,
+.calc-explain-icon {
+    width: 2.25rem;
+    height: 2.25rem;
+    flex-shrink: 0;
+}
+
+.calc-explain-title {
+    margin: 0;
+    font-size: var(--h4-size);
+    font-weight: var(--font-weight-semibold);
+    letter-spacing: -0.02em;
+}
+
+.calc-explain-hint {
+    margin: 0.2rem 0 0;
+    color: var(--color-text-muted);
+    font-size: var(--font-size-sm);
+}
+
+.calc-explain-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+    margin: 0 0 0.85rem;
+    padding: 0;
+    list-style: none;
+}
+
+.calc-explain-legend-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0.15rem 0.45rem;
+    font-size: 0.625rem;
+    font-weight: var(--font-weight-semibold);
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    border: var(--border-width) solid var(--color-border);
+
+    &::before {
+        content: "";
+        width: 0.5rem;
+        height: 0.5rem;
+        flex-shrink: 0;
+        background-color: currentColor;
+    }
+
+    &.is-qty {
+        color: var(--color-info);
+    }
+    &.is-price {
+        color: var(--color-primary-light);
+    }
+    &.is-cost {
+        color: var(--color-primary);
+    }
+    &.is-rr {
+        color: var(--color-warning);
+    }
+    &.is-fee {
+        color: #f0a0a8;
+    }
+    &.is-sell {
+        color: #5ad0d0;
+    }
+    &.is-profit {
+        color: var(--color-success);
+    }
+}
+
+.calc-explain-empty {
+    margin: 0;
+    color: var(--color-text-muted);
+    font-size: var(--font-size-sm);
+}
+
+.calc-explain-flow {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: stretch;
+    gap: 0.35rem;
+    margin: 0 0 0.9rem;
+    padding: 0;
+    list-style: none;
+}
+
+.calc-explain-flow-node {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.2rem;
+    min-width: 5.25rem;
+    padding: 0.45rem 0.55rem;
+    background-color: color-mix(in srgb, var(--color-surface-raised) 80%, transparent);
+    border: var(--border-width) solid var(--color-border);
+}
+
+.calc-explain-flow-node .item-icon {
+    width: 1.75rem;
+    height: 1.75rem;
+}
+
+.calc-explain-flow-cap {
+    font-size: 0.5625rem;
+    font-weight: var(--font-weight-semibold);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--color-text-muted);
+}
+
+.calc-explain-flow-node .calc-explain-n {
+    font-family: var(--font-family-mono);
+    font-size: 1rem;
+    font-weight: var(--font-weight-bold);
+}
+
+.calc-explain-flow-node.is-cost {
+    border-color: color-mix(in srgb, var(--color-primary) 45%, var(--color-border));
+}
+
+.calc-explain-flow-node.is-sell {
+    border-color: color-mix(in srgb, var(--color-info) 50%, var(--color-border));
+}
+
+.calc-explain-flow-node.is-profit {
+    border-color: color-mix(in srgb, var(--color-success) 45%, var(--color-border));
+}
+
+.calc-explain-flow-node.is-loss {
+    border-color: color-mix(in srgb, var(--color-danger) 45%, var(--color-border));
+}
+
+.calc-explain-flow-arrow {
+    width: 0.7rem;
+    height: 0.55rem;
+    align-self: center;
+    flex-shrink: 0;
+    background-color: var(--color-text-muted);
+    clip-path: polygon(0 0, 100% 50%, 0 100%);
+    opacity: 0.45;
+}
+
+.calc-explain-groups {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 0.85rem;
+}
+
+.calc-explain-group {
+    padding: 0.55rem 0.75rem 0.65rem 0.8rem;
+    background-color: color-mix(in srgb, var(--color-surface-raised) 70%, transparent);
+    border-left: 3px solid var(--color-border-strong);
+}
+
+.calc-explain-group.is-rr {
+    border-left-color: var(--color-warning);
+}
+
+.calc-explain-group.is-cost {
+    border-left-color: var(--color-primary);
+}
+
+.calc-explain-group.is-sell {
+    border-left-color: var(--color-info);
+}
+
+.calc-explain-group.is-buy {
+    border-left-color: #c084fc;
+}
+
+.calc-explain-group.is-point {
+    border-left-color: var(--color-success);
+}
+
+.calc-explain-group-title {
+    margin: 0 0 0.45rem;
+    font-size: 0.625rem;
+    font-weight: var(--font-weight-semibold);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--color-text-muted);
+}
+
+.calc-explain-group.is-rr .calc-explain-group-title {
+    color: var(--color-warning);
+}
+
+.calc-explain-group.is-cost .calc-explain-group-title {
+    color: var(--color-primary-light);
+}
+
+.calc-explain-group.is-sell .calc-explain-group-title {
+    color: var(--color-info);
+}
+
+.calc-explain-group.is-buy .calc-explain-group-title {
+    color: #d8b4fe;
+}
+
+.calc-explain-group.is-point .calc-explain-group-title {
+    color: var(--color-success);
+}
+
+.calc-explain-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.375rem;
+    margin: 0 0 0.55rem;
+}
+
+.calc-explain-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0.2rem 0.45rem 0.3rem;
+    background-color: var(--color-surface);
+    border: var(--border-width) solid var(--color-border);
+}
+
+.calc-explain-chip-label {
+    color: var(--color-text-muted);
+    font-size: 0.625rem;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
+.calc-explain-chip.is-city,
+.calc-explain-n.is-city {
+    color: var(--color-info);
+}
+
+.calc-explain-chip.is-spec .calc-explain-n,
+.calc-explain-n.is-spec {
+    color: #7dd3a0;
+}
+
+.calc-explain-chip.is-bonus .calc-explain-n,
+.calc-explain-n.is-bonus {
+    color: var(--color-primary-light);
+}
+
+.calc-explain-chip.is-focus .calc-explain-n,
+.calc-explain-n.is-focus {
+    color: #c084fc;
+}
+
+.calc-explain-step {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    padding: 0.45rem 0;
+    border-top: var(--border-width) solid color-mix(in srgb, var(--color-border) 70%, transparent);
+
+    &:first-of-type {
+        border-top: none;
+        padding-top: 0.1rem;
+    }
+}
+
+.calc-explain-who {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.5rem;
+}
+
+.calc-explain-who .item-icon,
+.calc-explain-who .calc-explain-icon {
+    width: 1.75rem;
+    height: 1.75rem;
+    margin-top: 0.05rem;
+}
+
+.calc-explain-who-text {
+    min-width: 0;
+}
+
+.calc-explain-label {
+    display: block;
+    font-weight: var(--font-weight-semibold);
+    font-size: var(--font-size-sm);
+}
+
+.calc-explain-note {
+    margin: 0.15rem 0 0;
+    color: var(--color-text-muted);
+    font-size: 0.75rem;
+    line-height: 1.4;
+}
+
+.calc-explain-math {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    gap: 0.4rem;
+    padding-left: 2.25rem;
+}
+
+@media (max-width: 767px) {
+    .calc-explain-math {
+        padding-left: 0;
+    }
+}
+
+.calc-explain-formula {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    gap: 0.35rem;
+}
+
+.calc-explain-token {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.05rem;
+    min-width: 3.4rem;
+    padding: 0.2rem 0.4rem 0.25rem;
+    background-color: var(--color-surface);
+    border: var(--border-width) solid var(--color-border);
+}
+
+.calc-explain-token-cap {
+    font-size: 0.625rem;
+    font-weight: var(--font-weight-semibold);
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--color-text-muted);
+    font-family: var(--font-family-base);
+}
+
+.calc-explain-token.is-qty .calc-explain-token-cap {
+    color: var(--color-info);
+}
+.calc-explain-token.is-price .calc-explain-token-cap,
+.calc-explain-token.is-silver .calc-explain-token-cap {
+    color: var(--color-primary-light);
+}
+.calc-explain-token.is-cost .calc-explain-token-cap {
+    color: var(--color-primary);
+}
+.calc-explain-token.is-rr .calc-explain-token-cap,
+.calc-explain-token.is-pct .calc-explain-token-cap {
+    color: var(--color-warning);
+}
+.calc-explain-token.is-fee .calc-explain-token-cap {
+    color: #f0a0a8;
+}
+.calc-explain-token.is-sell .calc-explain-token-cap {
+    color: #5ad0d0;
+}
+.calc-explain-token.is-profit .calc-explain-token-cap {
+    color: var(--color-success);
+}
+.calc-explain-token.is-loss .calc-explain-token-cap,
+.calc-explain-token.is-missing .calc-explain-token-cap {
+    color: var(--color-danger);
+}
+
+.calc-explain-token.is-qty {
+    border-color: var(--color-info);
+    background-color: color-mix(in srgb, var(--color-info) 16%, var(--color-surface));
+}
+
+.calc-explain-token.is-price,
+.calc-explain-token.is-silver {
+    border-color: var(--color-primary);
+    background-color: color-mix(in srgb, var(--color-primary) 14%, var(--color-surface));
+}
+
+.calc-explain-token.is-cost {
+    border-color: var(--color-primary-dark);
+    background-color: color-mix(in srgb, var(--color-primary-dark) 18%, var(--color-surface));
+}
+
+.calc-explain-token.is-rr,
+.calc-explain-token.is-pct {
+    border-color: var(--color-warning);
+    background-color: color-mix(in srgb, var(--color-warning) 16%, var(--color-surface));
+}
+
+.calc-explain-token.is-fee {
+    border-color: #f0a0a8;
+    background-color: color-mix(in srgb, #f0a0a8 16%, var(--color-surface));
+}
+
+.calc-explain-token.is-sell {
+    border-color: #5ad0d0;
+    background-color: color-mix(in srgb, #5ad0d0 16%, var(--color-surface));
+}
+
+.calc-explain-token.is-profit {
+    border-color: var(--color-success);
+    background-color: color-mix(in srgb, var(--color-success) 16%, var(--color-surface));
+}
+
+.calc-explain-token.is-loss,
+.calc-explain-token.is-missing {
+    border-color: var(--color-danger);
+    background-color: color-mix(in srgb, var(--color-danger) 16%, var(--color-surface));
+}
+
+.calc-explain-out .calc-explain-token {
+    min-width: 4.75rem;
+    border-width: 2px;
+    padding: 0.28rem 0.5rem 0.32rem;
+}
+
+.calc-explain-op {
+    color: var(--color-text-muted);
+    padding-bottom: 0.35rem;
+    font-size: 1rem;
+}
+
+.calc-explain-word {
+    color: var(--color-text-muted);
+    padding-bottom: 0.35rem;
+    font-size: var(--font-size-sm);
+}
+
+.calc-explain-n {
+    font-family: var(--font-family-mono);
+    font-variant-numeric: tabular-nums;
+    font-weight: var(--font-weight-semibold);
+}
+
+.calc-explain-n.is-silver,
+.calc-explain-n.is-price {
+    color: var(--color-primary-light);
+}
+
+.calc-explain-n.is-qty {
+    color: var(--color-info);
+}
+
+.calc-explain-n.is-pct,
+.calc-explain-n.is-rr {
+    color: var(--color-warning);
+}
+
+.calc-explain-n.is-fee {
+    color: #f0a0a8;
+}
+
+.calc-explain-n.is-cost {
+    color: var(--color-primary);
+}
+
+.calc-explain-n.is-sell {
+    color: #5ad0d0;
+}
+
+.calc-explain-n.is-profit {
+    color: var(--color-success);
+}
+
+.calc-explain-n.is-loss,
+.calc-explain-n.is-missing {
+    color: var(--color-danger);
+}
+
+.calc-explain-foot {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    gap: 0.5rem 0.75rem;
+    margin: 0.9rem 0 0;
+    padding: 0.75rem;
+    background-color: color-mix(in srgb, var(--color-surface-raised) 80%, transparent);
+    border: var(--border-width) solid var(--color-border);
+}
+
+.calc-explain-foot.is-win {
+    border-color: color-mix(in srgb, var(--color-success) 45%, var(--color-border));
+    background-color: color-mix(in srgb, var(--color-success) 10%, var(--color-surface));
+}
+
+.calc-explain-foot.is-lose {
+    border-color: color-mix(in srgb, var(--color-danger) 45%, var(--color-border));
+    background-color: color-mix(in srgb, var(--color-danger) 10%, var(--color-surface));
+}
+
+.calc-explain-kpi {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.calc-explain-kpi-label {
+    font-size: 0.625rem;
+    font-weight: var(--font-weight-semibold);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--color-text-muted);
+}
+
+.calc-explain-foot > .calc-explain-op {
+    padding-bottom: 0.45rem;
+    font-size: 1.125rem;
+}
+

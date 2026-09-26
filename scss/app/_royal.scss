@@ -1,0 +1,752 @@
+.royal-mats {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    margin: 0 0 var(--spacing-sm);
+    overflow-x: auto;
+}
+
+.royal-mats-meta {
+    margin: 0;
+    font-size: 0.75rem;
+    color: var(--color-text-muted);
+}
+
+.royal-sealed-control {
+    width: 100%;
+    min-width: 0;
+}
+
+.royal-sealed-field {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    width: 100%;
+    padding: 0.15rem 0.35rem;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm, 0.35rem);
+    min-width: 0;
+    opacity: 0.72;
+
+    &.is-active {
+        opacity: 1;
+        border-color: var(--color-primary);
+    }
+
+    .price-field-stack {
+        flex: 1 1 auto;
+        min-width: 0;
+        width: 100%;
+    }
+
+    .price-field-foot {
+        display: none;
+    }
+
+    .farming-price-field {
+        flex: 1 1 auto;
+        min-width: 0;
+        width: 100%;
+    }
+}
+
+.royal-mats-grid {
+    --royal-mat-cols: 5;
+    display: grid;
+    grid-template-columns: minmax(2.75rem, auto) repeat(var(--royal-mat-cols), minmax(5.25rem, 1fr));
+    gap: 0.35rem 0.4rem;
+    align-items: center;
+    min-width: min(100%, 40rem);
+}
+
+.royal-mat-corner {
+    min-height: 1.25rem;
+}
+
+.royal-mat-tier-head {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font-mono);
+    font-weight: var(--font-weight-semibold);
+    font-size: 0.75rem;
+    color: var(--color-text-muted);
+}
+
+.royal-mat-kind {
+    display: flex;
+    align-items: center;
+    font-size: 0.75rem;
+    font-weight: var(--font-weight-semibold);
+    color: var(--color-text-muted);
+    line-height: 1.2;
+}
+
+.royal-mat {
+    min-width: 0;
+    padding: 0;
+    border: 0;
+    background: transparent;
+
+    .price-field-stack {
+        gap: 0;
+    }
+
+    .price-field-foot {
+        display: none;
+    }
+
+    .price-field-aside {
+        width: 2rem;
+        height: 2rem;
+    }
+
+    .price-field-aside-icon {
+        width: 1.75rem;
+        height: 1.75rem;
+    }
+
+    .price-field-row {
+        align-items: center;
+        gap: 0.4rem;
+    }
+}
+
+.royal-price-field {
+    --input-height: var(--input-height-sm);
+    --floating-label-inset: 0.45rem;
+    --floating-label-pad: 0.2rem;
+    --floating-label-scale: calc(var(--floating-label-float-size) / var(--font-size-sm));
+    margin-top: 0;
+
+    > .form-control {
+        font-family: var(--font-family-mono);
+        font-size: 0.8125rem;
+        font-weight: var(--font-weight-semibold);
+        letter-spacing: -0.03em;
+    }
+
+    // Tier already in column head — hide float tag so icon + value stay centered.
+    > label {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        white-space: nowrap;
+        border: 0;
+        transform: none !important;
+        background: none;
+        font-size: 0;
+        max-width: none;
+    }
+}
+
+.royal-item-cell {
+    width: 16.5rem;
+    max-width: 20rem;
+}
+
+.royal-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55rem;
+    min-width: 0;
+    max-width: 100%;
+    width: 100%;
+}
+
+.royal-item-icon {
+    width: 3.5rem;
+    height: 3.5rem;
+    flex-shrink: 0;
+}
+
+.royal-item-text {
+    min-width: 0;
+    flex: 1 1 auto;
+    overflow: hidden;
+}
+
+.royal-item-name {
+    display: block;
+    font-weight: var(--font-weight-semibold);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    line-height: 1.2;
+}
+
+.royal-item-meta {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    min-width: 0;
+    font-size: 0.75rem;
+    color: var(--color-text-muted);
+    white-space: nowrap;
+    line-height: 1.2;
+}
+
+.royal-item-set {
+    flex: 0 0 auto;
+}
+
+.royal-item-mat {
+    flex: 0 0 auto;
+    width: 2.5rem;
+    height: 2.5rem;
+    margin-left: auto;
+    line-height: 0;
+}
+
+.royal-item-mat-icon {
+    width: 2.5rem;
+    height: 2.5rem;
+    margin: 0;
+    display: block;
+    object-fit: contain;
+}
+
+.royal-item-sets {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.15rem;
+    min-width: 0;
+}
+
+.royal-set-icon-wrap {
+    display: inline-flex;
+    flex: 0 0 auto;
+    line-height: 0;
+
+    &.is-missing {
+        opacity: 0.4;
+    }
+}
+
+.royal-set-icon {
+    width: 1.125rem;
+    height: 1.125rem;
+    margin: 0;
+}
+
+.royal-result {
+    position: relative;
+
+    &::after {
+        content: "";
+        display: table;
+        clear: both;
+    }
+}
+
+.royal-plan-fab {
+    position: absolute;
+    top: 50%;
+    /* Stay left of status chevron; do not pad the toggle (chevron stays put). */
+    right: calc(var(--spacing-md) + 0.4rem + var(--spacing-sm) + 0.45rem);
+    z-index: 2;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.5rem;
+    height: 2.5rem;
+    margin: 0;
+    padding: 0;
+    border: var(--border-width) solid var(--color-border-strong);
+    border-radius: 0.35rem;
+    background-color: var(--color-surface-raised);
+    color: var(--color-primary);
+    cursor: pointer;
+    transform: translateY(-50%);
+    box-shadow: var(--shadow-md);
+
+    &:hover {
+        color: var(--color-on-accent);
+        background-color: var(--color-primary);
+        border-color: var(--color-primary);
+    }
+
+    &:focus-visible {
+        outline: var(--focus-outline-width) solid var(--color-focus-ring);
+        outline-offset: 2px;
+    }
+}
+
+.royal-plan-fab-icon {
+    display: block;
+    width: 1.35rem;
+    height: 1.35rem;
+}
+
+.app-status.has-royal-plan-fab {
+    .app-status-copy {
+        padding-right: 3.1rem;
+    }
+}
+
+.royal-plan-dialog {
+    width: min(78rem, calc(100vw - 1.5rem - 20px - 2.85rem));
+    max-width: calc(100vw - 1.5rem - 20px - 2.85rem);
+    max-height: calc(100dvh - 1.5rem);
+    margin: auto;
+    padding: 0;
+    border: var(--border-width) solid var(--color-border);
+    border-radius: 0;
+    background-color: var(--color-bg);
+    color: var(--color-text);
+    box-shadow: var(--shadow-md);
+
+    &::backdrop {
+        background-color: color-mix(in srgb, #000 48%, transparent);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+    }
+}
+
+.royal-plan-sheet {
+    display: flex;
+    flex-direction: column;
+    gap: 0.65rem;
+    max-height: calc(100dvh - 1.5rem);
+    padding: 0.75rem 1rem 0.9rem;
+    overflow: auto;
+}
+
+.royal-plan-stations {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1rem;
+    align-items: start;
+}
+
+.royal-plan-station {
+    min-width: 0;
+}
+
+.royal-plan-station-head {
+    padding: 0 0 0.35rem;
+}
+
+.royal-plan-station-label {
+    font-size: 1.15rem;
+    font-weight: var(--font-weight-bold);
+    letter-spacing: 0.02em;
+    line-height: 1.2;
+    color: var(--color-text);
+}
+
+.royal-plan-station-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    padding: 0;
+}
+
+.royal-plan-empty {
+    margin: 0;
+    padding: 0.85rem 0.25rem;
+    text-align: center;
+    color: var(--color-text-muted);
+    font-size: var(--font-size-sm);
+}
+
+.royal-plan-item {
+    --royal-plan-tier-slot: calc(min(10vh, 4.75rem) + 0.6rem);
+    position: relative;
+    display: grid;
+    grid-template-columns: auto auto minmax(0, 1fr);
+    align-items: center;
+    gap: 0.55rem 0.65rem;
+    width: 100%;
+    margin: 0;
+    padding: 0.3rem calc(var(--royal-plan-tier-slot) + 0.4rem) 0.3rem 0.4rem;
+    border: var(--border-width) solid color-mix(in srgb, var(--color-item-tier, var(--color-border)) 65%, var(--color-border));
+    background-color: color-mix(in srgb, var(--color-item-tier, transparent) 14%, var(--color-surface-raised));
+    color: inherit;
+    text-align: left;
+    cursor: pointer;
+
+    &:hover {
+        filter: brightness(1.06);
+    }
+
+    &.is-profit-tier-A {
+        --plan-tier: #6dce86;
+    }
+
+    &.is-profit-tier-B {
+        --plan-tier: #6eb8e8;
+    }
+
+    &.is-profit-tier-C {
+        --plan-tier: #f0b84a;
+    }
+
+    &.is-profit-tier-D {
+        --plan-tier: #9898a0;
+    }
+}
+
+.royal-plan-item-visual {
+    position: relative;
+    flex: 0 0 auto;
+    width: 10vh;
+    height: 10vh;
+    max-width: 4.75rem;
+    max-height: 4.75rem;
+}
+
+.royal-plan-item-icon {
+    width: 10vh;
+    height: 10vh;
+    max-width: 4.75rem;
+    max-height: 4.75rem;
+    margin: 0;
+    display: block;
+    object-fit: contain;
+}
+
+.royal-plan-te {
+    position: absolute;
+    left: 0.1rem;
+    bottom: 0.1rem;
+    z-index: 1;
+    padding: 0.1rem 0.25rem;
+    border-radius: 0.2rem;
+    font-family: var(--font-family-mono);
+    font-size: 0.65rem;
+    font-weight: var(--font-weight-bold);
+    letter-spacing: -0.02em;
+    line-height: 1;
+    color: var(--color-on-item-tier, var(--color-on-tier));
+    background-color: var(--color-item-tier, var(--color-border-strong));
+    pointer-events: none;
+}
+
+.royal-plan-item-stats {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: center;
+    gap: 0.25rem;
+    min-width: 0;
+}
+
+.royal-plan-item-pct {
+    font-family: var(--font-family-mono);
+    font-size: clamp(1.05rem, 2.4vh, 1.45rem);
+    font-weight: var(--font-weight-bold);
+    letter-spacing: -0.04em;
+    line-height: 1;
+    white-space: nowrap;
+    color: var(--plan-tier, var(--color-text));
+}
+
+.royal-plan-tier {
+    position: absolute;
+    top: calc(var(--border-width) + var(--spacing-xs));
+    right: calc(var(--border-width) + var(--spacing-xs));
+    bottom: calc(var(--border-width) + var(--spacing-xs));
+    z-index: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: auto;
+    height: auto;
+    aspect-ratio: 1 / 1;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    font-family: var(--font-family-mono);
+    font-size: clamp(1.35rem, 4.6vh, 2.15rem);
+    font-weight: var(--font-weight-bold);
+    letter-spacing: -0.04em;
+    line-height: 1;
+    color: color-mix(in srgb, var(--plan-tier, var(--color-text-muted)) 42%, #000);
+    background-color: var(--plan-tier, var(--color-border-strong));
+    pointer-events: none;
+}
+
+.royal-plan-sets {
+    display: flex;
+    flex-wrap: nowrap;
+    align-items: center;
+    gap: 0.2rem;
+    min-width: 0;
+}
+
+.royal-plan-set-icon {
+    width: 5.5vh;
+    height: 5.5vh;
+    max-width: 2.6rem;
+    max-height: 2.6rem;
+    margin: 0;
+    flex: 0 0 auto;
+    object-fit: contain;
+}
+
+.royal-plan-chip {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.1rem 0.3rem;
+    font-size: 0.625rem;
+    font-weight: var(--font-weight-bold);
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    line-height: 1;
+    color: var(--color-text-muted);
+    border: var(--border-width) solid var(--color-border);
+    background-color: color-mix(in srgb, var(--color-surface) 80%, transparent);
+}
+
+.royal-plan-missing {
+    min-width: 0;
+}
+
+.royal-plan-missing-head {
+    padding: 0 0 0.35rem;
+}
+
+.royal-plan-missing-label {
+    font-size: 1.15rem;
+    font-weight: var(--font-weight-bold);
+    letter-spacing: 0.02em;
+    line-height: 1.2;
+    color: var(--color-text);
+}
+
+.royal-plan-missing-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    padding: 0;
+}
+
+.royal-plan-miss-item {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    margin: 0;
+    padding: 0.3rem 0.4rem;
+    border: var(--border-width) solid var(--color-border);
+    background-color: var(--color-surface-raised);
+    color: inherit;
+    cursor: pointer;
+
+    &:hover {
+        border-color: var(--color-warning);
+    }
+
+    .royal-plan-te {
+        position: static;
+    }
+}
+
+.royal-plan-miss-icon {
+    width: 3rem;
+    height: 3rem;
+    margin: 0;
+    opacity: 0.9;
+}
+
+.royal-table tbody tr.is-plan-focus td {
+    outline: 2px solid var(--color-primary);
+    outline-offset: -2px;
+}
+
+@media (max-width: 991px) {
+    .royal-plan-stations {
+        grid-template-columns: 1fr;
+    }
+
+    .royal-plan-item {
+        --royal-plan-tier-slot: calc(min(9vh, 4rem) + 0.6rem);
+        grid-template-columns: auto auto minmax(0, 1fr);
+    }
+
+    .royal-plan-item-visual,
+    .royal-plan-item-icon {
+        width: 9vh;
+        height: 9vh;
+        max-width: 4rem;
+        max-height: 4rem;
+    }
+
+    .royal-plan-set-icon {
+        width: 5vh;
+        height: 5vh;
+        max-width: 2.25rem;
+        max-height: 2.25rem;
+    }
+}
+
+.royal-table {
+    table-layout: fixed;
+    width: 100%;
+
+    th,
+    td {
+        font-size: var(--font-size-sm);
+        vertical-align: middle;
+        padding: 0.5rem 0.65rem;
+        min-width: 0;
+    }
+
+    th,
+    th .table-sort-btn {
+        white-space: nowrap;
+        line-height: 1.2;
+    }
+
+    .royal-col-item {
+        width: 22%;
+    }
+
+    .royal-col-te {
+        width: 5.5%;
+    }
+
+    .royal-col-quality {
+        width: 7%;
+    }
+
+    .royal-col-num {
+        width: 8.5%;
+    }
+
+    .royal-col-path {
+        width: 5.5%;
+    }
+
+    .royal-col-pct {
+        width: 7%;
+    }
+
+    td.num {
+        font-variant-numeric: tabular-nums;
+        white-space: nowrap;
+        text-align: right;
+    }
+
+    td.royal-pct {
+        font-size: 1rem;
+        font-weight: var(--font-weight-bold);
+        line-height: 1.15;
+        letter-spacing: -0.02em;
+    }
+
+    .royal-path-cell {
+        text-align: center;
+        vertical-align: middle;
+    }
+
+    .royal-path-tag {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 3.1rem;
+        padding: 0.15rem 0.4rem;
+        font-size: 0.6875rem;
+        font-weight: var(--font-weight-bold);
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        line-height: 1.1;
+        border: var(--border-width) solid var(--color-border);
+        color: var(--color-text-muted);
+        white-space: nowrap;
+    }
+
+    .royal-path-tag.is-craft {
+        color: var(--color-info);
+        border-color: color-mix(in srgb, var(--color-info) 55%, var(--color-border));
+        background-color: color-mix(in srgb, var(--color-info) 16%, transparent);
+    }
+
+    .royal-path-tag.is-buy {
+        color: var(--color-warning);
+        border-color: color-mix(in srgb, var(--color-warning) 55%, var(--color-border));
+        background-color: color-mix(in srgb, var(--color-warning) 16%, transparent);
+    }
+
+    .royal-path-tag.is-missing {
+        opacity: 0.55;
+    }
+
+    .royal-quality {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.3rem;
+    }
+
+    .royal-proxy-tag {
+        display: inline-flex;
+        align-items: center;
+        padding: 0.1rem 0.3rem;
+        font-size: 0.625rem;
+        font-weight: var(--font-weight-bold);
+        letter-spacing: 0.03em;
+        text-transform: uppercase;
+        line-height: 1;
+        color: var(--color-warning);
+        border: var(--border-width) solid color-mix(in srgb, var(--color-warning) 50%, var(--color-border));
+        background-color: color-mix(in srgb, var(--color-warning) 14%, transparent);
+    }
+
+    td.is-quality-proxy,
+    .royal-quality.is-quality-proxy {
+        color: var(--color-warning);
+    }
+
+    td.num.is-quality-proxy {
+        font-style: italic;
+    }
+
+    // Tier tint (dark-friendly mixes) — same for Ex/MP; no permanent left bar.
+    tbody tr[data-tier] {
+        --royal-tier-bar: var(--color-item-tier);
+    }
+
+    tbody tr[data-tier] td {
+        background-color: color-mix(in srgb, var(--color-item-tier) 11%, var(--color-surface));
+    }
+
+    // Slightly stronger only for the top standard T.E (still no left bar).
+    tbody tr.is-standard.is-main[data-tier] td {
+        background-color: color-mix(in srgb, var(--color-item-tier) 16%, var(--color-surface));
+    }
+
+    // Hover / selection must beat tier td backgrounds
+    &.has-explain tbody tr.is-explain-hover:not(.is-explain) td {
+        background-image: linear-gradient(color-mix(in srgb, var(--color-primary) 14%, transparent), color-mix(in srgb, var(--color-primary) 14%, transparent));
+    }
+
+    &.has-explain tbody tr.is-explain td {
+        background-image: none;
+    }
+
+    &.has-explain tbody tr.is-explain[data-tier] td {
+        background-color: color-mix(in srgb, var(--color-item-tier) 22%, var(--color-surface));
+    }
+
+    &.has-explain tbody tr.is-explain td:first-child {
+        box-shadow:
+            inset 3px 0 0 var(--royal-tier-bar, var(--color-primary)),
+            0 1px 0 var(--color-border);
+    }
+}
+
+@media (max-width: 991.98px) {
+    .royal-mats-grid {
+        grid-template-columns: minmax(2.5rem, auto) repeat(var(--royal-mat-cols), minmax(5.25rem, 1fr));
+    }
+
+    .enchant-mats-grid {
+        grid-template-columns: minmax(2.5rem, auto) repeat(var(--enchant-mat-cols), minmax(5.25rem, 1fr));
+    }
+}
+

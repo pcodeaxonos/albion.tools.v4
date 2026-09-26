@@ -1,0 +1,212 @@
+// Dashboard
+.dashboard-hero {
+    margin-bottom: var(--spacing-xl);
+    padding-bottom: var(--spacing-lg);
+    border-bottom: var(--border-width) solid var(--color-border);
+    text-align: center;
+
+    h1 {
+        margin-bottom: var(--spacing-sm);
+    }
+
+    p {
+        margin-bottom: 0;
+        color: var(--color-text-muted);
+        max-width: 40rem;
+        margin-inline: auto;
+    }
+}
+
+.bonus-mats {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.12rem;
+}
+
+.bonus-mat-icon {
+    width: 1.35rem;
+    height: 1.35rem;
+}
+
+.bonus-mat-recipes {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.2rem;
+    vertical-align: middle;
+}
+
+.bonus-mat-recipe {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+}
+
+.bonus-mat-recipe-label {
+    font-size: 0.625rem;
+    line-height: 1.2;
+    color: var(--color-text-muted);
+    white-space: nowrap;
+}
+
+.dashboard-stats {
+    position: relative;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--spacing-md);
+    margin-bottom: var(--spacing-xl);
+    min-height: 5.5rem;
+
+    @media (min-width: 768px) {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+}
+
+.dashboard-stat {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-xs);
+    padding: var(--spacing-md);
+    background-color: var(--color-surface);
+    border: var(--border-width) solid var(--color-border);
+    text-decoration: none;
+    color: inherit;
+    transition:
+        border-color var(--transition-normal),
+        background-color var(--transition-normal);
+
+    &:hover {
+        border-color: var(--color-border-strong);
+        background-color: var(--color-surface-hover);
+    }
+}
+
+.dashboard-stat-link {
+    .dashboard-stat-value {
+        color: var(--color-primary);
+    }
+}
+
+.dashboard-stat-value {
+    font-size: var(--h3-size);
+    font-weight: var(--font-weight-bold);
+    letter-spacing: -0.02em;
+    line-height: 1.1;
+}
+
+.dashboard-stat-label {
+    font-size: var(--font-size-sm);
+    color: var(--color-text-muted);
+}
+
+.dashboard-section {
+    margin-bottom: var(--spacing-xl);
+
+    &:last-child {
+        margin-bottom: 0;
+    }
+}
+
+.dashboard-section-header {
+    margin-bottom: var(--spacing-md);
+
+    h2 {
+        margin-bottom: var(--spacing-xs);
+    }
+
+    p {
+        margin-bottom: 0;
+    }
+}
+
+.tool-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--spacing-md);
+
+    @media (min-width: 640px) {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    @media (min-width: 992px) {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+}
+
+.tool-grid--frequent {
+    --tool-card-min: 12.5rem;
+    --frequent-cols: 2;
+    grid-template-columns: repeat(var(--frequent-cols), minmax(0, 1fr));
+
+    @media (max-width: 639px) {
+        --tool-card-min: 9.5rem;
+    }
+}
+
+.tool-card {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-sm);
+    padding: var(--spacing-lg);
+    background-color: var(--color-surface);
+    border: var(--border-width) solid var(--color-border);
+    min-height: 180px;
+    transition:
+        border-color var(--transition-normal),
+        background-color var(--transition-normal);
+
+    &:hover {
+        border-color: var(--color-border-strong);
+    }
+}
+
+.tool-card-disabled {
+    opacity: 0.72;
+    cursor: not-allowed;
+
+    &:hover {
+        background-color: var(--color-surface);
+    }
+}
+
+.tool-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--spacing-sm);
+}
+
+.tool-card-icon {
+    font-size: 1.5rem;
+    line-height: 1;
+}
+
+.tool-card-badge {
+    flex-shrink: 0;
+}
+
+.tool-card-title {
+    font-size: var(--h4-size);
+    font-weight: var(--font-weight-semibold);
+    margin-bottom: 0;
+    letter-spacing: -0.02em;
+}
+
+.tool-card-desc {
+    margin-bottom: 0;
+    color: var(--color-text-muted);
+    font-size: var(--font-size-sm);
+    line-height: 1.5;
+}
+
+a.tool-card {
+    text-decoration: none;
+    color: inherit;
+    cursor: pointer;
+
+    &:hover {
+        border-color: var(--color-primary);
+        background-color: var(--color-surface-hover);
+    }
+}
+

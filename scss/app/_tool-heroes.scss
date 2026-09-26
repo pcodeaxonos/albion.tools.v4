@@ -1,0 +1,22 @@
+.bonus-hero,
+.settings-hero,
+.carleon-hero,
+.ava-hero,
+.enchant-hero,
+.farming-hero,
+.pasture-hero {
+    margin-bottom: var(--spacing-lg);
+    padding-bottom: var(--spacing-md);
+    border-bottom: var(--border-width) solid var(--color-border);
+
+    h1 {
+        margin-bottom: var(--spacing-sm);
+    }
+
+    p {
+        margin-bottom: 0;
+        color: var(--color-text-muted);
+        max-width: 56rem;
+    }
+}
+

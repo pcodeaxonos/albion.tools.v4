@@ -1,0 +1,214 @@
+.enchant-type-btn {
+    min-width: 0;
+    padding-inline: 0.5rem;
+}
+
+.enchant-mats {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    margin: 0 0 var(--spacing-sm);
+    overflow-x: auto;
+}
+
+.enchant-mats-meta {
+    margin: 0;
+    font-size: 0.75rem;
+    color: var(--color-text-muted);
+}
+
+.enchant-mats-grid {
+    --enchant-mat-cols: 5;
+    display: grid;
+    grid-template-columns: minmax(2.75rem, auto) repeat(var(--enchant-mat-cols), minmax(5.25rem, 1fr));
+    gap: 0.35rem 0.4rem;
+    align-items: center;
+    min-width: min(100%, 40rem);
+}
+
+.enchant-mat-corner {
+    min-height: 1.25rem;
+}
+
+.enchant-mat-tier-head {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font-mono);
+    font-weight: var(--font-weight-semibold);
+    font-size: 0.75rem;
+    color: var(--color-text-muted);
+}
+
+.enchant-mat-kind {
+    display: flex;
+    align-items: center;
+    font-size: 0.75rem;
+    font-weight: var(--font-weight-semibold);
+    color: var(--color-text-muted);
+    line-height: 1.2;
+}
+
+.enchant-mat {
+    min-width: 0;
+    padding: 0;
+    border: 0;
+    background: transparent;
+
+    .price-field-stack {
+        gap: 0;
+    }
+
+    .price-field-foot {
+        display: none;
+    }
+
+    .price-field-aside {
+        width: 2rem;
+        height: 2rem;
+    }
+
+    .price-field-aside-icon {
+        width: 1.75rem;
+        height: 1.75rem;
+    }
+
+    .price-field-row {
+        align-items: center;
+        gap: 0.4rem;
+    }
+}
+
+.enchant-price-field {
+    --input-height: var(--input-height-sm);
+    --floating-label-inset: 0.45rem;
+    --floating-label-pad: 0.2rem;
+    --floating-label-scale: calc(var(--floating-label-float-size) / var(--font-size-sm));
+    margin-top: 0;
+    width: 100%;
+    min-width: 0;
+    max-width: none;
+
+    > .form-control {
+        font-family: var(--font-family-mono);
+        font-size: 0.8125rem;
+        font-weight: var(--font-weight-semibold);
+        letter-spacing: -0.03em;
+    }
+}
+
+.enchant-price-cell {
+    width: 7.25rem;
+
+    .enchant-price-field {
+        margin-top: 0;
+        margin-left: auto;
+        max-width: 7rem;
+    }
+}
+
+.enchant-result-head {
+    margin-bottom: var(--spacing-md);
+
+    h2 {
+        display: flex;
+        align-items: center;
+        gap: var(--spacing-sm);
+        margin-bottom: var(--spacing-xs);
+    }
+
+    p {
+        margin-bottom: 0;
+        color: var(--color-text-muted);
+        font-size: var(--font-size-sm);
+    }
+
+    p + p {
+        margin-top: var(--spacing-xs);
+    }
+}
+
+.enchant-head-icon {
+    width: 2rem;
+    height: 2rem;
+}
+
+.enchant-slots {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    width: 100%;
+
+    .enchant-type-btn {
+        min-width: 0;
+        border-right: var(--border-width) solid var(--color-border);
+        border-bottom: var(--border-width) solid var(--color-border);
+
+        &:nth-child(2n) {
+            border-right: none;
+        }
+
+        &:nth-last-child(-n + 2) {
+            border-bottom: none;
+        }
+    }
+}
+
+.enchant-way {
+    display: block;
+    font-weight: var(--font-weight-semibold);
+    font-variant-numeric: tabular-nums;
+}
+
+.enchant-path--rune {
+    background-color: color-mix(in srgb, var(--color-success) 12%, var(--color-surface));
+}
+
+.enchant-path--soul {
+    background-color: color-mix(in srgb, #6ea8ff 14%, var(--color-surface));
+}
+
+.enchant-path--relic {
+    background-color: color-mix(in srgb, #b794f6 14%, var(--color-surface));
+}
+
+.enchant-path--span {
+    background-color: color-mix(in srgb, #e7c36a 16%, var(--color-surface));
+}
+
+.enchant-table tbody td.enchant-num {
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-semibold);
+    letter-spacing: -0.03em;
+}
+
+.enchant-standard-note a {
+    color: var(--color-primary);
+    font-weight: var(--font-weight-semibold);
+    text-decoration: none;
+
+    &:hover {
+        color: var(--color-primary-light);
+        text-decoration: underline;
+    }
+}
+
+.enchant-table {
+    thead th.is-standard-col {
+        color: var(--color-primary);
+        background-color: color-mix(in srgb, var(--color-primary) 14%, var(--color-surface-raised));
+    }
+
+    tbody td.enchant-num.is-standard {
+        background-color: color-mix(in srgb, var(--color-primary) 28%, var(--color-surface));
+        box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--color-primary) 45%, transparent);
+        color: var(--color-primary-light);
+    }
+
+    tbody td.enchant-num.is-standard.is-main {
+        background-color: color-mix(in srgb, var(--color-primary) 82%, var(--color-surface));
+        box-shadow: inset 0 0 0 1px var(--color-primary);
+        color: var(--color-on-accent);
+        font-weight: var(--font-weight-bold);
+    }
+}
+

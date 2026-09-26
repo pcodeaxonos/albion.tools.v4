@@ -1,0 +1,271 @@
+.carleon-mats,
+.ava-mats {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--spacing-sm);
+    margin: 0 0 var(--spacing-lg);
+    padding: 0;
+    list-style: none;
+
+    @media (min-width: 768px) {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+}
+
+.ava-mats--energy {
+    grid-template-columns: minmax(0, 22rem);
+    margin-bottom: var(--spacing-sm);
+}
+
+.ava-mats--tiers {
+    @media (min-width: 768px) {
+        grid-template-columns: repeat(5, minmax(0, 1fr));
+    }
+}
+
+.ava-mats--furniture {
+    @media (min-width: 768px) {
+        grid-template-columns: repeat(auto-fill, minmax(9.75rem, 1fr));
+    }
+}
+
+.carleon-mat,
+.ava-mat {
+    display: flex;
+    flex-direction: row;
+    align-items: flex-start;
+    gap: var(--spacing-sm);
+    padding: 0.5rem 0.625rem;
+    background-color: var(--color-surface);
+    border: var(--border-width) solid var(--color-border);
+}
+
+.carleon-mat .item-icon,
+.ava-mat .item-icon {
+    width: 2rem;
+    height: 2rem;
+    margin-top: 0.125rem;
+}
+
+.carleon-mat-text,
+.ava-mat-text {
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 auto;
+    min-width: 0;
+    gap: 0.125rem;
+}
+
+.carleon-mat-value {
+    font-family: var(--font-family-mono);
+    font-size: 1rem;
+    font-weight: var(--font-weight-bold);
+    letter-spacing: -0.03em;
+    line-height: 1.2;
+}
+
+.carleon-price-field,
+.ava-price-field {
+    --input-height: var(--input-height-sm);
+    --floating-label-inset: 0.5rem;
+    --floating-label-pad: 0.25rem;
+    --floating-label-scale: calc(var(--floating-label-float-size) / var(--font-size-sm));
+    width: 100%;
+    min-width: 6.5rem;
+    max-width: none;
+    margin-top: 0.25rem;
+
+    > .form-control {
+        font-family: var(--font-family-mono);
+        font-size: var(--font-size-sm);
+        font-weight: var(--font-weight-semibold);
+        letter-spacing: -0.03em;
+    }
+
+    > label {
+        font-size: var(--font-size-sm);
+    }
+}
+
+.carleon-price-cell,
+.ava-price-cell {
+    width: 8.5rem;
+
+    .carleon-price-field,
+    .ava-price-field {
+        margin-top: 0;
+        margin-left: auto;
+        max-width: 8rem;
+    }
+}
+
+.carleon-mat-label,
+.ava-mat-label {
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-medium);
+    line-height: 1.25;
+}
+
+.carleon-mat-meta,
+.ava-mat-meta {
+    font-size: 0.6875rem;
+    color: var(--color-text-muted);
+    line-height: 1.2;
+}
+
+.ava-tier-row {
+    display: block;
+    min-width: 0;
+
+    .price-field-stack {
+        width: 100%;
+        gap: 0;
+    }
+
+    .price-field-foot {
+        display: none;
+    }
+
+    .ava-price-field {
+        margin-top: 0;
+        min-width: 0;
+    }
+}
+
+.carleon-table,
+.ava-table,
+.enchant-table,
+.farming-table {
+    th,
+    td {
+        padding: 0.5rem 0.75rem;
+        font-size: var(--font-size-sm);
+    }
+}
+
+.carleon-item,
+.ava-item,
+.enchant-item,
+.farming-item {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    min-width: 0;
+
+    .item-icon {
+        width: 2rem;
+        height: 2rem;
+        flex: 0 0 auto;
+    }
+
+    > span {
+        min-width: 0;
+    }
+}
+
+.carleon-item-name,
+.ava-item-name,
+.enchant-item-name,
+.farming-item-name {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.375rem;
+    font-weight: var(--font-weight-medium);
+}
+
+.carleon-item-meta,
+.ava-item-meta,
+.enchant-item-meta,
+.farming-item-meta {
+    display: block;
+    font-size: 0.6875rem;
+    color: var(--color-text-muted);
+}
+
+.carleon-bonus,
+.ava-bonus,
+.farming-bonus {
+    font-size: 0.625rem;
+    font-weight: var(--font-weight-semibold);
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--color-primary);
+}
+
+.carleon-recipe,
+.ava-recipe {
+    white-space: nowrap;
+}
+
+.carleon-chip,
+.ava-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    margin-right: 0.5rem;
+    color: var(--color-text-muted);
+    font-size: 0.75rem;
+}
+
+.carleon-chip-icon,
+.ava-chip-icon {
+    width: 1.125rem;
+    height: 1.125rem;
+}
+
+.carleon-num,
+.ava-num,
+.enchant-num,
+.farming-num {
+    font-family: var(--font-family-mono);
+}
+
+.carleon-num.is-profit,
+.ava-num.is-profit,
+.enchant-num.is-profit,
+.enchant-chip.is-profit,
+.enchant-verdict.is-profit,
+.farming-num.is-profit,
+.farming-verdict.is-profit {
+    color: var(--color-success);
+}
+
+.carleon-num.is-loss,
+.ava-num.is-loss,
+.enchant-num.is-loss,
+.enchant-chip.is-loss,
+.enchant-verdict.is-loss,
+.farming-num.is-loss,
+.farming-verdict.is-loss {
+    color: #ffb4b5;
+}
+
+.carleon-price-field.is-missing,
+.ava-price-field.is-missing,
+.enchant-price-field.is-missing,
+.farming-price-field.is-missing {
+    > .form-control {
+        color: var(--color-danger);
+        background-color: color-mix(in srgb, var(--color-danger) 12%, var(--field-bg));
+    }
+}
+
+.carleon-price-field.is-stale,
+.ava-price-field.is-stale,
+.enchant-price-field.is-stale,
+.farming-price-field.is-stale {
+    > .form-control {
+        color: var(--color-stale);
+        background-color: color-mix(in srgb, var(--color-stale) 12%, var(--field-bg));
+    }
+}
+
+.carleon-num.is-missing,
+.ava-num.is-missing,
+.enchant-num.is-missing,
+.farming-num.is-missing,
+.farming-verdict.is-missing {
+    color: var(--color-danger);
+}
+

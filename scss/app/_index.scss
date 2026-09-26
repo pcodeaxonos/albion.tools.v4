@@ -1,0 +1,19 @@
+// Application style modules.
+// IMPORTANT: order is intentional; it preserves the legacy cascade exactly.
+
+@use "dashboard";
+@use "calculator-shell";
+@use "calculation-explain";
+@use "tool-heroes";
+@use "daily-bonus";
+@use "house";
+@use "settings";
+@use "tool-controls";
+@use "island-planner";
+@use "market-resources";
+@use "enchant";
+@use "royal";
+@use "farming-pasture";
+@use "island-yield-base";
+@use "bonus-analysis";
+@use "island-yield-cards";

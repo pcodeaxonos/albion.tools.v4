@@ -6,6 +6,11 @@ Thumbs.db
 albiondata-client.log*
 logs/
 
+# Local export bundles and their temporary preparation folders
+/assets/*-icons.zip
+/assets/island-yield-product-icons/
+/assets/island-yield-product-icons-verify/
+
 # Local launchers — machine paths, Chrome profile, ADC / tool installs
 Albion_Launcher.bat
 start.bat
