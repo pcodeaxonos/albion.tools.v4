@@ -512,7 +512,7 @@ export const tables = {
             { name: 'title', type: 'string', label: 'Başlık' },
             { name: 'description', type: 'string', label: 'Açıklama' },
             { name: 'icon', type: 'string', label: 'İkon' },
-            { name: 'href', type: 'string', label: 'Href' },
+            { name: 'route', type: 'string', label: 'Route' },
             { name: 'addedAt', type: 'string', label: 'Eklendi' },
             { name: 'groupLabel', type: 'string', label: 'Grup' },
             { name: 'frequent', type: 'boolean', label: 'Sık kullanılan' },
@@ -532,7 +532,7 @@ export const tables = {
             COL.id,
             { name: 'code', type: 'string', label: 'Kod' },
             { name: 'title', type: 'string', label: 'Başlık' },
-            { name: 'href', type: 'string', label: 'Href' },
+            { name: 'route', type: 'string', label: 'Route' },
             { name: 'sortValue', type: 'number', label: 'Sıra' }
         ]
     },

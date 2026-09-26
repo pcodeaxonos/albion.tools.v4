@@ -2,22 +2,22 @@
   {
     "id": 1,
     "code": "home",
+    "route": "",
     "title": "Home",
-    "href": "index.html",
     "sortValue": 10
   },
   {
     "id": 2,
     "code": "db",
+    "route": "db",
     "title": "Veritabanı",
-    "href": "pages/admin/db.html",
     "sortValue": 20
   },
   {
     "id": 3,
     "code": "settings",
+    "route": "settings",
     "title": "Ayarlar",
-    "href": "pages/admin/settings.html",
     "sortValue": 30
   }
 ]

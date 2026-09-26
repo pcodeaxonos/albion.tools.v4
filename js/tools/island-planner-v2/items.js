@@ -69,8 +69,12 @@ export function itemCategory(item) {
 
 export function cityBonusItems(islandCity) {
     return [...getPlants(), ...getAnimals()]
-        .filter((item) => Array.isArray(item?.bonusCities) && item.bonusCities.includes(islandCity))
+        .filter((item) => hasCityBonus(item, islandCity))
         .sort((a, b) => a.tier - b.tier || itemName(a).localeCompare(itemName(b), 'tr'));
+}
+
+export function hasCityBonus(item, islandCity) {
+    return Array.isArray(item?.bonusCities) && item.bonusCities.includes(islandCity);
 }
 
 export function animalProductionModes(item) {

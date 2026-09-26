@@ -739,7 +739,7 @@ function renderAvgCard(plant, islandCity) {
     const iconId = itemIconId(plant);
 
     return `
-        <article class="yield-avg-card${active ? '' : ' is-passive'}${thin ? ' is-thin' : ''}${state.filteredPlantKey === plant.key ? ' is-selected' : ''} is-confidence-${confidence}" ${tierAttribute(plant.tier)}
+        <article class="yield-avg-card${active ? '' : ' is-passive'}${thin ? ' is-thin' : ''}${state.filteredPlantKey === plant.key ? ' is-selected' : ''} is-confidence-${confidence}" ${active ? tierAttribute(plant.tier) : ''}
             data-yield-plant="${escapeHtml(plant.key)}" role="button" tabindex="0" aria-pressed="${state.filteredPlantKey === plant.key ? 'true' : 'false'}" ${tipAttr(`${name} — kayıtları filtrele`)}>
             <div class="yield-ref-stage">
                 <span class="yield-avg-tier">T${plant.tier}</span>
@@ -754,8 +754,8 @@ function renderAvgCard(plant, islandCity) {
                 <div class="yield-ref-delta ${deltaTone(yieldRelativeDifference)}"${tipAttr('Varsayılan ürüne göre yüzde farkı')}><strong data-yield-change="product-relative">${active ? formatRelativeDifference(avg.avgPlantYield, wikiYield) : '—'}</strong><span>${active ? formatDeltaMagnitude(avg.avgPlantYield - wikiYield, { digits: 1 }) : ''}</span></div>
             </div>
             <div class="yield-ref-values" aria-label="${escapeHtml(`${copy.outputShort} ve ${copy.returnShort} gerçek ve varsayılan değerleri`)}">
-                <span><b data-yield-change="seed">${active ? formatPct(avg.avgSeedReturn) : '—'}</b><small>Gerçek</small></span><span><b data-yield-change="product">${active ? formatQty(avg.avgPlantYield) : '—'}</b><small>Gerçek</small></span>
-                <span><b>${formatPct(wikiSeed)}</b><small>Vars.</small></span><span><b>${formatQty(wikiYield)}</b><small>Vars.</small></span>
+                <span class="yield-ref-value is-actual"><b data-yield-change="seed">${active ? formatPct(avg.avgSeedReturn) : '—'}</b><small>Gerçek</small></span><span class="yield-ref-value is-actual"><b data-yield-change="product">${active ? formatQty(avg.avgPlantYield) : '—'}</b><small>Gerçek</small></span>
+                <span class="yield-ref-value is-default"><b>${formatPct(wikiSeed)}</b><small>Vars.</small></span><span class="yield-ref-value is-default"><b>${formatQty(wikiYield)}</b><small>Vars.</small></span>
             </div>
             <footer class="yield-card-footer"><span title="Ortalamaya giren kayıt sayısı">${yieldDocumentIcon()} <b>n=${active ? avg.n : 0}</b></span><span class="yield-confidence"${tipAttr(`Güven seviyesi ${confidence}/4 · ${active ? formatQty(avg.seedsPlanted) : 0} ${copy.input.toLocaleLowerCase('tr-TR')}`)}><i></i><i></i><i></i><i></i></span></footer>
         </article>
@@ -919,7 +919,7 @@ function renderAnimalProductAvgCard(animal, islandCity) {
     const confidence = active ? confidenceLevel(avg.seedsPlanted) : 0;
 
     return `
-        <article class="yield-avg-card${active ? '' : ' is-passive'}${thin ? ' is-thin' : ''}${state.filteredPlantKey === animal.key ? ' is-selected' : ''} is-confidence-${confidence}" ${tierAttribute(animal.tier)}
+        <article class="yield-avg-card${active ? '' : ' is-passive'}${thin ? ' is-thin' : ''}${state.filteredPlantKey === animal.key ? ' is-selected' : ''} is-confidence-${confidence}" ${active ? tierAttribute(animal.tier) : ''}
             data-yield-plant="${escapeHtml(animal.key)}" role="button" tabindex="0" aria-pressed="${state.filteredPlantKey === animal.key ? 'true' : 'false'}" ${tipAttr(`T${animal.tier} ${animal.label} ürünü — kayıtları filtrele`)}>
             <div class="yield-ref-stage">
                 <span class="yield-avg-tier">T${animal.tier}</span>
@@ -927,7 +927,7 @@ function renderAnimalProductAvgCard(animal, islandCity) {
                 <h4 class="yield-avg-card-name">${escapeHtml(animal.label)} · ürün</h4>
             </div>
             <div class="yield-ref-deltas is-single"><div class="yield-ref-delta ${deltaTone(relative)}"${tipAttr('Varsayılan ürüne göre yüzde farkı')}><strong>${active ? formatRelativeDifference(avg.avgPlantYield, standard) : '—'}</strong><span>${active ? formatDeltaMagnitude(avg.avgPlantYield - standard, { digits: 1 }) : ''}</span></div></div>
-            <div class="yield-ref-values is-single" aria-label="Ürün gerçek ve varsayılan değeri"><span><b>${active ? formatQty(avg.avgPlantYield) : '—'}</b><small>Gerçek</small></span><span><b>${formatQty(standard)}</b><small>Vars.</small></span></div>
+            <div class="yield-ref-values is-single" aria-label="Ürün gerçek ve varsayılan değeri"><span class="yield-ref-value is-actual"><b>${active ? formatQty(avg.avgPlantYield) : '—'}</b><small>Gerçek</small></span><span class="yield-ref-value is-default"><b>${formatQty(standard)}</b><small>Vars.</small></span></div>
             <footer class="yield-card-footer"><span title="Ortalamaya giren kayıt sayısı">${yieldDocumentIcon()} <b>n=${active ? avg.n : 0}</b></span><span class="yield-confidence"${tipAttr(`Güven seviyesi ${confidence}/4 · ${active ? formatQty(avg.seedsPlanted) : 0} beslenen hayvan`)}><i></i><i></i><i></i><i></i></span></footer>
         </article>
     `;

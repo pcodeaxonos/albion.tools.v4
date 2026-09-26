@@ -1,5 +1,5 @@
 import { initNav } from '../core/nav.js';
-import { siteHref } from '../utils/site-url.js';
+import { routeHref } from '../core/routes.js';
 import { initStore } from '../db/store.js';
 import { renderDashboard } from './dashboard.js';
 import { hasTodayDailyBonus } from '../core/craft-bonus.js';
@@ -19,7 +19,7 @@ async function init() {
     try {
         await initStore();
         if (!hasTodayDailyBonus()) {
-            location.replace(`${siteHref('daily-bonus')}?need=today#bonusForm`);
+            location.replace(`${routeHref('daily-bonus')}?need=today#bonusForm`);
             return;
         }
         await renderDashboard(dashboardContainer);

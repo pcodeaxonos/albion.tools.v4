@@ -16,6 +16,7 @@ import { blankSlot, clone, clamp01, cityKey, normalizeDraft as normalizeDraftMod
 import {
     animalProductionModes,
     cityBonusItems,
+    hasCityBonus,
     isEconomicItem,
     itemCategory,
     itemForSlot,
@@ -638,7 +639,7 @@ function renderCards() {
         const profitPercent = values.profitPercent;
         const netTone = valueTone(values.contribution);
         const icon = itemIconHtml(itemUniqueName(item), { size: 42, className: 'island-v2-card-icon' });
-        const bonus = hasCityBonus(item) ? '<i class="island-v2-card-city-bonus" title="Şehir Bonusu +10%"></i>' : '';
+        const bonus = hasCityBonus(item, state.draft.islandCity) ? '<i class="island-v2-card-city-bonus" title="Şehir Bonusu +10%"></i>' : '';
         const priceDiagnostic = diagnosticsTitle(values.diagnostics ?? []);
         const cardDiagnostic = priceDiagnostic;
         const priceTitle = cardDiagnostic ? ` title="${escapeHtml(cardDiagnostic)}" aria-label="Hesap dependency teşhisi: ${escapeHtml(cardDiagnostic)}"` : '';
@@ -656,7 +657,7 @@ function renderDetail() {
     const disabled = editable ? '' : ' disabled';
     const values = state.derived.slots.get(entry.id) ?? {};
     const dependencyHint = (key) => dependencyTitle(values.dependencies?.[key] ?? []);
-    const bonus = item && hasCityBonus(item) ? '<i class="island-v2-city-bonus" title="Şehir Bonusu +10%" aria-label="Şehir Bonusu +10%"></i>' : '';
+    const bonus = item && hasCityBonus(item, state.draft.islandCity) ? '<i class="island-v2-city-bonus" title="Şehir Bonusu +10%" aria-label="Şehir Bonusu +10%"></i>' : '';
     const modeOptions = item?.babyId ? animalProductionModes(item) : [];
     const modes = modeOptions.map(({ value, label }) => `<button type="button" data-v2-production-mode="${value}" class="${entry.productionMode === value ? 'is-active' : ''}"${disabled}>${escapeHtml(label)}</button>`).join('');
     const modeControl = modes ? `<span class="island-v2-control-label">Üretim Modu</span><span class="island-v2-production-mode">${modes}</span>` : '';

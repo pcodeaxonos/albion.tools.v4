@@ -47,7 +47,7 @@ function newToolIds() {
     return new Set(
         listTools()
             .map((tool, index) => ({ tool, recency: liveToolRecency(tool, index) }))
-            .filter(({ tool }) => tool.href)
+            .filter(({ tool }) => tool.route)
             .sort((a, b) => compareLiveRecency(a.recency, b.recency))
             .slice(0, count)
             .map(({ tool }) => tool.id)

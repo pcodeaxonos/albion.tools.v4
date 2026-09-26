@@ -12821,7 +12821,7 @@ a.tool-card:hover {
   width: 4.6rem;
   height: 3.5rem;
   margin: 0;
-  transform: translateX(-50%);
+  transform: translateX(-50%) scale(1.12);
   filter: drop-shadow(0 0.3rem 0.26rem rgba(0, 0, 0, 0.36));
 }
 
@@ -12920,9 +12920,9 @@ a.tool-card:hover {
   top: 6.3rem;
   z-index: 2;
   display: grid;
-  grid-template-columns: 1fr 1px 1fr;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   grid-template-rows: 1.7rem 1.45rem;
-  gap: 0;
+  column-gap: 0.24rem;
   margin: 0;
   border: 0;
   border-radius: 0;
@@ -12930,7 +12930,7 @@ a.tool-card:hover {
   box-shadow: none;
 }
 
-.yield-ref-values span {
+.yield-ref-value {
   position: relative;
   display: grid;
   place-items: center;
@@ -12941,19 +12941,12 @@ a.tool-card:hover {
   background: transparent;
 }
 
-.yield-ref-values span:nth-child(1) {
-  grid-column: 1;
+.yield-ref-value.is-actual {
   grid-row: 1;
   background: rgba(16, 21, 28, 0.26);
 }
 
-.yield-ref-values span:nth-child(2) {
-  grid-column: 3;
-  grid-row: 1;
-  background: rgba(16, 21, 28, 0.26);
-}
-
-.yield-ref-values span:nth-child(-n+2)::before {
+.yield-ref-value.is-actual::before {
   content: "";
   position: absolute;
   z-index: 0;
@@ -12964,36 +12957,28 @@ a.tool-card:hover {
   background: rgba(16, 21, 28, 0.26);
 }
 
-.yield-ref-values span:nth-child(-n+2) b {
+.yield-ref-value.is-actual b {
   position: relative;
   z-index: 1;
 }
 
-.yield-ref-values span:nth-child(3) {
-  grid-column: 1;
+.yield-ref-value.is-default {
   grid-row: 2;
-  margin-right: 0.12rem;
-  border-radius: 0.3rem;
-  background: linear-gradient(180deg, color-mix(in srgb, var(--color-item-tier) 32%, #151b23 68%), color-mix(in srgb, var(--color-item-tier) 24%, #11171e 76%));
-}
-
-.yield-ref-values span:nth-child(4) {
-  grid-column: 3;
-  grid-row: 2;
-  margin-left: 0.12rem;
   border-radius: 0.3rem;
   background: linear-gradient(180deg, color-mix(in srgb, var(--color-item-tier) 32%, #151b23 68%), color-mix(in srgb, var(--color-item-tier) 24%, #11171e 76%));
 }
 
 .yield-ref-values::before {
   content: "";
-  grid-column: 2;
-  grid-row: 1;
-  align-self: center;
+  position: absolute;
+  z-index: 1;
+  left: 50%;
+  top: 0.04rem;
   width: 1px;
   height: 1.63rem;
   background: linear-gradient(to bottom, transparent 0%, color-mix(in srgb, var(--color-item-tier) 62%, white 38%) 16%, color-mix(in srgb, var(--color-item-tier) 62%, white 38%) 84%, transparent 100%);
   opacity: 0.46;
+  transform: translateX(-50%);
 }
 
 .yield-ref-values::after {
@@ -13014,9 +12999,9 @@ a.tool-card:hover {
   letter-spacing: -0.04rem;
 }
 
-.yield-ref-values span:nth-child(n+3) b {
+.yield-ref-value.is-default b {
   color: #f5f5f7;
-  font-size: 0.8rem;
+  font-size: 0.7rem;
   font-weight: 500;
 }
 
@@ -13025,11 +13010,15 @@ a.tool-card:hover {
 }
 
 .yield-ref-values.is-single {
-  grid-template-columns: 1fr;
+  grid-template-rows: 1.7rem;
 }
 
-.yield-ref-values.is-single::before, .yield-ref-values.is-single::after, .yield-ref-values.is-single span:nth-child(n+3) {
+.yield-ref-values.is-single::before, .yield-ref-values.is-single::after {
   display: none;
+}
+
+.yield-ref-values.is-single .yield-ref-value.is-default {
+  grid-row: 1;
 }
 
 .yield-card-footer {
@@ -13078,8 +13067,9 @@ a.tool-card:hover {
 }
 
 .yield-avg-card.is-passive {
-  opacity: 0.58;
-  filter: grayscale(0.3);
+  --color-item-tier:var(--color-border-strong);
+  opacity: 0.28;
+  filter: grayscale(1) saturate(0);
 }
 
 .yield-avg-card.is-selected {

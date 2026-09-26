@@ -1,4 +1,5 @@
 import { escapeHtml } from '../utils/utils.js';
+import { routeHref } from '../core/routes.js';
 import { isNewTool } from '../core/tools.js';
 import { getFrequentTools } from '../core/usage.js';
 import { getAll, getRowCount } from '../db/store.js';
@@ -25,7 +26,7 @@ export async function renderDashboard(container) {
                 <span class="dashboard-stat-value" data-stat="table-count">—</span>
                 <span class="dashboard-stat-label">Veri tablosu</span>
             </div>
-            <a class="dashboard-stat dashboard-stat-link" href="db">
+            <a class="dashboard-stat dashboard-stat-link" href="${routeHref('db')}">
                 <span class="dashboard-stat-value">→</span>
                 <span class="dashboard-stat-label">Veritabanını aç</span>
             </a>
@@ -145,9 +146,9 @@ function bindFrequentGrid(grid) {
 }
 
 function renderToolCard(tool) {
-    if (tool.href) {
+    if (tool.route) {
         return `
-        <a class="tool-card" href="${escapeHtml(tool.href)}">
+        <a class="tool-card" href="${escapeHtml(routeHref(tool.route))}">
             <div class="tool-card-header">
                 <span class="tool-card-icon" aria-hidden="true">${tool.icon}</span>
                 <span class="badge bg-success tool-card-badge">Açık</span>
@@ -173,7 +174,7 @@ function renderToolCard(tool) {
 
 function renderDbSummaryCard(stat) {
     return `
-        <a class="db-summary-card" href="db#${escapeHtml(stat.name)}">
+        <a class="db-summary-card" href="${escapeHtml(routeHref('db'))}#${escapeHtml(stat.name)}">
             <span class="db-summary-count">${stat.count.toLocaleString('tr-TR')}</span>
             <span class="db-summary-label">${escapeHtml(stat.label)}</span>
             <span class="db-summary-meta">${escapeHtml(stat.name)}</span>

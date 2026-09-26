@@ -28,7 +28,7 @@ import {
     getJunctionChildIds
 } from './store.js';
 import { initNav } from '../core/nav.js';
-import { siteHref } from '../utils/site-url.js';
+import { routeHref } from '../core/routes.js';
 import { initFloatingLabels } from '../components/forms.js';
 import {
     showPageLoader,
@@ -137,8 +137,8 @@ function setHash(tableName, action, id, search, page) {
 
     const query = params.toString();
     const url = query
-        ? `${siteHref('db')}?${query}${hash}`
-        : `${siteHref('db')}${hash}`;
+        ? `${routeHref('db')}?${query}${hash}`
+        : `${routeHref('db')}${hash}`;
 
     history.replaceState(null, '', url);
 }

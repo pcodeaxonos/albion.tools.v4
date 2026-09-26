@@ -493,7 +493,7 @@ export function getSiteTools() {
             title: row.title,
             description: row.description,
             icon: row.icon,
-            href: row.href || '',
+            route: row.route || '',
             addedAt: row.addedAt || '',
             group: row.groupLabel,
             frequent: row.frequent === true
@@ -507,7 +507,7 @@ export function getSitePages() {
         .map((row) => ({
             id: row.code,
             title: row.title,
-            href: row.href
+            route: row.route || ''
         }));
 }
 

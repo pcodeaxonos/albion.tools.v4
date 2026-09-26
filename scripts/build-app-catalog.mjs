@@ -3,6 +3,7 @@
  * Run: node scripts/build-app-catalog.mjs
  */
 import fs from 'fs';
+import { SITE_ROUTES } from './site-routes.mjs';
 
 const items = JSON.parse(fs.readFileSync('data/items.json', 'utf8'));
 const economy = JSON.parse(fs.readFileSync('data/economy-constants.json', 'utf8'));
@@ -89,7 +90,7 @@ for (const group of materialGroups) {
     }
 }
 
-const siteTools = [
+let siteTools = [
     { id: 1, code: 'daily-bonus', title: 'Günlük Bonus', description: 'Her gün iki craft / refine bonusunu kaydedin. Ay içi tekrar sayıları hesaplanır.', icon: '✨', href: 'pages/logs/daily-bonus.html', addedAt: '2026-06-01', groupLabel: 'Kayıt', frequent: true, sortValue: 10, isActive: true },
     { id: 14, code: 'island-yields', title: 'Ada Çıktı', description: 'Ada hasat yield’lerini kaydedin; ortalamalar farming ve planlayıcıda kullanılır.', icon: '📊', href: 'pages/logs/island-yields.html', addedAt: '2026-09-13', groupLabel: 'Kayıt', frequent: true, sortValue: 15, isActive: true },
     { id: 2, code: 'farmin', title: 'Farming', description: 'Tarım verimi ve focus; Martlock, Thetford ve Brecilien.', icon: '🌱', href: 'pages/tools/farming.html', addedAt: '2026-09-05', groupLabel: 'Ada', frequent: true, sortValue: 20, isActive: true },
@@ -108,11 +109,15 @@ const siteTools = [
     { id: 13, code: 'enchantin', title: 'Enchanting', description: 'Rune, soul ve relic: kaçtan kaça çıkarmanın gümüş maliyeti.', icon: '🔮', href: 'pages/tools/enchanting.html', addedAt: '2026-08-23', groupLabel: 'Üretim', frequent: false, sortValue: 120, isActive: true }
 ];
 
-const sitePages = [
+let sitePages = [
     { id: 1, code: 'home', title: 'Home', href: 'index.html', sortValue: 10 },
     { id: 2, code: 'db', title: 'Veritabanı', href: 'pages/admin/db.html', sortValue: 20 },
     { id: 3, code: 'settings', title: 'Ayarlar', href: 'pages/admin/settings.html', sortValue: 30 }
 ];
+
+// Runtime metadata deliberately contains a public route, never a source file path.
+siteTools = SITE_ROUTES.filter((entry) => entry.kind === 'tool').map(({ source, kind, ...entry }) => entry);
+sitePages = SITE_ROUTES.filter((entry) => entry.kind === 'page').map(({ source, kind, ...entry }) => entry);
 
 const priceServers = [
     { id: 1, code: 'europe', label: 'Europe', host: 'https://europe.albion-online-data.com', sortValue: 10 },
