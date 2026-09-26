@@ -22,14 +22,14 @@ for (const entry of SITE_ROUTES) {
     const pathname = `/${href}`;
     const route = pathname.replace(/^\/+|\/+$/g, '');
     assert.equal(route, entry.path, `route round trip failed: ${entry.id}`);
-    if (entry.path) assert.ok(fs.existsSync(path.join(entry.path, 'index.html')), `missing route output: ${entry.path}`);
+    assert.ok(fs.existsSync(entry.source), `missing page source: ${entry.id}`);
     if (entry.path) {
-        const html = fs.readFileSync(path.join(entry.path, 'index.html'), 'utf8');
-        const baseHref = '../'.repeat(entry.path.split('/').filter(Boolean).length);
+        const html = fs.readFileSync(entry.source, 'utf8');
+        const sourceDepth = path.dirname(entry.source).split(/[\\/]/).filter((part) => part && part !== '.').length;
+        const baseHref = '../'.repeat(sourceDepth);
         const baseIndex = html.indexOf(`<base href="${baseHref}">`);
         assert.ok(baseIndex >= 0, `missing canonical base href: ${entry.path}`);
         assert.ok(baseIndex < html.indexOf('output/css/site.css'), `base must precede assets: ${entry.path}`);
-        assert.equal(path.normalize(entry.source), path.join(entry.path, 'index.html'), `source/output mismatch: ${entry.id}`);
     }
 }
 
