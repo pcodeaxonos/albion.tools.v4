@@ -1,5 +1,6 @@
 import { escapeHtml } from '../utils/utils.js';
 import { initNav } from '../core/nav.js';
+import { routeHref } from '../core/routes.js';
 import { initStore } from '../db/store.js';
 import { getSettings, cityHasIsland, getDefaultCity } from '../core/settings.js';
 import { fetchPrices, indexPrices } from '../core/market.js';
@@ -1223,7 +1224,7 @@ function renderOutput() {
                 · sulama ${state.water ? 'açık' : 'kapalı'} (Ayarlar)
                 · ince pazar eşiği ${state.minVolume || 'yok'} (uyarı; eleme yok)
                 · alış ${escapeHtml(cityLabel(state.islandCity))} · satış ${escapeHtml(cityLabel(state.sellCity))}
-                · <a href="island-yields">Ada Çıktı</a> kayıtları varsa yield ortalaması kullanılır
+                · <a href="${routeHref('island-yields')}">Ada Çıktı</a> kayıtları varsa yield ortalaması kullanılır
                 ${stamp ? ` · ${escapeHtml(stamp)}` : ''}
             </p>
         </div>

@@ -47,7 +47,7 @@ function newToolIds() {
     return new Set(
         listTools()
             .map((tool, index) => ({ tool, recency: liveToolRecency(tool, index) }))
-            .filter(({ tool }) => tool.route)
+            .filter(({ tool }) => tool.path)
             .sort((a, b) => compareLiveRecency(a.recency, b.recency))
             .slice(0, count)
             .map(({ tool }) => tool.id)
@@ -67,10 +67,10 @@ export function getToolGroups() {
     const byLabel = new Map();
 
     for (const tool of listTools()) {
-        let group = byLabel.get(tool.group);
+        let group = byLabel.get(tool.navGroup);
         if (!group) {
-            group = { label: tool.group, tools: [] };
-            byLabel.set(tool.group, group);
+            group = { label: tool.navGroup, tools: [] };
+            byLabel.set(tool.navGroup, group);
             groups.push(group);
         }
         group.tools.push(tool);

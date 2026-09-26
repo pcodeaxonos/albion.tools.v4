@@ -2,8 +2,8 @@ import { getTable, getTableNames, tables } from './schema.js';
 
 const STORAGE_PREFIX = 'albiontools.v4.';
 const SEED_REVISION_KEY = STORAGE_PREFIX + 'seedRevision';
-// Route metadata changed from physical hrefs to public route slugs.
-const SEED_REVISION = 29;
+// Page registry now owns stable ids, paths, and navigation metadata.
+const SEED_REVISION = 31;
 const RESEED_TABLES = [
     'items',
     'itemCategories',

@@ -1,5 +1,6 @@
 import { escapeHtml } from '../utils/utils.js';
 import { initNav } from '../core/nav.js';
+import { routeHref } from '../core/routes.js';
 import { initStore } from '../db/store.js';
 import { getSettings, getStandardCombos, getDefaultCity } from '../core/settings.js';
 import { fetchPrices, indexPrices, cityRow } from '../core/market.js';
@@ -963,7 +964,7 @@ function renderSummary(list) {
         <p class="farming-note royal-standard-note">
             Kapsam: solda <strong>${state.scope === 'all' ? 'Tüm T.E' : 'Standart T.E'}</strong>
             ${state.scope !== 'all' && combos ? ` (${escapeHtml(combos)})` : ''} —
-            <a href="settings">standart listesini ayarlardan değiştir</a>.
+            <a href="${routeHref('settings')}">standart listesini ayarlardan değiştir</a>.
             ${best ? ` En kârlı: ${escapeHtml(shortItemName(best.recipe.label))} ${escapeHtml(best.tierEnchant)} ${escapeHtml(best.quality.short)} · ${formatSilver(best.profit, { signed: true })} · ${formatPercent(best.pct, { digits: 0, rounding: 'math' })}.` : ''}
         </p>
     `;

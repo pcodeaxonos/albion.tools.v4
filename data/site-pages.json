@@ -1,23 +1,29 @@
 [
   {
-    "id": 1,
-    "code": "home",
-    "route": "",
+    "id": "home",
     "title": "Home",
-    "sortValue": 10
+    "path": "",
+    "navLabel": "Home",
+    "navGroup": "pages",
+    "navOrder": 10,
+    "navVisible": true
   },
   {
-    "id": 2,
-    "code": "db",
-    "route": "db",
+    "id": "db",
     "title": "Veritabanı",
-    "sortValue": 20
+    "path": "admin/db",
+    "navLabel": "Veritabanı",
+    "navGroup": "pages",
+    "navOrder": 20,
+    "navVisible": true
   },
   {
-    "id": 3,
-    "code": "settings",
-    "route": "settings",
+    "id": "settings",
     "title": "Ayarlar",
-    "sortValue": 30
+    "path": "admin/settings",
+    "navLabel": "Ayarlar",
+    "navGroup": "pages",
+    "navOrder": 30,
+    "navVisible": true
   }
 ]

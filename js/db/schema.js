@@ -503,21 +503,21 @@ export const tables = {
         source: 'curated',
         description: 'Ana sayfa / nav tool listesi',
         key: 'id',
-        autoKey: true,
-        defaultSort: { column: 'sortValue', direction: 'asc' },
+        autoKey: false,
+        defaultSort: { column: 'navOrder', direction: 'asc' },
         seedUrl: './data/site-tools.json',
         columns: [
-            COL.id,
-            { name: 'code', type: 'string', label: 'Kod' },
+            { name: 'id', type: 'string', editable: false, label: 'ID' },
             { name: 'title', type: 'string', label: 'Başlık' },
             { name: 'description', type: 'string', label: 'Açıklama' },
             { name: 'icon', type: 'string', label: 'İkon' },
-            { name: 'route', type: 'string', label: 'Route' },
+            { name: 'path', type: 'string', label: 'Canonical path' },
             { name: 'addedAt', type: 'string', label: 'Eklendi' },
-            { name: 'groupLabel', type: 'string', label: 'Grup' },
+            { name: 'navLabel', type: 'string', label: 'Menü etiketi' },
+            { name: 'navGroup', type: 'string', label: 'Menü grubu' },
+            { name: 'navOrder', type: 'number', label: 'Menü sırası' },
+            { name: 'navVisible', type: 'boolean', label: 'Menüde görünür' },
             { name: 'frequent', type: 'boolean', label: 'Sık kullanılan' },
-            { name: 'sortValue', type: 'number', label: 'Sıra' },
-            COL.active
         ]
     },
     sitePages: {
@@ -526,14 +526,16 @@ export const tables = {
         source: 'curated',
         description: 'Nav sabit sayfalar (home, db, settings)',
         key: 'id',
-        autoKey: true,
+        autoKey: false,
         seedUrl: './data/site-pages.json',
         columns: [
-            COL.id,
-            { name: 'code', type: 'string', label: 'Kod' },
+            { name: 'id', type: 'string', editable: false, label: 'ID' },
             { name: 'title', type: 'string', label: 'Başlık' },
-            { name: 'route', type: 'string', label: 'Route' },
-            { name: 'sortValue', type: 'number', label: 'Sıra' }
+            { name: 'path', type: 'string', label: 'Canonical path' },
+            { name: 'navLabel', type: 'string', label: 'Menü etiketi' },
+            { name: 'navGroup', type: 'string', label: 'Menü grubu' },
+            { name: 'navOrder', type: 'number', label: 'Menü sırası' },
+            { name: 'navVisible', type: 'boolean', label: 'Menüde görünür' }
         ]
     },
     priceServers: {

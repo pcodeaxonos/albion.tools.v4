@@ -1,5 +1,6 @@
 import { escapeHtml } from '../utils/utils.js';
 import { initNav } from '../core/nav.js';
+import { routeHref } from '../core/routes.js';
 import { initStore } from '../db/store.js';
 import { bonusDayIso, bonusWindowLabel } from '../core/bonus-day.js';
 import { getBonusFamilyLabel } from '../core/bonus-families.js';
@@ -319,7 +320,7 @@ function renderBonusNote() {
 
     return `<p class="ava-note">RR ${formatPct(returnRate())}${extra}. Carpenter şehir tabanı ${cityProduction()}%.
         Bugün (${escapeHtml(bonusWindowLabel(bonusDayIso()))}): ${today}
-        <a href="daily-bonus">Günlük bonus</a></p>`;
+        <a href="${routeHref('daily-bonus')}">Günlük bonus</a></p>`;
 }
 
 function renderTierMats() {

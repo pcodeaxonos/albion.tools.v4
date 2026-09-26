@@ -2,13 +2,17 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { SITE_ROUTES } from './site-routes.mjs';
 
+// Pages are authored at their canonical static-site locations.  Keeping source
+// and output together avoids a second generated HTML tree and prevents stale
+// root-level route directories from being recreated by builds.
 for (const entry of SITE_ROUTES) {
-    if (!entry.route) continue;
-    const source = fs.readFileSync(entry.source, 'utf8').replace(/\s*<base\s+href=[^>]+>\s*/i, '\n');
-    const output = path.join(entry.route, 'index.html');
-    fs.mkdirSync(path.dirname(output), { recursive: true });
-    // A base element must be parsed before any relative asset URL. Browsers resolve
-    // earlier link/script attributes immediately, so appending it before </head>
-    // leaves CSS and modules incorrectly scoped under /{route}/.
-    fs.writeFileSync(output, source.replace(/<head(\s[^>]*)?>/i, (head) => `${head}\n    <base href="../">`));
+    const output = entry.path ? path.join(entry.path, 'index.html') : 'index.html';
+    if (path.normalize(entry.source) !== path.normalize(output)) {
+        throw new Error(`Source must be the canonical output: ${entry.id} (${entry.source} !== ${output})`);
+    }
+    if (!fs.existsSync(entry.source)) {
+        throw new Error(`Missing page source: ${entry.source}`);
+    }
 }
+
+console.log(`OK ${SITE_ROUTES.length} authored routes match their canonical output paths`);

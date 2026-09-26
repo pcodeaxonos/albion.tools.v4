@@ -1,5 +1,6 @@
 import { escapeHtml } from '../utils/utils.js';
 import { initNav } from '../core/nav.js';
+import { routeHref } from '../core/routes.js';
 import { initStore } from '../db/store.js';
 import { getBonusFamilyLabel } from '../core/bonus-families.js';
 import { bonusDayIso, bonusWindowLabel } from '../core/bonus-day.js';
@@ -294,7 +295,7 @@ function renderBonusNote() {
 
     return `<p class="ava-note">RR ${formatPct(returnRate())}${extra}. Enerji RR almaz.
         Bugün (${escapeHtml(bonusWindowLabel(bonusDayIso()))}): ${today}
-        <a href="daily-bonus">Günlük bonus</a></p>`;
+        <a href="${routeHref('daily-bonus')}">Günlük bonus</a></p>`;
 }
 
 function matMetaText(mat) {

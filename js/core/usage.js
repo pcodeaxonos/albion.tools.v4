@@ -1,4 +1,4 @@
-import { currentRoute } from './routes.js';
+import { currentPageId } from './routes.js';
 import { TOOLS, getFrequentTools as getStaticFrequentTools } from './tools.js';
 
 const STORAGE_KEY = 'albiontools.v4.usage';
@@ -6,16 +6,16 @@ const STORAGE_KEY = 'albiontools.v4.usage';
 let recordedThisLoad = false;
 
 function liveTools() {
-    return TOOLS.filter((tool) => tool.route);
+    return TOOLS.filter((tool) => tool.path);
 }
 
 function toolForCurrentPage() {
-    const route = currentRoute();
-    if (!route || route === 'db') {
+    const pageId = currentPageId();
+    if (!pageId || pageId === 'db') {
         return null;
     }
 
-    return liveTools().find((tool) => tool.route === route) || null;
+    return liveTools().find((tool) => tool.id === pageId) || null;
 }
 
 function readUsage() {
@@ -62,12 +62,12 @@ function normalizeEntry(entry) {
 function getFallbackFrequentTools() {
     const live = liveTools();
     const frequent = getStaticFrequentTools();
-    const frequentLive = frequent.filter((tool) => tool.route);
+    const frequentLive = frequent.filter((tool) => tool.path);
     const frequentIds = new Set(frequentLive.map((tool) => tool.id));
     const extraLive = live.filter((tool) => !frequentIds.has(tool.id));
-    const upcomingFrequent = frequent.filter((tool) => !tool.route);
+    const upcomingFrequent = frequent.filter((tool) => !tool.path);
     const upcomingIds = new Set(upcomingFrequent.map((tool) => tool.id));
-    const extraUpcoming = TOOLS.filter((tool) => !tool.route && !upcomingIds.has(tool.id));
+    const extraUpcoming = TOOLS.filter((tool) => !tool.path && !upcomingIds.has(tool.id));
 
     return [...frequentLive, ...extraLive, ...upcomingFrequent, ...extraUpcoming];
 }

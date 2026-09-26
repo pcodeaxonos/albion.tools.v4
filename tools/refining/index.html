@@ -3,12 +3,12 @@
 <html lang="tr">
 
 <head>
+    <base href="../../">
 
     <meta charset="utf-8">
 
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-    <title>Albion Tools</title>
+<title>Refining - Albion Tools</title>
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -21,7 +21,7 @@
 
 <body>
 
-    <div data-page-loader class="page-loader" hidden aria-hidden="true" aria-live="polite">
+    <div id="page-loader" class="page-loader" hidden aria-hidden="true" aria-live="polite">
         <div class="page-loader__inner">
             <div class="loader-sigil" aria-hidden="true">
                 <svg class="loader-sigil__svg" viewBox="0 0 72 72" fill="none">
@@ -56,17 +56,14 @@
 
             <main role="main">
                 <div class="container">
-                    <div id="dashboard"></div>
+                    <div id="refiningTool"></div>
                 </div>
             </main>
         </div>
     </div>
 
-
-
-    <script type="module" src="js/tools/app.js"></script>
+    <script type="module" src="js/tools/refining.js"></script>
 
 </body>
 
 </html>
-

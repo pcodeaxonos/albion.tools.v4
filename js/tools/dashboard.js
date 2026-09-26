@@ -146,9 +146,9 @@ function bindFrequentGrid(grid) {
 }
 
 function renderToolCard(tool) {
-    if (tool.route) {
+    if (tool.path) {
         return `
-        <a class="tool-card" href="${escapeHtml(routeHref(tool.route))}">
+        <a class="tool-card" href="${escapeHtml(routeHref(tool.id))}">
             <div class="tool-card-header">
                 <span class="tool-card-icon" aria-hidden="true">${tool.icon}</span>
                 <span class="badge bg-success tool-card-badge">Açık</span>

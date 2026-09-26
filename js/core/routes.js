@@ -1,10 +1,21 @@
+import { getSitePages, getSiteTools } from './catalog.js';
+
 function siteBase() {
     return new URL('.', document.baseURI);
 }
 
-export function routeHref(route) {
-    const clean = String(route || '').replace(/^\/+|\/+$/g, '');
-    return new URL(clean ? `${clean}/` : '', siteBase()).href;
+function allPages() {
+    return [...getSitePages(), ...getSiteTools()];
+}
+
+export function pageById(pageId) {
+    return allPages().find((page) => page.id === pageId) || null;
+}
+
+export function routeHref(pageId) {
+    const page = pageById(pageId);
+    if (!page) throw new Error(`Unknown page id: ${pageId}`);
+    return new URL(page.path ? `${page.path}/` : '', siteBase()).pathname;
 }
 
 export function routeFromPathname(pathname = location.pathname) {
@@ -12,14 +23,18 @@ export function routeFromPathname(pathname = location.pathname) {
     const relative = String(pathname).startsWith(basePath)
         ? String(pathname).slice(basePath.length)
         : String(pathname);
-    const parts = relative.replace(/\/+$/, '').split('/').filter(Boolean);
-    return parts.at(-1) || '';
+    return relative.replace(/^\/+|\/+$/g, '');
 }
 
 export function currentRoute() {
     return routeFromPathname();
 }
 
-export function isCurrentRoute(route) {
-    return currentRoute() === String(route || '').replace(/^\/+|\/+$/g, '');
+export function currentPageId() {
+    const route = currentRoute();
+    return allPages().find((page) => page.path === route)?.id || null;
+}
+
+export function isCurrentRoute(pageId) {
+    return currentPageId() === pageId;
 }

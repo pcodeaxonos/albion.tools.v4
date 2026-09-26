@@ -1,5 +1,5 @@
 import { escapeHtml } from '../utils/utils.js';
-import { isCurrentRoute, routeHref } from './routes.js';
+import { currentPageId, isCurrentRoute, pageById, routeHref } from './routes.js';
 import { PAGES, getToolGroups, isNewTool } from './tools.js';
 import { recordCurrentToolVisit } from './usage.js';
 import { bootLocalDataSync } from './local-data.js';
@@ -17,10 +17,10 @@ const BODY_OPEN_CLASS = 'app-sidebar-open';
 const MQ_DESKTOP = '(min-width: 768px)';
 
 function renderPageLink(page) {
-    const active = isCurrentRoute(page.route);
+    const active = isCurrentRoute(page.id);
     return `
-        <a class="sidebar-link${active ? ' active' : ''}" href="${escapeHtml(routeHref(page.route))}"${active ? ' aria-current="page"' : ''}>
-            <span class="sidebar-link-label">${escapeHtml(page.title)}</span>
+        <a class="sidebar-link${active ? ' active' : ''}" href="${escapeHtml(routeHref(page.id))}"${active ? ' aria-current="page"' : ''}>
+            <span class="sidebar-link-label">${escapeHtml(page.navLabel)}</span>
         </a>
     `;
 }
@@ -36,12 +36,12 @@ function renderNewBadge(tool) {
 function renderToolLink(tool) {
     const newBadge = renderNewBadge(tool);
 
-    if (tool.route) {
-        const active = isCurrentRoute(tool.route);
+    if (tool.path) {
+        const active = isCurrentRoute(tool.id);
         return `
-            <a class="sidebar-link${active ? ' active' : ''}" href="${escapeHtml(routeHref(tool.route))}"${active ? ' aria-current="page"' : ''}>
+            <a class="sidebar-link${active ? ' active' : ''}" href="${escapeHtml(routeHref(tool.id))}"${active ? ' aria-current="page"' : ''}>
                 <span class="sidebar-link-icon" aria-hidden="true">${tool.icon}</span>
-                <span class="sidebar-link-label">${escapeHtml(tool.title)}</span>
+                <span class="sidebar-link-label">${escapeHtml(tool.navLabel)}</span>
                 ${newBadge}
             </a>
         `;
@@ -50,7 +50,7 @@ function renderToolLink(tool) {
     return `
         <span class="sidebar-link sidebar-link--soon" aria-disabled="true">
             <span class="sidebar-link-icon" aria-hidden="true">${tool.icon}</span>
-            <span class="sidebar-link-label">${escapeHtml(tool.title)}</span>
+            <span class="sidebar-link-label">${escapeHtml(tool.navLabel)}</span>
             ${newBadge || '<span class="sidebar-link-soon">yakında</span>'}
         </span>
     `;
@@ -68,7 +68,7 @@ function renderSidebarMarkup() {
 
     return `
         <div class="sidebar-brand">
-            <a class="sidebar-brand-link" href="${routeHref('')}">Albion Tools</a>
+            <a class="sidebar-brand-link" href="${routeHref('home')}">Albion Tools</a>
             <button type="button" class="sidebar-delta-clear" aria-label="Fiyat güncelleme görsellerini temizle" title="Fiyat güncelleme görsellerini temizle">
                 <svg class="sidebar-delta-clear-icon" width="24" height="24" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
                     <path fill="currentColor" d="M12.8 3.2 20.6 11a2.2 2.2 0 0 1 0 3.1l-6.5 6.5a2.2 2.2 0 0 1-3.1 0L3.2 12.8A2.2 2.2 0 0 1 2.6 11V5.1A2.1 2.1 0 0 1 4.7 3h5.9c.6 0 1.1.2 1.5.6ZM6.2 7.1a1.3 1.3 0 1 0 0-2.6 1.3 1.3 0 0 0 0 2.6Zm8.2 2.3 1.4 1.4-2.4 2.4 2.4 2.4-1.4 1.4-2.4-2.4-2.4 2.4-1.4-1.4 2.4-2.4-2.4-2.4 1.4-1.4 2.4 2.4 2.4-2.4Z"/>
@@ -115,6 +115,18 @@ function ensureBackdrop() {
 
 export function initNav() {
     recordCurrentToolVisit();
+
+    document.querySelectorAll('[data-route-id]').forEach((link) => {
+        const pageId = link.dataset.routeId;
+        if (pageById(pageId)) {
+            link.href = routeHref(pageId);
+        }
+    });
+
+    const currentPage = pageById(currentPageId());
+    if (currentPage) {
+        document.title = `${currentPage.title} - Albion Tools`;
+    }
 
     const sidebar = document.querySelector('[data-app-sidebar]');
     if (!sidebar) {

@@ -485,17 +485,18 @@ export function getMaterialGroups() {
 
 export function getSiteTools() {
     return getAll('siteTools')
-        .filter((row) => row.isActive !== false)
+        .filter((row) => row.navVisible !== false)
         .slice()
-        .sort((a, b) => num(a.sortValue) - num(b.sortValue))
+        .sort((a, b) => num(a.navOrder) - num(b.navOrder))
         .map((row) => ({
-            id: row.code,
+            id: row.id,
             title: row.title,
             description: row.description,
             icon: row.icon,
-            route: row.route || '',
+            path: row.path || '',
             addedAt: row.addedAt || '',
-            group: row.groupLabel,
+            navLabel: row.navLabel,
+            navGroup: row.navGroup,
             frequent: row.frequent === true
         }));
 }
@@ -503,11 +504,13 @@ export function getSiteTools() {
 export function getSitePages() {
     return getAll('sitePages')
         .slice()
-        .sort((a, b) => num(a.sortValue) - num(b.sortValue))
+        .filter((row) => row.navVisible !== false)
+        .sort((a, b) => num(a.navOrder) - num(b.navOrder))
         .map((row) => ({
-            id: row.code,
+            id: row.id,
             title: row.title,
-            route: row.route || ''
+            path: row.path || '',
+            navLabel: row.navLabel
         }));
 }
 

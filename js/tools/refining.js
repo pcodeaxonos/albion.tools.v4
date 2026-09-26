@@ -1,5 +1,6 @@
 import { escapeHtml } from '../utils/utils.js';
 import { initNav } from '../core/nav.js';
+import { routeHref } from '../core/routes.js';
 import { initStore } from '../db/store.js';
 import { getBonusFamilyLabel } from '../core/bonus-families.js';
 import { bonusDayIso, bonusWindowLabel } from '../core/bonus-day.js';
@@ -691,7 +692,7 @@ function renderBonusNote() {
         ).join(' · ');
 
     return `<p class="farming-note">Bugün (${escapeHtml(bonusWindowLabel(bonusDayIso()))}): ${today}
-        <a href="daily-bonus">Günlük bonus</a>. ${escapeHtml(feeMetaText(state.premium))}.</p>`;
+        <a href="${routeHref('daily-bonus')}">Günlük bonus</a>. ${escapeHtml(feeMetaText(state.premium))}.</p>`;
 }
 
 function renderSummary(list) {
