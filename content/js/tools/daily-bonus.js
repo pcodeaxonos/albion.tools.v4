@@ -555,8 +555,8 @@ function renderBonusAnalysisDialog() {
             <div class="bonus-analysis-layout">
                 <aside class="bonus-analysis-sidebar">
                     <header class="bonus-analysis-head">
-                        <div><p class="bonus-analysis-eyebrow"><img src="icons/daily-bonus/ui-icons/chart-bars.svg" alt="" aria-hidden="true">GÜNLÜK CRAFT BONUS ANALİZİ</p><h2>${escapeHtml(family?.label || 'Bonus seçin')} <span>${formatDate(bonusDayIso())}</span></h2><p>Artifactsiz ilk üç item için Black Market fiyatına göre en kârlı seçenekler.</p></div>
-                        <div class="bonus-analysis-refresh-group"><button type="button" class="btn btn-primary bonus-analysis-refresh" data-analysis-refresh${isLoading ? ' disabled aria-busy="true"' : ''}><img src="icons/daily-bonus/ui-icons/refresh.svg" alt="" aria-hidden="true">${isLoading ? 'Yükleniyor…' : 'Fiyatları Yenile'}</button><small>${isLoading ? 'Tarifler ve fiyatlar<br>yükleniyor…' : `Son güncelleme:<br>${updatedLabel}`}</small></div>
+                        <div><p class="bonus-analysis-eyebrow"><img src="content/icons/daily-bonus/ui-icons/chart-bars.svg" alt="" aria-hidden="true">GÜNLÜK CRAFT BONUS ANALİZİ</p><h2>${escapeHtml(family?.label || 'Bonus seçin')} <span>${formatDate(bonusDayIso())}</span></h2><p>Artifactsiz ilk üç item için Black Market fiyatına göre en kârlı seçenekler.</p></div>
+                        <div class="bonus-analysis-refresh-group"><button type="button" class="btn btn-primary bonus-analysis-refresh" data-analysis-refresh${isLoading ? ' disabled aria-busy="true"' : ''}><img src="content/icons/daily-bonus/ui-icons/refresh.svg" alt="" aria-hidden="true">${isLoading ? 'Yükleniyor…' : 'Fiyatları Yenile'}</button><small>${isLoading ? 'Tarifler ve fiyatlar<br>yükleniyor…' : `Son güncelleme:<br>${updatedLabel}`}</small></div>
                     </header>
                     <section class="bonus-analysis-controls" aria-label="Analiz filtreleri">
                         <div class="bonus-analysis-select"><span>Bonus grubu</span><div class="bonus-analysis-family-tabs">${familyOptions}</div><small>${escapeHtml(getCityApiName(family?.cityId) || 'Caerleon')}</small></div>
@@ -568,7 +568,7 @@ function renderBonusAnalysisDialog() {
                         </div>
                         <small class="bonus-analysis-tier-hint">Öncelikli tierlar: ${preferredTierText}</small>
                     </section>
-                    <div class="bonus-analysis-note"><img src="icons/daily-bonus/ui-icons/info.svg" alt="" aria-hidden="true"><span>${analysisNote}</span></div>
+                    <div class="bonus-analysis-note"><img src="content/icons/daily-bonus/ui-icons/info.svg" alt="" aria-hidden="true"><span>${analysisNote}</span></div>
                     <div class="bonus-analysis-order-actions"><button type="button" class="btn btn-outline-secondary bonus-analysis-order-toggle" data-analysis-order-toggle>${state.analysis.reorderMode ? 'Sıralamayı Bitir' : 'Kart Sırasını Düzenle'}</button></div>
                 </aside>
                 ${familyGrids}

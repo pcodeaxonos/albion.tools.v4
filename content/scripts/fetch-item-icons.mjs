@@ -1,5 +1,5 @@
 /**
- * Downloads item icons from Albion render CDN into ./icons/
+ * Downloads item icons from Albion render CDN into ./content/icons/
  * so the app can serve them locally (no runtime CDN requests).
  *
  * Usage: node scripts/fetch-item-icons.mjs [--force] [--concurrency=24] [--size=128]
@@ -13,7 +13,7 @@ import http from 'node:http';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(__dirname, '..');
-const ICONS_DIR = join(ROOT, 'icons');
+const ICONS_DIR = join(ROOT, 'content', 'icons');
 const ITEMS_PATH = join(ROOT, 'data', 'items.json');
 const ICON_BASE = 'https://render.albiononline.com/v1/item';
 
@@ -155,7 +155,7 @@ async function main() {
     const items = JSON.parse(readFileSync(ITEMS_PATH, 'utf8'));
     const names = [...new Set(items.map((row) => row.uniqueName).filter(Boolean))];
 
-    console.log(`Downloading ${names.length} icons → icons/ (size=${size}, concurrency=${concurrency}${FORCE ? ', force' : ''})`);
+    console.log(`Downloading ${names.length} icons → content/icons/ (size=${size}, concurrency=${concurrency}${FORCE ? ', force' : ''})`);
 
     const started = Date.now();
     const stats = await runPool(names, downloadOne);

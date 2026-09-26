@@ -308,10 +308,10 @@ async function main() {
 
     console.log('\nSkipping cities.json — maintained manually in data/cities.json');
     console.log('\nRebuilding item-ID dependent catalogs...');
-    rebuildDependentCatalog('scripts/build-craft-catalog.mjs');
-    rebuildDependentCatalog('scripts/build-game-recipe-catalog.mjs');
-    rebuildDependentCatalog('scripts/build-farm-catalog.mjs');
-    rebuildDependentCatalog('scripts/build-app-catalog.mjs');
+    rebuildDependentCatalog('content/scripts/build-craft-catalog.mjs');
+    rebuildDependentCatalog('content/scripts/build-game-recipe-catalog.mjs');
+    rebuildDependentCatalog('content/scripts/build-farm-catalog.mjs');
+    rebuildDependentCatalog('content/scripts/build-app-catalog.mjs');
     console.log('Done.');
 }
 

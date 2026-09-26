@@ -743,7 +743,7 @@ function renderAvgCard(plant, islandCity) {
             data-yield-plant="${escapeHtml(plant.key)}" role="button" tabindex="0" aria-pressed="${state.filteredPlantKey === plant.key ? 'true' : 'false'}" ${tipAttr(`${name} — kayıtları filtrele`)}>
             <div class="yield-ref-stage">
                 <span class="yield-avg-tier">T${plant.tier}</span>
-                ${bonus ? `<span class="yield-avg-bonus-floating"${tipAttr('Şehir bonusu')}><img src="icons/yield-city.svg" alt="">${formatPct(bonusPct)}</span>` : ''}
+                ${bonus ? `<span class="yield-avg-bonus-floating"${tipAttr('Şehir bonusu')}><img src="content/icons/yield-city.svg" alt="">${formatPct(bonusPct)}</span>` : ''}
                 <div class="yield-avg-card-visual">${iconId
                     ? itemIconHtml(iconId, { size: 96, className: 'item-icon yield-avg-card-icon' })
                     : `<span class="yield-avg-card-icon-fallback">T${plant.tier}</span>`}</div>

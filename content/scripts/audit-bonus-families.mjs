@@ -358,8 +358,8 @@ console.log('\n=== SUMMARY ===');
 console.log(`city issues: ${cityIssues.length}`);
 console.log(`material issues: ${materialIssues.length}`);
 fs.writeFileSync(
-    'scripts/audit-bonus-families-report.json',
+    'content/scripts/audit-bonus-families-report.json',
     JSON.stringify({ cityIssues, materialIssues }, null, 2),
     'utf8'
 );
-console.log('wrote scripts/audit-bonus-families-report.json');
+console.log('wrote content/scripts/audit-bonus-families-report.json');

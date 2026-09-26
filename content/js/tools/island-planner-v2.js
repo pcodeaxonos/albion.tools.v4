@@ -31,11 +31,11 @@ import { readPlanTable, writePlanTable } from './island-planner-v2/persistence.j
 
 const OVERLAY_DEBUG = new URLSearchParams(location.search).has('islandOverlayDebug');
 const TOOLBAR_TYPE_ICONS = Object.freeze({
-    farm: './icons/T3_WHEAT.png',
-    herb: './icons/T4_BURDOCK.png',
-    pasture: './icons/T3_FARM_CHICKEN_GROWN.png',
-    kennel: './icons/T5_FARM_COUGAR_GROWN.png',
-    house: './icons/PLAYERISLAND_FURNITUREITEM_WOOD_GATE_BIG_B.png'
+    farm: './content/icons/T3_WHEAT.png',
+    herb: './content/icons/T4_BURDOCK.png',
+    pasture: './content/icons/T3_FARM_CHICKEN_GROWN.png',
+    kennel: './content/icons/T5_FARM_COUGAR_GROWN.png',
+    house: './content/icons/PLAYERISLAND_FURNITUREITEM_WOOD_GATE_BIG_B.png'
 });
 const state = { cities: [], geometry: null, geometryRows: [], fixedPrices: [], selectedSlotId: 'R1', hoveredSlotId: null, toolbar: { stage: 'type', type: null }, draftsByCity: {}, committedByCity: {}, draft: null, committed: null, priceIndex: null, priceLoading: false, priceError: null, priceRequestId: 0, priceDiagnosticSignature: null, derivedDiagnosticSignature: null, openDependencyPopover: null, drag: null, pointerDrag: null, dragPreviewFrame: null, dragPreviewPoint: null, suppressClick: false, derived: { slots: new Map(), summary: null }, calculationTimer: null, overlayDebugSignature: null };
 
