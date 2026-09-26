@@ -34,6 +34,8 @@ Pages with filters/forms plus a result or table use `.tool-split`:
 
 ## DOM selectors
 
+- Render SVG icons inline as `<svg>`; do not use `<img>` to display SVG files.
+
 - Do not introduce HTML `id` attributes for application controls or JavaScript selectors.
 - Use descriptive `data-*` hooks instead: `data-price-check`, or value-bearing attributes such as `data-product="milk"`.
 - Scope attribute selectors to their owning tool container where possible.

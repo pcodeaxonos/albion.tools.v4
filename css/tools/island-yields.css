@@ -1,241 +1,66 @@
-/* Final, page-specific sizing layer for the Island Yield cards. */
-.yield-avg-row {
-  display: flex;
-  width: 100%;
-  max-width: 100%;
-  gap: 0.5rem;
-  overflow: hidden;
-}
-
-.yield-avg-row > .yield-avg-card,
-.yield-avg-row > .yield-avg-slot {
-  flex: 1 1 0;
-  min-width: 0;
-}
-
-.yield-avg-row > .yield-avg-card {
-  width: auto;
-  margin: 0;
-  gap: 4px;
-}
+/* Layout transcribed from t9-wheat-card.html. Only the T9 palette is replaced by the item tier. */
+.yield-avg-legend { display:none; }
+.yield-avg-row { display:grid; grid-template-columns:repeat(8,minmax(0,1fr)); gap:.5rem; width:100%; max-width:100%; padding:.08rem 0 .46rem; }
+.yield-avg-row > .yield-avg-card,.yield-avg-row > .yield-avg-slot { width:100%; min-width:0; }
 
 .yield-avg-card {
-  padding: 0.45rem;
-  border-radius: 0.72rem;
-  /* Neutral T2/T8 tones must not inherit the former red panel fallback. */
-  border-color: var(--color-item-tier, var(--color-border));
+  position:relative; width:100%; height:11.1rem; min-height:11.1rem; overflow:hidden; padding:0; isolation:isolate;
+  border:0; border-radius:.64rem; color:#fff;
   background:
-    radial-gradient(circle at 50% 13%, color-mix(in srgb, var(--color-item-tier, var(--color-border)) 16%, transparent), transparent 30%),
-    linear-gradient(145deg, #171a1d 0%, #0b1115 100%);
+    radial-gradient(5.65rem 3.78rem at 68% 15%,color-mix(in srgb,var(--color-item-tier) 10%,transparent),transparent 72%),
+    linear-gradient(160deg,color-mix(in srgb,var(--color-item-tier) 42%,#10161d 58%) 0%,color-mix(in srgb,var(--color-item-tier) 26%,#0d1117 74%) 47%,#0b1016 100%);
+  --yield-card-light:0 .68rem 1.58rem rgba(0,0,0,.45),inset 0 1px 0 color-mix(in srgb,var(--color-item-tier) 14%,transparent);
+  box-shadow:var(--yield-card-light);
 }
+.yield-avg-card.is-thin:not(.is-passive) { box-shadow:var(--yield-card-light); }
+.yield-avg-card::before,.yield-avg-card::after { content:none; }
 
-.yield-avg-card-visual {
-  height: 4.35rem;
-  margin: 0;
-}
-
-.yield-avg-card-icon,
-.yield-avg-card-icon-fallback {
-  width: 4.35rem;
-  height: 4.35rem;
-}
-
-.yield-avg-card-name {
-  margin: 0;
-  margin-top: -10px;
-  font-size: 0.7rem;
-  font-weight: 400;
-}
-
-.yield-avg-tier {
-  top: 0.5rem;
-  left: 0.5rem;
-  padding: 0.2rem 0.35rem;
-  font-size: 0.62rem;
-}
-
+.yield-ref-stage { position:absolute; inset:0; z-index:2; }
 .yield-avg-bonus-floating {
-  top: 0.5rem;
-  right: 0.5rem;
-  padding: 0.18rem 0.3rem;
-  font-size: 0.58rem;
+  position:absolute; left:.46rem; top:.4rem; z-index:4; display:flex; align-items:center; gap:.18rem; width:max-content; height:1.32rem; min-width:0; padding:0 .25rem;
+  border:0; border-radius:.3rem; color:#fff; background:color-mix(in srgb,#10151c 70%,var(--color-item-tier) 30%); box-shadow:0 .15rem .45rem rgba(0,0,0,.22); font-size:.68rem; line-height:1; font-weight:400;
 }
-
-.yield-avg-bonus-floating img {
-  width: 0.7rem;
-  height: 0.7rem;
+.yield-avg-bonus-floating img { width:.53rem; height:.57rem; }
+.yield-avg-tier {
+  position:absolute; right:.6rem; left:auto; top:.4rem; z-index:4; display:grid; place-items:center; width:1.7rem; height:1.2rem; padding:0;
+  border:0; border-radius:.25rem; color:#fff; background:var(--color-item-tier); box-shadow:0 .26rem .68rem color-mix(in srgb,var(--color-item-tier) 35%,transparent),inset 0 1px 0 rgba(255,255,255,.18); font-size:.75rem; font-weight:900; letter-spacing:-.03rem;
 }
+.yield-avg-card-visual { position:absolute; left:50%; top:.6rem; display:block; width:4.6rem; height:3.5rem; margin:0; transform:translateX(-50%); filter:drop-shadow(0 .3rem .26rem rgba(0,0,0,.36)); }
+.yield-avg-card-icon,.yield-avg-card-icon-fallback { width:100%; height:100%; object-fit:contain; }
+.yield-avg-card-name { display:none; }
 
-.yield-metric {
-  position: relative;
-  padding: 0.35rem;
-  border-radius: 0.6rem;
-  border-color: rgba(150, 171, 198, 0.13);
+/* The clipped hero panel and its two percentage values. */
+.yield-ref-deltas {
+  position:absolute; left:.57rem; right:.57rem; top:3.35rem; z-index:3; display:grid; grid-template-columns:1fr 1px 1fr; align-items:end; height:2.95rem; min-height:0; overflow:hidden; padding-bottom:.4rem;
+  border:0; border-radius:.54rem;
+  background:
+    radial-gradient(ellipse at 12% 18%,rgba(255,255,255,.12),transparent 64%),
+    radial-gradient(ellipse at 85% 0%,color-mix(in srgb,var(--color-item-tier) 24%,transparent),transparent 65%),
+    linear-gradient(165deg,color-mix(in srgb,var(--color-item-tier) 48%,#26313d 52%) 0%,color-mix(in srgb,var(--color-item-tier) 32%,#17202a 68%) 55%,color-mix(in srgb,var(--color-item-tier) 20%,#0d141d 80%) 100%);
+  box-shadow:inset 0 -5px 10px rgba(0,0,0,.16);
+  /* Curved mask rounds the actual sloping outline, not just its bounding box. */
+  --yield-panel-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' preserveAspectRatio='none'%3E%3Cpath d='M0 37 Q0 23 6 23 H40 L93 2.68 Q100 0 100 14 V100 H0 Z' fill='white'/%3E%3C/svg%3E");
+  -webkit-mask:var(--yield-panel-mask) center / 100% 100% no-repeat;
+  mask:var(--yield-panel-mask) center / 100% 100% no-repeat;
 }
+.yield-ref-deltas.is-single { grid-template-columns:1fr; }
+.yield-ref-delta { display:contents; }
+.yield-ref-delta strong { grid-row:1; align-self:end; text-align:center; color:#fff; font-family:var(--font-family-mono); font-size:1.62rem; line-height:1; font-weight:900; letter-spacing:-.08rem; text-shadow:0 1px 0 rgba(255,255,255,.06); }
+.yield-ref-delta span { display:none; }
+.yield-ref-delta + .yield-ref-delta { border:0; }
+.yield-ref-delta:first-child::after { content:""; grid-column:2; grid-row:1; align-self:end; width:1px; height:1.63rem; margin-bottom:.04rem; background:linear-gradient(to bottom,transparent 0%,color-mix(in srgb,var(--color-item-tier) 62%,white 38%) 16%,color-mix(in srgb,var(--color-item-tier) 62%,white 38%) 84%,transparent 100%); opacity:.46; }
+.yield-ref-deltas.is-single .yield-ref-delta::after { display:none; }
+.yield-ref-delta.is-pos strong { color:color-mix(in srgb,#63e892 88%,var(--color-item-tier) 12%); }
+.yield-ref-delta.is-neg strong { color:color-mix(in srgb,#ff7184 88%,var(--color-item-tier) 12%); }
 
-.yield-metric + .yield-metric { margin-top: 0; }
-.yield-metric-title {
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 0.08rem;
-  font-size: 0.7rem;
-}
-.yield-metric-title img { width: 0.9rem; height: 0.9rem; }
-/* Metric names are temporarily hidden while their icons remain as visual anchors. */
-.yield-metric-title span { display: none; }
+/* The plain mid-value pair and the two rounded default blocks. */
+.yield-ref-values { position:absolute; left:.57rem; right:.57rem; top:6.3rem; z-index:2; display:grid; grid-template-columns:1fr 1px 1fr; grid-template-rows:1.7rem 1.45rem; gap:0; margin:0; border:0; border-radius:0; background:transparent; box-shadow:none; }
+.yield-ref-values span { position:relative; display:grid; place-items:center; min-width:0; padding:0; border:0!important; border-radius:0; background:transparent; }
+.yield-ref-values span:nth-child(1) { grid-column:1; grid-row:1; background:rgba(16,21,28,.26); }.yield-ref-values span:nth-child(2) { grid-column:3; grid-row:1; background:rgba(16,21,28,.26); }.yield-ref-values span:nth-child(-n+2)::before { content:""; position:absolute; z-index:0; left:0; right:0; bottom:100%; height:.54rem; background:rgba(16,21,28,.26); }.yield-ref-values span:nth-child(-n+2) b { position:relative; z-index:1; }.yield-ref-values span:nth-child(3) { grid-column:1; grid-row:2; margin-right:.12rem; border-radius:.3rem; background:linear-gradient(180deg,color-mix(in srgb,var(--color-item-tier) 32%,#151b23 68%),color-mix(in srgb,var(--color-item-tier) 24%,#11171e 76%)); }.yield-ref-values span:nth-child(4) { grid-column:3; grid-row:2; margin-left:.12rem; border-radius:.3rem; background:linear-gradient(180deg,color-mix(in srgb,var(--color-item-tier) 32%,#151b23 68%),color-mix(in srgb,var(--color-item-tier) 24%,#11171e 76%)); }
+.yield-ref-values::before { content:""; grid-column:2; grid-row:1; align-self:center; width:1px; height:1.63rem; background:linear-gradient(to bottom,transparent 0%,color-mix(in srgb,var(--color-item-tier) 62%,white 38%) 16%,color-mix(in srgb,var(--color-item-tier) 62%,white 38%) 84%,transparent 100%); opacity:.46; }
+.yield-ref-values::after { content:""; position:absolute; left:0; right:0; top:1.7rem; border-top:1px solid rgba(16,21,28,.26); }
+.yield-ref-values b { color:#fff; font-family:var(--font-family-mono); font-size:.96rem; line-height:1; font-weight:850; letter-spacing:-.04rem; }.yield-ref-values span:nth-child(n+3) b { color:#f5f5f7; font-size:.8rem; font-weight:500; }.yield-ref-values small { display:none; }.yield-ref-values.is-single { grid-template-columns:1fr; }.yield-ref-values.is-single::before,.yield-ref-values.is-single::after,.yield-ref-values.is-single span:nth-child(n+3) { display:none; }
 
-.yield-metric-content {
-  display: block;
-  min-height: 3.65rem;
-  margin: 0;
-}
-
-.yield-actual {
-  position: absolute;
-  left: 0.35rem;
-  top: 0;
-  bottom: 0;
-  color: #9aa7b7;
-  font-size: 0.58rem;
-  line-height: 1;
-}
-
-.yield-actual b {
-  color: #ffd361;
-  font-family: var(--font-family-mono);
-  font-size: 0.864rem;
-}
-
-.yield-actual b {
-  position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
-}
-
-.yield-actual span {
-  position: absolute;
-  top: calc(50% + 0.5rem);
-  font-size: 0.58rem;
-  font-weight: 500;
-  white-space: nowrap;
-}
-
-.yield-metric:last-of-type .yield-actual b { color: var(--yield-seed); }
-
-.yield-delta-stack {
-  position: static;
-  display: block;
-  padding: 0;
-}
-
-.yield-delta-stack strong { font-size: 1.08rem; }
-.yield-delta-stack > span:not(.yield-default) {
-  margin: 0;
-  font-size: 0.48rem;
-  font-weight: 500;
-}
-
-.yield-delta-gauge {
-  --yield-gauge-fill: 0%;
-  position: absolute;
-  top: 0.55rem;
-  right: 0.35rem;
-  bottom: 0.55rem;
-  width: 0.56rem;
-  height: auto;
-}
-
-/* The zero marker remains above the fill, preventing the overlap seen on red bars. */
-.yield-delta-gauge::before {
-  z-index: 2;
-  left: -0.28rem;
-  width: 1.12rem;
-  height: 0.14rem;
-}
-
-.yield-delta-gauge::after { z-index: 1; }
-
-.yield-delta-stack.is-pos .yield-delta-gauge::after,
-.yield-delta-stack.is-neg .yield-delta-gauge::after {
-  height: var(--yield-gauge-fill, 0%);
-}
-
-.yield-delta-stack .yield-default {
-  position: absolute;
-  z-index: 3;
-  right: 1.58rem;
-  top: 50%;
-  transform: translateY(-50%);
-  color: #c7d0df;
-  font-family: var(--font-family-mono);
-  font-size: 0.64rem;
-  line-height: 1;
-  white-space: nowrap;
-}
-
-.yield-default b { font-size: inherit; }
-
-.yield-delta-stack strong[data-yield-change="product-relative"],
-.yield-delta-stack strong[data-yield-change="seed-relative"] {
-  position: absolute;
-  z-index: 3;
-  right: 1.78rem;
-  margin: 0;
-  line-height: 1;
-}
-
-.yield-delta-stack.is-pos strong[data-yield-change="product-relative"],
-.yield-delta-stack.is-pos strong[data-yield-change="seed-relative"] {
-  top: 0.55rem;
-}
-
-.yield-delta-stack.is-neg strong[data-yield-change="product-relative"],
-.yield-delta-stack.is-neg strong[data-yield-change="seed-relative"] {
-  bottom: 0.55rem;
-}
-
-.yield-metric:first-of-type .yield-delta-stack > span:not(.yield-default) {
-  position: absolute;
-  right: 3.2rem;
-  top: 50%;
-  transform: translateY(-50%);
-}
-
-/* Tohumdaki mutlak fark yüzde puanı (pp) tekrar görünür. */
-.yield-metric:last-of-type .yield-delta-stack > span:not(.yield-default) {
-  position: absolute;
-  right: 3.2rem;
-  top: 50%;
-  transform: translateY(-50%);
-}
-
-.yield-card-footer {
-  min-height: 1.45rem;
-  margin-top: 0;
-  padding: 0.18rem 0.3rem;
-  border-radius: 0.48rem;
-  font-size: 0.464rem;
-}
-
-.yield-card-footer img { width: 0.75rem; height: 0.75rem; }
-.yield-confidence { gap: 0.14rem; }
-.yield-confidence i { width: 0.42rem; height: 0.42rem; }
-
-.yield-avg-card.is-confidence-1 .yield-confidence i:nth-child(-n + 1),
-.yield-avg-card.is-confidence-2 .yield-confidence i:nth-child(-n + 2),
-.yield-avg-card.is-confidence-3 .yield-confidence i:nth-child(-n + 3),
-.yield-avg-card.is-confidence-4 .yield-confidence i:nth-child(-n + 4) {
-  background: #ffd361;
-  box-shadow: 0 0 5px rgba(255, 211, 97, 0.3);
-}
-
-/* Keep the outer sections present but deliberately subdued. */
-.yield-metric:first-of-type { border-color: rgba(216, 80, 92, 0.24); }
-.yield-metric:last-of-type { border-color: rgba(69, 220, 138, 0.22); }
-
-@media (max-width: 640px) {
-  .yield-avg-row { gap: 0.2rem; }
-  .yield-metric-title img,
-  .yield-avg-bonus-floating img,
-  .yield-card-footer img { display: block; }
-}
+.yield-card-footer { position:absolute; left:.76rem; right:.76rem; bottom:.3rem; z-index:3; display:flex; align-items:center; justify-content:space-between; height:1.13rem; min-height:0; margin:0; padding:0; border:0; border-radius:0; color:#fff; background:transparent; font-size:.64rem; }.yield-card-footer svg { width:13px; height:13px; flex:none; vertical-align:middle; }.yield-confidence { display:flex; align-items:center; gap:.19rem; }.yield-confidence i { width:.6rem; height:.6rem; border-radius:50%; background:color-mix(in srgb,var(--color-item-tier) 42%,#11161d 58%); }.yield-avg-card.is-confidence-1 .yield-confidence i:nth-child(-n + 1),.yield-avg-card.is-confidence-2 .yield-confidence i:nth-child(-n + 2),.yield-avg-card.is-confidence-3 .yield-confidence i:nth-child(-n + 3),.yield-avg-card.is-confidence-4 .yield-confidence i:nth-child(-n + 4) { background:var(--color-item-tier); box-shadow:0 0 .42rem color-mix(in srgb,var(--color-item-tier) 70%,transparent); }
+.yield-avg-card.is-passive { opacity:.58; filter:grayscale(.3); }.yield-avg-card.is-selected { outline:2px solid color-mix(in srgb,var(--color-item-tier) 45%,white 55%); outline-offset:2px; }
+@media (max-width:640px) { .yield-avg-row { gap:.2rem; } }
