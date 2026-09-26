@@ -763,7 +763,7 @@ function renderBonusNote() {
         ).join(' · ');
 
     return `<p class="farming-note">Bugün (${escapeHtml(bonusWindowLabel(bonusDayIso()))}): ${today}
-        <a href="../../pages/logs/daily-bonus.html">Günlük bonus</a>. ${escapeHtml(feeMetaText(state.premium))}.</p>`;
+        <a href="pages/logs/daily-bonus.html">Günlük bonus</a>. ${escapeHtml(feeMetaText(state.premium))}.</p>`;
 }
 
 function renderSummary(list) {

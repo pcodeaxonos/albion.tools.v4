@@ -1285,7 +1285,7 @@ function renderOutput() {
                 · sulama ${state.water ? 'açık' : 'kapalı'} (Ayarlar)
                 · ince pazar eşiği ${state.minVolume || 'yok'} (uyarı; eleme yok)
                 · alış ${escapeHtml(cityLabel(state.islandCity))} · satış ${escapeHtml(cityLabel(state.sellCity))}
-                · <a href="../../pages/logs/island-yields.html">Ada Çıktı</a> kayıtları varsa yield ortalaması kullanılır
+                · <a href="pages/logs/island-yields.html">Ada Çıktı</a> kayıtları varsa yield ortalaması kullanılır
                 ${stamp ? ` · ${escapeHtml(stamp)}` : ''}
             </p>
         </div>
