@@ -18,7 +18,7 @@
         "prices": "node content/scripts/price-hub.mjs",
         "trades": "node content/scripts/trade-hub.mjs",
         "sat:trades:test": "node content/scripts/sat-trades/self-test.mjs",
-        "serve": "node content/scripts/serve.mjs"
+        "serve": "npx --yes serve . -p 3000 --no-port-switching"
     },
     "devDependencies": {
         "sass": "1.77.8"

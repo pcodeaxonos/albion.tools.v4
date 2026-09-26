@@ -5,7 +5,7 @@ const SEED_REVISION_KEY = STORAGE_PREFIX + 'seedRevision';
 // Page registry now owns stable ids, paths, and navigation metadata.
 // Re-seed navigation metadata so existing browsers receive canonical
 // /tools/* and /admin/* routes instead of their previously cached paths.
-const SEED_REVISION = 32;
+const SEED_REVISION = 33;
 const RESEED_TABLES = [
     'items',
     'itemCategories',

@@ -11,7 +11,7 @@
   {
     "id": "db",
     "title": "Veritabanı",
-    "path": "admin/db",
+    "path": "pages/admin/db",
     "navLabel": "Veritabanı",
     "navGroup": "pages",
     "navOrder": 20,
@@ -20,7 +20,7 @@
   {
     "id": "settings",
     "title": "Ayarlar",
-    "path": "admin/settings",
+    "path": "pages/admin/settings",
     "navLabel": "Ayarlar",
     "navGroup": "pages",
     "navOrder": 30,
