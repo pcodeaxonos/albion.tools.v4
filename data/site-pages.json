@@ -10,14 +10,14 @@
     "id": 2,
     "code": "db",
     "title": "Veritabanı",
-    "href": "/pages/admin/db.html",
+    "href": "pages/admin/db.html",
     "sortValue": 20
   },
   {
     "id": 3,
     "code": "settings",
     "title": "Ayarlar",
-    "href": "/pages/admin/settings.html",
+    "href": "pages/admin/settings.html",
     "sortValue": 30
   }
 ]

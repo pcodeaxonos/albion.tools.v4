@@ -25,7 +25,7 @@ export async function renderDashboard(container) {
                 <span class="dashboard-stat-value" data-stat="table-count">—</span>
                 <span class="dashboard-stat-label">Veri tablosu</span>
             </div>
-            <a class="dashboard-stat dashboard-stat-link" href="/pages/admin/db.html">
+            <a class="dashboard-stat dashboard-stat-link" href="pages/admin/db.html">
                 <span class="dashboard-stat-value">→</span>
                 <span class="dashboard-stat-label">Veritabanını aç</span>
             </a>
@@ -173,7 +173,7 @@ function renderToolCard(tool) {
 
 function renderDbSummaryCard(stat) {
     return `
-        <a class="db-summary-card" href="/pages/admin/db.html#${escapeHtml(stat.name)}">
+        <a class="db-summary-card" href="pages/admin/db.html#${escapeHtml(stat.name)}">
             <span class="db-summary-count">${stat.count.toLocaleString('tr-TR')}</span>
             <span class="db-summary-label">${escapeHtml(stat.label)}</span>
             <span class="db-summary-meta">${escapeHtml(stat.name)}</span>

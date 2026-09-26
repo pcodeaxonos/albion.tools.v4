@@ -28,6 +28,7 @@ import {
     getJunctionChildIds
 } from './store.js';
 import { initNav } from '../core/nav.js';
+import { siteHref } from '../utils/site-url.js';
 import { initFloatingLabels } from '../components/forms.js';
 import {
     showPageLoader,
@@ -135,7 +136,9 @@ function setHash(tableName, action, id, search, page) {
     }
 
     const query = params.toString();
-    const url = query ? `/pages/admin/db.html?${query}${hash}` : `/pages/admin/db.html${hash}`;
+    const url = query
+        ? `${siteHref('pages/admin/db.html')}?${query}${hash}`
+        : `${siteHref('pages/admin/db.html')}${hash}`;
 
     history.replaceState(null, '', url);
 }

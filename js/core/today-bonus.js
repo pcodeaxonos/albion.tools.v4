@@ -1,4 +1,5 @@
 import { escapeHtml } from '../utils/utils.js';
+import { siteHref } from '../utils/site-url.js';
 import { initStore } from '../db/store.js';
 import { todayCraftBonuses } from './craft-bonus.js';
 import {
@@ -189,7 +190,7 @@ function ensureChip(root, { placement, className, compact }) {
 
     el = document.createElement('a');
     el.dataset.todayBonus = placement;
-    el.href = '/pages/logs/daily-bonus.html';
+    el.href = siteHref('pages/logs/daily-bonus.html');
     el.className = className;
     if (compact) {
         el.textContent = '…';

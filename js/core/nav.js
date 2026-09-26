@@ -1,4 +1,5 @@
 import { escapeHtml, pageFileStem } from '../utils/utils.js';
+import { siteHref } from '../utils/site-url.js';
 import { PAGES, getToolGroups, isNewTool } from './tools.js';
 import { recordCurrentToolVisit } from './usage.js';
 import { bootLocalDataSync } from './local-data.js';
@@ -22,7 +23,7 @@ function isActiveHref(href) {
 function renderPageLink(page) {
     const active = isActiveHref(page.href);
     return `
-        <a class="sidebar-link${active ? ' active' : ''}" href="${escapeHtml(page.href)}"${active ? ' aria-current="page"' : ''}>
+        <a class="sidebar-link${active ? ' active' : ''}" href="${escapeHtml(siteHref(page.href))}"${active ? ' aria-current="page"' : ''}>
             <span class="sidebar-link-label">${escapeHtml(page.title)}</span>
         </a>
     `;
@@ -42,7 +43,7 @@ function renderToolLink(tool) {
     if (tool.href) {
         const active = isActiveHref(tool.href);
         return `
-            <a class="sidebar-link${active ? ' active' : ''}" href="${escapeHtml(tool.href)}"${active ? ' aria-current="page"' : ''}>
+            <a class="sidebar-link${active ? ' active' : ''}" href="${escapeHtml(siteHref(tool.href))}"${active ? ' aria-current="page"' : ''}>
                 <span class="sidebar-link-icon" aria-hidden="true">${tool.icon}</span>
                 <span class="sidebar-link-label">${escapeHtml(tool.title)}</span>
                 ${newBadge}
@@ -71,7 +72,7 @@ function renderSidebarMarkup() {
 
     return `
         <div class="sidebar-brand">
-            <a class="sidebar-brand-link" href="/index.html">Albion Tools</a>
+            <a class="sidebar-brand-link" href="${siteHref('index.html')}">Albion Tools</a>
             <button type="button" class="sidebar-delta-clear" aria-label="Fiyat güncelleme görsellerini temizle" title="Fiyat güncelleme görsellerini temizle">
                 <svg class="sidebar-delta-clear-icon" width="24" height="24" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
                     <path fill="currentColor" d="M12.8 3.2 20.6 11a2.2 2.2 0 0 1 0 3.1l-6.5 6.5a2.2 2.2 0 0 1-3.1 0L3.2 12.8A2.2 2.2 0 0 1 2.6 11V5.1A2.1 2.1 0 0 1 4.7 3h5.9c.6 0 1.1.2 1.5.6ZM6.2 7.1a1.3 1.3 0 1 0 0-2.6 1.3 1.3 0 0 0 0 2.6Zm8.2 2.3 1.4 1.4-2.4 2.4 2.4 2.4-1.4 1.4-2.4-2.4-2.4 2.4-1.4-1.4 2.4-2.4-2.4-2.4 1.4-1.4 2.4 2.4 2.4-2.4Z"/>

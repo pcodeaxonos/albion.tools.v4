@@ -278,7 +278,7 @@ function renderBonusNote() {
 
     return `<p class="carleon-note">RR ${formatPct(returnRate())}${extra}.
         Bugün (${escapeHtml(bonusWindowLabel(bonusDayIso()))}): ${today}
-        <a href="/pages/logs/daily-bonus.html">Günlük bonus</a></p>`;
+        <a href="../../pages/logs/daily-bonus.html">Günlük bonus</a></p>`;
 }
 
 function matMetaText(mat) {
