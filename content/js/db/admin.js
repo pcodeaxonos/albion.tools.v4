@@ -1014,7 +1014,8 @@ function formatCellValue(value, column, parentId = null, row = null) {
     }
 
     if (column.type === 'ref' && column.refTable) {
-        const refRow = getAll(column.refTable).find((entry) => String(entry.id) === String(value));
+        const refValue = column.refValue || 'id';
+        const refRow = getAll(column.refTable).find((entry) => String(entry[refValue]) === String(value));
         if (refRow) {
             const text = column.refLabel ? String(refRow[column.refLabel] ?? refRow.id) : String(refRow.id);
             if (state.tableName === 'islandPlannerV2FixedPrices'
@@ -1536,9 +1537,10 @@ function renderField(column, record) {
         const options = [
             `<option value="">—</option>`,
             ...rows.map((row) => {
-                const selected = String(value ?? '') === String(row.id) ? ' selected' : '';
+                const rowValue = row[column.refValue || 'id'];
+                const selected = String(value ?? '') === String(rowValue) ? ' selected' : '';
                 const text = column.refLabel ? String(row[column.refLabel] ?? row.id) : String(row.id);
-                return `<option value="${escapeHtml(row.id)}"${selected}>${escapeHtml(text)}</option>`;
+                return `<option value="${escapeHtml(rowValue)}"${selected}>${escapeHtml(text)}</option>`;
             })
         ].join('');
 
@@ -1658,7 +1660,7 @@ function fixedPriceItemSelectRows(selectedValue, column) {
         ? marketable.filter((item) => relatedIds.has(Number(item.id)))
         : [];
     const rows = related.length ? related : marketable;
-    const selected = allItems.find((item) => String(item.id) === String(selectedValue));
+    const selected = allItems.find((item) => String(item[column.refValue || 'id']) === String(selectedValue));
 
     // Existing fixed-price records must always remain editable, even if their
     // old item is no longer part of the current planner catalogue.

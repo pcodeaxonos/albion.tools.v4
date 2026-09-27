@@ -5,7 +5,19 @@ const SEED_REVISION_KEY = STORAGE_PREFIX + 'seedRevision';
 // Page registry now owns stable ids, paths, and navigation metadata.
 // Re-seed navigation metadata so existing browsers receive canonical
 // /tools/* and /admin/* routes instead of their previously cached paths.
-const SEED_REVISION = 33;
+const SEED_REVISION = 34;
+const FIXED_PRICE_TABLE = 'islandPlannerV2FixedPrices';
+const FIXED_PRICE_STABLE_ITEM_MIGRATION_REVISION = 34;
+const FIXED_PRICE_LEGACY_CATALOG_CUTOFF = Date.parse('2026-09-24T21:45:13+03:00');
+const FIXED_PRICE_LEGACY_ITEM_NAMES = Object.freeze({
+    135: 'T7_MULLEIN',
+    138: 'T4_MILK',
+    140: 'T6_MILK',
+    141: 'T8_MILK',
+    2972: 'T3_MOUNT_HORSE',
+    2973: 'T4_MOUNT_HORSE',
+    2974: 'T5_MOUNT_HORSE'
+});
 const RESEED_TABLES = [
     'items',
     'itemCategories',
@@ -107,6 +119,30 @@ function applySeedRevision() {
     }
 }
 
+function migrateFixedPriceItemNames() {
+    const migrationKey = STORAGE_PREFIX + 'fixedPriceStableItemMigration';
+    if (Number(localStorage.getItem(migrationKey) || '0') >= FIXED_PRICE_STABLE_ITEM_MIGRATION_REVISION) return;
+
+    const raw = localStorage.getItem(storageKey(FIXED_PRICE_TABLE));
+    if (raw) {
+        try {
+            const uniqueById = new Map(readRows('items').map((item) => [String(item.id), item.uniqueName]));
+            const migrated = JSON.parse(raw).map((row) => {
+                if (!/^\d+$/.test(String(row.itemId ?? ''))) return row;
+                const legacy = Date.parse(row.updatedAt || '') < FIXED_PRICE_LEGACY_CATALOG_CUTOFF
+                    ? FIXED_PRICE_LEGACY_ITEM_NAMES[row.itemId]
+                    : null;
+                const itemId = legacy || uniqueById.get(String(row.itemId));
+                return itemId ? { ...row, itemId } : row;
+            });
+            persistRows(FIXED_PRICE_TABLE, migrated);
+        } catch (error) {
+            console.warn('[store] sabit fiyat item migration atlandı', error);
+        }
+    }
+    localStorage.setItem(migrationKey, String(FIXED_PRICE_STABLE_ITEM_MIGRATION_REVISION));
+}
+
 function applyDailyBonusesImport() {
     const current = Number(localStorage.getItem(DAILY_BONUSES_IMPORT_KEY) || '0');
     if (current >= DAILY_BONUSES_IMPORT_REV) {
@@ -154,6 +190,7 @@ export async function initStore() {
     for (const tableName of getTableNames()) {
         await seedTableIfEmpty(tableName);
     }
+    migrateFixedPriceItemNames();
 }
 
 function readRows(tableName) {
@@ -266,7 +303,9 @@ function formValuesForColumn(column, formData) {
     if (column.type === 'refs') {
         return coerceValue(column, formData.getAll(column.name));
     }
-    return coerceValue(column, formData.get(column.name));
+    const value = formData.get(column.name);
+    if (column.type === 'ref' && column.refValue) return value ?? '';
+    return coerceValue(column, value);
 }
 
 function nextAutoId(rows, key) {

@@ -655,7 +655,7 @@ export const tables = {
         seedUrl: './data/island-planner-v2-fixed-prices.json',
         columns: [
             COL.id,
-            { name: 'itemId', type: 'ref', refTable: 'items', refLabel: 'localizedName', label: 'Eşya' },
+            { name: 'itemId', type: 'ref', refTable: 'items', refValue: 'uniqueName', refLabel: 'localizedName', label: 'Eşya' },
             { name: 'role', type: 'enum', options: ['input', 'output'], optionLabels: { input: 'Buy — tohum / yavru / yem', output: 'Sell — ürün / hayvan / et / süt / yumurta' }, label: 'Fiyat Kullanımı' },
             { name: 'price', type: 'number', step: 'any', label: 'Sabit Emir Fiyatı' },
             { name: 'updatedAt', type: 'string', label: 'Son Güncelleme', editable: false, autoTimestamp: true }

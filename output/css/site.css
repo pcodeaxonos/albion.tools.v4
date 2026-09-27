@@ -3930,9 +3930,6 @@ a.tool-card:hover {
     top: var(--chrome-top);
     z-index: 12;
     max-height: calc(100dvh - var(--chrome-top));
-    overflow-x: hidden;
-    overflow-y: auto;
-    overscroll-behavior: contain;
     padding-top: 0;
     padding-bottom: var(--spacing-md);
     background-color: var(--color-bg);
@@ -11048,7 +11045,11 @@ main:has(.page-head[data-page-head=enchanting]) {
   align-items: end;
 }
 
-.trades-filters .form-label {
+.trades-filters .form-floating {
+  --input-height: 2.5rem;
+}
+
+.trades-filters > :not(.form-floating) > .form-label {
   display: block;
   margin-bottom: 0.15rem;
   font-size: 0.65rem;
@@ -11057,9 +11058,10 @@ main:has(.page-head[data-page-head=enchanting]) {
   color: var(--color-text-muted);
 }
 
-.trades-filters .form-control,
-.trades-filters .form-select {
-  min-height: 1.85rem;
+.trades-filters > :not(.form-floating) > .form-control,
+.trades-filters > :not(.form-floating) > .form-select {
+  height: 2.5rem;
+  min-height: 2.5rem;
   padding: 0.2rem 0.4rem;
   font-size: 0.8rem;
 }
@@ -11076,7 +11078,8 @@ main:has(.page-head[data-page-head=enchanting]) {
 }
 
 .trades-filters-actions .btn {
-  min-height: 1.85rem;
+  height: 2.5rem;
+  min-height: 2.5rem;
   padding: 0.2rem 0.55rem;
   font-size: 0.75rem;
 }
@@ -11553,17 +11556,15 @@ main:has(.page-head[data-page-head=enchanting]) {
 
 /* Trade analysis composition: filters, KPI, price proposals, then three tables. */
 .trades-root {
-  gap: 0.7rem;
+  --trades-section-gap: .7rem;
+  gap: var(--trades-section-gap);
 }
 
 .trades-filters {
-  padding: 0.65rem;
-  border: 1px solid var(--color-border);
-  background: var(--color-surface);
   grid-template-columns: repeat(7, minmax(0, 1fr)) minmax(13rem, 1.6fr) auto;
 }
 
-.trades-filters .form-label {
+.trades-filters > :not(.form-floating) > .form-label {
   margin-bottom: 0.3rem;
 }
 
@@ -11578,9 +11579,9 @@ main:has(.page-head[data-page-head=enchanting]) {
 
 .trades-kpi {
   grid-template-columns: repeat(5, minmax(0, 1fr));
-  padding: 0.55rem;
+  gap: 0;
   border: 1px solid var(--color-border);
-  background: var(--color-bg);
+  background: var(--color-surface);
 }
 
 @media (min-width: 1200px) {
@@ -11589,9 +11590,42 @@ main:has(.page-head[data-page-head=enchanting]) {
   }
 }
 .trades-kpi-item {
-  background: var(--color-surface);
+  position: relative;
+  border: 0;
+  background: transparent;
 }
 
+.trades-kpi-item::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  right: 0;
+  width: 1px;
+  height: 1.4rem;
+  transform: translateY(-50%);
+  background: var(--color-border);
+}
+
+.trades-kpi-item:nth-child(5n)::after {
+  display: none;
+}
+
+@media (min-width: 1200px) {
+  .trades-kpi-item::after {
+    display: block;
+  }
+  .trades-kpi-item:last-child::after {
+    display: none;
+  }
+}
+@media (max-width: 650px) {
+  .trades-kpi-item::after {
+    display: none;
+  }
+  .trades-kpi-item:nth-child(odd)::after {
+    display: block;
+  }
+}
 .trades-kpi-label {
   margin: 0 0 0.28rem;
 }
@@ -11608,7 +11642,23 @@ main:has(.page-head[data-page-head=enchanting]) {
 }
 
 .trades-options {
+  overflow: hidden;
   border-left: 1px solid var(--color-border) !important;
+}
+
+.trades-options-controls {
+  display: grid;
+  flex: 1 1 auto;
+  min-height: 0;
+  align-content: start;
+  gap: 0.45rem;
+  padding: 0.5rem 0.65rem;
+  overflow: auto;
+}
+
+.trades-options-controls .form-check,
+.trades-options-controls .form-label {
+  margin: 0;
 }
 
 .trades-panel-title {
@@ -11655,6 +11705,44 @@ main:has(.page-head[data-page-head=enchanting]) {
   font-family: var(--font-family-mono);
 }
 
+.trades-panel-body[data-items] .trades-table th:first-child,
+.trades-panel-body[data-items] .trades-table td:first-child,
+.trades-panel-body[data-cities] .trades-table th:first-child,
+.trades-panel-body[data-cities] .trades-table td:first-child {
+  width: calc(20ch + 1.75rem);
+  max-width: calc(20ch + 1.75rem);
+}
+
+.trades-table-identity {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  gap: 0.35rem;
+}
+
+.trades-table-item-icon {
+  flex: 0 0 1.25rem;
+  width: 1.25rem;
+  height: 1.25rem;
+  object-fit: contain;
+}
+
+.trades-city-dot {
+  flex: 0 0 0.55rem;
+  width: 0.55rem;
+  height: 0.55rem;
+  border-radius: 50%;
+  background: var(--trades-city-color, var(--color-primary));
+}
+
+.trades-table-name {
+  min-width: 0;
+  max-width: 20ch;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 /* Bind calc-table's sticky header to its own panel scrollport, not the page toolbar. */
 .trades-panel .trades-table thead th,
 .trades-panel .trades-table thead th:first-child {
@@ -11674,6 +11762,12 @@ main:has(.page-head[data-page-head=enchanting]) {
 .trades-table .badge {
   margin-right: 0.45rem;
   font-size: 0.62rem;
+}
+
+.trades-suggestions .trades-table-identity > .badge {
+  flex: 0 0 3rem;
+  margin-right: 0;
+  text-align: center;
 }
 
 .trades-side-buy {
@@ -11707,22 +11801,26 @@ main:has(.page-head[data-page-head=enchanting]) {
 }
 
 .trades-options-section {
-  padding: 0.8rem 0.9rem;
-  border-bottom: 1px solid var(--color-border);
+  padding: 0.5rem 0.65rem;
 }
 
 .trades-options-section h2 {
-  margin-bottom: 0.65rem;
+  margin-bottom: 0.35rem;
 }
 
 .trades-options-section .form-check {
-  margin: 0.4rem 0;
+  margin: 0.22rem 0;
+}
+
+.trades-summary {
+  flex: 0 0 auto;
+  border-top: 1px solid var(--color-border);
 }
 
 .trades-summary dl {
   display: grid;
   grid-template-columns: 1fr auto;
-  gap: 0.42rem 0.7rem;
+  gap: 0 0.7rem;
   margin: 0;
   font-size: 0.78rem;
 }
@@ -11738,8 +11836,8 @@ main:has(.page-head[data-page-head=enchanting]) {
 
 .trades-bottom {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 0.7rem;
+  grid-template-columns: 2fr 2fr 3fr;
+  gap: var(--trades-section-gap);
 }
 
 .trades-bottom .trades-panel {
@@ -11749,6 +11847,17 @@ main:has(.page-head[data-page-head=enchanting]) {
 .trades-bottom .trades-panel-body {
   max-height: 25rem;
   overflow: auto;
+}
+
+.trades-bottom .trades-table,
+.trades-bottom .trades-table th,
+.trades-bottom .trades-table td {
+  font-size: clamp(0.5rem, 0.6vw, 1rem);
+}
+
+.trades-bottom .trades-table th,
+.trades-bottom .trades-table td {
+  padding-inline: 0.25rem;
 }
 
 .trades-confirm-sheet {
@@ -11832,25 +11941,27 @@ main:has(.page-head[data-page-head=enchanting]) {
     display: flex;
   }
   .trades-root {
+    --trades-section-gap: .45rem;
     flex: 1;
     min-height: 0;
     height: 100%;
     padding-bottom: 0;
-    gap: 0.45rem;
+    gap: var(--trades-section-gap);
     overflow: hidden;
   }
-  .trades-filters {
-    padding: 0.45rem;
-  }
-  .trades-filters .form-label {
+  .trades-filters > :not(.form-floating) > .form-label {
     margin-bottom: 0.15rem;
   }
-  .trades-filters .form-control, .trades-filters .form-select, .trades-filters-actions .btn {
-    min-height: 1.7rem;
+  .trades-filters > :not(.form-floating) > .form-control, .trades-filters > :not(.form-floating) > .form-select {
+    height: 2.5rem;
+    min-height: 2.5rem;
+  }
+  .trades-filters-actions .btn {
+    height: 2.5rem;
+    min-height: 2.5rem;
   }
   .trades-kpi {
-    gap: 0.3rem;
-    padding: 0.35rem;
+    gap: 0;
   }
   .trades-kpi-item {
     padding: 0.3rem 0.45rem;
