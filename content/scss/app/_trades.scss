@@ -547,3 +547,85 @@
 .trades-kind-buy { color: var(--color-info); }
 .trades-kind-sell { color: var(--color-success); }
 .trades-kind-other { color: var(--color-text-muted); }
+
+/* Trade analysis composition: filters, KPI, price proposals, then three tables. */
+.trades-root { gap: .7rem; }
+.trades-filters { padding: .65rem; border: 1px solid var(--color-border); background: var(--color-surface); grid-template-columns: repeat(7, minmax(0, 1fr)) minmax(13rem, 1.6fr) auto; }
+.trades-filters .form-label { margin-bottom: .3rem; }
+.trades-filter-search { min-width: 0; }
+.trades-filters-actions { align-self: end; white-space: nowrap; }
+.trades-kpi { grid-template-columns: repeat(5, minmax(0, 1fr)); padding: .55rem; border: 1px solid var(--color-border); background: var(--color-bg); }
+@media (min-width: 1200px) { .trades-kpi { grid-template-columns: repeat(10, minmax(0, 1fr)); } }
+.trades-kpi-item { background: var(--color-surface); }
+.trades-kpi-label { margin: 0 0 .28rem; }
+.trades-main { display: grid; grid-template-columns: minmax(0, 1fr) minmax(15rem, .3fr); border: 1px solid var(--color-border); background: var(--color-surface); }
+.trades-main > .trades-panel { border: 0; }
+.trades-options { border-left: 1px solid var(--color-border) !important; }
+.trades-panel-title { display: flex; justify-content: space-between; gap: 1rem; padding: .7rem .85rem .55rem; border-bottom: 1px solid var(--color-border); }
+.trades-panel-title h1, .trades-panel-title h2, .trades-options h2 { margin: 0; font-size: .95rem; }
+.trades-panel-title p { margin: .2rem 0 0; font-size: .72rem; color: var(--color-text-muted); }
+.trades-live { align-self: center; font-family: var(--font-family-mono); font-size: .7rem; color: var(--color-text-muted); }
+.trades-live.is-live { color: var(--color-success); }
+.trades-table { margin: 0; font-size: .75rem; }
+.trades-table th, .trades-table td { white-space: nowrap; }
+.trades-table .num { text-align: right; font-family: var(--font-family-mono); }
+/* Bind calc-table's sticky header to its own panel scrollport, not the page toolbar. */
+.trades-panel .trades-table thead th,
+.trades-panel .trades-table thead th:first-child {
+    position: sticky;
+    top: 0;
+    left: auto;
+    z-index: 2;
+    background: var(--color-surface-raised);
+}
+.trades-panel .trades-table tbody td:first-child { position: static; left: auto; z-index: auto; }
+.trades-table .badge { margin-right: .45rem; font-size: .62rem; }
+.trades-side-buy { background: color-mix(in srgb, var(--color-info) 35%, var(--color-surface)); color: var(--color-info); }
+.trades-side-sell { background: color-mix(in srgb, var(--color-danger) 30%, var(--color-surface)); color: var(--color-danger); }
+.trades-price-action { min-width: 6rem; }
+.trades-diff.is-up, .trades-status-ok, .trades-summary .is-up { color: var(--color-success); }
+.trades-diff.is-down, .trades-summary .is-down { color: var(--color-danger); }
+.trades-diff.is-same, .trades-status-muted { color: var(--color-text-muted); }
+.trades-warning { color: var(--color-warning); }
+.trades-options-section { padding: .8rem .9rem; border-bottom: 1px solid var(--color-border); }
+.trades-options-section h2 { margin-bottom: .65rem; }
+.trades-options-section .form-check { margin: .4rem 0; }
+.trades-summary dl { display: grid; grid-template-columns: 1fr auto; gap: .42rem .7rem; margin: 0; font-size: .78rem; }
+.trades-summary dt, .trades-summary dd { margin: 0; }
+.trades-summary dd { font-family: var(--font-family-mono); text-align: right; }
+.trades-bottom { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .7rem; }
+.trades-bottom .trades-panel { min-width: 0; }
+.trades-bottom .trades-panel-body { max-height: 25rem; overflow: auto; }
+.trades-confirm-sheet { width: min(25rem, calc(100vw - 4rem)); max-height: min(80vh, 35rem); overflow: auto; padding: 1rem; background: var(--color-surface); border: 1px solid var(--color-border); }
+.trades-confirm-sheet h2 { margin: 0 0 .7rem; font-size: 1rem; }
+.trades-confirm-values { display: grid; grid-template-columns: 1fr auto; gap: .45rem .75rem; margin: .85rem 0; }
+.trades-confirm-values dt, .trades-confirm-values dd { margin: 0; }.trades-confirm-values dd { font-family: var(--font-family-mono); }
+.trades-confirm-actions { display: flex; justify-content: flex-end; gap: .5rem; }
+@media (max-width: 1100px) { .trades-filters { grid-template-columns: repeat(4, minmax(0, 1fr)); }.trades-main { grid-template-columns: 1fr; }.trades-options { border-left: 0 !important; border-top: 1px solid var(--color-border) !important; }.trades-bottom { grid-template-columns: 1fr; } }
+@media (max-width: 650px) { .trades-filters, .trades-kpi { grid-template-columns: 1fr 1fr; }.trades-filter-search, .trades-filters-actions { grid-column: 1 / -1; } }
+
+/* Desktop trade analysis is a contained workspace: long tables scroll in-panel. */
+@media (min-width: 1101px) {
+    body:has(.trades-page) { overflow: hidden; }
+    body:has(.trades-page) .app-content { overflow: hidden; }
+    main:has(.trades-page) { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; padding-top: .65rem; padding-bottom: .65rem; overflow: hidden; }
+    .trades-page { flex: 1; min-height: 0; display: flex; }
+    .trades-root { flex: 1; min-height: 0; height: 100%; padding-bottom: 0; gap: .45rem; overflow: hidden; }
+    .trades-filters { padding: .45rem; }
+    .trades-filters .form-label { margin-bottom: .15rem; }
+    .trades-filters .form-control, .trades-filters .form-select, .trades-filters-actions .btn { min-height: 1.7rem; }
+    .trades-kpi { gap: .3rem; padding: .35rem; }
+    .trades-kpi-item { padding: .3rem .45rem; }
+    .trades-kpi-label { margin-bottom: .15rem; }
+    .trades-main, .trades-bottom { min-height: 0; }
+    .trades-main { flex: 1 1 0; }
+    .trades-bottom { flex: .78 1 0; }
+    .trades-main .trades-panel, .trades-bottom .trades-panel { min-height: 0; }
+    .trades-main .trades-panel-body, .trades-bottom .trades-panel-body { min-height: 0; max-height: none; overflow: auto; }
+    .trades-panel-title { padding: .45rem .65rem .35rem; }
+    .trades-panel-title p { font-size: .66rem; }
+    .trades-options-section { padding: .5rem .65rem; }
+    .trades-options-section .form-check { margin: .22rem 0; }
+    .trades-table { font-size: .68rem; }
+    .trades-table th, .trades-table td { padding-top: .2rem; padding-bottom: .2rem; }
+}
