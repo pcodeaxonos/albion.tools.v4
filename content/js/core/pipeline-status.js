@@ -10,7 +10,7 @@ const LIVE_MS = 15 * 60 * 1000;
 const OPEN_KEY = 'albiontools.v4.statusOpen';
 const FRESH_MS = 8000;
 const ZONE_FIX = 'Oyunda bir zone geç (şehir kapısı veya teleport). ADC konum almadan market paketi göndermez; sonra Trading Post’u aç.';
-const INGEST_FIX = 'ADC kamu AODP’ye gidiyor, :3001’e değil. ADC penceresini kapatıp start.bat çalıştır.';
+const INGEST_FIX = 'ADC’nin -i http://127.0.0.1:3001 ile çalıştığını doğrula. Gerekirse ADC’yi kapatıp start.bat ile yeniden başlat.';
 
 let pollTimer = 0;
 let inFlight = 0;

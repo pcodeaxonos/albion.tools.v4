@@ -15,7 +15,9 @@ import { fileURLToPath } from 'node:url';
 import { promisify } from 'node:util';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const ROOT = join(__dirname, '..');
+// The hub lives in content/scripts; persistent data and game catalogs belong
+// to the repository root.
+const ROOT = join(__dirname, '..', '..');
 const PORT = Number(process.env.PRICE_HUB_PORT) || 3001;
 const HOST = process.env.PRICE_HUB_HOST || '127.0.0.1';
 const CACHE_PATH = join(ROOT, '.price-hub.json');

@@ -11,7 +11,9 @@ import {
 } from './silver.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const DEFAULT_LOCATIONS_PATH = path.join(__dirname, '..', '..', 'data', 'locations.json');
+// This module lives at content/scripts/sat-trades; shared game data is at the
+// repository-level data directory.
+const DEFAULT_LOCATIONS_PATH = path.join(__dirname, '..', '..', '..', 'data', 'locations.json');
 
 /**
  * @param {string} [locationsPath]
