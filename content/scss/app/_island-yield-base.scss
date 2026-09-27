@@ -428,6 +428,7 @@
 }
 
 .yield-city-comparison {
+    container-type: inline-size;
     margin: var(--spacing-md) 0;
     padding: var(--spacing-md) 0;
     border-top: var(--border-width) solid var(--color-border);
@@ -487,10 +488,12 @@
     display: grid;
     grid-template-columns: repeat(7, minmax(0, 1fr));
     gap: 0.4rem;
+    min-width: 0;
 }
 
 .yield-city-card {
     --yield-city-color: var(--color-primary);
+    min-width: 0;
     padding: 0.45rem;
     border: var(--border-width) solid color-mix(in srgb, var(--yield-city-color) 48%, var(--color-border));
     border-radius: 0.4rem;
@@ -534,14 +537,16 @@
 
 .yield-city-card-metric {
     display: grid;
-    grid-template-columns: 3.25rem auto 1fr;
+    grid-template-columns: minmax(0, 3.25rem) auto minmax(0, 1fr);
     gap: 0.25rem;
     align-items: baseline;
+    min-width: 0;
     padding: 0.2rem 0;
     border-top: 1px solid color-mix(in srgb, var(--color-border) 70%, transparent);
 
     > span,
     small {
+        min-width: 0;
         color: var(--color-text-muted);
         font-size: 0.625rem;
     }
@@ -552,6 +557,22 @@
     }
     small {
         text-align: right;
+        overflow-wrap: anywhere;
+    }
+}
+
+// The comparison is rendered inside the result side of .tool-split, which can
+// be much narrower than the viewport on desktop. Adapt to that actual width,
+// rather than keeping seven cards on a single row and overflowing the pane.
+@container (max-width: 50rem) {
+    .yield-city-comparison-grid {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+}
+
+@container (max-width: 32rem) {
+    .yield-city-comparison-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 }
 

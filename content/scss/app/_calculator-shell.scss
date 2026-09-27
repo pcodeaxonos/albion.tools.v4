@@ -62,6 +62,10 @@
     grid-template-columns: minmax(15.5rem, 18rem) minmax(0, 1fr);
     gap: var(--spacing-lg);
     align-items: start;
+    min-width: 0;
+    min-height: 0;
+    min-width: 0;
+    min-height: 0;
 
     @media (max-width: 1199px) {
         grid-template-columns: minmax(14.5rem, 16rem) minmax(0, 1fr);
@@ -244,6 +248,8 @@
 
 .tool-split-result {
     min-width: 0;
+    min-height: 0;
+    min-height: 0;
 
     // Same float-label room as the left column so field tops match thead.
     @media (min-width: 992px) {

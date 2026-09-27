@@ -11,10 +11,6 @@
     --loader-area-overlay-bg: rgba(12, 12, 14, 0.7);
 }
 
-body.is-page-loading {
-    overflow: hidden;
-}
-
 .page-loader,
 .area-loader {
     background-color: var(--loader-overlay-bg);

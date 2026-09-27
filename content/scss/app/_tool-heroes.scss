@@ -1,13 +1,9 @@
 .page-head {
-    --page-head-content-height: 4vw;
     position: relative;
-    min-height: var(--page-head-content-height);
+    min-height: var(--page-head-content-height, 5vw);
     margin: 0;
     overflow: hidden;
-    background-color: #17202a;
-    background-position: 56% center;
-    background-repeat: no-repeat;
-    background-size: cover;
+    background-color: transparent;
     box-shadow: none;
 
     &::before {
@@ -20,12 +16,6 @@
     }
 }
 
-.page-head-image {
-    display: block;
-    width: 100%;
-    height: auto;
-}
-
 .page-head-content {
     display: flex;
     position: absolute;
@@ -33,7 +23,7 @@
     top: 0;
     right: 0;
     left: 0;
-    height: var(--page-head-content-height);
+    height: var(--page-head-content-height, 5vw);
     align-items: center;
     gap: clamp(0.75rem, 2vw, 1.75rem);
     padding-inline: clamp(1rem, 3vw, 2rem);
@@ -66,33 +56,45 @@
 }
 
 main:has(.page-head) {
+    --page-head-content-height: 5vw;
+    --page-head-fade-midpoint: calc(var(--page-head-content-height) * 0.55);
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+    min-height: 0;
     padding-top: 0;
+    background-image:
+        linear-gradient(
+            to bottom,
+            transparent 0,
+            color-mix(in srgb, var(--color-bg) 42%, transparent) var(--page-head-fade-midpoint),
+            var(--color-bg) var(--page-head-content-height)
+        ),
+        var(--page-head-image);
+    background-position: top, 56% top;
+    background-repeat: no-repeat;
+    background-size: 100% auto, 100% auto;
 }
 
 .tool-page {
     display: flex;
+    flex: 1 1 auto;
     flex-direction: column;
     gap: 0;
+    min-height: 0;
 }
 
 .page-body {
     --page-body-head-overlap: clamp(2rem, 5vw, 4.5rem);
     position: relative;
     z-index: 1;
-    isolation: isolate;
+    flex: 1 1 auto;
+    min-height: 0;
     padding-left: var(--spacing-lg);
     padding-right: var(--spacing-lg);
 
-    &::before {
-        content: "";
-        position: absolute;
-        z-index: -1;
-        top: calc(-1 * var(--page-body-head-overlap));
-        right: 0;
-        left: 0;
-        height: var(--page-body-head-overlap);
-        background: linear-gradient(to bottom, transparent, var(--color-bg));
-        pointer-events: none;
+    > .container {
+        height: 100%;
     }
 }
 
@@ -103,44 +105,34 @@ main:has(.page-head) {
     }
 }
 
-.page-head[data-page-head="daily-bonus"] { background-image: url('../../content/images/page-heads/desktop/01-gunluk-bonus.webp'); }
-.page-head[data-page-head="island-yields"] { background-image: url('../../content/images/page-heads/desktop/02-ada-cikti.webp'); }
-.page-head[data-page-head="farming"] { background-image: url('../../content/images/page-heads/desktop/03-farming.webp'); }
-.page-head[data-page-head="pasture"] { background-image: url('../../content/images/page-heads/desktop/04-pasture.webp'); }
-.page-head[data-page-head="island-planner"] { background-image: url('../../content/images/page-heads/desktop/05-ada-planlayici.webp'); }
-.page-head[data-page-head="island-planner-v2"] { background-image: url('../../content/images/page-heads/desktop/06-ada-planlayici-v2.webp'); }
-.page-head[data-page-head="city-spread"] { background-image: url('../../content/images/page-heads/desktop/07-sehir-makasi.webp'); }
-.page-head[data-page-head="faction"] { background-image: url('../../content/images/page-heads/desktop/08-faction.webp'); }
-.page-head[data-page-head="refining"] { background-image: url('../../content/images/page-heads/desktop/09-refining.webp'); }
-.page-head[data-page-head="furniture"] { background-image: url('../../content/images/page-heads/desktop/10-furniture.webp'); }
-.page-head[data-page-head="house"] { background-image: url('../../content/images/page-heads/desktop/11-house.webp'); }
-.page-head[data-page-head="ava-craft"] { background-image: url('../../content/images/page-heads/desktop/12-ava-craft.webp'); }
-.page-head[data-page-head="caerleon-craft"] { background-image: url('../../content/images/page-heads/desktop/13-caerleon-craft.webp'); }
-.page-head[data-page-head="royal-crafting"] { background-image: url('../../content/images/page-heads/desktop/14-royal-crafting.webp'); }
-.page-head[data-page-head="enchanting"] { background-image: url('../../content/images/page-heads/desktop/15-enchanting.webp'); }
+$page-head-images: (
+    "daily-bonus": "01-gunluk-bonus",
+    "island-yields": "02-ada-cikti",
+    "farming": "03-farming",
+    "pasture": "04-pasture",
+    "island-planner": "05-ada-planlayici",
+    "island-planner-v2": "06-ada-planlayici-v2",
+    "city-spread": "07-sehir-makasi",
+    "faction": "08-faction",
+    "refining": "09-refining",
+    "furniture": "10-furniture",
+    "house": "11-house",
+    "ava-craft": "12-ava-craft",
+    "caerleon-craft": "13-caerleon-craft",
+    "royal-crafting": "14-royal-crafting",
+    "enchanting": "15-enchanting"
+);
 
-@media (max-width: 768px) {
-    .page-head {
-        --page-head-content-height: 4vw;
+@each $page, $image in $page-head-images {
+    main:has(.page-head[data-page-head="#{$page}"]) {
+        --page-head-image: url('../../content/images/page-heads/desktop/#{$image}.webp');
     }
-
-    .page-head[data-page-head="daily-bonus"] { background-image: url('../../content/images/page-heads/mobile/01-gunluk-bonus.webp'); }
-    .page-head[data-page-head="island-yields"] { background-image: url('../../content/images/page-heads/mobile/02-ada-cikti.webp'); }
-    .page-head[data-page-head="farming"] { background-image: url('../../content/images/page-heads/mobile/03-farming.webp'); }
-    .page-head[data-page-head="pasture"] { background-image: url('../../content/images/page-heads/mobile/04-pasture.webp'); }
-    .page-head[data-page-head="island-planner"] { background-image: url('../../content/images/page-heads/mobile/05-ada-planlayici.webp'); }
-    .page-head[data-page-head="island-planner-v2"] { background-image: url('../../content/images/page-heads/mobile/06-ada-planlayici-v2.webp'); }
-    .page-head[data-page-head="city-spread"] { background-image: url('../../content/images/page-heads/mobile/07-sehir-makasi.webp'); }
-    .page-head[data-page-head="faction"] { background-image: url('../../content/images/page-heads/mobile/08-faction.webp'); }
-    .page-head[data-page-head="refining"] { background-image: url('../../content/images/page-heads/mobile/09-refining.webp'); }
-    .page-head[data-page-head="furniture"] { background-image: url('../../content/images/page-heads/mobile/10-furniture.webp'); }
-    .page-head[data-page-head="house"] { background-image: url('../../content/images/page-heads/mobile/11-house.webp'); }
-    .page-head[data-page-head="ava-craft"] { background-image: url('../../content/images/page-heads/mobile/12-ava-craft.webp'); }
-    .page-head[data-page-head="caerleon-craft"] { background-image: url('../../content/images/page-heads/mobile/13-caerleon-craft.webp'); }
-    .page-head[data-page-head="royal-crafting"] { background-image: url('../../content/images/page-heads/mobile/14-royal-crafting.webp'); }
-    .page-head[data-page-head="enchanting"] { background-image: url('../../content/images/page-heads/mobile/15-enchanting.webp'); }
 }
 
-.page-head.has-page-head-image {
-    background-image: none;
+@media (max-width: 768px) {
+    @each $page, $image in $page-head-images {
+        main:has(.page-head[data-page-head="#{$page}"]) {
+            --page-head-image: url('../../content/images/page-heads/mobile/#{$image}.webp');
+        }
+    }
 }

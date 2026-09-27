@@ -4,22 +4,46 @@ import { itemIconHtml } from './item-icon.js';
 import { getPlantPickerStyle } from '../core/settings.js';
 
 const PLANT_GROUPS = [
-    { id: 'crop', label: 'Ekin', filter: (item) => item.kind === 'crop', tierSlots: true },
-    { id: 'herb', label: 'Ot', filter: (item) => item.kind === 'herb', tierSlots: true }
+    { id: 'crop', label: 'Ekin', tabLabel: 'Ekin tohumları', filter: (item) => item.kind === 'crop', tierSlots: true },
+    { id: 'herb', label: 'Ot', tabLabel: 'Ot tohumları', filter: (item) => item.kind === 'herb', tierSlots: true }
 ];
 
 function animalGroups(plotType) {
     return plotType === 'pasture'
         ? [
-            { id: 'livestock', label: 'Çiftlik hayvanları', filter: (item) => item.kind === 'livestock' },
-            { id: 'horse', label: 'Atlar', filter: (item) => item.key.startsWith('horse-') },
-            { id: 'ox', label: 'Öküzler', filter: (item) => item.key.startsWith('ox-') }
+            { id: 'livestock', label: 'Çiftlik hayvanları', filter: (item) => item.kind === 'livestock', tierSlots: true },
+            { id: 'horse', label: 'Atlar', filter: (item) => item.key.startsWith('horse-'), tierSlots: true },
+            { id: 'ox', label: 'Öküzler', filter: (item) => item.key.startsWith('ox-'), tierSlots: true }
         ]
         : [
-            { id: 'kennel', label: 'Kennel hayvanları', filter: (item) => item.kind === 'mount' },
+            { id: 'kennel', label: 'Kennel hayvanları', filter: (item) => item.kind === 'mount', tierSlots: true },
             { id: 'faction-t5', label: 'Faction T5', filter: (item) => item.kind === 'faction-mount' && Number(item.tier) === 5 },
             { id: 'faction-t8', label: 'Faction T8', filter: (item) => item.kind === 'faction-mount' && Number(item.tier) === 8 }
         ];
+}
+
+export function pickerGroupsForKind(kind = 'plant') {
+    return kind === 'plant' ? PLANT_GROUPS : animalGroups(kind);
+}
+
+// Ada çıktı ekranındaki her görünüm aynı sıra bilgisini kullanır. Pasture
+// ürünleri, ait oldukları çiftlik hayvanı grubunun hemen sonrasında gelir.
+export function outputGroupsForKind(kind = 'plant') {
+    const groups = pickerGroupsForKind(kind).map((group) => ({
+        ...group,
+        itemType: kind === 'plant' ? 'plant' : 'animal'
+    }));
+    if (kind === 'pasture') {
+        groups.splice(1, 0, {
+            id: 'animal-product',
+            label: 'Üretilen ürünler',
+            tabLabel: 'Üretilen ürünler',
+            itemType: 'animalProduct',
+            tierSlots: true,
+            filter: (item) => item.kind === 'livestock' && Boolean(item.productId)
+        });
+    }
+    return groups;
 }
 
 function optionsHtml(items, groups, selected) {
@@ -36,8 +60,8 @@ function optionsHtml(items, groups, selected) {
     `;
 }
 
-function renderIconNode(item, selected, iconId) {
-    const pressed = item.key === selected;
+function renderIconNode(item, selected, iconId, selectedOutputMode = 'offspring') {
+    const pressed = item.key === selected && selectedOutputMode === 'offspring';
     const title = `T${item.tier} ${item.label}`;
     return `
         <button type="button"
@@ -52,31 +76,61 @@ function renderIconNode(item, selected, iconId) {
     `;
 }
 
-function renderIconRows(items, groups, selected, iconIdFor) {
-    return groups.map((group) => {
+function renderEmptyIconNode(tier) {
+    return `<button type="button" class="plant-icon-node is-empty" disabled aria-label="T${tier} mevcut değil" title="T${tier} mevcut değil"><span class="plant-icon-node-fallback">T${tier}</span></button>`;
+}
+
+function renderIconRows(items, groups, selected, iconIdFor, includeAnimalProducts = false, selectedOutputMode = 'offspring', outputGroupKind = null) {
+    const outputGroups = includeAnimalProducts
+        ? outputGroupsForKind(outputGroupKind)
+        : groups;
+    return outputGroups.map((group) => {
         const list = items.filter(group.filter);
         if (!list.length) return '';
+        if (group.itemType === 'animalProduct') {
+            return renderAnimalProductRow(list, selected, group.tierSlots, selectedOutputMode);
+        }
         const slots = group.tierSlots
             ? Array.from({ length: 8 }, (_, index) => list.find((item) => Number(item.tier) === index + 1) ?? null)
             : list;
-        return `
+        const animalRow = `
             <div class="plant-icon-row" role="presentation" data-picker-group="${escapeHtml(group.id)}" aria-label="${escapeHtml(group.label)}">
-                ${slots.map((item) => item
-                    ? renderIconNode(item, selected, iconIdFor(item))
-                    : '<span class="plant-icon-slot is-empty" aria-hidden="true"></span>'
+                ${slots.map((item, index) => item
+                    ? renderIconNode(item, selected, iconIdFor(item), selectedOutputMode)
+                    : renderEmptyIconNode(index + 1)
                 ).join('')}
             </div>
         `;
+        return animalRow;
     }).join('');
 }
 
-function pickerFieldHtml({ items, groups, iconIdFor, id, label, selected = '', className = 'farming-city-field', name = id }) {
+function renderAnimalProductRow(items, selected, tierSlots = false, selectedOutputMode = 'offspring') {
+    if (!items.some((item) => item.productId)) return '';
+    const slots = tierSlots
+        ? Array.from({ length: 8 }, (_, index) => items.find((item) => Number(item.tier) === index + 1) ?? null)
+        : items;
+    return `
+        <div class="plant-icon-row plant-icon-row--products" role="presentation" aria-label="Üretilen ürünler">
+            ${slots.map((item, index) => item?.productId ? `
+                    <button type="button" class="plant-icon-node plant-icon-node--product${item.key === selected && selectedOutputMode === 'product' ? ' is-selected' : ''}"
+                        data-tier="${Number(item.tier) || 2}" data-picker-value="${escapeHtml(item.key)}" data-animal-output="product"
+                        aria-pressed="${item.key === selected && selectedOutputMode === 'product' ? 'true' : 'false'}" aria-label="${escapeHtml(item.productLabel || item.label)}"
+                        title="${escapeHtml(item.productLabel || item.label)}">
+                        ${itemIconHtml(item.productId, { size: 96, className: 'item-icon plant-icon-node-img' })}
+                    </button>
+            ` : renderEmptyIconNode(index + 1)).join('')}
+        </div>
+    `;
+}
+
+function pickerFieldHtml({ items, groups, iconIdFor, id, label, selected = '', selectedOutputMode = 'offspring', className = 'farming-city-field', name = id, includeAnimalProducts = false, outputGroupKind = null }) {
     if (getPlantPickerStyle() === 'icons') {
         return `
             <div class="plant-field plant-field--icons ${escapeHtml(className)}" data-plant-field="${escapeHtml(id)}">
                 <span class="plant-field-label" id="${escapeHtml(id)}-label">${escapeHtml(label)}</span>
                 <div class="plant-icon-picker" role="radiogroup" aria-labelledby="${escapeHtml(id)}-label">
-                    ${renderIconRows(items, groups, selected, iconIdFor)}
+                    ${renderIconRows(items, groups, selected, iconIdFor, includeAnimalProducts, selectedOutputMode, outputGroupKind)}
                 </div>
                 <input type="hidden" id="${escapeHtml(id)}" name="${escapeHtml(name)}" value="${escapeHtml(selected ?? '')}" data-plant-input>
             </div>
@@ -97,7 +151,7 @@ export function plantFieldHtml(opts) {
         ...opts,
         label: opts.label ?? 'Bitki',
         items: getPlants(),
-        groups: PLANT_GROUPS,
+        groups: pickerGroupsForKind('plant'),
         iconIdFor: (item) => item.plantId || item.seedId
     });
 }
@@ -106,10 +160,12 @@ export function animalFieldHtml(opts) {
     const plotType = opts.plotType || 'pasture';
     return pickerFieldHtml({
         ...opts,
-        label: opts.label ?? 'Hayvan',
+        label: opts.label ?? 'Çıktı',
         items: getAnimals({ plotType }),
-        groups: animalGroups(plotType),
-        iconIdFor: (item) => item.grownId || item.babyId
+        groups: pickerGroupsForKind(plotType),
+        iconIdFor: (item) => item.grownId || item.babyId,
+        includeAnimalProducts: true,
+        outputGroupKind: plotType
     });
 }
 
@@ -120,7 +176,7 @@ export function getPlantFieldValue(container, id) {
         || '';
 }
 
-export function setPlantFieldValue(container, id, value) {
+export function setPlantFieldValue(container, id, value, outputMode = 'offspring') {
     const field = container.querySelector(`[data-plant-field="${CSS.escape(id)}"]`);
     const input = field?.querySelector('[data-plant-input]');
     if (input) {
@@ -132,7 +188,8 @@ export function setPlantFieldValue(container, id, value) {
         return;
     }
     field.querySelectorAll('.plant-icon-node').forEach((node) => {
-        const pressed = node.dataset.pickerValue === value;
+        const pressed = node.dataset.pickerValue === value
+            && (node.dataset.animalOutput || 'offspring') === outputMode;
         node.classList.toggle('is-selected', pressed);
         node.setAttribute('aria-pressed', pressed ? 'true' : 'false');
     });
@@ -147,8 +204,9 @@ export function bindPlantField(container, id, onChange) {
             const node = event.target.closest('.plant-icon-node');
             if (!node || !field.contains(node)) return;
             const value = node.dataset.pickerValue || '';
-            setPlantFieldValue(container, id, value);
-            onChange?.(value);
+            const outputMode = node.dataset.animalOutput || 'offspring';
+            setPlantFieldValue(container, id, value, outputMode);
+            onChange?.(value, outputMode);
         });
         return;
     }

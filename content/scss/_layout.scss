@@ -4,16 +4,11 @@
 
 @use "variables" as *;
 
-html,
-body {
-    height: 100%;
-    overflow: hidden;
-}
-
 .app-shell {
     display: flex;
-    height: 100vh;
-    height: 100dvh;
+    height: 100%;
+    min-height: 0;
+    max-height: 100%;
     overflow: hidden;
 }
 
@@ -642,10 +637,6 @@ body.calc-page .app-content {
     display: none;
 }
 
-body.app-sidebar-open {
-    overflow: hidden;
-}
-
 @media (max-width: 767px) {
     .app-topbar {
         display: flex;
@@ -770,7 +761,7 @@ body.app-sidebar-open {
 main {
     flex: 1 0 auto;
     padding-top: clamp(1.5rem, 5vw, 2.5rem);
-    padding-bottom: clamp(4rem, 8vh, 6rem);
+    padding-bottom: 10px;
 }
 
 main:has(.container--db) {

@@ -85,6 +85,7 @@ export const DEFAULT_SETTINGS = {
     enchantPowerOrder: {},
     defaultCity: 'Martlock',
     cityPickerStyle: 'standard',
+    cityPickerOrder: 'default',
     plantPickerStyle: 'icons',
     dataSync: true,
     islandCities: [],
@@ -94,7 +95,13 @@ export const DEFAULT_SETTINGS = {
 
 export const CITY_PICKER_STYLES = [
     { id: 'standard', label: 'Standart (liste)' },
-    { id: 'diagonal', label: 'Diagonal (renkli harita)' }
+    { id: 'diagonal', label: 'Diagonal (renkli harita)' },
+    { id: 'buttons', label: 'Yatay şehir noktaları' }
+];
+
+export const CITY_PICKER_ORDERS = [
+    { id: 'default', label: 'Veri sırası' },
+    { id: 'alphabetical', label: 'A–Z' }
 ];
 
 export const PLANT_PICKER_STYLES = [
@@ -103,7 +110,11 @@ export const PLANT_PICKER_STYLES = [
 ];
 
 export function normalizeCityPickerStyle(value) {
-    return value === 'diagonal' ? 'diagonal' : 'standard';
+    return value === 'diagonal' || value === 'buttons' ? value : 'standard';
+}
+
+export function normalizeCityPickerOrder(value) {
+    return value === 'alphabetical' ? 'alphabetical' : 'default';
 }
 
 export function normalizePlantPickerStyle(value) {
@@ -318,6 +329,10 @@ export function getCityPickerStyle(settings = getSettings()) {
     return normalizeCityPickerStyle(settings?.cityPickerStyle);
 }
 
+export function getCityPickerOrder(settings = getSettings()) {
+    return normalizeCityPickerOrder(settings?.cityPickerOrder);
+}
+
 export function getPlantPickerStyle(settings = getSettings()) {
     return normalizePlantPickerStyle(settings?.plantPickerStyle);
 }
@@ -348,6 +363,7 @@ export function getSettings() {
             enchantPowerOrder: normalizeEnchantPowerOrderStore(parsed.enchantPowerOrder),
             defaultCity: normalizeDefaultCity(parsed.defaultCity),
             cityPickerStyle: normalizeCityPickerStyle(parsed.cityPickerStyle),
+            cityPickerOrder: normalizeCityPickerOrder(parsed.cityPickerOrder),
             plantPickerStyle: normalizePlantPickerStyle(parsed.plantPickerStyle),
             dataSync: parsed.dataSync !== false,
             islandCities: normalizeIslandCities(parsed.islandCities),
@@ -380,6 +396,7 @@ export function saveSettings(partial) {
     next.enchantPowerOrder = normalizeEnchantPowerOrderStore(next.enchantPowerOrder);
     next.defaultCity = normalizeDefaultCity(next.defaultCity);
     next.cityPickerStyle = normalizeCityPickerStyle(next.cityPickerStyle);
+    next.cityPickerOrder = normalizeCityPickerOrder(next.cityPickerOrder);
     next.plantPickerStyle = normalizePlantPickerStyle(next.plantPickerStyle);
     next.dataSync = next.dataSync !== false;
     next.islandCities = normalizeIslandCities(next.islandCities);

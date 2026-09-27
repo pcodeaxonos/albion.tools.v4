@@ -14,6 +14,7 @@ import {
     cityHasIsland,
     localPriceHost,
     CITY_PICKER_STYLES,
+    CITY_PICKER_ORDERS,
     PLANT_PICKER_STYLES
 } from '../core/settings.js';
 import { initStore } from '../db/store.js';
@@ -211,6 +212,15 @@ function renderPage(container, cities) {
                                 <label for="settingCityPickerStyle">Şehir seçimi</label>
                             </div>
                             <div class="form-floating">
+                                <select class="form-select is-filled" data-setting-city-picker-order aria-label="Şehir seçimi sırası">
+                                    ${CITY_PICKER_ORDERS.map((order) => {
+                                        const selected = order.id === settings.cityPickerOrder ? ' selected' : '';
+                                        return `<option value="${escapeHtml(order.id)}"${selected}>${escapeHtml(order.label)}</option>`;
+                                    }).join('')}
+                                </select>
+                                <label>Şehir seçimi sırası</label>
+                            </div>
+                            <div class="form-floating">
                                 <select class="form-select is-filled" id="settingPlantPickerStyle">
                                     ${PLANT_PICKER_STYLES.map((style) => {
                                         const selected = style.id === settings.plantPickerStyle ? ' selected' : '';
@@ -226,7 +236,7 @@ function renderPage(container, cities) {
                                 <label for="settingEnchantPower">IP bandı (hızlı doldur)</label>
                             </div>
                         </div>
-                        <p class="text-muted settings-note">Varsayılan şehir, tool’da kayıtlı şehir yoksa alış/satış seçiminde gelir (Martlock). Şehir seçimi: standart liste veya diagonal renkli harita. Bitki seçimi: liste veya ekin/ot ikon satırları.</p>
+                        <p class="text-muted settings-note">Varsayılan şehir, tool’da kayıtlı şehir yoksa alış/satış seçiminde gelir (Martlock). Şehir seçimi: standart liste veya yatay renkli butonlar; buton sırası burada belirlenir. Bitki seçimi: liste veya ekin/ot ikon satırları.</p>
                         <div class="settings-combo-order-wrap">
                             <p class="settings-combo-order-title">Standart combolar</p>
                             ${renderStandardComboList(settings)}
@@ -389,6 +399,7 @@ function persist(container) {
         server: container.querySelector('#settingServer')?.value,
         defaultCity: container.querySelector('#settingDefaultCity')?.value,
         cityPickerStyle: container.querySelector('#settingCityPickerStyle')?.value,
+        cityPickerOrder: container.querySelector('[data-setting-city-picker-order]')?.value,
         plantPickerStyle: container.querySelector('#settingPlantPickerStyle')?.value,
         buyPriceSide: selectedSide(container, 'buy', 'buy'),
         sellPriceSide: selectedSide(container, 'sell', 'sell'),
@@ -538,6 +549,7 @@ function bindPage(container) {
     container.querySelector('#settingServer')?.addEventListener('change', () => persist(container));
     container.querySelector('#settingDefaultCity')?.addEventListener('change', () => persist(container));
     container.querySelector('#settingCityPickerStyle')?.addEventListener('change', () => persist(container));
+    container.querySelector('[data-setting-city-picker-order]')?.addEventListener('change', () => persist(container));
     container.querySelector('#settingEnchantPower')?.addEventListener('change', () => persist(container));
     bindStandardCombos(container);
     container.querySelectorAll('[data-island-city]').forEach((input) => {

@@ -585,8 +585,10 @@ input[type="month"].form-control {
 }
 
 .form-actions {
-    display: flex;
-    flex-wrap: wrap;
+    display: grid;
+    // A row uses the available width evenly; once another action would make
+    // every button unreadably narrow, it starts a new full-width-aware row.
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 9rem), 1fr));
     gap: var(--spacing-sm);
     margin-top: var(--spacing-sm);
     padding-top: var(--spacing-md);
@@ -909,7 +911,6 @@ input[type="month"].form-control {
 // Tablolar
 .table {
     width: 100%;
-    margin-bottom: var(--spacing-md);
     background-color: var(--color-surface);
     border: var(--border-width) solid var(--color-border);
     border-radius: 0;
@@ -1081,6 +1082,11 @@ input[type="month"].form-control {
 
 // Alert
 .alert {
+    // Alerts are content blocks, not layout tracks. Keep them at their natural
+    // height when they are placed inside a flex or grid result area.
+    align-self: start;
+    flex: 0 0 auto;
+    height: auto;
     padding: var(--spacing-md);
     border-radius: 0;
     margin-bottom: var(--spacing-md);
@@ -1985,7 +1991,8 @@ input[type="month"].form-control {
 }
 
 /* Diagonal / map-style city picker */
-.city-field--diagonal {
+.city-field--diagonal,
+.city-field--horizontal {
     display: flex;
     flex-direction: column;
     gap: 0.25rem;
@@ -2058,8 +2065,9 @@ input[type="month"].form-control {
         border-color: var(--city-color);
     }
 
-    &.is-muted {
-        opacity: 0.4;
+    &.is-muted .city-map-tip {
+        border-color: var(--color-warning);
+        color: var(--color-warning);
     }
 
     &:hover .city-map-tip,
@@ -2088,9 +2096,23 @@ input[type="month"].form-control {
     opacity: 0;
     transform: translate(-50%, 0.15rem);
     pointer-events: none;
-    transition:
-        opacity var(--transition-fast),
-        transform var(--transition-fast);
+    transition: opacity var(--transition-fast), transform var(--transition-fast);
+}
+
+.city-map--horizontal {
+    display: grid;
+    grid-template-columns: repeat(var(--city-picker-count), minmax(0, 1fr));
+    min-height: 2.75rem;
+    aspect-ratio: auto;
+}
+
+.city-map-node--horizontal {
+    position: relative;
+    left: auto;
+    top: auto;
+    justify-self: center;
+    align-self: center;
+    transform: none;
 }
 
 /* Plant picker — icon rows (settings: plantPickerStyle) */
@@ -2270,6 +2292,15 @@ input[type="month"].form-control {
         outline: 2px solid var(--color-item-tier, var(--color-primary));
         outline-offset: 1px;
         box-shadow: 0 0 0 1px color-mix(in srgb, var(--color-item-tier, var(--color-primary)) 35%, transparent);
+    }
+
+    &.is-empty,
+    &:disabled {
+        border-color: color-mix(in srgb, var(--color-border-strong) 58%, transparent);
+        color: var(--color-text-muted);
+        background: color-mix(in srgb, var(--color-surface-raised) 62%, transparent);
+        cursor: default;
+        opacity: 0.42;
     }
 }
 

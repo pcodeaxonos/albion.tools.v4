@@ -155,6 +155,7 @@ export function hydrateAnimal(row) {
         grownId: grownItem?.uniqueName || getItemUniqueName(row.grownItemId),
         meatId: meatItem?.uniqueName || (row.meatItemId != null ? getItemUniqueName(row.meatItemId) : null),
         productId: productItem?.uniqueName || (row.productItemId != null ? getItemUniqueName(row.productItemId) : null),
+        productLabel: productItem?.localizedName || (row.productItemId != null ? getItemLocalizedName(row.productItemId, 'Ürün') : null),
         feedSeedId: feedPlant?.seedId || null,
         feedPlantId: feedPlant?.plantId || null,
         feedLabel: feedPlant?.label || (row.feedDiet === 'meat' ? 'Meat' : 'Plants'),

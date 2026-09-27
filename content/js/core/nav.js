@@ -16,23 +16,6 @@ const OPEN_CLASS = 'is-open';
 const BODY_OPEN_CLASS = 'app-sidebar-open';
 const MQ_DESKTOP = '(min-width: 768px)';
 
-function setPageHeadImageRatio(head) {
-    head.classList.remove('has-page-head-image');
-    const match = getComputedStyle(head).backgroundImage.match(/url\(["']?(.*?)["']?\)/);
-    if (!match) return;
-
-    head.querySelector(':scope > .page-head-image')?.remove();
-    const image = document.createElement('img');
-    image.className = 'page-head-image';
-    image.alt = '';
-    image.setAttribute('aria-hidden', 'true');
-    image.addEventListener('load', () => {
-        head.classList.add('has-page-head-image');
-    }, { once: true });
-    image.src = match[1];
-    head.prepend(image);
-}
-
 function arrangePageHead(head) {
     if (head.querySelector(':scope > .page-head-content')) return;
 
@@ -49,7 +32,6 @@ function arrangePageHead(head) {
     }
     head.prepend(content);
 
-    setPageHeadImageRatio(head);
 }
 
 function arrangeToolPage(root) {
@@ -76,9 +58,6 @@ const pageLayoutObserver = new MutationObserver(() => {
 
 pageLayoutObserver.observe(document.documentElement, { childList: true, subtree: true });
 document.querySelectorAll('.page-head').forEach(arrangePageHead);
-window.matchMedia('(max-width: 768px)').addEventListener('change', () => {
-    document.querySelectorAll('.page-head').forEach(setPageHeadImageRatio);
-});
 
 function renderPageLink(page) {
     const active = isCurrentRoute(page.id);

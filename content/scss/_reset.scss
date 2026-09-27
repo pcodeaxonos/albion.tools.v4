@@ -15,6 +15,7 @@
 }
 
 html {
+    height: 100%;
     // Keep rem values predictable. Component-level clamps handle the few
     // genuinely responsive type treatments without scaling the whole UI.
     font-size: 16px;
@@ -29,7 +30,11 @@ html {
 }
 
 body {
-    min-height: 100vh;
+    // The application shell owns the viewport. Giving body the same explicit
+    // block size keeps the document from becoming a second scroll container.
+    min-height: 0;
+    height: 100vh;
+    height: 100dvh;
     line-height: inherit;
     text-rendering: optimizeSpeed;
 }
