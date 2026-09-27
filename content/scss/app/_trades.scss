@@ -602,6 +602,7 @@
 .trades-panel .trades-table tbody td:first-child { position: static; left: auto; z-index: auto; }
 .trades-table .badge { margin-right: .45rem; font-size: .62rem; }
 .trades-suggestions .trades-table-identity > .badge { flex: 0 0 3rem; margin-right: 0; text-align: center; }
+.trades-suggestions .trades-table-item-icon { flex-basis: 2.5rem; width: 2.5rem; height: 2.5rem; }
 .trades-side-buy { background: color-mix(in srgb, var(--color-info) 35%, var(--color-surface)); color: var(--color-info); }
 .trades-side-sell { background: color-mix(in srgb, var(--color-danger) 30%, var(--color-surface)); color: var(--color-danger); }
 .trades-price-action { min-width: 6rem; }

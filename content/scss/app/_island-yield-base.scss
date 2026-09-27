@@ -1,4 +1,15 @@
 // Island yields — plot squares + seed/harvest pairs + average cards
+.yield-controls-column {
+    display: flex;
+    flex-direction: column;
+    align-self: stretch;
+    min-width: 0;
+
+    > [data-yield-entry-summary] {
+        margin-top: auto;
+    }
+}
+
 .yield-planted-pair,
 .yield-harvest-pair {
     display: grid;
@@ -342,6 +353,15 @@
 
 .yield-log-section {
     min-width: 0;
+
+    .log-table tbody td:first-child {
+        border-left: 0.25rem solid var(--yield-day-color, transparent);
+        padding-left: 0.5rem;
+    }
+
+    .yield-log-item-name {
+        white-space: nowrap;
+    }
 
     .calc-table-wrap.table-responsive {
         height: clamp(14rem, 35dvh, 22rem);

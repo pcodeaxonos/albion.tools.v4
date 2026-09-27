@@ -102,15 +102,16 @@
     gap: var(--spacing-sm);
     min-width: 0;
     max-width: 100%;
+    // A vertically scrollable control column otherwise promotes its horizontal
+    // overflow to a scrollport. Keep controls contained without adding a
+    // second, horizontal scrollbar on any tool page.
+    overflow-x: clip;
 
     @media (min-width: 992px) {
         position: sticky;
         top: var(--chrome-top);
         z-index: 12;
         max-height: calc(100dvh - var(--chrome-top));
-        overflow-x: hidden;
-        overflow-y: auto;
-        overscroll-behavior: contain;
         padding-top: 0;
         padding-bottom: var(--spacing-md);
         background-color: var(--color-bg);

@@ -11,7 +11,8 @@ import { purchaseCost, saleProceeds } from '../core/market-fees.js';
 import { butcherQty, cropHours, listCrops, planCycleHours, planDayHours, plantSlots } from '../core/island-economy.js';
 import { effectiveAnimalProductYield, effectiveAnimalReturn, effectivePlantYield, effectiveSeedReturn, yieldAverage } from '../core/island-yield-stats.js';
 import { bindLivePrices } from '../core/price-live.js';
-import { V2_CITIES, V2_COMMITTED_STORAGE_KEY, V2_COMMITTED_TABLE, V2_DRAFT_TABLE, V2_FIXED_PRICE_TABLE, V2_GEOMETRY_TABLE, V2_GEOMETRY_URL, V2_ROYAL_CITIES, V2_SPECIAL_CITY_GEOMETRY, V2_STORAGE_KEY, V2_UNLOCKED_SLOTS_BY_LEVEL } from './island-planner-v2-config.js';
+import { FIXED_PRICE_TABLE } from '../core/fixed-prices.js';
+import { V2_CITIES, V2_COMMITTED_STORAGE_KEY, V2_COMMITTED_TABLE, V2_DRAFT_TABLE, V2_GEOMETRY_TABLE, V2_GEOMETRY_URL, V2_ROYAL_CITIES, V2_SPECIAL_CITY_GEOMETRY, V2_STORAGE_KEY, V2_UNLOCKED_SLOTS_BY_LEVEL } from './island-planner-v2-config.js';
 import { blankSlot, clone, clamp01, cityKey, normalizeDraft as normalizeDraftModel } from './island-planner-v2/model.js';
 import {
     animalProductionModes,
@@ -974,7 +975,7 @@ async function init() {
     state.draft = normalizeDraft(state.draftsByCity[cityKey(initialCity)], initialCity);
     state.committed = normalizeDraft(state.committedByCity[cityKey(initialCity)], initialCity);
     state.geometryRows = getAll(V2_GEOMETRY_TABLE);
-    state.fixedPrices = getAll(V2_FIXED_PRICE_TABLE);
+    state.fixedPrices = getAll(FIXED_PRICE_TABLE);
     persistDrafts(); persistCommitted();
     try { const response = await fetch(V2_GEOMETRY_URL); state.geometry = response.ok ? await response.json() : null; } catch { state.geometry = null; }
     if (v2PriceItemIds().length) await loadV2Prices(); else calculateIslandPlan();

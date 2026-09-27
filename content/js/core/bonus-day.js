@@ -1,4 +1,5 @@
 export const BONUS_RESET_HOUR = 13;
+export const BONUS_REDIRECT_DELAY_MINUTES = 15;
 
 function pad(value) {
     return String(value).padStart(2, '0');
@@ -20,6 +21,16 @@ export function bonusDayIso(now = new Date()) {
         at.setDate(at.getDate() - 1);
     }
     return toIsoDate(at);
+}
+
+export function isBonusRedirectReady(now = new Date()) {
+    const resetAt = new Date(now.getTime());
+    resetAt.setHours(BONUS_RESET_HOUR, 0, 0, 0);
+    if (now < resetAt) {
+        resetAt.setDate(resetAt.getDate() - 1);
+    }
+
+    return now.getTime() >= resetAt.getTime() + BONUS_REDIRECT_DELAY_MINUTES * 60 * 1000;
 }
 
 export function formatDayMonth(isoDate) {

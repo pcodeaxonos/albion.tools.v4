@@ -829,10 +829,12 @@ function renderOutput() {
         <div id="refiningResult">
             ${renderTable(list)}
             ${calcExplainShell('refiningExplain')}
+            <section data-page-info>
             ${renderSummary(list)}
             ${renderScenario()}
             ${renderBonusNote()}
             ${stamp ? `<p class="farming-note">${escapeHtml(stamp)}</p>` : ''}
+            </section>
         </div>
     `;
 }

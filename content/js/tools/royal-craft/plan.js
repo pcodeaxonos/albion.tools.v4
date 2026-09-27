@@ -282,14 +282,3 @@ export function renderPlanDialogBody(plan) {
         </div>
     `;
 }
-
-export function renderPlanFab() {
-    return `
-        <button type="button" class="royal-plan-fab" id="royalPlanFab" aria-label="Royal Crafting Wizard" title="Royal Crafting Wizard">
-            <svg class="royal-plan-fab-icon" width="28" height="28" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-                <path fill="currentColor" d="M4 4h7v7H4V4Zm9 0h7v7h-7V4ZM4 13h7v7H4v-7Zm9 2.5 1.5-1.5 2 2 3.5-3.5 1.5 1.5-5 5-3.5-3.5Z"/>
-            </svg>
-        </button>
-    `;
-}
-

@@ -516,8 +516,10 @@ function renderOutput() {
             ${renderMatStrip()}
             ${renderTable()}
             ${calcExplainShell('carleonExplain')}
+            <section data-page-info>
             ${renderBonusNote()}
             <p class="carleon-note">Malzeme ${escapeHtml(matNote)} · satış ${escapeHtml(itemNote)}. Elle yazılan alış/satış API’nin yerine geçer; kırmızı fiyat API’de yok, mavi 6 saatten eski.</p>
+            </section>
         </div>
     `;
 }

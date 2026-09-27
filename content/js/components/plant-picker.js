@@ -16,9 +16,9 @@ function animalGroups(plotType) {
             { id: 'ox', label: 'Öküzler', filter: (item) => item.key.startsWith('ox-'), tierSlots: true }
         ]
         : [
-            { id: 'kennel', label: 'Kennel hayvanları', filter: (item) => item.kind === 'mount', tierSlots: true },
             { id: 'faction-t5', label: 'Faction T5', filter: (item) => item.kind === 'faction-mount' && Number(item.tier) === 5 },
-            { id: 'faction-t8', label: 'Faction T8', filter: (item) => item.kind === 'faction-mount' && Number(item.tier) === 8 }
+            { id: 'faction-t8', label: 'Faction T8', filter: (item) => item.kind === 'faction-mount' && Number(item.tier) === 8 },
+            { id: 'kennel', label: 'Kennel hayvanları', filter: (item) => item.kind === 'mount', tierSlots: true }
         ];
 }
 

@@ -17,7 +17,7 @@ import { cityLabel as getCityLabel } from '../core/city-utils.js';
 
 import { priceRefreshActionsHtml, bindPriceRefresh } from '../components/price-refresh.js';
 import { parseKind, setVariants, shortItemName } from './royal-craft/domain.js';
-import { buildCraftPlan, renderPlanDialogBody, renderPlanFab } from './royal-craft/plan.js';
+import { buildCraftPlan, renderPlanDialogBody } from './royal-craft/plan.js';
 import {
     getCraftRecipes,
     cityProductionBonus,
@@ -33,13 +33,14 @@ import {
     applyPriceFieldState,
     incompleteClass
 } from '../core/price-side.js';
-import { bindCalcExplain, calcExplainShell, explainNum, explainOp, explainStep, explainChips, explainFlow, explainSaleSteps, explainProfitFoot, explainPanelHtml, explainEmptyHtml, explainHint } from '../utils/calc-explain.js';
+import { explainNum, explainOp, explainStep, explainChips, explainFlow, explainSaleSteps, explainProfitFoot, explainPanelHtml, explainEmptyHtml, explainHint } from '../utils/calc-explain.js';
 
 import { runPriceLoad } from './shared/price-load.js';
 import { readJsonStorage, writeJsonStorage } from '../core/storage.js';
 import { bindManualPriceFields } from '../components/manual-price-fields.js';
 
 import { returnRateFromProductionBonus } from '../core/economy-math.js';
+import { bonusFamilyMeta } from '../core/bonus-cities.js';
 const PREFS_KEY = 'albiontools.v4.royal.prefs';
 const TIERS = [4, 5, 6, 7, 8];
 const ENCHANTS = [1, 2, 3];
@@ -128,6 +129,90 @@ function recipeLines(recipe) {
     const setLine = recipe.lines.find((line) => /_SET\d+$/.test(line.uniqueName || ''));
     const sigilLine = recipe.lines.find((line) => String(line.uniqueName || '').includes('TOKEN_ROYAL'));
     return { setLine, sigilLine };
+}
+
+function royalBonusGroups() {
+    const baseRecipes = new Map(getCraftRecipes({ tool: 'gameinfo' })
+        .map((recipe) => [recipe.uniqueName, recipe]));
+    const groups = new Map();
+
+    for (const royalRecipe of recipes()) {
+        const { setLine } = recipeLines(royalRecipe);
+        const baseRecipe = baseRecipes.get(setLine?.uniqueName);
+        if (!baseRecipe?.familyKey) continue;
+
+        const bonus = bonusFamilyMeta(baseRecipe.familyKey);
+        if (!bonus.cityLabel) continue;
+
+        const groupKey = `${bonus.city}|${baseRecipe.familyKey}`;
+        const group = groups.get(groupKey) || {
+            city: bonus.city,
+            cityLabel: bonus.cityLabel,
+            familyKey: baseRecipe.familyKey,
+            label: bonus.label,
+            items: []
+        };
+        group.items.push({
+            recipe: royalRecipe,
+            material: setCraftSpec(royalRecipe.kind, royalRecipe.tier)
+        });
+        groups.set(groupKey, group);
+    }
+
+    return [...groups.values()]
+        .map((group) => ({
+            ...group,
+            items: group.items.sort((a, b) => a.recipe.sortValue - b.recipe.sortValue).slice(0, 3)
+        }))
+        .sort((a, b) => a.cityLabel.localeCompare(b.cityLabel, 'tr') || a.label.localeCompare(b.label, 'tr'));
+}
+
+function renderRoyalBonusPopup() {
+    const cities = new Map();
+    for (const group of royalBonusGroups()) {
+        const city = cities.get(group.city) || { label: group.cityLabel, groups: [] };
+        city.groups.push(group);
+        cities.set(group.city, city);
+    }
+
+    const citySections = [...cities.values()].map((city) => `<section class="royal-bonus-city">
+        <header><h3>${escapeHtml(city.label)}</h3><span>Craft bonusu</span></header>
+        <div class="royal-bonus-groups">${city.groups.map((group) => `<article class="royal-bonus-group">
+            <h4>${escapeHtml(group.label)}</h4>
+            <div class="royal-bonus-items">${group.items.map(({ recipe, material }) => `<div class="royal-bonus-item">
+                ${itemIconHtml(recipe.uniqueName, { className: 'item-icon royal-bonus-item-icon', size: 48 })}
+                <span>T${recipe.tier}</span>
+                ${material ? `<div class="royal-bonus-material" title="${escapeHtml(material.label)}">
+                    ${itemIconHtml(material.uniqueName, { className: 'item-icon royal-bonus-material-icon', size: 32 })}
+                    <small>${escapeHtml(material.label)}</small>
+                </div>` : ''}
+            </div>`).join('')}</div>
+        </article>`).join('')}</div>
+    </section>`).join('');
+
+    return `<button type="button" class="app-dialog-close" aria-label="Kapat" data-royal-bonus-close></button>
+        <div class="royal-bonus-sheet">
+            <header class="royal-bonus-head"><div><p>ROYAL CRAFTING</p><h2>Şehir craft bonusları</h2><span>Her şehirde bonus alan ana SET grubunun craft sırasındaki ilk üç Royal item ve kullandıkları rafine hammadde.</span></div></header>
+            <div class="royal-bonus-cities">${citySections || '<p class="royal-bonus-empty">Royal itemlar için şehir craft bonusu bulunamadı.</p>'}</div>
+        </div>`;
+}
+
+function openRoyalBonusPopup(container) {
+    let dialog = container.querySelector('[data-royal-bonus-dialog]');
+    if (!dialog) {
+        dialog = document.createElement('dialog');
+        dialog.className = 'app-dialog royal-bonus-dialog';
+        dialog.dataset.royalBonusDialog = '';
+        dialog.addEventListener('click', (event) => {
+            if (event.target === dialog || event.target.closest('[data-royal-bonus-close]')) dialog.close();
+        });
+        container.appendChild(dialog);
+    }
+    dialog.innerHTML = renderRoyalBonusPopup();
+    if (!dialog.open) {
+        if (typeof dialog.showModal === 'function') dialog.showModal();
+        else dialog.setAttribute('open', '');
+    }
 }
 
 /** Materials to craft the flat SET piece used by a royal recipe (classic armor craft). */
@@ -758,7 +843,10 @@ function renderMatStrip() {
                 <div class="royal-mat-corner" aria-hidden="true"></div>
                 ${TIERS.map((tier) => `<div class="royal-mat-tier-head">T${tier}</div>`).join('')}
                 ${kinds.map((kind) => `
-                    <div class="royal-mat-kind">${escapeHtml(kind.label)}</div>
+                    <div class="royal-mat-kind">
+                        ${itemIconHtml(kind.cells[0].uniqueName, { className: 'item-icon royal-mat-kind-icon', size: 32 })}
+                        <span>${escapeHtml(kind.label)}</span>
+                    </div>
                     ${kind.cells.map((mat) => {
                         const fetched = matQuote(mat.key, mat.uniqueName, mat.quality);
                         return `
@@ -771,8 +859,7 @@ function renderMatStrip() {
                                     missing: !fetched,
                                     date: fetched?.date,
                                     dataAttr: `data-mat-price="${escapeHtml(mat.key)}"`,
-                                    fieldClass: 'farming-price-field royal-price-field',
-                                    iconId: mat.uniqueName
+                                    fieldClass: 'farming-price-field royal-price-field'
                                 })}
                             </div>
                         `;
@@ -978,45 +1065,6 @@ function latestDate(list) {
         }
     }
     return latest;
-}
-
-function bestExplainKey(list) {
-    return bestRow(list)?.id ?? list[0]?.id ?? null;
-}
-
-let planHost = null;
-
-function mountPlanFab(container) {
-    planHost = container;
-    const status = document.querySelector('.app-status');
-    let fab = document.getElementById('royalPlanFab');
-    if (!fab) {
-        const wrap = document.createElement('div');
-        wrap.innerHTML = renderPlanFab().trim();
-        fab = wrap.firstElementChild;
-    }
-    if (status) {
-        status.classList.add('has-royal-plan-fab');
-        if (fab.parentElement !== status) {
-            status.appendChild(fab);
-        }
-    } else if (!fab.isConnected) {
-        document.body.appendChild(fab);
-    }
-    bindCraftPlan();
-}
-
-function bindCraftPlan() {
-    const fab = document.getElementById('royalPlanFab');
-    if (!fab || fab.dataset.planBound === 'on') {
-        return;
-    }
-    fab.dataset.planBound = 'on';
-    fab.addEventListener('click', () => {
-        if (planHost) {
-            openRoyalWizard(planHost);
-        }
-    });
 }
 
 function wizardPriceGroups() {
@@ -1976,39 +2024,66 @@ function renderRoyalExplain(key, { hovered } = {}) {
 }
 
 function bindExplain(container) {
-    bindCalcExplain({
-        panel: container.querySelector('#royalExplain'),
-        table: container.querySelector('.royal-table'),
-        rowKey: (tr) => tr.dataset.rowId,
-        keys: () => rows().map((row) => row.id),
-        defaultKey: () => bestExplainKey(sortedRows()),
-        render: (key, meta) => renderRoyalExplain(key, meta)
+    const table = container.querySelector('.royal-table');
+    if (!table || table.dataset.royalExplainBound === 'on') return;
+    table.dataset.royalExplainBound = 'on';
+    table.addEventListener('click', (event) => {
+        const row = event.target instanceof Element ? event.target.closest('tbody tr') : null;
+        if (!row || !table.contains(row) || !row.dataset.rowId) return;
+        openRoyalExplainPopup(container, row.dataset.rowId);
     });
+}
+
+function openRoyalExplainPopup(container, rowId) {
+    let dialog = container.querySelector('[data-royal-explain-dialog]');
+    if (!dialog) {
+        dialog = document.createElement('dialog');
+        dialog.className = 'app-dialog royal-explain-dialog';
+        dialog.dataset.royalExplainDialog = '';
+        dialog.addEventListener('click', (event) => {
+            if (event.target === dialog || event.target.closest('[data-royal-explain-close]')) dialog.close();
+        });
+        container.appendChild(dialog);
+    }
+    dialog.innerHTML = `<button type="button" class="app-dialog-close" aria-label="Kapat" data-royal-explain-close></button>
+        <div class="royal-explain-sheet"><aside class="calc-explain royal-explain-panel">${renderRoyalExplain(rowId)}</aside></div>`;
+    if (!dialog.open) {
+        if (typeof dialog.showModal === 'function') dialog.showModal();
+        else dialog.setAttribute('open', '');
+    }
 }
 
 function renderCalc() {
     if (state.error) {
-        return `<div class="alert alert-info" id="royalCalc">${escapeHtml(state.error)}</div>`;
+        return `<div class="alert alert-info royal-calc" id="royalCalc">${escapeHtml(state.error)}</div>`;
     }
     if (!state.loaded) {
-        return '<div id="royalCalc"></div>';
+        return '<div class="royal-calc" id="royalCalc"></div>';
     }
     const list = sortedRows();
     const stamp = formatDateTime(latestDate(list));
     return `
-        <div id="royalCalc">
+        <div id="royalCalc" class="royal-calc">
             ${renderTable(list)}
-            ${calcExplainShell('royalExplain')}
+            <section data-page-info>
             ${renderSummary(list)}
             ${stamp ? `<p class="farming-note">${escapeHtml(stamp)}</p>` : ''}
+            </section>
         </div>
     `;
 }
 
 function renderOutput() {
     return `
-        <div id="royalResult" class="royal-result">
+        <div class="royal-middle-column">
             ${renderMatStrip()}
+            <section class="royal-analysis-placeholder" aria-labelledby="royalAnalysisTitle">
+                <header class="royal-analysis-placeholder-head">
+                    <h2 id="royalAnalysisTitle">Kâr Analizi</h2>
+                </header>
+            </section>
+        </div>
+        <div class="tool-split-result royal-result">
             ${renderCalc()}
         </div>
     `;
@@ -2017,11 +2092,15 @@ function renderOutput() {
 function renderPage(container) {
     state.tier = normalizeTierFilter(state.tier);
     container.innerHTML = `
-        <section class="page-head" data-page-head="royal-crafting">
+        <section class="page-head royal-workbench-head" data-page-head="royal-crafting">
             <h1>Royal Crafting</h1>
             <p>SET’i mat’tan craft veya Excellent buy ile al (min), Royal Sigil (veya Sealed) ekle — royal craft’ta RR yok — sonra 0→.3 enchant ile satış kârını gör.</p>
+            <div class="bonus-page-actions">
+                <button type="button" class="bonus-analysis-trigger" data-royal-bonus><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 19V5m0 14h16M7 15l3-3 3 2 5-6"/><path d="M15 8h3v3"/></svg><span>Craft Analizi</span></button>
+                <button type="button" class="bonus-analysis-trigger" data-royal-wizard><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 18h16l-2-10-5 4-3-6-3 6-5-4 2 10Z"/><path d="M7 21h10"/></svg><span>Wizard</span></button>
+            </div>
         </section>
-        <div class="tool-split">
+        <div class="tool-split royal-workbench">
             <div class="tool-split-controls">
                 <div class="farming-toolbar royal-toolbar">
                     <div class="farming-type" role="radiogroup" aria-label="T.E kapsamı">
@@ -2105,9 +2184,7 @@ function renderPage(container) {
                     ${priceRefreshActionsHtml()}
                 </div>
             </div>
-            <div class="tool-split-result">
-                ${renderOutput()}
-            </div>
+            ${renderOutput()}
         </div>
     `;
     bindPage(container);
@@ -2115,7 +2192,6 @@ function renderPage(container) {
     bindPriceInputs(container);
     bindExplain(container);
     bindCalcSticky(container);
-    mountPlanFab(container);
 }
 
 function syncToggleGroup(container, attr, selected) {
@@ -2214,6 +2290,8 @@ function bindCitySelect(container, id, assign) {
 }
 
 function bindPage(container) {
+    container.querySelector('[data-royal-bonus]')?.addEventListener('click', () => openRoyalBonusPopup(container));
+    container.querySelector('[data-royal-wizard]')?.addEventListener('click', () => openRoyalWizard(container));
     container.querySelectorAll('[data-scope]').forEach((button) => {
         button.addEventListener('click', () => {
             if (state.scope === button.dataset.scope) {

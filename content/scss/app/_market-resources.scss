@@ -138,7 +138,7 @@
 .farming-table {
     th,
     td {
-        padding: 0.5rem 0.75rem;
+        padding: 0.25rem 0.375rem;
         font-size: var(--font-size-sm);
     }
 }
@@ -268,4 +268,3 @@
 .farming-verdict.is-missing {
     color: var(--color-danger);
 }
-

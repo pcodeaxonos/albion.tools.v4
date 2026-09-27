@@ -42,17 +42,13 @@ import { renderMatsHtml, renderRecipesHtml } from '../core/today-bonus.js';
 import { parseFamilyVariants, bonusMaterialItemId } from '../core/bonus-cities.js';
 import { itemIconHtml } from '../components/item-icon.js';
 import { getItemUniqueName } from './relations.js';
+import { FIXED_PRICE_TABLE } from '../core/fixed-prices.js';
 
 const PAGE_SIZE = 25;
 const CODE_CHAR_LIMIT = 20;
 const NAME_COLUMNS = new Set(['localizedName', 'displayName', 'name', 'marketApiName']);
 const CODE_COLUMNS = new Set(['uniqueName', 'slug', 'parentSlug', 'index', 'familyKey']);
 const FIXED_PRICE_ROLE_STORAGE_KEY = 'albiontools.v4.fixed-price.role';
-const PLANNER_ITEM_ID_FIELDS = Object.freeze([
-    'itemId', 'inputItemId', 'outputItemId', 'feedItemId', 'seedItemId',
-    'plantItemId', 'babyItemId', 'grownItemId', 'meatItemId', 'productItemId'
-]);
-
 const state = {
     tableName: null,
     view: 'placeholder',
@@ -854,7 +850,7 @@ function getCellClass(column, value) {
         return 'db-cell-mats';
     }
 
-    if (state.tableName === 'islandPlannerV2FixedPrices'
+    if (state.tableName === FIXED_PRICE_TABLE
         && column.name === 'itemId'
         && column.refTable === 'items') {
         return 'db-cell-item';
@@ -1018,7 +1014,7 @@ function formatCellValue(value, column, parentId = null, row = null) {
         const refRow = getAll(column.refTable).find((entry) => String(entry[refValue]) === String(value));
         if (refRow) {
             const text = column.refLabel ? String(refRow[column.refLabel] ?? refRow.id) : String(refRow.id);
-            if (state.tableName === 'islandPlannerV2FixedPrices'
+            if (state.tableName === FIXED_PRICE_TABLE
                 && column.name === 'itemId'
                 && column.refTable === 'items') {
                 const uniqueName = refRow.uniqueName || getItemUniqueName(refRow.id);
@@ -1462,15 +1458,15 @@ function renderFormView() {
         <div class="db-inline-form">
             <div class="db-inline-form-head">
                 <h2 class="db-inline-form-title">${title}</h2>
-                <button type="button" class="btn btn-sm btn-outline-secondary" id="btnCancel">Kapat</button>
+                <button type="button" class="btn btn-sm btn-outline-secondary" data-db-form-close>Kapat</button>
             </div>
-            <form class="form-grid db-inline-form-grid" id="recordForm">
+            <form class="form-grid db-inline-form-grid" data-db-record-form>
                 ${isEdit ? renderKeyField(table, record) : ''}
                 ${getEditableColumns(table).map((col) => renderField(col, record)).join('')}
-                <div class="form-actions">
+                <div class="form-actions db-inline-form-actions">
                     <button type="submit" class="btn btn-primary">${isEdit ? 'Kaydet' : 'Oluştur'}</button>
                     ${isEdit ? '' : '<button type="submit" class="btn btn-outline-primary" data-create-another>Oluştur ve yeni kayıt</button>'}
-                    <button type="button" class="btn btn-outline-secondary" id="btnCancelSecondary">İptal</button>
+                    <button type="button" class="btn btn-outline-secondary" data-db-form-close>İptal</button>
                 </div>
             </form>
         </div>
@@ -1502,7 +1498,7 @@ function renderField(column, record) {
     }
 
     if (column.type === 'enum') {
-        if (state.tableName === 'islandPlannerV2FixedPrices' && column.name === 'role') {
+        if (state.tableName === FIXED_PRICE_TABLE && column.name === 'role') {
             return renderFixedPriceRoleField(column, value);
         }
         const options = column.options.map((opt) => {
@@ -1623,29 +1619,8 @@ function isTechnicalItem(item) {
         || ['avatar', 'avatarring'].includes(String(item?.shopSubCategory || '').toLowerCase());
 }
 
-function islandPlannerRelatedItemIds() {
-    const ids = new Set();
-    const add = (value) => {
-        const id = Number(value);
-        if (Number.isInteger(id) && id > 0) ids.add(id);
-    };
-    const plants = getAll('plants');
-    const plantsById = new Map(plants.map((plant) => [Number(plant.id), plant]));
-
-    for (const plant of plants) {
-        PLANNER_ITEM_ID_FIELDS.forEach((field) => add(plant[field]));
-    }
-    for (const animal of getAll('animals')) {
-        PLANNER_ITEM_ID_FIELDS.forEach((field) => add(animal[field]));
-        // feedPlantId is a plant FK rather than an item FK; Island Planner buys
-        // that plant's output as feed.
-        add(plantsById.get(Number(animal.feedPlantId))?.plantItemId);
-    }
-    return ids;
-}
-
 function fixedPriceItemSelectRows(selectedValue, column) {
-    if (state.tableName !== 'islandPlannerV2FixedPrices'
+    if (state.tableName !== FIXED_PRICE_TABLE
         || column.name !== 'itemId'
         || column.refTable !== 'items') {
         return null;
@@ -1655,15 +1630,11 @@ function fixedPriceItemSelectRows(selectedValue, column) {
     const marketable = allItems.filter((item) =>
         itemMarketplaceVisible(item) && itemHasDisplayName(item) && !isTechnicalItem(item)
     );
-    const relatedIds = islandPlannerRelatedItemIds();
-    const related = relatedIds.size
-        ? marketable.filter((item) => relatedIds.has(Number(item.id)))
-        : [];
-    const rows = related.length ? related : marketable;
+    const rows = marketable;
     const selected = allItems.find((item) => String(item[column.refValue || 'id']) === String(selectedValue));
 
     // Existing fixed-price records must always remain editable, even if their
-    // old item is no longer part of the current planner catalogue.
+    // item is no longer in the current market catalogue.
     return selected && !rows.some((item) => String(item.id) === String(selected.id))
         ? [...rows, selected]
         : rows;
@@ -1759,8 +1730,9 @@ function bindFormEvents(root) {
         closeInlineForm(document.getElementById('dbContent'));
     };
 
-    root.querySelector('#btnCancel')?.addEventListener('click', close);
-    root.querySelector('#btnCancelSecondary')?.addEventListener('click', close);
+    root.querySelectorAll('[data-db-form-close]').forEach((button) => {
+        button.addEventListener('click', close);
+    });
 
     root.querySelectorAll('[data-fixed-price-role]').forEach((button) => {
         button.addEventListener('click', () => {
@@ -1778,7 +1750,7 @@ function bindFormEvents(root) {
         });
     });
 
-    root.querySelector('#recordForm')?.addEventListener('submit', (event) => {
+    root.querySelector('[data-db-record-form]')?.addEventListener('submit', (event) => {
         event.preventDefault();
         void handleFormSubmit(document.getElementById('dbContent'), event.target, {
             createAnother: event.submitter?.hasAttribute('data-create-another')
@@ -1799,7 +1771,7 @@ async function handleFormSubmit(container, form, { createAnother = false } = {})
             createRow(state.tableName, formData);
         }
 
-        if (state.tableName === 'islandPlannerV2FixedPrices') {
+        if (state.tableName === FIXED_PRICE_TABLE) {
             const role = formData.get('role');
             if (role === 'input' || role === 'output') {
                 saveFixedPriceRole(role);

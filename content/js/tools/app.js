@@ -1,8 +1,6 @@
 import { initNav } from '../core/nav.js';
-import { routeHref } from '../core/routes.js';
 import { initStore } from '../db/store.js';
 import { renderDashboard } from './dashboard.js';
-import { hasTodayDailyBonus } from '../core/craft-bonus.js';
 import { showPageLoader, hidePageLoader } from '../components/loader.js';
 
 async function init() {
@@ -18,10 +16,6 @@ async function init() {
 
     try {
         await initStore();
-        if (!hasTodayDailyBonus()) {
-            location.replace(`${routeHref('daily-bonus')}?need=today#bonusForm`);
-            return;
-        }
         await renderDashboard(dashboardContainer);
         hidePageLoader();
     } catch (error) {

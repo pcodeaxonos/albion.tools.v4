@@ -643,21 +643,21 @@ export const tables = {
             { name: 'updatedAt', type: 'string', label: 'Updated' }
         ]
     },
-    islandPlannerV2FixedPrices: {
-        displayName: 'Ada Planlayıcı V2 Sabit Fiyat Kayıtları',
+    fixedPrices: {
+        displayName: 'Sabit Fiyatlar',
         group: 'user',
         source: 'user',
-        description: 'V2 Sabit modu için item + giriş/çıkış rolü bazlı order fiyatları',
+        description: 'Uygulama genelinde kullanılan item + alış/satış yönü bazlı sabit fiyatlar',
         key: 'id',
         autoKey: true,
         userData: true,
         defaultSort: { column: 'itemId', direction: 'asc' },
-        seedUrl: './data/island-planner-v2-fixed-prices.json',
+        seedUrl: './data/fixed-prices.json',
         columns: [
             COL.id,
             { name: 'itemId', type: 'ref', refTable: 'items', refValue: 'uniqueName', refLabel: 'localizedName', label: 'Eşya' },
-            { name: 'role', type: 'enum', options: ['input', 'output'], optionLabels: { input: 'Buy — tohum / yavru / yem', output: 'Sell — ürün / hayvan / et / süt / yumurta' }, label: 'Fiyat Kullanımı' },
-            { name: 'price', type: 'number', step: 'any', label: 'Sabit Emir Fiyatı' },
+            { name: 'role', type: 'enum', options: ['input', 'output'], optionLabels: { input: 'Alış (Buy)', output: 'Satış (Sell)' }, label: 'Fiyat Yönü' },
+            { name: 'price', type: 'number', step: 'any', label: 'Sabit Fiyat' },
             { name: 'updatedAt', type: 'string', label: 'Son Güncelleme', editable: false, autoTimestamp: true }
         ]
     },

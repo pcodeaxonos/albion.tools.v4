@@ -29,7 +29,7 @@ const state = {
     month: toYearMonth(bonusDayIso()),
     editingId: null,
     sort: { key: 'date', direction: 'desc' },
-    analysis: { familyKey: null, familyData: {}, reorderMode: false, preparing: false, usedRecipeFallback: false }
+    analysis: { familyKey: null, familyData: {}, reorderMode: false, preparing: false, usedRecipeFallback: false, tierFilters: null }
 };
 
 function toYearMonth(isoDate) {
@@ -68,6 +68,13 @@ function analysisDefaultTiers() {
         .map((combo) => Number(combo.tier))
         .filter((tier) => ANALYSIS_TIERS.includes(tier)))];
     return tiers.length ? tiers : [4, 5, 6];
+}
+
+function analysisTierFilters() {
+    if (!state.analysis.tierFilters) {
+        state.analysis.tierFilters = { showAll: false, tiers: new Set(analysisDefaultTiers()) };
+    }
+    return state.analysis.tierFilters;
 }
 
 function number(value) {
@@ -111,24 +118,35 @@ function readAnalysisCardOrders() {
     return orders && typeof orders === 'object' ? orders : {};
 }
 
-function analysisCardOrderKey(familyKey, tier) {
-    return `${familyKey}|${tier}`;
+function analysisCardOrderKey(familyKey) {
+    return familyKey;
 }
 
-function orderedAnalysisRows(rows, familyKey, tier) {
-    const order = readAnalysisCardOrders()[analysisCardOrderKey(familyKey, tier)] || [];
-    const positions = new Map(order.map((id, index) => [id, index]));
-    return rows.slice().sort((a, b) => (positions.get(a.recipe.id) ?? Number.MAX_SAFE_INTEGER) - (positions.get(b.recipe.id) ?? Number.MAX_SAFE_INTEGER));
+function analysisRecipeGroupKey(recipe) {
+    // The same station item has a tier-specific prefix (T4_, T5_, …) in its
+    // unique name.  Removing it gives us one stable key for every tier.
+    return String(recipe.uniqueName || '').replace(/^T\d+_/, '');
 }
 
-function moveAnalysisCard(familyKey, tier, recipeId, direction) {
-    const rows = orderedAnalysisRows(analysisData(familyKey).rows.filter((row) => row.recipe.tier === Number(tier)), familyKey, tier);
+function orderedAnalysisRows(rows, familyKey) {
+    const order = readAnalysisCardOrders()[analysisCardOrderKey(familyKey)] || [];
+    const positions = new Map(order.map((groupKey, index) => [groupKey, index]));
+    return rows.slice().sort((a, b) => (positions.get(analysisRecipeGroupKey(a.recipe)) ?? Number.MAX_SAFE_INTEGER) - (positions.get(analysisRecipeGroupKey(b.recipe)) ?? Number.MAX_SAFE_INTEGER));
+}
+
+function moveAnalysisCard(familyKey, recipeId, direction) {
+    const target = analysisData(familyKey).rows.find((row) => row.recipe.id === recipeId);
+    if (!target) return;
+    const rows = orderedAnalysisRows(
+        analysisData(familyKey).rows.filter((row) => row.recipe.tier === target.recipe.tier),
+        familyKey
+    );
     const from = rows.findIndex((row) => row.recipe.id === recipeId);
     const to = from + direction;
     if (from < 0 || to < 0 || to >= rows.length) return;
     [rows[from], rows[to]] = [rows[to], rows[from]];
     const orders = readAnalysisCardOrders();
-    orders[analysisCardOrderKey(familyKey, tier)] = rows.map((row) => row.recipe.id);
+    orders[analysisCardOrderKey(familyKey)] = rows.map((row) => analysisRecipeGroupKey(row.recipe));
     writeJsonStorage(ANALYSIS_CARD_ORDER_KEY, orders);
 }
 
@@ -176,7 +194,7 @@ function renderAnalysisLoadingCard() {
 }
 
 function renderTierColumn(tier, analysis, familyKey) {
-    const rows = orderedAnalysisRows(analysis.rows.filter((row) => row.recipe.tier === tier), familyKey, tier).slice(0, 3);
+    const rows = orderedAnalysisRows(analysis.rows.filter((row) => row.recipe.tier === tier), familyKey).slice(0, 3);
     const ranks = new Map([...rows]
         .sort((a, b) => unitMaterialYield(b) - unitMaterialYield(a))
         .map((row, index) => [row.recipe.id, index + 1]));
@@ -198,37 +216,34 @@ function renderAnalysisDialog(dialog) {
 }
 
 function applyAnalysisTierFilters(dialog) {
-    const buttons = [...dialog.querySelectorAll('[data-analysis-filter]')];
-    const showAll = dialog.querySelector('[data-analysis-filter="all"]')?.classList.contains('is-active');
-    const selected = new Set(buttons
-        .filter((button) => button.dataset.analysisFilter !== 'all' && button.classList.contains('is-active'))
-        .map((button) => button.dataset.analysisFilter));
+    const { showAll, tiers } = analysisTierFilters();
     dialog.querySelectorAll('[data-analysis-tier]').forEach((column) => {
-        column.hidden = !showAll && !selected.has(column.dataset.analysisTier);
+        column.hidden = !showAll && !tiers.has(Number(column.dataset.analysisTier));
     });
 }
 
 function toggleAnalysisTier(dialog, button) {
-    const buttons = [...dialog.querySelectorAll('[data-analysis-filter]')];
-    const allButton = dialog.querySelector('[data-analysis-filter="all"]');
+    const filters = analysisTierFilters();
     if (button.dataset.analysisFilter === 'all') {
-        if (!button.classList.contains('is-active')) {
-            button.classList.add('is-active');
-            buttons.filter((item) => item.dataset.analysisFilter !== 'all').forEach((item) => item.classList.remove('is-active'));
-        }
-    } else if (allButton?.classList.contains('is-active')) {
-        allButton.classList.remove('is-active');
-        button.classList.add('is-active');
+        filters.showAll = true;
+        filters.tiers.clear();
     } else {
-        const selected = buttons.filter((item) => item.dataset.analysisFilter !== 'all' && item.classList.contains('is-active'));
-        if (button.classList.contains('is-active') && selected.length === 1) {
-            allButton?.classList.add('is-active');
-            selected.forEach((item) => item.classList.remove('is-active'));
+        const tier = Number(button.dataset.analysisFilter);
+        if (filters.showAll) {
+            filters.showAll = false;
+            filters.tiers = new Set([tier]);
+        } else if (filters.tiers.size === 1 && filters.tiers.has(tier)) {
+            filters.showAll = true;
+            filters.tiers.clear();
         } else {
-            button.classList.toggle('is-active');
+            filters.tiers.has(tier) ? filters.tiers.delete(tier) : filters.tiers.add(tier);
         }
     }
-    applyAnalysisTierFilters(dialog);
+    renderAnalysisDialog(dialog);
+}
+
+function analysisTierButtonHtml(tier, filters) {
+    return `<button type="button" class="${!filters.showAll && filters.tiers.has(tier) ? 'is-active' : ''}" data-tier="${tier}" data-analysis-filter="${tier}">T${tier}</button>`;
 }
 
 function todayAnalysisFamilies() {
@@ -527,10 +542,12 @@ function scheduleBonusAnalysisWarmup(container) {
 
 function renderBonusAnalysisDialog() {
     const defaultTiers = analysisDefaultTiers();
+    const tierFilters = analysisTierFilters();
     const families = todayAnalysisFamilies();
     const family = getBonusFamilyByKey(state.analysis.familyKey) || families[0];
     const activeAnalysis = analysisData(family?.familyKey);
     const familyOptions = families.map((row) => `<button type="button" class="${row.familyKey === family?.familyKey ? 'is-active' : ''}" data-analysis-family="${escapeHtml(row.familyKey)}">${escapeHtml(row.label)}</button>`).join('');
+    const visibleTierCount = tierFilters.showAll ? ANALYSIS_TIERS.length : tierFilters.tiers.size;
     const preferredTierText = defaultTiers.map((tier) => `T${tier}`).join(' · ');
     const updatedLabel = formatTimestamp(activeAnalysis.updatedAt);
     const isLoading = activeAnalysis.loading;
@@ -541,11 +558,11 @@ function renderBonusAnalysisDialog() {
     const rrTitle = `Royal şehir bonusu %${cityProductionBonus()} + yerel şehir bonusu %${specialtyBonus} + günlük bonus %${dailyBonus}; RR = ${productionBonus} / ${100 + productionBonus}`;
     const analysisNote = activeAnalysis.error
         ? escapeHtml(activeAnalysis.error)
-        : `Hammadde maliyeti, %${cityProductionBonus()} Royal şehir + %${specialtyBonus} yerel şehir + %${dailyBonus} günlük üretim bonusunun RRR'a çevrilmesiyle hesaplanır. Kartlar API tarif sırasıyla gösterilir; Kart Sırasını Düzenle ile kalıcı olarak elle değiştirilebilir.`;
+        : `Hammadde maliyeti, %${cityProductionBonus()} Royal şehir + %${specialtyBonus} yerel şehir + %${dailyBonus} günlük üretim bonusunun RRR'a çevrilmesiyle hesaplanır. Kartlar API tarif sırasıyla gösterilir; Kart Sırasını Düzenle ile kalıcı olarak elle değiştirilebilir ve tercih tüm tierlara uygulanır.`;
     const familyGrids = families.map((row) => {
         const data = analysisData(row.familyKey);
         const hidden = row.familyKey === family?.familyKey ? '' : ' hidden';
-        return `<section class="bonus-analysis-grid" data-analysis-family-grid="${escapeHtml(row.familyKey)}" data-analysis-family-key="${escapeHtml(row.familyKey)}"${hidden}>
+        return `<section class="bonus-analysis-grid" data-analysis-family-grid="${escapeHtml(row.familyKey)}" data-analysis-family-key="${escapeHtml(row.familyKey)}" data-visible-tier-count="${visibleTierCount}"${hidden}>
             ${ANALYSIS_TIERS.map((tier) => renderTierColumn(tier, data, row.familyKey)).join('')}
         </section>`;
     }).join('');
@@ -563,8 +580,8 @@ function renderBonusAnalysisDialog() {
                         <div class="bonus-analysis-select"><span>Market</span><strong>Black Market</strong><small>Satış fiyatı</small></div>
                         <span class="bonus-analysis-rr-badge" title="${escapeHtml(rrTitle)}"><i aria-hidden="true">↻</i><span><b>RR %${formatAnalysisPercent(returnRate)}</b><small>Royal %${cityProductionBonus()} + yerel %${specialtyBonus} + günlük %${dailyBonus}</small></span></span>
                         <div class="bonus-analysis-tiers" role="group" aria-label="Tier seçimi">
-                            ${ANALYSIS_TIERS.map((tier) => `<button type="button" class="${defaultTiers.includes(tier) ? 'is-active' : ''}" data-tier="${tier}" data-analysis-filter="${tier}">T${tier}</button>`).join('')}
-                            <button type="button" data-analysis-filter="all">Tüm Tierlar</button>
+                            ${ANALYSIS_TIERS.map((tier) => analysisTierButtonHtml(tier, tierFilters)).join('')}
+                            <button type="button" class="${tierFilters.showAll ? 'is-active' : ''}" data-analysis-filter="all">Tüm Tierlar</button>
                         </div>
                         <small class="bonus-analysis-tier-hint">Öncelikli tierlar: ${preferredTierText}</small>
                     </section>
@@ -603,7 +620,7 @@ async function openBonusAnalysis(container) {
                 const column = moveButton.closest('[data-analysis-tier]');
                 const grid = moveButton.closest('[data-analysis-family-key]');
                 if (card && column && grid) {
-                    moveAnalysisCard(grid.dataset.analysisFamilyKey, column.dataset.analysisTier, card.dataset.analysisRecipe, moveButton.dataset.analysisCardMove === 'up' ? -1 : 1);
+                    moveAnalysisCard(grid.dataset.analysisFamilyKey, card.dataset.analysisRecipe, moveButton.dataset.analysisCardMove === 'up' ? -1 : 1);
                     renderAnalysisDialog(dialog);
                 }
                 return;

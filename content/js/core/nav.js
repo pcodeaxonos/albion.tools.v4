@@ -7,9 +7,33 @@ import { initPipelineStatus } from './pipeline-status.js';
 import { initTodayBonusChip } from './today-bonus.js';
 import { initStore } from '../db/store.js';
 import { clearAllPriceFieldDeltas } from './price-side.js';
+import { hasTodayDailyBonus } from './craft-bonus.js';
+import { isBonusRedirectReady } from './bonus-day.js';
 
 await bootLocalDataSync();
 await initStore();
+
+const DAILY_BONUS_REDIRECT_KEY = 'albiontools.v4.dailyBonusRedirectAt';
+const DAILY_BONUS_REDIRECT_COOLDOWN_MS = 5 * 60 * 1000;
+
+function redirectToDailyBonusWhenNeeded() {
+    if (currentPageId() === 'daily-bonus' || hasTodayDailyBonus() || !isBonusRedirectReady()) {
+        return;
+    }
+
+    const now = Date.now();
+    const lastRedirectAt = Number(localStorage.getItem(DAILY_BONUS_REDIRECT_KEY));
+    if (Number.isFinite(lastRedirectAt)
+        && lastRedirectAt <= now
+        && now - lastRedirectAt < DAILY_BONUS_REDIRECT_COOLDOWN_MS) {
+        return;
+    }
+
+    localStorage.setItem(DAILY_BONUS_REDIRECT_KEY, String(now));
+    location.replace(`${routeHref('daily-bonus')}?need=today#bonusForm`);
+}
+
+redirectToDailyBonusWhenNeeded();
 
 const SIDEBAR_ID = 'appSidebar';
 const OPEN_CLASS = 'is-open';

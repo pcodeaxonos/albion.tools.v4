@@ -628,9 +628,11 @@ function renderOutput() {
             ${renderTierMats()}
             ${renderTable()}
             ${calcExplainShell('furnitureExplain')}
+            <section data-page-info>
             ${renderSummary(list)}
             ${renderBonusNote()}
             <p class="ava-note">Malzeme ve satış ${escapeHtml(cityLabel(state.city))} · ${escapeHtml(matNote)}. Satış ${escapeHtml(itemNote)}. Elle yazılan alış/satış API’nin yerine geçer. Kırmızı fiyat API’de yok; mavi 6 saatten eski.${stamp ? ` ${escapeHtml(stamp)}.` : ''}</p>
+            </section>
         </div>
     `;
 }

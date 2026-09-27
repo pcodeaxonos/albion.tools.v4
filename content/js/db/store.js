@@ -1,4 +1,5 @@
 import { getTable, getTableNames, tables } from './schema.js';
+import { FIXED_PRICE_TABLE, LEGACY_FIXED_PRICE_TABLE, fixedPriceKey } from '../core/fixed-prices.js';
 
 const STORAGE_PREFIX = 'albiontools.v4.';
 const SEED_REVISION_KEY = STORAGE_PREFIX + 'seedRevision';
@@ -6,8 +7,7 @@ const SEED_REVISION_KEY = STORAGE_PREFIX + 'seedRevision';
 // Re-seed navigation metadata so existing browsers receive canonical
 // /tools/* and /admin/* routes instead of their previously cached paths.
 const SEED_REVISION = 34;
-const FIXED_PRICE_TABLE = 'islandPlannerV2FixedPrices';
-const FIXED_PRICE_STABLE_ITEM_MIGRATION_REVISION = 34;
+const FIXED_PRICE_MIGRATION_REVISION = 35;
 const FIXED_PRICE_LEGACY_CATALOG_CUTOFF = Date.parse('2026-09-24T21:45:13+03:00');
 const FIXED_PRICE_LEGACY_ITEM_NAMES = Object.freeze({
     135: 'T7_MULLEIN',
@@ -119,15 +119,15 @@ function applySeedRevision() {
     }
 }
 
-function migrateFixedPriceItemNames() {
-    const migrationKey = STORAGE_PREFIX + 'fixedPriceStableItemMigration';
-    if (Number(localStorage.getItem(migrationKey) || '0') >= FIXED_PRICE_STABLE_ITEM_MIGRATION_REVISION) return;
+function migrateFixedPrices() {
+    const migrationKey = STORAGE_PREFIX + 'fixedPriceMigration';
+    if (Number(localStorage.getItem(migrationKey) || '0') >= FIXED_PRICE_MIGRATION_REVISION) return;
 
-    const raw = localStorage.getItem(storageKey(FIXED_PRICE_TABLE));
+    const raw = localStorage.getItem(storageKey(LEGACY_FIXED_PRICE_TABLE));
     if (raw) {
         try {
             const uniqueById = new Map(readRows('items').map((item) => [String(item.id), item.uniqueName]));
-            const migrated = JSON.parse(raw).map((row) => {
+            const legacyRows = JSON.parse(raw).map((row) => {
                 if (!/^\d+$/.test(String(row.itemId ?? ''))) return row;
                 const legacy = Date.parse(row.updatedAt || '') < FIXED_PRICE_LEGACY_CATALOG_CUTOFF
                     ? FIXED_PRICE_LEGACY_ITEM_NAMES[row.itemId]
@@ -135,12 +135,17 @@ function migrateFixedPriceItemNames() {
                 const itemId = legacy || uniqueById.get(String(row.itemId));
                 return itemId ? { ...row, itemId } : row;
             });
-            persistRows(FIXED_PRICE_TABLE, migrated);
+            const migratedByKey = new Map(readRows(FIXED_PRICE_TABLE).map((row) => [fixedPriceKey(row), row]));
+            for (const row of legacyRows) {
+                migratedByKey.set(fixedPriceKey(row), row);
+            }
+            persistRows(FIXED_PRICE_TABLE, [...migratedByKey.values()]);
+            localStorage.removeItem(storageKey(LEGACY_FIXED_PRICE_TABLE));
         } catch (error) {
-            console.warn('[store] sabit fiyat item migration atlandı', error);
+            console.warn('[store] sabit fiyat geçişi atlandı', error);
         }
     }
-    localStorage.setItem(migrationKey, String(FIXED_PRICE_STABLE_ITEM_MIGRATION_REVISION));
+    localStorage.setItem(migrationKey, String(FIXED_PRICE_MIGRATION_REVISION));
 }
 
 function applyDailyBonusesImport() {
@@ -190,7 +195,7 @@ export async function initStore() {
     for (const tableName of getTableNames()) {
         await seedTableIfEmpty(tableName);
     }
-    migrateFixedPriceItemNames();
+    migrateFixedPrices();
 }
 
 function readRows(tableName) {

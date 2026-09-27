@@ -15,7 +15,7 @@ import {
     setPlantFieldValue,
     setAnimalFieldValue,
     outputGroupsForKind
-} from '../components/plant-picker.js?v=20260927-picker-groups-1';
+} from '../components/plant-picker.js?v=20260927-picker-groups-2';
 import { getSettings, saveSettings, cityHasIsland, getDefaultCity } from '../core/settings.js';
 import { cityYieldBonus, productQtyConst } from '../core/island/economy-config.js';
 import { getPlants, getAnimals } from '../core/catalog.js';
@@ -49,6 +49,13 @@ const YIELD_KINDS = [
     { id: 'kennel', label: 'Kennel' }
 ];
 
+const SLOT_WARNING_GROUPS = [
+    { id: 'crop', label: 'Bitki' },
+    { id: 'herb', label: 'Ot' },
+    { id: 'pasture', label: 'Pasture' },
+    { id: 'kennel', label: 'Kennel' }
+];
+
 const state = {
     month: toYearMonth(todayIso()),
     editingId: null,
@@ -62,7 +69,8 @@ const state = {
     filteredPlantKey: null,
     filteredItemType: null,
     activeAverageGroup: null,
-    animalOutputMode: 'offspring'
+    animalOutputMode: 'offspring',
+    slotMismatchWarnings: new Set()
 };
 
 function todayIso() {
@@ -119,6 +127,12 @@ function formatRelativeDifference(actual, expected) {
 function formatRelativeRatio(value) {
     if (!Number.isFinite(value)) return '—';
     return `${Math.abs(value * 100).toLocaleString('tr-TR', { maximumFractionDigits: 0 })}%`;
+}
+
+function dayAccentColor(isoDate) {
+    const palette = ['#e0a04a', '#5aa8e8', '#b07ae8', '#5ecf7a', '#e85a5a', '#6ec9c0'];
+    const hash = [...String(isoDate ?? '')].reduce((total, char) => ((total * 31) + char.charCodeAt(0)) >>> 0, 0);
+    return palette[hash % palette.length];
 }
 
 function confidenceLevel(seedsPlanted) {
@@ -288,6 +302,113 @@ function estimatedSlotsForRow(row) {
     const unitsPerSlot = unitsPerSlotForRow(row);
     if (!Number.isFinite(inputQty) || inputQty <= 0 || unitsPerSlot <= 0) return null;
     return Math.ceil(inputQty / unitsPerSlot);
+}
+
+function slotWarningGroupForRow(row) {
+    if (rowItemType(row) === 'plant') {
+        return itemForKey(rowItemKey(row), 'plant')?.kind === 'herb' ? 'herb' : 'crop';
+    }
+    const animal = itemForKey(rowItemKey(row), 'animal');
+    return animal?.plotType === 'kennel' ? 'kennel' : 'pasture';
+}
+
+function dailyEstimatedSlots(islandCity, date, group) {
+    return getAll(TABLE)
+        .filter((row) => row.islandCity === islandCity && row.date === date)
+        // Product-only entries are linked to an animal log and must not count
+        // as an additional slot.
+        .filter((row) => rowItemType(row) !== 'animalProduct')
+        .filter((row) => slotWarningGroupForRow(row) === group)
+        .reduce((total, row) => total + (estimatedSlotsForRow(row) ?? 0), 0);
+}
+
+function previousDateForSlotWarningGroup(islandCity, group, beforeDate) {
+    return getAll(TABLE)
+        .filter((row) => row.islandCity === islandCity && row.date < beforeDate)
+        .filter((row) => rowItemType(row) !== 'animalProduct')
+        .filter((row) => slotWarningGroupForRow(row) === group)
+        .map((row) => row.date)
+        .sort((a, b) => b.localeCompare(a))[0] ?? null;
+}
+
+function entrySummaryRows(islandCity, date) {
+    return getAll(TABLE)
+        .filter((row) => row.islandCity === islandCity && row.date === date)
+        .filter((row) => rowItemType(row) !== 'animalProduct');
+}
+
+function entrySummaryDate(islandCity, beforeDate) {
+    return getAll(TABLE)
+        .filter((row) => row.islandCity === islandCity && row.date < beforeDate)
+        .filter((row) => rowItemType(row) !== 'animalProduct')
+        .map((row) => row.date)
+        .sort((a, b) => b.localeCompare(a))[0] ?? null;
+}
+
+function renderEntrySummary(islandCity) {
+    const today = todayIso();
+    const referenceDate = entrySummaryDate(islandCity, today);
+    if (!referenceDate) {
+        return '<div class="alert alert-info mb-0">Özet için bu şehirde önceki bir günün kaydı gerekli.</div>';
+    }
+
+    const lines = SLOT_WARNING_GROUPS.map((group) => ({
+        label: group.label,
+        currentSlots: dailyEstimatedSlots(islandCity, today, group.id),
+        referenceSlots: dailyEstimatedSlots(islandCity, referenceDate, group.id)
+    })).filter((line) => line.currentSlots > 0 || line.referenceSlots > 0);
+    const complete = lines.length > 0 && lines.every((line) => line.currentSlots === line.referenceSlots);
+
+    return `
+        <section class="app-entry-summary${complete ? ' is-complete' : ''}" aria-label="Günlük kayıt özeti">
+            <ul class="app-warning-dialog-list">
+                ${lines.map((line) => {
+                    const tone = line.currentSlots === line.referenceSlots ? 'is-equal' : line.currentSlots > line.referenceSlots ? 'is-extra' : 'is-missing';
+                    return `<li class="${tone}"><strong>${escapeHtml(line.label)}</strong><span>${line.currentSlots}</span><small>Bugün</small><i aria-hidden="true">${line.currentSlots === line.referenceSlots ? '=' : '≠'}</i><span>${line.referenceSlots}</span><small>${escapeHtml(formatDate(referenceDate))}</small></li>`;
+                }).join('')}
+            </ul>
+        </section>
+    `;
+}
+
+function refreshEntrySummary(container) {
+    const host = container.querySelector('[data-yield-entry-summary]');
+    if (host) host.innerHTML = renderEntrySummary(state.islandCity);
+}
+
+function slotMismatchesForToday(islandCity) {
+    const date = todayIso();
+    return SLOT_WARNING_GROUPS.map((group) => {
+        const currentSlots = dailyEstimatedSlots(islandCity, date, group.id);
+        if (!currentSlots) return null;
+        const previousDate = previousDateForSlotWarningGroup(islandCity, group.id, date);
+        if (!previousDate) return null;
+        const previousSlots = dailyEstimatedSlots(islandCity, previousDate, group.id);
+        return currentSlots === previousSlots ? null : {
+            label: group.label,
+            currentSlots,
+            previousSlots,
+            previousDate
+        };
+    }).filter(Boolean);
+}
+
+function showSlotMismatchWarning(container, islandCity) {
+    const date = todayIso();
+    const warningKey = `${islandCity}|${date}`;
+    if (state.slotMismatchWarnings.has(warningKey)) return;
+
+    const mismatches = slotMismatchesForToday(islandCity);
+    if (!mismatches.length) return;
+
+    state.slotMismatchWarnings.add(warningKey);
+    const dialog = container.querySelector('[data-yield-slot-warning]');
+    const details = dialog?.querySelector('[data-yield-slot-warning-details]');
+    if (!dialog || !details) return;
+    details.innerHTML = mismatches.map((mismatch) => `
+        <li><strong>${escapeHtml(mismatch.label)}</strong><span>${mismatch.currentSlots}</span><small>Bugün</small><i aria-hidden="true">≠</i><span>${mismatch.previousSlots}</span><small>${escapeHtml(formatDate(mismatch.previousDate))}</small></li>
+    `).join('');
+    dialog.showModal();
 }
 
 function tierAttribute(tier) {
@@ -626,13 +747,13 @@ function renderLogTable(month) {
         const perSeed = row.seedsPlanted > 0 ? row.plantsHarvested / row.seedsPlanted : null;
         const seedRate = row.seedsPlanted > 0 ? row.seedsReturned / row.seedsPlanted : null;
         return `
-            <tr data-id="${row.id}" class="${[String(state.editingId) === String(row.id) ? 'is-editing' : '', isOutlier(row) ? 'is-outlier' : ''].filter(Boolean).join(' ')}">
+            <tr data-id="${row.id}" class="${[String(state.editingId) === String(row.id) ? 'is-editing' : '', isOutlier(row) ? 'is-outlier' : ''].filter(Boolean).join(' ')}" style="--yield-day-color:${dayAccentColor(row.date)}">
                 <td class="text-nowrap">${escapeHtml(formatDate(row.date))}</td>
                 <td>${escapeHtml(cityLabel(row.islandCity))}</td>
                 <td>
                     <span class="farming-item">
                         ${iconId ? itemIconHtml(iconId, { className: 'item-icon' }) : ''}
-                        <span>${escapeHtml(itemLabel(key, type))}</span>
+                        <span class="yield-log-item-name">${escapeHtml(itemLabel(key, type))}</span>
                     </span>
                 </td>
                 <td class="num">${row.seedsPlanted}</td>
@@ -1141,6 +1262,7 @@ function showAverageChange(container, before, after) {
 }
 
 function refreshResult(container) {
+    refreshEntrySummary(container);
     const host = container.querySelector('.tool-split-result');
     if (!host) {
         return;
@@ -1344,8 +1466,9 @@ function renderPage(container) {
             <p>Tarla, pasture ve kennel için gerçek dönüş / çıktı değerlerini kaydet. Ortalamalar hesaplama araçlarında kullanılır.</p>
         </section>
         <div class="tool-split">
-            <div class="tool-split-controls">
-                <form id="yieldForm" class="farming-toolbar island-planner-toolbar">
+            <div class="yield-controls-column">
+                <div class="tool-split-controls">
+                    <form id="yieldForm" class="farming-toolbar island-planner-toolbar">
                     ${renderToggle('Üretim alanı', YIELD_KINDS.map((kind) => ({ id: kind.id, value: kind.id, label: kind.label })), 'yield-kind', state.yieldKind)}
                     ${renderToggle('Premium', [
                         { id: true, value: '1', label: 'Premium' },
@@ -1402,10 +1525,21 @@ function renderPage(container) {
                         <button type="button" class="btn btn-outline-secondary" id="yieldCancelEdit" hidden>Vazgeç</button>
                         <button type="button" class="btn btn-outline-danger" id="yieldDelete" hidden>Sil</button>
                     </div>
-                </form>
+                    </form>
+                </div>
+                <div data-yield-entry-summary></div>
             </div>
             <div class="tool-split-result"></div>
         </div>
+        <dialog class="app-dialog app-warning-dialog" data-yield-slot-warning aria-labelledby="yield-slot-warning-title">
+            <button type="button" class="app-dialog-close" aria-label="Kapat" data-yield-slot-warning-close></button>
+            <div class="app-warning-dialog-sheet">
+                <h2 id="yield-slot-warning-title">Bugünkü slot sayısı uyuşmuyor</h2>
+                <p>Şehir değiştirmeden önce kayıtları kontrol et.</p>
+                <ul class="app-warning-dialog-list" data-yield-slot-warning-details></ul>
+                <div class="form-actions"><button type="button" class="btn btn-primary" data-yield-slot-warning-close>Tamam</button></div>
+            </div>
+        </dialog>
     `;
     bindPage(container);
     fillForm(container, null);
@@ -1413,6 +1547,12 @@ function renderPage(container) {
 }
 
 function bindPage(container) {
+    const slotWarning = container.querySelector('[data-yield-slot-warning]');
+    slotWarning?.addEventListener('click', (event) => {
+        if (event.target === slotWarning || event.target.closest('[data-yield-slot-warning-close]')) {
+            slotWarning.close();
+        }
+    });
     container.querySelectorAll('[data-yield-kind]').forEach((button) => {
         button.addEventListener('click', () => {
             if (button.dataset.yieldKind === state.yieldKind) return;
@@ -1444,6 +1584,9 @@ function bindPage(container) {
     bindCityField(container, 'islandCity', (value) => {
         if (!state.cities.some((city) => city.marketApiName === value)) {
             return;
+        }
+        if (value !== state.islandCity) {
+            showSlotMismatchWarning(container, state.islandCity);
         }
         state.islandCity = value;
         saveStoredCity(CITY_STORAGE_KEY, value);

@@ -588,7 +588,9 @@ input[type="month"].form-control {
     display: grid;
     // A row uses the available width evenly; once another action would make
     // every button unreadably narrow, it starts a new full-width-aware row.
-    grid-template-columns: repeat(auto-fit, minmax(min(100%, 9rem), 1fr));
+    // 5.5rem keeps short actions such as Kaydet / Vazgeç / Sil together in
+    // a narrow tool panel while still preserving a usable tap target.
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 5.5rem), 1fr));
     gap: var(--spacing-sm);
     margin-top: var(--spacing-sm);
     padding-top: var(--spacing-md);
@@ -1839,6 +1841,16 @@ input[type="month"].form-control {
     }
 }
 
+// The database editor lives in the narrow sidebar. Its longest action must
+// not compete with the primary and cancel actions for a single grid row.
+.db-inline-form-actions {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+
+    [data-create-another] {
+        grid-column: 1 / -1;
+    }
+}
+
 // Table is the only 2D scrollport: thead sticks here, page chrome does not scroll.
 .db-table-panel > .table-responsive {
     flex: 1 1 auto;
@@ -1998,6 +2010,118 @@ input[type="month"].form-control {
     gap: 0.25rem;
     min-width: 0;
     width: 100%;
+}
+
+/* Compact destructive / data-consistency warnings shared by native dialogs. */
+.app-warning-dialog {
+    width: min(31rem, calc(100vw - 5.5rem));
+    max-width: calc(100vw - 5.5rem);
+    margin: auto;
+    padding: 0;
+    border: var(--border-width) solid color-mix(in srgb, var(--color-danger) 60%, var(--color-border-strong));
+    border-radius: 0;
+    background: var(--color-surface-raised);
+    color: var(--color-text);
+    box-shadow: 0 1.5rem 5rem color-mix(in srgb, var(--color-danger) 22%, transparent);
+
+    &::backdrop {
+        background: rgba(18, 3, 6, 0.72);
+        backdrop-filter: blur(6px);
+    }
+}
+
+.app-warning-dialog-sheet {
+    display: grid;
+    gap: 1rem;
+    max-height: calc(100dvh - 2rem);
+    padding: 1.25rem;
+    overflow: auto;
+
+    h2,
+    p { margin: 0; }
+
+    h2 { font-size: 1.1rem; }
+
+    > p { color: var(--color-text-muted); }
+
+    .form-actions {
+        justify-content: end;
+        margin: 0;
+    }
+
+    .btn-primary {
+        background-color: var(--color-danger);
+        border-color: var(--color-danger);
+    }
+}
+
+.app-warning-dialog-list {
+    display: grid;
+    gap: 0.45rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+
+    li {
+        display: grid;
+        grid-template-columns: minmax(5rem, 1fr) auto auto auto auto auto;
+        align-items: baseline;
+        gap: 0.3rem;
+        padding: 0.6rem 0.7rem;
+        border-left: 3px solid var(--color-danger);
+        background: color-mix(in srgb, var(--color-danger) 16%, var(--color-surface));
+    }
+
+    span {
+        font-family: var(--font-family-mono);
+        font-weight: var(--font-weight-semibold);
+    }
+
+    small { color: var(--color-text-muted); }
+
+    i {
+        color: var(--color-danger);
+        font-style: normal;
+        font-weight: var(--font-weight-bold);
+    }
+}
+
+.app-entry-summary {
+    display: grid;
+    gap: 0.7rem;
+    margin-top: 0.85rem;
+    padding-block: 0.85rem;
+    padding-inline: 0;
+
+    > div {
+        display: grid;
+        gap: 0.15rem;
+    }
+
+    > div > small { color: var(--color-text-muted); }
+
+    .app-warning-dialog-list li.is-equal {
+        border-left-color: var(--color-success);
+        background: color-mix(in srgb, var(--color-success) 16%, var(--color-surface));
+    }
+
+    .app-warning-dialog-list li.is-equal i { color: var(--color-success); }
+
+    .app-warning-dialog-list li.is-extra {
+        border-left-color: var(--color-warning);
+        background: color-mix(in srgb, var(--color-warning) 16%, var(--color-surface));
+    }
+
+    .app-warning-dialog-list li.is-extra i { color: var(--color-warning); }
+
+    &.is-complete {
+        .app-warning-dialog-list li {
+            border-left-color: var(--color-success);
+            background: color-mix(in srgb, var(--color-success) 11%, var(--color-surface));
+        }
+
+        .app-warning-dialog-list i { color: var(--color-success); }
+    }
 }
 
 .city-field-label {

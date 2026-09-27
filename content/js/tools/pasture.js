@@ -1080,6 +1080,7 @@ function renderOutput() {
         <div id="pastureResult">
             ${renderTable()}
             ${calcExplainShell('pastureExplain')}
+            <section data-page-info>
             <p class="farming-note">
                 ${escapeHtml(cityLabel(state.city))} · yavru ${escapeHtml(priceSideHint(state.babySide, 'buy'))}${babySetup ? ` · setup ${formatPct(SETUP_FEE)}` : ''}.
                 ${escapeHtml(feedModeNote)}.
@@ -1091,6 +1092,7 @@ function renderOutput() {
                 Yavru işareti NPC fiyatına göre.${focusNote}
                 Elle yazılan fiyat API’nin yerine geçer. Kırmızı fiyat API’de yok; mavi 6 saatten eski.${stamp ? ` ${stamp}` : ''}
             </p>
+            </section>
         </div>
     `;
 }

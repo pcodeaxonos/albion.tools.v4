@@ -676,8 +676,10 @@ function renderOutput() {
             ${renderTierMats()}
             ${renderTable()}
             ${calcExplainShell('avaExplain')}
+            <section data-page-info>
             ${renderBonusNote()}
             <p class="ava-note">Malzeme şehir ortalaması · ${escapeHtml(matNote)}. Satış ${escapeHtml(cityLabel(state.city))} · ${escapeHtml(itemNote)}. Elle yazılan alış/satış API’nin yerine geçer. Kırmızı fiyat API’de yok; mavi 6 saatten eski.</p>
+            </section>
         </div>
     `;
 }

@@ -386,9 +386,11 @@ function renderOutput() {
     return `
         <div id="malzemelerResult">
             ${renderTable(list)}
+            <section data-page-info>
             ${renderSummary(list)}
             ${renderScenario()}
             ${stamp ? `<p class="farming-note">${escapeHtml(stamp)}</p>` : ''}
+            </section>
         </div>
     `;
 }

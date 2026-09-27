@@ -93,6 +93,11 @@ function orderedCities(cities, order = '') {
     if (order === 'default-royal-ring') {
         return citiesFromDefaultRoyalRing(list);
     }
+    // Horizontal picker buttons are read left-to-right, so make the first
+    // choice match the city the user configured as their default.
+    if (getCityPickerStyle() === 'buttons') {
+        return citiesFromDefaultRoyalRing(list);
+    }
     if (getCityPickerOrder() === 'alphabetical') {
         list.sort((left, right) => left.displayName.localeCompare(right.displayName, 'tr-TR'));
     }

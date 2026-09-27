@@ -3,7 +3,7 @@
     flex-direction: column;
     gap: 0.35rem;
     margin: 0 0 var(--spacing-sm);
-    overflow-x: auto;
+    min-width: 0;
 }
 
 .royal-mats-meta {
@@ -53,10 +53,11 @@
 .royal-mats-grid {
     --royal-mat-cols: 5;
     display: grid;
-    grid-template-columns: minmax(2.75rem, auto) repeat(var(--royal-mat-cols), minmax(5.25rem, 1fr));
-    gap: 0.35rem 0.4rem;
+    grid-template-columns: 2.25rem repeat(var(--royal-mat-cols), minmax(0, 1fr));
+    gap: 0.35rem 0.25rem;
     align-items: center;
-    min-width: min(100%, 40rem);
+    min-width: 0;
+    width: 100%;
 }
 
 .royal-mat-corner {
@@ -76,10 +77,22 @@
 .royal-mat-kind {
     display: flex;
     align-items: center;
+    justify-content: center;
+    min-width: 0;
     font-size: 0.75rem;
     font-weight: var(--font-weight-semibold);
     color: var(--color-text-muted);
     line-height: 1.2;
+
+    span {
+        display: none;
+    }
+}
+
+.royal-mat-kind-icon {
+    width: 2rem;
+    height: 2rem;
+    flex: 0 0 auto;
 }
 
 .royal-mat {
@@ -243,48 +256,119 @@
     }
 }
 
-.royal-plan-fab {
-    position: absolute;
-    top: 50%;
-    /* Stay left of status chevron; do not pad the toggle (chevron stays put). */
-    right: calc(var(--spacing-md) + 0.4rem + var(--spacing-sm) + 0.45rem);
-    z-index: 2;
-    display: inline-flex;
+.royal-middle-column {
+    display: grid;
+    grid-template-rows: auto minmax(15rem, 1fr);
+    gap: var(--spacing-lg);
+    min-width: 0;
+    min-height: 0;
+}
+
+.royal-analysis-placeholder {
+    min-height: 15rem;
+    border: var(--border-width) solid var(--color-border);
+    border-radius: var(--radius-md);
+    background: var(--color-surface);
+}
+
+.royal-analysis-placeholder-head {
+    display: flex;
     align-items: center;
-    justify-content: center;
-    width: 2.5rem;
-    height: 2.5rem;
-    margin: 0;
-    padding: 0;
-    border: var(--border-width) solid var(--color-border-strong);
-    border-radius: 0.35rem;
-    background-color: var(--color-surface-raised);
-    color: var(--color-primary);
-    cursor: pointer;
-    transform: translateY(-50%);
-    box-shadow: var(--shadow-md);
+    min-height: 3rem;
+    padding: 0 var(--spacing-md);
+    border-bottom: var(--border-width) solid var(--color-border);
 
-    &:hover {
-        color: var(--color-on-accent);
-        background-color: var(--color-primary);
-        border-color: var(--color-primary);
-    }
-
-    &:focus-visible {
-        outline: var(--focus-outline-width) solid var(--color-focus-ring);
-        outline-offset: 2px;
+    h2 {
+        margin: 0;
+        font-size: var(--font-size-base);
+        font-weight: var(--font-weight-semibold);
     }
 }
 
-.royal-plan-fab-icon {
-    display: block;
-    width: 1.35rem;
-    height: 1.35rem;
-}
+// Royal Crafting is a desktop workbench: keep the page chrome and controls in
+// view, with material prices and the reserved analysis panel beside the table.
+@media (min-width: 992px) {
+    main:has(.page-head[data-page-head="royal-crafting"]) {
+        flex: 1 1 auto;
+        min-height: 0;
+        padding-bottom: 0;
+        overflow: hidden;
+        background-image: none;
+    }
 
-.app-status.has-royal-plan-fab {
-    .app-status-copy {
-        padding-right: 3.1rem;
+    .tool-page:has(.page-head[data-page-head="royal-crafting"]) {
+        min-height: 0;
+    }
+
+    .tool-page:has(.page-head[data-page-head="royal-crafting"]) .royal-workbench-head {
+        display: none;
+    }
+
+    .tool-page:has(.page-head[data-page-head="royal-crafting"]) .page-body {
+        display: flex;
+        min-height: 0;
+        overflow: hidden;
+        padding: var(--spacing-md);
+    }
+
+    .tool-page:has(.page-head[data-page-head="royal-crafting"]) .royal-workbench {
+        grid-template-columns: minmax(15.5rem, 18rem) minmax(22rem, 28rem) minmax(0, 1fr);
+        flex: 1 1 auto;
+        min-height: 0;
+        align-items: stretch;
+        overflow: hidden;
+    }
+
+    .tool-page:has(.page-head[data-page-head="royal-crafting"]) .tool-split-controls {
+        overflow-y: auto;
+        overscroll-behavior: contain;
+    }
+
+    .tool-page:has(.page-head[data-page-head="royal-crafting"]) .royal-middle-column {
+        grid-template-rows: auto minmax(0, 1fr);
+        overflow: hidden;
+    }
+
+    .tool-page:has(.page-head[data-page-head="royal-crafting"]) .tool-split-result,
+    .tool-page:has(.page-head[data-page-head="royal-crafting"]) .royal-result {
+        display: flex;
+        flex: 1 1 auto;
+        flex-direction: column;
+        min-height: 0;
+    }
+
+    // Keep every material-price row visible before assigning the remaining
+    // viewport height to the scrollable calculation table.
+    .tool-page:has(.page-head[data-page-head="royal-crafting"]) .royal-mats {
+        flex: 0 0 auto;
+        margin-bottom: 0;
+    }
+
+    .tool-page:has(.page-head[data-page-head="royal-crafting"]) .royal-analysis-placeholder {
+        min-height: 0;
+    }
+
+    .tool-page:has(.page-head[data-page-head="royal-crafting"]) .royal-calc {
+        display: grid;
+        grid-template-rows: minmax(0, 1fr) auto auto auto;
+        flex: 1 1 0;
+        min-height: 0;
+        overflow: hidden;
+    }
+
+    .tool-page:has(.page-head[data-page-head="royal-crafting"]) .calc-table-wrap.table-responsive {
+        overflow: auto;
+        min-height: 0;
+        overscroll-behavior: contain;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .tool-page:has(.page-head[data-page-head="royal-crafting"]) .royal-table thead th {
+        top: 0;
+    }
+
+    .tool-page:has(.page-head[data-page-head="royal-crafting"]) .royal-table.has-explain tbody tr.is-explain td {
+        top: var(--calc-thead-height);
     }
 }
 
@@ -305,6 +389,134 @@
         backdrop-filter: blur(10px);
         -webkit-backdrop-filter: blur(10px);
     }
+}
+
+.royal-bonus-dialog {
+    width: min(72rem, calc(100vw - 5.5rem));
+    max-width: calc(100vw - 5.5rem);
+    max-height: calc(100dvh - 2rem);
+    margin: auto;
+    padding: 0;
+    border: 1px solid #3a4351;
+    border-radius: 0;
+    background: #12161d;
+    color: #edf1f7;
+    box-shadow: 0 1.5rem 5rem rgba(0, 0, 0, 0.56);
+
+    &::backdrop {
+        background: rgba(4, 7, 11, 0.7);
+        backdrop-filter: blur(8px);
+    }
+}
+
+.royal-bonus-sheet {
+    max-height: calc(100dvh - 2rem);
+    overflow: auto;
+    padding: 1.5rem;
+}
+
+.royal-bonus-head {
+    padding-bottom: 1.15rem;
+    border-bottom: 1px solid #2c3440;
+
+    p,
+    h2,
+    span { margin: 0; }
+
+    p {
+        margin-bottom: 0.28rem;
+        color: #9ba9ba;
+        font-size: 0.66rem;
+        font-weight: 700;
+        letter-spacing: 0.11em;
+    }
+
+    h2 { font-size: 1.65rem; }
+    span { display: block; margin-top: 0.35rem; color: #aeb8c8; }
+}
+
+.royal-bonus-cities {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(20rem, 1fr));
+    gap: 1rem;
+    padding-top: 1rem;
+}
+
+.royal-bonus-city {
+    min-width: 0;
+    padding: 0.9rem;
+    border: 1px solid #394352;
+    border-radius: 0.42rem;
+    background: #1a2029;
+
+    > header {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 0.6rem;
+        padding-bottom: 0.65rem;
+        border-bottom: 1px solid rgba(166, 181, 198, 0.16);
+    }
+
+    h3,
+    h4 { margin: 0; }
+    h3 { font-size: 1.05rem; }
+    > header span { color: #9ba9ba; font-size: 0.7rem; }
+}
+
+.royal-bonus-groups { display: grid; gap: 0.7rem; padding-top: 0.7rem; }
+.royal-bonus-group h4 { color: #cbd6e4; font-size: 0.82rem; }
+.royal-bonus-items { display: flex; gap: 0.45rem; margin-top: 0.4rem; }
+
+.royal-bonus-item {
+    display: grid;
+    grid-template-columns: auto auto;
+    grid-template-rows: auto auto;
+    column-gap: 0.3rem;
+    align-items: center;
+    min-width: 0;
+
+    > span { color: #9ba9ba; font-family: var(--font-family-mono); font-size: 0.68rem; }
+}
+
+.royal-bonus-item-icon { grid-row: 1 / -1; width: 3rem; height: 3rem; }
+.royal-bonus-material { display: inline-flex; align-items: center; gap: 0.18rem; min-width: 0; }
+.royal-bonus-material-icon { width: 1rem; height: 1rem; }
+.royal-bonus-material small { color: #aeb8c8; font-size: 0.62rem; }
+.royal-bonus-empty { margin: 0; color: #aeb8c8; }
+
+.royal-explain-dialog {
+    width: min(68rem, calc(100vw - 5.5rem));
+    max-width: calc(100vw - 5.5rem);
+    max-height: calc(100dvh - 2rem);
+    margin: auto;
+    padding: 0;
+    border: 1px solid var(--color-border);
+    border-radius: 0;
+    background: var(--color-bg);
+    color: var(--color-text);
+    box-shadow: var(--shadow-md);
+
+    &::backdrop {
+        background: color-mix(in srgb, #000 58%, transparent);
+        backdrop-filter: blur(8px);
+    }
+}
+
+.royal-explain-sheet {
+    max-height: calc(100dvh - 2rem);
+    overflow: auto;
+    padding: 1rem;
+}
+
+.royal-explain-panel.calc-explain {
+    margin: 0;
+}
+
+@media (max-width: 760px) {
+    .royal-bonus-dialog { width: calc(100vw - 5.5rem); max-width: calc(100vw - 5.5rem); }
+    .royal-bonus-sheet { padding: 1rem; }
+    .royal-explain-dialog { width: calc(100vw - 5.5rem); max-width: calc(100vw - 5.5rem); }
 }
 
 .royal-plan-sheet {
@@ -588,6 +800,7 @@
 .royal-table {
     table-layout: fixed;
     width: 100%;
+    min-width: 50rem;
 
     th,
     td {
@@ -742,11 +955,10 @@
 
 @media (max-width: 991.98px) {
     .royal-mats-grid {
-        grid-template-columns: minmax(2.5rem, auto) repeat(var(--royal-mat-cols), minmax(5.25rem, 1fr));
+        grid-template-columns: 2.25rem repeat(var(--royal-mat-cols), minmax(0, 1fr));
     }
 
     .enchant-mats-grid {
         grid-template-columns: minmax(2.5rem, auto) repeat(var(--enchant-mat-cols), minmax(5.25rem, 1fr));
     }
 }
-
