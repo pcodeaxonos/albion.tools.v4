@@ -1,3 +1,4 @@
+import { toolPageHtml } from '../components/tool-page.js';
 import { escapeHtml } from '../utils/utils.js';
 import { initNav } from '../core/nav.js';
 import { routeHref } from '../core/routes.js';
@@ -27,7 +28,6 @@ import { cityFieldHtml, bindCityField } from '../components/city-picker.js';
 import {
     bindCalcExplain,
     refreshCalcExplain,
-    calcExplainShell,
     explainNum,
     explainOp,
     explainStep,
@@ -385,19 +385,6 @@ function renderTierMats() {
     `;
 }
 
-function bestExplainKey(list) {
-    let best = null;
-    for (const row of list) {
-        if (row.profit == null) {
-            continue;
-        }
-        if (best == null || row.profit > best.profit) {
-            best = row;
-        }
-    }
-    return best?.item.id ?? list[0]?.item.id ?? null;
-}
-
 function renderAvaExplain(key, { hovered } = {}) {
     const row = rows().find((item) => item.item.id === key);
     if (!row) {
@@ -585,11 +572,11 @@ function renderAvaExplain(key, { hovered } = {}) {
 
 function bindExplain(container) {
     bindCalcExplain({
-        panel: container.querySelector('#avaExplain'),
+        root: container,
+        key: 'avaExplain',
         table: container.querySelector('.ava-table'),
         rowKey: (tr) => tr.dataset.itemId,
         keys: () => rows().map((row) => row.item.id),
-        defaultKey: () => bestExplainKey(rows()),
         render: (key, meta) => renderAvaExplain(key, meta)
     });
 }
@@ -675,7 +662,6 @@ function renderOutput() {
             ${renderEnergyCard()}
             ${renderTierMats()}
             ${renderTable()}
-            ${calcExplainShell('avaExplain')}
             <section data-page-info>
             ${renderBonusNote()}
             <p class="ava-note">Malzeme şehir ortalaması · ${escapeHtml(matNote)}. Satış ${escapeHtml(cityLabel(state.city))} · ${escapeHtml(itemNote)}. Elle yazılan alış/satış API’nin yerine geçer. Kırmızı fiyat API’de yok; mavi 6 saatten eski.</p>
@@ -742,7 +728,7 @@ function refreshCalc(container) {
         }
     }
 
-    refreshCalcExplain(container.querySelector('#avaExplain'));
+    refreshCalcExplain(container);
 
     mats().forEach((mat) => {
         const card = container.querySelector(`[data-mat-card="${mat.key}"]`);
@@ -801,14 +787,13 @@ function refreshOutput(container) {
 }
 
 function renderPage(container) {
-    container.innerHTML = `
-        <section class="page-head" data-page-head="ava-craft">
+    container.innerHTML = toolPageHtml({
+        key: 'ava-craft',
+        head: `<section class="page-head" data-page-head="ava-craft">
             <h1>Ava Craft</h1>
             <p>Avalonian gathering tool. Malzeme şehir ortalaması, satış seçilen şehir. RR taban + bonus; Avalonian Energy RR almaz.</p>
-        </section>
-
-        <div class="tool-split">
-            <div class="tool-split-controls">
+        </section>`,
+        controls: `
                 <div class="ava-toolbar">
                     <div class="ava-type" role="radiogroup" aria-label="Premium">
                         ${renderPremiumToggle()}
@@ -840,12 +825,12 @@ function renderPage(container) {
                     })}
                     ${priceRefreshActionsHtml()}
                 </div>
-            </div>
-            <div class="tool-split-result">
+            `,
+        summary: ``,
+        result: `
                 ${renderOutput()}
-            </div>
-        </div>
-    `;
+            `,
+    });
 
     bindPage(container);
     bindAvaSort(container);
@@ -924,7 +909,7 @@ async function loadPrices(container, { showLoader = true, source } = {}) {
 
 async function init() {
     initNav();
-    const container = document.getElementById('avaTool');
+    const container = document.querySelector('[data-tool="ava-craft"]');
     if (!container) {
         return;
     }

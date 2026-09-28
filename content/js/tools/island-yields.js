@@ -1,3 +1,4 @@
+import { toolPageHtml } from '../components/tool-page.js';
 import { escapeHtml } from '../utils/utils.js';
 import { initNav } from '../core/nav.js';
 import { initFloatingLabels } from '../components/forms.js';
@@ -1460,14 +1461,13 @@ function saveEntry(container) {
 
 function renderPage(container) {
     const copy = metricCopy();
-    container.innerHTML = `
-        <section class="page-head" data-page-head="island-yields">
+    container.innerHTML = toolPageHtml({
+        key: 'island-yields',
+        head: `<section class="page-head" data-page-head="island-yields">
             <h1>Ada Çıktı</h1>
             <p>Tarla, pasture ve kennel için gerçek dönüş / çıktı değerlerini kaydet. Ortalamalar hesaplama araçlarında kullanılır.</p>
-        </section>
-        <div class="tool-split">
-            <div class="yield-controls-column">
-                <div class="tool-split-controls">
+        </section>`,
+        controls: `
                     <form id="yieldForm" class="farming-toolbar island-planner-toolbar">
                     ${renderToggle('Üretim alanı', YIELD_KINDS.map((kind) => ({ id: kind.id, value: kind.id, label: kind.label })), 'yield-kind', state.yieldKind)}
                     ${renderToggle('Premium', [
@@ -1526,12 +1526,10 @@ function renderPage(container) {
                         <button type="button" class="btn btn-outline-danger" id="yieldDelete" hidden>Sil</button>
                     </div>
                     </form>
-                </div>
-                <div data-yield-entry-summary></div>
-            </div>
-            <div class="tool-split-result"></div>
-        </div>
-        <dialog class="app-dialog app-warning-dialog" data-yield-slot-warning aria-labelledby="yield-slot-warning-title">
+                `,
+        summary: `<div data-yield-entry-summary></div>`,
+        result: ``,
+        overlays: `<dialog class="app-dialog app-warning-dialog" data-yield-slot-warning aria-labelledby="yield-slot-warning-title">
             <button type="button" class="app-dialog-close" aria-label="Kapat" data-yield-slot-warning-close></button>
             <div class="app-warning-dialog-sheet">
                 <h2 id="yield-slot-warning-title">Bugünkü slot sayısı uyuşmuyor</h2>
@@ -1539,8 +1537,8 @@ function renderPage(container) {
                 <ul class="app-warning-dialog-list" data-yield-slot-warning-details></ul>
                 <div class="form-actions"><button type="button" class="btn btn-primary" data-yield-slot-warning-close>Tamam</button></div>
             </div>
-        </dialog>
-    `;
+        </dialog>`,
+    });
     bindPage(container);
     fillForm(container, null);
     refreshResult(container);
@@ -1671,7 +1669,7 @@ function bindPage(container) {
 
 async function init() {
     initNav();
-    const container = document.getElementById('islandYieldsTool');
+    const container = document.querySelector('[data-tool="island-yields"]');
     if (!container) {
         return;
     }

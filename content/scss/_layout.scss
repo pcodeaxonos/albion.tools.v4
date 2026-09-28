@@ -9,7 +9,6 @@
     height: 100%;
     min-height: 0;
     max-height: 100%;
-    overflow: hidden;
 }
 
 .app-sidebar {
@@ -225,7 +224,7 @@
 }
 
 .sidebar-today-slot {
-    --slot-city: var(--color-primary);
+    --slot-city: var(--color-city, var(--color-primary));
     display: flex;
     align-items: flex-start;
     justify-content: space-between;
@@ -235,13 +234,6 @@
     background-color: color-mix(in srgb, var(--slot-city) 11%, transparent);
     box-shadow: inset 2px 0 0 var(--slot-city);
 
-    &[data-city="bridgewatch"] { --slot-city: #e0a04a; }
-    &[data-city="fort-sterling"] { --slot-city: #c5d4e8; }
-    &[data-city="lymhurst"] { --slot-city: #5ecf7a; }
-    &[data-city="martlock"] { --slot-city: #5aa8e8; }
-    &[data-city="thetford"] { --slot-city: #b07ae8; }
-    &[data-city="caerleon"] { --slot-city: #e85a5a; }
-    &[data-city="brecilien"] { --slot-city: #6ec9c0; }
 }
 
 .sidebar-today-copy {
@@ -372,23 +364,14 @@
 .app-content {
     flex: 1;
     min-width: 0;
+    min-height: 0;
     display: flex;
     flex-direction: column;
-    overflow-x: hidden;
-    overflow-y: auto;
-}
-
-// Calculator tables keep overflow visible so thead can stick to this pane.
-// Wide tables then scroll horizontally here (same scrollport as vertical).
-body.calc-page .app-content {
-    overflow-x: auto;
-
-    @media (max-width: 991px) {
-        overflow-x: hidden;
-    }
+    overflow: auto;
 }
 
 .app-topbar {
+    flex-shrink: 0;
     display: none;
     position: sticky;
     top: 0;

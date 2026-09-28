@@ -1,3 +1,4 @@
+import { toolPageHtml } from '../components/tool-page.js';
 import { escapeHtml } from '../utils/utils.js';
 import { initNav } from '../core/nav.js';
 import { initFloatingLabels } from '../components/forms.js';
@@ -985,15 +986,14 @@ function renderPage(container) {
     const today = bonusDayIso();
     const defaultDate = toYearMonth(today) === state.month ? today : `${state.month}-01`;
 
-    container.innerHTML = `
-        <section class="page-head" data-page-head="daily-bonus">
+    container.innerHTML = toolPageHtml({
+        key: 'daily-bonus',
+        head: `<section class="page-head" data-page-head="daily-bonus">
             <h1>Günlük Bonus</h1>
             <p>Her gün iki craft / refine bonusu. Gün 13:00’te yenilenir. Oyun API’sinden gelmez; buraya kaydedilir. Unutulan günler boş bırakılabilir.</p>
             <div class="bonus-page-actions"><button type="button" class="bonus-analysis-trigger${state.analysis.usedRecipeFallback ? ' has-recipe-warning' : ''}" id="openBonusAnalysis"${state.analysis.preparing ? ' disabled' : ''}${state.analysis.usedRecipeFallback ? ' title="Veritabanında eksik tarif bulundu; GameInfo fallback kullanıldı."' : ''}>${state.analysis.preparing ? '<i class="bonus-analysis-trigger-spinner" aria-hidden="true"></i><span>Analiz hazırlanıyor…</span>' : '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 19V5m0 14h16M7 15l3-3 3 2 5-6"/><path d="M15 8h3v3"/></svg><span>Craft Analizi</span>'}</button></div>
-        </section>
-
-        <div class="tool-split">
-            <div class="tool-split-controls">
+        </section>`,
+        controls: `
                 <div class="bonus-toolbar">
                     <div class="form-floating bonus-month-field">
                         <input type="month" class="form-control is-filled" id="bonusMonth" value="${escapeHtml(monthInput)}" placeholder=" ">
@@ -1046,10 +1046,10 @@ function renderPage(container) {
                     </div>
                 </form>
                 `}
-            </div>
-            <section class="tool-split-result bonus-log" id="bonusLog">${renderLogTable(state.month)}</section>
-        </div>
-    `;
+            `,
+        summary: ``,
+        result: `<section class="bonus-log" id="bonusLog">${renderLogTable(state.month)}</section>`,
+    });
 
     bindPage(container);
     fillForm(container, null);
@@ -1206,7 +1206,7 @@ function saveEntry(container) {
 
 async function init() {
     initNav();
-    const container = document.getElementById('dailyBonus');
+    const container = document.querySelector('[data-tool="daily-bonus"]');
     if (!container) {
         return;
     }

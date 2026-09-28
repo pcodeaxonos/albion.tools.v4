@@ -1,3 +1,4 @@
+import { toolPageHtml } from '../components/tool-page.js';
 import { escapeHtml } from '../utils/utils.js';
 import { initNav } from '../core/nav.js';
 import { initStore } from '../db/store.js';
@@ -23,7 +24,6 @@ import { loadActiveCities } from '../core/cities.js';
 import { cityFieldHtml, bindCityField } from '../components/city-picker.js';
 import { bindLivePrices } from '../core/price-live.js';
 import {
-    calcExplainShell,
     bindCalcExplain,
     refreshCalcExplain,
     explainPanelHtml,
@@ -761,11 +761,11 @@ function renderPastureExplain(key, { hovered } = {}) {
 
 function bindExplain(container) {
     bindCalcExplain({
-        panel: container.querySelector('#pastureExplain'),
+        root: container,
+        key: 'pastureExplain',
         table: container.querySelector('.pasture-table'),
         rowKey: (tr) => tr.dataset.itemId,
         keys: () => rows().map((row) => row.item.id),
-        defaultKey: () => bestProfitId(rows()) ?? animals()[0]?.id ?? null,
         render: (key, meta) => renderPastureExplain(key, meta)
     });
 }
@@ -1079,7 +1079,6 @@ function renderOutput() {
     return `
         <div id="pastureResult">
             ${renderTable()}
-            ${calcExplainShell('pastureExplain')}
             <section data-page-info>
             <p class="farming-note">
                 ${escapeHtml(cityLabel(state.city))} · yavru ${escapeHtml(priceSideHint(state.babySide, 'buy'))}${babySetup ? ` · setup ${formatPct(SETUP_FEE)}` : ''}.
@@ -1225,7 +1224,7 @@ function refreshCalc(container) {
             patchRowCells(tr, row, bestId);
         }
     }
-    refreshCalcExplain(container.querySelector('#pastureExplain'));
+    refreshCalcExplain(container);
 }
 
 function bindPriceInputs(container) {
@@ -1293,14 +1292,13 @@ function sideFieldsHtml() {
 }
 
 function renderPage(container) {
-    container.innerHTML = `
-        <section class="page-head" data-page-head="pasture">
+    container.innerHTML = toolPageHtml({
+        key: 'pasture',
+        head: `<section class="page-head" data-page-head="pasture">
             <h1>Pasture</h1>
             <p>Seçilen şehirde hayvan büyütme, kesme ve süt/yumurta kârı. Yemi ada birim maliyetiyle veya piyasa buy+1 ile hesapla; en iyi yolu işaretler.</p>
-        </section>
-
-        <div class="tool-split">
-            <div class="tool-split-controls">
+        </section>`,
+        controls: `
                 <div class="farming-toolbar pasture-toolbar">
                     <div class="farming-type" role="radiogroup" aria-label="Yem kaynağı">
                         ${renderFeedModeToggle()}
@@ -1321,12 +1319,12 @@ function renderPage(container) {
                     })}
                     ${priceRefreshActionsHtml()}
                 </div>
-            </div>
-            <div class="tool-split-result">
+            `,
+        summary: ``,
+        result: `
                 ${renderOutput()}
-            </div>
-        </div>
-    `;
+            `,
+    });
 
     bindPage(container);
     bindPastureSort(container);
@@ -1434,7 +1432,7 @@ async function loadPrices(container, { showLoader = true, source } = {}) {
 
 async function init() {
     initNav();
-    const container = document.getElementById('pastureTool');
+    const container = document.querySelector('[data-tool="pasture"]');
     if (!container) {
         return;
     }

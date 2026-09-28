@@ -1,7 +1,8 @@
 import { escapeHtml } from './utils.js';
 import { SETUP_FEE } from '../core/market-fees.js';
 
-const sessions = new Map();
+const sessions = new WeakMap();
+const tableBindings = new WeakMap();
 const TOKEN_CAPS = {
     qty: 'adet',
     price: 'fiyat',
@@ -19,9 +20,6 @@ const TOKEN_CAPS = {
     focus: 'focus'
 };
 
-export function calcExplainShell(id) {
-    return `<aside class="calc-explain" id="${escapeHtml(id)}" aria-live="polite"></aside>`;
-}
 
 export function explainNum(value, { kind = 'silver', signed = false, tone, cap } = {}) {
     const missing = !Number.isFinite(value);
@@ -264,93 +262,88 @@ export function explainEmptyHtml(message) {
 }
 
 export function explainHint() {
-    return 'Seçili satır · güncellemek için başka bir satırı tıklayın';
+    return 'Ürünün hesaplama detayı';
 }
 
-export function bindCalcExplain({
-    panel,
-    table,
-    rowKey,
-    keys,
-    defaultKey,
-    render
-}) {
-    if (!panel || !table) {
-        return;
+// One native dialog per tool; tables only supply their item key and renderer.
+export function bindCalcExplain({ root, key, table, rowKey, keys, render, itemCell = 0 }) {
+    if (!root || !table) return;
+    let session = sessions.get(root);
+    if (!session) {
+        session = { bindings: new Map(), active: null, selected: null, dialog: null };
+        sessions.set(root, session);
     }
-
-    const id = panel.id || table.className;
-    const session = sessions.get(id) ?? { selected: null };
-    session.opts = { panel, table, rowKey, keys, defaultKey, render };
-    session.paint = () => paint(session);
-    sessions.set(id, session);
-
-    table.classList.add('has-explain');
-    if (table.dataset.explainBound !== 'on') {
-        table.dataset.explainBound = 'on';
+    session.bindings.set(key, { table, rowKey, keys, render });
+    tableBindings.set(table, { root, key });
+    table.querySelectorAll('tbody tr').forEach((row) => {
+        if (!rowKey(row)) return;
+        const cell = row.cells[itemCell];
+        if (!cell || cell.querySelector('[data-calc-explain-trigger]')) return;
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.className = 'calc-explain-trigger';
+        button.dataset.calcExplainTrigger = '';
+        button.setAttribute('aria-haspopup', 'dialog');
+        button.title = 'Hesap detayını aç';
+        button.append(...cell.childNodes);
+        cell.append(button);
+    });
+    if (table.dataset.calcExplainBound !== 'on') {
+        table.dataset.calcExplainBound = 'on';
         table.addEventListener('click', (event) => {
-            const tr = rowFromEvent(table, event);
-            if (!tr) {
-                return;
-            }
-            const key = rowKey(tr);
-            if (!key) {
-                return;
-            }
-            session.selected = key;
-            session.paint();
+            const trigger = event.target instanceof Element
+                ? event.target.closest('[data-calc-explain-trigger]') : null;
+            if (!trigger || trigger.closest('table') !== table) return;
+            const binding = tableBindings.get(table);
+            const current = sessions.get(binding.root);
+            const opts = current.bindings.get(binding.key);
+            const rowId = opts.rowKey(trigger.closest('tr'));
+            if (rowId == null || rowId === '') return;
+            // DOM data attributes are strings; catalog keys may be numeric.
+            const selected = opts.keys
+                ? opts.keys().find((value) => String(value) === String(rowId))
+                : rowId;
+            if (selected == null) return;
+            current.active = binding.key;
+            current.selected = selected;
+            openExplain(binding.root, current);
         });
     }
-
-    session.paint();
+    refreshCalcExplain(root);
 }
 
-export function refreshCalcExplain(panel) {
-    if (!panel) {
+function openExplain(root, session) {
+    let dialog = session.dialog;
+    if (!dialog?.isConnected) {
+        dialog = document.createElement('dialog');
+        dialog.className = 'app-dialog calc-explain-dialog';
+        dialog.dataset.calcExplainDialog = '';
+        dialog.setAttribute('aria-label', 'Hesaplama detayı');
+        dialog.innerHTML = '<button type="button" class="app-dialog-close" aria-label="Kapat" data-calc-explain-close></button><div class="calc-explain-dialog-sheet"><aside class="calc-explain" data-calc-explain-panel></aside></div>';
+        dialog.addEventListener('click', (event) => {
+            if (event.target === dialog || event.target.closest('[data-calc-explain-close]')) dialog.close();
+        });
+        dialog.addEventListener('close', () => { session.selected = null; });
+        root.append(dialog);
+        session.dialog = dialog;
+    }
+    paintExplain(session);
+    if (!dialog.open) dialog.showModal();
+}
+
+export function refreshCalcExplain(root) {
+    const session = sessions.get(root);
+    if (!session?.dialog?.isConnected || !session.dialog.open) return;
+    const opts = session.bindings.get(session.active);
+    const available = opts?.keys?.() ?? [...(opts?.table.querySelectorAll('tbody tr') ?? [])].map(opts?.rowKey);
+    if (!opts?.table.isConnected || !available.includes(session.selected)) {
+        session.dialog.close();
         return;
     }
-    sessions.get(panel.id)?.paint?.();
+    paintExplain(session);
 }
 
-function rowFromEvent(table, event) {
-    const tr = event.target instanceof Element ? event.target.closest('tbody tr') : null;
-    return tr && table.contains(tr) ? tr : null;
-}
-
-function availableKeys(session) {
-    try {
-        return new Set(session.opts.keys?.() ?? []);
-    } catch {
-        return new Set();
-    }
-}
-
-function resolveKey(session) {
-    const known = availableKeys(session);
-    const selected = session.selected && known.has(session.selected) ? session.selected : null;
-    if (selected) {
-        return selected;
-    }
-    const fallback = session.opts.defaultKey?.() ?? [...known][0] ?? null;
-    if (fallback) {
-        session.selected = fallback;
-    }
-    return fallback;
-}
-
-function paint(session) {
-    const { panel, table, rowKey, render } = session.opts;
-    const key = resolveKey(session);
-    table.querySelectorAll('tbody tr').forEach((tr) => {
-        const id = rowKey(tr);
-        tr.classList.toggle('is-explain', Boolean(session.selected) && id === session.selected);
-        tr.classList.remove('is-explain-hover');
-    });
-
-    if (!key) {
-        panel.innerHTML = explainEmptyHtml('Hesaplamak için tablodan bir satır seçin.');
-        return;
-    }
-
-    panel.innerHTML = render(key, { hovered: false });
+function paintExplain(session) {
+    const opts = session.bindings.get(session.active);
+    session.dialog.querySelector('[data-calc-explain-panel]').innerHTML = opts.render(session.selected, { hovered: false });
 }

@@ -11,6 +11,7 @@ import { historyAt } from './market-history.js';
 import { getEconomyConstant } from './catalog.js';
 import { effectivePlantYield, effectiveSeedReturn, effectiveAnimalReturn, effectiveAnimalProductYield } from './island-yield-stats.js';
 import {
+    PRICE_BASIS,
     plantSlots,
     pasturePens,
     kennelPens,

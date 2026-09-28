@@ -1,3 +1,4 @@
+import { toolPageHtml } from '../components/tool-page.js';
 import { escapeHtml } from '../utils/utils.js';
 import { initNav } from '../core/nav.js';
 import { routeHref } from '../core/routes.js';
@@ -27,7 +28,6 @@ import { cityFieldHtml, bindCityField } from '../components/city-picker.js';
 import {
     bindCalcExplain,
     refreshCalcExplain,
-    calcExplainShell,
     explainNum,
     explainOp,
     explainStep,
@@ -533,11 +533,11 @@ function renderExplain(key, { hovered } = {}) {
 
 function bindExplain(container) {
     bindCalcExplain({
-        panel: container.querySelector('#furnitureExplain'),
+        root: container,
+        key: 'furnitureExplain',
         table: container.querySelector('.ava-table'),
         rowKey: (tr) => tr.dataset.itemId,
         keys: () => rows().map((row) => row.item.id),
-        defaultKey: () => bestRow(rows())?.item.id ?? rows()[0]?.item.id ?? null,
         render: (key, meta) => renderExplain(key, meta)
     });
 }
@@ -627,7 +627,6 @@ function renderOutput() {
         <div id="furnitureResult">
             ${renderTierMats()}
             ${renderTable()}
-            ${calcExplainShell('furnitureExplain')}
             <section data-page-info>
             ${renderSummary(list)}
             ${renderBonusNote()}
@@ -699,7 +698,7 @@ function refreshCalc(container) {
         }
     }
 
-    refreshCalcExplain(container.querySelector('#furnitureExplain'));
+    refreshCalcExplain(container);
 
     const summary = container.querySelector('#furnitureSummary');
     if (summary) {
@@ -764,14 +763,13 @@ function refreshOutput(container) {
 }
 
 function renderPage(container) {
-    container.innerHTML = `
-        <section class="page-head" data-page-head="furniture">
+    container.innerHTML = toolPageHtml({
+        key: 'furniture',
+        head: `<section class="page-head" data-page-head="furniture">
             <h1>Furniture</h1>
             <p>Ada evine konan dekorasyon: sandık, yatak ve masa. Malzeme ve satış aynı şehir; carpenter RR şehir tabanı + bonus.</p>
-        </section>
-
-        <div class="tool-split">
-            <div class="tool-split-controls">
+        </section>`,
+        controls: `
                 <div class="ava-toolbar">
                     <div class="ava-type" role="radiogroup" aria-label="Eşya">
                         ${renderKindToggle()}
@@ -806,12 +804,12 @@ function renderPage(container) {
                     })}
                     ${priceRefreshActionsHtml()}
                 </div>
-            </div>
-            <div class="tool-split-result">
+            `,
+        summary: ``,
+        result: `
                 ${renderOutput()}
-            </div>
-        </div>
-    `;
+            `,
+    });
 
     bindPage(container);
     bindTableSort(container);
@@ -902,7 +900,7 @@ async function loadPrices(container, { showLoader = true, source } = {}) {
 
 async function init() {
     initNav();
-    const container = document.getElementById('furnitureTool');
+    const container = document.querySelector('[data-tool="furniture"]');
     if (!container) {
         return;
     }

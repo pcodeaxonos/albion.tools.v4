@@ -1,3 +1,4 @@
+import { toolPageHtml } from '../components/tool-page.js';
 import { escapeHtml } from '../utils/utils.js';
 import { initNav } from '../core/nav.js';
 import { routeHref } from '../core/routes.js';
@@ -400,14 +401,13 @@ function refreshOutput(container) {
 }
 
 function renderPage(container) {
-    container.innerHTML = `
-        <section class="page-head" data-page-head="enchanting">
+    container.innerHTML = toolPageHtml({
+        key: 'enchanting',
+        head: `<section class="page-head" data-page-head="enchanting">
             <h1>Enchanting</h1>
             <p>Seçilen slot’u kaçtan kaça çıkarmanın gümüş maliyeti. Excel tablosu: yol × T4–T8. Standart ayar (4.3 / 5.2 / 6.1 gibi) vurgulanır; sıra Ayarlar’dan değişir ve Royal Crafting’de de kullanılır. Fiyatlar şehirden; boşsa elle yazın.</p>
-        </section>
-
-        <div class="tool-split">
-            <div class="tool-split-controls">
+        </section>`,
+        controls: `
                 <div class="enchant-toolbar">
                     <div class="enchant-type enchant-slots" role="radiogroup" aria-label="Slot">
                         ${renderSlotToggle()}
@@ -427,12 +427,12 @@ function renderPage(container) {
                     })}
                     ${priceRefreshActionsHtml()}
                 </div>
-            </div>
-            <div class="tool-split-result">
+            `,
+        summary: ``,
+        result: `
                 ${renderOutput()}
-            </div>
-        </div>
-    `;
+            `,
+    });
 
     bindPage(container);
     bindEnchantSort(container);
@@ -496,7 +496,7 @@ async function loadPrices(container, { showLoader = true, source } = {}) {
 
 async function init() {
     initNav();
-    const container = document.getElementById('enchantTool');
+    const container = document.querySelector('[data-tool="enchanting"]');
     if (!container) {
         return;
     }

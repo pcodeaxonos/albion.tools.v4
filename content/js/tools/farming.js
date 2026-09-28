@@ -1,3 +1,4 @@
+import { toolPageHtml } from '../components/tool-page.js';
 import { escapeHtml } from '../utils/utils.js';
 import { initNav } from '../core/nav.js';
 import { initStore } from '../db/store.js';
@@ -674,14 +675,13 @@ function refreshOutput(container) {
 }
 
 function renderPage(container) {
-    container.innerHTML = `
-        <section class="page-head" data-page-head="farming">
+    container.innerHTML = toolPageHtml({
+        key: 'farming',
+        head: `<section class="page-head" data-page-head="farming">
             <h1>Farming</h1>
             <p>Seçilen şehirde ekin / ot birim maliyeti. Tohum NPC’ye göre ucuz veya pahalı işaretlenir. Birim hasat alışından düşükse üret; değilse al, plotu daha ucuz ürüne ver.</p>
-        </section>
-
-        <div class="tool-split">
-            <div class="tool-split-controls">
+        </section>`,
+        controls: `
                 <div class="farming-toolbar">
                     <div class="farming-type" role="radiogroup" aria-label="Tür">
                         ${renderKindToggle()}
@@ -711,12 +711,12 @@ function renderPage(container) {
                     ${specFieldsHtml()}
                     ${priceRefreshActionsHtml()}
                 </div>
-            </div>
-            <div class="tool-split-result">
+            `,
+        summary: ``,
+        result: `
                 ${renderOutput()}
-            </div>
-        </div>
-    `;
+            `,
+    });
 
     bindPage(container);
     bindFarmingSort(container);
@@ -830,7 +830,7 @@ async function loadPrices(container, { showLoader = true, source } = {}) {
 
 async function init() {
     initNav();
-    const container = document.getElementById('farmingTool');
+    const container = document.querySelector('[data-tool="farming"]');
     if (!container) {
         return;
     }

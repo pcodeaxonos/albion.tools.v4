@@ -378,6 +378,7 @@ export function incompleteClass(value) {
  * @param {string|null} [opts.iconId] item uniqueName — shown left of the input
  * @param {string} [opts.mark] HTML for top-right float-cut badge (e.g. NPC)
  * @param {string} [opts.meta] plain text under the field (e.g. birim …)
+ * @param {boolean} [opts.showFoot=true] reserve the meta row below the field
  */
 export function priceFieldHtml({
     id,
@@ -391,7 +392,8 @@ export function priceFieldHtml({
     fieldClass = 'farming-price-field',
     iconId = null,
     mark = '',
-    meta = ''
+    meta = '',
+    showFoot = true
 }) {
     const filled = String(value ?? '').length > 0 ? ' is-filled' : '';
     const isStale = !manual && !missing && (Boolean(stale) || isStalePriceDate(date));
@@ -414,7 +416,7 @@ export function priceFieldHtml({
                     ${mark}
                 </div>
             </div>
-            <div class="price-field-foot">${foot}</div>
+            ${showFoot ? `<div class="price-field-foot">${foot}</div>` : ''}
         </div>
     `;
 }

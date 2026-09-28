@@ -1,3 +1,4 @@
+import { toolPageHtml } from '../components/tool-page.js';
 import { escapeHtml } from '../utils/utils.js';
 import { initNav } from '../core/nav.js';
 import { routeHref } from '../core/routes.js';
@@ -27,7 +28,6 @@ import { bindLivePrices } from '../core/price-live.js';
 import {
     bindCalcExplain,
     refreshCalcExplain,
-    calcExplainShell,
     explainNum,
     explainOp,
     explainStep,
@@ -302,32 +302,6 @@ function renderBonusNote() {
     return `<p class="faction-note">Cape RR ${formatPct(returnRate())}${extra} (yalnız düz cape). Crest artefact, RR yok.
         Bugün (${escapeHtml(bonusWindowLabel(bonusDayIso()))}): ${today}
         <a href="${routeHref('daily-bonus')}">Günlük bonus</a></p>`;
-}
-
-function bestVendorKey(list) {
-    let best = null;
-    for (const row of list) {
-        if (row.sellPoint == null) {
-            continue;
-        }
-        if (best == null || row.sellPoint > best.sellPoint) {
-            best = row;
-        }
-    }
-    return best?.item.id ?? list[0]?.item.id ?? null;
-}
-
-function bestCapeKey(list) {
-    let best = null;
-    for (const row of list) {
-        if (row.profit == null) {
-            continue;
-        }
-        if (best == null || row.profit > best.profit) {
-            best = row;
-        }
-    }
-    return best?.item.id ?? list[0]?.item.id ?? null;
 }
 
 function explainIcon(uniqueName) {
@@ -625,19 +599,19 @@ function renderCapeExplain(key, { hovered } = {}) {
 
 function bindExplain(container) {
     bindCalcExplain({
-        panel: container.querySelector('#factionVendorExplain'),
+        root: container,
+        key: 'factionVendorExplain',
         table: container.querySelector('[data-faction-table="vendor"]'),
         rowKey: (tr) => tr.dataset.vendorId,
         keys: () => vendorRows().map((row) => row.item.id),
-        defaultKey: () => bestVendorKey(vendorRows()),
         render: (key, meta) => renderVendorExplain(key, meta)
     });
     bindCalcExplain({
-        panel: container.querySelector('#factionCapeExplain'),
+        root: container,
+        key: 'factionCapeExplain',
         table: container.querySelector('[data-faction-table="cape"]'),
         rowKey: (tr) => tr.dataset.capeId,
         keys: () => capeRows().map((row) => row.item.id),
-        defaultKey: () => bestCapeKey(capeRows()),
         render: (key, meta) => renderCapeExplain(key, meta)
     });
 }
@@ -823,14 +797,12 @@ function renderOutput() {
             <section class="faction-section">
                 <h2>Puan değeri</h2>
                 ${renderVendorTable()}
-                ${calcExplainShell('factionVendorExplain')}
             </section>
 
             <section class="faction-section">
                 <h2>Faction cape</h2>
                 ${renderCapeMats()}
                 ${renderCapeTable()}
-                ${calcExplainShell('factionCapeExplain')}
             </section>
 
             <section data-page-info>
@@ -945,8 +917,7 @@ function refreshCalc(container) {
             });
         }
     });
-    refreshCalcExplain(container.querySelector('#factionVendorExplain'));
-    refreshCalcExplain(container.querySelector('#factionCapeExplain'));
+    refreshCalcExplain(container);
 }
 
 function bindPriceInputs(container) {
@@ -979,14 +950,13 @@ function refreshOutput(container) {
 }
 
 function renderPage(container) {
-    container.innerHTML = `
-        <section class="page-head" data-page-head="faction">
+    container.innerHTML = toolPageHtml({
+        key: 'faction',
+        head: `<section class="page-head" data-page-head="faction">
             <h1>Faction</h1>
             <p>Vendor eşyalarının gümüş / puan değeri ve faction cape craft kârı. Crest artefact (RR yok); düz cape RR alır.</p>
-        </section>
-
-        <div class="tool-split">
-            <div class="tool-split-controls">
+        </section>`,
+        controls: `
                 <div class="ava-toolbar">
                     <div class="ava-type" role="radiogroup" aria-label="Premium">
                         ${renderPremiumToggle()}
@@ -1018,12 +988,12 @@ function renderPage(container) {
                     })}
                     ${priceRefreshActionsHtml()}
                 </div>
-            </div>
-            <div class="tool-split-result">
+            `,
+        summary: ``,
+        result: `
                 ${renderOutput()}
-            </div>
-        </div>
-    `;
+            `,
+    });
 
     bindPage(container);
     bindFactionSort(container);
@@ -1104,7 +1074,7 @@ async function loadPrices(container, { showLoader = true, source } = {}) {
 
 async function init() {
     initNav();
-    const container = document.getElementById('factionTool');
+    const container = document.querySelector('[data-tool="faction"]');
     if (!container) {
         return;
     }

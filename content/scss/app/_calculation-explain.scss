@@ -1,3 +1,35 @@
+.calc-explain-trigger {
+    display: block;
+    width: 100%;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    text-align: inherit;
+    cursor: pointer;
+
+    &:hover { color: var(--color-primary-light); }
+    &:focus-visible { outline: 2px solid var(--color-focus-ring); outline-offset: 2px; }
+}
+
+.calc-explain-dialog {
+    width: min(68rem, calc(100vw - 5.5rem));
+    max-width: calc(100vw - 5.5rem);
+    max-height: calc(100dvh - 2rem);
+    margin: auto;
+    padding: 0;
+    overflow: visible;
+    background: var(--color-bg);
+    color: var(--color-text);
+    box-shadow: var(--shadow-md);
+
+    &::backdrop {
+        background: color-mix(in srgb, #000 58%, transparent);
+        backdrop-filter: blur(8px);
+    }
+}
+
 .calc-explain {
     margin: var(--spacing-md) 0 0;
     padding: 0.875rem 1rem 1rem;
@@ -17,6 +49,30 @@
     background-color: var(--color-surface);
     border-bottom: var(--border-width) solid var(--color-border);
     box-shadow: 0 1px 0 transparent;
+}
+
+// The standard offset belongs to the page scrollport. In a native dialog the
+// explanation sheet is its own scrollport, so that offset would push the head
+// down into the content on first paint.
+.app-dialog .calc-explain-head {
+    top: 0;
+}
+
+// Explain popups use the calculation panel as their surface. Avoid nested
+// frames and inset scroll sheets so every related dialog has one clean edge.
+.app-dialog:has(.calc-explain-dialog-sheet) {
+    border: 0;
+}
+
+.calc-explain-dialog-sheet {
+    max-height: calc(100dvh - 2rem);
+    overflow: auto;
+    padding: 0;
+}
+
+.app-dialog .calc-explain {
+    margin: 0;
+    border: 0;
 }
 
 .calc-explain-head > .item-icon,
@@ -523,4 +579,3 @@
     padding-bottom: 0.45rem;
     font-size: 1.125rem;
 }
-

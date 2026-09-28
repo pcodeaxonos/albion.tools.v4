@@ -2,7 +2,7 @@
     display: flex;
     flex-direction: column;
     gap: 0.35rem;
-    margin: 0 0 var(--spacing-sm);
+    margin: 0;
     min-width: 0;
 }
 
@@ -264,112 +264,89 @@
     min-height: 0;
 }
 
-.royal-analysis-placeholder {
-    min-height: 15rem;
-    border: var(--border-width) solid var(--color-border);
-    border-radius: var(--radius-md);
-    background: var(--color-surface);
+.royal-analysis {
+    min-height: 0;
+    overflow: auto;
 }
 
-.royal-analysis-placeholder-head {
-    display: flex;
-    align-items: center;
-    min-height: 3rem;
-    padding: 0 var(--spacing-md);
-    border-bottom: var(--border-width) solid var(--color-border);
+.royal-analysis-list {
+    gap: 0.35rem;
+    padding: 0;
 
-    h2 {
+    li {
+        position: relative;
+        grid-template-columns: minmax(0, 1fr);
+        padding: 0 0.5rem;
+        border-left-color: var(--color-city, var(--color-primary));
+        background: transparent;
+    }
+}
+
+.royal-analysis-city > strong {
+    position: absolute;
+    top: 0;
+    right: 0.5rem;
+    z-index: 1;
+    padding: 0;
+    color: var(--color-city, var(--color-primary));
+    white-space: nowrap;
+}
+
+.royal-analysis-groups {
+    display: grid;
+    gap: 0.35rem;
+}
+
+.royal-analysis-group {
+    display: grid;
+    grid-template-columns: max-content max-content;
+    grid-template-areas: "items title";
+    gap: 0.4rem;
+    align-items: center;
+
+    h3 {
+        grid-area: title;
         margin: 0;
-        font-size: var(--font-size-base);
+        color: var(--color-text-muted);
+        font-size: var(--font-size-sm);
         font-weight: var(--font-weight-semibold);
     }
 }
 
-// Royal Crafting is a desktop workbench: keep the page chrome and controls in
-// view, with material prices and the reserved analysis panel beside the table.
-@media (min-width: 992px) {
-    main:has(.page-head[data-page-head="royal-crafting"]) {
-        flex: 1 1 auto;
-        min-height: 0;
-        padding-bottom: 0;
-        overflow: hidden;
-        background-image: none;
-    }
+.royal-analysis-items {
+    grid-area: items;
+    display: flex;
+    flex-wrap: nowrap;
+    gap: 0.2rem;
+}
 
-    .tool-page:has(.page-head[data-page-head="royal-crafting"]) {
-        min-height: 0;
-    }
+.royal-analysis-item {
+    display: inline-flex;
+    align-items: center;
+    min-width: 0;
+}
 
-    .tool-page:has(.page-head[data-page-head="royal-crafting"]) .royal-workbench-head {
-        display: none;
-    }
+.royal-analysis-item-icon {
+    width: 2.604rem;
+    height: 2.604rem;
+}
 
-    .tool-page:has(.page-head[data-page-head="royal-crafting"]) .page-body {
-        display: flex;
-        min-height: 0;
-        overflow: hidden;
-        padding: var(--spacing-md);
-    }
+.royal-analysis-material {
+    display: inline-flex;
+    align-items: center;
+    margin: 0;
 
-    .tool-page:has(.page-head[data-page-head="royal-crafting"]) .royal-workbench {
-        grid-template-columns: minmax(15.5rem, 18rem) minmax(22rem, 28rem) minmax(0, 1fr);
-        flex: 1 1 auto;
-        min-height: 0;
-        align-items: stretch;
-        overflow: hidden;
+    .item-icon {
+        width: 3.255rem;
+        height: 3.255rem;
     }
+}
 
-    .tool-page:has(.page-head[data-page-head="royal-crafting"]) .tool-split-controls {
-        overflow-y: auto;
-        overscroll-behavior: contain;
-    }
-
-    .tool-page:has(.page-head[data-page-head="royal-crafting"]) .royal-middle-column {
-        grid-template-rows: auto minmax(0, 1fr);
-        overflow: hidden;
-    }
-
-    .tool-page:has(.page-head[data-page-head="royal-crafting"]) .tool-split-result,
-    .tool-page:has(.page-head[data-page-head="royal-crafting"]) .royal-result {
-        display: flex;
-        flex: 1 1 auto;
-        flex-direction: column;
-        min-height: 0;
-    }
-
-    // Keep every material-price row visible before assigning the remaining
-    // viewport height to the scrollable calculation table.
-    .tool-page:has(.page-head[data-page-head="royal-crafting"]) .royal-mats {
-        flex: 0 0 auto;
-        margin-bottom: 0;
-    }
-
-    .tool-page:has(.page-head[data-page-head="royal-crafting"]) .royal-analysis-placeholder {
-        min-height: 0;
-    }
-
-    .tool-page:has(.page-head[data-page-head="royal-crafting"]) .royal-calc {
-        display: grid;
-        grid-template-rows: minmax(0, 1fr) auto auto auto;
-        flex: 1 1 0;
-        min-height: 0;
-        overflow: hidden;
-    }
-
-    .tool-page:has(.page-head[data-page-head="royal-crafting"]) .calc-table-wrap.table-responsive {
-        overflow: auto;
-        min-height: 0;
-        overscroll-behavior: contain;
-        -webkit-overflow-scrolling: touch;
-    }
-
-    .tool-page:has(.page-head[data-page-head="royal-crafting"]) .royal-table thead th {
-        top: 0;
-    }
-
-    .tool-page:has(.page-head[data-page-head="royal-crafting"]) .royal-table.has-explain tbody tr.is-explain td {
-        top: var(--calc-thead-height);
-    }
+.royal-analysis-empty {
+    margin: 0;
+    padding: var(--spacing-md);
+    color: var(--color-text-muted);
+    text-align: center;
 }
 
 .royal-plan-dialog {
@@ -392,16 +369,16 @@
 }
 
 .royal-bonus-dialog {
-    width: min(72rem, calc(100vw - 5.5rem));
+    width: min(78rem, calc(100vw - 5.5rem));
     max-width: calc(100vw - 5.5rem);
     max-height: calc(100dvh - 2rem);
     margin: auto;
     padding: 0;
-    border: 1px solid #3a4351;
-    border-radius: 0;
-    background: #12161d;
+    border: 0;
+    border-radius: 0.75rem;
+    background: #0b1422;
     color: #edf1f7;
-    box-shadow: 0 1.5rem 5rem rgba(0, 0, 0, 0.56);
+    box-shadow: 0 1.5rem 5rem rgba(0, 0, 0, 0.7);
 
     &::backdrop {
         background: rgba(4, 7, 11, 0.7);
@@ -410,113 +387,134 @@
 }
 
 .royal-bonus-sheet {
+    position: relative;
     max-height: calc(100dvh - 2rem);
     overflow: auto;
-    padding: 1.5rem;
+    padding: 1.4rem 1.75rem 1.75rem;
+    border: 1px solid #96723a;
+    border-radius: inherit;
+    background:
+        url("../../content/images/royal-bonus/overlays/bottom-blue-glow-overlay.png") bottom center / 100% auto no-repeat,
+        url("../../content/images/royal-bonus/overlays/panel-blue-texture-overlay.png") top center / 74% auto repeat-y,
+        #101b2b;
+
+    &::before {
+        position: absolute;
+        inset: 0;
+        z-index: 0;
+        pointer-events: none;
+        content: '';
+        border: 1px solid rgba(255, 214, 127, 0.24);
+        border-radius: inherit;
+        background: url("../../content/images/royal-bonus/frames/modal-panel-frame.png") top center / 100% 100% no-repeat;
+    }
 }
 
 .royal-bonus-head {
-    padding-bottom: 1.15rem;
-    border-bottom: 1px solid #2c3440;
+    position: relative;
+    z-index: 1;
+    padding: 0.4rem 4.8rem 1.1rem;
+    text-align: center;
 
     p,
     h2,
     span { margin: 0; }
 
     p {
-        margin-bottom: 0.28rem;
-        color: #9ba9ba;
-        font-size: 0.66rem;
+        margin-bottom: 0.18rem;
+        color: #e8c36a;
+        font-size: 0.68rem;
         font-weight: 700;
         letter-spacing: 0.11em;
     }
 
-    h2 { font-size: 1.65rem; }
-    span { display: block; margin-top: 0.35rem; color: #aeb8c8; }
+    h2 { color: #f4e6bd; font-size: clamp(1.45rem, 2.5vw, 2rem); font-family: Georgia, serif; text-transform: uppercase; }
+    span { display: block; margin-top: 0.15rem; color: #b8c6d7; font-size: 0.8rem; }
 }
 
+.royal-bonus-crown { position: relative; z-index: 1; display: block; width: 4.25rem; height: auto; margin: 0 auto -0.45rem; }
+.royal-bonus-title-divider { display: block; width: min(19rem, 100%); height: auto; margin: -0.7rem auto -0.15rem; }
+
 .royal-bonus-cities {
+    position: relative;
+    z-index: 1;
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(20rem, 1fr));
-    gap: 1rem;
-    padding-top: 1rem;
+    gap: 0.7rem;
 }
 
 .royal-bonus-city {
+    position: relative;
+    isolation: isolate;
     min-width: 0;
-    padding: 0.9rem;
-    border: 1px solid #394352;
-    border-radius: 0.42rem;
-    background: #1a2029;
+    min-height: 8rem;
+    overflow: hidden;
+    border: 1px solid #6c5733;
+    border-radius: 0.35rem;
+    background: #172131;
 
-    > header {
-        display: flex;
-        align-items: baseline;
-        justify-content: space-between;
-        gap: 0.6rem;
-        padding-bottom: 0.65rem;
-        border-bottom: 1px solid rgba(166, 181, 198, 0.16);
-    }
+    &::before,
+    &::after { position: absolute; inset: 0; z-index: -1; pointer-events: none; content: ''; }
+    &::before { background: linear-gradient(90deg, rgba(10, 18, 29, 0.98) 0%, rgba(10, 18, 29, 0.92) 40%, rgba(10, 18, 29, 0.36) 72%, rgba(10, 18, 29, 0.78) 100%); }
+    &::after { background: url("../../content/images/royal-bonus/overlays/row-scene-shadow-vignette.png") center / 100% 100% no-repeat; }
 
-    h3,
-    h4 { margin: 0; }
-    h3 { font-size: 1.05rem; }
-    > header span { color: #9ba9ba; font-size: 0.7rem; }
+    &[data-royal-bonus-city] { background-image: var(--royal-city-frame); background-size: 100% 100%; }
+    &[data-royal-bonus-city="bridgewatch"] { --royal-city-frame: url("../../content/images/royal-bonus/frames/row-frame-bridgewatch.png"); }
+    &[data-royal-bonus-city="fortsterling"] { --royal-city-frame: url("../../content/images/royal-bonus/frames/row-frame-fort-sterling.png"); }
+    &[data-royal-bonus-city="lymhurst"] { --royal-city-frame: url("../../content/images/royal-bonus/frames/row-frame-lymhurst.png"); }
+    &[data-royal-bonus-city="martlock"] { --royal-city-frame: url("../../content/images/royal-bonus/frames/row-frame-martlock.png"); }
+    &[data-royal-bonus-city="thetford"] { --royal-city-frame: url("../../content/images/royal-bonus/frames/row-frame-thetford.png"); }
 }
 
-.royal-bonus-groups { display: grid; gap: 0.7rem; padding-top: 0.7rem; }
-.royal-bonus-group h4 { color: #cbd6e4; font-size: 0.82rem; }
-.royal-bonus-items { display: flex; gap: 0.45rem; margin-top: 0.4rem; }
+.royal-bonus-city-scene { position: absolute; z-index: -2; top: 0; right: 0; width: 58%; height: 100%; object-fit: cover; object-position: center; opacity: 0.9; }
+.royal-bonus-city-content { display: grid; grid-template-columns: 11.5rem minmax(0, 1fr); min-height: inherit; }
+
+.royal-bonus-city > .royal-bonus-city-content > header { display: grid; grid-template-columns: 3.8rem minmax(0, 1fr); align-items: center; padding: 0.55rem 0.4rem 0.55rem 0.7rem; }
+.royal-bonus-city-banner { width: 3.25rem; max-height: 5.5rem; object-fit: contain; }
+.royal-bonus-city-title span { display: block; color: #e5bc62; font-size: 0.61rem; font-weight: 700; letter-spacing: 0.11em; }
+.royal-bonus-city-title h3 { color: #fff1c9; font-family: Georgia, serif; font-size: 1.1rem; line-height: 1.05; text-transform: uppercase; }
+
+.royal-bonus-city h3,
+.royal-bonus-city h4 { margin: 0; }
+
+.royal-bonus-groups { display: grid; grid-template-columns: repeat(auto-fit, minmax(9.5rem, 1fr)); gap: 0.45rem; align-items: center; padding: 0.55rem 0.8rem 0.55rem 0.2rem; }
+.royal-bonus-group { min-width: 0; }
+.royal-bonus-group h4 { overflow: hidden; color: #f1deb1; font-size: 0.72rem; line-height: 1.15; text-overflow: ellipsis; white-space: nowrap; }
+.royal-bonus-items { display: flex; gap: 0.22rem; margin-top: 0.28rem; }
 
 .royal-bonus-item {
     display: grid;
-    grid-template-columns: auto auto;
-    grid-template-rows: auto auto;
-    column-gap: 0.3rem;
+    grid-template-columns: 2.4rem minmax(0, 1fr);
+    gap: 0.12rem;
     align-items: center;
     min-width: 0;
-
-    > span { color: #9ba9ba; font-family: var(--font-family-mono); font-size: 0.68rem; }
 }
 
-.royal-bonus-item-icon { grid-row: 1 / -1; width: 3rem; height: 3rem; }
-.royal-bonus-material { display: inline-flex; align-items: center; gap: 0.18rem; min-width: 0; }
-.royal-bonus-material-icon { width: 1rem; height: 1rem; }
-.royal-bonus-material small { color: #aeb8c8; font-size: 0.62rem; }
-.royal-bonus-empty { margin: 0; color: #aeb8c8; }
+.royal-bonus-item-slot { position: relative; display: grid; width: 2.3rem; height: 2.3rem; place-items: center; background: url("../../content/images/royal-bonus/slots/slot-item-square.png") center / 100% 100% no-repeat; }
+.royal-bonus-item-slot > span { position: absolute; right: 0.05rem; bottom: 0; padding: 0.02rem 0.14rem; border-radius: 0.12rem; background: #122944; color: #f6df9c; font-family: var(--font-family-mono); font-size: 0.58rem; font-weight: 700; }
+.royal-bonus-item-icon { width: 1.65rem; height: 1.65rem; }
+.royal-bonus-material { display: grid; grid-template-columns: 1.2rem minmax(0, 1fr); align-items: center; min-width: 0; height: 1.65rem; padding: 0.12rem 0.2rem; background: url("../../content/images/royal-bonus/slots/slot-material-wide.png") center / 100% 100% no-repeat; }
+.royal-bonus-material-icon { width: 1.02rem; height: 1.02rem; }
+.royal-bonus-material small { overflow: hidden; color: #d6e0ea; font-size: 0.54rem; line-height: 1.05; text-overflow: ellipsis; white-space: nowrap; }
+.royal-bonus-empty { position: relative; z-index: 1; margin: 0; color: #b8c6d7; text-align: center; }
 
-.royal-explain-dialog {
-    width: min(68rem, calc(100vw - 5.5rem));
-    max-width: calc(100vw - 5.5rem);
-    max-height: calc(100dvh - 2rem);
-    margin: auto;
-    padding: 0;
-    border: 1px solid var(--color-border);
-    border-radius: 0;
-    background: var(--color-bg);
-    color: var(--color-text);
-    box-shadow: var(--shadow-md);
-
-    &::backdrop {
-        background: color-mix(in srgb, #000 58%, transparent);
-        backdrop-filter: blur(8px);
-    }
-}
-
-.royal-explain-sheet {
-    max-height: calc(100dvh - 2rem);
-    overflow: auto;
-    padding: 1rem;
-}
-
-.royal-explain-panel.calc-explain {
-    margin: 0;
-}
+.royal-bonus-dialog > .app-dialog-close { z-index: 2; width: 2.8rem; height: 2.8rem; border: 0; background: url("../../content/images/royal-bonus/buttons/close-default.png") center / contain no-repeat; }
+.royal-bonus-dialog > .app-dialog-close::before,
+.royal-bonus-dialog > .app-dialog-close::after { content: none; }
+.royal-bonus-dialog > .app-dialog-close:hover { background-image: url("../../content/images/royal-bonus/buttons/close-hover.png"); }
+.bonus-analysis-trigger[data-royal-bonus]:disabled { cursor: not-allowed; opacity: 0.5; }
 
 @media (max-width: 760px) {
-    .royal-bonus-dialog { width: calc(100vw - 5.5rem); max-width: calc(100vw - 5.5rem); }
-    .royal-bonus-sheet { padding: 1rem; }
-    .royal-explain-dialog { width: calc(100vw - 5.5rem); max-width: calc(100vw - 5.5rem); }
+    .royal-bonus-dialog { width: calc(100vw - 3.5rem); max-width: calc(100vw - 3.5rem); }
+    .royal-bonus-sheet { padding: 1rem 0.65rem; }
+    .royal-bonus-head { padding-right: 2.5rem; padding-left: 2.5rem; }
+    .royal-bonus-city-content { grid-template-columns: 8.8rem minmax(0, 1fr); }
+    .royal-bonus-city > .royal-bonus-city-content > header { grid-template-columns: 3rem minmax(0, 1fr); padding-left: 0.3rem; }
+    .royal-bonus-city-banner { width: 2.6rem; }
+    .royal-bonus-city-title h3 { font-size: 0.92rem; }
+    .royal-bonus-groups { grid-template-columns: 1fr; padding: 0.5rem; }
+    .royal-bonus-city-scene { width: 70%; opacity: 0.55; }
+    .royal-bonus-dialog > .app-dialog-close { width: 2.3rem; height: 2.3rem; }
+
 }
 
 .royal-plan-sheet {
@@ -934,23 +932,7 @@
     }
 
     // Hover / selection must beat tier td backgrounds
-    &.has-explain tbody tr.is-explain-hover:not(.is-explain) td {
-        background-image: linear-gradient(color-mix(in srgb, var(--color-primary) 14%, transparent), color-mix(in srgb, var(--color-primary) 14%, transparent));
-    }
 
-    &.has-explain tbody tr.is-explain td {
-        background-image: none;
-    }
-
-    &.has-explain tbody tr.is-explain[data-tier] td {
-        background-color: color-mix(in srgb, var(--color-item-tier) 22%, var(--color-surface));
-    }
-
-    &.has-explain tbody tr.is-explain td:first-child {
-        box-shadow:
-            inset 3px 0 0 var(--royal-tier-bar, var(--color-primary)),
-            0 1px 0 var(--color-border);
-    }
 }
 
 @media (max-width: 991.98px) {

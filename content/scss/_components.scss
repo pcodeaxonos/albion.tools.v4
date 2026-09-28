@@ -1941,6 +1941,16 @@ input[type="month"].form-control {
 [data-tier="6"],
 [data-tier="7"] { --color-on-item-tier: #161108; }
 
+/* Shared city color tokens for city-scoped cards and status panels. */
+[data-city] { --color-city: var(--color-primary); }
+[data-city="bridgewatch"] { --color-city: #e0a04a; }
+[data-city="fort-sterling"] { --color-city: #c5d4e8; }
+[data-city="lymhurst"] { --color-city: #5ecf7a; }
+[data-city="martlock"] { --color-city: #5aa8e8; }
+[data-city="thetford"] { --color-city: #b07ae8; }
+[data-city="caerleon"] { --color-city: #e85a5a; }
+[data-city="brecilien"] { --color-city: #6ec9c0; }
+
 /*
  * Modal close: hangs outside the dialog (right side, 20px gap), CSS X via ::before/::after.
  * Empty button — no × glyph. See .cursor/rules/dialog-close.mdc
@@ -2237,6 +2247,17 @@ input[type="month"].form-control {
     justify-self: center;
     align-self: center;
     transform: none;
+
+    // End labels stay inside the picker, including in scrollable controls.
+    &:first-child .city-map-tip,
+    &:last-child .city-map-tip {
+        transform: translateY(0.15rem);
+    }
+    &:first-child .city-map-tip { left: 0; }
+    &:last-child .city-map-tip { left: auto; right: 0; }
+    &:is(:first-child, :last-child):is(:hover, :focus-visible) .city-map-tip {
+        transform: none;
+    }
 }
 
 /* Plant picker — icon rows (settings: plantPickerStyle) */

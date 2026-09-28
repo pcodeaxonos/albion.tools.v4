@@ -1,0 +1,136 @@
+// Shared viewport contract for every tool. Panels, never clipped page shells,
+// own overflow; min-height: 0 carries the available height down to each table.
+main.tool-page {
+    --page-head-content-height: clamp(5rem, 5vw, 7rem);
+    flex: 1 1 0;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    min-height: 0;
+    padding: 0;
+
+    > .page-head { flex: 0 0 var(--page-head-content-height); }
+    > .page-body {
+        display: flex;
+        flex-direction: column;
+        flex: 1 1 0;
+        min-height: 0;
+        padding-bottom: var(--spacing-sm);
+    }
+}
+
+.page-body > .tool-split {
+    flex: 1 1 0;
+    height: 100%;
+    grid-template-rows: minmax(0, 1fr);
+    align-items: stretch;
+
+    > .left, > .right {
+        display: flex;
+        flex-direction: column;
+        min-width: 0;
+        min-height: 0;
+        height: 100%;
+    }
+
+    > .left {
+        position: sticky;
+        top: 0;
+        overflow: auto;
+        overscroll-behavior: contain;
+        gap: var(--spacing-md);
+    }
+
+    > .left > .controls { flex: 0 0 auto; }
+    > .left > .summary { flex: 0 0 auto; margin-top: auto; }
+
+    > .right > .result {
+        --chrome-top: 0px;
+        --calc-toolbar-height: 0px;
+        display: flex;
+        flex: 1 1 0;
+        flex-direction: column;
+        min-width: 0;
+        min-height: 0;
+        overflow: auto;
+        overscroll-behavior: contain;
+    }
+}
+
+// Carry height through result components, including those replaced on refresh.
+.tool-page .result {
+    :where(div, section):has(.calc-table-wrap) {
+        display: flex;
+        flex-direction: column;
+        flex: 1 1 0;
+        min-height: 0;
+        min-width: 0;
+    }
+
+    :where(div, section):has(.calc-table-wrap) > :not(:has(.calc-table-wrap)):not(.calc-table-wrap) {
+        flex-shrink: 0;
+    }
+
+    .calc-table-wrap.table-responsive {
+        flex: 1 1 0;
+        min-height: 0;
+        overflow: auto;
+        overscroll-behavior: contain;
+    }
+
+    .calc-table thead th { top: 0; }
+    .calc-sticky-sentinel { flex: 0 0 1px; }
+}
+
+// Reports containing several independent tables scroll as a sequence of
+// sections. Do not divide a single flex track until every table reaches zero.
+.tool-page .result--sections {
+    :where(div, section):has(.calc-table-wrap) { flex: 0 0 auto; }
+    .calc-table-wrap.table-responsive { flex: 0 0 auto; max-height: 65dvh; }
+}
+
+// Additional Royal panels remain inside the common right-hand result slot.
+.page-body > .tool-split > .right > .royal-workbench {
+    display: grid;
+    grid-template-columns: minmax(12rem, 0.45fr) minmax(0, 1fr);
+    grid-template-rows: minmax(0, 1fr);
+    gap: var(--spacing-lg);
+
+    .royal-middle-column { display: flex; flex-direction: column; overflow: auto; }
+    .royal-analysis { flex: 1; }
+    .royal-result::after { content: none; }
+}
+
+.tool-page .trades-filters { display: flex; flex-direction: column; }
+.tool-page .trades-options { border: 0; }
+.tool-page .summary .trades-kpi { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.tool-page .trades-root { flex: 1; min-height: 0; padding: 0; }
+.tool-page .trades-main { grid-template-columns: minmax(0, 1fr); }
+.tool-page .trades-panel-body { flex: 1; min-height: 0; overflow: auto; }
+
+
+@media (max-width: 991px) {
+    main.tool-page { flex: 1 0 auto; --page-head-content-height: 8rem; }
+    main.tool-page > .page-body { flex: 1 0 auto; }
+    .page-body > .tool-split {
+        height: auto;
+        flex: 1 0 auto;
+        grid-template-rows: auto auto;
+        > .left, > .right { height: auto; }
+        > .left { position: static; overflow: visible; }
+        > .right > .result { flex: 1 0 auto; }
+    }
+    .tool-page .result .calc-table-wrap.table-responsive {
+        flex: 0 0 auto;
+        max-height: 70dvh;
+    }
+    .page-body > .tool-split > .right > .royal-workbench {
+        grid-template-columns: minmax(0, 1fr);
+        grid-template-rows: auto;
+    }
+    .tool-page .result :where(div, section):has(.calc-table-wrap) { flex: 1 0 auto; }
+    .tool-page .trades-root { min-height: 40rem; }
+    .tool-page .page-head-content { gap: .5rem; flex-wrap: wrap; align-content: center; }
+    .tool-page .page-head-content h1 { font-size: var(--h4-size); }
+    .tool-page .page-head-content p { font-size: var(--font-size-sm); }
+}

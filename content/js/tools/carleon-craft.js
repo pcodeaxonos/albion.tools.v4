@@ -1,3 +1,4 @@
+import { toolPageHtml } from '../components/tool-page.js';
 import { escapeHtml } from '../utils/utils.js';
 import { initNav } from '../core/nav.js';
 import { routeHref } from '../core/routes.js';
@@ -25,7 +26,6 @@ import { bindLivePrices } from '../core/price-live.js';
 import {
     bindCalcExplain,
     refreshCalcExplain,
-    calcExplainShell,
     explainNum,
     explainOp,
     explainStep,
@@ -273,19 +273,6 @@ function renderMatStrip() {
     `;
 }
 
-function bestExplainKey(list) {
-    let best = null;
-    for (const row of list) {
-        if (row.profit == null) {
-            continue;
-        }
-        if (best == null || row.profit > best.profit) {
-            best = row;
-        }
-    }
-    return best?.item.id ?? list[0]?.item.id ?? null;
-}
-
 function renderCarleonExplain(key, { hovered } = {}) {
     const row = rows().find((item) => item.item.id === key);
     if (!row) {
@@ -426,11 +413,11 @@ function renderCarleonExplain(key, { hovered } = {}) {
 
 function bindExplain(container) {
     bindCalcExplain({
-        panel: container.querySelector('#carleonExplain'),
+        root: container,
+        key: 'carleonExplain',
         table: container.querySelector('.carleon-table'),
         rowKey: (tr) => tr.dataset.itemId,
         keys: () => rows().map((row) => row.item.id),
-        defaultKey: () => bestExplainKey(rows()),
         render: (key, meta) => renderCarleonExplain(key, meta)
     });
 }
@@ -515,7 +502,6 @@ function renderOutput() {
         <div id="carleonResult">
             ${renderMatStrip()}
             ${renderTable()}
-            ${calcExplainShell('carleonExplain')}
             <section data-page-info>
             ${renderBonusNote()}
             <p class="carleon-note">Malzeme ${escapeHtml(matNote)} · satış ${escapeHtml(itemNote)}. Elle yazılan alış/satış API’nin yerine geçer; kırmızı fiyat API’de yok, mavi 6 saatten eski.</p>
@@ -582,7 +568,7 @@ function refreshCalc(container) {
         }
     }
 
-    refreshCalcExplain(container.querySelector('#carleonExplain'));
+    refreshCalcExplain(container);
 
     mats().forEach((mat) => {
         const card = container.querySelector(`[data-mat-card="${mat.key}"]`);
@@ -638,14 +624,13 @@ function refreshOutput(container) {
 }
 
 function renderPage(container) {
-    container.innerHTML = `
-        <section class="page-head" data-page-head="caerleon-craft">
+    container.innerHTML = toolPageHtml({
+        key: 'carleon-craft',
+        head: `<section class="page-head" data-page-head="caerleon-craft">
             <h1>Caerleon Craft</h1>
             <p>T2 set1 craft. Malzeme Caerleon, satış Black Market. Alışta buy +1 / sell aynı fiyat. Satışta sell −1 / buy aynı fiyat. Emirde setup fee, satışta vergi. Alış/satış alanına yazınca o fiyat kullanılır.</p>
-        </section>
-
-        <div class="tool-split">
-            <div class="tool-split-controls">
+        </section>`,
+        controls: `
                 <div class="carleon-toolbar">
                     <div class="carleon-type" role="radiogroup" aria-label="Premium">
                         ${renderPremiumToggle()}
@@ -670,12 +655,12 @@ function renderPage(container) {
                     </div>
                     ${priceRefreshActionsHtml()}
                 </div>
-            </div>
-            <div class="tool-split-result">
+            `,
+        summary: ``,
+        result: `
                 ${renderOutput()}
-            </div>
-        </div>
-    `;
+            `,
+    });
 
     bindPage(container);
     bindCarleonSort(container);
@@ -749,7 +734,7 @@ async function loadPrices(container, { showLoader = true, source } = {}) {
 
 async function init() {
     initNav();
-    const container = document.getElementById('carleonTool');
+    const container = document.querySelector('[data-tool="carleon-craft"]');
     if (!container) {
         return;
     }

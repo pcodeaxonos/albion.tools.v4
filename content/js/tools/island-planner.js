@@ -1,3 +1,4 @@
+import { toolPageHtml } from '../components/tool-page.js';
 import { escapeHtml } from '../utils/utils.js';
 import { initNav } from '../core/nav.js';
 import { routeHref } from '../core/routes.js';
@@ -20,7 +21,6 @@ import { priceRefreshActionsHtml, bindPriceRefresh } from '../components/price-r
 import { runPriceLoad } from './shared/price-load.js';
 import { readJsonStorage, writeJsonStorage } from '../core/storage.js';
 import {
-    calcExplainShell,
     bindCalcExplain,
     explainPanelHtml,
     explainEmptyHtml,
@@ -1150,47 +1150,16 @@ function renderPlannerExplain(key, { hovered } = {}) {
 }
 
 function bindPlannerExplain(container) {
-    const panel = container.querySelector('#islandPlannerExplain');
-    const table = container.querySelector('[data-island-explain-table="plan"]')
-        || container.querySelector('.island-planner-table');
-    if (!panel || !table) {
-        return;
-    }
-    bindCalcExplain({
-        panel,
-        table,
-        rowKey: (tr) => tr.dataset.explainKey,
-        keys: () => collectExplainRows().map((row) => row.key),
-        defaultKey: () => collectExplainRows()[0]?.key ?? null,
-        render: (key, meta) => renderPlannerExplain(key, meta)
-    });
-
-    const extraTables = [...container.querySelectorAll('[data-island-explain-table="ledger"], [data-island-explain-table="runners"]')];
-    const paintKey = (key, source) => {
-        if (!key) {
-            return;
-        }
-        table.querySelectorAll('tbody tr').forEach((tr) => {
-            tr.classList.toggle('is-explain', false);
-            tr.classList.toggle('is-explain-hover', false);
-        });
-        extraTables.forEach((extra) => {
-            extra.querySelectorAll('tbody tr').forEach((tr) => {
-                tr.classList.toggle('is-explain', extra === source && tr.dataset.explainKey === key);
-            });
-        });
-        panel.innerHTML = renderPlannerExplain(key, { hovered: false });
-    };
-    extraTables.forEach((extra) => {
-        if (extra.dataset.explainBound === 'on') {
-            return;
-        }
-        extra.dataset.explainBound = 'on';
-        extra.addEventListener('click', (event) => {
-            const tr = event.target instanceof Element ? event.target.closest('tbody tr') : null;
-            if (tr?.dataset.explainKey) {
-                paintKey(tr.dataset.explainKey, extra);
-            }
+    container.querySelectorAll('[data-island-explain-table]').forEach((table) => {
+        const type = table.dataset.islandExplainTable;
+        bindCalcExplain({
+            root: container,
+            key: type,
+            table,
+            itemCell: type === 'ledger' ? 1 : 2,
+            rowKey: (row) => row.dataset.explainKey,
+            keys: () => collectExplainRows().map((row) => row.key),
+            render: renderPlannerExplain
         });
     });
 }
@@ -1209,7 +1178,6 @@ function renderOutput() {
             ${renderSummary()}
             ${renderSlotsTable()}
             ${renderLedger()}
-            ${calcExplainShell('islandPlannerExplain')}
             ${renderCityCompare()}
             ${renderRunnersUp()}
             <p class="farming-note">
@@ -1302,14 +1270,14 @@ function applyPlan(container) {
 function renderPage(container) {
     const overrideVal = state.plotsOverride != null ? String(state.plotsOverride) : '';
     const factionAvail = factionMountForCity(state.islandCity, state.factionTier);
-    container.innerHTML = `
-        <section class="page-head" data-page-head="island-planner">
+    container.innerHTML = toolPageHtml({
+        key: 'island-planner',
+        resultClass: 'result--sections',
+        head: `<section class="page-head" data-page-head="island-planner">
             <h1>Ada Planlayıcı</h1>
             <p>Ada plotlarını <strong>ham gümüş/gün</strong> (zaman-normalize kâr) için planlar. Aday defteri her path’in maliyet / gelir / kârını ve ada yemi fırsat maliyetini canlı gösterir. Likidite ve volatilite yalnızca uyarıdır; ince pazar elenmez.</p>
-        </section>
-
-        <div class="tool-split">
-            <div class="tool-split-controls">
+        </section>`,
+        controls: `
                 <div class="farming-toolbar island-planner-toolbar">
                     ${renderToggle('Premium', [
                         { id: true, value: '1', label: 'Premium' },
@@ -1367,12 +1335,12 @@ function renderPage(container) {
                         : `<p class="farming-note">Bu şehirde faction bineği yok / bilinmiyor.</p>`}
                     ${priceRefreshActionsHtml()}
                 </div>
-            </div>
-            <div class="tool-split-result">
+            `,
+        summary: ``,
+        result: `
                 ${renderOutput()}
-            </div>
-        </div>
-    `;
+            `,
+    });
 
     bindPage(container);
     initFloatingLabels(container);
@@ -1513,7 +1481,7 @@ async function loadPrices(container, { showLoader = true, source } = {}) {
 
 async function init() {
     initNav();
-    const container = document.getElementById('islandPlannerTool');
+    const container = document.querySelector('[data-tool="island-planner"]');
     if (!container) {
         return;
     }

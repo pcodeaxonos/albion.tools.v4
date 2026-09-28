@@ -20,6 +20,7 @@ Pages with filters/forms plus a result or table use `.tool-split`:
 - On desktop (992px+), keep the controls sticky; below that, stack controls above results.
 - Tables retain `.calc-table` and `bindCalcSticky`.
 - Place fee, RR, scenario, profitability, and timestamp notes below the result/table.
+- Never use `overflow: hidden` to suppress page scrolling or force a table into view. Establish a bounded flex/grid height chain with `min-height: 0`, then assign `overflow: auto` to the intended table or panel scrollport. Use clipping only for deliberate visual clipping (such as media) and document the reason.
 
 ## Editable log tables
 

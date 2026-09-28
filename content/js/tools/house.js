@@ -1,3 +1,4 @@
+import { toolPageHtml } from '../components/tool-page.js';
 import { escapeHtml } from '../utils/utils.js';
 import { initNav } from '../core/nav.js';
 import { initFloatingLabels } from '../components/forms.js';
@@ -265,14 +266,13 @@ function refreshOutput(container) {
 function renderPage(container) {
     clampState();
 
-    container.innerHTML = `
-        <section class="page-head" data-page-head="house">
+    container.innerHTML = toolPageHtml({
+        key: 'house',
+        head: `<section class="page-head" data-page-head="house">
             <h1>House</h1>
             <p>Ada evi ve guild hall yükseltmesi. Oyunun istediği T1 + block; yanında isteğe bağlı ham taş (0% RR). Fiyat yok.</p>
-        </section>
-
-        <div class="tool-split">
-            <div class="tool-split-controls">
+        </section>`,
+        controls: `
                 <form class="house-calc" id="houseCalc" action="#">
                     <div class="house-type" role="radiogroup" aria-label="Bina">
                         ${renderTypeToggle()}
@@ -293,12 +293,12 @@ function renderPage(container) {
                         </div>
                     </div>
                 </form>
-            </div>
-            <div class="tool-split-result">
+            `,
+        summary: ``,
+        result: `
                 ${renderOutput()}
-            </div>
-        </div>
-    `;
+            `,
+    });
 
     bindPage(container);
 }
@@ -359,7 +359,7 @@ function bindPage(container) {
 
 async function init() {
     initNav();
-    const container = document.getElementById('houseTool');
+    const container = document.querySelector('[data-tool="house"]');
     if (!container) {
         return;
     }

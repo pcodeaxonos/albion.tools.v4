@@ -1,5 +1,5 @@
 import { getAll } from '../db/store.js';
-import { getPlants, getAnimals } from './catalog.js';
+import { getPlants, getAnimals, getEconomyConstant } from './catalog.js';
 import { baseYield, premiumYield, cityYieldBonus } from './island/economy-config.js';
 
 const TABLE = 'islandYieldLogs';

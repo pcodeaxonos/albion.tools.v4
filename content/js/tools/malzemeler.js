@@ -1,3 +1,4 @@
+import { toolPageHtml } from '../components/tool-page.js';
 import { escapeHtml } from '../utils/utils.js';
 import { initNav } from '../core/nav.js';
 import { initStore } from '../db/store.js';
@@ -397,14 +398,13 @@ function renderOutput() {
 
 function renderPage(container) {
     const group = currentGroup();
-    container.innerHTML = `
-        <section class="page-head" data-page-head="city-spread">
+    container.innerHTML = toolPageHtml({
+        key: 'malzemeler',
+        head: `<section class="page-head" data-page-head="city-spread">
             <h1>Şehir Makası</h1>
             <p>Bir şehirden alıp diğerinde sat: plank, bar, leather, cloth ve binek. Vergi ve setup diğer araçlarla aynı.</p>
-        </section>
-
-        <div class="tool-split">
-            <div class="tool-split-controls">
+        </section>`,
+        controls: `
                 <div class="farming-toolbar">
                     <div class="form-floating farming-city-field">
                         <select class="form-select is-filled" id="malzemelerGroup">
@@ -452,12 +452,12 @@ function renderPage(container) {
                     })}
                     ${priceRefreshActionsHtml()}
                 </div>
-            </div>
-            <div class="tool-split-result">
+            `,
+        summary: ``,
+        result: `
                 ${renderOutput()}
-            </div>
-        </div>
-    `;
+            `,
+    });
 
     bindPage(container);
     bindTableSort(container);
@@ -740,7 +740,7 @@ async function loadPrices(container, { showLoader = true, source, areaLoader = f
 
 async function init() {
     initNav();
-    const container = document.getElementById('malzemelerTool');
+    const container = document.querySelector('[data-tool="malzemeler"]');
     if (!container) {
         return;
     }

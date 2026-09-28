@@ -58,26 +58,8 @@ function arrangePageHead(head) {
 
 }
 
-function arrangeToolPage(root) {
-    const head = [...root.children].find((child) => child.classList.contains('page-head'));
-    if (!head || root.querySelector(':scope > .page-body')) return;
-
-    const body = document.createElement('div');
-    body.className = 'page-body';
-    let sibling = head.nextSibling;
-    while (sibling) {
-        const next = sibling.nextSibling;
-        body.append(sibling);
-        sibling = next;
-    }
-
-    root.append(body);
-    root.classList.add('tool-page');
-}
-
 const pageLayoutObserver = new MutationObserver(() => {
     document.querySelectorAll('.page-head').forEach(arrangePageHead);
-    document.querySelectorAll('main > [id]').forEach(arrangeToolPage);
 });
 
 pageLayoutObserver.observe(document.documentElement, { childList: true, subtree: true });

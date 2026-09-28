@@ -17,6 +17,23 @@
     flex-shrink: 0;
 }
 
+// Refining's material selector is intentionally icon-only: the item artwork
+// identifies each resource more quickly than a repeated text label.
+.refining-family-btn {
+    min-width: 3.75rem;
+    min-height: 3.75rem;
+    padding: 0.5rem;
+
+    &.has-icon {
+        padding: 0.5rem;
+    }
+
+    .farming-type-btn-icon {
+        width: 2.5rem;
+        height: 2.5rem;
+    }
+}
+
 .farming-type-btn-label {
     min-width: 0;
 }
@@ -49,7 +66,9 @@
 }
 
 .farming-col-item {
-    width: auto;
+    // Reserve an item column even when price/metric percentages exhaust the
+    // table width (e.g. Pasture). It also contains the explanation trigger.
+    width: 14rem;
 }
 
 .farming-col-price {
@@ -213,4 +232,3 @@
     color: inherit;
     opacity: 0.8;
 }
-

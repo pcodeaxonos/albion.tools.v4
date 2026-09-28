@@ -1,5 +1,5 @@
 // Calculator sticky chrome — toolbar under topbar, thead under toolbar.
-// Scrollport is .app-content; table-responsive must stay overflow:visible.
+// Each result table owns its scrollport.
 // Rest: blend with the page. Stuck: opaque fill + separator only.
 .calc-sticky-sentinel {
     height: 1px;
@@ -57,13 +57,10 @@
 
 // Tool pages: sticky selections left, results right. Stacks below 992px.
 .tool-split {
-    --tool-split-float-room: calc(var(--floating-label-float-size) / 2 + 0.5rem);
     display: grid;
     grid-template-columns: minmax(15.5rem, 18rem) minmax(0, 1fr);
     gap: var(--spacing-lg);
     align-items: start;
-    min-width: 0;
-    min-height: 0;
     min-width: 0;
     min-height: 0;
 
@@ -88,10 +85,6 @@
         }
     }
 
-    // Keep thead under the same offset as the sticky left fields.
-    @media (min-width: 992px) {
-        --calc-toolbar-height: var(--tool-split-float-room);
-    }
 }
 
 .tool-split-controls {
@@ -102,21 +95,6 @@
     gap: var(--spacing-sm);
     min-width: 0;
     max-width: 100%;
-    // A vertically scrollable control column otherwise promotes its horizontal
-    // overflow to a scrollport. Keep controls contained without adding a
-    // second, horizontal scrollbar on any tool page.
-    overflow-x: clip;
-
-    @media (min-width: 992px) {
-        position: sticky;
-        top: var(--chrome-top);
-        z-index: 12;
-        max-height: calc(100dvh - var(--chrome-top));
-        padding-top: 0;
-        padding-bottom: var(--spacing-md);
-        background-color: var(--color-bg);
-    }
-
     .form-section {
         width: 100%;
     }
@@ -250,12 +228,6 @@
 .tool-split-result {
     min-width: 0;
     min-height: 0;
-    min-height: 0;
-
-    // Same float-label room as the left column so field tops match thead.
-    @media (min-width: 992px) {
-        padding-top: 0;
-    }
 }
 
 .calc-table-wrap.table-responsive {
@@ -296,30 +268,4 @@
         box-shadow: 0 1px 0 var(--color-border);
     }
 
-    &.has-explain tbody tr {
-        cursor: pointer;
-    }
-
-    // Selected row sticks under thead while scrolling (all calc tools)
-    &.has-explain tbody tr.is-explain td {
-        position: sticky;
-        top: calc(var(--chrome-top) + var(--calc-toolbar-height) + var(--calc-thead-height));
-        z-index: 10;
-        background-color: color-mix(in srgb, var(--color-primary) 8%, var(--color-surface));
-        box-shadow: 0 1px 0 var(--color-border);
-    }
-
-    &.has-explain tbody tr.is-explain td:first-child {
-        box-shadow:
-            inset 3px 0 0 var(--color-primary),
-            0 1px 0 var(--color-border);
-    }
-
-    &.has-explain tbody tr.is-explain-hover:not(.is-explain) td {
-        background-color: color-mix(in srgb, var(--color-primary) 10%, var(--color-surface-hover));
-    }
-
-    &.has-explain tbody tr.is-explain.is-explain-hover td {
-        background-color: color-mix(in srgb, var(--color-primary) 14%, var(--color-surface));
-    }
 }

@@ -1,3 +1,5 @@
+import { bindCalcExplain } from '../utils/calc-explain.js';
+import { toolPageHtml } from '../components/tool-page.js';
 import { escapeHtml } from '../utils/utils.js';
 import { initNav } from '../core/nav.js';
 import { routeHref } from '../core/routes.js';
@@ -37,9 +39,6 @@ import { bindManualPriceFields } from '../components/manual-price-fields.js';
 
 import { readJsonStorage, writeJsonStorage } from '../core/storage.js';
 import {
-    bindCalcExplain,
-    refreshCalcExplain,
-    calcExplainShell,
     explainNum,
     explainOp,
     explainStep,
@@ -125,8 +124,11 @@ function resourceId(stem, tier, enchant) {
     return `T${tier}_${stem}_LEVEL${level}@${level}`;
 }
 
-function rowEnchant(tier) {
-    return tier < 4 ? 0 : state.enchant;
+function selectedEnchants(tier) {
+    if (tier < 4) {
+        return [0];
+    }
+    return state.enchant === 'all' ? [0, 1, 2, 3] : [state.enchant];
 }
 
 function lowerSpec(tier, enchant) {
@@ -156,7 +158,8 @@ function allUniqueNames() {
 function itemDisplayName(uniqueName, enchant) {
     const base = uniqueName.replace(/_LEVEL\d+@\d+$/, '');
     const name = itemLabel(base, base);
-    return enchant > 0 ? `${name} .${enchant}` : name;
+    const tier = base.match(/^T(\d+)_/)?.[1];
+    return tier ? `${name} ${tier}.${enchant}` : name;
 }
 
 function cityNames() {
@@ -227,9 +230,13 @@ function readPrefs(cities) {
     if (families().some((family) => family.id === parsed.family)) {
         state.family = parsed.family;
     }
-    const enchant = Number(parsed.enchant);
-    if ([0, 1, 2, 3].includes(enchant)) {
-        state.enchant = enchant;
+    if (parsed.enchant === 'all') {
+        state.enchant = 'all';
+    } else {
+        const enchant = Number(parsed.enchant);
+        if ([0, 1, 2, 3].includes(enchant)) {
+            state.enchant = enchant;
+        }
     }
     if (parsed.chain === 'full' || parsed.chain === 'market') {
         state.chain = parsed.chain;
@@ -332,8 +339,7 @@ function rows() {
     const cache = new Map();
     const rr = returnRate();
 
-    return TIERS.map((tier) => {
-        const enchant = rowEnchant(tier);
+    return TIERS.flatMap((tier) => selectedEnchants(tier).map((enchant) => {
         const rawId = resourceId(family.raw, tier, enchant);
         const outId = resourceId(family.out, tier, enchant);
         const rawQuote = quoteRaw(rawId);
@@ -352,7 +358,7 @@ function rows() {
                 : !quoteLower(lowerId));
 
         return {
-            id: `t${tier}`,
+            id: `t${tier}-e${enchant}`,
             tier,
             enchant,
             rawId,
@@ -368,7 +374,7 @@ function rows() {
             pct,
             lowerGap
         };
-    });
+    }));
 }
 
 function bestRow(list) {
@@ -636,12 +642,11 @@ function renderRefiningExplain(key, { hovered } = {}) {
 
 function bindExplain(container) {
     bindCalcExplain({
-        panel: container.querySelector('#refiningExplain'),
+        root: container,
+        key: 'refining',
         table: container.querySelector('.farming-table'),
-        rowKey: (tr) => tr.dataset.itemId,
-        keys: () => rows().map((row) => row.id),
-        defaultKey: () => bestRow(rows())?.id ?? rows()[0]?.id ?? null,
-        render: (key, meta) => renderRefiningExplain(key, meta)
+        rowKey: (row) => row.dataset.itemId,
+        render: renderRefiningExplain
     });
 }
 
@@ -652,10 +657,11 @@ function renderToggleGroup(name, options, selected, attr) {
             ? itemIconHtml(option.iconId, { size: 28, className: 'item-icon farming-type-btn-icon' })
             : '';
         return `
-            <button type="button" class="farming-type-btn${pressed ? ' is-active' : ''}${icon ? ' has-icon' : ''}"
+            <button type="button" class="farming-type-btn${pressed ? ' is-active' : ''}${icon ? ' has-icon' : ''}${option.className ? ` ${option.className}` : ''}"
                 data-${attr}="${escapeHtml(String(option.id))}"
+                ${option.ariaLabel ? `aria-label="${escapeHtml(option.ariaLabel)}"` : ''}
                 aria-pressed="${pressed ? 'true' : 'false'}">
-                ${icon}<span class="farming-type-btn-label">${escapeHtml(option.label)}</span>
+                ${icon}${option.hideLabel ? '' : `<span class="farming-type-btn-label">${escapeHtml(option.label)}</span>`}
             </button>
         `;
     }).join('');
@@ -743,7 +749,7 @@ function renderTable(list) {
 
         return `
             <tr data-item-id="${escapeHtml(row.id)}" class="${bestClass.trim()}">
-                <td data-sort-value="${row.tier}">
+                <td data-sort-value="${row.tier * 10 + row.enchant}">
                     <span class="farming-item">
                         ${itemIconHtml(row.outId)}
                         <span>
@@ -761,7 +767,8 @@ function renderTable(list) {
                         missing: !rawFetched,
                         date: rawFetched?.date,
                         dataAttr: `data-raw-id="${escapeHtml(row.rawId)}"`,
-                        iconId: row.rawId
+                        iconId: row.rawId,
+                        showFoot: false
                     })}
                 </td>
                 <td class="num farming-num farming-price-cell" data-sort-value="${row.outQuote?.price ?? ''}">
@@ -773,7 +780,8 @@ function renderTable(list) {
                         missing: !outFetched,
                         date: outFetched?.date,
                         dataAttr: `data-out-id="${escapeHtml(row.outId)}"`,
-                        iconId: row.outId
+                        iconId: row.outId,
+                        showFoot: false
                     })}
                 </td>
                 <td class="num farming-num${incompleteClass(row.cost)}" data-sort-value="${row.cost ?? ''}">${formatSilver(row.cost)}</td>
@@ -828,7 +836,6 @@ function renderOutput() {
     return `
         <div id="refiningResult">
             ${renderTable(list)}
-            ${calcExplainShell('refiningExplain')}
             <section data-page-info>
             ${renderSummary(list)}
             ${renderScenario()}
@@ -840,24 +847,27 @@ function renderOutput() {
 }
 
 function renderPage(container) {
-    container.innerHTML = `
-        <section class="page-head" data-page-head="refining">
+    container.innerHTML = toolPageHtml({
+        key: 'refining',
+        head: `<section class="page-head" data-page-head="refining">
             <h1>Refining</h1>
             <p>Seçilen hammaddede hangi kademeyi işlemenin kâr bıraktığı. Ham alış, refine ve satış şehirleri ayrı; focus ve günlük bonus RR’yi değiştirir.</p>
-        </section>
-
-        <div class="tool-split">
-            <div class="tool-split-controls">
+        </section>`,
+        controls: `
                 <div class="farming-toolbar">
                     <div class="farming-type" role="radiogroup" aria-label="Aile">
                         ${renderToggleGroup('family', families().map((family) => ({
                             id: family.id,
                             label: family.label,
-                            iconId: `T4_${family.raw}`
+                            iconId: `T4_${family.raw}`,
+                            ariaLabel: family.label,
+                            className: 'refining-family-btn',
+                            hideLabel: true
                         })), state.family, 'family')}
                     </div>
                     <div class="farming-type" role="radiogroup" aria-label="Enchant">
                         ${renderToggleGroup('enchant', [
+                            { id: 'all', label: 'Tümü' },
                             { id: 0, label: '0' },
                             { id: 1, label: '.1' },
                             { id: 2, label: '.2' },
@@ -923,12 +933,12 @@ function renderPage(container) {
                     })}
                     ${priceRefreshActionsHtml()}
                 </div>
-            </div>
-            <div class="tool-split-result">
+            `,
+        summary: ``,
+        result: `
                 ${renderOutput()}
-            </div>
-        </div>
-    `;
+            `,
+    });
 
     bindPage(container);
     bindRefiningSort(container);
@@ -954,7 +964,7 @@ function bindRefiningSort(container) {
 function patchRowCells(tr, row, bestId) {
     tr.classList.toggle('is-best', row.id === bestId);
 
-    tr.cells[0].dataset.sortValue = String(row.tier);
+    tr.cells[0].dataset.sortValue = String(row.tier * 10 + row.enchant);
 
     const rawCell = tr.cells[1];
     const outCell = tr.cells[2];
@@ -1022,7 +1032,6 @@ function refreshCalc(container) {
         }
     }
 
-    refreshCalcExplain(container.querySelector('#refiningExplain'));
 }
 
 function bindPriceInputs(container) {
@@ -1125,7 +1134,9 @@ function bindPage(container) {
 
     container.querySelectorAll('[data-enchant]').forEach((button) => {
         button.addEventListener('click', () => {
-            const enchant = Number(button.dataset.enchant) || 0;
+            const enchant = button.dataset.enchant === 'all'
+                ? 'all'
+                : Number(button.dataset.enchant) || 0;
             if (enchant === state.enchant) {
                 return;
             }
@@ -1256,7 +1267,7 @@ async function loadPrices(container, { showLoader = true, source, areaLoader = f
 
 async function init() {
     initNav();
-    const container = document.getElementById('refiningTool');
+    const container = document.querySelector('[data-tool="refining"]');
     if (!container) {
         return;
     }

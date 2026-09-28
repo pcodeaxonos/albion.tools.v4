@@ -635,11 +635,8 @@
 
 /* Desktop trade analysis is a contained workspace: long tables scroll in-panel. */
 @media (min-width: 1101px) {
-    body:has(.trades-page) { overflow: hidden; }
-    body:has(.trades-page) .app-content { overflow: hidden; }
-    main:has(.trades-page) { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; padding-top: .65rem; padding-bottom: .65rem; overflow: hidden; }
     .trades-page { flex: 1; min-height: 0; display: flex; }
-    .trades-root { --trades-section-gap: .45rem; flex: 1; min-height: 0; height: 100%; padding-bottom: 0; gap: var(--trades-section-gap); overflow: hidden; }
+    .trades-root { --trades-section-gap: .45rem; flex: 1; min-height: 0; height: 100%; padding-bottom: 0; gap: var(--trades-section-gap); }
     .trades-filters > :not(.form-floating) > .form-label { margin-bottom: .15rem; }
     .trades-filters > :not(.form-floating) > .form-control, .trades-filters > :not(.form-floating) > .form-select { height: 2.5rem; min-height: 2.5rem; }
     .trades-filters-actions .btn { height: 2.5rem; min-height: 2.5rem; }

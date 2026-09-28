@@ -5,7 +5,12 @@ function readPx(el, name) {
 }
 
 function findScrollRoot(el) {
-    return el?.closest('.app-content') || null;
+    let parent = el?.parentElement;
+    while (parent) {
+        if (/(auto|scroll)/.test(getComputedStyle(parent).overflowY)) return parent;
+        parent = parent.parentElement;
+    }
+    return null;
 }
 
 function ensureSentinel(target, attr) {
@@ -59,7 +64,6 @@ export function bindCalcSticky(root, toolbar = root?.querySelector('[data-calc-t
         return;
     }
 
-    const scrollRoot = findScrollRoot(toolbar || tables[0] || root);
     const pinObservers = [];
 
     const bindPinState = () => {
@@ -68,12 +72,11 @@ export function bindCalcSticky(root, toolbar = root?.querySelector('[data-calc-t
         const navbarHeight = readPx(document.documentElement, '--navbar-height');
         const statusHeight = readPx(document.documentElement, '--status-bar-height');
         const chromeTop = navbarHeight + statusHeight;
-        let toolbarHeight = 0;
 
         if (toolbar) {
+            const scrollRoot = findScrollRoot(toolbar);
             const toolbarSentinel = ensureSentinel(toolbar, 'data-calc-toolbar-sentinel');
             pinObservers.push(observePinned(toolbarSentinel, toolbar, scrollRoot, chromeTop));
-            toolbarHeight = Math.ceil(toolbar.getBoundingClientRect().height);
         }
 
         applyToolbarHeight(root, toolbar);
@@ -86,7 +89,9 @@ export function bindCalcSticky(root, toolbar = root?.querySelector('[data-calc-t
                 `${Math.max(theadHeight, 1)}px`
             );
             const sentinel = ensureSentinel(table, 'data-calc-thead-sentinel');
-            pinObservers.push(observePinned(sentinel, table, scrollRoot, chromeTop + toolbarHeight));
+            const scrollRoot = findScrollRoot(table);
+            const top = parseFloat(getComputedStyle(thead?.querySelector('th') || table).top) || 0;
+            pinObservers.push(observePinned(sentinel, table, scrollRoot, top));
         });
     };
 
@@ -98,7 +103,7 @@ export function bindCalcSticky(root, toolbar = root?.querySelector('[data-calc-t
     }
     root.querySelectorAll('.calc-table').forEach((table) => resizeObserver.observe(table));
 
-    const media = window.matchMedia('(max-width: 767px)');
+    const media = window.matchMedia('(max-width: 991px)');
     const onBreakpoint = () => bindPinState();
     media.addEventListener('change', onBreakpoint);
 
