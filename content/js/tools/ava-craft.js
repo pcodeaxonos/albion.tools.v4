@@ -23,7 +23,7 @@ import {
 import { SETUP_FEE, purchaseCost, saleProceeds, salesTaxRate, placesOrder } from '../core/market-fees.js';
 import { bindCalcSticky } from '../utils/calc-sticky.js';
 import { bindLivePrices } from '../core/price-live.js';
-import { loadCities } from '../core/cities.js';
+import { loadActiveCities } from '../core/cities.js';
 import { cityFieldHtml, bindCityField } from '../components/city-picker.js';
 import {
     bindCalcExplain,
@@ -923,7 +923,7 @@ async function init() {
     try {
         await initStore();
         ensureManualMaps();
-        state.cities = loadCities().filter((city) => city.isActive);
+        state.cities = loadActiveCities();
         state.city = readSavedCity(state.cities);
         state.bonusRate = defaultCraftBonusRate([FAMILY_KEY]);
         renderPage(container);

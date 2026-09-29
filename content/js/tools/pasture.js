@@ -2,7 +2,7 @@ import { toolPageHtml } from '../components/tool-page.js';
 import { escapeHtml } from '../utils/utils.js';
 import { initNav } from '../core/nav.js';
 import { initStore } from '../db/store.js';
-import { getSettings, cityHasIsland, getDefaultCity } from '../core/settings.js';
+import { getSettings, getDefaultCity } from '../core/settings.js';
 import { fetchPrices, indexPrices, cityRow } from '../core/market.js';
 import { itemIconHtml, itemLabel } from '../components/item-icon.js';
 import { showPageLoader, hidePageLoader } from '../components/loader.js';
@@ -21,7 +21,7 @@ import {
 import { SETUP_FEE, purchaseCost, saleProceeds, salesTaxRate, placesOrder } from '../core/market-fees.js';
 import { bindCalcSticky } from '../utils/calc-sticky.js';
 import { loadActiveCities } from '../core/cities.js';
-import { cityFieldHtml, bindCityField } from '../components/city-picker.js';
+import { cityFieldHtml, bindCityField, cityIslandDecorate } from '../components/city-picker.js';
 import { bindLivePrices } from '../core/price-live.js';
 import {
     bindCalcExplain,
@@ -857,17 +857,8 @@ function renderFocusToggle() {
     }).join('');
 }
 
-function cityIslandDecorate(city) {
-    if (cityHasIsland(city.marketApiName)) {
-        return {};
-    }
-    return { muted: true, hint: 'ada yok' };
-}
-
 function sortedCities() {
-    return [...state.cities].sort(
-        (a, b) => Number(!cityHasIsland(a.marketApiName)) - Number(!cityHasIsland(b.marketApiName)) || a.id - b.id
-    );
+    return state.cities;
 }
 
 function pathLabel(path) {

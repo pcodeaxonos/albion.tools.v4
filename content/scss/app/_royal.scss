@@ -278,7 +278,7 @@
         grid-template-columns: minmax(0, 1fr);
         padding: 0 0.5rem;
         border-left-color: var(--color-city, var(--color-primary));
-        background: transparent;
+        background: color-mix(in srgb, var(--color-city, var(--color-primary)) 12%, var(--color-surface));
     }
 }
 

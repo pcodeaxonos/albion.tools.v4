@@ -7,17 +7,15 @@ import { showPageLoader, hidePageLoader } from '../components/loader.js';
 import { bindCalcSticky } from '../utils/calc-sticky.js';
 import { bindLogTableRows } from '../components/log-table.js';
 import { loadActiveCities } from '../core/cities.js';
-import { cityFieldHtml, bindCityField, setCityFieldValue, cityColorHex, citiesFromDefaultRoyalRing } from '../components/city-picker.js';
+import { cityFieldHtml, bindCityField, setCityFieldValue, cityColorHex, cityIslandDecorate } from '../components/city-picker.js';
 import {
-    plantFieldHtml,
-    animalFieldHtml,
+    islandYieldFieldHtml,
     bindPlantField,
-    bindAnimalField,
     setPlantFieldValue,
-    setAnimalFieldValue,
+    kindForIslandYieldKey,
     outputGroupsForKind
-} from '../components/plant-picker.js?v=20260927-picker-groups-2';
-import { getSettings, saveSettings, cityHasIsland, getDefaultCity } from '../core/settings.js';
+} from '../components/plant-picker.js?v=20260929-island-sections';
+import { getSettings, saveSettings, getDefaultCity } from '../core/settings.js';
 import { cityYieldBonus, productQtyConst } from '../core/island/economy-config.js';
 import { getPlants, getAnimals } from '../core/catalog.js';
 import { itemIconHtml } from '../components/item-icon.js';
@@ -43,12 +41,6 @@ const CHANGE_BADGE_EXIT_MS = 800;
 
 const OUTLIER_SEED_RATE_DELTA = 0.20;
 const OUTLIER_HARVEST_RATE_DELTA = 0.18;
-
-const YIELD_KINDS = [
-    { id: 'plant', label: 'Tarla' },
-    { id: 'pasture', label: 'Pasture' },
-    { id: 'kennel', label: 'Kennel' }
-];
 
 const SLOT_WARNING_GROUPS = [
     { id: 'crop', label: 'Bitki' },
@@ -169,7 +161,7 @@ function cityLabel(apiName) {
 }
 
 function comparisonCities() {
-    return citiesFromDefaultRoyalRing(state.cities);
+    return state.cities;
 }
 
 function itemsForKind(kind = state.yieldKind) {
@@ -236,13 +228,6 @@ function rowsForMonth(month, {
         .filter((row) => water == null || Boolean(row.water) === water)
         .slice()
         .sort((a, b) => b.date.localeCompare(a.date) || b.id - a.id);
-}
-
-function cityIslandDecorate(city) {
-    if (cityHasIsland(city.marketApiName)) {
-        return {};
-    }
-    return { muted: true, hint: 'ada yok' };
 }
 
 const cityBonusPct = cityYieldBonus;
@@ -420,15 +405,25 @@ function tierAttribute(tier) {
     return '';
 }
 
+const YIELD_TOGGLE_ICONS = {
+    premium: '<path d="m3 7 4 4 5-7 5 7 4-4-2 11H5Z"/><path d="M5 21h14"/>',
+    free: '<circle cx="12" cy="8" r="4"/><path d="M4 21v-2a8 8 0 0 1 16 0v2"/>',
+    water: '<path d="M12 3C10 6 5 11 5 15a7 7 0 0 0 14 0c0-4-5-9-7-12Z"/><path d="M8 15a4 4 0 0 0 4 4"/>',
+    dry: '<circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M2 12h2m16 0h2M5 5l1.5 1.5m11 11L19 19M5 19l1.5-1.5m11-11L19 5"/>',
+    focus: '<path d="m13 2-9 12h7l-1 8 10-13h-7Z"/>',
+    noFocus: '<path d="m13 2-3 4m-3 4-3 4h7l-1 8 5-6m3-4 2-3h-7l.4-3M3 3l18 18"/>'
+};
+
 function renderToggle(groupLabel, options, dataAttr, current) {
     return `
-        <div class="farming-type" role="radiogroup" aria-label="${escapeHtml(groupLabel)}">
+        <div class="farming-type" role="group" aria-label="${escapeHtml(groupLabel)}">
             ${options.map((option) => {
                 const pressed = option.id === current;
                 return `
                     <button type="button" class="farming-type-btn${pressed ? ' is-active' : ''}"
-                        data-${dataAttr}="${option.value}" aria-pressed="${pressed ? 'true' : 'false'}">
-                        ${escapeHtml(option.label)}
+                        data-${dataAttr}="${option.value}" aria-pressed="${pressed ? 'true' : 'false'}"
+                        aria-label="${escapeHtml(option.label)}" title="${escapeHtml(option.label)}">
+                        <svg class="farming-type-btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">${YIELD_TOGGLE_ICONS[option.icon]}</svg>
                     </button>
                 `;
             }).join('')}
@@ -576,20 +571,10 @@ function estimatedPlotForOutputs(container) {
 }
 
 function yieldItemFieldHtml(selected = '') {
-    if (state.yieldKind === 'plant') {
-        return plantFieldHtml({
-            id: 'plantKey',
-            label: 'Çıktı',
-            selected,
-            className: 'farming-city-field'
-        });
-    }
-    return animalFieldHtml({
+    return islandYieldFieldHtml({
         id: 'plantKey',
-        label: 'Çıktı',
         selected,
         selectedOutputMode: state.animalOutputMode,
-        plotType: state.yieldKind,
         className: 'farming-city-field'
     });
 }
@@ -602,11 +587,7 @@ function selectedItemKey(container) {
 }
 
 function setSelectedItem(container, value) {
-    if (state.yieldKind === 'plant') {
-        setPlantFieldValue(container, 'plantKey', value);
-        return;
-    }
-    setAnimalFieldValue(container, 'plantKey', value, state.animalOutputMode);
+    setPlantFieldValue(container, 'plantKey', value, state.animalOutputMode);
 }
 
 function syncAnimalProductField(container) {
@@ -738,6 +719,7 @@ function renderLogTable(month) {
         const context = `${state.premium ? 'Premium' : 'Free'} · ${state.water ? copy.on : copy.off}`;
         return `<div class="alert alert-info">${escapeHtml(month)} · ${escapeHtml(city)}${escapeHtml(plant)} · ${escapeHtml(context)} için kayıt yok. Soldan hasat sonucu ekle.</div>`;
     }
+    const today = todayIso();
     const body = rows.map((row) => {
         const type = rowItemType(row);
         const key = rowItemKey(row);
@@ -748,8 +730,8 @@ function renderLogTable(month) {
         const perSeed = row.seedsPlanted > 0 ? row.plantsHarvested / row.seedsPlanted : null;
         const seedRate = row.seedsPlanted > 0 ? row.seedsReturned / row.seedsPlanted : null;
         return `
-            <tr data-id="${row.id}" class="${[String(state.editingId) === String(row.id) ? 'is-editing' : '', isOutlier(row) ? 'is-outlier' : ''].filter(Boolean).join(' ')}" style="--yield-day-color:${dayAccentColor(row.date)}">
-                <td class="text-nowrap">${escapeHtml(formatDate(row.date))}</td>
+            <tr data-id="${row.id}" class="${[String(state.editingId) === String(row.id) ? 'is-editing' : '', isOutlier(row) ? 'is-outlier' : '', row.date === today ? 'is-today' : ''].filter(Boolean).join(' ')}" style="--yield-day-color:${dayAccentColor(row.date)}">
+                <td class="text-nowrap"${row.date === today ? ' title="Bugünün kaydı"' : ''}>${escapeHtml(formatDate(row.date))}</td>
                 <td>${escapeHtml(cityLabel(row.islandCity))}</td>
                 <td>
                     <span class="farming-item">
@@ -1283,7 +1265,7 @@ function refreshResult(container) {
                 ${state.filteredPlantKey ? '<button type="button" class="btn btn-sm btn-outline-secondary" data-clear-yield-filter>Filtreyi kaldır</button>' : ''}
             </div>
             <div id="yieldLog">${renderLogTable(state.month)}</div>
-            <p class="farming-note">Veri yoksa araçlar standart oyun değerini kullanır. Kullanıcı ortalaması bulunduğunda aynı bonus ikinci kez uygulanmaz.</p>
+            <p class="farming-note" data-page-info>Veri yoksa araçlar standart oyun değerini kullanır. Kullanıcı ortalaması bulunduğunda aynı bonus ikinci kez uygulanmaz.</p>
         </div>
     `;
     bindResult(container);
@@ -1351,8 +1333,14 @@ function bindResult(container) {
         if (!row) {
             return;
         }
+        const nextKind = kindForIslandYieldKey(rowItemKey(row)) || state.yieldKind;
+        const kindChanged = nextKind !== state.yieldKind;
+        state.yieldKind = nextKind;
         state.animalOutputMode = rowItemType(clicked) === 'animalProduct' ? 'product' : 'offspring';
         openAverageGroup(rowItemKey(clicked), rowItemType(clicked));
+        if (kindChanged) {
+            renderPage(container);
+        }
         fillForm(container, row);
         refreshResult(container);
     });
@@ -1461,6 +1449,9 @@ function saveEntry(container) {
 
 function renderPage(container) {
     const copy = metricCopy();
+    const sectionSelector = '[data-plant-field] details[data-picker-kind]';
+    const openSections = new Map(Array.from(container.querySelectorAll(sectionSelector),
+        (section) => [section.dataset.pickerKind, section.open]));
     container.innerHTML = toolPageHtml({
         key: 'island-yields',
         head: `<section class="page-head" data-page-head="island-yields">
@@ -1469,28 +1460,28 @@ function renderPage(container) {
         </section>`,
         controls: `
                     <form id="yieldForm" class="farming-toolbar island-planner-toolbar">
-                    ${renderToggle('Üretim alanı', YIELD_KINDS.map((kind) => ({ id: kind.id, value: kind.id, label: kind.label })), 'yield-kind', state.yieldKind)}
+                    <div class="yield-mode-toggles">
                     ${renderToggle('Premium', [
-                        { id: true, value: '1', label: 'Premium' },
-                        { id: false, value: '0', label: 'Free' }
+                        { id: true, value: '1', label: 'Premium', icon: 'premium' },
+                        { id: false, value: '0', label: 'Free', icon: 'free' }
                     ], 'premium', state.premium)}
                     ${renderToggle(copy.mode, [
-                        { id: true, value: '1', label: copy.on },
-                        { id: false, value: '0', label: copy.off }
+                        { id: true, value: '1', label: copy.on, icon: state.yieldKind === 'plant' ? 'water' : 'focus' },
+                        { id: false, value: '0', label: copy.off, icon: state.yieldKind === 'plant' ? 'dry' : 'noFocus' }
                     ], 'water', state.water)}
+                    </div>
                     ${cityFieldHtml({
                         id: 'islandCity',
                         label: 'Ada şehri',
                         selected: state.islandCity,
                         cities: state.cities,
-                        order: 'default-royal-ring',
                         decorate: cityIslandDecorate
                     })}
                     <div class="form-floating farming-city-field">
                         <input class="form-control is-filled" type="date" id="yieldDate" name="date" required>
                         <label for="yieldDate">Tarih</label>
                     </div>
-                    ${yieldItemFieldHtml()}
+                    ${yieldItemFieldHtml(state.filteredPlantKey || '')}
                     <div class="yield-planted-pair" title="1 plot = ${unitsPerPlot()} ${escapeHtml(copy.input.toLocaleLowerCase('tr-TR'))}">
                         ${renderPlotPicker(state.plotsSelected ?? 1)}
                         <div class="form-floating farming-city-field yield-seeds-field">
@@ -1520,7 +1511,7 @@ function renderPage(container) {
                             </div>
                         ` : ''}
                     </div>
-                    <div class="form-actions">
+                    <div class="form-actions form-actions--inline">
                         <button type="submit" class="btn btn-primary" id="yieldSubmit">Kaydet</button>
                         <button type="button" class="btn btn-outline-secondary" id="yieldCancelEdit" hidden>Vazgeç</button>
                         <button type="button" class="btn btn-outline-danger" id="yieldDelete" hidden>Sil</button>
@@ -1539,6 +1530,11 @@ function renderPage(container) {
             </div>
         </dialog>`,
     });
+    container.querySelectorAll(sectionSelector).forEach((section) => {
+        if (openSections.has(section.dataset.pickerKind)) {
+            section.open = openSections.get(section.dataset.pickerKind);
+        }
+    });
     bindPage(container);
     fillForm(container, null);
     refreshResult(container);
@@ -1550,18 +1546,6 @@ function bindPage(container) {
         if (event.target === slotWarning || event.target.closest('[data-yield-slot-warning-close]')) {
             slotWarning.close();
         }
-    });
-    container.querySelectorAll('[data-yield-kind]').forEach((button) => {
-        button.addEventListener('click', () => {
-            if (button.dataset.yieldKind === state.yieldKind) return;
-            state.yieldKind = button.dataset.yieldKind;
-            state.filteredPlantKey = null;
-            state.filteredItemType = null;
-            state.activeAverageGroup = null;
-            state.animalOutputMode = 'offspring';
-            state.editingId = null;
-            renderPage(container);
-        });
     });
     container.querySelectorAll('[data-premium]').forEach((button) => {
         button.addEventListener('click', () => {
@@ -1591,29 +1575,28 @@ function bindPage(container) {
         syncAutomaticPlots(container);
         refreshResult(container);
     });
-    if (state.yieldKind === 'plant') {
-        bindPlantField(container, 'plantKey', (value) => {
-            if (!state.editingId) {
-                state.filteredPlantKey = value || null;
-                state.filteredItemType = value ? 'plant' : null;
-            }
-            openAverageGroup(value);
-            syncAutomaticPlots(container);
-            refreshResult(container);
-        });
-    } else {
-        bindAnimalField(container, 'plantKey', (value, outputMode) => {
-            if (!state.editingId) {
-                state.filteredPlantKey = value || null;
-                state.filteredItemType = value ? itemTypeForPickerOutput(outputMode) : null;
-            }
-            state.animalOutputMode = outputMode;
-            openAverageGroup(value, itemTypeForPickerOutput(outputMode));
+    bindPlantField(container, 'plantKey', (value, outputMode, kind) => {
+        const nextKind = kind || kindForIslandYieldKey(value) || state.yieldKind;
+        const kindChanged = nextKind !== state.yieldKind;
+        state.yieldKind = nextKind;
+        state.animalOutputMode = outputMode || 'offspring';
+        if (!state.editingId) {
+            state.filteredPlantKey = value || null;
+            state.filteredItemType = value ? itemTypeForPickerOutput(outputMode, nextKind) : null;
+        }
+        openAverageGroup(value, itemTypeForPickerOutput(outputMode, nextKind));
+        if (kindChanged) {
+            state.editingId = null;
+            renderPage(container);
+            setSelectedItem(container, value);
             syncAnimalProductField(container);
             syncAutomaticPlots(container);
-            refreshResult(container);
-        });
-    }
+            return;
+        }
+        syncAnimalProductField(container);
+        syncAutomaticPlots(container);
+        refreshResult(container);
+    });
     container.querySelectorAll('[data-plots]').forEach((button) => {
         button.addEventListener('click', () => {
             if (state.autoPlots) {

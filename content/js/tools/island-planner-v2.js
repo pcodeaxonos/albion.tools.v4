@@ -3,6 +3,7 @@ import { initNav } from '../core/nav.js';
 import { getAll, initStore, replaceAllRows } from '../db/store.js';
 import { getSettings, getDefaultCity } from '../core/settings.js';
 import { loadActiveCities } from '../core/cities.js';
+import { cityFieldHtml, bindCityField, cityIslandDecorate } from '../components/city-picker.js';
 import { getItemLocalizedName, getItemUniqueName } from '../db/relations.js';
 import { itemIconHtml } from '../components/item-icon.js';
 import { cityRow, fetchPrices, indexPrices } from '../core/market.js';
@@ -44,7 +45,6 @@ function defaultDraft(islandCity = getDefaultCity()) { const settings = getSetti
 function normalizeDraft(value, islandCity) { return normalizeDraftModel(value, islandCity, defaultDraft(islandCity)); }
 function slot(id) { return state.draft.slots.find((entry) => entry.id === id) ?? null; }
 function cityName(value) { return state.cities.find((city) => city.marketApiName === value)?.displayName ?? value; }
-function cityImage(value) { return `assets/island-planner-v2/city-buttons/${cityKey(value)}.png`; }
 function islandImage(value) { return `assets/island-planner-v2/islands/${cityKey(value)}.png`; }
 function geometryGroupForCity(value = state.draft.islandCity) { const key = cityKey(value); return V2_ROYAL_CITIES.has(key) ? 'royal' : key; }
 function geometryForCity() {
@@ -116,11 +116,13 @@ function toolbarOptionRank(item) {
 function renderToolbar() {
     const current = state.toolbar;
     let choices = '';
-    const back = current.stage === 'type' ? '' : '<button type="button" class="island-v2-toolbar-back" data-v2-toolbar-back aria-label="Geri" title="Geri"><span aria-hidden="true">‹</span></button>';
+    const back = current.stage === 'type'
+        ? '<span class="island-v2-toolbar-leading-space" aria-hidden="true"></span>'
+        : '<button type="button" class="island-v2-toolbar-tile island-v2-toolbar-back" data-v2-toolbar-back aria-label="Geri" title="Geri"><span aria-hidden="true">‹</span></button>';
     if (current.stage === 'type') {
         choices = ['farm', 'herb', 'pasture', 'kennel', 'house'].map((type) => {
             const active = current.type === type ? ' is-active' : '';
-            return `<button type="button" class="island-v2-toolbar-type island-planner-type--${type}${active}" data-v2-toolbar-type="${type}" title="${typeLabel(type)}" aria-pressed="${active ? 'true' : 'false'}"><img class="island-v2-toolbar-type-icon" src="${TOOLBAR_TYPE_ICONS[type]}" alt="" aria-hidden="true"><span>${typeLabel(type)}</span></button>`;
+            return `<button type="button" class="island-v2-toolbar-tile island-v2-toolbar-type${active}" data-v2-toolbar-type="${type}" title="${typeLabel(type)}" aria-pressed="${active ? 'true' : 'false'}"><img class="island-v2-toolbar-type-icon" src="${TOOLBAR_TYPE_ICONS[type]}" alt="" aria-hidden="true"><span>${typeLabel(type)}</span></button>`;
         }).join('');
     }
     if (current.stage === 'item') {
@@ -129,7 +131,7 @@ function renderToolbar() {
             if (!groups.has(item.tier)) groups.set(item.tier, []);
             groups.get(item.tier).push(item);
         });
-        choices = groups.size ? `<span class="island-v2-toolbar-option-groups">${[...groups.entries()].map(([tier, items]) => `<span class="island-v2-toolbar-option-group" data-v2-toolbar-tier-group="${tier}"><span class="island-v2-toolbar-option-stack">${items.map((item) => `<button type="button" class="island-v2-toolbar-item" data-tier="${item.tier}" data-v2-toolbar-item="${escapeHtml(item.key)}" title="T${item.tier} · ${escapeHtml(itemName(item))}" aria-label="T${item.tier} ${escapeHtml(itemName(item))}">${itemIconHtml(itemUniqueName(item), { size: 40 })}<span class="island-v2-toolbar-item-tier">T${item.tier}</span></button>`).join('')}</span></span>`).join('')}</span>` : '<span class="island-v2-toolbar-empty">Bu tür için seçenek bulunamadı.</span>';
+        choices = groups.size ? `<span class="island-v2-toolbar-option-groups">${[...groups.entries()].map(([tier, items]) => `<span class="island-v2-toolbar-option-group" data-v2-toolbar-tier-group="${tier}"><span class="island-v2-toolbar-option-stack">${items.map((item) => `<button type="button" class="island-v2-toolbar-tile island-v2-toolbar-item" data-tier="${item.tier}" data-v2-toolbar-item="${escapeHtml(item.key)}" title="T${item.tier} · ${escapeHtml(itemName(item))}" aria-label="T${item.tier} ${escapeHtml(itemName(item))}">${itemIconHtml(itemUniqueName(item), { size: 60 })}</button>`).join('')}</span></span>`).join('')}</span>` : '<span class="island-v2-toolbar-empty">Bu tür için seçenek bulunamadı.</span>';
     }
     return `<div class="island-v2-toolbar">${back}<div class="island-v2-toolbar-choices">${choices}</div></div>`;
 }
@@ -618,7 +620,12 @@ function scheduleEconomicUpdate() {
 }
 
 function renderSegment(label, values, current, attr) { return `<div><p class="island-v2-group-label">${label}</p><div class="island-v2-segment">${values.map(([value, text]) => `<button type="button" data-v2-${attr}="${value}" class="${String(value) === String(current) ? 'is-active' : ''}">${text}</button>`).join('')}</div></div>`; }
-function renderCities(label, current, attr, disabled = false) { const cities = state.cities.filter((city) => V2_CITIES.includes(cityKey(city.marketApiName))); const disabledAttr = disabled ? ' disabled aria-disabled="true"' : ''; return `<div><p class="island-v2-group-label">${label}</p><div class="island-v2-city-list">${cities.map((city) => `<button type="button" class="island-v2-city ${city.marketApiName === current ? 'is-active' : ''}" data-v2-${attr}="${escapeHtml(city.marketApiName)}" title="${escapeHtml(city.displayName)}"${disabledAttr}><img src="${cityImage(city.marketApiName)}" alt="${escapeHtml(city.displayName)}"></button>`).join('')}</div></div>`; }
+function renderCities(label, current, attr, disabled = false) {
+    return cityFieldHtml({
+        id: `v2-${attr}`, label, selected: current, disabled, className: '', decorate: cityIslandDecorate,
+        cities: state.cities.filter((city) => V2_CITIES.includes(cityKey(city.marketApiName)))
+    });
+}
 function renderControls() { const d = state.draft; const plots = V2_UNLOCKED_SLOTS_BY_LEVEL?.[d.islandLevel]?.length; return `<aside class="island-v2-controls">${renderSegment('PREMIUM', [['1','Premium'],['0','Free']], d.premium ? '1' : '0', 'premium')}${renderSegment('FOCUS', [['1','Focus'],['0','Yok']], d.focus ? '1' : '0', 'focus')}${renderCities('ADA ŞEHRİ',d.islandCity,'island-city', d.seedSide === 'fixed')}${renderCities('SATIŞ ŞEHRİ',d.sellCity,'sell-city', d.harvestSide === 'fixed')}${renderSegment('ADA SEVİYESİ',[[2,'L2'],[3,'L3'],[4,'L4'],[5,'L5'],[6,'L6']],d.islandLevel,'level')}<p class="island-v2-price-time">${plots == null ? 'Plot slot eşlemesi: TODO' : `${plots} plot`}</p>${renderSegment('Tohum',[['buy','Buy'],['sell','Sell'],['fixed','Sabit']],d.seedSide,'seed')}${renderSegment('Hasat',[['buy','Buy'],['sell','Sell'],['fixed','Sabit']],d.harvestSide,'harvest')}<div class="island-v2-actions"><button class="btn btn-primary" type="button" data-v2-save>Kaydet</button><button class="btn btn-outline-secondary" type="button" data-v2-revert>Kaydedilmiş Haline Dön</button><button class="btn btn-outline-secondary" type="button" data-v2-prices>Fiyatları Yenile</button><p class="island-v2-price-time">${escapeHtml(priceText())}</p></div></aside>`; }
 function renderIsland() { const points = geometryForCity(); const d = state.draft; const overlays = points ? `<div class="island-v2-overlay-layer" data-v2-overlay-layer>${d.slots.map((entry) => { const p = points[entry.id]; if (!p) return ''; const item = itemForSlot(entry); const active = entry.id === state.selectedSlotId; const hover = entry.id === state.hoveredSlotId; const debug = OVERLAY_DEBUG && ['R1','R10','R16'].includes(entry.id) ? ' is-debug' : ''; return `<div class="island-v2-slot-anchor${debug}" data-v2-overlay-anchor="${entry.id}" data-v2-x="${p.x}" data-v2-y="${p.y}"><button type="button" draggable="true" class="island-v2-overlay ${item ? 'is-filled' : 'is-empty'} ${active ? 'is-selected' : ''} ${hover ? 'is-hovered' : ''}" data-v2-slot="${entry.id}">${item ? itemIconHtml(itemUniqueName(item), { size: 30, className: 'island-v2-overlay-icon' }) : ''}</button><span class="island-v2-overlay-number">${entry.id.slice(1).padStart(2,'0')}</span></div>`; }).join('')}</div>` : `<div class="island-v2-unresolved">${cityKey(d.islandCity) === 'brecilien' ? 'Brecilien slot koordinatları yapılandırılmayı bekliyor.' : 'Caerleon slot koordinatları yapılandırılmayı bekliyor.'}</div>`; return `<section class="island-v2-island"><img class="island-v2-island-image" src="${islandImage(d.islandCity)}" alt="${escapeHtml(cityName(d.islandCity))} adası">${renderIslandCityBonuses()}${overlays}${renderToolbar()}${renderIslandPriceAlert()}</section>`; }
 function displayValue(value) { return Number.isFinite(value) ? new Intl.NumberFormat('tr-TR', { maximumFractionDigits: 0 }).format(value) : '—'; }
@@ -898,6 +905,11 @@ async function completeDrag(root, target, clientX, clientY) {
     cleanupDrag(root);
 }
 function bind(root) {
+    bindCityField(root, 'v2-island-city', (value) => {
+        switchIslandCity(value);
+        scheduleEconomicUpdate();
+    });
+    bindCityField(root, 'v2-sell-city', (value) => mutate(() => { state.draft.sellCity = value; }));
     if (root.dataset.v2Bound === '1') return;
     root.dataset.v2Bound = '1';
     root.addEventListener('click', (event) => {
@@ -912,8 +924,6 @@ function bind(root) {
         if (d.v2Slot) { mutate(() => { state.selectedSlotId = d.v2Slot; }, false); return; }
         if (d.v2Premium) mutate(() => { state.draft.premium = d.v2Premium === '1'; });
         if (d.v2Focus) mutate(() => { state.draft.focus = d.v2Focus === '1'; });
-        if (d.v2IslandCity) { switchIslandCity(d.v2IslandCity); scheduleEconomicUpdate(); return; }
-        if (d.v2SellCity) mutate(() => { state.draft.sellCity = d.v2SellCity; });
         if (d.v2Level) mutate(() => { state.draft.islandLevel = Number(d.v2Level); });
         if (d.v2Seed) mutate(() => { state.draft.seedSide = d.v2Seed; });
         if (d.v2Harvest) mutate(() => { state.draft.harvestSide = d.v2Harvest; });

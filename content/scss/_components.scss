@@ -597,6 +597,12 @@ input[type="month"].form-control {
     border-top: var(--border-width) solid var(--color-border);
 }
 
+.form-actions--inline {
+    grid-template-columns: none;
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(0, 1fr);
+}
+
 .input-group {
     display: flex;
     align-items: stretch;
@@ -1943,12 +1949,12 @@ input[type="month"].form-control {
 
 /* Shared city color tokens for city-scoped cards and status panels. */
 [data-city] { --color-city: var(--color-primary); }
-[data-city="bridgewatch"] { --color-city: #e0a04a; }
-[data-city="fort-sterling"] { --color-city: #c5d4e8; }
-[data-city="lymhurst"] { --color-city: #5ecf7a; }
-[data-city="martlock"] { --color-city: #5aa8e8; }
-[data-city="thetford"] { --color-city: #b07ae8; }
-[data-city="caerleon"] { --color-city: #e85a5a; }
+[data-city="bridgewatch"] { --color-city: #e87800; }
+[data-city="fort-sterling"] { --color-city: #fff; }
+[data-city="lymhurst"] { --color-city: #6d9600; }
+[data-city="martlock"] { --color-city: #075caf; }
+[data-city="thetford"] { --color-city: #832aa9; }
+[data-city="caerleon"] { --color-city: #25242b; }
 [data-city="brecilien"] { --color-city: #6ec9c0; }
 
 /*
@@ -2098,10 +2104,19 @@ input[type="month"].form-control {
 
 .app-entry-summary {
     display: grid;
-    gap: 0.7rem;
-    margin-top: 0.85rem;
-    padding-block: 0.85rem;
-    padding-inline: 0;
+    gap: 0.35rem;
+    margin-top: 0.5rem;
+    padding: 0;
+
+    .app-warning-dialog-list {
+        gap: 0.2rem;
+
+        li {
+            gap: 0.2rem;
+            padding: 0.35rem 0.45rem;
+            font-size: var(--font-size-sm);
+        }
+    }
 
     > div {
         display: grid;
@@ -2260,6 +2275,82 @@ input[type="month"].form-control {
     }
 }
 
+/* Compact city crests, shared by every city field (including the island planner). */
+.city-field--crests {
+    --city-crest-max-size: 3rem;
+
+    .city-map--horizontal {
+        grid-template-columns: repeat(var(--city-picker-count), minmax(0, var(--city-crest-max-size)));
+        gap: .15rem;
+        min-height: 0;
+        border: 0;
+        background: transparent;
+    }
+
+    .city-map-node--horizontal {
+        width: 100%;
+        min-width: 0;
+        height: auto;
+        aspect-ratio: 1;
+        border: 1px solid var(--color-border);
+        border-radius: 0;
+        background: var(--color-surface);
+
+        &::after { content: none; }
+
+        &:hover:not(:disabled) { --city-crest-brightness: 1.2; }
+
+        &.is-selected {
+            border-color: var(--color-primary);
+            box-shadow: 0 0 0 1px var(--color-primary);
+        }
+
+        &:focus-visible {
+            outline: var(--focus-outline-width) solid var(--color-focus-ring);
+            outline-offset: 2px;
+        }
+
+        &.is-muted {
+            --city-crest-tone: .8;
+
+            // A corner minus marks "no island" without hiding the city's crest or color.
+            &::before {
+                content: '';
+                position: absolute;
+                top: 1px;
+                right: 1px;
+                z-index: 2;
+                width: 30%;
+                max-width: .85rem;
+                aspect-ratio: 1;
+                border: 1px solid var(--color-text-muted);
+                border-radius: 50%;
+                background:
+                    linear-gradient(var(--color-text), var(--color-text)) center / 55% 2px no-repeat,
+                    var(--color-surface);
+                pointer-events: none;
+            }
+        }
+    }
+}
+
+.city-crest {
+    position: absolute;
+    inset: 0;
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    filter: brightness(var(--city-crest-tone, 1)) brightness(var(--city-crest-brightness, 1));
+    transition: filter var(--transition-fast);
+}
+
+.city-field .city-map-node:disabled {
+    cursor: not-allowed;
+    opacity: .42;
+    filter: grayscale(1);
+}
+
 /* Plant picker — icon rows (settings: plantPickerStyle) */
 .plant-field--icons {
     display: flex;
@@ -2276,6 +2367,74 @@ input[type="month"].form-control {
     text-transform: uppercase;
     color: var(--color-text-muted);
     line-height: 1.2;
+}
+
+.plant-field--island-yield {
+    gap: 0;
+}
+
+.plant-field--island-yield .plant-icon-picker {
+    gap: 0.5rem;
+}
+
+.plant-field-section {
+    min-width: 0;
+}
+
+.plant-field-section-content {
+    display: grid;
+    gap: 0.35rem;
+    margin-top: 0.35rem;
+}
+
+.plant-field-section-title {
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+    margin: 0;
+    font-size: 0.65rem;
+    font-weight: var(--font-weight-semibold);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--color-text-muted);
+    line-height: 1.2;
+    cursor: pointer;
+    list-style: none;
+
+    &::-webkit-details-marker { display: none; }
+
+    &:focus-visible {
+        outline: 2px solid var(--color-focus-ring);
+        outline-offset: 2px;
+    }
+
+}
+
+.plant-field-section-indicator {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    flex: 1 1 auto;
+    min-width: 1.5rem;
+    color: var(--color-text-muted);
+
+    &::before {
+        content: "";
+        flex: 1 1 auto;
+        height: 1px;
+        background: color-mix(in srgb, var(--color-border-strong) 78%, transparent);
+    }
+
+    svg {
+        width: 0.75rem;
+        height: 0.75rem;
+        flex: none;
+    }
+
+}
+
+.plant-field-section[open] > .plant-field-section-title svg {
+    transform: rotate(90deg);
 }
 
 .plant-icon-picker {

@@ -1,9 +1,11 @@
 import { escapeHtml } from '../utils/utils.js';
 import { getAll } from '../db/store.js';
-import { loadActiveCities } from '../core/cities.js';
-import { getCityPickerOrder, getCityPickerStyle, getSettings } from '../core/settings.js';
+import { loadActiveCities, orderCities } from '../core/cities.js';
+import { getCityPickerStyle, cityHasIsland } from '../core/settings.js';
 
-const ROYAL_CITY_RING = ['Bridgewatch', 'Martlock', 'Thetford', 'Fort Sterling', 'Lymhurst'];
+export function cityIslandDecorate(city) {
+    return cityHasIsland(city.marketApiName) ? {} : { muted: true, hint: 'ada yok' };
+}
 
 const CITY_MAP_POS = {
     thetford: { x: 20, y: 18 },
@@ -73,38 +75,11 @@ function renderStandardOptions(cities, selected, decorate) {
     }).join('');
 }
 
-function normalizedCityName(city) {
-    return String(city ?? '').toLowerCase().replace(/[\s_-]+/g, '');
+function orderedCities(cities) {
+    return orderCities(cities);
 }
 
-export function citiesFromDefaultRoyalRing(cities, defaultCity = getSettings().defaultCity) {
-    const byName = new Map(cities.map((city) => [normalizedCityName(city.marketApiName), city]));
-    const start = ROYAL_CITY_RING.findIndex((city) => normalizedCityName(city) === normalizedCityName(defaultCity));
-    const ring = start >= 0
-        ? [...ROYAL_CITY_RING.slice(start), ...ROYAL_CITY_RING.slice(0, start)]
-        : ROYAL_CITY_RING;
-    const ordered = ring.map((city) => byName.get(normalizedCityName(city))).filter(Boolean);
-    const known = new Set(ordered.map((city) => normalizedCityName(city.marketApiName)));
-    return [...ordered, ...cities.filter((city) => !known.has(normalizedCityName(city.marketApiName)))];
-}
-
-function orderedCities(cities, order = '') {
-    const list = [...cities];
-    if (order === 'default-royal-ring') {
-        return citiesFromDefaultRoyalRing(list);
-    }
-    // Horizontal picker buttons are read left-to-right, so make the first
-    // choice match the city the user configured as their default.
-    if (getCityPickerStyle() === 'buttons') {
-        return citiesFromDefaultRoyalRing(list);
-    }
-    if (getCityPickerOrder() === 'alphabetical') {
-        list.sort((left, right) => left.displayName.localeCompare(right.displayName, 'tr-TR'));
-    }
-    return list;
-}
-
-function renderHorizontalNodes(cities, selected, decorate) {
+function renderHorizontalNodes(cities, selected, decorate, crests = false) {
     return cities.map((city) => {
         const color = cityColorHex(city);
         const pressed = city.marketApiName === selected;
@@ -119,6 +94,7 @@ function renderHorizontalNodes(cities, selected, decorate) {
                 aria-pressed="${pressed ? 'true' : 'false'}"
                 aria-label="${escapeHtml(title)}"
                 title="${escapeHtml(title)}">
+                ${crests ? `<img class="city-crest" src="assets/cities/${escapeHtml(cityKey(city))}.png" alt="" aria-hidden="true">` : ''}
                 <span class="city-map-tip" aria-hidden="true">${escapeHtml(city.displayName)}</span>
             </button>
         `;
@@ -162,8 +138,8 @@ function applyDiagonalNodeDecor(node, city, selected, decorate) {
 }
 
 /**
- * Shared city field — standard &lt;select&gt;, diagonal map, or horizontal city buttons.
- * @param {{ id: string, label: string, selected: string, cities?: object[], className?: string, decorate?: Function, order?: string }} opts
+ * Shared city field — list, map, horizontal dots, or compact city crests.
+ * @param {{ id: string, label: string, selected: string, cities?: object[], className?: string, decorate?: Function, disabled?: boolean }} opts
  */
 export function cityFieldHtml(opts) {
     const {
@@ -173,39 +149,40 @@ export function cityFieldHtml(opts) {
         cities = loadActiveCities(),
         className = 'farming-city-field',
         decorate,
-        order
+        order,
+        disabled = false
     } = opts;
 
     const style = getCityPickerStyle();
     const list = orderedCities(Array.isArray(cities) ? cities : loadActiveCities(), order);
 
-    if (style === 'buttons') {
+    if (style === 'buttons' || style === 'crests') {
         return `
-            <div class="city-field city-field--horizontal ${escapeHtml(className)}" data-city-field="${escapeHtml(id)}">
+            <div class="city-field city-field--horizontal${style === 'crests' ? ' city-field--crests' : ''} ${escapeHtml(className)}" data-city-field="${escapeHtml(id)}" data-city-disabled="${disabled}">
                 <span class="city-field-label" id="${escapeHtml(id)}-label">${escapeHtml(label)}</span>
-                <div class="city-map city-map--horizontal" role="radiogroup" aria-labelledby="${escapeHtml(id)}-label" style="--city-picker-count:${list.length}">
-                    ${renderHorizontalNodes(list, selected, decorate)}
+                <div class="city-map city-map--horizontal" role="group" aria-labelledby="${escapeHtml(id)}-label" style="--city-picker-count:${list.length}">
+                    ${renderHorizontalNodes(list, selected, decorate, style === 'crests')}
                 </div>
-                <input type="hidden" id="${escapeHtml(id)}" value="${escapeHtml(selected ?? '')}" data-city-input>
+                <input type="hidden" value="${escapeHtml(selected ?? '')}" data-city-input>
             </div>
         `;
     }
 
     if (style === 'diagonal') {
         return `
-            <div class="city-field city-field--diagonal ${escapeHtml(className)}" data-city-field="${escapeHtml(id)}">
+            <div class="city-field city-field--diagonal ${escapeHtml(className)}" data-city-field="${escapeHtml(id)}" data-city-disabled="${disabled}">
                 <span class="city-field-label" id="${escapeHtml(id)}-label">${escapeHtml(label)}</span>
-                <div class="city-map" role="radiogroup" aria-labelledby="${escapeHtml(id)}-label">
+                <div class="city-map" role="group" aria-labelledby="${escapeHtml(id)}-label">
                     ${renderDiagonalNodes(list, selected, decorate)}
                 </div>
-                <input type="hidden" id="${escapeHtml(id)}" value="${escapeHtml(selected ?? '')}" data-city-input>
+                <input type="hidden" value="${escapeHtml(selected ?? '')}" data-city-input>
             </div>
         `;
     }
 
     return `
         <div class="form-floating city-field city-field--standard ${escapeHtml(className)}" data-city-field="${escapeHtml(id)}">
-            <select class="form-select is-filled" id="${escapeHtml(id)}" data-city-input>
+            <select class="form-select is-filled" id="${escapeHtml(id)}" data-city-input${disabled ? ' disabled' : ''}>
                 ${renderStandardOptions(list, selected, decorate)}
             </select>
             <label for="${escapeHtml(id)}">${escapeHtml(label)}</label>
@@ -214,13 +191,13 @@ export function cityFieldHtml(opts) {
 }
 
 export function getCityFieldValue(container, id) {
-    const input = container.querySelector(`#${CSS.escape(id)}`);
+    const input = container.querySelector(`[data-city-field="${CSS.escape(id)}"] [data-city-input]`);
     return input?.value ?? '';
 }
 
 export function setCityFieldValue(container, id, value) {
     const field = container.querySelector(`[data-city-field="${CSS.escape(id)}"]`);
-    const input = container.querySelector(`#${CSS.escape(id)}`);
+    const input = container.querySelector(`[data-city-field="${CSS.escape(id)}"] [data-city-input]`);
     if (input) {
         input.value = value ?? '';
     }
@@ -257,7 +234,8 @@ export function syncCityField(container, id, opts) {
         const map = field.querySelector('.city-map--horizontal');
         if (map) {
             map.style.setProperty('--city-picker-count', String(list.length));
-            map.innerHTML = renderHorizontalNodes(list, selected, decorate);
+            map.innerHTML = renderHorizontalNodes(list, selected, decorate, field.classList.contains('city-field--crests'));
+            map.querySelectorAll('button').forEach((node) => { node.disabled = field.dataset.cityDisabled === 'true'; });
         }
         return;
     }
@@ -291,11 +269,12 @@ export function bindCityField(container, id, onChange) {
         return;
     }
     field.dataset.cityBound = 'on';
+    field.querySelectorAll('button').forEach((node) => { node.disabled = field.dataset.cityDisabled === 'true'; });
 
     if (field.classList.contains('city-field--horizontal')) {
         field.addEventListener('click', (event) => {
             const node = event.target.closest('.city-map-node--horizontal');
-            if (!node || !field.contains(node)) {
+            if (!node || node.disabled || !field.contains(node)) {
                 return;
             }
             const value = node.dataset.cityValue || '';
@@ -308,7 +287,7 @@ export function bindCityField(container, id, onChange) {
     if (field.classList.contains('city-field--diagonal')) {
         field.addEventListener('click', (event) => {
             const node = event.target.closest('.city-map-node');
-            if (!node || !field.contains(node)) {
+            if (!node || node.disabled || !field.contains(node)) {
                 return;
             }
             const value = node.dataset.cityValue || '';

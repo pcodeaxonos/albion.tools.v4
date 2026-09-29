@@ -19,7 +19,7 @@ import {
 } from '../core/price-side.js';
 import { bindCalcSticky } from '../utils/calc-sticky.js';
 import { bindLivePrices } from '../core/price-live.js';
-import { loadCities } from '../core/cities.js';
+import { loadActiveCities } from '../core/cities.js';
 import { cityFieldHtml, bindCityField } from '../components/city-picker.js';
 import { getEnchantSlots, getEnchantSteps, getEnchantPaths } from '../core/catalog.js';
 import { formatSilver, formatDateTime } from '../utils/format.js';
@@ -509,7 +509,7 @@ async function init() {
         await initStore();
         state.slot = readSavedSlot();
         ensureManualMaps();
-        state.cities = loadCities().filter((city) => city.isActive);
+        state.cities = loadActiveCities();
         state.city = readSavedCity(state.cities);
         renderPage(container);
         await loadPrices(container, { showLoader: false });

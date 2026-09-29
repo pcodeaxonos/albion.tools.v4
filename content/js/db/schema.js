@@ -31,6 +31,7 @@ export const tables = {
             { name: 'displayName', type: 'string', label: 'Display Name' },
             { name: 'marketApiName', type: 'string', label: 'Market API Name' },
             { name: 'shortCode', type: 'string', label: 'Kısa kod' },
+            { name: 'mapOrder', type: 'number', label: 'Harita döngüsü sırası' },
             { name: 'cityType', type: 'enum', options: ['Royal', 'Caerleon', 'Brecilien'], label: 'City Type' },
             COL.active
         ]

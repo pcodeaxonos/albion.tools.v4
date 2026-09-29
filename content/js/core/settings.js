@@ -96,12 +96,14 @@ export const DEFAULT_SETTINGS = {
 export const CITY_PICKER_STYLES = [
     { id: 'standard', label: 'Standart (liste)' },
     { id: 'diagonal', label: 'Diagonal (renkli harita)' },
-    { id: 'buttons', label: 'Yatay şehir noktaları' }
+    { id: 'buttons', label: 'Yatay şehir noktaları' },
+    { id: 'crests', label: 'Şehir armaları (kompakt)' }
 ];
 
 export const CITY_PICKER_ORDERS = [
-    { id: 'default', label: 'Veri sırası' },
-    { id: 'alphabetical', label: 'A–Z' }
+    { id: 'default', label: 'Veri sırası (tüm şehir listeleri)' },
+    { id: 'map-ring', label: 'Harita döngüsü — varsayılan şehirden (tüm listeler)' },
+    { id: 'alphabetical', label: 'A–Z (tüm şehir listeleri)' }
 ];
 
 export const PLANT_PICKER_STYLES = [
@@ -110,11 +112,11 @@ export const PLANT_PICKER_STYLES = [
 ];
 
 export function normalizeCityPickerStyle(value) {
-    return value === 'diagonal' || value === 'buttons' ? value : 'standard';
+    return CITY_PICKER_STYLES.some((style) => style.id === value) ? value : 'standard';
 }
 
 export function normalizeCityPickerOrder(value) {
-    return value === 'alphabetical' ? 'alphabetical' : 'default';
+    return value === 'alphabetical' || value === 'map-ring' ? value : 'default';
 }
 
 export function normalizePlantPickerStyle(value) {

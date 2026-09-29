@@ -135,6 +135,16 @@
 
 // Shared clickable record logs (daily bonus, island yields, …)
 .log-table {
+    tbody tr.is-today {
+        background-color: color-mix(in srgb, var(--color-primary) 7%, var(--color-surface));
+    }
+
+    tbody tr.is-today td:first-child {
+        border-left-color: var(--color-primary);
+        color: var(--color-primary);
+        font-weight: var(--font-weight-semibold);
+    }
+
     tbody tr[data-id],
     tbody tr.is-gap {
         cursor: pointer;

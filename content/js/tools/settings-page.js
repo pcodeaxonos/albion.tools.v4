@@ -236,7 +236,7 @@ function renderPage(container, cities) {
                                 <label for="settingEnchantPower">IP bandı (hızlı doldur)</label>
                             </div>
                         </div>
-                        <p class="text-muted settings-note">Varsayılan şehir, tool’da kayıtlı şehir yoksa alış/satış seçiminde gelir (Martlock). Şehir seçimi: standart liste veya yatay renkli butonlar; buton sırası burada belirlenir. Bitki seçimi: liste veya ekin/ot ikon satırları.</p>
+                        <p class="text-muted settings-note">Varsayılan şehir, tool’da kayıtlı şehir yoksa alış/satış seçiminde gelir (Martlock). Şehir seçimi: liste, renkli harita, yatay noktalar veya kompakt şehir armaları. Görünüm ve sıra, Ada Planlayıcı dahil tüm şehir seçicilere uygulanır. Bitki seçimi: liste veya ekin/ot ikon satırları.</p>
                         <div class="settings-combo-order-wrap">
                             <p class="settings-combo-order-title">Standart combolar</p>
                             ${renderStandardComboList(settings)}

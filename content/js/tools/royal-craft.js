@@ -169,7 +169,10 @@ function royalBonusGroups() {
                     || a.sortValue - b.sortValue)
                 .slice(0, 3)
         }))
-        .sort((a, b) => a.cityLabel.localeCompare(b.cityLabel, 'tr') || a.label.localeCompare(b.label, 'tr'));
+        .sort((a, b) => {
+            const cityIndex = (city) => state.cities.findIndex((entry) => entry.marketApiName === city);
+            return cityIndex(a.city) - cityIndex(b.city) || a.label.localeCompare(b.label, 'tr');
+        });
 }
 
 /** Materials to craft the flat SET piece used by a royal recipe (classic armor craft). */
@@ -2180,8 +2183,8 @@ function applyControls(container) {
         button.classList.toggle('is-active', pressed);
         button.setAttribute('aria-pressed', pressed ? 'true' : 'false');
     });
-    const buy = container.querySelector('#royalBuyCity');
-    const sell = container.querySelector('#royalSellCity');
+    const buy = container.querySelector('[data-city-field="royalBuyCity"] [data-city-input]');
+    const sell = container.querySelector('[data-city-field="royalSellCity"] [data-city-input]');
     if (buy) {
         setCityFieldValue(container, 'royalBuyCity', state.buyCity);
     }

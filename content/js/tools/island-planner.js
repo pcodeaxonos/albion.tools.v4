@@ -12,7 +12,7 @@ import { initFloatingLabels } from '../components/forms.js';
 import { feeMetaText, SETUP_FEE, salesTaxRate } from '../core/market-fees.js';
 import { bindCalcSticky } from '../utils/calc-sticky.js';
 import { loadActiveCities } from '../core/cities.js';
-import { cityFieldHtml, bindCityField, setCityFieldValue } from '../components/city-picker.js';
+import { cityFieldHtml, bindCityField, setCityFieldValue, cityIslandDecorate } from '../components/city-picker.js';
 import { bindLivePrices } from '../core/price-live.js';
 import { getEconomyConstant } from '../core/catalog.js';
 import { formatSilver, formatPct, formatDateTime } from '../utils/format.js';
@@ -268,13 +268,6 @@ function renderToggle(groupLabel, options, dataAttr, current) {
     `;
 }
 
-function cityIslandDecorate(city) {
-    if (cityHasIsland(city.marketApiName)) {
-        return {};
-    }
-    return { muted: true, hint: 'ada yok' };
-}
-
 function renderLevelOptions() {
     return Object.keys(ISLAND_PLOTS_BY_LEVEL).map((level) => {
         const n = Number(level);
@@ -319,28 +312,28 @@ function renderSummary() {
                 <span>ham gümüş/gün · ${effectivePlots()} plot · önerilen: ${escapeHtml(rec)}</span>
                 <span class="island-planner-cities">alış ${escapeHtml(cityLabel(state.islandCity))} → satış ${escapeHtml(cityLabel(state.sellCity))}</span>
             </p>
-            <p class="island-planner-objective">Hedef: ham gümüş/gün = Σ (plot kârı ÷ döngü saati × 24). İstikrar sıralamaz, elemez veya “önerilen”i değiştirmez.</p>
+            <p class="island-planner-objective" data-page-info>Hedef: ham gümüş/gün = Σ (plot kârı ÷ döngü saati × 24). İstikrar sıralamaz, elemez veya “önerilen”i değiştirmez.</p>
             <p class="island-planner-feed">${escapeHtml(plan.feedNote || '—')}</p>
             ${Number.isFinite(stable) ? `
-                <p class="farming-note">İstikrar (bilgi): ${formatSilver(stable)} gümüş/gün · likidite × volatilite cezası. İnce pazar satırları durur; yalnızca uyarıdır.</p>
+                <p class="farming-note" data-page-info>İstikrar (bilgi): ${formatSilver(stable)} gümüş/gün · likidite × volatilite cezası. İnce pazar satırları durur; yalnızca uyarıdır.</p>
             ` : ''}
             ${state.minVolume > 0 ? `
-                <p class="farming-note">İnce pazar eşiği ${escapeHtml(String(state.minVolume))}/gün: hacmi düşük (veya geçmişi olmayan) satırlar işaretlenir; sıralama ve öneri değişmez.</p>
+                <p class="farming-note" data-page-info>İnce pazar eşiği ${escapeHtml(String(state.minVolume))}/gün: hacmi düşük (veya geçmişi olmayan) satırlar işaretlenir; sıralama ve öneri değişmez.</p>
             ` : ''}
             ${faction ? `
-                <p class="farming-note">Faction kilit: ${faction.plots}× kennel T${faction.tier} ${escapeHtml(faction.label)} (kennel plotun olmalı).</p>
+                <p class="farming-note" data-page-info>Faction kilit: ${faction.plots}× kennel T${faction.tier} ${escapeHtml(faction.label)} (kennel plotun olmalı).</p>
             ` : ''}
             ${uniform ? `
-                <p class="farming-note">Bu planda tüm plotlar aynı aktiviteye verildi — karışık bir dağılım ham gümüş/günü artırmıyor.</p>
+                <p class="farming-note" data-page-info>Bu planda tüm plotlar aynı aktiviteye verildi — karışık bir dağılım ham gümüş/günü artırmıyor.</p>
             ` : ''}
             ${alt ? `
-                <p class="island-planner-compare farming-note">
+                <p class="island-planner-compare farming-note" data-page-info>
                     Alternatif ${escapeHtml(alt.label)}: ${formatSilver(alt.totalDay)} ham gümüş/gün
                     · fark ${formatSilver((alt.totalDay || 0) - (plan.totalDay || 0), { signed: true })}
                 </p>
             ` : ''}
             ${cmp ? `
-                <p class="island-planner-compare farming-note">
+                <p class="island-planner-compare farming-note" data-page-info>
                     Sade pazar: ${formatSilver(cmp.marketDay)} · seçilen ${formatSilver(cmp.chosenDay)}
                     · fark ${formatSilver(cmp.delta, { signed: true })}
                     ${cmp.choseIslandFeed ? ' · ada yemi / karışık' : ''}
@@ -369,7 +362,7 @@ function renderCityCompare() {
     `).join('');
     return `
         <h2 class="island-planner-subhead">Şehir karşılaştırması</h2>
-        <p class="farming-note">Her ada şehri için ham gümüş/gün (aynı plot / premium / satış şehri ayarları).</p>
+        <p class="farming-note" data-page-info>Her ada şehri için ham gümüş/gün (aynı plot / premium / satış şehri ayarları).</p>
         <div class="table-responsive calc-table-wrap">
             <table class="table table-striped farming-table island-planner-table calc-table">
                 <thead>
@@ -695,7 +688,7 @@ function renderLedger() {
 
     return `
         <h2 class="island-planner-subhead">Aday defteri</h2>
-        <p class="farming-note">
+        <p class="farming-note" data-page-info>
             Tüm ada çıktıları (ekin/ot satışı; hayvan büyüt / kes / besle; pazar ve ada yemi).
             Sıra ham gümüş/gün (plot başına, önericinin skoru). Zarar ve eksik fiyat gizlenmez.
             Ada yemi satırında büyük rakam tohum maliyetli pasture-only’dir; zincir/fırsat yem plotunun satılmadığını gösterir.
@@ -707,7 +700,7 @@ function renderLedger() {
                 <tbody>${rows}</tbody>
             </table>
         </div>
-        <p class="farming-note island-planner-note">
+        <p class="farming-note island-planner-note" data-page-info>
             Ham gümüş/gün sıralaması önericiyle aynı metriktir; ada yemi satırı “en yüksek pasture” olabilir diye zinciri kazanmaz.
             Cow + ada yemi vs burdock karşılaştırması: burdock satırına ve ineğin pazar / ada yemi path’lerine bakın.
         </p>
@@ -748,7 +741,7 @@ function renderRunnersUp() {
 
     return `
         <h2 class="island-planner-subhead">Alternatifler (plot başına)</h2>
-        <p class="farming-note">Ham gümüş/gün sırasıyla seçilmeyen adaylar. İnce pazar elenmez. “Bugün” kolonu spot fiyattır — spike olabilir. Satıra tıklayınca formül açılır.</p>
+        <p class="farming-note" data-page-info>Ham gümüş/gün sırasıyla seçilmeyen adaylar. İnce pazar elenmez. “Bugün” kolonu spot fiyattır — spike olabilir. Satıra tıklayınca formül açılır.</p>
         <div class="table-responsive calc-table-wrap">
             <table class="table table-striped farming-table island-planner-table calc-table" data-island-explain-table="runners">
                 <thead>
@@ -1180,7 +1173,7 @@ function renderOutput() {
             ${renderLedger()}
             ${renderCityCompare()}
             ${renderRunnersUp()}
-            <p class="farming-note">
+            <p class="farming-note" data-page-info>
                 ${escapeHtml(feeMetaText(state.premium))}
                 · hedef ham gümüş/gün = plot kârı ÷ döngü × 24s
                 · alış max(spot, ~${getEconomyConstant('farm_history_days', 14)}g medyan) · satış medyan (Farming/Pasture spot kullanır)

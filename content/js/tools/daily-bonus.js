@@ -976,7 +976,7 @@ function renderLogTable(month, highlightKeys = []) {
                 <tbody>${body}</tbody>
             </table>
         </div>
-        <p class="text-muted bonus-log-hint">Tarih, 13:00’te başlayan günü gösterir (ör. 23.08 → 23.08 13:00 – 24.08 13:00). #1 ve #2, seçilen ayda aynı bonusun o güne kadar kaç kez geldiğini gösterir. Bonus seçince o ailenin geçtiği günler işaretlenir.</p>
+        <p class="text-muted bonus-log-hint" data-page-info>Tarih, 13:00’te başlayan günü gösterir (ör. 23.08 → 23.08 13:00 – 24.08 13:00). #1 ve #2, seçilen ayda aynı bonusun o güne kadar kaç kez geldiğini gösterir. Bonus seçince o ailenin geçtiği günler işaretlenir.</p>
     `;
 }
 
