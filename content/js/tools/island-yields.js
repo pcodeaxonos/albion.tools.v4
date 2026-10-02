@@ -35,7 +35,7 @@ import {
 const TABLE = 'islandYieldLogs';
 const CITY_STORAGE_KEY = 'albiontools.v4.island-yields.city';
 const SEEDS_PER_PLOT = 9;
-const CONFIDENCE_PLOT_THRESHOLDS = [0, 5, 15, 40];
+
 const PLOT_CHOICES = [1, 2, 3, 4, 5];
 const CHANGE_BADGE_VISIBLE_MS = 60_000;
 const CHANGE_BADGE_EXIT_MS = 800;
@@ -152,13 +152,11 @@ function dayAccentColor(isoDate) {
     return palette[hash % palette.length];
 }
 
-function confidenceLevel(seedsPlanted) {
-    const seeds = Number(seedsPlanted);
-    if (!(seeds > 0)) return 0;
-    // One plot has nine seeds. Sample size, rather than the number of form
-    // submissions, determines how representative the weighted average is.
-    const perPlot = unitsPerPlot();
-    return CONFIDENCE_PLOT_THRESHOLDS.filter((plots) => seeds >= perPlot * plots).length;
+function confidenceTooltip(avg) {
+    const confidence = avg?.confidence;
+    const error = confidence?.relativeError;
+    const detail = Number.isFinite(error) ? ` · %95 bootstrap aralığının bağıl yarı genişliği: ±${formatQty(error * 100)}%` : " · Veri yetersiz / hesaplanamıyor";
+    return `Güven seviyesi ${confidence?.level ?? 0}/4 · Örnek miktarı değil, ortalamanın istatistiksel stabilitesi${detail}. 4 nokta: mevcut veriye göre yaklaşık ±%2 bandı; makul ek kayıtların ortalamayı anlamlı ölçüde değiştirme ihtimali düşük. En az 3 bağımsız kayıt gerekir.`;
 }
 
 function deltaTone(value) {
@@ -262,7 +260,8 @@ function averageFor(item, islandCity = state.islandCity, itemType = itemTypeForK
     return yieldAverage(islandCity, item?.key, {
         premium: state.premium,
         water: state.water,
-        itemType
+        itemType,
+        includeConfidence: true
     });
 }
 
@@ -341,14 +340,12 @@ function previousDateForSlotWarningGroup(islandCity, group, beforeDate) {
 
 function entrySummaryRows(islandCity, date) {
     return getAll(TABLE)
-        .filter((row) => row.islandCity === islandCity && row.date === date)
-        .filter((row) => rowItemType(row) !== 'animalProduct');
+        .filter((row) => row.islandCity === islandCity && row.date === date);
 }
 
 function entrySummaryDate(islandCity, beforeDate) {
     return getAll(TABLE)
         .filter((row) => row.islandCity === islandCity && row.date < beforeDate)
-        .filter((row) => rowItemType(row) !== 'animalProduct')
         .map((row) => row.date)
         .sort((a, b) => b.localeCompare(a))[0] ?? null;
 }
@@ -360,11 +357,23 @@ function renderEntrySummary(islandCity) {
         return '<div class="alert alert-info mb-0">Özet için bu şehirde önceki bir günün kaydı gerekli.</div>';
     }
 
-    const lines = SLOT_WARNING_GROUPS.map((group) => ({
+    const currentRows = entrySummaryRows(islandCity, today);
+    const referenceRows = entrySummaryRows(islandCity, referenceDate);
+    const productKeys = [...new Set([...currentRows, ...referenceRows]
+        .filter((row) => rowItemType(row) === 'animalProduct')
+        .map(rowItemKey))];
+    const productSlots = (rows, key) => rows
+        .filter((row) => rowItemType(row) === 'animalProduct' && rowItemKey(row) === key)
+        .reduce((total, row) => total + (estimatedSlotsForRow(row) ?? 0), 0);
+    const lines = [...SLOT_WARNING_GROUPS.map((group) => ({
         label: group.label,
         currentSlots: dailyEstimatedSlots(islandCity, today, group.id),
         referenceSlots: dailyEstimatedSlots(islandCity, referenceDate, group.id)
-    })).filter((line) => line.currentSlots > 0 || line.referenceSlots > 0);
+    })), ...productKeys.map((key) => ({
+        label: itemLabel(key, 'animalProduct'),
+        currentSlots: productSlots(currentRows, key),
+        referenceSlots: productSlots(referenceRows, key)
+    }))].filter((line) => line.currentSlots > 0 || line.referenceSlots > 0);
     const complete = lines.length > 0 && lines.every((line) => line.currentSlots === line.referenceSlots);
 
     return `
@@ -888,7 +897,7 @@ function renderAvgCard(plant, islandCity) {
     const seedRelativeDifference = active && Number.isFinite(avg.avgSeedReturn) && Number.isFinite(wikiSeed)
         ? (avg.avgSeedReturn - wikiSeed) / wikiSeed
         : null;
-    const confidence = active ? confidenceLevel(avg.seedsPlanted) : 0;
+    const confidence = active ? avg.confidence.level : 0;
     const copy = metricCopy();
     const iconId = itemIconId(plant);
 
@@ -911,7 +920,7 @@ function renderAvgCard(plant, islandCity) {
                 <span class="yield-ref-value is-actual"><b data-yield-change="seed">${active ? formatPct(avg.avgSeedReturn) : '—'}</b><small>Gerçek</small></span><span class="yield-ref-value is-actual"><b data-yield-change="product">${active ? formatQty(avg.avgPlantYield) : '—'}</b><small>Gerçek</small></span>
                 <span class="yield-ref-value is-default"><b>${formatPct(wikiSeed)}</b><small>Vars.</small></span><span class="yield-ref-value is-default"><b>${formatQty(wikiYield)}</b><small>Vars.</small></span>
             </div>
-            <footer class="yield-card-footer"><span title="Ortalamaya giren kayıt sayısı">${yieldDocumentIcon()} <b>n=${active ? avg.n : 0}</b></span><span class="yield-confidence"${tipAttr(`Güven seviyesi ${confidence}/4 · ${active ? formatQty(avg.seedsPlanted) : 0} ${copy.input.toLocaleLowerCase('tr-TR')}`)}><i></i><i></i><i></i><i></i></span></footer>
+            <footer class="yield-card-footer"><span title="Ortalamaya giren kayıt sayısı">${yieldDocumentIcon()} <b>n=${active ? avg.n : 0}</b></span><span class="yield-confidence"${tipAttr(confidenceTooltip(active ? avg : null))}><i></i><i></i><i></i><i></i></span></footer>
         </article>
     `;
 }
@@ -955,8 +964,8 @@ function renderAvgLegend(plant, islandCity) {
         }] : []),
         {
             sample: avgTag('n=3', { kind: 'n', tip: 'Kayıt sayısı' }),
-            text: `n kayıt sayısıdır; güven noktaları, aynı ürün, şehir, Premium ve ${copy.mode.toLocaleLowerCase('tr-TR')} koşullarında ortalamaya giren toplam ${copy.input.toLocaleLowerCase('tr-TR')} sayısına göre hesaplanır. Bir parsel ${unitsPerPlot()} birimdir. Aykırı kayıtlar hesaba katılmaz; bu derece istatistiksel kesinlik belirtmez.`,
-            formula: `Veri varsa 1 nokta; ${CONFIDENCE_PLOT_THRESHOLDS.slice(1).map((plots, index) => `${plots}+ parsel: ${index + 2} nokta`).join(' · ')}`
+            text: `n kayıt sayısıdır; güven noktaları örnek miktarını değil, aynı ürün, şehir, Premium ve ${copy.mode.toLocaleLowerCase("tr-TR")} grubundaki ağırlıklı ortalamanın istatistiksel stabilitesini gösterir. Aykırı kayıtlar hariç, bütün kayıtlar yeniden örneklenerek %95 bootstrap güven aralığı hesaplanır. Bağıl yarı genişlik >%10: 1, ≤%10: 2, ≤%5: 3, ≤%2: 4 nokta. İki kayıttan az veri: 0; 4 nokta için en az 3 bağımsız kayıt gerekir. 4 nokta, mevcut veriye göre yaklaşık ±%2 bandı ve makul ek verinin sonucu anlamlı ölçüde değiştirme ihtimalinin düşük olduğu seviyedir.`,
+            formula: 'Bağıl hata = ((üst sınır − alt sınır) / 2) / ağırlıklı ortalama'
         },
         {
             sample: '<span class="yield-delta-stack"><strong>—</strong></span>',
@@ -1045,7 +1054,7 @@ function renderAnimalProductAvgCard(animal, islandCity) {
     const active = avg && avg.avgPlantYield > 0;
     const thin = active && avg.n < 3;
     const relative = active ? (avg.avgPlantYield - standard) / standard : null;
-    const confidence = active ? confidenceLevel(avg.seedsPlanted) : 0;
+    const confidence = active ? avg.confidence.level : 0;
 
     return `
         <article class="yield-avg-card${active ? '' : ' is-passive'}${thin ? ' is-thin' : ''}${state.filteredPlantKey === animal.key && state.filteredItemType === 'animalProduct' ? ' is-selected' : ''} is-confidence-${confidence}" ${active ? tierAttribute(animal.tier) : ''}
@@ -1057,7 +1066,7 @@ function renderAnimalProductAvgCard(animal, islandCity) {
             </div>
             <div class="yield-ref-deltas is-single"><div class="yield-ref-delta ${deltaTone(relative)}"${tipAttr('Varsayılan ürüne göre yüzde farkı')}><strong>${active ? formatRelativeDifference(avg.avgPlantYield, standard) : '—'}</strong><span>${active ? formatDeltaMagnitude(avg.avgPlantYield - standard, { digits: 1 }) : ''}</span></div></div>
             <div class="yield-ref-values is-single" aria-label="Ürün gerçek ve varsayılan değeri"><span class="yield-ref-value is-actual"><b>${active ? formatQty(avg.avgPlantYield) : '—'}</b><small>Gerçek</small></span><span class="yield-ref-value is-default"><b>${formatQty(standard)}</b><small>Vars.</small></span></div>
-            <footer class="yield-card-footer"><span title="Ortalamaya giren kayıt sayısı">${yieldDocumentIcon()} <b>n=${active ? avg.n : 0}</b></span><span class="yield-confidence"${tipAttr(`Güven seviyesi ${confidence}/4 · ${active ? formatQty(avg.seedsPlanted) : 0} beslenen hayvan`)}><i></i><i></i><i></i><i></i></span></footer>
+            <footer class="yield-card-footer"><span title="Ortalamaya giren kayıt sayısı">${yieldDocumentIcon()} <b>n=${active ? avg.n : 0}</b></span><span class="yield-confidence"${tipAttr(confidenceTooltip(active ? avg : null))}><i></i><i></i><i></i><i></i></span></footer>
         </article>
     `;
 }

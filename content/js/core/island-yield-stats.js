@@ -3,6 +3,58 @@ import { getPlants, getAnimals, getEconomyConstant } from './catalog.js';
 import { baseYield, premiumYield, cityYieldBonus } from './island/economy-config.js';
 
 const TABLE = 'islandYieldLogs';
+const BOOTSTRAP_REPLICATES = 5000;
+
+export function yieldConfidenceLevel(relativeError, n) {
+    if (n < 2 || !Number.isFinite(relativeError) || relativeError < 0) return 0;
+    if (relativeError > 0.10) return 1;
+    if (relativeError > 0.05) return 2;
+    if (relativeError > 0.02 || n < 3) return 3;
+    return 4;
+}
+
+/** Percentile 95% CI for the ratio of totals, resampling whole independent logs. */
+export function bootstrapYieldConfidence(rows) {
+    const samples = rows.filter((row) => row.isOutlier !== true && row.isOutlier !== 'true')
+        .map((row) => ({ input: num(row.seedsPlanted), output: Math.max(0, num(row.plantsHarvested) ?? 0) }))
+        .filter((row) => row.input > 0);
+    const n = samples.length;
+    const mean = samples.reduce((sum, row) => sum + row.output, 0)
+        / samples.reduce((sum, row) => sum + row.input, 0);
+    const unavailable = { level: 0, n, low: null, high: null, relativeError: null };
+    if (n < 2 || !(mean > 0) || !Number.isFinite(mean)) return unavailable;
+    // Local deterministic PRNG: repeated renders must not flicker between grades.
+    let seed = 0x6d2b79f5;
+    const random = () => {
+        seed = (seed + 0x6d2b79f5) | 0;
+        let value = Math.imul(seed ^ (seed >>> 15), 1 | seed);
+        value ^= value + Math.imul(value ^ (value >>> 7), 61 | value);
+        return ((value ^ (value >>> 14)) >>> 0) / 4294967296;
+    };
+    const means = [];
+    for (let replicate = 0; replicate < BOOTSTRAP_REPLICATES; replicate++) {
+        let input = 0;
+        let output = 0;
+        for (let i = 0; i < n; i++) {
+            const row = samples[Math.floor(random() * n)];
+            input += row.input;
+            output += row.output;
+        }
+        const estimate = output / input;
+        if (!Number.isFinite(estimate)) return unavailable;
+        means.push(estimate);
+    }
+    means.sort((a, b) => a - b);
+    const quantile = (p) => {
+        const index = (means.length - 1) * p;
+        const lower = Math.floor(index);
+        return means[lower] + (means[Math.ceil(index)] - means[lower]) * (index - lower);
+    };
+    const low = quantile(0.025);
+    const high = quantile(0.975);
+    const relativeError = ((high - low) / 2) / mean;
+    return { level: yieldConfidenceLevel(relativeError, n), n, low, high, relativeError };
+}
 
 function num(value) {
     const n = Number(value);
@@ -60,7 +112,8 @@ export function listYieldLogs() {
 export function yieldAverage(islandCity, itemKey, {
     premium = true,
     water = false,
-    itemType = 'plant'
+    itemType = 'plant',
+    includeConfidence = false
 } = {}) {
     if (!islandCity || !itemKey) {
         return null;
@@ -99,6 +152,7 @@ export function yieldAverage(islandCity, itemKey, {
         seedsPlanted: planted,
         avgPlantYield: harvested / planted,
         avgSeedReturn: returned / planted,
+        ...(includeConfidence ? { confidence: bootstrapYieldConfidence(rows) } : {}),
         source: 'user'
     };
 }

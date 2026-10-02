@@ -58,6 +58,54 @@ const near = (actual, expected, label) => assert.ok(Math.abs(actual - expected) 
 let checks = 0;
 function test(name, run) { run(); checks++; console.log(`PASS ${name}`); }
 
+test('bootstrap confidence measures dispersion rather than input quantity', () => {
+    const row = (input, output) => ({ seedsPlanted: input, plantsHarvested: output });
+    const stable = Array.from({ length: 20 }, () => row(10, 100));
+    const variable = Array.from({ length: 20 }, (_, i) => row(10, i % 2 ? 190 : 10));
+    const tight = stats.bootstrapYieldConfidence(stable);
+    const wide = stats.bootstrapYieldConfidence(variable);
+    near(tight.low, 10, 'stable mean');
+    near(tight.high, 10, 'stable mean upper');
+    near(variable.reduce((sum, r) => sum + r.plantsHarvested, 0) / 200, 10, 'same weighted mean');
+    assert.equal(tight.level, 4);
+    assert.equal(wide.level, 1);
+    assert.ok(wide.relativeError > 0.10);
+    assert.equal(stats.bootstrapYieldConfidence([row(1000000, 10000000)]).level, 0);
+    assert.equal(stats.bootstrapYieldConfidence(stable.slice(0, 2)).level, 3);
+    assert.equal(stats.bootstrapYieldConfidence([]).level, 0);
+    assert.equal(stats.bootstrapYieldConfidence([row(10, 0), row(10, 0)]).level, 0);
+    assert.equal(stats.bootstrapYieldConfidence([row(0, 100), row(-1, 10)]).level, 0);
+    assert.equal(JSON.stringify(wide), JSON.stringify(stats.bootstrapYieldConfidence(variable)), 'deterministic interval');
+    const scaled = variable.map((r) => row(r.seedsPlanted * 1000, r.plantsHarvested * 1000));
+    near(stats.bootstrapYieldConfidence(scaled).relativeError, wide.relativeError, 'quantity scaling cannot inflate confidence');
+    // Two whole records give ratios 1, 91/11 and 9, never the unweighted mean 5.
+    const weighted = stats.bootstrapYieldConfidence([row(1, 1), row(10, 90)]);
+    near(weighted.low, 1, 'whole record lower');
+    near(weighted.high, 9, 'whole record upper');
+    near(weighted.relativeError, 4 / (91 / 11), 'weighted bootstrap ratio');
+    for (const [error, expected] of [[0.101, 1], [0.10, 2], [0.051, 2], [0.05, 3], [0.021, 3], [0.02, 4]]) {
+        assert.equal(stats.yieldConfidenceLevel(error, 3), expected);
+    }
+});
+
+test('confidence uses only the matching group and excludes marked outliers', () => {
+    const base = { islandCity: 'Martlock', itemKey: 'wheat', itemType: 'plant', premium: true, water: true, seedsPlanted: 10, seedsReturned: 14, plantsHarvested: 100 };
+    const included = [base, { ...base, seedsPlanted: 20, plantsHarvested: 200 }, base];
+    store.replaceAllRows('islandYieldLogs', [...included,
+        ...[true, 'true'].map((isOutlier) => ({ ...base, isOutlier, plantsHarvested: 10000 })),
+        ...[{ islandCity: 'Lymhurst' }, { itemKey: 'carrot' }, { itemType: 'animal' }, { premium: false }, { water: false }]
+            .map((other) => ({ ...base, ...other, plantsHarvested: 10000 }))
+    ]);
+    const avg = stats.yieldAverage('Martlock', 'wheat', { water: true, includeConfidence: true });
+    assert.equal(avg.n, 3);
+    assert.equal(avg.seedsPlanted, 40);
+    near(avg.avgPlantYield, 10, 'unchanged weighted output');
+    near(avg.avgSeedReturn, 42 / 40, 'unchanged weighted return');
+    assert.equal(avg.confidence.level, 4);
+    assert.equal(JSON.stringify(avg.confidence), JSON.stringify(stats.bootstrapYieldConfidence(included)));
+    store.replaceAllRows('islandYieldLogs', []);
+});
+
 test('nine slots, crop premium/city, focus changes returns only', () => {
     assert.equal(economy.plantSlots(), 9);
     near(stats.standardPlantYield(wheat, 'Martlock', true), 9.5, 'intentional empirical premium city yield');
