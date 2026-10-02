@@ -1,0 +1,7118 @@
+{
+  "provenance": {
+    "repository": "https://github.com/ao-data/ao-bin-dumps",
+    "itemsSha256": "5bd6d2a8f529e96ba18020bcefb964fefe5f333c5e1f322285e5daeb79698b06",
+    "gamedataSha256": "5082b185ab89b8c80a40860220371f9f2894e193bdbdfe2da1500c5bb570c327",
+    "fields": [
+      "labourercontract.@uniquename",
+      "labourercontract.@tier",
+      "labourercontract.@shopsubcategory3",
+      "journalitem.@maxfame",
+      "journalitem.@baselootamount",
+      "journalitem.lootlist.loot",
+      "AO-GameData.LabourerSettings.@maxyield"
+    ]
+  },
+  "maxRewardYield": 1.5,
+  "contracts": [
+    {
+      "itemId": 6297,
+      "item": "T2_LABOURER_CONTRACT_WOOD",
+      "label": "Novice Lumberjack Contract",
+      "tier": 2,
+      "type": "wood"
+    },
+    {
+      "itemId": 6298,
+      "item": "T3_LABOURER_CONTRACT_WOOD",
+      "label": "Journeyman Lumberjack Contract",
+      "tier": 3,
+      "type": "wood"
+    },
+    {
+      "itemId": 6299,
+      "item": "T4_LABOURER_CONTRACT_WOOD",
+      "label": "Adept Lumberjack Contract",
+      "tier": 4,
+      "type": "wood"
+    },
+    {
+      "itemId": 6300,
+      "item": "T5_LABOURER_CONTRACT_WOOD",
+      "label": "Expert Lumberjack Contract",
+      "tier": 5,
+      "type": "wood"
+    },
+    {
+      "itemId": 6301,
+      "item": "T6_LABOURER_CONTRACT_WOOD",
+      "label": "Master Lumberjack Contract",
+      "tier": 6,
+      "type": "wood"
+    },
+    {
+      "itemId": 6302,
+      "item": "T7_LABOURER_CONTRACT_WOOD",
+      "label": "Grandmaster Lumberjack Contract",
+      "tier": 7,
+      "type": "wood"
+    },
+    {
+      "itemId": 6303,
+      "item": "T8_LABOURER_CONTRACT_WOOD",
+      "label": "Elder Lumberjack Contract",
+      "tier": 8,
+      "type": "wood"
+    },
+    {
+      "itemId": 6304,
+      "item": "T2_LABOURER_CONTRACT_STONE",
+      "label": "Novice Stonecutter Contract",
+      "tier": 2,
+      "type": "stone"
+    },
+    {
+      "itemId": 6305,
+      "item": "T3_LABOURER_CONTRACT_STONE",
+      "label": "Journeyman Stonecutter Contract",
+      "tier": 3,
+      "type": "stone"
+    },
+    {
+      "itemId": 6306,
+      "item": "T4_LABOURER_CONTRACT_STONE",
+      "label": "Adept Stonecutter Contract",
+      "tier": 4,
+      "type": "stone"
+    },
+    {
+      "itemId": 6307,
+      "item": "T5_LABOURER_CONTRACT_STONE",
+      "label": "Expert Stonecutter Contract",
+      "tier": 5,
+      "type": "stone"
+    },
+    {
+      "itemId": 6308,
+      "item": "T6_LABOURER_CONTRACT_STONE",
+      "label": "Master Stonecutter Contract",
+      "tier": 6,
+      "type": "stone"
+    },
+    {
+      "itemId": 6309,
+      "item": "T7_LABOURER_CONTRACT_STONE",
+      "label": "Grandmaster Stonecutter Contract",
+      "tier": 7,
+      "type": "stone"
+    },
+    {
+      "itemId": 6310,
+      "item": "T8_LABOURER_CONTRACT_STONE",
+      "label": "Elder Stonecutter Contract",
+      "tier": 8,
+      "type": "stone"
+    },
+    {
+      "itemId": 6311,
+      "item": "T2_LABOURER_CONTRACT_FIBER",
+      "label": "Novice Cropper Contract",
+      "tier": 2,
+      "type": "fiber"
+    },
+    {
+      "itemId": 6312,
+      "item": "T3_LABOURER_CONTRACT_FIBER",
+      "label": "Journeyman Cropper Contract",
+      "tier": 3,
+      "type": "fiber"
+    },
+    {
+      "itemId": 6313,
+      "item": "T4_LABOURER_CONTRACT_FIBER",
+      "label": "Adept Cropper Contract",
+      "tier": 4,
+      "type": "fiber"
+    },
+    {
+      "itemId": 6314,
+      "item": "T5_LABOURER_CONTRACT_FIBER",
+      "label": "Expert Cropper Contract",
+      "tier": 5,
+      "type": "fiber"
+    },
+    {
+      "itemId": 6315,
+      "item": "T6_LABOURER_CONTRACT_FIBER",
+      "label": "Master Cropper Contract",
+      "tier": 6,
+      "type": "fiber"
+    },
+    {
+      "itemId": 6316,
+      "item": "T7_LABOURER_CONTRACT_FIBER",
+      "label": "Grandmaster Cropper Contract",
+      "tier": 7,
+      "type": "fiber"
+    },
+    {
+      "itemId": 6317,
+      "item": "T8_LABOURER_CONTRACT_FIBER",
+      "label": "Elder Cropper Contract",
+      "tier": 8,
+      "type": "fiber"
+    },
+    {
+      "itemId": 6318,
+      "item": "T2_LABOURER_CONTRACT_HIDE",
+      "label": "Novice Gamekeeper Contract",
+      "tier": 2,
+      "type": "hide"
+    },
+    {
+      "itemId": 6319,
+      "item": "T3_LABOURER_CONTRACT_HIDE",
+      "label": "Journeyman Gamekeeper Contract",
+      "tier": 3,
+      "type": "hide"
+    },
+    {
+      "itemId": 6320,
+      "item": "T4_LABOURER_CONTRACT_HIDE",
+      "label": "Adept Gamekeeper Contract",
+      "tier": 4,
+      "type": "hide"
+    },
+    {
+      "itemId": 6321,
+      "item": "T5_LABOURER_CONTRACT_HIDE",
+      "label": "Expert Gamekeeper Contract",
+      "tier": 5,
+      "type": "hide"
+    },
+    {
+      "itemId": 6322,
+      "item": "T6_LABOURER_CONTRACT_HIDE",
+      "label": "Master Gamekeeper Contract",
+      "tier": 6,
+      "type": "hide"
+    },
+    {
+      "itemId": 6323,
+      "item": "T7_LABOURER_CONTRACT_HIDE",
+      "label": "Grandmaster Gamekeeper Contract",
+      "tier": 7,
+      "type": "hide"
+    },
+    {
+      "itemId": 6324,
+      "item": "T8_LABOURER_CONTRACT_HIDE",
+      "label": "Elder Gamekeeper Contract",
+      "tier": 8,
+      "type": "hide"
+    },
+    {
+      "itemId": 6325,
+      "item": "T2_LABOURER_CONTRACT_ORE",
+      "label": "Novice Prospector Contract",
+      "tier": 2,
+      "type": "ore"
+    },
+    {
+      "itemId": 6326,
+      "item": "T3_LABOURER_CONTRACT_ORE",
+      "label": "Journeyman Prospector Contract",
+      "tier": 3,
+      "type": "ore"
+    },
+    {
+      "itemId": 6327,
+      "item": "T4_LABOURER_CONTRACT_ORE",
+      "label": "Adept Prospector Contract",
+      "tier": 4,
+      "type": "ore"
+    },
+    {
+      "itemId": 6328,
+      "item": "T5_LABOURER_CONTRACT_ORE",
+      "label": "Expert Prospector Contract",
+      "tier": 5,
+      "type": "ore"
+    },
+    {
+      "itemId": 6329,
+      "item": "T6_LABOURER_CONTRACT_ORE",
+      "label": "Master Prospector Contract",
+      "tier": 6,
+      "type": "ore"
+    },
+    {
+      "itemId": 6330,
+      "item": "T7_LABOURER_CONTRACT_ORE",
+      "label": "Grandmaster Prospector Contract",
+      "tier": 7,
+      "type": "ore"
+    },
+    {
+      "itemId": 6331,
+      "item": "T8_LABOURER_CONTRACT_ORE",
+      "label": "Elder Prospector Contract",
+      "tier": 8,
+      "type": "ore"
+    },
+    {
+      "itemId": 6332,
+      "item": "T2_LABOURER_CONTRACT_MERCENARY",
+      "label": "Novice Mercenary Contract",
+      "tier": 2,
+      "type": "mercenary"
+    },
+    {
+      "itemId": 6333,
+      "item": "T3_LABOURER_CONTRACT_MERCENARY",
+      "label": "Journeyman Mercenary Contract",
+      "tier": 3,
+      "type": "mercenary"
+    },
+    {
+      "itemId": 6334,
+      "item": "T4_LABOURER_CONTRACT_MERCENARY",
+      "label": "Adept Mercenary Contract",
+      "tier": 4,
+      "type": "mercenary"
+    },
+    {
+      "itemId": 6335,
+      "item": "T5_LABOURER_CONTRACT_MERCENARY",
+      "label": "Expert Mercenary Contract",
+      "tier": 5,
+      "type": "mercenary"
+    },
+    {
+      "itemId": 6336,
+      "item": "T6_LABOURER_CONTRACT_MERCENARY",
+      "label": "Master Mercenary Contract",
+      "tier": 6,
+      "type": "mercenary"
+    },
+    {
+      "itemId": 6337,
+      "item": "T7_LABOURER_CONTRACT_MERCENARY",
+      "label": "Grandmaster Mercenary Contract",
+      "tier": 7,
+      "type": "mercenary"
+    },
+    {
+      "itemId": 6338,
+      "item": "T8_LABOURER_CONTRACT_MERCENARY",
+      "label": "Elder Mercenary Contract",
+      "tier": 8,
+      "type": "mercenary"
+    },
+    {
+      "itemId": 6339,
+      "item": "T2_LABOURER_CONTRACT_FISHERMAN",
+      "label": "Novice Fisherman Contract",
+      "tier": 2,
+      "type": "fish"
+    },
+    {
+      "itemId": 6340,
+      "item": "T3_LABOURER_CONTRACT_FISHERMAN",
+      "label": "Journeyman Fisherman Contract",
+      "tier": 3,
+      "type": "fish"
+    },
+    {
+      "itemId": 6341,
+      "item": "T4_LABOURER_CONTRACT_FISHERMAN",
+      "label": "Adept Fisherman Contract",
+      "tier": 4,
+      "type": "fish"
+    },
+    {
+      "itemId": 6342,
+      "item": "T5_LABOURER_CONTRACT_FISHERMAN",
+      "label": "Expert Fisherman Contract",
+      "tier": 5,
+      "type": "fish"
+    },
+    {
+      "itemId": 6343,
+      "item": "T6_LABOURER_CONTRACT_FISHERMAN",
+      "label": "Master Fisherman Contract",
+      "tier": 6,
+      "type": "fish"
+    },
+    {
+      "itemId": 6344,
+      "item": "T7_LABOURER_CONTRACT_FISHERMAN",
+      "label": "Grandmaster Fisherman Contract",
+      "tier": 7,
+      "type": "fish"
+    },
+    {
+      "itemId": 6345,
+      "item": "T8_LABOURER_CONTRACT_FISHERMAN",
+      "label": "Elder Fisherman Contract",
+      "tier": 8,
+      "type": "fish"
+    },
+    {
+      "itemId": 6346,
+      "item": "T2_LABOURER_CONTRACT_HUNTER",
+      "label": "Novice Fletcher Contract",
+      "tier": 2,
+      "type": "hunter"
+    },
+    {
+      "itemId": 6347,
+      "item": "T3_LABOURER_CONTRACT_HUNTER",
+      "label": "Journeyman Fletcher Contract",
+      "tier": 3,
+      "type": "hunter"
+    },
+    {
+      "itemId": 6348,
+      "item": "T4_LABOURER_CONTRACT_HUNTER",
+      "label": "Adept Fletcher Contract",
+      "tier": 4,
+      "type": "hunter"
+    },
+    {
+      "itemId": 6349,
+      "item": "T5_LABOURER_CONTRACT_HUNTER",
+      "label": "Expert Fletcher Contract",
+      "tier": 5,
+      "type": "hunter"
+    },
+    {
+      "itemId": 6350,
+      "item": "T6_LABOURER_CONTRACT_HUNTER",
+      "label": "Master Fletcher Contract",
+      "tier": 6,
+      "type": "hunter"
+    },
+    {
+      "itemId": 6351,
+      "item": "T7_LABOURER_CONTRACT_HUNTER",
+      "label": "Grandmaster Fletcher Contract",
+      "tier": 7,
+      "type": "hunter"
+    },
+    {
+      "itemId": 6352,
+      "item": "T8_LABOURER_CONTRACT_HUNTER",
+      "label": "Elder Fletcher Contract",
+      "tier": 8,
+      "type": "hunter"
+    },
+    {
+      "itemId": 6353,
+      "item": "T2_LABOURER_CONTRACT_MAGE",
+      "label": "Novice Imbuer Contract",
+      "tier": 2,
+      "type": "mage"
+    },
+    {
+      "itemId": 6354,
+      "item": "T3_LABOURER_CONTRACT_MAGE",
+      "label": "Journeyman Imbuer Contract",
+      "tier": 3,
+      "type": "mage"
+    },
+    {
+      "itemId": 6355,
+      "item": "T4_LABOURER_CONTRACT_MAGE",
+      "label": "Adept Imbuer Contract",
+      "tier": 4,
+      "type": "mage"
+    },
+    {
+      "itemId": 6356,
+      "item": "T5_LABOURER_CONTRACT_MAGE",
+      "label": "Expert Imbuer Contract",
+      "tier": 5,
+      "type": "mage"
+    },
+    {
+      "itemId": 6357,
+      "item": "T6_LABOURER_CONTRACT_MAGE",
+      "label": "Master Imbuer Contract",
+      "tier": 6,
+      "type": "mage"
+    },
+    {
+      "itemId": 6358,
+      "item": "T7_LABOURER_CONTRACT_MAGE",
+      "label": "Grandmaster Imbuer Contract",
+      "tier": 7,
+      "type": "mage"
+    },
+    {
+      "itemId": 6359,
+      "item": "T8_LABOURER_CONTRACT_MAGE",
+      "label": "Elder Imbuer Contract",
+      "tier": 8,
+      "type": "mage"
+    },
+    {
+      "itemId": 6360,
+      "item": "T2_LABOURER_CONTRACT_WARRIOR",
+      "label": "Novice Blacksmith Contract",
+      "tier": 2,
+      "type": "warrior"
+    },
+    {
+      "itemId": 6361,
+      "item": "T3_LABOURER_CONTRACT_WARRIOR",
+      "label": "Journeyman Blacksmith Contract",
+      "tier": 3,
+      "type": "warrior"
+    },
+    {
+      "itemId": 6362,
+      "item": "T4_LABOURER_CONTRACT_WARRIOR",
+      "label": "Adept Blacksmith Contract",
+      "tier": 4,
+      "type": "warrior"
+    },
+    {
+      "itemId": 6363,
+      "item": "T5_LABOURER_CONTRACT_WARRIOR",
+      "label": "Expert Blacksmith Contract",
+      "tier": 5,
+      "type": "warrior"
+    },
+    {
+      "itemId": 6364,
+      "item": "T6_LABOURER_CONTRACT_WARRIOR",
+      "label": "Master Blacksmith Contract",
+      "tier": 6,
+      "type": "warrior"
+    },
+    {
+      "itemId": 6365,
+      "item": "T7_LABOURER_CONTRACT_WARRIOR",
+      "label": "Grandmaster Blacksmith Contract",
+      "tier": 7,
+      "type": "warrior"
+    },
+    {
+      "itemId": 6366,
+      "item": "T8_LABOURER_CONTRACT_WARRIOR",
+      "label": "Elder Blacksmith Contract",
+      "tier": 8,
+      "type": "warrior"
+    },
+    {
+      "itemId": 6367,
+      "item": "T2_LABOURER_CONTRACT_TOOLMAKER",
+      "label": "Novice Tinker Contract",
+      "tier": 2,
+      "type": "toolmaker"
+    },
+    {
+      "itemId": 6368,
+      "item": "T3_LABOURER_CONTRACT_TOOLMAKER",
+      "label": "Journeyman Tinker Contract",
+      "tier": 3,
+      "type": "toolmaker"
+    },
+    {
+      "itemId": 6369,
+      "item": "T4_LABOURER_CONTRACT_TOOLMAKER",
+      "label": "Adept Tinker Contract",
+      "tier": 4,
+      "type": "toolmaker"
+    },
+    {
+      "itemId": 6370,
+      "item": "T5_LABOURER_CONTRACT_TOOLMAKER",
+      "label": "Expert Tinker Contract",
+      "tier": 5,
+      "type": "toolmaker"
+    },
+    {
+      "itemId": 6371,
+      "item": "T6_LABOURER_CONTRACT_TOOLMAKER",
+      "label": "Master Tinker Contract",
+      "tier": 6,
+      "type": "toolmaker"
+    },
+    {
+      "itemId": 6372,
+      "item": "T7_LABOURER_CONTRACT_TOOLMAKER",
+      "label": "Grandmaster Tinker Contract",
+      "tier": 7,
+      "type": "toolmaker"
+    },
+    {
+      "itemId": 6373,
+      "item": "T8_LABOURER_CONTRACT_TOOLMAKER",
+      "label": "Elder Tinker Contract",
+      "tier": 8,
+      "type": "toolmaker"
+    }
+  ],
+  "journals": [
+    {
+      "item": "T2_JOURNAL_WOOD",
+      "tier": 2,
+      "type": "wood",
+      "filled": "T2_JOURNAL_WOOD_FULL",
+      "empty": "T2_JOURNAL_WOOD_EMPTY",
+      "missionTypes": [
+        "gatherfame"
+      ],
+      "fillFame": 450,
+      "baseLootAmount": 38,
+      "loot": [
+        {
+          "item": "T2_WOOD",
+          "rawItem": "T2_WOOD",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 1889,
+          "labourerFame": 2
+        }
+      ]
+    },
+    {
+      "item": "T3_JOURNAL_WOOD",
+      "tier": 3,
+      "type": "wood",
+      "filled": "T3_JOURNAL_WOOD_FULL",
+      "empty": "T3_JOURNAL_WOOD_EMPTY",
+      "missionTypes": [
+        "gatherfame"
+      ],
+      "fillFame": 900,
+      "baseLootAmount": 60,
+      "loot": [
+        {
+          "item": "T3_WOOD",
+          "rawItem": "T3_WOOD",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 1889,
+          "labourerFame": 2
+        }
+      ]
+    },
+    {
+      "item": "T4_JOURNAL_WOOD",
+      "tier": 4,
+      "type": "wood",
+      "filled": "T4_JOURNAL_WOOD_FULL",
+      "empty": "T4_JOURNAL_WOOD_EMPTY",
+      "missionTypes": [
+        "gatherfame"
+      ],
+      "fillFame": 1800,
+      "baseLootAmount": 48,
+      "loot": [
+        {
+          "item": "T4_WOOD",
+          "rawItem": "T4_WOOD",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 1889,
+          "labourerFame": 5
+        },
+        {
+          "item": "T4_WOOD_LEVEL1@1",
+          "rawItem": "T4_WOOD_LEVEL1",
+          "enchantment": 1,
+          "amount": 1,
+          "weight": 100,
+          "labourerFame": 5
+        },
+        {
+          "item": "T4_WOOD_LEVEL2@2",
+          "rawItem": "T4_WOOD_LEVEL2",
+          "enchantment": 2,
+          "amount": 1,
+          "weight": 10,
+          "labourerFame": 5
+        },
+        {
+          "item": "T4_WOOD_LEVEL3@3",
+          "rawItem": "T4_WOOD_LEVEL3",
+          "enchantment": 3,
+          "amount": 1,
+          "weight": 1,
+          "labourerFame": 5
+        }
+      ]
+    },
+    {
+      "item": "T5_JOURNAL_WOOD",
+      "tier": 5,
+      "type": "wood",
+      "filled": "T5_JOURNAL_WOOD_FULL",
+      "empty": "T5_JOURNAL_WOOD_EMPTY",
+      "missionTypes": [
+        "gatherfame"
+      ],
+      "fillFame": 3600,
+      "baseLootAmount": 32,
+      "loot": [
+        {
+          "item": "T5_WOOD",
+          "rawItem": "T5_WOOD",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 1889,
+          "labourerFame": 15
+        },
+        {
+          "item": "T5_WOOD_LEVEL1@1",
+          "rawItem": "T5_WOOD_LEVEL1",
+          "enchantment": 1,
+          "amount": 1,
+          "weight": 100,
+          "labourerFame": 15
+        },
+        {
+          "item": "T5_WOOD_LEVEL2@2",
+          "rawItem": "T5_WOOD_LEVEL2",
+          "enchantment": 2,
+          "amount": 1,
+          "weight": 10,
+          "labourerFame": 15
+        },
+        {
+          "item": "T5_WOOD_LEVEL3@3",
+          "rawItem": "T5_WOOD_LEVEL3",
+          "enchantment": 3,
+          "amount": 1,
+          "weight": 1,
+          "labourerFame": 15
+        }
+      ]
+    },
+    {
+      "item": "T6_JOURNAL_WOOD",
+      "tier": 6,
+      "type": "wood",
+      "filled": "T6_JOURNAL_WOOD_FULL",
+      "empty": "T6_JOURNAL_WOOD_EMPTY",
+      "missionTypes": [
+        "gatherfame"
+      ],
+      "fillFame": 7200,
+      "baseLootAmount": 32,
+      "loot": [
+        {
+          "item": "T6_WOOD",
+          "rawItem": "T6_WOOD",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 1889,
+          "labourerFame": 30
+        },
+        {
+          "item": "T6_WOOD_LEVEL1@1",
+          "rawItem": "T6_WOOD_LEVEL1",
+          "enchantment": 1,
+          "amount": 1,
+          "weight": 100,
+          "labourerFame": 30
+        },
+        {
+          "item": "T6_WOOD_LEVEL2@2",
+          "rawItem": "T6_WOOD_LEVEL2",
+          "enchantment": 2,
+          "amount": 1,
+          "weight": 10,
+          "labourerFame": 30
+        },
+        {
+          "item": "T6_WOOD_LEVEL3@3",
+          "rawItem": "T6_WOOD_LEVEL3",
+          "enchantment": 3,
+          "amount": 1,
+          "weight": 1,
+          "labourerFame": 30
+        }
+      ]
+    },
+    {
+      "item": "T7_JOURNAL_WOOD",
+      "tier": 7,
+      "type": "wood",
+      "filled": "T7_JOURNAL_WOOD_FULL",
+      "empty": "T7_JOURNAL_WOOD_EMPTY",
+      "missionTypes": [
+        "gatherfame"
+      ],
+      "fillFame": 14400,
+      "baseLootAmount": 38.4,
+      "loot": [
+        {
+          "item": "T7_WOOD",
+          "rawItem": "T7_WOOD",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 1889,
+          "labourerFame": 50
+        },
+        {
+          "item": "T7_WOOD_LEVEL1@1",
+          "rawItem": "T7_WOOD_LEVEL1",
+          "enchantment": 1,
+          "amount": 1,
+          "weight": 100,
+          "labourerFame": 50
+        },
+        {
+          "item": "T7_WOOD_LEVEL2@2",
+          "rawItem": "T7_WOOD_LEVEL2",
+          "enchantment": 2,
+          "amount": 1,
+          "weight": 10,
+          "labourerFame": 50
+        },
+        {
+          "item": "T7_WOOD_LEVEL3@3",
+          "rawItem": "T7_WOOD_LEVEL3",
+          "enchantment": 3,
+          "amount": 1,
+          "weight": 1,
+          "labourerFame": 50
+        }
+      ]
+    },
+    {
+      "item": "T8_JOURNAL_WOOD",
+      "tier": 8,
+      "type": "wood",
+      "filled": "T8_JOURNAL_WOOD_FULL",
+      "empty": "T8_JOURNAL_WOOD_EMPTY",
+      "missionTypes": [
+        "gatherfame"
+      ],
+      "fillFame": 28800,
+      "baseLootAmount": 38.4,
+      "loot": [
+        {
+          "item": "T8_WOOD",
+          "rawItem": "T8_WOOD",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 1889,
+          "labourerFame": 100
+        },
+        {
+          "item": "T8_WOOD_LEVEL1@1",
+          "rawItem": "T8_WOOD_LEVEL1",
+          "enchantment": 1,
+          "amount": 1,
+          "weight": 100,
+          "labourerFame": 100
+        },
+        {
+          "item": "T8_WOOD_LEVEL2@2",
+          "rawItem": "T8_WOOD_LEVEL2",
+          "enchantment": 2,
+          "amount": 1,
+          "weight": 10,
+          "labourerFame": 100
+        },
+        {
+          "item": "T8_WOOD_LEVEL3@3",
+          "rawItem": "T8_WOOD_LEVEL3",
+          "enchantment": 3,
+          "amount": 1,
+          "weight": 1,
+          "labourerFame": 100
+        }
+      ]
+    },
+    {
+      "item": "T2_JOURNAL_STONE",
+      "tier": 2,
+      "type": "stone",
+      "filled": "T2_JOURNAL_STONE_FULL",
+      "empty": "T2_JOURNAL_STONE_EMPTY",
+      "missionTypes": [
+        "gatherfame"
+      ],
+      "fillFame": 450,
+      "baseLootAmount": 38,
+      "loot": [
+        {
+          "item": "T2_ROCK",
+          "rawItem": "T2_ROCK",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 1889,
+          "labourerFame": 2
+        }
+      ]
+    },
+    {
+      "item": "T3_JOURNAL_STONE",
+      "tier": 3,
+      "type": "stone",
+      "filled": "T3_JOURNAL_STONE_FULL",
+      "empty": "T3_JOURNAL_STONE_EMPTY",
+      "missionTypes": [
+        "gatherfame"
+      ],
+      "fillFame": 900,
+      "baseLootAmount": 60,
+      "loot": [
+        {
+          "item": "T3_ROCK",
+          "rawItem": "T3_ROCK",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 1889,
+          "labourerFame": 2
+        }
+      ]
+    },
+    {
+      "item": "T4_JOURNAL_STONE",
+      "tier": 4,
+      "type": "stone",
+      "filled": "T4_JOURNAL_STONE_FULL",
+      "empty": "T4_JOURNAL_STONE_EMPTY",
+      "missionTypes": [
+        "gatherfame"
+      ],
+      "fillFame": 1800,
+      "baseLootAmount": 48,
+      "loot": [
+        {
+          "item": "T4_ROCK",
+          "rawItem": "T4_ROCK",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 1889,
+          "labourerFame": 5
+        }
+      ]
+    },
+    {
+      "item": "T5_JOURNAL_STONE",
+      "tier": 5,
+      "type": "stone",
+      "filled": "T5_JOURNAL_STONE_FULL",
+      "empty": "T5_JOURNAL_STONE_EMPTY",
+      "missionTypes": [
+        "gatherfame"
+      ],
+      "fillFame": 3600,
+      "baseLootAmount": 32,
+      "loot": [
+        {
+          "item": "T5_ROCK",
+          "rawItem": "T5_ROCK",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 1889,
+          "labourerFame": 15
+        }
+      ]
+    },
+    {
+      "item": "T6_JOURNAL_STONE",
+      "tier": 6,
+      "type": "stone",
+      "filled": "T6_JOURNAL_STONE_FULL",
+      "empty": "T6_JOURNAL_STONE_EMPTY",
+      "missionTypes": [
+        "gatherfame"
+      ],
+      "fillFame": 7200,
+      "baseLootAmount": 32,
+      "loot": [
+        {
+          "item": "T6_ROCK",
+          "rawItem": "T6_ROCK",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 1889,
+          "labourerFame": 30
+        }
+      ]
+    },
+    {
+      "item": "T7_JOURNAL_STONE",
+      "tier": 7,
+      "type": "stone",
+      "filled": "T7_JOURNAL_STONE_FULL",
+      "empty": "T7_JOURNAL_STONE_EMPTY",
+      "missionTypes": [
+        "gatherfame"
+      ],
+      "fillFame": 14400,
+      "baseLootAmount": 38.4,
+      "loot": [
+        {
+          "item": "T7_ROCK",
+          "rawItem": "T7_ROCK",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 1889,
+          "labourerFame": 50
+        }
+      ]
+    },
+    {
+      "item": "T8_JOURNAL_STONE",
+      "tier": 8,
+      "type": "stone",
+      "filled": "T8_JOURNAL_STONE_FULL",
+      "empty": "T8_JOURNAL_STONE_EMPTY",
+      "missionTypes": [
+        "gatherfame"
+      ],
+      "fillFame": 28800,
+      "baseLootAmount": 38.4,
+      "loot": [
+        {
+          "item": "T8_ROCK",
+          "rawItem": "T8_ROCK",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 1889,
+          "labourerFame": 100
+        }
+      ]
+    },
+    {
+      "item": "T2_JOURNAL_ORE",
+      "tier": 2,
+      "type": "ore",
+      "filled": "T2_JOURNAL_ORE_FULL",
+      "empty": "T2_JOURNAL_ORE_EMPTY",
+      "missionTypes": [
+        "gatherfame"
+      ],
+      "fillFame": 450,
+      "baseLootAmount": 38,
+      "loot": [
+        {
+          "item": "T2_ORE",
+          "rawItem": "T2_ORE",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 1889,
+          "labourerFame": 2
+        }
+      ]
+    },
+    {
+      "item": "T3_JOURNAL_ORE",
+      "tier": 3,
+      "type": "ore",
+      "filled": "T3_JOURNAL_ORE_FULL",
+      "empty": "T3_JOURNAL_ORE_EMPTY",
+      "missionTypes": [
+        "gatherfame"
+      ],
+      "fillFame": 900,
+      "baseLootAmount": 60,
+      "loot": [
+        {
+          "item": "T3_ORE",
+          "rawItem": "T3_ORE",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 1889,
+          "labourerFame": 2
+        }
+      ]
+    },
+    {
+      "item": "T4_JOURNAL_ORE",
+      "tier": 4,
+      "type": "ore",
+      "filled": "T4_JOURNAL_ORE_FULL",
+      "empty": "T4_JOURNAL_ORE_EMPTY",
+      "missionTypes": [
+        "gatherfame"
+      ],
+      "fillFame": 1800,
+      "baseLootAmount": 48,
+      "loot": [
+        {
+          "item": "T4_ORE",
+          "rawItem": "T4_ORE",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 1889,
+          "labourerFame": 5
+        },
+        {
+          "item": "T4_ORE_LEVEL1@1",
+          "rawItem": "T4_ORE_LEVEL1",
+          "enchantment": 1,
+          "amount": 1,
+          "weight": 100,
+          "labourerFame": 5
+        },
+        {
+          "item": "T4_ORE_LEVEL2@2",
+          "rawItem": "T4_ORE_LEVEL2",
+          "enchantment": 2,
+          "amount": 1,
+          "weight": 10,
+          "labourerFame": 5
+        },
+        {
+          "item": "T4_ORE_LEVEL3@3",
+          "rawItem": "T4_ORE_LEVEL3",
+          "enchantment": 3,
+          "amount": 1,
+          "weight": 1,
+          "labourerFame": 5
+        }
+      ]
+    },
+    {
+      "item": "T5_JOURNAL_ORE",
+      "tier": 5,
+      "type": "ore",
+      "filled": "T5_JOURNAL_ORE_FULL",
+      "empty": "T5_JOURNAL_ORE_EMPTY",
+      "missionTypes": [
+        "gatherfame"
+      ],
+      "fillFame": 3600,
+      "baseLootAmount": 32,
+      "loot": [
+        {
+          "item": "T5_ORE",
+          "rawItem": "T5_ORE",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 1889,
+          "labourerFame": 15
+        },
+        {
+          "item": "T5_ORE_LEVEL1@1",
+          "rawItem": "T5_ORE_LEVEL1",
+          "enchantment": 1,
+          "amount": 1,
+          "weight": 100,
+          "labourerFame": 15
+        },
+        {
+          "item": "T5_ORE_LEVEL2@2",
+          "rawItem": "T5_ORE_LEVEL2",
+          "enchantment": 2,
+          "amount": 1,
+          "weight": 10,
+          "labourerFame": 15
+        },
+        {
+          "item": "T5_ORE_LEVEL3@3",
+          "rawItem": "T5_ORE_LEVEL3",
+          "enchantment": 3,
+          "amount": 1,
+          "weight": 1,
+          "labourerFame": 15
+        }
+      ]
+    },
+    {
+      "item": "T6_JOURNAL_ORE",
+      "tier": 6,
+      "type": "ore",
+      "filled": "T6_JOURNAL_ORE_FULL",
+      "empty": "T6_JOURNAL_ORE_EMPTY",
+      "missionTypes": [
+        "gatherfame"
+      ],
+      "fillFame": 7200,
+      "baseLootAmount": 32,
+      "loot": [
+        {
+          "item": "T6_ORE",
+          "rawItem": "T6_ORE",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 1889,
+          "labourerFame": 30
+        },
+        {
+          "item": "T6_ORE_LEVEL1@1",
+          "rawItem": "T6_ORE_LEVEL1",
+          "enchantment": 1,
+          "amount": 1,
+          "weight": 100,
+          "labourerFame": 30
+        },
+        {
+          "item": "T6_ORE_LEVEL2@2",
+          "rawItem": "T6_ORE_LEVEL2",
+          "enchantment": 2,
+          "amount": 1,
+          "weight": 10,
+          "labourerFame": 30
+        },
+        {
+          "item": "T6_ORE_LEVEL3@3",
+          "rawItem": "T6_ORE_LEVEL3",
+          "enchantment": 3,
+          "amount": 1,
+          "weight": 1,
+          "labourerFame": 30
+        }
+      ]
+    },
+    {
+      "item": "T7_JOURNAL_ORE",
+      "tier": 7,
+      "type": "ore",
+      "filled": "T7_JOURNAL_ORE_FULL",
+      "empty": "T7_JOURNAL_ORE_EMPTY",
+      "missionTypes": [
+        "gatherfame"
+      ],
+      "fillFame": 14400,
+      "baseLootAmount": 38.4,
+      "loot": [
+        {
+          "item": "T7_ORE",
+          "rawItem": "T7_ORE",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 1889,
+          "labourerFame": 50
+        },
+        {
+          "item": "T7_ORE_LEVEL1@1",
+          "rawItem": "T7_ORE_LEVEL1",
+          "enchantment": 1,
+          "amount": 1,
+          "weight": 100,
+          "labourerFame": 50
+        },
+        {
+          "item": "T7_ORE_LEVEL2@2",
+          "rawItem": "T7_ORE_LEVEL2",
+          "enchantment": 2,
+          "amount": 1,
+          "weight": 10,
+          "labourerFame": 50
+        },
+        {
+          "item": "T7_ORE_LEVEL3@3",
+          "rawItem": "T7_ORE_LEVEL3",
+          "enchantment": 3,
+          "amount": 1,
+          "weight": 1,
+          "labourerFame": 50
+        }
+      ]
+    },
+    {
+      "item": "T8_JOURNAL_ORE",
+      "tier": 8,
+      "type": "ore",
+      "filled": "T8_JOURNAL_ORE_FULL",
+      "empty": "T8_JOURNAL_ORE_EMPTY",
+      "missionTypes": [
+        "gatherfame"
+      ],
+      "fillFame": 28800,
+      "baseLootAmount": 38.4,
+      "loot": [
+        {
+          "item": "T8_ORE",
+          "rawItem": "T8_ORE",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 1889,
+          "labourerFame": 100
+        },
+        {
+          "item": "T8_ORE_LEVEL1@1",
+          "rawItem": "T8_ORE_LEVEL1",
+          "enchantment": 1,
+          "amount": 1,
+          "weight": 100,
+          "labourerFame": 100
+        },
+        {
+          "item": "T8_ORE_LEVEL2@2",
+          "rawItem": "T8_ORE_LEVEL2",
+          "enchantment": 2,
+          "amount": 1,
+          "weight": 10,
+          "labourerFame": 100
+        },
+        {
+          "item": "T8_ORE_LEVEL3@3",
+          "rawItem": "T8_ORE_LEVEL3",
+          "enchantment": 3,
+          "amount": 1,
+          "weight": 1,
+          "labourerFame": 100
+        }
+      ]
+    },
+    {
+      "item": "T2_JOURNAL_FIBER",
+      "tier": 2,
+      "type": "fiber",
+      "filled": "T2_JOURNAL_FIBER_FULL",
+      "empty": "T2_JOURNAL_FIBER_EMPTY",
+      "missionTypes": [
+        "gatherfame"
+      ],
+      "fillFame": 450,
+      "baseLootAmount": 38,
+      "loot": [
+        {
+          "item": "T2_FIBER",
+          "rawItem": "T2_FIBER",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 1889,
+          "labourerFame": 2
+        }
+      ]
+    },
+    {
+      "item": "T3_JOURNAL_FIBER",
+      "tier": 3,
+      "type": "fiber",
+      "filled": "T3_JOURNAL_FIBER_FULL",
+      "empty": "T3_JOURNAL_FIBER_EMPTY",
+      "missionTypes": [
+        "gatherfame"
+      ],
+      "fillFame": 900,
+      "baseLootAmount": 60,
+      "loot": [
+        {
+          "item": "T3_FIBER",
+          "rawItem": "T3_FIBER",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 1889,
+          "labourerFame": 2
+        }
+      ]
+    },
+    {
+      "item": "T4_JOURNAL_FIBER",
+      "tier": 4,
+      "type": "fiber",
+      "filled": "T4_JOURNAL_FIBER_FULL",
+      "empty": "T4_JOURNAL_FIBER_EMPTY",
+      "missionTypes": [
+        "gatherfame"
+      ],
+      "fillFame": 1800,
+      "baseLootAmount": 48,
+      "loot": [
+        {
+          "item": "T4_FIBER",
+          "rawItem": "T4_FIBER",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 1889,
+          "labourerFame": 5
+        },
+        {
+          "item": "T4_FIBER_LEVEL1@1",
+          "rawItem": "T4_FIBER_LEVEL1",
+          "enchantment": 1,
+          "amount": 1,
+          "weight": 100,
+          "labourerFame": 5
+        },
+        {
+          "item": "T4_FIBER_LEVEL2@2",
+          "rawItem": "T4_FIBER_LEVEL2",
+          "enchantment": 2,
+          "amount": 1,
+          "weight": 10,
+          "labourerFame": 5
+        },
+        {
+          "item": "T4_FIBER_LEVEL3@3",
+          "rawItem": "T4_FIBER_LEVEL3",
+          "enchantment": 3,
+          "amount": 1,
+          "weight": 1,
+          "labourerFame": 5
+        }
+      ]
+    },
+    {
+      "item": "T5_JOURNAL_FIBER",
+      "tier": 5,
+      "type": "fiber",
+      "filled": "T5_JOURNAL_FIBER_FULL",
+      "empty": "T5_JOURNAL_FIBER_EMPTY",
+      "missionTypes": [
+        "gatherfame"
+      ],
+      "fillFame": 3600,
+      "baseLootAmount": 32,
+      "loot": [
+        {
+          "item": "T5_FIBER",
+          "rawItem": "T5_FIBER",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 1889,
+          "labourerFame": 15
+        },
+        {
+          "item": "T5_FIBER_LEVEL1@1",
+          "rawItem": "T5_FIBER_LEVEL1",
+          "enchantment": 1,
+          "amount": 1,
+          "weight": 100,
+          "labourerFame": 15
+        },
+        {
+          "item": "T5_FIBER_LEVEL2@2",
+          "rawItem": "T5_FIBER_LEVEL2",
+          "enchantment": 2,
+          "amount": 1,
+          "weight": 10,
+          "labourerFame": 15
+        },
+        {
+          "item": "T5_FIBER_LEVEL3@3",
+          "rawItem": "T5_FIBER_LEVEL3",
+          "enchantment": 3,
+          "amount": 1,
+          "weight": 1,
+          "labourerFame": 15
+        }
+      ]
+    },
+    {
+      "item": "T6_JOURNAL_FIBER",
+      "tier": 6,
+      "type": "fiber",
+      "filled": "T6_JOURNAL_FIBER_FULL",
+      "empty": "T6_JOURNAL_FIBER_EMPTY",
+      "missionTypes": [
+        "gatherfame"
+      ],
+      "fillFame": 7200,
+      "baseLootAmount": 32,
+      "loot": [
+        {
+          "item": "T6_FIBER",
+          "rawItem": "T6_FIBER",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 1889,
+          "labourerFame": 30
+        },
+        {
+          "item": "T6_FIBER_LEVEL1@1",
+          "rawItem": "T6_FIBER_LEVEL1",
+          "enchantment": 1,
+          "amount": 1,
+          "weight": 100,
+          "labourerFame": 30
+        },
+        {
+          "item": "T6_FIBER_LEVEL2@2",
+          "rawItem": "T6_FIBER_LEVEL2",
+          "enchantment": 2,
+          "amount": 1,
+          "weight": 10,
+          "labourerFame": 30
+        },
+        {
+          "item": "T6_FIBER_LEVEL3@3",
+          "rawItem": "T6_FIBER_LEVEL3",
+          "enchantment": 3,
+          "amount": 1,
+          "weight": 1,
+          "labourerFame": 30
+        }
+      ]
+    },
+    {
+      "item": "T7_JOURNAL_FIBER",
+      "tier": 7,
+      "type": "fiber",
+      "filled": "T7_JOURNAL_FIBER_FULL",
+      "empty": "T7_JOURNAL_FIBER_EMPTY",
+      "missionTypes": [
+        "gatherfame"
+      ],
+      "fillFame": 14400,
+      "baseLootAmount": 38.4,
+      "loot": [
+        {
+          "item": "T7_FIBER",
+          "rawItem": "T7_FIBER",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 1889,
+          "labourerFame": 50
+        },
+        {
+          "item": "T7_FIBER_LEVEL1@1",
+          "rawItem": "T7_FIBER_LEVEL1",
+          "enchantment": 1,
+          "amount": 1,
+          "weight": 100,
+          "labourerFame": 50
+        },
+        {
+          "item": "T7_FIBER_LEVEL2@2",
+          "rawItem": "T7_FIBER_LEVEL2",
+          "enchantment": 2,
+          "amount": 1,
+          "weight": 10,
+          "labourerFame": 50
+        },
+        {
+          "item": "T7_FIBER_LEVEL3@3",
+          "rawItem": "T7_FIBER_LEVEL3",
+          "enchantment": 3,
+          "amount": 1,
+          "weight": 1,
+          "labourerFame": 50
+        }
+      ]
+    },
+    {
+      "item": "T8_JOURNAL_FIBER",
+      "tier": 8,
+      "type": "fiber",
+      "filled": "T8_JOURNAL_FIBER_FULL",
+      "empty": "T8_JOURNAL_FIBER_EMPTY",
+      "missionTypes": [
+        "gatherfame"
+      ],
+      "fillFame": 28800,
+      "baseLootAmount": 38.4,
+      "loot": [
+        {
+          "item": "T8_FIBER",
+          "rawItem": "T8_FIBER",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 1889,
+          "labourerFame": 100
+        },
+        {
+          "item": "T8_FIBER_LEVEL1@1",
+          "rawItem": "T8_FIBER_LEVEL1",
+          "enchantment": 1,
+          "amount": 1,
+          "weight": 100,
+          "labourerFame": 100
+        },
+        {
+          "item": "T8_FIBER_LEVEL2@2",
+          "rawItem": "T8_FIBER_LEVEL2",
+          "enchantment": 2,
+          "amount": 1,
+          "weight": 10,
+          "labourerFame": 100
+        },
+        {
+          "item": "T8_FIBER_LEVEL3@3",
+          "rawItem": "T8_FIBER_LEVEL3",
+          "enchantment": 3,
+          "amount": 1,
+          "weight": 1,
+          "labourerFame": 100
+        }
+      ]
+    },
+    {
+      "item": "T2_JOURNAL_HIDE",
+      "tier": 2,
+      "type": "hide",
+      "filled": "T2_JOURNAL_HIDE_FULL",
+      "empty": "T2_JOURNAL_HIDE_EMPTY",
+      "missionTypes": [
+        "gatherfame"
+      ],
+      "fillFame": 450,
+      "baseLootAmount": 38,
+      "loot": [
+        {
+          "item": "T2_HIDE",
+          "rawItem": "T2_HIDE",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 1889,
+          "labourerFame": 2
+        }
+      ]
+    },
+    {
+      "item": "T3_JOURNAL_HIDE",
+      "tier": 3,
+      "type": "hide",
+      "filled": "T3_JOURNAL_HIDE_FULL",
+      "empty": "T3_JOURNAL_HIDE_EMPTY",
+      "missionTypes": [
+        "gatherfame"
+      ],
+      "fillFame": 900,
+      "baseLootAmount": 60,
+      "loot": [
+        {
+          "item": "T3_HIDE",
+          "rawItem": "T3_HIDE",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 1889,
+          "labourerFame": 2
+        }
+      ]
+    },
+    {
+      "item": "T4_JOURNAL_HIDE",
+      "tier": 4,
+      "type": "hide",
+      "filled": "T4_JOURNAL_HIDE_FULL",
+      "empty": "T4_JOURNAL_HIDE_EMPTY",
+      "missionTypes": [
+        "gatherfame"
+      ],
+      "fillFame": 1800,
+      "baseLootAmount": 48,
+      "loot": [
+        {
+          "item": "T4_HIDE",
+          "rawItem": "T4_HIDE",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 1889,
+          "labourerFame": 5
+        },
+        {
+          "item": "T4_HIDE_LEVEL1@1",
+          "rawItem": "T4_HIDE_LEVEL1",
+          "enchantment": 1,
+          "amount": 1,
+          "weight": 100,
+          "labourerFame": 5
+        },
+        {
+          "item": "T4_HIDE_LEVEL2@2",
+          "rawItem": "T4_HIDE_LEVEL2",
+          "enchantment": 2,
+          "amount": 1,
+          "weight": 10,
+          "labourerFame": 5
+        },
+        {
+          "item": "T4_HIDE_LEVEL3@3",
+          "rawItem": "T4_HIDE_LEVEL3",
+          "enchantment": 3,
+          "amount": 1,
+          "weight": 1,
+          "labourerFame": 5
+        }
+      ]
+    },
+    {
+      "item": "T5_JOURNAL_HIDE",
+      "tier": 5,
+      "type": "hide",
+      "filled": "T5_JOURNAL_HIDE_FULL",
+      "empty": "T5_JOURNAL_HIDE_EMPTY",
+      "missionTypes": [
+        "gatherfame"
+      ],
+      "fillFame": 3600,
+      "baseLootAmount": 32,
+      "loot": [
+        {
+          "item": "T5_HIDE",
+          "rawItem": "T5_HIDE",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 1889,
+          "labourerFame": 15
+        },
+        {
+          "item": "T5_HIDE_LEVEL1@1",
+          "rawItem": "T5_HIDE_LEVEL1",
+          "enchantment": 1,
+          "amount": 1,
+          "weight": 100,
+          "labourerFame": 15
+        },
+        {
+          "item": "T5_HIDE_LEVEL2@2",
+          "rawItem": "T5_HIDE_LEVEL2",
+          "enchantment": 2,
+          "amount": 1,
+          "weight": 10,
+          "labourerFame": 15
+        },
+        {
+          "item": "T5_HIDE_LEVEL3@3",
+          "rawItem": "T5_HIDE_LEVEL3",
+          "enchantment": 3,
+          "amount": 1,
+          "weight": 1,
+          "labourerFame": 15
+        }
+      ]
+    },
+    {
+      "item": "T6_JOURNAL_HIDE",
+      "tier": 6,
+      "type": "hide",
+      "filled": "T6_JOURNAL_HIDE_FULL",
+      "empty": "T6_JOURNAL_HIDE_EMPTY",
+      "missionTypes": [
+        "gatherfame"
+      ],
+      "fillFame": 7200,
+      "baseLootAmount": 32,
+      "loot": [
+        {
+          "item": "T6_HIDE",
+          "rawItem": "T6_HIDE",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 1889,
+          "labourerFame": 30
+        },
+        {
+          "item": "T6_HIDE_LEVEL1@1",
+          "rawItem": "T6_HIDE_LEVEL1",
+          "enchantment": 1,
+          "amount": 1,
+          "weight": 100,
+          "labourerFame": 30
+        },
+        {
+          "item": "T6_HIDE_LEVEL2@2",
+          "rawItem": "T6_HIDE_LEVEL2",
+          "enchantment": 2,
+          "amount": 1,
+          "weight": 10,
+          "labourerFame": 30
+        },
+        {
+          "item": "T6_HIDE_LEVEL3@3",
+          "rawItem": "T6_HIDE_LEVEL3",
+          "enchantment": 3,
+          "amount": 1,
+          "weight": 1,
+          "labourerFame": 30
+        }
+      ]
+    },
+    {
+      "item": "T7_JOURNAL_HIDE",
+      "tier": 7,
+      "type": "hide",
+      "filled": "T7_JOURNAL_HIDE_FULL",
+      "empty": "T7_JOURNAL_HIDE_EMPTY",
+      "missionTypes": [
+        "gatherfame"
+      ],
+      "fillFame": 14400,
+      "baseLootAmount": 38.4,
+      "loot": [
+        {
+          "item": "T7_HIDE",
+          "rawItem": "T7_HIDE",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 1889,
+          "labourerFame": 50
+        },
+        {
+          "item": "T7_HIDE_LEVEL1@1",
+          "rawItem": "T7_HIDE_LEVEL1",
+          "enchantment": 1,
+          "amount": 1,
+          "weight": 100,
+          "labourerFame": 50
+        },
+        {
+          "item": "T7_HIDE_LEVEL2@2",
+          "rawItem": "T7_HIDE_LEVEL2",
+          "enchantment": 2,
+          "amount": 1,
+          "weight": 10,
+          "labourerFame": 50
+        },
+        {
+          "item": "T7_HIDE_LEVEL3@3",
+          "rawItem": "T7_HIDE_LEVEL3",
+          "enchantment": 3,
+          "amount": 1,
+          "weight": 1,
+          "labourerFame": 50
+        }
+      ]
+    },
+    {
+      "item": "T8_JOURNAL_HIDE",
+      "tier": 8,
+      "type": "hide",
+      "filled": "T8_JOURNAL_HIDE_FULL",
+      "empty": "T8_JOURNAL_HIDE_EMPTY",
+      "missionTypes": [
+        "gatherfame"
+      ],
+      "fillFame": 28800,
+      "baseLootAmount": 38.4,
+      "loot": [
+        {
+          "item": "T8_HIDE",
+          "rawItem": "T8_HIDE",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 1889,
+          "labourerFame": 100
+        },
+        {
+          "item": "T8_HIDE_LEVEL1@1",
+          "rawItem": "T8_HIDE_LEVEL1",
+          "enchantment": 1,
+          "amount": 1,
+          "weight": 100,
+          "labourerFame": 100
+        },
+        {
+          "item": "T8_HIDE_LEVEL2@2",
+          "rawItem": "T8_HIDE_LEVEL2",
+          "enchantment": 2,
+          "amount": 1,
+          "weight": 10,
+          "labourerFame": 100
+        },
+        {
+          "item": "T8_HIDE_LEVEL3@3",
+          "rawItem": "T8_HIDE_LEVEL3",
+          "enchantment": 3,
+          "amount": 1,
+          "weight": 1,
+          "labourerFame": 100
+        }
+      ]
+    },
+    {
+      "item": "T2_JOURNAL_WARRIOR",
+      "tier": 2,
+      "type": "warrior",
+      "filled": "T2_JOURNAL_WARRIOR_FULL",
+      "empty": "T2_JOURNAL_WARRIOR_EMPTY",
+      "missionTypes": [
+        "craftitemfame"
+      ],
+      "fillFame": 900,
+      "baseLootAmount": 38,
+      "loot": [
+        {
+          "item": "T2_METALBAR",
+          "rawItem": "T2_METALBAR",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 13223,
+          "labourerFame": 2
+        },
+        {
+          "item": "T2_PLANKS",
+          "rawItem": "T2_PLANKS",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 3778,
+          "labourerFame": 2
+        },
+        {
+          "item": "T2_CLOTH",
+          "rawItem": "T2_CLOTH",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 1889,
+          "labourerFame": 2
+        }
+      ]
+    },
+    {
+      "item": "T3_JOURNAL_WARRIOR",
+      "tier": 3,
+      "type": "warrior",
+      "filled": "T3_JOURNAL_WARRIOR_FULL",
+      "empty": "T3_JOURNAL_WARRIOR_EMPTY",
+      "missionTypes": [
+        "craftitemfame"
+      ],
+      "fillFame": 1800,
+      "baseLootAmount": 24,
+      "loot": [
+        {
+          "item": "T3_METALBAR",
+          "rawItem": "T3_METALBAR",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 13223,
+          "labourerFame": 5
+        },
+        {
+          "item": "T3_PLANKS",
+          "rawItem": "T3_PLANKS",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 3778,
+          "labourerFame": 5
+        },
+        {
+          "item": "T3_CLOTH",
+          "rawItem": "T3_CLOTH",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 1889,
+          "labourerFame": 5
+        }
+      ]
+    },
+    {
+      "item": "T4_JOURNAL_WARRIOR",
+      "tier": 4,
+      "type": "warrior",
+      "filled": "T4_JOURNAL_WARRIOR_FULL",
+      "empty": "T4_JOURNAL_WARRIOR_EMPTY",
+      "missionTypes": [
+        "craftitemfame"
+      ],
+      "fillFame": 3600,
+      "baseLootAmount": 16,
+      "loot": [
+        {
+          "item": "T4_METALBAR",
+          "rawItem": "T4_METALBAR",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 13223,
+          "labourerFame": 15
+        },
+        {
+          "item": "T4_METALBAR_LEVEL1@1",
+          "rawItem": "T4_METALBAR_LEVEL1",
+          "enchantment": 1,
+          "amount": 1,
+          "weight": 700,
+          "labourerFame": 15
+        },
+        {
+          "item": "T4_METALBAR_LEVEL2@2",
+          "rawItem": "T4_METALBAR_LEVEL2",
+          "enchantment": 2,
+          "amount": 1,
+          "weight": 70,
+          "labourerFame": 15
+        },
+        {
+          "item": "T4_METALBAR_LEVEL3@3",
+          "rawItem": "T4_METALBAR_LEVEL3",
+          "enchantment": 3,
+          "amount": 1,
+          "weight": 7,
+          "labourerFame": 15
+        },
+        {
+          "item": "T4_PLANKS",
+          "rawItem": "T4_PLANKS",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 3778,
+          "labourerFame": 15
+        },
+        {
+          "item": "T4_PLANKS_LEVEL1@1",
+          "rawItem": "T4_PLANKS_LEVEL1",
+          "enchantment": 1,
+          "amount": 1,
+          "weight": 200,
+          "labourerFame": 15
+        },
+        {
+          "item": "T4_PLANKS_LEVEL2@2",
+          "rawItem": "T4_PLANKS_LEVEL2",
+          "enchantment": 2,
+          "amount": 1,
+          "weight": 20,
+          "labourerFame": 15
+        },
+        {
+          "item": "T4_PLANKS_LEVEL3@3",
+          "rawItem": "T4_PLANKS_LEVEL3",
+          "enchantment": 3,
+          "amount": 1,
+          "weight": 2,
+          "labourerFame": 15
+        },
+        {
+          "item": "T4_CLOTH",
+          "rawItem": "T4_CLOTH",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 1889,
+          "labourerFame": 15
+        },
+        {
+          "item": "T4_CLOTH_LEVEL1@1",
+          "rawItem": "T4_CLOTH_LEVEL1",
+          "enchantment": 1,
+          "amount": 1,
+          "weight": 100,
+          "labourerFame": 15
+        },
+        {
+          "item": "T4_CLOTH_LEVEL2@2",
+          "rawItem": "T4_CLOTH_LEVEL2",
+          "enchantment": 2,
+          "amount": 1,
+          "weight": 10,
+          "labourerFame": 15
+        },
+        {
+          "item": "T4_CLOTH_LEVEL3@3",
+          "rawItem": "T4_CLOTH_LEVEL3",
+          "enchantment": 3,
+          "amount": 1,
+          "weight": 1,
+          "labourerFame": 15
+        }
+      ]
+    },
+    {
+      "item": "T5_JOURNAL_WARRIOR",
+      "tier": 5,
+      "type": "warrior",
+      "filled": "T5_JOURNAL_WARRIOR_FULL",
+      "empty": "T5_JOURNAL_WARRIOR_EMPTY",
+      "missionTypes": [
+        "craftitemfame"
+      ],
+      "fillFame": 7200,
+      "baseLootAmount": 8,
+      "loot": [
+        {
+          "item": "T5_METALBAR",
+          "rawItem": "T5_METALBAR",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 13223,
+          "labourerFame": 60
+        },
+        {
+          "item": "T5_METALBAR_LEVEL1@1",
+          "rawItem": "T5_METALBAR_LEVEL1",
+          "enchantment": 1,
+          "amount": 1,
+          "weight": 700,
+          "labourerFame": 60
+        },
+        {
+          "item": "T5_METALBAR_LEVEL2@2",
+          "rawItem": "T5_METALBAR_LEVEL2",
+          "enchantment": 2,
+          "amount": 1,
+          "weight": 70,
+          "labourerFame": 60
+        },
+        {
+          "item": "T5_METALBAR_LEVEL3@3",
+          "rawItem": "T5_METALBAR_LEVEL3",
+          "enchantment": 3,
+          "amount": 1,
+          "weight": 7,
+          "labourerFame": 60
+        },
+        {
+          "item": "T5_PLANKS",
+          "rawItem": "T5_PLANKS",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 3778,
+          "labourerFame": 60
+        },
+        {
+          "item": "T5_PLANKS_LEVEL1@1",
+          "rawItem": "T5_PLANKS_LEVEL1",
+          "enchantment": 1,
+          "amount": 1,
+          "weight": 200,
+          "labourerFame": 60
+        },
+        {
+          "item": "T5_PLANKS_LEVEL2@2",
+          "rawItem": "T5_PLANKS_LEVEL2",
+          "enchantment": 2,
+          "amount": 1,
+          "weight": 20,
+          "labourerFame": 60
+        },
+        {
+          "item": "T5_PLANKS_LEVEL3@3",
+          "rawItem": "T5_PLANKS_LEVEL3",
+          "enchantment": 3,
+          "amount": 1,
+          "weight": 2,
+          "labourerFame": 60
+        },
+        {
+          "item": "T5_CLOTH",
+          "rawItem": "T5_CLOTH",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 1889,
+          "labourerFame": 60
+        },
+        {
+          "item": "T5_CLOTH_LEVEL1@1",
+          "rawItem": "T5_CLOTH_LEVEL1",
+          "enchantment": 1,
+          "amount": 1,
+          "weight": 100,
+          "labourerFame": 60
+        },
+        {
+          "item": "T5_CLOTH_LEVEL2@2",
+          "rawItem": "T5_CLOTH_LEVEL2",
+          "enchantment": 2,
+          "amount": 1,
+          "weight": 10,
+          "labourerFame": 60
+        },
+        {
+          "item": "T5_CLOTH_LEVEL3@3",
+          "rawItem": "T5_CLOTH_LEVEL3",
+          "enchantment": 3,
+          "amount": 1,
+          "weight": 1,
+          "labourerFame": 60
+        }
+      ]
+    },
+    {
+      "item": "T6_JOURNAL_WARRIOR",
+      "tier": 6,
+      "type": "warrior",
+      "filled": "T6_JOURNAL_WARRIOR_FULL",
+      "empty": "T6_JOURNAL_WARRIOR_EMPTY",
+      "missionTypes": [
+        "craftitemfame"
+      ],
+      "fillFame": 14400,
+      "baseLootAmount": 5.3333,
+      "loot": [
+        {
+          "item": "T6_METALBAR",
+          "rawItem": "T6_METALBAR",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 13223,
+          "labourerFame": 181
+        },
+        {
+          "item": "T6_METALBAR_LEVEL1@1",
+          "rawItem": "T6_METALBAR_LEVEL1",
+          "enchantment": 1,
+          "amount": 1,
+          "weight": 700,
+          "labourerFame": 181
+        },
+        {
+          "item": "T6_METALBAR_LEVEL2@2",
+          "rawItem": "T6_METALBAR_LEVEL2",
+          "enchantment": 2,
+          "amount": 1,
+          "weight": 70,
+          "labourerFame": 181
+        },
+        {
+          "item": "T6_METALBAR_LEVEL3@3",
+          "rawItem": "T6_METALBAR_LEVEL3",
+          "enchantment": 3,
+          "amount": 1,
+          "weight": 7,
+          "labourerFame": 181
+        },
+        {
+          "item": "T6_PLANKS",
+          "rawItem": "T6_PLANKS",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 3778,
+          "labourerFame": 181
+        },
+        {
+          "item": "T6_PLANKS_LEVEL1@1",
+          "rawItem": "T6_PLANKS_LEVEL1",
+          "enchantment": 1,
+          "amount": 1,
+          "weight": 200,
+          "labourerFame": 181
+        },
+        {
+          "item": "T6_PLANKS_LEVEL2@2",
+          "rawItem": "T6_PLANKS_LEVEL2",
+          "enchantment": 2,
+          "amount": 1,
+          "weight": 20,
+          "labourerFame": 181
+        },
+        {
+          "item": "T6_PLANKS_LEVEL3@3",
+          "rawItem": "T6_PLANKS_LEVEL3",
+          "enchantment": 3,
+          "amount": 1,
+          "weight": 2,
+          "labourerFame": 181
+        },
+        {
+          "item": "T6_CLOTH",
+          "rawItem": "T6_CLOTH",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 1889,
+          "labourerFame": 181
+        },
+        {
+          "item": "T6_CLOTH_LEVEL1@1",
+          "rawItem": "T6_CLOTH_LEVEL1",
+          "enchantment": 1,
+          "amount": 1,
+          "weight": 100,
+          "labourerFame": 181
+        },
+        {
+          "item": "T6_CLOTH_LEVEL2@2",
+          "rawItem": "T6_CLOTH_LEVEL2",
+          "enchantment": 2,
+          "amount": 1,
+          "weight": 10,
+          "labourerFame": 181
+        },
+        {
+          "item": "T6_CLOTH_LEVEL3@3",
+          "rawItem": "T6_CLOTH_LEVEL3",
+          "enchantment": 3,
+          "amount": 1,
+          "weight": 1,
+          "labourerFame": 181
+        }
+      ]
+    },
+    {
+      "item": "T7_JOURNAL_WARRIOR",
+      "tier": 7,
+      "type": "warrior",
+      "filled": "T7_JOURNAL_WARRIOR_FULL",
+      "empty": "T7_JOURNAL_WARRIOR_EMPTY",
+      "missionTypes": [
+        "craftitemfame"
+      ],
+      "fillFame": 28380,
+      "baseLootAmount": 4.4,
+      "loot": [
+        {
+          "item": "T7_METALBAR",
+          "rawItem": "T7_METALBAR",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 13223,
+          "labourerFame": 431
+        },
+        {
+          "item": "T7_METALBAR_LEVEL1@1",
+          "rawItem": "T7_METALBAR_LEVEL1",
+          "enchantment": 1,
+          "amount": 1,
+          "weight": 700,
+          "labourerFame": 431
+        },
+        {
+          "item": "T7_METALBAR_LEVEL2@2",
+          "rawItem": "T7_METALBAR_LEVEL2",
+          "enchantment": 2,
+          "amount": 1,
+          "weight": 70,
+          "labourerFame": 431
+        },
+        {
+          "item": "T7_METALBAR_LEVEL3@3",
+          "rawItem": "T7_METALBAR_LEVEL3",
+          "enchantment": 3,
+          "amount": 1,
+          "weight": 7,
+          "labourerFame": 431
+        },
+        {
+          "item": "T7_PLANKS",
+          "rawItem": "T7_PLANKS",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 3778,
+          "labourerFame": 431
+        },
+        {
+          "item": "T7_PLANKS_LEVEL1@1",
+          "rawItem": "T7_PLANKS_LEVEL1",
+          "enchantment": 1,
+          "amount": 1,
+          "weight": 200,
+          "labourerFame": 431
+        },
+        {
+          "item": "T7_PLANKS_LEVEL2@2",
+          "rawItem": "T7_PLANKS_LEVEL2",
+          "enchantment": 2,
+          "amount": 1,
+          "weight": 20,
+          "labourerFame": 431
+        },
+        {
+          "item": "T7_PLANKS_LEVEL3@3",
+          "rawItem": "T7_PLANKS_LEVEL3",
+          "enchantment": 3,
+          "amount": 1,
+          "weight": 2,
+          "labourerFame": 431
+        },
+        {
+          "item": "T7_CLOTH",
+          "rawItem": "T7_CLOTH",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 1889,
+          "labourerFame": 431
+        },
+        {
+          "item": "T7_CLOTH_LEVEL1@1",
+          "rawItem": "T7_CLOTH_LEVEL1",
+          "enchantment": 1,
+          "amount": 1,
+          "weight": 100,
+          "labourerFame": 431
+        },
+        {
+          "item": "T7_CLOTH_LEVEL2@2",
+          "rawItem": "T7_CLOTH_LEVEL2",
+          "enchantment": 2,
+          "amount": 1,
+          "weight": 10,
+          "labourerFame": 431
+        },
+        {
+          "item": "T7_CLOTH_LEVEL3@3",
+          "rawItem": "T7_CLOTH_LEVEL3",
+          "enchantment": 3,
+          "amount": 1,
+          "weight": 1,
+          "labourerFame": 431
+        }
+      ]
+    },
+    {
+      "item": "T8_JOURNAL_WARRIOR",
+      "tier": 8,
+      "type": "warrior",
+      "filled": "T8_JOURNAL_WARRIOR_FULL",
+      "empty": "T8_JOURNAL_WARRIOR_EMPTY",
+      "missionTypes": [
+        "craftitemfame"
+      ],
+      "fillFame": 58590,
+      "baseLootAmount": 4.2,
+      "loot": [
+        {
+          "item": "T8_METALBAR",
+          "rawItem": "T8_METALBAR",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 13223,
+          "labourerFame": 931
+        },
+        {
+          "item": "T8_METALBAR_LEVEL1@1",
+          "rawItem": "T8_METALBAR_LEVEL1",
+          "enchantment": 1,
+          "amount": 1,
+          "weight": 700,
+          "labourerFame": 931
+        },
+        {
+          "item": "T8_METALBAR_LEVEL2@2",
+          "rawItem": "T8_METALBAR_LEVEL2",
+          "enchantment": 2,
+          "amount": 1,
+          "weight": 70,
+          "labourerFame": 931
+        },
+        {
+          "item": "T8_METALBAR_LEVEL3@3",
+          "rawItem": "T8_METALBAR_LEVEL3",
+          "enchantment": 3,
+          "amount": 1,
+          "weight": 7,
+          "labourerFame": 931
+        },
+        {
+          "item": "T8_PLANKS",
+          "rawItem": "T8_PLANKS",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 3778,
+          "labourerFame": 931
+        },
+        {
+          "item": "T8_PLANKS_LEVEL1@1",
+          "rawItem": "T8_PLANKS_LEVEL1",
+          "enchantment": 1,
+          "amount": 1,
+          "weight": 200,
+          "labourerFame": 931
+        },
+        {
+          "item": "T8_PLANKS_LEVEL2@2",
+          "rawItem": "T8_PLANKS_LEVEL2",
+          "enchantment": 2,
+          "amount": 1,
+          "weight": 20,
+          "labourerFame": 931
+        },
+        {
+          "item": "T8_PLANKS_LEVEL3@3",
+          "rawItem": "T8_PLANKS_LEVEL3",
+          "enchantment": 3,
+          "amount": 1,
+          "weight": 2,
+          "labourerFame": 931
+        },
+        {
+          "item": "T8_CLOTH",
+          "rawItem": "T8_CLOTH",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 1889,
+          "labourerFame": 931
+        },
+        {
+          "item": "T8_CLOTH_LEVEL1@1",
+          "rawItem": "T8_CLOTH_LEVEL1",
+          "enchantment": 1,
+          "amount": 1,
+          "weight": 100,
+          "labourerFame": 931
+        },
+        {
+          "item": "T8_CLOTH_LEVEL2@2",
+          "rawItem": "T8_CLOTH_LEVEL2",
+          "enchantment": 2,
+          "amount": 1,
+          "weight": 10,
+          "labourerFame": 931
+        },
+        {
+          "item": "T8_CLOTH_LEVEL3@3",
+          "rawItem": "T8_CLOTH_LEVEL3",
+          "enchantment": 3,
+          "amount": 1,
+          "weight": 1,
+          "labourerFame": 931
+        }
+      ]
+    },
+    {
+      "item": "T2_JOURNAL_HUNTER",
+      "tier": 2,
+      "type": "hunter",
+      "filled": "T2_JOURNAL_HUNTER_FULL",
+      "empty": "T2_JOURNAL_HUNTER_EMPTY",
+      "missionTypes": [
+        "craftitemfame"
+      ],
+      "fillFame": 900,
+      "baseLootAmount": 38,
+      "loot": [
+        {
+          "item": "T2_LEATHER",
+          "rawItem": "T2_LEATHER",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 9445,
+          "labourerFame": 2
+        },
+        {
+          "item": "T2_PLANKS",
+          "rawItem": "T2_PLANKS",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 5667,
+          "labourerFame": 2
+        },
+        {
+          "item": "T2_METALBAR",
+          "rawItem": "T2_METALBAR",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 5667,
+          "labourerFame": 2
+        }
+      ]
+    },
+    {
+      "item": "T3_JOURNAL_HUNTER",
+      "tier": 3,
+      "type": "hunter",
+      "filled": "T3_JOURNAL_HUNTER_FULL",
+      "empty": "T3_JOURNAL_HUNTER_EMPTY",
+      "missionTypes": [
+        "craftitemfame"
+      ],
+      "fillFame": 1800,
+      "baseLootAmount": 24,
+      "loot": [
+        {
+          "item": "T3_LEATHER",
+          "rawItem": "T3_LEATHER",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 9445,
+          "labourerFame": 5
+        },
+        {
+          "item": "T3_PLANKS",
+          "rawItem": "T3_PLANKS",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 5667,
+          "labourerFame": 5
+        },
+        {
+          "item": "T3_METALBAR",
+          "rawItem": "T3_METALBAR",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 5667,
+          "labourerFame": 5
+        }
+      ]
+    },
+    {
+      "item": "T4_JOURNAL_HUNTER",
+      "tier": 4,
+      "type": "hunter",
+      "filled": "T4_JOURNAL_HUNTER_FULL",
+      "empty": "T4_JOURNAL_HUNTER_EMPTY",
+      "missionTypes": [
+        "craftitemfame"
+      ],
+      "fillFame": 3600,
+      "baseLootAmount": 16,
+      "loot": [
+        {
+          "item": "T4_LEATHER",
+          "rawItem": "T4_LEATHER",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 9445,
+          "labourerFame": 15
+        },
+        {
+          "item": "T4_LEATHER_LEVEL1@1",
+          "rawItem": "T4_LEATHER_LEVEL1",
+          "enchantment": 1,
+          "amount": 1,
+          "weight": 500,
+          "labourerFame": 15
+        },
+        {
+          "item": "T4_LEATHER_LEVEL2@2",
+          "rawItem": "T4_LEATHER_LEVEL2",
+          "enchantment": 2,
+          "amount": 1,
+          "weight": 50,
+          "labourerFame": 15
+        },
+        {
+          "item": "T4_LEATHER_LEVEL3@3",
+          "rawItem": "T4_LEATHER_LEVEL3",
+          "enchantment": 3,
+          "amount": 1,
+          "weight": 5,
+          "labourerFame": 15
+        },
+        {
+          "item": "T4_PLANKS",
+          "rawItem": "T4_PLANKS",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 5667,
+          "labourerFame": 15
+        },
+        {
+          "item": "T4_PLANKS_LEVEL1@1",
+          "rawItem": "T4_PLANKS_LEVEL1",
+          "enchantment": 1,
+          "amount": 1,
+          "weight": 300,
+          "labourerFame": 15
+        },
+        {
+          "item": "T4_PLANKS_LEVEL2@2",
+          "rawItem": "T4_PLANKS_LEVEL2",
+          "enchantment": 2,
+          "amount": 1,
+          "weight": 30,
+          "labourerFame": 15
+        },
+        {
+          "item": "T4_PLANKS_LEVEL3@3",
+          "rawItem": "T4_PLANKS_LEVEL3",
+          "enchantment": 3,
+          "amount": 1,
+          "weight": 3,
+          "labourerFame": 15
+        },
+        {
+          "item": "T4_METALBAR",
+          "rawItem": "T4_METALBAR",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 5667,
+          "labourerFame": 15
+        },
+        {
+          "item": "T4_METALBAR_LEVEL1@1",
+          "rawItem": "T4_METALBAR_LEVEL1",
+          "enchantment": 1,
+          "amount": 1,
+          "weight": 300,
+          "labourerFame": 15
+        },
+        {
+          "item": "T4_METALBAR_LEVEL2@2",
+          "rawItem": "T4_METALBAR_LEVEL2",
+          "enchantment": 2,
+          "amount": 1,
+          "weight": 30,
+          "labourerFame": 15
+        },
+        {
+          "item": "T4_METALBAR_LEVEL3@3",
+          "rawItem": "T4_METALBAR_LEVEL3",
+          "enchantment": 3,
+          "amount": 1,
+          "weight": 3,
+          "labourerFame": 15
+        }
+      ]
+    },
+    {
+      "item": "T5_JOURNAL_HUNTER",
+      "tier": 5,
+      "type": "hunter",
+      "filled": "T5_JOURNAL_HUNTER_FULL",
+      "empty": "T5_JOURNAL_HUNTER_EMPTY",
+      "missionTypes": [
+        "craftitemfame"
+      ],
+      "fillFame": 7200,
+      "baseLootAmount": 8,
+      "loot": [
+        {
+          "item": "T5_LEATHER",
+          "rawItem": "T5_LEATHER",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 9445,
+          "labourerFame": 60
+        },
+        {
+          "item": "T5_LEATHER_LEVEL1@1",
+          "rawItem": "T5_LEATHER_LEVEL1",
+          "enchantment": 1,
+          "amount": 1,
+          "weight": 500,
+          "labourerFame": 60
+        },
+        {
+          "item": "T5_LEATHER_LEVEL2@2",
+          "rawItem": "T5_LEATHER_LEVEL2",
+          "enchantment": 2,
+          "amount": 1,
+          "weight": 50,
+          "labourerFame": 60
+        },
+        {
+          "item": "T5_LEATHER_LEVEL3@3",
+          "rawItem": "T5_LEATHER_LEVEL3",
+          "enchantment": 3,
+          "amount": 1,
+          "weight": 5,
+          "labourerFame": 60
+        },
+        {
+          "item": "T5_PLANKS",
+          "rawItem": "T5_PLANKS",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 5667,
+          "labourerFame": 60
+        },
+        {
+          "item": "T5_PLANKS_LEVEL1@1",
+          "rawItem": "T5_PLANKS_LEVEL1",
+          "enchantment": 1,
+          "amount": 1,
+          "weight": 300,
+          "labourerFame": 60
+        },
+        {
+          "item": "T5_PLANKS_LEVEL2@2",
+          "rawItem": "T5_PLANKS_LEVEL2",
+          "enchantment": 2,
+          "amount": 1,
+          "weight": 30,
+          "labourerFame": 60
+        },
+        {
+          "item": "T5_PLANKS_LEVEL3@3",
+          "rawItem": "T5_PLANKS_LEVEL3",
+          "enchantment": 3,
+          "amount": 1,
+          "weight": 3,
+          "labourerFame": 60
+        },
+        {
+          "item": "T5_METALBAR",
+          "rawItem": "T5_METALBAR",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 5667,
+          "labourerFame": 60
+        },
+        {
+          "item": "T5_METALBAR_LEVEL1@1",
+          "rawItem": "T5_METALBAR_LEVEL1",
+          "enchantment": 1,
+          "amount": 1,
+          "weight": 300,
+          "labourerFame": 60
+        },
+        {
+          "item": "T5_METALBAR_LEVEL2@2",
+          "rawItem": "T5_METALBAR_LEVEL2",
+          "enchantment": 2,
+          "amount": 1,
+          "weight": 30,
+          "labourerFame": 60
+        },
+        {
+          "item": "T5_METALBAR_LEVEL3@3",
+          "rawItem": "T5_METALBAR_LEVEL3",
+          "enchantment": 3,
+          "amount": 1,
+          "weight": 3,
+          "labourerFame": 60
+        }
+      ]
+    },
+    {
+      "item": "T6_JOURNAL_HUNTER",
+      "tier": 6,
+      "type": "hunter",
+      "filled": "T6_JOURNAL_HUNTER_FULL",
+      "empty": "T6_JOURNAL_HUNTER_EMPTY",
+      "missionTypes": [
+        "craftitemfame"
+      ],
+      "fillFame": 14400,
+      "baseLootAmount": 5.3333,
+      "loot": [
+        {
+          "item": "T6_LEATHER",
+          "rawItem": "T6_LEATHER",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 9445,
+          "labourerFame": 181
+        },
+        {
+          "item": "T6_LEATHER_LEVEL1@1",
+          "rawItem": "T6_LEATHER_LEVEL1",
+          "enchantment": 1,
+          "amount": 1,
+          "weight": 500,
+          "labourerFame": 181
+        },
+        {
+          "item": "T6_LEATHER_LEVEL2@2",
+          "rawItem": "T6_LEATHER_LEVEL2",
+          "enchantment": 2,
+          "amount": 1,
+          "weight": 50,
+          "labourerFame": 181
+        },
+        {
+          "item": "T6_LEATHER_LEVEL3@3",
+          "rawItem": "T6_LEATHER_LEVEL3",
+          "enchantment": 3,
+          "amount": 1,
+          "weight": 5,
+          "labourerFame": 181
+        },
+        {
+          "item": "T6_PLANKS",
+          "rawItem": "T6_PLANKS",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 5667,
+          "labourerFame": 181
+        },
+        {
+          "item": "T6_PLANKS_LEVEL1@1",
+          "rawItem": "T6_PLANKS_LEVEL1",
+          "enchantment": 1,
+          "amount": 1,
+          "weight": 300,
+          "labourerFame": 181
+        },
+        {
+          "item": "T6_PLANKS_LEVEL2@2",
+          "rawItem": "T6_PLANKS_LEVEL2",
+          "enchantment": 2,
+          "amount": 1,
+          "weight": 30,
+          "labourerFame": 181
+        },
+        {
+          "item": "T6_PLANKS_LEVEL3@3",
+          "rawItem": "T6_PLANKS_LEVEL3",
+          "enchantment": 3,
+          "amount": 1,
+          "weight": 3,
+          "labourerFame": 181
+        },
+        {
+          "item": "T6_METALBAR",
+          "rawItem": "T6_METALBAR",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 5667,
+          "labourerFame": 181
+        },
+        {
+          "item": "T6_METALBAR_LEVEL1@1",
+          "rawItem": "T6_METALBAR_LEVEL1",
+          "enchantment": 1,
+          "amount": 1,
+          "weight": 300,
+          "labourerFame": 181
+        },
+        {
+          "item": "T6_METALBAR_LEVEL2@2",
+          "rawItem": "T6_METALBAR_LEVEL2",
+          "enchantment": 2,
+          "amount": 1,
+          "weight": 30,
+          "labourerFame": 181
+        },
+        {
+          "item": "T6_METALBAR_LEVEL3@3",
+          "rawItem": "T6_METALBAR_LEVEL3",
+          "enchantment": 3,
+          "amount": 1,
+          "weight": 3,
+          "labourerFame": 181
+        }
+      ]
+    },
+    {
+      "item": "T7_JOURNAL_HUNTER",
+      "tier": 7,
+      "type": "hunter",
+      "filled": "T7_JOURNAL_HUNTER_FULL",
+      "empty": "T7_JOURNAL_HUNTER_EMPTY",
+      "missionTypes": [
+        "craftitemfame"
+      ],
+      "fillFame": 28380,
+      "baseLootAmount": 4.4,
+      "loot": [
+        {
+          "item": "T7_LEATHER",
+          "rawItem": "T7_LEATHER",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 9445,
+          "labourerFame": 431
+        },
+        {
+          "item": "T7_LEATHER_LEVEL1@1",
+          "rawItem": "T7_LEATHER_LEVEL1",
+          "enchantment": 1,
+          "amount": 1,
+          "weight": 500,
+          "labourerFame": 431
+        },
+        {
+          "item": "T7_LEATHER_LEVEL2@2",
+          "rawItem": "T7_LEATHER_LEVEL2",
+          "enchantment": 2,
+          "amount": 1,
+          "weight": 50,
+          "labourerFame": 431
+        },
+        {
+          "item": "T7_LEATHER_LEVEL3@3",
+          "rawItem": "T7_LEATHER_LEVEL3",
+          "enchantment": 3,
+          "amount": 1,
+          "weight": 5,
+          "labourerFame": 431
+        },
+        {
+          "item": "T7_PLANKS",
+          "rawItem": "T7_PLANKS",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 5667,
+          "labourerFame": 431
+        },
+        {
+          "item": "T7_PLANKS_LEVEL1@1",
+          "rawItem": "T7_PLANKS_LEVEL1",
+          "enchantment": 1,
+          "amount": 1,
+          "weight": 300,
+          "labourerFame": 431
+        },
+        {
+          "item": "T7_PLANKS_LEVEL2@2",
+          "rawItem": "T7_PLANKS_LEVEL2",
+          "enchantment": 2,
+          "amount": 1,
+          "weight": 30,
+          "labourerFame": 431
+        },
+        {
+          "item": "T7_PLANKS_LEVEL3@3",
+          "rawItem": "T7_PLANKS_LEVEL3",
+          "enchantment": 3,
+          "amount": 1,
+          "weight": 3,
+          "labourerFame": 431
+        },
+        {
+          "item": "T7_METALBAR",
+          "rawItem": "T7_METALBAR",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 5667,
+          "labourerFame": 431
+        },
+        {
+          "item": "T7_METALBAR_LEVEL1@1",
+          "rawItem": "T7_METALBAR_LEVEL1",
+          "enchantment": 1,
+          "amount": 1,
+          "weight": 300,
+          "labourerFame": 431
+        },
+        {
+          "item": "T7_METALBAR_LEVEL2@2",
+          "rawItem": "T7_METALBAR_LEVEL2",
+          "enchantment": 2,
+          "amount": 1,
+          "weight": 30,
+          "labourerFame": 431
+        },
+        {
+          "item": "T7_METALBAR_LEVEL3@3",
+          "rawItem": "T7_METALBAR_LEVEL3",
+          "enchantment": 3,
+          "amount": 1,
+          "weight": 3,
+          "labourerFame": 431
+        }
+      ]
+    },
+    {
+      "item": "T8_JOURNAL_HUNTER",
+      "tier": 8,
+      "type": "hunter",
+      "filled": "T8_JOURNAL_HUNTER_FULL",
+      "empty": "T8_JOURNAL_HUNTER_EMPTY",
+      "missionTypes": [
+        "craftitemfame"
+      ],
+      "fillFame": 58590,
+      "baseLootAmount": 4.2,
+      "loot": [
+        {
+          "item": "T8_LEATHER",
+          "rawItem": "T8_LEATHER",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 9445,
+          "labourerFame": 931
+        },
+        {
+          "item": "T8_LEATHER_LEVEL1@1",
+          "rawItem": "T8_LEATHER_LEVEL1",
+          "enchantment": 1,
+          "amount": 1,
+          "weight": 500,
+          "labourerFame": 931
+        },
+        {
+          "item": "T8_LEATHER_LEVEL2@2",
+          "rawItem": "T8_LEATHER_LEVEL2",
+          "enchantment": 2,
+          "amount": 1,
+          "weight": 50,
+          "labourerFame": 931
+        },
+        {
+          "item": "T8_LEATHER_LEVEL3@3",
+          "rawItem": "T8_LEATHER_LEVEL3",
+          "enchantment": 3,
+          "amount": 1,
+          "weight": 5,
+          "labourerFame": 931
+        },
+        {
+          "item": "T8_PLANKS",
+          "rawItem": "T8_PLANKS",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 5667,
+          "labourerFame": 931
+        },
+        {
+          "item": "T8_PLANKS_LEVEL1@1",
+          "rawItem": "T8_PLANKS_LEVEL1",
+          "enchantment": 1,
+          "amount": 1,
+          "weight": 300,
+          "labourerFame": 931
+        },
+        {
+          "item": "T8_PLANKS_LEVEL2@2",
+          "rawItem": "T8_PLANKS_LEVEL2",
+          "enchantment": 2,
+          "amount": 1,
+          "weight": 30,
+          "labourerFame": 931
+        },
+        {
+          "item": "T8_PLANKS_LEVEL3@3",
+          "rawItem": "T8_PLANKS_LEVEL3",
+          "enchantment": 3,
+          "amount": 1,
+          "weight": 3,
+          "labourerFame": 931
+        },
+        {
+          "item": "T8_METALBAR",
+          "rawItem": "T8_METALBAR",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 5667,
+          "labourerFame": 931
+        },
+        {
+          "item": "T8_METALBAR_LEVEL1@1",
+          "rawItem": "T8_METALBAR_LEVEL1",
+          "enchantment": 1,
+          "amount": 1,
+          "weight": 300,
+          "labourerFame": 931
+        },
+        {
+          "item": "T8_METALBAR_LEVEL2@2",
+          "rawItem": "T8_METALBAR_LEVEL2",
+          "enchantment": 2,
+          "amount": 1,
+          "weight": 30,
+          "labourerFame": 931
+        },
+        {
+          "item": "T8_METALBAR_LEVEL3@3",
+          "rawItem": "T8_METALBAR_LEVEL3",
+          "enchantment": 3,
+          "amount": 1,
+          "weight": 3,
+          "labourerFame": 931
+        }
+      ]
+    },
+    {
+      "item": "T2_JOURNAL_MAGE",
+      "tier": 2,
+      "type": "mage",
+      "filled": "T2_JOURNAL_MAGE_FULL",
+      "empty": "T2_JOURNAL_MAGE_EMPTY",
+      "missionTypes": [
+        "craftitemfame"
+      ],
+      "fillFame": 900,
+      "baseLootAmount": 38,
+      "loot": [
+        {
+          "item": "T2_CLOTH",
+          "rawItem": "T2_CLOTH",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 9445,
+          "labourerFame": 2
+        },
+        {
+          "item": "T2_PLANKS",
+          "rawItem": "T2_PLANKS",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 7556,
+          "labourerFame": 2
+        },
+        {
+          "item": "T2_METALBAR",
+          "rawItem": "T2_METALBAR",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 1889,
+          "labourerFame": 2
+        }
+      ]
+    },
+    {
+      "item": "T3_JOURNAL_MAGE",
+      "tier": 3,
+      "type": "mage",
+      "filled": "T3_JOURNAL_MAGE_FULL",
+      "empty": "T3_JOURNAL_MAGE_EMPTY",
+      "missionTypes": [
+        "craftitemfame"
+      ],
+      "fillFame": 1800,
+      "baseLootAmount": 24,
+      "loot": [
+        {
+          "item": "T3_CLOTH",
+          "rawItem": "T3_CLOTH",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 9445,
+          "labourerFame": 5
+        },
+        {
+          "item": "T3_PLANKS",
+          "rawItem": "T3_PLANKS",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 7556,
+          "labourerFame": 5
+        },
+        {
+          "item": "T3_METALBAR",
+          "rawItem": "T3_METALBAR",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 1889,
+          "labourerFame": 5
+        }
+      ]
+    },
+    {
+      "item": "T4_JOURNAL_MAGE",
+      "tier": 4,
+      "type": "mage",
+      "filled": "T4_JOURNAL_MAGE_FULL",
+      "empty": "T4_JOURNAL_MAGE_EMPTY",
+      "missionTypes": [
+        "craftitemfame"
+      ],
+      "fillFame": 3600,
+      "baseLootAmount": 16,
+      "loot": [
+        {
+          "item": "T4_CLOTH",
+          "rawItem": "T4_CLOTH",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 9445,
+          "labourerFame": 15
+        },
+        {
+          "item": "T4_CLOTH_LEVEL1@1",
+          "rawItem": "T4_CLOTH_LEVEL1",
+          "enchantment": 1,
+          "amount": 1,
+          "weight": 500,
+          "labourerFame": 15
+        },
+        {
+          "item": "T4_CLOTH_LEVEL2@2",
+          "rawItem": "T4_CLOTH_LEVEL2",
+          "enchantment": 2,
+          "amount": 1,
+          "weight": 50,
+          "labourerFame": 15
+        },
+        {
+          "item": "T4_CLOTH_LEVEL3@3",
+          "rawItem": "T4_CLOTH_LEVEL3",
+          "enchantment": 3,
+          "amount": 1,
+          "weight": 5,
+          "labourerFame": 15
+        },
+        {
+          "item": "T4_PLANKS",
+          "rawItem": "T4_PLANKS",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 7556,
+          "labourerFame": 15
+        },
+        {
+          "item": "T4_PLANKS_LEVEL1@1",
+          "rawItem": "T4_PLANKS_LEVEL1",
+          "enchantment": 1,
+          "amount": 1,
+          "weight": 400,
+          "labourerFame": 15
+        },
+        {
+          "item": "T4_PLANKS_LEVEL2@2",
+          "rawItem": "T4_PLANKS_LEVEL2",
+          "enchantment": 2,
+          "amount": 1,
+          "weight": 40,
+          "labourerFame": 15
+        },
+        {
+          "item": "T4_PLANKS_LEVEL3@3",
+          "rawItem": "T4_PLANKS_LEVEL3",
+          "enchantment": 3,
+          "amount": 1,
+          "weight": 4,
+          "labourerFame": 15
+        },
+        {
+          "item": "T4_METALBAR",
+          "rawItem": "T4_METALBAR",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 1889,
+          "labourerFame": 15
+        },
+        {
+          "item": "T4_METALBAR_LEVEL1@1",
+          "rawItem": "T4_METALBAR_LEVEL1",
+          "enchantment": 1,
+          "amount": 1,
+          "weight": 100,
+          "labourerFame": 15
+        },
+        {
+          "item": "T4_METALBAR_LEVEL2@2",
+          "rawItem": "T4_METALBAR_LEVEL2",
+          "enchantment": 2,
+          "amount": 1,
+          "weight": 10,
+          "labourerFame": 15
+        },
+        {
+          "item": "T4_METALBAR_LEVEL3@3",
+          "rawItem": "T4_METALBAR_LEVEL3",
+          "enchantment": 3,
+          "amount": 1,
+          "weight": 1,
+          "labourerFame": 15
+        }
+      ]
+    },
+    {
+      "item": "T5_JOURNAL_MAGE",
+      "tier": 5,
+      "type": "mage",
+      "filled": "T5_JOURNAL_MAGE_FULL",
+      "empty": "T5_JOURNAL_MAGE_EMPTY",
+      "missionTypes": [
+        "craftitemfame"
+      ],
+      "fillFame": 7200,
+      "baseLootAmount": 8,
+      "loot": [
+        {
+          "item": "T5_CLOTH",
+          "rawItem": "T5_CLOTH",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 9445,
+          "labourerFame": 60
+        },
+        {
+          "item": "T5_CLOTH_LEVEL1@1",
+          "rawItem": "T5_CLOTH_LEVEL1",
+          "enchantment": 1,
+          "amount": 1,
+          "weight": 500,
+          "labourerFame": 60
+        },
+        {
+          "item": "T5_CLOTH_LEVEL2@2",
+          "rawItem": "T5_CLOTH_LEVEL2",
+          "enchantment": 2,
+          "amount": 1,
+          "weight": 50,
+          "labourerFame": 60
+        },
+        {
+          "item": "T5_CLOTH_LEVEL3@3",
+          "rawItem": "T5_CLOTH_LEVEL3",
+          "enchantment": 3,
+          "amount": 1,
+          "weight": 5,
+          "labourerFame": 60
+        },
+        {
+          "item": "T5_PLANKS",
+          "rawItem": "T5_PLANKS",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 7556,
+          "labourerFame": 60
+        },
+        {
+          "item": "T5_PLANKS_LEVEL1@1",
+          "rawItem": "T5_PLANKS_LEVEL1",
+          "enchantment": 1,
+          "amount": 1,
+          "weight": 400,
+          "labourerFame": 60
+        },
+        {
+          "item": "T5_PLANKS_LEVEL2@2",
+          "rawItem": "T5_PLANKS_LEVEL2",
+          "enchantment": 2,
+          "amount": 1,
+          "weight": 40,
+          "labourerFame": 60
+        },
+        {
+          "item": "T5_PLANKS_LEVEL3@3",
+          "rawItem": "T5_PLANKS_LEVEL3",
+          "enchantment": 3,
+          "amount": 1,
+          "weight": 4,
+          "labourerFame": 60
+        },
+        {
+          "item": "T5_METALBAR",
+          "rawItem": "T5_METALBAR",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 1889,
+          "labourerFame": 60
+        },
+        {
+          "item": "T5_METALBAR_LEVEL1@1",
+          "rawItem": "T5_METALBAR_LEVEL1",
+          "enchantment": 1,
+          "amount": 1,
+          "weight": 100,
+          "labourerFame": 60
+        },
+        {
+          "item": "T5_METALBAR_LEVEL2@2",
+          "rawItem": "T5_METALBAR_LEVEL2",
+          "enchantment": 2,
+          "amount": 1,
+          "weight": 10,
+          "labourerFame": 60
+        },
+        {
+          "item": "T5_METALBAR_LEVEL3@3",
+          "rawItem": "T5_METALBAR_LEVEL3",
+          "enchantment": 3,
+          "amount": 1,
+          "weight": 1,
+          "labourerFame": 60
+        }
+      ]
+    },
+    {
+      "item": "T6_JOURNAL_MAGE",
+      "tier": 6,
+      "type": "mage",
+      "filled": "T6_JOURNAL_MAGE_FULL",
+      "empty": "T6_JOURNAL_MAGE_EMPTY",
+      "missionTypes": [
+        "craftitemfame"
+      ],
+      "fillFame": 14400,
+      "baseLootAmount": 5.3333,
+      "loot": [
+        {
+          "item": "T6_CLOTH",
+          "rawItem": "T6_CLOTH",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 9445,
+          "labourerFame": 181
+        },
+        {
+          "item": "T6_CLOTH_LEVEL1@1",
+          "rawItem": "T6_CLOTH_LEVEL1",
+          "enchantment": 1,
+          "amount": 1,
+          "weight": 500,
+          "labourerFame": 181
+        },
+        {
+          "item": "T6_CLOTH_LEVEL2@2",
+          "rawItem": "T6_CLOTH_LEVEL2",
+          "enchantment": 2,
+          "amount": 1,
+          "weight": 50,
+          "labourerFame": 181
+        },
+        {
+          "item": "T6_CLOTH_LEVEL3@3",
+          "rawItem": "T6_CLOTH_LEVEL3",
+          "enchantment": 3,
+          "amount": 1,
+          "weight": 5,
+          "labourerFame": 181
+        },
+        {
+          "item": "T6_PLANKS",
+          "rawItem": "T6_PLANKS",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 7556,
+          "labourerFame": 181
+        },
+        {
+          "item": "T6_PLANKS_LEVEL1@1",
+          "rawItem": "T6_PLANKS_LEVEL1",
+          "enchantment": 1,
+          "amount": 1,
+          "weight": 400,
+          "labourerFame": 181
+        },
+        {
+          "item": "T6_PLANKS_LEVEL2@2",
+          "rawItem": "T6_PLANKS_LEVEL2",
+          "enchantment": 2,
+          "amount": 1,
+          "weight": 40,
+          "labourerFame": 181
+        },
+        {
+          "item": "T6_PLANKS_LEVEL3@3",
+          "rawItem": "T6_PLANKS_LEVEL3",
+          "enchantment": 3,
+          "amount": 1,
+          "weight": 4,
+          "labourerFame": 181
+        },
+        {
+          "item": "T6_METALBAR",
+          "rawItem": "T6_METALBAR",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 1889,
+          "labourerFame": 181
+        },
+        {
+          "item": "T6_METALBAR_LEVEL1@1",
+          "rawItem": "T6_METALBAR_LEVEL1",
+          "enchantment": 1,
+          "amount": 1,
+          "weight": 100,
+          "labourerFame": 181
+        },
+        {
+          "item": "T6_METALBAR_LEVEL2@2",
+          "rawItem": "T6_METALBAR_LEVEL2",
+          "enchantment": 2,
+          "amount": 1,
+          "weight": 10,
+          "labourerFame": 181
+        },
+        {
+          "item": "T6_METALBAR_LEVEL3@3",
+          "rawItem": "T6_METALBAR_LEVEL3",
+          "enchantment": 3,
+          "amount": 1,
+          "weight": 1,
+          "labourerFame": 181
+        }
+      ]
+    },
+    {
+      "item": "T7_JOURNAL_MAGE",
+      "tier": 7,
+      "type": "mage",
+      "filled": "T7_JOURNAL_MAGE_FULL",
+      "empty": "T7_JOURNAL_MAGE_EMPTY",
+      "missionTypes": [
+        "craftitemfame"
+      ],
+      "fillFame": 28380,
+      "baseLootAmount": 4.4,
+      "loot": [
+        {
+          "item": "T7_CLOTH",
+          "rawItem": "T7_CLOTH",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 9445,
+          "labourerFame": 431
+        },
+        {
+          "item": "T7_CLOTH_LEVEL1@1",
+          "rawItem": "T7_CLOTH_LEVEL1",
+          "enchantment": 1,
+          "amount": 1,
+          "weight": 500,
+          "labourerFame": 431
+        },
+        {
+          "item": "T7_CLOTH_LEVEL2@2",
+          "rawItem": "T7_CLOTH_LEVEL2",
+          "enchantment": 2,
+          "amount": 1,
+          "weight": 50,
+          "labourerFame": 431
+        },
+        {
+          "item": "T7_CLOTH_LEVEL3@3",
+          "rawItem": "T7_CLOTH_LEVEL3",
+          "enchantment": 3,
+          "amount": 1,
+          "weight": 5,
+          "labourerFame": 431
+        },
+        {
+          "item": "T7_PLANKS",
+          "rawItem": "T7_PLANKS",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 7556,
+          "labourerFame": 431
+        },
+        {
+          "item": "T7_PLANKS_LEVEL1@1",
+          "rawItem": "T7_PLANKS_LEVEL1",
+          "enchantment": 1,
+          "amount": 1,
+          "weight": 400,
+          "labourerFame": 431
+        },
+        {
+          "item": "T7_PLANKS_LEVEL2@2",
+          "rawItem": "T7_PLANKS_LEVEL2",
+          "enchantment": 2,
+          "amount": 1,
+          "weight": 40,
+          "labourerFame": 431
+        },
+        {
+          "item": "T7_PLANKS_LEVEL3@3",
+          "rawItem": "T7_PLANKS_LEVEL3",
+          "enchantment": 3,
+          "amount": 1,
+          "weight": 4,
+          "labourerFame": 431
+        },
+        {
+          "item": "T7_METALBAR",
+          "rawItem": "T7_METALBAR",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 1889,
+          "labourerFame": 431
+        },
+        {
+          "item": "T7_METALBAR_LEVEL1@1",
+          "rawItem": "T7_METALBAR_LEVEL1",
+          "enchantment": 1,
+          "amount": 1,
+          "weight": 100,
+          "labourerFame": 431
+        },
+        {
+          "item": "T7_METALBAR_LEVEL2@2",
+          "rawItem": "T7_METALBAR_LEVEL2",
+          "enchantment": 2,
+          "amount": 1,
+          "weight": 10,
+          "labourerFame": 431
+        },
+        {
+          "item": "T7_METALBAR_LEVEL3@3",
+          "rawItem": "T7_METALBAR_LEVEL3",
+          "enchantment": 3,
+          "amount": 1,
+          "weight": 1,
+          "labourerFame": 431
+        }
+      ]
+    },
+    {
+      "item": "T8_JOURNAL_MAGE",
+      "tier": 8,
+      "type": "mage",
+      "filled": "T8_JOURNAL_MAGE_FULL",
+      "empty": "T8_JOURNAL_MAGE_EMPTY",
+      "missionTypes": [
+        "craftitemfame"
+      ],
+      "fillFame": 58590,
+      "baseLootAmount": 4.2,
+      "loot": [
+        {
+          "item": "T8_CLOTH",
+          "rawItem": "T8_CLOTH",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 9445,
+          "labourerFame": 931
+        },
+        {
+          "item": "T8_CLOTH_LEVEL1@1",
+          "rawItem": "T8_CLOTH_LEVEL1",
+          "enchantment": 1,
+          "amount": 1,
+          "weight": 500,
+          "labourerFame": 931
+        },
+        {
+          "item": "T8_CLOTH_LEVEL2@2",
+          "rawItem": "T8_CLOTH_LEVEL2",
+          "enchantment": 2,
+          "amount": 1,
+          "weight": 50,
+          "labourerFame": 931
+        },
+        {
+          "item": "T8_CLOTH_LEVEL3@3",
+          "rawItem": "T8_CLOTH_LEVEL3",
+          "enchantment": 3,
+          "amount": 1,
+          "weight": 5,
+          "labourerFame": 931
+        },
+        {
+          "item": "T8_PLANKS",
+          "rawItem": "T8_PLANKS",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 7556,
+          "labourerFame": 931
+        },
+        {
+          "item": "T8_PLANKS_LEVEL1@1",
+          "rawItem": "T8_PLANKS_LEVEL1",
+          "enchantment": 1,
+          "amount": 1,
+          "weight": 400,
+          "labourerFame": 931
+        },
+        {
+          "item": "T8_PLANKS_LEVEL2@2",
+          "rawItem": "T8_PLANKS_LEVEL2",
+          "enchantment": 2,
+          "amount": 1,
+          "weight": 40,
+          "labourerFame": 931
+        },
+        {
+          "item": "T8_PLANKS_LEVEL3@3",
+          "rawItem": "T8_PLANKS_LEVEL3",
+          "enchantment": 3,
+          "amount": 1,
+          "weight": 4,
+          "labourerFame": 931
+        },
+        {
+          "item": "T8_METALBAR",
+          "rawItem": "T8_METALBAR",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 1889,
+          "labourerFame": 931
+        },
+        {
+          "item": "T8_METALBAR_LEVEL1@1",
+          "rawItem": "T8_METALBAR_LEVEL1",
+          "enchantment": 1,
+          "amount": 1,
+          "weight": 100,
+          "labourerFame": 931
+        },
+        {
+          "item": "T8_METALBAR_LEVEL2@2",
+          "rawItem": "T8_METALBAR_LEVEL2",
+          "enchantment": 2,
+          "amount": 1,
+          "weight": 10,
+          "labourerFame": 931
+        },
+        {
+          "item": "T8_METALBAR_LEVEL3@3",
+          "rawItem": "T8_METALBAR_LEVEL3",
+          "enchantment": 3,
+          "amount": 1,
+          "weight": 1,
+          "labourerFame": 931
+        }
+      ]
+    },
+    {
+      "item": "T2_JOURNAL_TOOLMAKER",
+      "tier": 2,
+      "type": "toolmaker",
+      "filled": "T2_JOURNAL_TOOLMAKER_FULL",
+      "empty": "T2_JOURNAL_TOOLMAKER_EMPTY",
+      "missionTypes": [
+        "craftitemfame"
+      ],
+      "fillFame": 900,
+      "baseLootAmount": 38,
+      "loot": [
+        {
+          "item": "T2_PLANKS",
+          "rawItem": "T2_PLANKS",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 7556,
+          "labourerFame": 2
+        },
+        {
+          "item": "T2_METALBAR",
+          "rawItem": "T2_METALBAR",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 3778,
+          "labourerFame": 2
+        },
+        {
+          "item": "T2_CLOTH",
+          "rawItem": "T2_CLOTH",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 3778,
+          "labourerFame": 2
+        },
+        {
+          "item": "T2_LEATHER",
+          "rawItem": "T2_LEATHER",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 1889,
+          "labourerFame": 2
+        }
+      ]
+    },
+    {
+      "item": "T3_JOURNAL_TOOLMAKER",
+      "tier": 3,
+      "type": "toolmaker",
+      "filled": "T3_JOURNAL_TOOLMAKER_FULL",
+      "empty": "T3_JOURNAL_TOOLMAKER_EMPTY",
+      "missionTypes": [
+        "craftitemfame"
+      ],
+      "fillFame": 1800,
+      "baseLootAmount": 24,
+      "loot": [
+        {
+          "item": "T3_PLANKS",
+          "rawItem": "T3_PLANKS",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 7556,
+          "labourerFame": 5
+        },
+        {
+          "item": "T3_METALBAR",
+          "rawItem": "T3_METALBAR",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 3778,
+          "labourerFame": 5
+        },
+        {
+          "item": "T3_CLOTH",
+          "rawItem": "T3_CLOTH",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 3778,
+          "labourerFame": 5
+        },
+        {
+          "item": "T3_LEATHER",
+          "rawItem": "T3_LEATHER",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 1889,
+          "labourerFame": 5
+        }
+      ]
+    },
+    {
+      "item": "T4_JOURNAL_TOOLMAKER",
+      "tier": 4,
+      "type": "toolmaker",
+      "filled": "T4_JOURNAL_TOOLMAKER_FULL",
+      "empty": "T4_JOURNAL_TOOLMAKER_EMPTY",
+      "missionTypes": [
+        "craftitemfame"
+      ],
+      "fillFame": 3600,
+      "baseLootAmount": 16,
+      "loot": [
+        {
+          "item": "T4_PLANKS",
+          "rawItem": "T4_PLANKS",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 7556,
+          "labourerFame": 15
+        },
+        {
+          "item": "T4_PLANKS_LEVEL1@1",
+          "rawItem": "T4_PLANKS_LEVEL1",
+          "enchantment": 1,
+          "amount": 1,
+          "weight": 400,
+          "labourerFame": 15
+        },
+        {
+          "item": "T4_PLANKS_LEVEL2@2",
+          "rawItem": "T4_PLANKS_LEVEL2",
+          "enchantment": 2,
+          "amount": 1,
+          "weight": 40,
+          "labourerFame": 15
+        },
+        {
+          "item": "T4_PLANKS_LEVEL3@3",
+          "rawItem": "T4_PLANKS_LEVEL3",
+          "enchantment": 3,
+          "amount": 1,
+          "weight": 4,
+          "labourerFame": 15
+        },
+        {
+          "item": "T4_METALBAR",
+          "rawItem": "T4_METALBAR",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 3778,
+          "labourerFame": 15
+        },
+        {
+          "item": "T4_METALBAR_LEVEL1@1",
+          "rawItem": "T4_METALBAR_LEVEL1",
+          "enchantment": 1,
+          "amount": 1,
+          "weight": 200,
+          "labourerFame": 15
+        },
+        {
+          "item": "T4_METALBAR_LEVEL2@2",
+          "rawItem": "T4_METALBAR_LEVEL2",
+          "enchantment": 2,
+          "amount": 1,
+          "weight": 20,
+          "labourerFame": 15
+        },
+        {
+          "item": "T4_METALBAR_LEVEL3@3",
+          "rawItem": "T4_METALBAR_LEVEL3",
+          "enchantment": 3,
+          "amount": 1,
+          "weight": 2,
+          "labourerFame": 15
+        },
+        {
+          "item": "T4_CLOTH",
+          "rawItem": "T4_CLOTH",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 3778,
+          "labourerFame": 15
+        },
+        {
+          "item": "T4_CLOTH_LEVEL1@1",
+          "rawItem": "T4_CLOTH_LEVEL1",
+          "enchantment": 1,
+          "amount": 1,
+          "weight": 200,
+          "labourerFame": 15
+        },
+        {
+          "item": "T4_CLOTH_LEVEL2@2",
+          "rawItem": "T4_CLOTH_LEVEL2",
+          "enchantment": 2,
+          "amount": 1,
+          "weight": 20,
+          "labourerFame": 15
+        },
+        {
+          "item": "T4_CLOTH_LEVEL3@3",
+          "rawItem": "T4_CLOTH_LEVEL3",
+          "enchantment": 3,
+          "amount": 1,
+          "weight": 2,
+          "labourerFame": 15
+        },
+        {
+          "item": "T4_LEATHER",
+          "rawItem": "T4_LEATHER",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 1889,
+          "labourerFame": 15
+        },
+        {
+          "item": "T4_LEATHER_LEVEL1@1",
+          "rawItem": "T4_LEATHER_LEVEL1",
+          "enchantment": 1,
+          "amount": 1,
+          "weight": 100,
+          "labourerFame": 15
+        },
+        {
+          "item": "T4_LEATHER_LEVEL2@2",
+          "rawItem": "T4_LEATHER_LEVEL2",
+          "enchantment": 2,
+          "amount": 1,
+          "weight": 10,
+          "labourerFame": 15
+        },
+        {
+          "item": "T4_LEATHER_LEVEL3@3",
+          "rawItem": "T4_LEATHER_LEVEL3",
+          "enchantment": 3,
+          "amount": 1,
+          "weight": 1,
+          "labourerFame": 15
+        }
+      ]
+    },
+    {
+      "item": "T5_JOURNAL_TOOLMAKER",
+      "tier": 5,
+      "type": "toolmaker",
+      "filled": "T5_JOURNAL_TOOLMAKER_FULL",
+      "empty": "T5_JOURNAL_TOOLMAKER_EMPTY",
+      "missionTypes": [
+        "craftitemfame"
+      ],
+      "fillFame": 7200,
+      "baseLootAmount": 8,
+      "loot": [
+        {
+          "item": "T5_PLANKS",
+          "rawItem": "T5_PLANKS",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 7556,
+          "labourerFame": 60
+        },
+        {
+          "item": "T5_PLANKS_LEVEL1@1",
+          "rawItem": "T5_PLANKS_LEVEL1",
+          "enchantment": 1,
+          "amount": 1,
+          "weight": 400,
+          "labourerFame": 60
+        },
+        {
+          "item": "T5_PLANKS_LEVEL2@2",
+          "rawItem": "T5_PLANKS_LEVEL2",
+          "enchantment": 2,
+          "amount": 1,
+          "weight": 40,
+          "labourerFame": 60
+        },
+        {
+          "item": "T5_PLANKS_LEVEL3@3",
+          "rawItem": "T5_PLANKS_LEVEL3",
+          "enchantment": 3,
+          "amount": 1,
+          "weight": 4,
+          "labourerFame": 60
+        },
+        {
+          "item": "T5_METALBAR",
+          "rawItem": "T5_METALBAR",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 3778,
+          "labourerFame": 60
+        },
+        {
+          "item": "T5_METALBAR_LEVEL1@1",
+          "rawItem": "T5_METALBAR_LEVEL1",
+          "enchantment": 1,
+          "amount": 1,
+          "weight": 200,
+          "labourerFame": 60
+        },
+        {
+          "item": "T5_METALBAR_LEVEL2@2",
+          "rawItem": "T5_METALBAR_LEVEL2",
+          "enchantment": 2,
+          "amount": 1,
+          "weight": 20,
+          "labourerFame": 60
+        },
+        {
+          "item": "T5_METALBAR_LEVEL3@3",
+          "rawItem": "T5_METALBAR_LEVEL3",
+          "enchantment": 3,
+          "amount": 1,
+          "weight": 2,
+          "labourerFame": 60
+        },
+        {
+          "item": "T5_CLOTH",
+          "rawItem": "T5_CLOTH",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 3778,
+          "labourerFame": 60
+        },
+        {
+          "item": "T5_CLOTH_LEVEL1@1",
+          "rawItem": "T5_CLOTH_LEVEL1",
+          "enchantment": 1,
+          "amount": 1,
+          "weight": 200,
+          "labourerFame": 60
+        },
+        {
+          "item": "T5_CLOTH_LEVEL2@2",
+          "rawItem": "T5_CLOTH_LEVEL2",
+          "enchantment": 2,
+          "amount": 1,
+          "weight": 20,
+          "labourerFame": 60
+        },
+        {
+          "item": "T5_CLOTH_LEVEL3@3",
+          "rawItem": "T5_CLOTH_LEVEL3",
+          "enchantment": 3,
+          "amount": 1,
+          "weight": 2,
+          "labourerFame": 60
+        },
+        {
+          "item": "T5_LEATHER",
+          "rawItem": "T5_LEATHER",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 1889,
+          "labourerFame": 60
+        },
+        {
+          "item": "T5_LEATHER_LEVEL1@1",
+          "rawItem": "T5_LEATHER_LEVEL1",
+          "enchantment": 1,
+          "amount": 1,
+          "weight": 100,
+          "labourerFame": 60
+        },
+        {
+          "item": "T5_LEATHER_LEVEL2@2",
+          "rawItem": "T5_LEATHER_LEVEL2",
+          "enchantment": 2,
+          "amount": 1,
+          "weight": 10,
+          "labourerFame": 60
+        },
+        {
+          "item": "T5_LEATHER_LEVEL3@3",
+          "rawItem": "T5_LEATHER_LEVEL3",
+          "enchantment": 3,
+          "amount": 1,
+          "weight": 1,
+          "labourerFame": 60
+        }
+      ]
+    },
+    {
+      "item": "T6_JOURNAL_TOOLMAKER",
+      "tier": 6,
+      "type": "toolmaker",
+      "filled": "T6_JOURNAL_TOOLMAKER_FULL",
+      "empty": "T6_JOURNAL_TOOLMAKER_EMPTY",
+      "missionTypes": [
+        "craftitemfame"
+      ],
+      "fillFame": 14400,
+      "baseLootAmount": 5.3333,
+      "loot": [
+        {
+          "item": "T6_PLANKS",
+          "rawItem": "T6_PLANKS",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 7556,
+          "labourerFame": 181
+        },
+        {
+          "item": "T6_PLANKS_LEVEL1@1",
+          "rawItem": "T6_PLANKS_LEVEL1",
+          "enchantment": 1,
+          "amount": 1,
+          "weight": 400,
+          "labourerFame": 181
+        },
+        {
+          "item": "T6_PLANKS_LEVEL2@2",
+          "rawItem": "T6_PLANKS_LEVEL2",
+          "enchantment": 2,
+          "amount": 1,
+          "weight": 40,
+          "labourerFame": 181
+        },
+        {
+          "item": "T6_PLANKS_LEVEL3@3",
+          "rawItem": "T6_PLANKS_LEVEL3",
+          "enchantment": 3,
+          "amount": 1,
+          "weight": 4,
+          "labourerFame": 181
+        },
+        {
+          "item": "T6_METALBAR",
+          "rawItem": "T6_METALBAR",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 3778,
+          "labourerFame": 181
+        },
+        {
+          "item": "T6_METALBAR_LEVEL1@1",
+          "rawItem": "T6_METALBAR_LEVEL1",
+          "enchantment": 1,
+          "amount": 1,
+          "weight": 200,
+          "labourerFame": 181
+        },
+        {
+          "item": "T6_METALBAR_LEVEL2@2",
+          "rawItem": "T6_METALBAR_LEVEL2",
+          "enchantment": 2,
+          "amount": 1,
+          "weight": 20,
+          "labourerFame": 181
+        },
+        {
+          "item": "T6_METALBAR_LEVEL3@3",
+          "rawItem": "T6_METALBAR_LEVEL3",
+          "enchantment": 3,
+          "amount": 1,
+          "weight": 2,
+          "labourerFame": 181
+        },
+        {
+          "item": "T6_CLOTH",
+          "rawItem": "T6_CLOTH",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 3778,
+          "labourerFame": 181
+        },
+        {
+          "item": "T6_CLOTH_LEVEL1@1",
+          "rawItem": "T6_CLOTH_LEVEL1",
+          "enchantment": 1,
+          "amount": 1,
+          "weight": 200,
+          "labourerFame": 181
+        },
+        {
+          "item": "T6_CLOTH_LEVEL2@2",
+          "rawItem": "T6_CLOTH_LEVEL2",
+          "enchantment": 2,
+          "amount": 1,
+          "weight": 20,
+          "labourerFame": 181
+        },
+        {
+          "item": "T6_CLOTH_LEVEL3@3",
+          "rawItem": "T6_CLOTH_LEVEL3",
+          "enchantment": 3,
+          "amount": 1,
+          "weight": 2,
+          "labourerFame": 181
+        },
+        {
+          "item": "T6_LEATHER",
+          "rawItem": "T6_LEATHER",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 1889,
+          "labourerFame": 181
+        },
+        {
+          "item": "T6_LEATHER_LEVEL1@1",
+          "rawItem": "T6_LEATHER_LEVEL1",
+          "enchantment": 1,
+          "amount": 1,
+          "weight": 100,
+          "labourerFame": 181
+        },
+        {
+          "item": "T6_LEATHER_LEVEL2@2",
+          "rawItem": "T6_LEATHER_LEVEL2",
+          "enchantment": 2,
+          "amount": 1,
+          "weight": 10,
+          "labourerFame": 181
+        },
+        {
+          "item": "T6_LEATHER_LEVEL3@3",
+          "rawItem": "T6_LEATHER_LEVEL3",
+          "enchantment": 3,
+          "amount": 1,
+          "weight": 1,
+          "labourerFame": 181
+        }
+      ]
+    },
+    {
+      "item": "T7_JOURNAL_TOOLMAKER",
+      "tier": 7,
+      "type": "toolmaker",
+      "filled": "T7_JOURNAL_TOOLMAKER_FULL",
+      "empty": "T7_JOURNAL_TOOLMAKER_EMPTY",
+      "missionTypes": [
+        "craftitemfame"
+      ],
+      "fillFame": 28380,
+      "baseLootAmount": 4.4,
+      "loot": [
+        {
+          "item": "T7_PLANKS",
+          "rawItem": "T7_PLANKS",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 7556,
+          "labourerFame": 431
+        },
+        {
+          "item": "T7_PLANKS_LEVEL1@1",
+          "rawItem": "T7_PLANKS_LEVEL1",
+          "enchantment": 1,
+          "amount": 1,
+          "weight": 400,
+          "labourerFame": 431
+        },
+        {
+          "item": "T7_PLANKS_LEVEL2@2",
+          "rawItem": "T7_PLANKS_LEVEL2",
+          "enchantment": 2,
+          "amount": 1,
+          "weight": 40,
+          "labourerFame": 431
+        },
+        {
+          "item": "T7_PLANKS_LEVEL3@3",
+          "rawItem": "T7_PLANKS_LEVEL3",
+          "enchantment": 3,
+          "amount": 1,
+          "weight": 4,
+          "labourerFame": 431
+        },
+        {
+          "item": "T7_METALBAR",
+          "rawItem": "T7_METALBAR",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 3778,
+          "labourerFame": 431
+        },
+        {
+          "item": "T7_METALBAR_LEVEL1@1",
+          "rawItem": "T7_METALBAR_LEVEL1",
+          "enchantment": 1,
+          "amount": 1,
+          "weight": 200,
+          "labourerFame": 431
+        },
+        {
+          "item": "T7_METALBAR_LEVEL2@2",
+          "rawItem": "T7_METALBAR_LEVEL2",
+          "enchantment": 2,
+          "amount": 1,
+          "weight": 20,
+          "labourerFame": 431
+        },
+        {
+          "item": "T7_METALBAR_LEVEL3@3",
+          "rawItem": "T7_METALBAR_LEVEL3",
+          "enchantment": 3,
+          "amount": 1,
+          "weight": 2,
+          "labourerFame": 431
+        },
+        {
+          "item": "T7_CLOTH",
+          "rawItem": "T7_CLOTH",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 3778,
+          "labourerFame": 431
+        },
+        {
+          "item": "T7_CLOTH_LEVEL1@1",
+          "rawItem": "T7_CLOTH_LEVEL1",
+          "enchantment": 1,
+          "amount": 1,
+          "weight": 200,
+          "labourerFame": 431
+        },
+        {
+          "item": "T7_CLOTH_LEVEL2@2",
+          "rawItem": "T7_CLOTH_LEVEL2",
+          "enchantment": 2,
+          "amount": 1,
+          "weight": 20,
+          "labourerFame": 431
+        },
+        {
+          "item": "T7_CLOTH_LEVEL3@3",
+          "rawItem": "T7_CLOTH_LEVEL3",
+          "enchantment": 3,
+          "amount": 1,
+          "weight": 2,
+          "labourerFame": 431
+        },
+        {
+          "item": "T7_LEATHER",
+          "rawItem": "T7_LEATHER",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 1889,
+          "labourerFame": 431
+        },
+        {
+          "item": "T7_LEATHER_LEVEL1@1",
+          "rawItem": "T7_LEATHER_LEVEL1",
+          "enchantment": 1,
+          "amount": 1,
+          "weight": 100,
+          "labourerFame": 431
+        },
+        {
+          "item": "T7_LEATHER_LEVEL2@2",
+          "rawItem": "T7_LEATHER_LEVEL2",
+          "enchantment": 2,
+          "amount": 1,
+          "weight": 10,
+          "labourerFame": 431
+        },
+        {
+          "item": "T7_LEATHER_LEVEL3@3",
+          "rawItem": "T7_LEATHER_LEVEL3",
+          "enchantment": 3,
+          "amount": 1,
+          "weight": 1,
+          "labourerFame": 431
+        }
+      ]
+    },
+    {
+      "item": "T8_JOURNAL_TOOLMAKER",
+      "tier": 8,
+      "type": "toolmaker",
+      "filled": "T8_JOURNAL_TOOLMAKER_FULL",
+      "empty": "T8_JOURNAL_TOOLMAKER_EMPTY",
+      "missionTypes": [
+        "craftitemfame"
+      ],
+      "fillFame": 58590,
+      "baseLootAmount": 4.2,
+      "loot": [
+        {
+          "item": "T8_PLANKS",
+          "rawItem": "T8_PLANKS",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 7556,
+          "labourerFame": 931
+        },
+        {
+          "item": "T8_PLANKS_LEVEL1@1",
+          "rawItem": "T8_PLANKS_LEVEL1",
+          "enchantment": 1,
+          "amount": 1,
+          "weight": 400,
+          "labourerFame": 931
+        },
+        {
+          "item": "T8_PLANKS_LEVEL2@2",
+          "rawItem": "T8_PLANKS_LEVEL2",
+          "enchantment": 2,
+          "amount": 1,
+          "weight": 40,
+          "labourerFame": 931
+        },
+        {
+          "item": "T8_PLANKS_LEVEL3@3",
+          "rawItem": "T8_PLANKS_LEVEL3",
+          "enchantment": 3,
+          "amount": 1,
+          "weight": 4,
+          "labourerFame": 931
+        },
+        {
+          "item": "T8_METALBAR",
+          "rawItem": "T8_METALBAR",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 3778,
+          "labourerFame": 931
+        },
+        {
+          "item": "T8_METALBAR_LEVEL1@1",
+          "rawItem": "T8_METALBAR_LEVEL1",
+          "enchantment": 1,
+          "amount": 1,
+          "weight": 200,
+          "labourerFame": 931
+        },
+        {
+          "item": "T8_METALBAR_LEVEL2@2",
+          "rawItem": "T8_METALBAR_LEVEL2",
+          "enchantment": 2,
+          "amount": 1,
+          "weight": 20,
+          "labourerFame": 931
+        },
+        {
+          "item": "T8_METALBAR_LEVEL3@3",
+          "rawItem": "T8_METALBAR_LEVEL3",
+          "enchantment": 3,
+          "amount": 1,
+          "weight": 2,
+          "labourerFame": 931
+        },
+        {
+          "item": "T8_CLOTH",
+          "rawItem": "T8_CLOTH",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 3778,
+          "labourerFame": 931
+        },
+        {
+          "item": "T8_CLOTH_LEVEL1@1",
+          "rawItem": "T8_CLOTH_LEVEL1",
+          "enchantment": 1,
+          "amount": 1,
+          "weight": 200,
+          "labourerFame": 931
+        },
+        {
+          "item": "T8_CLOTH_LEVEL2@2",
+          "rawItem": "T8_CLOTH_LEVEL2",
+          "enchantment": 2,
+          "amount": 1,
+          "weight": 20,
+          "labourerFame": 931
+        },
+        {
+          "item": "T8_CLOTH_LEVEL3@3",
+          "rawItem": "T8_CLOTH_LEVEL3",
+          "enchantment": 3,
+          "amount": 1,
+          "weight": 2,
+          "labourerFame": 931
+        },
+        {
+          "item": "T8_LEATHER",
+          "rawItem": "T8_LEATHER",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 1889,
+          "labourerFame": 931
+        },
+        {
+          "item": "T8_LEATHER_LEVEL1@1",
+          "rawItem": "T8_LEATHER_LEVEL1",
+          "enchantment": 1,
+          "amount": 1,
+          "weight": 100,
+          "labourerFame": 931
+        },
+        {
+          "item": "T8_LEATHER_LEVEL2@2",
+          "rawItem": "T8_LEATHER_LEVEL2",
+          "enchantment": 2,
+          "amount": 1,
+          "weight": 10,
+          "labourerFame": 931
+        },
+        {
+          "item": "T8_LEATHER_LEVEL3@3",
+          "rawItem": "T8_LEATHER_LEVEL3",
+          "enchantment": 3,
+          "amount": 1,
+          "weight": 1,
+          "labourerFame": 931
+        }
+      ]
+    },
+    {
+      "item": "T2_JOURNAL_MERCENARY",
+      "tier": 2,
+      "type": "mercenary",
+      "filled": "T2_JOURNAL_MERCENARY_FULL",
+      "empty": "T2_JOURNAL_MERCENARY_EMPTY",
+      "missionTypes": [
+        "killmobfame"
+      ],
+      "fillFame": 1412,
+      "baseLootAmount": 1,
+      "loot": [
+        {
+          "item": "SILVER",
+          "rawItem": null,
+          "enchantment": 0,
+          "amount": 371,
+          "weight": 1,
+          "labourerFame": 283
+        }
+      ]
+    },
+    {
+      "item": "T3_JOURNAL_MERCENARY",
+      "tier": 3,
+      "type": "mercenary",
+      "filled": "T3_JOURNAL_MERCENARY_FULL",
+      "empty": "T3_JOURNAL_MERCENARY_EMPTY",
+      "missionTypes": [
+        "killmobfame"
+      ],
+      "fillFame": 2171,
+      "baseLootAmount": 1,
+      "loot": [
+        {
+          "item": "SILVER",
+          "rawItem": null,
+          "enchantment": 0,
+          "amount": 660,
+          "weight": 1,
+          "labourerFame": 435
+        }
+      ]
+    },
+    {
+      "item": "T4_JOURNAL_MERCENARY",
+      "tier": 4,
+      "type": "mercenary",
+      "filled": "T4_JOURNAL_MERCENARY_FULL",
+      "empty": "T4_JOURNAL_MERCENARY_EMPTY",
+      "missionTypes": [
+        "killmobfame"
+      ],
+      "fillFame": 3264,
+      "baseLootAmount": 1,
+      "loot": [
+        {
+          "item": "SILVER",
+          "rawItem": null,
+          "enchantment": 0,
+          "amount": 1123,
+          "weight": 1,
+          "labourerFame": 653
+        }
+      ]
+    },
+    {
+      "item": "T5_JOURNAL_MERCENARY",
+      "tier": 5,
+      "type": "mercenary",
+      "filled": "T5_JOURNAL_MERCENARY_FULL",
+      "empty": "T5_JOURNAL_MERCENARY_EMPTY",
+      "missionTypes": [
+        "killmobfame"
+      ],
+      "fillFame": 4368,
+      "baseLootAmount": 1,
+      "loot": [
+        {
+          "item": "SILVER",
+          "rawItem": null,
+          "enchantment": 0,
+          "amount": 1746,
+          "weight": 1,
+          "labourerFame": 874
+        }
+      ]
+    },
+    {
+      "item": "T6_JOURNAL_MERCENARY",
+      "tier": 6,
+      "type": "mercenary",
+      "filled": "T6_JOURNAL_MERCENARY_FULL",
+      "empty": "T6_JOURNAL_MERCENARY_EMPTY",
+      "missionTypes": [
+        "killmobfame"
+      ],
+      "fillFame": 5856,
+      "baseLootAmount": 1,
+      "loot": [
+        {
+          "item": "SILVER",
+          "rawItem": null,
+          "enchantment": 0,
+          "amount": 2690,
+          "weight": 1,
+          "labourerFame": 1172
+        }
+      ]
+    },
+    {
+      "item": "T7_JOURNAL_MERCENARY",
+      "tier": 7,
+      "type": "mercenary",
+      "filled": "T7_JOURNAL_MERCENARY_FULL",
+      "empty": "T7_JOURNAL_MERCENARY_EMPTY",
+      "missionTypes": [
+        "killmobfame"
+      ],
+      "fillFame": 7968,
+      "baseLootAmount": 1,
+      "loot": [
+        {
+          "item": "SILVER",
+          "rawItem": null,
+          "enchantment": 0,
+          "amount": 4202,
+          "weight": 1,
+          "labourerFame": 1594
+        }
+      ]
+    },
+    {
+      "item": "T8_JOURNAL_MERCENARY",
+      "tier": 8,
+      "type": "mercenary",
+      "filled": "T8_JOURNAL_MERCENARY_FULL",
+      "empty": "T8_JOURNAL_MERCENARY_EMPTY",
+      "missionTypes": [
+        "killmobfame"
+      ],
+      "fillFame": 10800,
+      "baseLootAmount": 1,
+      "loot": [
+        {
+          "item": "SILVER",
+          "rawItem": null,
+          "enchantment": 0,
+          "amount": 6584,
+          "weight": 1,
+          "labourerFame": 2160
+        }
+      ]
+    },
+    {
+      "item": "T2_JOURNAL_TROPHY_GENERAL",
+      "tier": 2,
+      "type": "general",
+      "filled": "T2_JOURNAL_TROPHY_GENERAL_FULL",
+      "empty": "T2_JOURNAL_TROPHY_GENERAL_EMPTY",
+      "missionTypes": [
+        "fameearned"
+      ],
+      "fillFame": 2400,
+      "baseLootAmount": 1,
+      "loot": [
+        {
+          "item": "T2_FURNITUREITEM_TROPHY_GENERAL",
+          "rawItem": "T2_FURNITUREITEM_TROPHY_GENERAL",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 1889,
+          "labourerFame": 76
+        }
+      ]
+    },
+    {
+      "item": "T3_JOURNAL_TROPHY_GENERAL",
+      "tier": 3,
+      "type": "general",
+      "filled": "T3_JOURNAL_TROPHY_GENERAL_FULL",
+      "empty": "T3_JOURNAL_TROPHY_GENERAL_EMPTY",
+      "missionTypes": [
+        "fameearned"
+      ],
+      "fillFame": 3600,
+      "baseLootAmount": 1,
+      "loot": [
+        {
+          "item": "T3_FURNITUREITEM_TROPHY_GENERAL",
+          "rawItem": "T3_FURNITUREITEM_TROPHY_GENERAL",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 1889,
+          "labourerFame": 120
+        }
+      ]
+    },
+    {
+      "item": "T4_JOURNAL_TROPHY_GENERAL",
+      "tier": 4,
+      "type": "general",
+      "filled": "T4_JOURNAL_TROPHY_GENERAL_FULL",
+      "empty": "T4_JOURNAL_TROPHY_GENERAL_EMPTY",
+      "missionTypes": [
+        "fameearned"
+      ],
+      "fillFame": 5400,
+      "baseLootAmount": 1,
+      "loot": [
+        {
+          "item": "T4_FURNITUREITEM_TROPHY_GENERAL",
+          "rawItem": "T4_FURNITUREITEM_TROPHY_GENERAL",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 1889,
+          "labourerFame": 240
+        }
+      ]
+    },
+    {
+      "item": "T5_JOURNAL_TROPHY_GENERAL",
+      "tier": 5,
+      "type": "general",
+      "filled": "T5_JOURNAL_TROPHY_GENERAL_FULL",
+      "empty": "T5_JOURNAL_TROPHY_GENERAL_EMPTY",
+      "missionTypes": [
+        "fameearned"
+      ],
+      "fillFame": 8100,
+      "baseLootAmount": 1,
+      "loot": [
+        {
+          "item": "T5_FURNITUREITEM_TROPHY_GENERAL",
+          "rawItem": "T5_FURNITUREITEM_TROPHY_GENERAL",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 1889,
+          "labourerFame": 480
+        }
+      ]
+    },
+    {
+      "item": "T6_JOURNAL_TROPHY_GENERAL",
+      "tier": 6,
+      "type": "general",
+      "filled": "T6_JOURNAL_TROPHY_GENERAL_FULL",
+      "empty": "T6_JOURNAL_TROPHY_GENERAL_EMPTY",
+      "missionTypes": [
+        "fameearned"
+      ],
+      "fillFame": 12150,
+      "baseLootAmount": 1,
+      "loot": [
+        {
+          "item": "T6_FURNITUREITEM_TROPHY_GENERAL",
+          "rawItem": "T6_FURNITUREITEM_TROPHY_GENERAL",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 1889,
+          "labourerFame": 960
+        }
+      ]
+    },
+    {
+      "item": "T7_JOURNAL_TROPHY_GENERAL",
+      "tier": 7,
+      "type": "general",
+      "filled": "T7_JOURNAL_TROPHY_GENERAL_FULL",
+      "empty": "T7_JOURNAL_TROPHY_GENERAL_EMPTY",
+      "missionTypes": [
+        "fameearned"
+      ],
+      "fillFame": 18225,
+      "baseLootAmount": 1,
+      "loot": [
+        {
+          "item": "T7_FURNITUREITEM_TROPHY_GENERAL",
+          "rawItem": "T7_FURNITUREITEM_TROPHY_GENERAL",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 1889,
+          "labourerFame": 1920
+        }
+      ]
+    },
+    {
+      "item": "T8_JOURNAL_TROPHY_GENERAL",
+      "tier": 8,
+      "type": "general",
+      "filled": "T8_JOURNAL_TROPHY_GENERAL_FULL",
+      "empty": "T8_JOURNAL_TROPHY_GENERAL_EMPTY",
+      "missionTypes": [
+        "fameearned"
+      ],
+      "fillFame": 27339,
+      "baseLootAmount": 1,
+      "loot": [
+        {
+          "item": "T8_FURNITUREITEM_TROPHY_GENERAL",
+          "rawItem": "T8_FURNITUREITEM_TROPHY_GENERAL",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 1889,
+          "labourerFame": 3840
+        }
+      ]
+    },
+    {
+      "item": "T2_JOURNAL_TROPHY_MERCENARY",
+      "tier": 2,
+      "type": "mercenary",
+      "filled": "T2_JOURNAL_TROPHY_MERCENARY_FULL",
+      "empty": "T2_JOURNAL_TROPHY_MERCENARY_EMPTY",
+      "missionTypes": [
+        "killmobfame"
+      ],
+      "fillFame": 4235,
+      "baseLootAmount": 1,
+      "loot": [
+        {
+          "item": "T2_FURNITUREITEM_TROPHY_MERCENARY",
+          "rawItem": "T2_FURNITUREITEM_TROPHY_MERCENARY",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 1889,
+          "labourerFame": 283
+        }
+      ]
+    },
+    {
+      "item": "T3_JOURNAL_TROPHY_MERCENARY",
+      "tier": 3,
+      "type": "mercenary",
+      "filled": "T3_JOURNAL_TROPHY_MERCENARY_FULL",
+      "empty": "T3_JOURNAL_TROPHY_MERCENARY_EMPTY",
+      "missionTypes": [
+        "killmobfame"
+      ],
+      "fillFame": 6514,
+      "baseLootAmount": 1,
+      "loot": [
+        {
+          "item": "T3_FURNITUREITEM_TROPHY_MERCENARY",
+          "rawItem": "T3_FURNITUREITEM_TROPHY_MERCENARY",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 1889,
+          "labourerFame": 435
+        }
+      ]
+    },
+    {
+      "item": "T4_JOURNAL_TROPHY_MERCENARY",
+      "tier": 4,
+      "type": "mercenary",
+      "filled": "T4_JOURNAL_TROPHY_MERCENARY_FULL",
+      "empty": "T4_JOURNAL_TROPHY_MERCENARY_EMPTY",
+      "missionTypes": [
+        "killmobfame"
+      ],
+      "fillFame": 9792,
+      "baseLootAmount": 1,
+      "loot": [
+        {
+          "item": "T4_FURNITUREITEM_TROPHY_MERCENARY",
+          "rawItem": "T4_FURNITUREITEM_TROPHY_MERCENARY",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 1889,
+          "labourerFame": 653
+        }
+      ]
+    },
+    {
+      "item": "T5_JOURNAL_TROPHY_MERCENARY",
+      "tier": 5,
+      "type": "mercenary",
+      "filled": "T5_JOURNAL_TROPHY_MERCENARY_FULL",
+      "empty": "T5_JOURNAL_TROPHY_MERCENARY_EMPTY",
+      "missionTypes": [
+        "killmobfame"
+      ],
+      "fillFame": 13104,
+      "baseLootAmount": 1,
+      "loot": [
+        {
+          "item": "T5_FURNITUREITEM_TROPHY_MERCENARY",
+          "rawItem": "T5_FURNITUREITEM_TROPHY_MERCENARY",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 1889,
+          "labourerFame": 874
+        }
+      ]
+    },
+    {
+      "item": "T6_JOURNAL_TROPHY_MERCENARY",
+      "tier": 6,
+      "type": "mercenary",
+      "filled": "T6_JOURNAL_TROPHY_MERCENARY_FULL",
+      "empty": "T6_JOURNAL_TROPHY_MERCENARY_EMPTY",
+      "missionTypes": [
+        "killmobfame"
+      ],
+      "fillFame": 17568,
+      "baseLootAmount": 1,
+      "loot": [
+        {
+          "item": "T6_FURNITUREITEM_TROPHY_MERCENARY",
+          "rawItem": "T6_FURNITUREITEM_TROPHY_MERCENARY",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 1889,
+          "labourerFame": 1172
+        }
+      ]
+    },
+    {
+      "item": "T7_JOURNAL_TROPHY_MERCENARY",
+      "tier": 7,
+      "type": "mercenary",
+      "filled": "T7_JOURNAL_TROPHY_MERCENARY_FULL",
+      "empty": "T7_JOURNAL_TROPHY_MERCENARY_EMPTY",
+      "missionTypes": [
+        "killmobfame"
+      ],
+      "fillFame": 23904,
+      "baseLootAmount": 1,
+      "loot": [
+        {
+          "item": "T7_FURNITUREITEM_TROPHY_MERCENARY",
+          "rawItem": "T7_FURNITUREITEM_TROPHY_MERCENARY",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 1889,
+          "labourerFame": 1594
+        }
+      ]
+    },
+    {
+      "item": "T8_JOURNAL_TROPHY_MERCENARY",
+      "tier": 8,
+      "type": "mercenary",
+      "filled": "T8_JOURNAL_TROPHY_MERCENARY_FULL",
+      "empty": "T8_JOURNAL_TROPHY_MERCENARY_EMPTY",
+      "missionTypes": [
+        "killmobfame"
+      ],
+      "fillFame": 32400,
+      "baseLootAmount": 1,
+      "loot": [
+        {
+          "item": "T8_FURNITUREITEM_TROPHY_MERCENARY",
+          "rawItem": "T8_FURNITUREITEM_TROPHY_MERCENARY",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 1889,
+          "labourerFame": 2160
+        }
+      ]
+    },
+    {
+      "item": "T2_JOURNAL_TROPHY_HIDE",
+      "tier": 2,
+      "type": "hide",
+      "filled": "T2_JOURNAL_TROPHY_HIDE_FULL",
+      "empty": "T2_JOURNAL_TROPHY_HIDE_EMPTY",
+      "missionTypes": [
+        "gatherfame"
+      ],
+      "fillFame": 1350,
+      "baseLootAmount": 1,
+      "loot": [
+        {
+          "item": "T2_FURNITUREITEM_TROPHY_HIDE",
+          "rawItem": "T2_FURNITUREITEM_TROPHY_HIDE",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 1889,
+          "labourerFame": 76
+        }
+      ]
+    },
+    {
+      "item": "T3_JOURNAL_TROPHY_HIDE",
+      "tier": 3,
+      "type": "hide",
+      "filled": "T3_JOURNAL_TROPHY_HIDE_FULL",
+      "empty": "T3_JOURNAL_TROPHY_HIDE_EMPTY",
+      "missionTypes": [
+        "gatherfame"
+      ],
+      "fillFame": 2700,
+      "baseLootAmount": 1,
+      "loot": [
+        {
+          "item": "T3_FURNITUREITEM_TROPHY_HIDE",
+          "rawItem": "T3_FURNITUREITEM_TROPHY_HIDE",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 1889,
+          "labourerFame": 120
+        }
+      ]
+    },
+    {
+      "item": "T4_JOURNAL_TROPHY_HIDE",
+      "tier": 4,
+      "type": "hide",
+      "filled": "T4_JOURNAL_TROPHY_HIDE_FULL",
+      "empty": "T4_JOURNAL_TROPHY_HIDE_EMPTY",
+      "missionTypes": [
+        "gatherfame"
+      ],
+      "fillFame": 5400,
+      "baseLootAmount": 1,
+      "loot": [
+        {
+          "item": "T4_FURNITUREITEM_TROPHY_HIDE",
+          "rawItem": "T4_FURNITUREITEM_TROPHY_HIDE",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 1889,
+          "labourerFame": 240
+        }
+      ]
+    },
+    {
+      "item": "T5_JOURNAL_TROPHY_HIDE",
+      "tier": 5,
+      "type": "hide",
+      "filled": "T5_JOURNAL_TROPHY_HIDE_FULL",
+      "empty": "T5_JOURNAL_TROPHY_HIDE_EMPTY",
+      "missionTypes": [
+        "gatherfame"
+      ],
+      "fillFame": 10800,
+      "baseLootAmount": 1,
+      "loot": [
+        {
+          "item": "T5_FURNITUREITEM_TROPHY_HIDE",
+          "rawItem": "T5_FURNITUREITEM_TROPHY_HIDE",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 1889,
+          "labourerFame": 480
+        }
+      ]
+    },
+    {
+      "item": "T6_JOURNAL_TROPHY_HIDE",
+      "tier": 6,
+      "type": "hide",
+      "filled": "T6_JOURNAL_TROPHY_HIDE_FULL",
+      "empty": "T6_JOURNAL_TROPHY_HIDE_EMPTY",
+      "missionTypes": [
+        "gatherfame"
+      ],
+      "fillFame": 21600,
+      "baseLootAmount": 1,
+      "loot": [
+        {
+          "item": "T6_FURNITUREITEM_TROPHY_HIDE",
+          "rawItem": "T6_FURNITUREITEM_TROPHY_HIDE",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 1889,
+          "labourerFame": 960
+        }
+      ]
+    },
+    {
+      "item": "T7_JOURNAL_TROPHY_HIDE",
+      "tier": 7,
+      "type": "hide",
+      "filled": "T7_JOURNAL_TROPHY_HIDE_FULL",
+      "empty": "T7_JOURNAL_TROPHY_HIDE_EMPTY",
+      "missionTypes": [
+        "gatherfame"
+      ],
+      "fillFame": 43200,
+      "baseLootAmount": 1,
+      "loot": [
+        {
+          "item": "T7_FURNITUREITEM_TROPHY_HIDE",
+          "rawItem": "T7_FURNITUREITEM_TROPHY_HIDE",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 1889,
+          "labourerFame": 1920
+        }
+      ]
+    },
+    {
+      "item": "T8_JOURNAL_TROPHY_HIDE",
+      "tier": 8,
+      "type": "hide",
+      "filled": "T8_JOURNAL_TROPHY_HIDE_FULL",
+      "empty": "T8_JOURNAL_TROPHY_HIDE_EMPTY",
+      "missionTypes": [
+        "gatherfame"
+      ],
+      "fillFame": 86400,
+      "baseLootAmount": 1,
+      "loot": [
+        {
+          "item": "T8_FURNITUREITEM_TROPHY_HIDE",
+          "rawItem": "T8_FURNITUREITEM_TROPHY_HIDE",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 1889,
+          "labourerFame": 3840
+        }
+      ]
+    },
+    {
+      "item": "T2_JOURNAL_TROPHY_WOOD",
+      "tier": 2,
+      "type": "wood",
+      "filled": "T2_JOURNAL_TROPHY_WOOD_FULL",
+      "empty": "T2_JOURNAL_TROPHY_WOOD_EMPTY",
+      "missionTypes": [
+        "gatherfame"
+      ],
+      "fillFame": 900,
+      "baseLootAmount": 1,
+      "loot": [
+        {
+          "item": "T2_FURNITUREITEM_TROPHY_WOOD",
+          "rawItem": "T2_FURNITUREITEM_TROPHY_WOOD",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 1889,
+          "labourerFame": 76
+        }
+      ]
+    },
+    {
+      "item": "T3_JOURNAL_TROPHY_WOOD",
+      "tier": 3,
+      "type": "wood",
+      "filled": "T3_JOURNAL_TROPHY_WOOD_FULL",
+      "empty": "T3_JOURNAL_TROPHY_WOOD_EMPTY",
+      "missionTypes": [
+        "gatherfame"
+      ],
+      "fillFame": 1800,
+      "baseLootAmount": 1,
+      "loot": [
+        {
+          "item": "T3_FURNITUREITEM_TROPHY_WOOD",
+          "rawItem": "T3_FURNITUREITEM_TROPHY_WOOD",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 1889,
+          "labourerFame": 120
+        }
+      ]
+    },
+    {
+      "item": "T4_JOURNAL_TROPHY_WOOD",
+      "tier": 4,
+      "type": "wood",
+      "filled": "T4_JOURNAL_TROPHY_WOOD_FULL",
+      "empty": "T4_JOURNAL_TROPHY_WOOD_EMPTY",
+      "missionTypes": [
+        "gatherfame"
+      ],
+      "fillFame": 3600,
+      "baseLootAmount": 1,
+      "loot": [
+        {
+          "item": "T4_FURNITUREITEM_TROPHY_WOOD",
+          "rawItem": "T4_FURNITUREITEM_TROPHY_WOOD",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 1889,
+          "labourerFame": 240
+        }
+      ]
+    },
+    {
+      "item": "T5_JOURNAL_TROPHY_WOOD",
+      "tier": 5,
+      "type": "wood",
+      "filled": "T5_JOURNAL_TROPHY_WOOD_FULL",
+      "empty": "T5_JOURNAL_TROPHY_WOOD_EMPTY",
+      "missionTypes": [
+        "gatherfame"
+      ],
+      "fillFame": 7200,
+      "baseLootAmount": 1,
+      "loot": [
+        {
+          "item": "T5_FURNITUREITEM_TROPHY_WOOD",
+          "rawItem": "T5_FURNITUREITEM_TROPHY_WOOD",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 1889,
+          "labourerFame": 480
+        }
+      ]
+    },
+    {
+      "item": "T6_JOURNAL_TROPHY_WOOD",
+      "tier": 6,
+      "type": "wood",
+      "filled": "T6_JOURNAL_TROPHY_WOOD_FULL",
+      "empty": "T6_JOURNAL_TROPHY_WOOD_EMPTY",
+      "missionTypes": [
+        "gatherfame"
+      ],
+      "fillFame": 14400,
+      "baseLootAmount": 1,
+      "loot": [
+        {
+          "item": "T6_FURNITUREITEM_TROPHY_WOOD",
+          "rawItem": "T6_FURNITUREITEM_TROPHY_WOOD",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 1889,
+          "labourerFame": 960
+        }
+      ]
+    },
+    {
+      "item": "T7_JOURNAL_TROPHY_WOOD",
+      "tier": 7,
+      "type": "wood",
+      "filled": "T7_JOURNAL_TROPHY_WOOD_FULL",
+      "empty": "T7_JOURNAL_TROPHY_WOOD_EMPTY",
+      "missionTypes": [
+        "gatherfame"
+      ],
+      "fillFame": 28800,
+      "baseLootAmount": 1,
+      "loot": [
+        {
+          "item": "T7_FURNITUREITEM_TROPHY_WOOD",
+          "rawItem": "T7_FURNITUREITEM_TROPHY_WOOD",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 1889,
+          "labourerFame": 19200
+        }
+      ]
+    },
+    {
+      "item": "T8_JOURNAL_TROPHY_WOOD",
+      "tier": 8,
+      "type": "wood",
+      "filled": "T8_JOURNAL_TROPHY_WOOD_FULL",
+      "empty": "T8_JOURNAL_TROPHY_WOOD_EMPTY",
+      "missionTypes": [
+        "gatherfame"
+      ],
+      "fillFame": 57600,
+      "baseLootAmount": 1,
+      "loot": [
+        {
+          "item": "T8_FURNITUREITEM_TROPHY_WOOD",
+          "rawItem": "T8_FURNITUREITEM_TROPHY_WOOD",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 1889,
+          "labourerFame": 38400
+        }
+      ]
+    },
+    {
+      "item": "T2_JOURNAL_TROPHY_STONE",
+      "tier": 2,
+      "type": "stone",
+      "filled": "T2_JOURNAL_TROPHY_STONE_FULL",
+      "empty": "T2_JOURNAL_TROPHY_STONE_EMPTY",
+      "missionTypes": [
+        "gatherfame"
+      ],
+      "fillFame": 900,
+      "baseLootAmount": 1,
+      "loot": [
+        {
+          "item": "T2_FURNITUREITEM_TROPHY_ROCK",
+          "rawItem": "T2_FURNITUREITEM_TROPHY_ROCK",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 1889,
+          "labourerFame": 76
+        }
+      ]
+    },
+    {
+      "item": "T3_JOURNAL_TROPHY_STONE",
+      "tier": 3,
+      "type": "stone",
+      "filled": "T3_JOURNAL_TROPHY_STONE_FULL",
+      "empty": "T3_JOURNAL_TROPHY_STONE_EMPTY",
+      "missionTypes": [
+        "gatherfame"
+      ],
+      "fillFame": 1800,
+      "baseLootAmount": 1,
+      "loot": [
+        {
+          "item": "T3_FURNITUREITEM_TROPHY_ROCK",
+          "rawItem": "T3_FURNITUREITEM_TROPHY_ROCK",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 1889,
+          "labourerFame": 120
+        }
+      ]
+    },
+    {
+      "item": "T4_JOURNAL_TROPHY_STONE",
+      "tier": 4,
+      "type": "stone",
+      "filled": "T4_JOURNAL_TROPHY_STONE_FULL",
+      "empty": "T4_JOURNAL_TROPHY_STONE_EMPTY",
+      "missionTypes": [
+        "gatherfame"
+      ],
+      "fillFame": 3600,
+      "baseLootAmount": 1,
+      "loot": [
+        {
+          "item": "T4_FURNITUREITEM_TROPHY_ROCK",
+          "rawItem": "T4_FURNITUREITEM_TROPHY_ROCK",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 1889,
+          "labourerFame": 240
+        }
+      ]
+    },
+    {
+      "item": "T5_JOURNAL_TROPHY_STONE",
+      "tier": 5,
+      "type": "stone",
+      "filled": "T5_JOURNAL_TROPHY_STONE_FULL",
+      "empty": "T5_JOURNAL_TROPHY_STONE_EMPTY",
+      "missionTypes": [
+        "gatherfame"
+      ],
+      "fillFame": 7200,
+      "baseLootAmount": 1,
+      "loot": [
+        {
+          "item": "T5_FURNITUREITEM_TROPHY_ROCK",
+          "rawItem": "T5_FURNITUREITEM_TROPHY_ROCK",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 1889,
+          "labourerFame": 480
+        }
+      ]
+    },
+    {
+      "item": "T6_JOURNAL_TROPHY_STONE",
+      "tier": 6,
+      "type": "stone",
+      "filled": "T6_JOURNAL_TROPHY_STONE_FULL",
+      "empty": "T6_JOURNAL_TROPHY_STONE_EMPTY",
+      "missionTypes": [
+        "gatherfame"
+      ],
+      "fillFame": 14400,
+      "baseLootAmount": 1,
+      "loot": [
+        {
+          "item": "T6_FURNITUREITEM_TROPHY_ROCK",
+          "rawItem": "T6_FURNITUREITEM_TROPHY_ROCK",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 1889,
+          "labourerFame": 960
+        }
+      ]
+    },
+    {
+      "item": "T7_JOURNAL_TROPHY_STONE",
+      "tier": 7,
+      "type": "stone",
+      "filled": "T7_JOURNAL_TROPHY_STONE_FULL",
+      "empty": "T7_JOURNAL_TROPHY_STONE_EMPTY",
+      "missionTypes": [
+        "gatherfame"
+      ],
+      "fillFame": 28800,
+      "baseLootAmount": 1,
+      "loot": [
+        {
+          "item": "T7_FURNITUREITEM_TROPHY_ROCK",
+          "rawItem": "T7_FURNITUREITEM_TROPHY_ROCK",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 1889,
+          "labourerFame": 19200
+        }
+      ]
+    },
+    {
+      "item": "T8_JOURNAL_TROPHY_STONE",
+      "tier": 8,
+      "type": "stone",
+      "filled": "T8_JOURNAL_TROPHY_STONE_FULL",
+      "empty": "T8_JOURNAL_TROPHY_STONE_EMPTY",
+      "missionTypes": [
+        "gatherfame"
+      ],
+      "fillFame": 57600,
+      "baseLootAmount": 1,
+      "loot": [
+        {
+          "item": "T8_FURNITUREITEM_TROPHY_ROCK",
+          "rawItem": "T8_FURNITUREITEM_TROPHY_ROCK",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 1889,
+          "labourerFame": 38400
+        }
+      ]
+    },
+    {
+      "item": "T2_JOURNAL_TROPHY_ORE",
+      "tier": 2,
+      "type": "ore",
+      "filled": "T2_JOURNAL_TROPHY_ORE_FULL",
+      "empty": "T2_JOURNAL_TROPHY_ORE_EMPTY",
+      "missionTypes": [
+        "gatherfame"
+      ],
+      "fillFame": 900,
+      "baseLootAmount": 1,
+      "loot": [
+        {
+          "item": "T2_FURNITUREITEM_TROPHY_ORE",
+          "rawItem": "T2_FURNITUREITEM_TROPHY_ORE",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 1889,
+          "labourerFame": 76
+        }
+      ]
+    },
+    {
+      "item": "T3_JOURNAL_TROPHY_ORE",
+      "tier": 3,
+      "type": "ore",
+      "filled": "T3_JOURNAL_TROPHY_ORE_FULL",
+      "empty": "T3_JOURNAL_TROPHY_ORE_EMPTY",
+      "missionTypes": [
+        "gatherfame"
+      ],
+      "fillFame": 1800,
+      "baseLootAmount": 1,
+      "loot": [
+        {
+          "item": "T3_FURNITUREITEM_TROPHY_ORE",
+          "rawItem": "T3_FURNITUREITEM_TROPHY_ORE",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 1889,
+          "labourerFame": 120
+        }
+      ]
+    },
+    {
+      "item": "T4_JOURNAL_TROPHY_ORE",
+      "tier": 4,
+      "type": "ore",
+      "filled": "T4_JOURNAL_TROPHY_ORE_FULL",
+      "empty": "T4_JOURNAL_TROPHY_ORE_EMPTY",
+      "missionTypes": [
+        "gatherfame"
+      ],
+      "fillFame": 3600,
+      "baseLootAmount": 1,
+      "loot": [
+        {
+          "item": "T4_FURNITUREITEM_TROPHY_ORE",
+          "rawItem": "T4_FURNITUREITEM_TROPHY_ORE",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 1889,
+          "labourerFame": 240
+        }
+      ]
+    },
+    {
+      "item": "T5_JOURNAL_TROPHY_ORE",
+      "tier": 5,
+      "type": "ore",
+      "filled": "T5_JOURNAL_TROPHY_ORE_FULL",
+      "empty": "T5_JOURNAL_TROPHY_ORE_EMPTY",
+      "missionTypes": [
+        "gatherfame"
+      ],
+      "fillFame": 7200,
+      "baseLootAmount": 1,
+      "loot": [
+        {
+          "item": "T5_FURNITUREITEM_TROPHY_ORE",
+          "rawItem": "T5_FURNITUREITEM_TROPHY_ORE",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 1889,
+          "labourerFame": 480
+        }
+      ]
+    },
+    {
+      "item": "T6_JOURNAL_TROPHY_ORE",
+      "tier": 6,
+      "type": "ore",
+      "filled": "T6_JOURNAL_TROPHY_ORE_FULL",
+      "empty": "T6_JOURNAL_TROPHY_ORE_EMPTY",
+      "missionTypes": [
+        "gatherfame"
+      ],
+      "fillFame": 14400,
+      "baseLootAmount": 1,
+      "loot": [
+        {
+          "item": "T6_FURNITUREITEM_TROPHY_ORE",
+          "rawItem": "T6_FURNITUREITEM_TROPHY_ORE",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 1889,
+          "labourerFame": 960
+        }
+      ]
+    },
+    {
+      "item": "T7_JOURNAL_TROPHY_ORE",
+      "tier": 7,
+      "type": "ore",
+      "filled": "T7_JOURNAL_TROPHY_ORE_FULL",
+      "empty": "T7_JOURNAL_TROPHY_ORE_EMPTY",
+      "missionTypes": [
+        "gatherfame"
+      ],
+      "fillFame": 28800,
+      "baseLootAmount": 1,
+      "loot": [
+        {
+          "item": "T7_FURNITUREITEM_TROPHY_ORE",
+          "rawItem": "T7_FURNITUREITEM_TROPHY_ORE",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 1889,
+          "labourerFame": 19200
+        }
+      ]
+    },
+    {
+      "item": "T8_JOURNAL_TROPHY_ORE",
+      "tier": 8,
+      "type": "ore",
+      "filled": "T8_JOURNAL_TROPHY_ORE_FULL",
+      "empty": "T8_JOURNAL_TROPHY_ORE_EMPTY",
+      "missionTypes": [
+        "gatherfame"
+      ],
+      "fillFame": 57600,
+      "baseLootAmount": 1,
+      "loot": [
+        {
+          "item": "T8_FURNITUREITEM_TROPHY_ORE",
+          "rawItem": "T8_FURNITUREITEM_TROPHY_ORE",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 1889,
+          "labourerFame": 38400
+        }
+      ]
+    },
+    {
+      "item": "T2_JOURNAL_TROPHY_FIBER",
+      "tier": 2,
+      "type": "fiber",
+      "filled": "T2_JOURNAL_TROPHY_FIBER_FULL",
+      "empty": "T2_JOURNAL_TROPHY_FIBER_EMPTY",
+      "missionTypes": [
+        "gatherfame"
+      ],
+      "fillFame": 900,
+      "baseLootAmount": 1,
+      "loot": [
+        {
+          "item": "T2_FURNITUREITEM_TROPHY_FIBER",
+          "rawItem": "T2_FURNITUREITEM_TROPHY_FIBER",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 1889,
+          "labourerFame": 76
+        }
+      ]
+    },
+    {
+      "item": "T3_JOURNAL_TROPHY_FIBER",
+      "tier": 3,
+      "type": "fiber",
+      "filled": "T3_JOURNAL_TROPHY_FIBER_FULL",
+      "empty": "T3_JOURNAL_TROPHY_FIBER_EMPTY",
+      "missionTypes": [
+        "gatherfame"
+      ],
+      "fillFame": 1800,
+      "baseLootAmount": 1,
+      "loot": [
+        {
+          "item": "T3_FURNITUREITEM_TROPHY_FIBER",
+          "rawItem": "T3_FURNITUREITEM_TROPHY_FIBER",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 1889,
+          "labourerFame": 120
+        }
+      ]
+    },
+    {
+      "item": "T4_JOURNAL_TROPHY_FIBER",
+      "tier": 4,
+      "type": "fiber",
+      "filled": "T4_JOURNAL_TROPHY_FIBER_FULL",
+      "empty": "T4_JOURNAL_TROPHY_FIBER_EMPTY",
+      "missionTypes": [
+        "gatherfame"
+      ],
+      "fillFame": 3600,
+      "baseLootAmount": 1,
+      "loot": [
+        {
+          "item": "T4_FURNITUREITEM_TROPHY_FIBER",
+          "rawItem": "T4_FURNITUREITEM_TROPHY_FIBER",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 1889,
+          "labourerFame": 240
+        }
+      ]
+    },
+    {
+      "item": "T5_JOURNAL_TROPHY_FIBER",
+      "tier": 5,
+      "type": "fiber",
+      "filled": "T5_JOURNAL_TROPHY_FIBER_FULL",
+      "empty": "T5_JOURNAL_TROPHY_FIBER_EMPTY",
+      "missionTypes": [
+        "gatherfame"
+      ],
+      "fillFame": 7200,
+      "baseLootAmount": 1,
+      "loot": [
+        {
+          "item": "T5_FURNITUREITEM_TROPHY_FIBER",
+          "rawItem": "T5_FURNITUREITEM_TROPHY_FIBER",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 1889,
+          "labourerFame": 480
+        }
+      ]
+    },
+    {
+      "item": "T6_JOURNAL_TROPHY_FIBER",
+      "tier": 6,
+      "type": "fiber",
+      "filled": "T6_JOURNAL_TROPHY_FIBER_FULL",
+      "empty": "T6_JOURNAL_TROPHY_FIBER_EMPTY",
+      "missionTypes": [
+        "gatherfame"
+      ],
+      "fillFame": 14400,
+      "baseLootAmount": 1,
+      "loot": [
+        {
+          "item": "T6_FURNITUREITEM_TROPHY_FIBER",
+          "rawItem": "T6_FURNITUREITEM_TROPHY_FIBER",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 1889,
+          "labourerFame": 960
+        }
+      ]
+    },
+    {
+      "item": "T7_JOURNAL_TROPHY_FIBER",
+      "tier": 7,
+      "type": "fiber",
+      "filled": "T7_JOURNAL_TROPHY_FIBER_FULL",
+      "empty": "T7_JOURNAL_TROPHY_FIBER_EMPTY",
+      "missionTypes": [
+        "gatherfame"
+      ],
+      "fillFame": 28800,
+      "baseLootAmount": 1,
+      "loot": [
+        {
+          "item": "T7_FURNITUREITEM_TROPHY_FIBER",
+          "rawItem": "T7_FURNITUREITEM_TROPHY_FIBER",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 1889,
+          "labourerFame": 19200
+        }
+      ]
+    },
+    {
+      "item": "T8_JOURNAL_TROPHY_FIBER",
+      "tier": 8,
+      "type": "fiber",
+      "filled": "T8_JOURNAL_TROPHY_FIBER_FULL",
+      "empty": "T8_JOURNAL_TROPHY_FIBER_EMPTY",
+      "missionTypes": [
+        "gatherfame"
+      ],
+      "fillFame": 57600,
+      "baseLootAmount": 1,
+      "loot": [
+        {
+          "item": "T8_FURNITUREITEM_TROPHY_FIBER",
+          "rawItem": "T8_FURNITUREITEM_TROPHY_FIBER",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 1889,
+          "labourerFame": 38400
+        }
+      ]
+    },
+    {
+      "item": "T2_JOURNAL_TROPHY_FISHING",
+      "tier": 2,
+      "type": "fish",
+      "filled": "T2_JOURNAL_TROPHY_FISHING_FULL",
+      "empty": "T2_JOURNAL_TROPHY_FISHING_EMPTY",
+      "missionTypes": [
+        "fishingfame"
+      ],
+      "fillFame": 2160,
+      "baseLootAmount": 1,
+      "loot": [
+        {
+          "item": "T2_FURNITUREITEM_TROPHY_FISH",
+          "rawItem": "T2_FURNITUREITEM_TROPHY_FISH",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 1,
+          "labourerFame": 144
+        }
+      ]
+    },
+    {
+      "item": "T3_JOURNAL_TROPHY_FISHING",
+      "tier": 3,
+      "type": "fish",
+      "filled": "T3_JOURNAL_TROPHY_FISHING_FULL",
+      "empty": "T3_JOURNAL_TROPHY_FISHING_EMPTY",
+      "missionTypes": [
+        "fishingfame"
+      ],
+      "fillFame": 4080,
+      "baseLootAmount": 1,
+      "loot": [
+        {
+          "item": "T3_FURNITUREITEM_TROPHY_FISH",
+          "rawItem": "T3_FURNITUREITEM_TROPHY_FISH",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 5,
+          "labourerFame": 269
+        }
+      ]
+    },
+    {
+      "item": "T4_JOURNAL_TROPHY_FISHING",
+      "tier": 4,
+      "type": "fish",
+      "filled": "T4_JOURNAL_TROPHY_FISHING_FULL",
+      "empty": "T4_JOURNAL_TROPHY_FISHING_EMPTY",
+      "missionTypes": [
+        "fishingfame"
+      ],
+      "fillFame": 6669,
+      "baseLootAmount": 1,
+      "loot": [
+        {
+          "item": "T4_FURNITUREITEM_TROPHY_FISH",
+          "rawItem": "T4_FURNITUREITEM_TROPHY_FISH",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 5,
+          "labourerFame": 439
+        }
+      ]
+    },
+    {
+      "item": "T5_JOURNAL_TROPHY_FISHING",
+      "tier": 5,
+      "type": "fish",
+      "filled": "T5_JOURNAL_TROPHY_FISHING_FULL",
+      "empty": "T5_JOURNAL_TROPHY_FISHING_EMPTY",
+      "missionTypes": [
+        "fishingfame"
+      ],
+      "fillFame": 11040,
+      "baseLootAmount": 1,
+      "loot": [
+        {
+          "item": "T5_FURNITUREITEM_TROPHY_FISH",
+          "rawItem": "T5_FURNITUREITEM_TROPHY_FISH",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 10,
+          "labourerFame": 737
+        }
+      ]
+    },
+    {
+      "item": "T6_JOURNAL_TROPHY_FISHING",
+      "tier": 6,
+      "type": "fish",
+      "filled": "T6_JOURNAL_TROPHY_FISHING_FULL",
+      "empty": "T6_JOURNAL_TROPHY_FISHING_EMPTY",
+      "missionTypes": [
+        "fishingfame"
+      ],
+      "fillFame": 14640,
+      "baseLootAmount": 1,
+      "loot": [
+        {
+          "item": "T6_FURNITUREITEM_TROPHY_FISH",
+          "rawItem": "T6_FURNITUREITEM_TROPHY_FISH",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 10,
+          "labourerFame": 972
+        }
+      ]
+    },
+    {
+      "item": "T7_JOURNAL_TROPHY_FISHING",
+      "tier": 7,
+      "type": "fish",
+      "filled": "T7_JOURNAL_TROPHY_FISHING_FULL",
+      "empty": "T7_JOURNAL_TROPHY_FISHING_EMPTY",
+      "missionTypes": [
+        "fishingfame"
+      ],
+      "fillFame": 19920,
+      "baseLootAmount": 1,
+      "loot": [
+        {
+          "item": "T7_FURNITUREITEM_TROPHY_FISH",
+          "rawItem": "T7_FURNITUREITEM_TROPHY_FISH",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 15,
+          "labourerFame": 1326
+        }
+      ]
+    },
+    {
+      "item": "T8_JOURNAL_TROPHY_FISHING",
+      "tier": 8,
+      "type": "fish",
+      "filled": "T8_JOURNAL_TROPHY_FISHING_FULL",
+      "empty": "T8_JOURNAL_TROPHY_FISHING_EMPTY",
+      "missionTypes": [
+        "fishingfame"
+      ],
+      "fillFame": 24960,
+      "baseLootAmount": 1,
+      "loot": [
+        {
+          "item": "T8_FURNITUREITEM_TROPHY_FISH",
+          "rawItem": "T8_FURNITUREITEM_TROPHY_FISH",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 15,
+          "labourerFame": 1664
+        }
+      ]
+    },
+    {
+      "item": "T2_JOURNAL_FISHING",
+      "tier": 2,
+      "type": "fish",
+      "filled": "T2_JOURNAL_FISHING_FULL",
+      "empty": "T2_JOURNAL_FISHING_EMPTY",
+      "missionTypes": [
+        "fishingfame"
+      ],
+      "fillFame": 720,
+      "baseLootAmount": 10.6,
+      "loot": [
+        {
+          "item": "T1_SEAWEED",
+          "rawItem": "T1_SEAWEED",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 10,
+          "labourerFame": 0
+        },
+        {
+          "item": "T1_FISH_FRESHWATER_ALL_COMMON",
+          "rawItem": "T1_FISH_FRESHWATER_ALL_COMMON",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 24,
+          "labourerFame": 15
+        },
+        {
+          "item": "T2_FISH_FRESHWATER_ALL_COMMON",
+          "rawItem": "T2_FISH_FRESHWATER_ALL_COMMON",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 24,
+          "labourerFame": 15
+        },
+        {
+          "item": "T1_FISH_SALTWATER_ALL_COMMON",
+          "rawItem": "T1_FISH_SALTWATER_ALL_COMMON",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 24,
+          "labourerFame": 15
+        },
+        {
+          "item": "T2_FISH_SALTWATER_ALL_COMMON",
+          "rawItem": "T2_FISH_SALTWATER_ALL_COMMON",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 24,
+          "labourerFame": 15
+        }
+      ]
+    },
+    {
+      "item": "T3_JOURNAL_FISHING",
+      "tier": 3,
+      "type": "fish",
+      "filled": "T3_JOURNAL_FISHING_FULL",
+      "empty": "T3_JOURNAL_FISHING_EMPTY",
+      "missionTypes": [
+        "fishingfame"
+      ],
+      "fillFame": 1360,
+      "baseLootAmount": 9.976,
+      "loot": [
+        {
+          "item": "T1_SEAWEED",
+          "rawItem": "T1_SEAWEED",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 164,
+          "labourerFame": 0
+        },
+        {
+          "item": "T1_FISH_FRESHWATER_ALL_COMMON",
+          "rawItem": "T1_FISH_FRESHWATER_ALL_COMMON",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 200,
+          "labourerFame": 30
+        },
+        {
+          "item": "T2_FISH_FRESHWATER_ALL_COMMON",
+          "rawItem": "T2_FISH_FRESHWATER_ALL_COMMON",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 200,
+          "labourerFame": 30
+        },
+        {
+          "item": "T3_FISH_FRESHWATER_ALL_COMMON",
+          "rawItem": "T3_FISH_FRESHWATER_ALL_COMMON",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 200,
+          "labourerFame": 30
+        },
+        {
+          "item": "T1_FISH_SALTWATER_ALL_COMMON",
+          "rawItem": "T1_FISH_SALTWATER_ALL_COMMON",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 200,
+          "labourerFame": 30
+        },
+        {
+          "item": "T2_FISH_SALTWATER_ALL_COMMON",
+          "rawItem": "T2_FISH_SALTWATER_ALL_COMMON",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 200,
+          "labourerFame": 30
+        },
+        {
+          "item": "T3_FISH_SALTWATER_ALL_COMMON",
+          "rawItem": "T3_FISH_SALTWATER_ALL_COMMON",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 200,
+          "labourerFame": 30
+        },
+        {
+          "item": "T3_FISH_FRESHWATER_FOREST_RARE",
+          "rawItem": "T3_FISH_FRESHWATER_FOREST_RARE",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 35,
+          "labourerFame": 30
+        },
+        {
+          "item": "T3_FISH_FRESHWATER_MOUNTAIN_RARE",
+          "rawItem": "T3_FISH_FRESHWATER_MOUNTAIN_RARE",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 35,
+          "labourerFame": 30
+        },
+        {
+          "item": "T3_FISH_FRESHWATER_HIGHLANDS_RARE",
+          "rawItem": "T3_FISH_FRESHWATER_HIGHLANDS_RARE",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 35,
+          "labourerFame": 30
+        },
+        {
+          "item": "T3_FISH_FRESHWATER_STEPPE_RARE",
+          "rawItem": "T3_FISH_FRESHWATER_STEPPE_RARE",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 35,
+          "labourerFame": 30
+        },
+        {
+          "item": "T3_FISH_FRESHWATER_SWAMP_RARE",
+          "rawItem": "T3_FISH_FRESHWATER_SWAMP_RARE",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 35,
+          "labourerFame": 30
+        },
+        {
+          "item": "T3_FISH_FRESHWATER_AVALON_RARE",
+          "rawItem": "T3_FISH_FRESHWATER_AVALON_RARE",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 35,
+          "labourerFame": 30
+        },
+        {
+          "item": "T3_FISH_SALTWATER_ALL_RARE",
+          "rawItem": "T3_FISH_SALTWATER_ALL_RARE",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 35,
+          "labourerFame": 30
+        },
+        {
+          "item": "T3_FISH_FRESHWATER_DRAGON_AREA_RARE",
+          "rawItem": "T3_FISH_FRESHWATER_DRAGON_AREA_RARE",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 35,
+          "labourerFame": 30
+        }
+      ]
+    },
+    {
+      "item": "T4_JOURNAL_FISHING",
+      "tier": 4,
+      "type": "fish",
+      "filled": "T4_JOURNAL_FISHING_FULL",
+      "empty": "T4_JOURNAL_FISHING_EMPTY",
+      "missionTypes": [
+        "fishingfame"
+      ],
+      "fillFame": 2223,
+      "baseLootAmount": 13.9112,
+      "loot": [
+        {
+          "item": "T1_SEAWEED",
+          "rawItem": "T1_SEAWEED",
+          "enchantment": 0,
+          "amount": 2,
+          "weight": 116,
+          "labourerFame": 0
+        },
+        {
+          "item": "T2_FISH_FRESHWATER_ALL_COMMON",
+          "rawItem": "T2_FISH_FRESHWATER_ALL_COMMON",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 200,
+          "labourerFame": 34
+        },
+        {
+          "item": "T3_FISH_FRESHWATER_ALL_COMMON",
+          "rawItem": "T3_FISH_FRESHWATER_ALL_COMMON",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 200,
+          "labourerFame": 34
+        },
+        {
+          "item": "T4_FISH_FRESHWATER_ALL_COMMON",
+          "rawItem": "T4_FISH_FRESHWATER_ALL_COMMON",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 200,
+          "labourerFame": 34
+        },
+        {
+          "item": "T2_FISH_SALTWATER_ALL_COMMON",
+          "rawItem": "T2_FISH_SALTWATER_ALL_COMMON",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 200,
+          "labourerFame": 34
+        },
+        {
+          "item": "T3_FISH_SALTWATER_ALL_COMMON",
+          "rawItem": "T3_FISH_SALTWATER_ALL_COMMON",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 200,
+          "labourerFame": 34
+        },
+        {
+          "item": "T4_FISH_SALTWATER_ALL_COMMON",
+          "rawItem": "T4_FISH_SALTWATER_ALL_COMMON",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 200,
+          "labourerFame": 34
+        },
+        {
+          "item": "T3_FISH_FRESHWATER_FOREST_RARE",
+          "rawItem": "T3_FISH_FRESHWATER_FOREST_RARE",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 35,
+          "labourerFame": 34
+        },
+        {
+          "item": "T3_FISH_FRESHWATER_MOUNTAIN_RARE",
+          "rawItem": "T3_FISH_FRESHWATER_MOUNTAIN_RARE",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 35,
+          "labourerFame": 34
+        },
+        {
+          "item": "T3_FISH_FRESHWATER_HIGHLANDS_RARE",
+          "rawItem": "T3_FISH_FRESHWATER_HIGHLANDS_RARE",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 35,
+          "labourerFame": 34
+        },
+        {
+          "item": "T3_FISH_FRESHWATER_STEPPE_RARE",
+          "rawItem": "T3_FISH_FRESHWATER_STEPPE_RARE",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 35,
+          "labourerFame": 34
+        },
+        {
+          "item": "T3_FISH_FRESHWATER_SWAMP_RARE",
+          "rawItem": "T3_FISH_FRESHWATER_SWAMP_RARE",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 35,
+          "labourerFame": 34
+        },
+        {
+          "item": "T3_FISH_FRESHWATER_AVALON_RARE",
+          "rawItem": "T3_FISH_FRESHWATER_AVALON_RARE",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 35,
+          "labourerFame": 34
+        },
+        {
+          "item": "T3_FISH_SALTWATER_ALL_RARE",
+          "rawItem": "T3_FISH_SALTWATER_ALL_RARE",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 35,
+          "labourerFame": 34
+        },
+        {
+          "item": "T3_FISH_FRESHWATER_DRAGON_AREA_RARE",
+          "rawItem": "T3_FISH_FRESHWATER_DRAGON_AREA_RARE",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 35,
+          "labourerFame": 34
+        }
+      ]
+    },
+    {
+      "item": "T5_JOURNAL_FISHING",
+      "tier": 5,
+      "type": "fish",
+      "filled": "T5_JOURNAL_FISHING_FULL",
+      "empty": "T5_JOURNAL_FISHING_EMPTY",
+      "missionTypes": [
+        "fishingfame"
+      ],
+      "fillFame": 3680,
+      "baseLootAmount": 17.0301,
+      "loot": [
+        {
+          "item": "T1_SEAWEED",
+          "rawItem": "T1_SEAWEED",
+          "enchantment": 0,
+          "amount": 4,
+          "weight": 184,
+          "labourerFame": 0
+        },
+        {
+          "item": "T3_FISH_FRESHWATER_ALL_COMMON",
+          "rawItem": "T3_FISH_FRESHWATER_ALL_COMMON",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 400,
+          "labourerFame": 46
+        },
+        {
+          "item": "T4_FISH_FRESHWATER_ALL_COMMON",
+          "rawItem": "T4_FISH_FRESHWATER_ALL_COMMON",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 400,
+          "labourerFame": 46
+        },
+        {
+          "item": "T5_FISH_FRESHWATER_ALL_COMMON",
+          "rawItem": "T5_FISH_FRESHWATER_ALL_COMMON",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 400,
+          "labourerFame": 46
+        },
+        {
+          "item": "T3_FISH_SALTWATER_ALL_COMMON",
+          "rawItem": "T3_FISH_SALTWATER_ALL_COMMON",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 400,
+          "labourerFame": 46
+        },
+        {
+          "item": "T4_FISH_SALTWATER_ALL_COMMON",
+          "rawItem": "T4_FISH_SALTWATER_ALL_COMMON",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 400,
+          "labourerFame": 46
+        },
+        {
+          "item": "T5_FISH_SALTWATER_ALL_COMMON",
+          "rawItem": "T5_FISH_SALTWATER_ALL_COMMON",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 400,
+          "labourerFame": 46
+        },
+        {
+          "item": "T3_FISH_FRESHWATER_FOREST_RARE",
+          "rawItem": "T3_FISH_FRESHWATER_FOREST_RARE",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 35,
+          "labourerFame": 46
+        },
+        {
+          "item": "T5_FISH_FRESHWATER_FOREST_RARE",
+          "rawItem": "T5_FISH_FRESHWATER_FOREST_RARE",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 35,
+          "labourerFame": 46
+        },
+        {
+          "item": "T3_FISH_FRESHWATER_MOUNTAIN_RARE",
+          "rawItem": "T3_FISH_FRESHWATER_MOUNTAIN_RARE",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 35,
+          "labourerFame": 46
+        },
+        {
+          "item": "T5_FISH_FRESHWATER_MOUNTAIN_RARE",
+          "rawItem": "T5_FISH_FRESHWATER_MOUNTAIN_RARE",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 35,
+          "labourerFame": 46
+        },
+        {
+          "item": "T3_FISH_FRESHWATER_HIGHLANDS_RARE",
+          "rawItem": "T3_FISH_FRESHWATER_HIGHLANDS_RARE",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 35,
+          "labourerFame": 46
+        },
+        {
+          "item": "T5_FISH_FRESHWATER_HIGHLANDS_RARE",
+          "rawItem": "T5_FISH_FRESHWATER_HIGHLANDS_RARE",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 35,
+          "labourerFame": 46
+        },
+        {
+          "item": "T3_FISH_FRESHWATER_STEPPE_RARE",
+          "rawItem": "T3_FISH_FRESHWATER_STEPPE_RARE",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 35,
+          "labourerFame": 46
+        },
+        {
+          "item": "T5_FISH_FRESHWATER_STEPPE_RARE",
+          "rawItem": "T5_FISH_FRESHWATER_STEPPE_RARE",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 35,
+          "labourerFame": 46
+        },
+        {
+          "item": "T3_FISH_FRESHWATER_SWAMP_RARE",
+          "rawItem": "T3_FISH_FRESHWATER_SWAMP_RARE",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 35,
+          "labourerFame": 46
+        },
+        {
+          "item": "T5_FISH_FRESHWATER_SWAMP_RARE",
+          "rawItem": "T5_FISH_FRESHWATER_SWAMP_RARE",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 35,
+          "labourerFame": 46
+        },
+        {
+          "item": "T3_FISH_FRESHWATER_AVALON_RARE",
+          "rawItem": "T3_FISH_FRESHWATER_AVALON_RARE",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 35,
+          "labourerFame": 46
+        },
+        {
+          "item": "T5_FISH_FRESHWATER_AVALON_RARE",
+          "rawItem": "T5_FISH_FRESHWATER_AVALON_RARE",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 35,
+          "labourerFame": 46
+        },
+        {
+          "item": "T3_FISH_SALTWATER_ALL_RARE",
+          "rawItem": "T3_FISH_SALTWATER_ALL_RARE",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 35,
+          "labourerFame": 46
+        },
+        {
+          "item": "T5_FISH_SALTWATER_ALL_RARE",
+          "rawItem": "T5_FISH_SALTWATER_ALL_RARE",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 35,
+          "labourerFame": 46
+        },
+        {
+          "item": "T3_FISH_FRESHWATER_DRAGON_AREA_RARE",
+          "rawItem": "T3_FISH_FRESHWATER_DRAGON_AREA_RARE",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 35,
+          "labourerFame": 46
+        },
+        {
+          "item": "T5_FISH_FRESHWATER_DRAGON_AREA_RARE",
+          "rawItem": "T5_FISH_FRESHWATER_DRAGON_AREA_RARE",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 35,
+          "labourerFame": 46
+        }
+      ]
+    },
+    {
+      "item": "T6_JOURNAL_FISHING",
+      "tier": 6,
+      "type": "fish",
+      "filled": "T6_JOURNAL_FISHING_FULL",
+      "empty": "T6_JOURNAL_FISHING_EMPTY",
+      "missionTypes": [
+        "fishingfame"
+      ],
+      "fillFame": 4880,
+      "baseLootAmount": 20.0528,
+      "loot": [
+        {
+          "item": "T1_SEAWEED",
+          "rawItem": "T1_SEAWEED",
+          "enchantment": 0,
+          "amount": 6,
+          "weight": 156,
+          "labourerFame": 0
+        },
+        {
+          "item": "T4_FISH_FRESHWATER_ALL_COMMON",
+          "rawItem": "T4_FISH_FRESHWATER_ALL_COMMON",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 400,
+          "labourerFame": 51
+        },
+        {
+          "item": "T5_FISH_FRESHWATER_ALL_COMMON",
+          "rawItem": "T5_FISH_FRESHWATER_ALL_COMMON",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 400,
+          "labourerFame": 51
+        },
+        {
+          "item": "T6_FISH_FRESHWATER_ALL_COMMON",
+          "rawItem": "T6_FISH_FRESHWATER_ALL_COMMON",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 400,
+          "labourerFame": 51
+        },
+        {
+          "item": "T4_FISH_SALTWATER_ALL_COMMON",
+          "rawItem": "T4_FISH_SALTWATER_ALL_COMMON",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 400,
+          "labourerFame": 51
+        },
+        {
+          "item": "T5_FISH_SALTWATER_ALL_COMMON",
+          "rawItem": "T5_FISH_SALTWATER_ALL_COMMON",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 400,
+          "labourerFame": 51
+        },
+        {
+          "item": "T6_FISH_SALTWATER_ALL_COMMON",
+          "rawItem": "T6_FISH_SALTWATER_ALL_COMMON",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 400,
+          "labourerFame": 51
+        },
+        {
+          "item": "T3_FISH_FRESHWATER_FOREST_RARE",
+          "rawItem": "T3_FISH_FRESHWATER_FOREST_RARE",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 35,
+          "labourerFame": 51
+        },
+        {
+          "item": "T5_FISH_FRESHWATER_FOREST_RARE",
+          "rawItem": "T5_FISH_FRESHWATER_FOREST_RARE",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 35,
+          "labourerFame": 51
+        },
+        {
+          "item": "T3_FISH_FRESHWATER_MOUNTAIN_RARE",
+          "rawItem": "T3_FISH_FRESHWATER_MOUNTAIN_RARE",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 35,
+          "labourerFame": 51
+        },
+        {
+          "item": "T5_FISH_FRESHWATER_MOUNTAIN_RARE",
+          "rawItem": "T5_FISH_FRESHWATER_MOUNTAIN_RARE",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 35,
+          "labourerFame": 51
+        },
+        {
+          "item": "T3_FISH_FRESHWATER_HIGHLANDS_RARE",
+          "rawItem": "T3_FISH_FRESHWATER_HIGHLANDS_RARE",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 35,
+          "labourerFame": 51
+        },
+        {
+          "item": "T5_FISH_FRESHWATER_HIGHLANDS_RARE",
+          "rawItem": "T5_FISH_FRESHWATER_HIGHLANDS_RARE",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 35,
+          "labourerFame": 51
+        },
+        {
+          "item": "T3_FISH_FRESHWATER_STEPPE_RARE",
+          "rawItem": "T3_FISH_FRESHWATER_STEPPE_RARE",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 35,
+          "labourerFame": 51
+        },
+        {
+          "item": "T5_FISH_FRESHWATER_STEPPE_RARE",
+          "rawItem": "T5_FISH_FRESHWATER_STEPPE_RARE",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 35,
+          "labourerFame": 51
+        },
+        {
+          "item": "T3_FISH_FRESHWATER_SWAMP_RARE",
+          "rawItem": "T3_FISH_FRESHWATER_SWAMP_RARE",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 35,
+          "labourerFame": 51
+        },
+        {
+          "item": "T5_FISH_FRESHWATER_SWAMP_RARE",
+          "rawItem": "T5_FISH_FRESHWATER_SWAMP_RARE",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 35,
+          "labourerFame": 51
+        },
+        {
+          "item": "T3_FISH_FRESHWATER_AVALON_RARE",
+          "rawItem": "T3_FISH_FRESHWATER_AVALON_RARE",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 35,
+          "labourerFame": 51
+        },
+        {
+          "item": "T5_FISH_FRESHWATER_AVALON_RARE",
+          "rawItem": "T5_FISH_FRESHWATER_AVALON_RARE",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 35,
+          "labourerFame": 51
+        },
+        {
+          "item": "T3_FISH_SALTWATER_ALL_RARE",
+          "rawItem": "T3_FISH_SALTWATER_ALL_RARE",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 35,
+          "labourerFame": 51
+        },
+        {
+          "item": "T5_FISH_SALTWATER_ALL_RARE",
+          "rawItem": "T5_FISH_SALTWATER_ALL_RARE",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 35,
+          "labourerFame": 51
+        },
+        {
+          "item": "T3_FISH_FRESHWATER_DRAGON_AREA_RARE",
+          "rawItem": "T3_FISH_FRESHWATER_DRAGON_AREA_RARE",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 35,
+          "labourerFame": 51
+        },
+        {
+          "item": "T5_FISH_FRESHWATER_DRAGON_AREA_RARE",
+          "rawItem": "T5_FISH_FRESHWATER_DRAGON_AREA_RARE",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 35,
+          "labourerFame": 51
+        }
+      ]
+    },
+    {
+      "item": "T7_JOURNAL_FISHING",
+      "tier": 7,
+      "type": "fish",
+      "filled": "T7_JOURNAL_FISHING_FULL",
+      "empty": "T7_JOURNAL_FISHING_EMPTY",
+      "missionTypes": [
+        "fishingfame"
+      ],
+      "fillFame": 6640,
+      "baseLootAmount": 22.3876,
+      "loot": [
+        {
+          "item": "T1_SEAWEED",
+          "rawItem": "T1_SEAWEED",
+          "enchantment": 0,
+          "amount": 9,
+          "weight": 208,
+          "labourerFame": 0
+        },
+        {
+          "item": "T5_FISH_FRESHWATER_ALL_COMMON",
+          "rawItem": "T5_FISH_FRESHWATER_ALL_COMMON",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 600,
+          "labourerFame": 62
+        },
+        {
+          "item": "T6_FISH_FRESHWATER_ALL_COMMON",
+          "rawItem": "T6_FISH_FRESHWATER_ALL_COMMON",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 600,
+          "labourerFame": 62
+        },
+        {
+          "item": "T7_FISH_FRESHWATER_ALL_COMMON",
+          "rawItem": "T7_FISH_FRESHWATER_ALL_COMMON",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 600,
+          "labourerFame": 62
+        },
+        {
+          "item": "T5_FISH_SALTWATER_ALL_COMMON",
+          "rawItem": "T5_FISH_SALTWATER_ALL_COMMON",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 600,
+          "labourerFame": 62
+        },
+        {
+          "item": "T6_FISH_SALTWATER_ALL_COMMON",
+          "rawItem": "T6_FISH_SALTWATER_ALL_COMMON",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 600,
+          "labourerFame": 62
+        },
+        {
+          "item": "T7_FISH_SALTWATER_ALL_COMMON",
+          "rawItem": "T7_FISH_SALTWATER_ALL_COMMON",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 600,
+          "labourerFame": 62
+        },
+        {
+          "item": "T3_FISH_FRESHWATER_FOREST_RARE",
+          "rawItem": "T3_FISH_FRESHWATER_FOREST_RARE",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 35,
+          "labourerFame": 62
+        },
+        {
+          "item": "T5_FISH_FRESHWATER_FOREST_RARE",
+          "rawItem": "T5_FISH_FRESHWATER_FOREST_RARE",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 35,
+          "labourerFame": 62
+        },
+        {
+          "item": "T7_FISH_FRESHWATER_FOREST_RARE",
+          "rawItem": "T7_FISH_FRESHWATER_FOREST_RARE",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 35,
+          "labourerFame": 62
+        },
+        {
+          "item": "T3_FISH_FRESHWATER_MOUNTAIN_RARE",
+          "rawItem": "T3_FISH_FRESHWATER_MOUNTAIN_RARE",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 35,
+          "labourerFame": 62
+        },
+        {
+          "item": "T5_FISH_FRESHWATER_MOUNTAIN_RARE",
+          "rawItem": "T5_FISH_FRESHWATER_MOUNTAIN_RARE",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 35,
+          "labourerFame": 62
+        },
+        {
+          "item": "T7_FISH_FRESHWATER_MOUNTAIN_RARE",
+          "rawItem": "T7_FISH_FRESHWATER_MOUNTAIN_RARE",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 35,
+          "labourerFame": 62
+        },
+        {
+          "item": "T3_FISH_FRESHWATER_HIGHLANDS_RARE",
+          "rawItem": "T3_FISH_FRESHWATER_HIGHLANDS_RARE",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 35,
+          "labourerFame": 62
+        },
+        {
+          "item": "T5_FISH_FRESHWATER_HIGHLANDS_RARE",
+          "rawItem": "T5_FISH_FRESHWATER_HIGHLANDS_RARE",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 35,
+          "labourerFame": 62
+        },
+        {
+          "item": "T7_FISH_FRESHWATER_HIGHLANDS_RARE",
+          "rawItem": "T7_FISH_FRESHWATER_HIGHLANDS_RARE",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 35,
+          "labourerFame": 62
+        },
+        {
+          "item": "T3_FISH_FRESHWATER_STEPPE_RARE",
+          "rawItem": "T3_FISH_FRESHWATER_STEPPE_RARE",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 35,
+          "labourerFame": 62
+        },
+        {
+          "item": "T5_FISH_FRESHWATER_STEPPE_RARE",
+          "rawItem": "T5_FISH_FRESHWATER_STEPPE_RARE",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 35,
+          "labourerFame": 62
+        },
+        {
+          "item": "T7_FISH_FRESHWATER_STEPPE_RARE",
+          "rawItem": "T7_FISH_FRESHWATER_STEPPE_RARE",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 35,
+          "labourerFame": 62
+        },
+        {
+          "item": "T3_FISH_FRESHWATER_SWAMP_RARE",
+          "rawItem": "T3_FISH_FRESHWATER_SWAMP_RARE",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 35,
+          "labourerFame": 62
+        },
+        {
+          "item": "T5_FISH_FRESHWATER_SWAMP_RARE",
+          "rawItem": "T5_FISH_FRESHWATER_SWAMP_RARE",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 35,
+          "labourerFame": 62
+        },
+        {
+          "item": "T7_FISH_FRESHWATER_SWAMP_RARE",
+          "rawItem": "T7_FISH_FRESHWATER_SWAMP_RARE",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 35,
+          "labourerFame": 62
+        },
+        {
+          "item": "T3_FISH_FRESHWATER_AVALON_RARE",
+          "rawItem": "T3_FISH_FRESHWATER_AVALON_RARE",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 35,
+          "labourerFame": 62
+        },
+        {
+          "item": "T5_FISH_FRESHWATER_AVALON_RARE",
+          "rawItem": "T5_FISH_FRESHWATER_AVALON_RARE",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 35,
+          "labourerFame": 62
+        },
+        {
+          "item": "T7_FISH_FRESHWATER_AVALON_RARE",
+          "rawItem": "T7_FISH_FRESHWATER_AVALON_RARE",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 35,
+          "labourerFame": 62
+        },
+        {
+          "item": "T3_FISH_SALTWATER_ALL_RARE",
+          "rawItem": "T3_FISH_SALTWATER_ALL_RARE",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 35,
+          "labourerFame": 62
+        },
+        {
+          "item": "T5_FISH_SALTWATER_ALL_RARE",
+          "rawItem": "T5_FISH_SALTWATER_ALL_RARE",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 35,
+          "labourerFame": 62
+        },
+        {
+          "item": "T7_FISH_SALTWATER_ALL_RARE",
+          "rawItem": "T7_FISH_SALTWATER_ALL_RARE",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 35,
+          "labourerFame": 62
+        },
+        {
+          "item": "T3_FISH_FRESHWATER_DRAGON_AREA_RARE",
+          "rawItem": "T3_FISH_FRESHWATER_DRAGON_AREA_RARE",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 35,
+          "labourerFame": 62
+        },
+        {
+          "item": "T5_FISH_FRESHWATER_DRAGON_AREA_RARE",
+          "rawItem": "T5_FISH_FRESHWATER_DRAGON_AREA_RARE",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 35,
+          "labourerFame": 62
+        },
+        {
+          "item": "T7_FISH_FRESHWATER_DRAGON_AREA_RARE",
+          "rawItem": "T7_FISH_FRESHWATER_DRAGON_AREA_RARE",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 35,
+          "labourerFame": 62
+        }
+      ]
+    },
+    {
+      "item": "T8_JOURNAL_FISHING",
+      "tier": 8,
+      "type": "fish",
+      "filled": "T8_JOURNAL_FISHING_FULL",
+      "empty": "T8_JOURNAL_FISHING_EMPTY",
+      "missionTypes": [
+        "fishingfame"
+      ],
+      "fillFame": 8320,
+      "baseLootAmount": 25.119,
+      "loot": [
+        {
+          "item": "T1_SEAWEED",
+          "rawItem": "T1_SEAWEED",
+          "enchantment": 0,
+          "amount": 14,
+          "weight": 184,
+          "labourerFame": 0
+        },
+        {
+          "item": "T6_FISH_FRESHWATER_ALL_COMMON",
+          "rawItem": "T6_FISH_FRESHWATER_ALL_COMMON",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 600,
+          "labourerFame": 69
+        },
+        {
+          "item": "T7_FISH_FRESHWATER_ALL_COMMON",
+          "rawItem": "T7_FISH_FRESHWATER_ALL_COMMON",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 600,
+          "labourerFame": 69
+        },
+        {
+          "item": "T8_FISH_FRESHWATER_ALL_COMMON",
+          "rawItem": "T8_FISH_FRESHWATER_ALL_COMMON",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 600,
+          "labourerFame": 69
+        },
+        {
+          "item": "T6_FISH_SALTWATER_ALL_COMMON",
+          "rawItem": "T6_FISH_SALTWATER_ALL_COMMON",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 600,
+          "labourerFame": 69
+        },
+        {
+          "item": "T7_FISH_SALTWATER_ALL_COMMON",
+          "rawItem": "T7_FISH_SALTWATER_ALL_COMMON",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 600,
+          "labourerFame": 69
+        },
+        {
+          "item": "T8_FISH_SALTWATER_ALL_COMMON",
+          "rawItem": "T8_FISH_SALTWATER_ALL_COMMON",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 600,
+          "labourerFame": 69
+        },
+        {
+          "item": "T3_FISH_FRESHWATER_FOREST_RARE",
+          "rawItem": "T3_FISH_FRESHWATER_FOREST_RARE",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 35,
+          "labourerFame": 69
+        },
+        {
+          "item": "T5_FISH_FRESHWATER_FOREST_RARE",
+          "rawItem": "T5_FISH_FRESHWATER_FOREST_RARE",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 35,
+          "labourerFame": 69
+        },
+        {
+          "item": "T7_FISH_FRESHWATER_FOREST_RARE",
+          "rawItem": "T7_FISH_FRESHWATER_FOREST_RARE",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 35,
+          "labourerFame": 69
+        },
+        {
+          "item": "T3_FISH_FRESHWATER_MOUNTAIN_RARE",
+          "rawItem": "T3_FISH_FRESHWATER_MOUNTAIN_RARE",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 35,
+          "labourerFame": 69
+        },
+        {
+          "item": "T5_FISH_FRESHWATER_MOUNTAIN_RARE",
+          "rawItem": "T5_FISH_FRESHWATER_MOUNTAIN_RARE",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 35,
+          "labourerFame": 69
+        },
+        {
+          "item": "T7_FISH_FRESHWATER_MOUNTAIN_RARE",
+          "rawItem": "T7_FISH_FRESHWATER_MOUNTAIN_RARE",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 35,
+          "labourerFame": 69
+        },
+        {
+          "item": "T3_FISH_FRESHWATER_HIGHLANDS_RARE",
+          "rawItem": "T3_FISH_FRESHWATER_HIGHLANDS_RARE",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 35,
+          "labourerFame": 69
+        },
+        {
+          "item": "T5_FISH_FRESHWATER_HIGHLANDS_RARE",
+          "rawItem": "T5_FISH_FRESHWATER_HIGHLANDS_RARE",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 35,
+          "labourerFame": 69
+        },
+        {
+          "item": "T7_FISH_FRESHWATER_HIGHLANDS_RARE",
+          "rawItem": "T7_FISH_FRESHWATER_HIGHLANDS_RARE",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 35,
+          "labourerFame": 69
+        },
+        {
+          "item": "T3_FISH_FRESHWATER_STEPPE_RARE",
+          "rawItem": "T3_FISH_FRESHWATER_STEPPE_RARE",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 35,
+          "labourerFame": 69
+        },
+        {
+          "item": "T5_FISH_FRESHWATER_STEPPE_RARE",
+          "rawItem": "T5_FISH_FRESHWATER_STEPPE_RARE",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 35,
+          "labourerFame": 69
+        },
+        {
+          "item": "T7_FISH_FRESHWATER_STEPPE_RARE",
+          "rawItem": "T7_FISH_FRESHWATER_STEPPE_RARE",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 35,
+          "labourerFame": 69
+        },
+        {
+          "item": "T3_FISH_FRESHWATER_SWAMP_RARE",
+          "rawItem": "T3_FISH_FRESHWATER_SWAMP_RARE",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 35,
+          "labourerFame": 69
+        },
+        {
+          "item": "T5_FISH_FRESHWATER_SWAMP_RARE",
+          "rawItem": "T5_FISH_FRESHWATER_SWAMP_RARE",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 35,
+          "labourerFame": 69
+        },
+        {
+          "item": "T7_FISH_FRESHWATER_SWAMP_RARE",
+          "rawItem": "T7_FISH_FRESHWATER_SWAMP_RARE",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 35,
+          "labourerFame": 69
+        },
+        {
+          "item": "T3_FISH_FRESHWATER_AVALON_RARE",
+          "rawItem": "T3_FISH_FRESHWATER_AVALON_RARE",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 35,
+          "labourerFame": 69
+        },
+        {
+          "item": "T5_FISH_FRESHWATER_AVALON_RARE",
+          "rawItem": "T5_FISH_FRESHWATER_AVALON_RARE",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 35,
+          "labourerFame": 69
+        },
+        {
+          "item": "T7_FISH_FRESHWATER_AVALON_RARE",
+          "rawItem": "T7_FISH_FRESHWATER_AVALON_RARE",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 35,
+          "labourerFame": 69
+        },
+        {
+          "item": "T3_FISH_SALTWATER_ALL_RARE",
+          "rawItem": "T3_FISH_SALTWATER_ALL_RARE",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 35,
+          "labourerFame": 69
+        },
+        {
+          "item": "T5_FISH_SALTWATER_ALL_RARE",
+          "rawItem": "T5_FISH_SALTWATER_ALL_RARE",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 35,
+          "labourerFame": 69
+        },
+        {
+          "item": "T7_FISH_SALTWATER_ALL_RARE",
+          "rawItem": "T7_FISH_SALTWATER_ALL_RARE",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 35,
+          "labourerFame": 69
+        },
+        {
+          "item": "T3_FISH_FRESHWATER_DRAGON_AREA_RARE",
+          "rawItem": "T3_FISH_FRESHWATER_DRAGON_AREA_RARE",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 35,
+          "labourerFame": 69
+        },
+        {
+          "item": "T5_FISH_FRESHWATER_DRAGON_AREA_RARE",
+          "rawItem": "T5_FISH_FRESHWATER_DRAGON_AREA_RARE",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 35,
+          "labourerFame": 69
+        },
+        {
+          "item": "T7_FISH_FRESHWATER_DRAGON_AREA_RARE",
+          "rawItem": "T7_FISH_FRESHWATER_DRAGON_AREA_RARE",
+          "enchantment": 0,
+          "amount": 1,
+          "weight": 35,
+          "labourerFame": 69
+        }
+      ]
+    }
+  ]
+}

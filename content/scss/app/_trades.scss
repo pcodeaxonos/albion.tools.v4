@@ -72,49 +72,33 @@
 }
 
 .trades-filters {
+    --select-min-width: 0;
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(9.5rem, 1fr));
-    gap: 0.45rem 0.6rem;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 9rem), 1fr));
+    gap: .75rem .5rem;
+    // Floating labels extend above the field; reserve room inside the scrollport.
+    padding-top: calc(var(--floating-label-float-size) / 2 + .5rem);
     align-items: end;
-}
 
-.trades-filters .form-floating {
-    --input-height: 2.5rem;
-}
+    > * { min-width: 0; }
+    .form-floating { --input-height: 2.5rem; }
+    .trades-filters-actions { grid-column: 1 / -1; }
 
-.trades-filters > :not(.form-floating) > .form-label {
-    display: block;
-    margin-bottom: 0.15rem;
-    font-size: 0.65rem;
-    letter-spacing: 0.04em;
-    text-transform: uppercase;
-    color: var(--color-text-muted);
-}
-
-.trades-filters > :not(.form-floating) > .form-control,
-.trades-filters > :not(.form-floating) > .form-select {
-    height: 2.5rem;
-    min-height: 2.5rem;
-    padding: 0.2rem 0.4rem;
-    font-size: 0.8rem;
-}
-
-.trades-filters-search {
-    grid-column: span 2;
-    min-width: 12rem;
+    @media (min-width: 600px) {
+        .trades-filters-actions { grid-column: span 2; }
+    }
 }
 
 .trades-filters-actions {
-    display: flex;
-    gap: 0.4rem;
-    align-items: end;
-}
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: .5rem;
 
-.trades-filters-actions .btn {
-    height: 2.5rem;
-    min-height: 2.5rem;
-    padding: 0.2rem 0.55rem;
-    font-size: 0.75rem;
+    .btn {
+        min-height: 2.5rem;
+        padding: .4rem .55rem;
+        font-size: .75rem;
+    }
 }
 
 .trades-kind-filters {
@@ -556,10 +540,6 @@
 
 /* Trade analysis composition: filters, KPI, price proposals, then three tables. */
 .trades-root { --trades-section-gap: .7rem; gap: var(--trades-section-gap); }
-.trades-filters { grid-template-columns: repeat(7, minmax(0, 1fr)) minmax(13rem, 1.6fr) auto; }
-.trades-filters > :not(.form-floating) > .form-label { margin-bottom: .3rem; }
-.trades-filter-search { min-width: 0; }
-.trades-filters-actions { align-self: end; white-space: nowrap; }
 .trades-kpi { grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 0; border: 1px solid var(--color-border); background: var(--color-surface); }
 @media (min-width: 1200px) { .trades-kpi { grid-template-columns: repeat(10, minmax(0, 1fr)); } }
 .trades-kpi-item { position: relative; border: 0; background: transparent; }
@@ -570,8 +550,8 @@
 .trades-kpi-label { margin: 0 0 .28rem; }
 .trades-main { display: grid; grid-template-columns: minmax(0, 1fr) minmax(15rem, .3fr); border: 1px solid var(--color-border); background: var(--color-surface); }
 .trades-main > .trades-panel { border: 0; }
-.trades-options { overflow: hidden; border-left: 1px solid var(--color-border) !important; }
-.trades-options-controls { display: grid; flex: 1 1 auto; min-height: 0; align-content: start; gap: .45rem; padding: .5rem .65rem; overflow: auto; }
+.trades-options { border: 1px solid var(--color-border); }
+.trades-options-controls { display: grid; flex: 1 1 auto; min-height: 0; align-content: start; gap: .65rem; padding: .65rem; }
 .trades-options-controls .form-check,
 .trades-options-controls .form-label { margin: 0; }
 .trades-panel-title { display: flex; justify-content: space-between; gap: 1rem; padding: .7rem .85rem .55rem; border-bottom: 1px solid var(--color-border); }
@@ -617,7 +597,7 @@
 .trades-summary dl { display: grid; grid-template-columns: 1fr auto; gap: 0 .7rem; margin: 0; font-size: .78rem; }
 .trades-summary dt, .trades-summary dd { margin: 0; }
 .trades-summary dd { font-family: var(--font-family-mono); text-align: right; }
-.trades-bottom { display: grid; grid-template-columns: 2fr 2fr 3fr; gap: var(--trades-section-gap); }
+.trades-bottom { display: grid; flex: 1 1 0; grid-template-columns: minmax(0, 2fr) minmax(0, 2fr) minmax(0, 3fr); gap: var(--spacing-sm); }
 .trades-bottom .trades-panel { min-width: 0; }
 .trades-bottom .trades-panel-body { max-height: 25rem; overflow: auto; }
 .trades-bottom .trades-table,
@@ -630,22 +610,18 @@
 .trades-confirm-values { display: grid; grid-template-columns: 1fr auto; gap: .45rem .75rem; margin: .85rem 0; }
 .trades-confirm-values dt, .trades-confirm-values dd { margin: 0; }.trades-confirm-values dd { font-family: var(--font-family-mono); }
 .trades-confirm-actions { display: flex; justify-content: flex-end; gap: .5rem; }
-@media (max-width: 1100px) { .trades-filters { grid-template-columns: repeat(4, minmax(0, 1fr)); }.trades-main { grid-template-columns: 1fr; }.trades-options { border-left: 0 !important; border-top: 1px solid var(--color-border) !important; }.trades-bottom { grid-template-columns: 1fr; } }
-@media (max-width: 650px) { .trades-filters, .trades-kpi { grid-template-columns: 1fr 1fr; }.trades-filter-search, .trades-filters-actions { grid-column: 1 / -1; } }
+@media (max-width: 1100px) { .trades-main { grid-template-columns: 1fr; }.trades-bottom { grid-template-columns: 1fr; } }
+@media (max-width: 650px) { .trades-kpi { grid-template-columns: 1fr 1fr; } }
 
 /* Desktop trade analysis is a contained workspace: long tables scroll in-panel. */
 @media (min-width: 1101px) {
     .trades-page { flex: 1; min-height: 0; display: flex; }
     .trades-root { --trades-section-gap: .45rem; flex: 1; min-height: 0; height: 100%; padding-bottom: 0; gap: var(--trades-section-gap); }
-    .trades-filters > :not(.form-floating) > .form-label { margin-bottom: .15rem; }
-    .trades-filters > :not(.form-floating) > .form-control, .trades-filters > :not(.form-floating) > .form-select { height: 2.5rem; min-height: 2.5rem; }
-    .trades-filters-actions .btn { height: 2.5rem; min-height: 2.5rem; }
     .trades-kpi { gap: 0; }
     .trades-kpi-item { padding: .3rem .45rem; }
     .trades-kpi-label { margin-bottom: .15rem; }
     .trades-main, .trades-bottom { min-height: 0; }
     .trades-main { flex: 1 1 0; }
-    .trades-bottom { flex: .78 1 0; }
     .trades-main .trades-panel, .trades-bottom .trades-panel { min-height: 0; }
     .trades-main .trades-panel-body, .trades-bottom .trades-panel-body { min-height: 0; max-height: none; overflow: auto; }
     .trades-panel-title { padding: .45rem .65rem .35rem; }

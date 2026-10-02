@@ -35,9 +35,17 @@ import {
 const TABLE = 'islandYieldLogs';
 const CITY_STORAGE_KEY = 'albiontools.v4.island-yields.city';
 const SEEDS_PER_PLOT = 9;
+const CONFIDENCE_PLOT_THRESHOLDS = [0, 5, 15, 40];
 const PLOT_CHOICES = [1, 2, 3, 4, 5];
 const CHANGE_BADGE_VISIBLE_MS = 60_000;
 const CHANGE_BADGE_EXIT_MS = 800;
+const LOG_PERIODS = [
+    { key: 'all', label: 'Tüm aylar' },
+    { key: 'current', label: 'Bu ay', months: 0 },
+    { key: 'previous', label: 'Geçen ay', months: 1 },
+    { key: 'previous-3', label: 'Geçen 3 ay', months: 3 },
+    { key: 'previous-6', label: 'Geçen 6 ay', months: 6 }
+];
 
 const OUTLIER_SEED_RATE_DELTA = 0.20;
 const OUTLIER_HARVEST_RATE_DELTA = 0.18;
@@ -50,7 +58,7 @@ const SLOT_WARNING_GROUPS = [
 ];
 
 const state = {
-    month: toYearMonth(todayIso()),
+    month: 'all',
     editingId: null,
     islandCity: getDefaultCity(),
     premium: true,
@@ -76,6 +84,22 @@ function todayIso() {
 
 function toYearMonth(isoDate) {
     return String(isoDate || '').slice(0, 7);
+}
+
+function logPeriodRange(period, today = todayIso()) {
+    const preset = LOG_PERIODS.find((item) => item.key === period);
+    if (!period || preset?.key === 'all') return null;
+    if (!preset) return { start: period, end: period };
+    const [year, month] = today.split('-').map(Number);
+    const monthAt = (offset) => toYearMonth(todayIsoForMonth(year, month - 1 + offset));
+    return preset.months === 0
+        ? { start: monthAt(0), end: monthAt(0) }
+        : { start: monthAt(-preset.months), end: monthAt(-1) };
+}
+
+function todayIsoForMonth(year, monthIndex) {
+    const date = new Date(year, monthIndex, 1);
+    return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-01`;
 }
 
 function parseQuantityExpression(value) {
@@ -134,10 +158,7 @@ function confidenceLevel(seedsPlanted) {
     // One plot has nine seeds. Sample size, rather than the number of form
     // submissions, determines how representative the weighted average is.
     const perPlot = unitsPerPlot();
-    if (seeds >= perPlot * 40) return 4;
-    if (seeds >= perPlot * 15) return 3;
-    if (seeds >= perPlot * 5) return 2;
-    return 1;
+    return CONFIDENCE_PLOT_THRESHOLDS.filter((plots) => seeds >= perPlot * plots).length;
 }
 
 function deltaTone(value) {
@@ -218,8 +239,9 @@ function rowsForMonth(month, {
     premium = null,
     water = null
 } = {}) {
+    const range = logPeriodRange(month);
     return getAll(TABLE)
-        .filter((row) => toYearMonth(row.date) === month)
+        .filter((row) => !range || (toYearMonth(row.date) >= range.start && toYearMonth(row.date) <= range.end))
         .filter((row) => !islandCity || row.islandCity === islandCity)
         .filter((row) => rowMatchesKind(row))
         .filter((row) => !plantKey || rowItemKey(row) === plantKey)
@@ -236,11 +258,11 @@ function hasCityBonus(plant, islandCity) {
     return Array.isArray(plant?.bonusCities) && plant.bonusCities.includes(islandCity);
 }
 
-function averageFor(item, islandCity = state.islandCity) {
+function averageFor(item, islandCity = state.islandCity, itemType = itemTypeForKind()) {
     return yieldAverage(islandCity, item?.key, {
         premium: state.premium,
         water: state.water,
-        itemType: itemTypeForKind()
+        itemType
     });
 }
 
@@ -717,7 +739,8 @@ function renderLogTable(month) {
         const city = state.islandCity ? cityLabel(state.islandCity) : 'seçili ada';
         const plant = selectedItem ? ` · ${itemLabel(selectedItem, state.filteredItemType ?? undefined)}` : '';
         const context = `${state.premium ? 'Premium' : 'Free'} · ${state.water ? copy.on : copy.off}`;
-        return `<div class="alert alert-info">${escapeHtml(month)} · ${escapeHtml(city)}${escapeHtml(plant)} · ${escapeHtml(context)} için kayıt yok. Soldan hasat sonucu ekle.</div>`;
+        const periodLabel = LOG_PERIODS.find((period) => period.key === month)?.label || month;
+        return `<div class="alert alert-info">${escapeHtml(periodLabel)} · ${escapeHtml(city)}${escapeHtml(plant)} · ${escapeHtml(context)} için kayıt yok.${logPeriodRange(month) ? ' Üst kartlar tüm ayların ortalamasını gösterir; tüm ayları seçerek geçmiş kayıtları görebilirsin.' : ' Soldan hasat sonucu ekle.'}</div>`;
     }
     const today = todayIso();
     const body = rows.map((row) => {
@@ -932,8 +955,8 @@ function renderAvgLegend(plant, islandCity) {
         }] : []),
         {
             sample: avgTag('n=3', { kind: 'n', tip: 'Kayıt sayısı' }),
-            text: `n, ortalamaya giren kayıt sayısıdır. Noktalar toplam örnek büyüklüğüne göre güven seviyesini gösterir; bir parsel ${unitsPerPlot()} ${copy.input.toLocaleLowerCase('tr-TR')} kabul edilir.`,
-            formula: '1 / 5 / 15 / 40 parsel'
+            text: `n kayıt sayısıdır; güven noktaları, aynı ürün, şehir, Premium ve ${copy.mode.toLocaleLowerCase('tr-TR')} koşullarında ortalamaya giren toplam ${copy.input.toLocaleLowerCase('tr-TR')} sayısına göre hesaplanır. Bir parsel ${unitsPerPlot()} birimdir. Aykırı kayıtlar hesaba katılmaz; bu derece istatistiksel kesinlik belirtmez.`,
+            formula: `Veri varsa 1 nokta; ${CONFIDENCE_PLOT_THRESHOLDS.slice(1).map((plots, index) => `${plots}+ parsel: ${index + 2} nokta`).join(' · ')}`
         },
         {
             sample: '<span class="yield-delta-stack"><strong>—</strong></span>',
@@ -959,7 +982,9 @@ function renderCityComparison() {
     if (!state.filteredPlantKey) {
         return '';
     }
-    const plant = itemForKey(state.filteredPlantKey);
+    const itemType = state.filteredItemType || itemTypeForKind();
+    const isProduct = itemType === 'animalProduct';
+    const plant = itemForKey(state.filteredPlantKey, itemType);
     if (!plant) {
         return '';
     }
@@ -969,18 +994,18 @@ function renderCityComparison() {
             <div class="yield-city-comparison-head">
                 <div>
                     <h3 class="island-planner-subhead yield-city-comparison-title">
-                        ${itemIconId(plant) ? itemIconHtml(itemIconId(plant), { size: 40, className: 'item-icon' }) : ''}
-                        <span>${escapeHtml(plant.label)}</span>
+                        ${itemIconId(plant, itemType) ? itemIconHtml(itemIconId(plant, itemType), { size: 40, className: 'item-icon' }) : ''}
+                        <span>${escapeHtml(itemLabel(plant.key, itemType))}</span>
                         <span class="yield-city-comparison-tier" ${tierAttribute(plant.tier)}>T${plant.tier}</span>
                     </h3>
                 </div>
-                <p>Seçili Premium / ${escapeHtml(metricCopy().mode)} ayarındaki tüm ada şehirleri.</p>
+                <p>Seçili Premium / ${escapeHtml(metricCopy().mode)} ayarındaki tüm ada şehirleri · Tüm ayların ortalaması.</p>
             </div>
             <div class="yield-city-comparison-grid">
                 ${cities.map((city) => {
                     const cityName = city.marketApiName;
-                    const avg = averageFor(plant, cityName);
-                    const standardYield = standardOutput(plant, cityName);
+                    const avg = averageFor(plant, cityName, itemType);
+                    const standardYield = isProduct ? standardAnimalProductOutput(plant, cityName) : standardOutput(plant, cityName);
                     const standardSeed = standardReturn(plant, cityName);
                     const hasData = avg && avg.avgPlantYield > 0;
                     const yieldDelta = hasData ? (avg.avgPlantYield - standardYield) / standardYield : null;
@@ -996,15 +1021,15 @@ function renderCityComparison() {
                                 ${bonus ? `<span title="Şehir üretim bonusu">+${formatPct(cityBonusPct())}</span>` : ''}
                             </header>
                             <div class="yield-city-card-metric">
-                                <span>${escapeHtml(metricCopy().outputShort)}</span>
+                                <span>${escapeHtml(isProduct ? 'Ürün' : metricCopy().outputShort)}</span>
                                 <b>${hasData ? formatQty(avg.avgPlantYield) : '—'}</b>
                                 <small>${hasData ? `${formatSigned(avg.avgPlantYield - standardYield, { digits: 1 })} · ${formatRelativeDifference(avg.avgPlantYield, standardYield)}` : `Vars. ${formatQty(standardYield)}`}</small>
                             </div>
-                            <div class="yield-city-card-metric">
+                            ${isProduct ? '' : `<div class="yield-city-card-metric">
                                 <span>${escapeHtml(metricCopy().returnShort)}</span>
                                 <b>${hasData ? formatPct(avg.avgSeedReturn) : '—'}</b>
                                 <small>${hasData ? formatSigned(seedDelta, { asPctPoints: true }) : `Vars. ${formatPct(standardSeed)}`}</small>
-                            </div>
+                            </div>`}
                             <footer>${hasData ? `n=${avg.n} kayıt` : 'Kayıt yok'}</footer>
                         </article>
                     `;
@@ -1015,11 +1040,7 @@ function renderCityComparison() {
 }
 
 function renderAnimalProductAvgCard(animal, islandCity) {
-    const avg = yieldAverage(islandCity, animal.key, {
-        premium: state.premium,
-        water: state.water,
-        itemType: 'animalProduct'
-    });
+    const avg = averageFor(animal, islandCity, 'animalProduct');
     const standard = standardAnimalProductOutput(animal, islandCity);
     const active = avg && avg.avgPlantYield > 0;
     const thin = active && avg.n < 3;
@@ -1254,9 +1275,17 @@ function refreshResult(container) {
         ${renderAverages()}
         ${renderCityComparison()}
         <div class="yield-log-section">
+            <div class="yield-period-controls">
             <div class="form-floating farming-city-field yield-month-field">
-                <input class="form-control is-filled" type="month" id="yieldMonth" value="${escapeHtml(state.month)}">
-                <label for="yieldMonth">Ay</label>
+                <select class="form-select is-filled" id="yieldMonth" data-yield-month>
+                    ${LOG_PERIODS.map((period) => `<option value="${period.key}"${state.month === period.key ? ' selected' : ''}>${period.label}</option>`).join('')}
+                    ${[...new Set(getAll(TABLE).map((row) => toYearMonth(row.date)).filter(Boolean))].sort().reverse().map((month) => `<option value="${escapeHtml(month)}"${state.month === month ? ' selected' : ''}>${escapeHtml(month)}</option>`).join('')}
+                </select>
+                <label for="yieldMonth">Dönem</label>
+            </div>
+            <div class="yield-period-presets" role="group" aria-label="Hızlı dönem seçimi">
+                ${LOG_PERIODS.map((period) => `<button type="button" class="btn btn-sm ${state.month === period.key ? 'btn-primary' : 'btn-outline-secondary'}" data-yield-period="${period.key}" aria-pressed="${state.month === period.key}">${period.label}</button>`).join('')}
+            </div>
             </div>
             <div class="yield-log-heading">
                 <h3 class="island-planner-subhead">Kayıtlar${state.filteredPlantKey ? ` · ${escapeHtml(itemLabel(state.filteredPlantKey, state.filteredItemType ?? undefined))}` : ''}</h3>
@@ -1319,11 +1348,15 @@ function bindResult(container) {
         refreshResult(container);
         showToast('Seçili ada şehrindeki şüpheli kayıt işaretleri kaldırıldı; kayıtlar yeniden ortalamaya dahil edildi.');
     });
-    container.querySelector('#yieldMonth')?.addEventListener('change', (event) => {
-        if (event.target.value) {
-            state.month = event.target.value;
+    container.querySelector('[data-yield-month]')?.addEventListener('change', (event) => {
+        state.month = event.target.value;
+        refreshResult(container);
+    });
+    container.querySelectorAll('[data-yield-period]').forEach((button) => {
+        button.addEventListener('click', () => {
+            state.month = button.dataset.yieldPeriod;
             refreshResult(container);
-        }
+        });
     });
     bindLogTableRows(container, (id) => {
         const clicked = getAll(TABLE).find((item) => String(item.id) === id);
@@ -1407,7 +1440,6 @@ function saveEntry(container) {
             updateRow(TABLE, state.editingId, fd);
             if (productOnly) {
                 showToast('Ürün kaydı güncellendi.');
-                state.month = toYearMonth(date);
                 fillForm(container, null);
                 refreshResult(container);
                 return;
@@ -1425,7 +1457,6 @@ function saveEntry(container) {
             if (productOnly) {
                 createRow(TABLE, fd);
                 showToast('Ürün kaydedildi.');
-                state.month = toYearMonth(date);
                 fillForm(container, null);
                 refreshResult(container);
                 return;
@@ -1437,7 +1468,6 @@ function saveEntry(container) {
             }
             showToast('Kaydedildi.');
         }
-        state.month = toYearMonth(date);
         fillForm(container, null);
         refreshResult(container);
         showAverageChange(container, averageBeforeSave, captureAverage(plantKey));

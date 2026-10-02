@@ -1,0 +1,30 @@
+[data-tool="laborer-contract"] {
+    .ava-side-field {
+        grid-template-columns: minmax(0, 1fr);
+        gap: var(--spacing-sm);
+    }
+
+    label { min-width: 0; }
+    label > :is(input.form-control, select.form-select) {
+        display: block;
+        width: 100%;
+        margin-top: var(--spacing-sm);
+    }
+
+    .calc-table {
+        min-width: 48rem;
+        th { white-space: nowrap; }
+        td { vertical-align: top; }
+        td:first-child { white-space: nowrap; }
+        td:last-child {
+            min-width: 16rem;
+            max-width: 28rem;
+            overflow-wrap: anywhere;
+        }
+    }
+
+    details { margin-top: var(--spacing-sm); }
+    summary { cursor: pointer; }
+    details > :not(summary) { margin-top: var(--spacing-sm); }
+    small { color: var(--color-text-muted); }
+}

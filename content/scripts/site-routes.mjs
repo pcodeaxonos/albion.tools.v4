@@ -5,6 +5,7 @@ const admin = (id, source, path, title, nav) => ({ id, kind: 'admin', source, pa
 const tool = (id, source, path, title, description, icon, addedAt, nav, frequent = false) => ({ id, kind: 'tool', source, path, title, description, icon, addedAt, nav, frequent });
 
 export const SITE_ROUTES = [
+    tool('laborer-contract', 'pages/tools/laborer-contract/index.html', 'pages/tools/laborer-contract', 'Laborer Contract', 'Contract net satış değeri ve doğrulanmış mekaniklerle tier karşılaştırması.', '📜', '2026-10-01', { label: 'Laborer Contract', group: 'Üretim', order: 85, visible: true }),
     page('home', 'index.html', '', 'Home', { label: 'Home', group: 'pages', order: 10, visible: true }),
     admin('db', 'pages/admin/db/index.html', 'pages/admin/db', 'Veritabanı', { label: 'Veritabanı', group: 'pages', order: 20, visible: true }),
     admin('settings', 'pages/admin/settings/index.html', 'pages/admin/settings', 'Ayarlar', { label: 'Ayarlar', group: 'pages', order: 30, visible: true }),

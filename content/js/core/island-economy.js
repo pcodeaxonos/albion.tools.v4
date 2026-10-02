@@ -4,6 +4,7 @@
  * Catalog: plants / animals / economyConstants / islandPlots (relational DB).
  */
 
+import { animalForFeed, feedPlants } from './island/feeding.js';
 import { purchaseCost, saleProceeds, salesTaxRate } from './market-fees.js';
 import { quoteFromRow } from './price-side.js';
 import { cityRow } from './market.js';
@@ -12,6 +13,7 @@ import { getEconomyConstant } from './catalog.js';
 import { effectivePlantYield, effectiveSeedReturn, effectiveAnimalReturn, effectiveAnimalProductYield } from './island-yield-stats.js';
 import {
     PRICE_BASIS,
+    animalCycleHours,
     plantSlots,
     pasturePens,
     kennelPens,
@@ -518,20 +520,20 @@ function animalPathProfits(animal, feedUnit, ctx, { spot = false } = {}) {
     const sell = spot ? spotSellQuote : sellQuote;
     const baby = buy(animal.babyId, ctx.islandCity, ctx);
     const grown = sell(animal.grownId, ctx.sellCity, ctx);
-    if (!baby || feedUnit == null || !Number.isFinite(feedUnit)) {
+    if (feedUnit == null || !Number.isFinite(feedUnit)) {
         return [];
     }
 
     const chance = babyChance(animal, ctx.focus, ctx.islandCity, ctx.premium);
-    const babyNet = purchaseCost(baby.price, { setup: baby.setup });
+    const babyNet = baby ? purchaseCost(baby.price, { setup: baby.setup }) : null;
     const feedCost = animal.feedQty * feedUnit;
     const growCost = babyNet + feedCost;
-    const babyCredit = chance * baby.price;
+    const babyCredit = chance * babyNet;
     const cityBonus = hasAnimalCityBonus(animal, ctx.islandCity);
     const tax = salesTaxRate(ctx.premium);
     const paths = [];
 
-    if (grown) {
+    if (grown && baby) {
         const netUnit = saleProceeds(grown.price, { premium: ctx.premium, setup: grown.setup });
         const rev = netUnit + babyCredit;
         paths.push({
@@ -550,9 +552,9 @@ function animalPathProfits(animal, feedUnit, ctx, { spot = false } = {}) {
             netUnit,
             tax,
             babyCredit,
-            babyPrice: baby.price,
+            babyPrice: baby?.price ?? null,
             babyNet,
-            babySetup: baby.setup === true,
+            babySetup: baby?.setup === true,
             chance,
             feedCost,
             feedUnit,
@@ -560,7 +562,7 @@ function animalPathProfits(animal, feedUnit, ctx, { spot = false } = {}) {
         });
     }
 
-    if (animal.meatId) {
+    if (animal.meatId && baby) {
         const meat = sell(animal.meatId, ctx.sellCity, ctx);
         if (meat) {
             const qty = butcherQty(animal, ctx);
@@ -582,9 +584,9 @@ function animalPathProfits(animal, feedUnit, ctx, { spot = false } = {}) {
                 netUnit,
                 tax,
                 babyCredit,
-                babyPrice: baby.price,
+                babyPrice: baby?.price ?? null,
                 babyNet,
-                babySetup: baby.setup === true,
+                babySetup: baby?.setup === true,
                 chance,
                 feedCost,
                 feedUnit,
@@ -616,9 +618,9 @@ function animalPathProfits(animal, feedUnit, ctx, { spot = false } = {}) {
                 netUnit,
                 tax,
                 babyCredit: 0,
-                babyPrice: baby.price,
+                babyPrice: baby?.price ?? null,
                 babyNet,
-                babySetup: baby.setup === true,
+                babySetup: baby?.setup === true,
                 chance,
                 feedCost: onlyFeed,
                 feedUnit,
@@ -627,14 +629,15 @@ function animalPathProfits(animal, feedUnit, ctx, { spot = false } = {}) {
         }
     }
 
-    return paths.filter((p) => Number.isFinite(p.profit));
+    return paths.filter((p) => Number.isFinite(p.profit) && (!animal.pathOnly || (animal.pathOnly === 'growth' ? p.id !== 'feed' : p.id === animal.pathOnly)))
+        .map((path) => ({ ...path, hours: planCycleHours(animalCycleHours(animal, ctx.premium, path.id)) }));
 }
 
 function pickBestPath(paths) {
     let best = null;
     let bestPct = null;
     for (const path of paths) {
-        if (!best || path.profit > best.profit) {
+        if (!best || path.profit / path.hours > best.profit / best.hours) {
             best = path;
         }
         if (path.profitPct != null && (!bestPct || path.profitPct > bestPct.profitPct)) {
@@ -731,7 +734,7 @@ function animalExplain(animal, path, feed, scored, ctx, { bestPct = null, island
 }
 
 function animalActivityFromPath(animal, path, feed, feedCrop, ctx, { bestPct = null } = {}) {
-    const hours = metricsHours(animal.baseHours, ctx.premium);
+    const hours = path.hours;
     const plotProfit = path.profit * animal.pens;
     const plotCost = path.cost * animal.pens;
     const metrics = cycleMetrics(plotProfit, plotCost, hours);
@@ -782,9 +785,7 @@ function animalActivityFromPath(animal, path, feed, feedCrop, ctx, { bestPct = n
 }
 
 function animalMarketActivities(animal, ctx) {
-    const feedCrops = animal.feedDiet === 'plants' && !animal.feedFixed
-        ? listCrops()
-        : [resolveFeedCrop(animal, null)].filter(Boolean);
+    const feedCrops = feedPlants(animal);
 
     if (animal.feedDiet === 'meat') {
         const feed = marketFeedUnit(animal, null, ctx);
@@ -802,16 +803,17 @@ function animalMarketActivities(animal, ctx) {
     const out = [];
     const crops = feedCrops.length ? feedCrops : [null];
     for (const cropItem of crops) {
+        const fedAnimal = animalForFeed(animal, cropItem);
         const feed = marketFeedUnit(animal, cropItem, ctx);
         if (!feed) {
             continue;
         }
-        const ranked = pickBestPath(animalPathProfits(animal, feed.unit, ctx));
+        const ranked = pickBestPath(animalPathProfits(fedAnimal, feed.unit, ctx));
         if (!ranked.best) {
             continue;
         }
         const act = animalActivityFromPath(
-            animal,
+            fedAnimal,
             ranked.best,
             feed,
             feed.crop ?? cropItem,
@@ -823,7 +825,7 @@ function animalMarketActivities(animal, ctx) {
         }
     }
 
-    if (!animal.feedFixed && out.length > 1) {
+    if (out.length > 1) {
         out.sort((a, b) => b.perDay - a.perDay);
         return [out[0]];
     }
@@ -900,7 +902,8 @@ function bestStandaloneFill(n, activities, excludeIds = new Set()) {
 
 function farmSupplyPerCycle(feedCrop, animalAlbionHours, ctx) {
     const yieldPlot = plantPlotYield(feedCrop, ctx);
-    return yieldPlot * (animalAlbionHours / cropHours());
+    // Feed supply and animal profit must use the same daily collection schedule.
+    return yieldPlot * (planCycleHours(animalAlbionHours) / planCycleHours(cropHours()));
 }
 
 function feedPlotExplain(feedCrop, island, feedMetrics, scoredLike, ctx, { surplus = 0, demand = 0 } = {}) {
@@ -1045,7 +1048,7 @@ function animalModuleSlots(animal, blended, feedCrop, island, ctx, { a, f, islan
         });
         for (let i = 0; i < f; i += 1) {
             slots.push({
-                plotType: 'farm',
+                plotType: feedCrop.plotType,
                 label: feedCrop.label,
                 pathLabel: 'Yem',
                 perDay: feedScored.perDay,
@@ -1098,7 +1101,7 @@ function blendedAnimalPlot(animal, islandUnit, marketUnit, islandShare, ctx) {
     }
     const plotProfit = ranked.best.profit * animal.pens;
     const plotCost = ranked.best.cost * animal.pens;
-    const hours = metricsHours(animal.baseHours, ctx.premium);
+    const hours = ranked.best.hours;
     const metrics = cycleMetrics(plotProfit, plotCost, hours);
     const scored = withStability(metrics, ranked.best.sellItemId, ctx.sellCity, ctx);
     if (!scored) {
@@ -1123,10 +1126,7 @@ function feedCropsFor(animal) {
     if (animal.feedDiet === 'meat') {
         return [null];
     }
-    if (animal.feedFixed) {
-        return [resolveFeedCrop(animal, null)].filter(Boolean);
-    }
-    return listCrops();
+    return feedPlants(animal);
 }
 
 /**
@@ -1144,13 +1144,15 @@ function keepBestPerCost(bestByCost, module) {
 function collectAnimalModules(n, ctx, { minPlotsByAnimalId = new Map() } = {}) {
     const modulesByAnimal = new Map();
 
-    for (const animal of listAllAnimals()) {
+    for (const animal of listAllAnimals().flatMap((item) => item.productId
+        ? [{ ...item, pathOnly: 'growth' }, { ...item, pathOnly: 'feed' }]
+        : [item])) {
         if (!animalEligible(animal, ctx)) {
             continue;
         }
         const minA = Math.max(0, Math.round(Number(minPlotsByAnimalId.get(animal.id)) || 0));
-        const bestByCost = new Map();
-        const albionHours = cycleHours(animal.baseHours, ctx.premium);
+        const bestByCost = new Map((modulesByAnimal.get(animal.id) || []).map((module) => [module.cost, module]));
+        const albionHours = animalCycleHours(animal, ctx.premium, animal.pathOnly);
         const hours = planCycleHours(albionHours);
         if (hours == null) {
             continue;
@@ -1204,6 +1206,7 @@ function collectAnimalModules(n, ctx, { minPlotsByAnimalId = new Map() } = {}) {
         }
 
         for (const feedCrop of feedCropsFor(animal)) {
+            const fedAnimal = animalForFeed(animal, feedCrop);
             const island = islandFeedUnit(feedCrop, ctx);
             const market = marketFeedUnit(animal, feedCrop, ctx);
             if (!market) {
@@ -1213,7 +1216,7 @@ function collectAnimalModules(n, ctx, { minPlotsByAnimalId = new Map() } = {}) {
             const sellUnit = sellQ
                 ? saleProceeds(sellQ.price, { premium: ctx.premium, setup: sellQ.setup })
                 : null;
-            const demandPerPlot = animal.pens * animal.feedQty;
+            const demandPerPlot = fedAnimal.pens * fedAnimal.feedQty;
             const supplyPerFarm = island ? farmSupplyPerCycle(feedCrop, albionHours, ctx) : 0;
             const aStart = Math.max(1, minA);
 
@@ -1227,7 +1230,7 @@ function collectAnimalModules(n, ctx, { minPlotsByAnimalId = new Map() } = {}) {
                     const surplus = supply - fromIsland;
                     const islandShare = demand > 0 ? fromIsland / demand : 0;
                     const islandUnit = island?.unit ?? market.unit;
-                    const blended = blendedAnimalPlot(animal, islandUnit, market.unit, islandShare, ctx);
+                    const blended = blendedAnimalPlot(fedAnimal, islandUnit, market.unit, islandShare, ctx);
                     if (!blended) {
                         continue;
                     }
@@ -1253,9 +1256,9 @@ function collectAnimalModules(n, ctx, { minPlotsByAnimalId = new Map() } = {}) {
                         f,
                         value,
                         stableValue,
-                        feedNote: describeFeedNote(animal, blended, feedCrop, { a, f, shortfall }),
+                        feedNote: describeFeedNote(fedAnimal, blended, feedCrop, { a, f, shortfall }),
                         mode: f > 0 ? 'island-feed' : 'market',
-                        buildSlots: () => animalModuleSlots(animal, blended, feedCrop, island, ctx, {
+                        buildSlots: () => animalModuleSlots(fedAnimal, blended, feedCrop, island, ctx, {
                             a,
                             f,
                             islandShare,
@@ -1486,7 +1489,7 @@ function pickCheapestMarketFeed(animal, ctx) {
     let best = null;
     for (const crop of crops) {
         const feed = marketFeedUnit(animal, crop, ctx);
-        if (feed && (!best || feed.unit < best.unit)) {
+        if (feed && (!best || feed.unit * animalForFeed(animal, crop).feedQty < best.feed.unit * animalForFeed(animal, best.crop).feedQty)) {
             best = { feed, crop: feed.crop ?? crop };
         }
     }
@@ -1507,7 +1510,7 @@ function pickCheapestIslandFeed(animal, ctx) {
     let best = null;
     for (const crop of crops) {
         const feed = islandFeedUnit(crop, ctx);
-        if (feed && (!best || feed.unit < best.unit)) {
+        if (feed && (!best || feed.unit * animalForFeed(animal, crop).feedQty < best.feed.unit * animalForFeed(animal, best.crop).feedQty)) {
             best = { feed, crop };
         }
     }
@@ -1517,11 +1520,11 @@ function pickCheapestIslandFeed(animal, ctx) {
     return { ...best, missing: [] };
 }
 
-function islandFeedOpportunity(animal, feedCrop, ctx, animalPerDay, plantById) {
+function islandFeedOpportunity(animal, feedCrop, ctx, animalPerDay, plantById, pathId = 'grow') {
     if (!animal || !feedCrop) {
         return null;
     }
-    const albionHours = cycleHours(animal.baseHours, ctx.premium);
+    const albionHours = animalCycleHours(animal, ctx.premium, pathId);
     const demandPerPlot = animal.pens * animal.feedQty;
     const supplyPerFarm = farmSupplyPerCycle(feedCrop, albionHours, ctx);
     const farmsPerPasture = supplyPerFarm > 0 ? demandPerPlot / supplyPerFarm : null;
@@ -1679,9 +1682,10 @@ function animalLedgerRow({
     ctx,
     plantById
 }) {
+    animal = animalForFeed(animal, crop);
     const missing = [...(extraMissing || [])];
     const baby = buyQuote(animal.babyId, ctx.islandCity, ctx);
-    if (!baby) {
+    if (!baby && spec.id !== 'feed') {
         missing.push('yavru');
     }
     if (!feed) {
@@ -1698,9 +1702,9 @@ function animalLedgerRow({
         activity = animalActivityFromPath(animal, path, feed, crop, ctx);
     }
 
-    const hours = activity?.hours ?? metricsHours(animal.baseHours, ctx.premium);
+    const hours = activity?.hours ?? planCycleHours(animalCycleHours(animal, ctx.premium, spec.id));
     const opportunity = feedMode === 'island'
-        ? islandFeedOpportunity(animal, crop, ctx, activity?.perDay ?? null, plantById)
+        ? islandFeedOpportunity(animal, crop, ctx, activity?.perDay ?? null, plantById, spec.id)
         : null;
 
     const stubPath = path || {
@@ -1816,7 +1820,7 @@ function animalLedgerRows(animal, ctx, plantById) {
     const rows = [];
     const market = pickCheapestMarketFeed(animal, ctx);
     const marketPaths = market.feed
-        ? animalPathProfits(animal, market.feed.unit, ctx)
+        ? animalPathProfits(animalForFeed(animal, market.crop), market.feed.unit, ctx)
         : [];
     const marketById = new Map(marketPaths.map((p) => [p.id, p]));
 
@@ -1839,7 +1843,7 @@ function animalLedgerRows(animal, ctx, plantById) {
         return rows;
     }
     const islandPaths = island.feed
-        ? animalPathProfits(animal, island.feed.unit, ctx)
+        ? animalPathProfits(animalForFeed(animal, island.crop), island.feed.unit, ctx)
         : [];
     const islandById = new Map(islandPaths.map((p) => [p.id, p]));
     for (const spec of specs) {
@@ -2032,7 +2036,7 @@ function placeholderFactionActivity(animal) {
 }
 
 function bestFactionMarketActivity(factionAnimal, ctx) {
-    const feedCrops = listCrops();
+    const feedCrops = feedPlants(factionAnimal);
     let bestAct = null;
     for (const crop of feedCrops) {
         const feed = marketFeedUnit(factionAnimal, crop, ctx);

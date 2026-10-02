@@ -393,6 +393,25 @@
     margin-bottom: 1rem;
 }
 
+.yield-period-controls {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+
+    .yield-month-field {
+        flex: 0 0 12rem;
+        margin-bottom: 0;
+    }
+}
+
+.yield-period-presets {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+}
+
 // Island yields — percentage-difference cards
 .yield-avg-row {
     grid-template-columns: repeat(8, minmax(9.5rem, 1fr));

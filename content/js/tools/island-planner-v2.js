@@ -9,7 +9,9 @@ import { itemIconHtml } from '../components/item-icon.js';
 import { cityRow, fetchPrices, indexPrices } from '../core/market.js';
 import { quoteFromRow } from '../core/price-side.js';
 import { purchaseCost, saleProceeds } from '../core/market-fees.js';
-import { butcherQty, cropHours, listCrops, planCycleHours, planDayHours, plantSlots } from '../core/island-economy.js';
+import { butcherQty, cropHours, planCycleHours, planDayHours, plantSlots } from '../core/island-economy.js';
+import { animalCycleHours } from '../core/island/economy-config.js';
+import { animalForFeed, feedPlants } from '../core/island/feeding.js';
 import { effectiveAnimalProductYield, effectiveAnimalReturn, effectivePlantYield, effectiveSeedReturn, yieldAverage } from '../core/island-yield-stats.js';
 import { bindLivePrices } from '../core/price-live.js';
 import { FIXED_PRICE_TABLE } from '../core/fixed-prices.js';
@@ -140,10 +142,7 @@ function feedItemIds(item) {
     if (!item?.babyId || !item.feedDiet) return [];
     if (item.feedDiet === 'meat') return [`T${item.tier}_MEAT`];
     if (item.feedDiet !== 'plants') return [];
-    if (item.feedFixed) return item.feedPlantId ? [item.feedPlantId] : [];
-    // V1 island economy semantics: non-fixed herbivores may use any crop and
-    // resolve to the cheapest effective acquisition price at the island city.
-    return listCrops().map((crop) => crop.plantId).filter(Boolean);
+    return feedPlants(item).map((plant) => plant.plantId).filter(Boolean);
 }
 
 function resolveFeed(item) {
@@ -151,11 +150,12 @@ function resolveFeed(item) {
     const candidates = ids.map((itemId) => {
         const lookup = priceLookup(itemId, state.draft.islandCity, state.draft.seedSide, 'buy', 'input');
         const effective = lookup.quote ? purchaseCost(lookup.quote.price, { setup: lookup.quote.setup }) : null;
-        return { itemId, lookup, effective };
+        const quantity = animalForFeed(item, { plantId: itemId }).feedQty;
+        return { itemId, lookup, effective, quantity, cycleCost: effective == null ? null : effective * quantity };
     });
     const available = candidates.filter((candidate) => Number.isFinite(candidate.effective));
-    const selected = available.sort((a, b) => a.effective - b.effective)[0] ?? candidates[0] ?? null;
-    return { ids, itemId: selected?.itemId ?? null, lookup: selected?.lookup ?? null, effective: selected?.effective ?? null };
+    const selected = available.sort((a, b) => a.cycleCost - b.cycleCost)[0] ?? candidates[0] ?? null;
+    return { ids, itemId: selected?.itemId ?? null, lookup: selected?.lookup ?? null, effective: selected?.effective ?? null, quantity: selected?.quantity ?? null };
 }
 function purchaseItemId(item) { return item?.seedId || item?.babyId || null; }
 function saleItemId(item) { return item?.plantId || item?.grownId || null; }
@@ -423,10 +423,7 @@ function productionDerived(item, entry) {
     // replace that observed output ratio; it shares the same city/focus context
     // as the existing V1 offspring-return lookup.
     const mode = productionModeFor(item, entry.productionMode);
-    const baseHours = Number(item.baseHours);
-    const hours = Number.isFinite(baseHours) && baseHours > 0
-        ? planCycleHours(premium ? baseHours / 2 : baseHours)
-        : null;
+    const hours = planCycleHours(animalCycleHours(item, premium, mode));
     if (mode === 'product') {
         const productInfo = effectiveAnimalProductYield(item, state.draft.islandCity, { premium, focus: focused });
         const output = dailyQuantity(Number(item.pens) * productInfo.qty, hours);
@@ -479,8 +476,8 @@ export function calculateIslandPlan() {
             ? capacity * dailyFactor * (1 - production.rr) : null;
         const feed = production.requiresFeed ? resolveFeed(item) : null;
         const feedId = feed?.itemId ?? null;
-        const feedQuantity = production.requiresFeed && Number.isFinite(capacity) && Number.isFinite(dailyFactor) && Number.isFinite(Number(item.feedQty)) && Number(item.feedQty) > 0
-            ? capacity * dailyFactor * Number(item.feedQty) : null;
+        const feedQuantity = production.requiresFeed && Number.isFinite(capacity) && Number.isFinite(dailyFactor) && Number.isFinite(feed?.quantity) && feed.quantity > 0
+            ? capacity * dailyFactor * feed.quantity : null;
         const feedLookup = feed?.lookup ?? null;
         const feedEffective = feed?.effective ?? null;
         const candidate = { entry, item, production, capacity, inputQuantity, feedIds: feed?.ids ?? [], feedId, feedQuantity, feedLookup, feedEffective, internal: 0, market: feedQuantity, consumed: 0, internalTransferIn: 0, internalTransferOut: 0, transferValueComplete: true, transferValueMissing: null };
@@ -497,14 +494,15 @@ export function calculateIslandPlan() {
             const available = Math.max(0, (supply.production.output ?? 0) - supply.consumed);
             const used = Math.min(need, available);
             supply.consumed += used; candidate.internal += used; need -= used;
-            if (Number.isFinite(candidate.feedEffective)) {
-                const transferValue = used * candidate.feedEffective;
+            const alternative = priceQuote(candidate.feedId, state.draft.sellCity, state.draft.harvestSide, 'sell', 'output');
+            if (alternative) {
+                const transferValue = used * saleProceeds(alternative.price, { premium: state.draft.premium, setup: alternative.setup });
                 supply.internalTransferOut += transferValue;
                 candidate.internalTransferIn += transferValue;
             } else if (used > 0) {
                 supply.transferValueComplete = false;
                 candidate.transferValueComplete = false;
-                const missing = { itemId: candidate.feedId, city: state.draft.islandCity, side: state.draft.seedSide };
+                const missing = { itemId: candidate.feedId, city: state.draft.sellCity, side: state.draft.harvestSide };
                 supply.transferValueMissing = missing;
                 candidate.transferValueMissing = missing;
             }
@@ -554,7 +552,7 @@ export function calculateIslandPlan() {
             income: Number.isFinite(income) ? [] : [...priceDependencies.filter((value) => value.blocked === 'Hasat satış geliri'), ...baseDependencies],
             expense: Number.isFinite(expense) ? [] : [...priceDependencies.filter((value) => value.blocked !== 'Hasat satış geliri'), ...baseDependencies],
             net: Number.isFinite(externalNet) ? [] : [...priceDependencies, ...baseDependencies],
-            contribution: Number.isFinite(contribution) ? [] : [...priceDependencies, ...baseDependencies, ...(candidate.transferValueComplete ? [] : [dependency({ type: candidate.transferValueMissing?.side === 'fixed' ? 'missing-fixed-price' : 'missing-price', entry, item, itemId: candidate.transferValueMissing?.itemId ?? null, city: candidate.transferValueMissing?.city ?? null, side: candidate.transferValueMissing?.side ?? null, blocked: 'Katkı / Gün', reason: candidate.transferValueMissing?.side === 'fixed' ? 'İç transfer değeri için sabit yem fiyatı tanımlı değil.' : 'İç transfer değeri için yem acquisition fiyatı eksik.' })])],
+            contribution: Number.isFinite(contribution) ? [] : [...priceDependencies, ...baseDependencies, ...(candidate.transferValueComplete ? [] : [dependency({ type: candidate.transferValueMissing?.side === 'fixed' ? 'missing-fixed-price' : 'missing-price', entry, item, itemId: candidate.transferValueMissing?.itemId ?? null, city: candidate.transferValueMissing?.city ?? null, side: candidate.transferValueMissing?.side ?? null, blocked: 'Katkı / Gün', reason: candidate.transferValueMissing?.side === 'fixed' ? 'İç transfer değeri için sabit yem fiyatı tanımlı değil.' : 'İç transfer değeri için yemin net satış alternatifi fiyatı eksik.' })])],
             profitPercent: Number.isFinite(contribution) && Number.isFinite(externalExpense + candidate.internalTransferIn) && externalExpense + candidate.internalTransferIn > 0 ? [] : [...priceDependencies, ...baseDependencies],
             focus: production.effectiveFocus ? [dependency({ type: 'missing-focus-cost', entry, item, blocked: 'Focus / Gün', reason: 'Mevcut karakter Focus maliyeti verisi yok.' })] : [],
             output: Number.isFinite(production.output) ? [] : baseDependencies.filter((value) => value.type === 'missing-output-data'),

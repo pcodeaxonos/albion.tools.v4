@@ -18,13 +18,13 @@ function hasBonus(bonusCities, city) {
     return Array.isArray(bonusCities) && bonusCities.includes(city);
 }
 
-/** Standard game harvest qty (city bonus included). */
+/** Fallback harvest model (city assumption included); observations take priority. */
 export function standardPlantYield(plant, islandCity, premium) {
     const base = premium ? premiumYield() : baseYield();
     if (!hasBonus(plant?.bonusCities, islandCity)) {
         return base;
     }
-    // Ada Çıktı'nda premium şehir-bonuslu varsayılan hasat 9,5 olarak gösterilir.
+    // Intentional empirical yield assumption. Do not replace with theoretical baseYield * 1.10.
     return premium ? 9.5 : base * (1 + cityYieldBonus());
 }
 
@@ -148,7 +148,7 @@ export function effectiveSeedReturn(plant, islandCity, { premium = true, water =
     const avg = plantYieldAverage(islandCity, plant?.key, { premium, water });
     if (avg && Number.isFinite(avg.avgSeedReturn)) {
         return {
-            rate: Math.min(1, Math.max(0, avg.avgSeedReturn)),
+            rate: Math.max(0, avg.avgSeedReturn),
             source: 'user',
             n: avg.n,
             avg
@@ -174,7 +174,8 @@ export function standardAnimalReturn(animal, { focus = false, nurtureCount = nul
     }
     const perNurture = Number(animal?.offspringChancePerNurture);
     const maximumNurtures = Number(animal?.maxNurtureCount);
-    if (Number.isFinite(perNurture) && perNurture >= 0 && Number.isFinite(maximumNurtures) && maximumNurtures >= 0) {
+    if (animal?.offspringChancePerNurture != null && animal?.maxNurtureCount != null
+        && Number.isFinite(perNurture) && perNurture >= 0 && Number.isFinite(maximumNurtures) && maximumNurtures >= 0) {
         const requested = nurtureCount == null ? maximumNurtures : Number(nurtureCount);
         const applied = Math.min(maximumNurtures, Math.max(0, Number.isFinite(requested) ? requested : 0));
         return Math.max(0, base + (perNurture * applied));
@@ -207,7 +208,7 @@ export function effectiveAnimalProductYield(animal, islandCity, { premium = true
     if (avg && avg.avgPlantYield > 0) {
         return { qty: avg.avgPlantYield, source: 'user', n: avg.n, avg };
     }
-    const base = getEconomyConstant('product_qty', 18);
+    const base = getEconomyConstant('product_qty', 18) * (premium ? 1 : baseYield() / premiumYield());
     const bonus = hasBonus(animal?.bonusCities, islandCity) ? cityYieldBonus() : 0;
     return { qty: base * (1 + bonus), source: 'standard', n: 0, avg: null };
 }

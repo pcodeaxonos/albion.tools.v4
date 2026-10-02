@@ -1,0 +1,16 @@
+{
+  "verified": false,
+  "source": null,
+  "reasons": [
+    "Laborer tier fame eşikleri doğrulanmadı.",
+    "Journal kabul kuralları ve Generalist ilişkisi doğrulanmadı.",
+    "Cycle süresi ve yeni laborer edinim bedeli doğrulanmadı.",
+    "Happiness → reward/progression ve excess fame carry-over doğrulanmadı.",
+    "Loot seçimi, fame kazanımı ve empty journal dönüş semantiği doğrulanmadı."
+  ],
+  "cycleHours": null,
+  "carryOver": null,
+  "acquisition": null,
+  "stages": null,
+  "byType": {}
+}

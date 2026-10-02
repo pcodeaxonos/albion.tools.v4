@@ -1,5 +1,18 @@
 [
   {
+    "id": "laborer-contract",
+    "title": "Laborer Contract",
+    "description": "Contract net satış değeri ve doğrulanmış mekaniklerle tier karşılaştırması.",
+    "icon": "📜",
+    "addedAt": "2026-10-01",
+    "frequent": false,
+    "path": "pages/tools/laborer-contract",
+    "navLabel": "Laborer Contract",
+    "navGroup": "Üretim",
+    "navOrder": 85,
+    "navVisible": true
+  },
+  {
     "id": "daily-bonus",
     "title": "Günlük Bonus",
     "description": "Her gün iki craft / refine bonusunu kaydedin. Ay içi tekrar sayıları hesaplanır.",

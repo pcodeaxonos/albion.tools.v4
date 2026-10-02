@@ -19,6 +19,22 @@ main.tool-page {
     }
 }
 
+.tool-page-top-controls {
+    flex: 0 0 auto;
+    width: 100%;
+    padding-bottom: var(--spacing-md);
+}
+
+.tool-page-bottom-result {
+    display: flex;
+    flex-direction: column;
+    flex: .78 1 0;
+    min-height: 0;
+    margin-top: var(--spacing-sm);
+    overflow: auto;
+}
+
+
 .page-body > .tool-split {
     flex: 1 1 0;
     height: 100%;
@@ -43,6 +59,16 @@ main.tool-page {
 
     > .left > .controls { flex: 0 0 auto; }
     > .left > .summary { flex: 0 0 auto; margin-top: auto; }
+
+    // Opt-in panels consume spare height without shrinking their content.
+    // The left column remains the scrollport when space runs out.
+    @media (min-width: 992px) {
+        > .left > .tool-split-controls--fill {
+            flex: 1 0 auto;
+
+            > * { flex: 1 0 auto; }
+        }
+    }
 
     > .right > .result {
         --chrome-top: 0px;
@@ -101,15 +127,13 @@ main.tool-page {
     .royal-result::after { content: none; }
 }
 
-.tool-page .trades-filters { display: flex; flex-direction: column; }
-.tool-page .trades-options { border: 0; }
-.tool-page .summary .trades-kpi { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
 .tool-page .trades-root { flex: 1; min-height: 0; padding: 0; }
 .tool-page .trades-main { grid-template-columns: minmax(0, 1fr); }
 .tool-page .trades-panel-body { flex: 1; min-height: 0; overflow: auto; }
 
 
 @media (max-width: 991px) {
+    .tool-page-bottom-result { flex: 0 0 auto; overflow: visible; }
     main.tool-page { flex: 1 0 auto; --page-head-content-height: 8rem; }
     main.tool-page > .page-body { flex: 1 0 auto; }
     .page-body > .tool-split {

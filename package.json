@@ -4,9 +4,11 @@
     "private": true,
     "description": "Albion Online tools — static HTML, no backend",
     "scripts": {
+        "laborer:test": "node --experimental-vm-modules content/scripts/test-laborer-contract.mjs",
         "css:build": "node node_modules/sass/sass.js content/scss/main.scss output/css/site.css --no-source-map",
         "css:watch": "node node_modules/sass/sass.js --watch content/scss/main.scss output/css/site.css --no-source-map",
         "data:fetch": "node content/scripts/fetch-game-data.mjs",
+        "island:test": "node --experimental-vm-modules content/scripts/test-island-economy.mjs",
         "data:icons": "node content/scripts/fetch-item-icons.mjs",
     "data:farm": "node content/scripts/build-farm-catalog.mjs",
     "data:craft": "node content/scripts/build-craft-catalog.mjs && node content/scripts/build-game-recipe-catalog.mjs",

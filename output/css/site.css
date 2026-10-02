@@ -8594,6 +8594,24 @@ main:has(.page-head[data-page-head=enchanting]) {
   margin-bottom: 1rem;
 }
 
+.yield-period-controls {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+.yield-period-controls .yield-month-field {
+  flex: 0 0 12rem;
+  margin-bottom: 0;
+}
+
+.yield-period-presets {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
 .yield-avg-row {
   grid-template-columns: repeat(8, minmax(9.5rem, 1fr));
   overflow-x: auto;
@@ -11745,48 +11763,36 @@ main:has(.page-head[data-page-head=enchanting]) {
 }
 
 .trades-filters {
+  --select-min-width: 0;
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(9.5rem, 1fr));
-  gap: 0.45rem 0.6rem;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 9rem), 1fr));
+  gap: 0.75rem 0.5rem;
+  padding-top: calc(var(--floating-label-float-size) / 2 + 0.5rem);
   align-items: end;
 }
-
+.trades-filters > * {
+  min-width: 0;
+}
 .trades-filters .form-floating {
   --input-height: 2.5rem;
 }
-
-.trades-filters > :not(.form-floating) > .form-label {
-  display: block;
-  margin-bottom: 0.15rem;
-  font-size: 0.65rem;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  color: var(--color-text-muted);
+.trades-filters .trades-filters-actions {
+  grid-column: 1/-1;
 }
-
-.trades-filters > :not(.form-floating) > .form-control,
-.trades-filters > :not(.form-floating) > .form-select {
-  height: 2.5rem;
-  min-height: 2.5rem;
-  padding: 0.2rem 0.4rem;
-  font-size: 0.8rem;
-}
-
-.trades-filters-search {
-  grid-column: span 2;
-  min-width: 12rem;
+@media (min-width: 600px) {
+  .trades-filters .trades-filters-actions {
+    grid-column: span 2;
+  }
 }
 
 .trades-filters-actions {
-  display: flex;
-  gap: 0.4rem;
-  align-items: end;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.5rem;
 }
-
 .trades-filters-actions .btn {
-  height: 2.5rem;
   min-height: 2.5rem;
-  padding: 0.2rem 0.55rem;
+  padding: 0.4rem 0.55rem;
   font-size: 0.75rem;
 }
 
@@ -12266,23 +12272,6 @@ main:has(.page-head[data-page-head=enchanting]) {
   gap: var(--trades-section-gap);
 }
 
-.trades-filters {
-  grid-template-columns: repeat(7, minmax(0, 1fr)) minmax(13rem, 1.6fr) auto;
-}
-
-.trades-filters > :not(.form-floating) > .form-label {
-  margin-bottom: 0.3rem;
-}
-
-.trades-filter-search {
-  min-width: 0;
-}
-
-.trades-filters-actions {
-  align-self: end;
-  white-space: nowrap;
-}
-
 .trades-kpi {
   grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: 0;
@@ -12348,8 +12337,7 @@ main:has(.page-head[data-page-head=enchanting]) {
 }
 
 .trades-options {
-  overflow: hidden;
-  border-left: 1px solid var(--color-border) !important;
+  border: 1px solid var(--color-border);
 }
 
 .trades-options-controls {
@@ -12357,9 +12345,8 @@ main:has(.page-head[data-page-head=enchanting]) {
   flex: 1 1 auto;
   min-height: 0;
   align-content: start;
-  gap: 0.45rem;
-  padding: 0.5rem 0.65rem;
-  overflow: auto;
+  gap: 0.65rem;
+  padding: 0.65rem;
 }
 
 .trades-options-controls .form-check,
@@ -12548,8 +12535,9 @@ main:has(.page-head[data-page-head=enchanting]) {
 
 .trades-bottom {
   display: grid;
-  grid-template-columns: 2fr 2fr 3fr;
-  gap: var(--trades-section-gap);
+  flex: 1 1 0;
+  grid-template-columns: minmax(0, 2fr) minmax(0, 2fr) minmax(0, 3fr);
+  gap: var(--spacing-sm);
 }
 
 .trades-bottom .trades-panel {
@@ -12608,26 +12596,16 @@ main:has(.page-head[data-page-head=enchanting]) {
 }
 
 @media (max-width: 1100px) {
-  .trades-filters {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-  }
   .trades-main {
     grid-template-columns: 1fr;
-  }
-  .trades-options {
-    border-left: 0 !important;
-    border-top: 1px solid var(--color-border) !important;
   }
   .trades-bottom {
     grid-template-columns: 1fr;
   }
 }
 @media (max-width: 650px) {
-  .trades-filters, .trades-kpi {
+  .trades-kpi {
     grid-template-columns: 1fr 1fr;
-  }
-  .trades-filter-search, .trades-filters-actions {
-    grid-column: 1/-1;
   }
 }
 /* Desktop trade analysis is a contained workspace: long tables scroll in-panel. */
@@ -12645,17 +12623,6 @@ main:has(.page-head[data-page-head=enchanting]) {
     padding-bottom: 0;
     gap: var(--trades-section-gap);
   }
-  .trades-filters > :not(.form-floating) > .form-label {
-    margin-bottom: 0.15rem;
-  }
-  .trades-filters > :not(.form-floating) > .form-control, .trades-filters > :not(.form-floating) > .form-select {
-    height: 2.5rem;
-    min-height: 2.5rem;
-  }
-  .trades-filters-actions .btn {
-    height: 2.5rem;
-    min-height: 2.5rem;
-  }
   .trades-kpi {
     gap: 0;
   }
@@ -12670,9 +12637,6 @@ main:has(.page-head[data-page-head=enchanting]) {
   }
   .trades-main {
     flex: 1 1 0;
-  }
-  .trades-bottom {
-    flex: 0.78 1 0;
   }
   .trades-main .trades-panel, .trades-bottom .trades-panel {
     min-height: 0;
@@ -16494,6 +16458,21 @@ main.tool-page > .page-body {
   padding-bottom: var(--spacing-sm);
 }
 
+.tool-page-top-controls {
+  flex: 0 0 auto;
+  width: 100%;
+  padding-bottom: var(--spacing-md);
+}
+
+.tool-page-bottom-result {
+  display: flex;
+  flex-direction: column;
+  flex: 0.78 1 0;
+  min-height: 0;
+  margin-top: var(--spacing-sm);
+  overflow: auto;
+}
+
 .page-body > .tool-split {
   flex: 1 1 0;
   height: 100%;
@@ -16520,6 +16499,14 @@ main.tool-page > .page-body {
 .page-body > .tool-split > .left > .summary {
   flex: 0 0 auto;
   margin-top: auto;
+}
+@media (min-width: 992px) {
+  .page-body > .tool-split > .left > .tool-split-controls--fill {
+    flex: 1 0 auto;
+  }
+  .page-body > .tool-split > .left > .tool-split-controls--fill > * {
+    flex: 1 0 auto;
+  }
 }
 .page-body > .tool-split > .right > .result {
   --chrome-top: 0px;
@@ -16582,20 +16569,6 @@ main.tool-page > .page-body {
   content: none;
 }
 
-.tool-page .trades-filters {
-  display: flex;
-  flex-direction: column;
-}
-
-.tool-page .trades-options {
-  border: 0;
-}
-
-.tool-page .summary .trades-kpi {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-}
-
 .tool-page .trades-root {
   flex: 1;
   min-height: 0;
@@ -16613,6 +16586,10 @@ main.tool-page > .page-body {
 }
 
 @media (max-width: 991px) {
+  .tool-page-bottom-result {
+    flex: 0 0 auto;
+    overflow: visible;
+  }
   main.tool-page {
     flex: 1 0 auto;
     --page-head-content-height: 8rem;
@@ -16660,4 +16637,45 @@ main.tool-page > .page-body {
   .tool-page .page-head-content p {
     font-size: var(--font-size-sm);
   }
+}
+[data-tool=laborer-contract] .ava-side-field {
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--spacing-sm);
+}
+[data-tool=laborer-contract] label {
+  min-width: 0;
+}
+[data-tool=laborer-contract] label > :is(input.form-control, select.form-select) {
+  display: block;
+  width: 100%;
+  margin-top: var(--spacing-sm);
+}
+[data-tool=laborer-contract] .calc-table {
+  min-width: 48rem;
+}
+[data-tool=laborer-contract] .calc-table th {
+  white-space: nowrap;
+}
+[data-tool=laborer-contract] .calc-table td {
+  vertical-align: top;
+}
+[data-tool=laborer-contract] .calc-table td:first-child {
+  white-space: nowrap;
+}
+[data-tool=laborer-contract] .calc-table td:last-child {
+  min-width: 16rem;
+  max-width: 28rem;
+  overflow-wrap: anywhere;
+}
+[data-tool=laborer-contract] details {
+  margin-top: var(--spacing-sm);
+}
+[data-tool=laborer-contract] summary {
+  cursor: pointer;
+}
+[data-tool=laborer-contract] details > :not(summary) {
+  margin-top: var(--spacing-sm);
+}
+[data-tool=laborer-contract] small {
+  color: var(--color-text-muted);
 }

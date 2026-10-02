@@ -50,6 +50,13 @@ export function cropHours() {
     return getEconomyConstant('crop_hours', 22);
 }
 
+/** Mechanical hours: adult products use the harvest cycle; premium accelerates baby growth only. */
+export function animalCycleHours(animal, premium, production = 'grow') {
+    if (production === 'feed' || production === 'product') return cropHours();
+    const hours = Number(animal.baseHours);
+    return Number.isFinite(hours) && hours > 0 ? hours / (premium ? 2 : 1) : null;
+}
+
 export function livestockHours() {
     return getEconomyConstant('livestock_hours', 44);
 }
@@ -98,11 +105,9 @@ export function planCycleHours(albionHours) {
     if (!Number.isFinite(albionHours) || albionHours <= 0) {
         return null;
     }
-    const dayAlbion = albionDayHours();
-    const dayPlan = planDayHours();
-    const raw = (albionHours / dayAlbion) * dayPlan;
-    const days = Math.max(1, Math.ceil(raw / dayPlan - 1e-9));
-    return days * dayPlan;
+    // Intentional daily-planning assumption. Mechanical cycle is 22h, but planner models one harvest/collection per real day.
+    const planningDay = planDayHours();
+    return Math.ceil(albionHours / planningDay) * planningDay;
 }
 
 export function baseYield() {
