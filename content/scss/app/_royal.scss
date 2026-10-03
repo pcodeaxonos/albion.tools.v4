@@ -39,10 +39,6 @@
         width: 100%;
     }
 
-    .price-field-foot {
-        display: none;
-    }
-
     .farming-price-field {
         flex: 1 1 auto;
         min-width: 0;
@@ -103,10 +99,6 @@
 
     .price-field-stack {
         gap: 0;
-    }
-
-    .price-field-foot {
-        display: none;
     }
 
     .price-field-aside {
@@ -497,14 +489,10 @@
 .royal-bonus-material small { overflow: hidden; color: #d6e0ea; font-size: 0.54rem; line-height: 1.05; text-overflow: ellipsis; white-space: nowrap; }
 .royal-bonus-empty { position: relative; z-index: 1; margin: 0; color: #b8c6d7; text-align: center; }
 
-.royal-bonus-dialog > .app-dialog-close { z-index: 2; width: 2.8rem; height: 2.8rem; border: 0; background: url("../../content/images/royal-bonus/buttons/close-default.png") center / contain no-repeat; }
-.royal-bonus-dialog > .app-dialog-close::before,
-.royal-bonus-dialog > .app-dialog-close::after { content: none; }
-.royal-bonus-dialog > .app-dialog-close:hover { background-image: url("../../content/images/royal-bonus/buttons/close-hover.png"); }
 .bonus-analysis-trigger[data-royal-bonus]:disabled { cursor: not-allowed; opacity: 0.5; }
 
 @media (max-width: 760px) {
-    .royal-bonus-dialog { width: calc(100vw - 3.5rem); max-width: calc(100vw - 3.5rem); }
+    .royal-bonus-dialog { width: calc(100vw - 2rem - var(--app-dialog-close-clearance)); max-width: calc(100vw - 2rem - var(--app-dialog-close-clearance)); }
     .royal-bonus-sheet { padding: 1rem 0.65rem; }
     .royal-bonus-head { padding-right: 2.5rem; padding-left: 2.5rem; }
     .royal-bonus-city-content { grid-template-columns: 8.8rem minmax(0, 1fr); }
@@ -513,7 +501,6 @@
     .royal-bonus-city-title h3 { font-size: 0.92rem; }
     .royal-bonus-groups { grid-template-columns: 1fr; padding: 0.5rem; }
     .royal-bonus-city-scene { width: 70%; opacity: 0.55; }
-    .royal-bonus-dialog > .app-dialog-close { width: 2.3rem; height: 2.3rem; }
 
 }
 

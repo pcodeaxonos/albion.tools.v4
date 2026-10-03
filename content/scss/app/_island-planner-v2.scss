@@ -523,7 +523,7 @@
 }
 [data-island-planner-v2].is-v2-copy-drag .island-v2-clear-drop { display: block; }
 .island-v2-confirm { overflow: visible; }
-.island-v2-confirm-sheet { min-width: min(25rem, calc(100vw - 3rem)); padding: 1.1rem; }
+.island-v2-confirm-sheet { width: 25rem; max-width: 100%; max-height: calc(100dvh - 2rem); overflow: auto; padding: 1.1rem; background: var(--color-surface); border: 1px solid var(--color-border); }
 .island-v2-confirm-sheet > p { margin: 0 0 1rem; }
 .island-v2-confirm-sheet > div { display: flex; justify-content: flex-end; gap: .5rem; }
 /* Area 2 overlay geometry is measured from the rendered image content box. */

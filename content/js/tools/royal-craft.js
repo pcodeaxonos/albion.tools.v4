@@ -2368,7 +2368,6 @@ function bindPage(container) {
     });
     bindCitySelect(container, '#royalBuyCity', (value) => {
         state.buyCity = value;
-        state.sellCity = value;
     });
     bindCitySelect(container, '#royalSellCity', (value) => {
         state.sellCity = value;

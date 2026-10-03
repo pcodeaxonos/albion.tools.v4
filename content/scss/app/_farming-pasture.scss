@@ -38,6 +38,25 @@
     min-width: 0;
 }
 
+.refining-table {
+    $icon-scale: 2;
+
+    .farming-item .item-icon {
+        width: 2rem * $icon-scale;
+        height: 2rem * $icon-scale;
+    }
+
+    .price-field-aside {
+        width: 1.5rem * $icon-scale;
+        height: 1.375rem * $icon-scale;
+    }
+
+    .price-field-aside-icon {
+        width: 1.375rem * $icon-scale;
+        height: 1.375rem * $icon-scale;
+    }
+}
+
 .farming-spec {
     display: grid;
     grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);

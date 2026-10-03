@@ -277,12 +277,31 @@ export function syncCityField(container, id, opts) {
     }
 }
 
+const cityChangeHandlers = new WeakMap();
+
+function changeCityField(container, field, value) {
+    const fields = [...container.querySelectorAll('[data-city-field]')];
+    // Snapshot bindings before callbacks: a tool may render new fields on change.
+    const targets = (fields[0] === field ? fields : [field]).filter((target) => {
+        const input = target.querySelector('[data-city-input]');
+        if (!input || input.disabled || target.dataset.cityDisabled === 'true') return false;
+        return input.tagName === 'SELECT'
+            ? [...input.options].some((option) => option.value === value && !option.disabled)
+            : [...target.querySelectorAll('[data-city-value]')].some((node) => node.dataset.cityValue === value && !node.disabled);
+    }).map((target) => ({ id: target.dataset.cityField, onChange: cityChangeHandlers.get(target) }));
+    for (const target of targets) {
+        setCityFieldValue(container, target.id, value);
+        target.onChange?.(value);
+    }
+}
+
 export function bindCityField(container, id, onChange) {
     const field = container.querySelector(`[data-city-field="${CSS.escape(id)}"]`);
     syncCityBackground(container);
     if (!field || field.dataset.cityBound === 'on') {
         return;
     }
+    cityChangeHandlers.set(field, onChange);
     field.dataset.cityBound = 'on';
     field.querySelectorAll('button').forEach((node) => { node.disabled = field.dataset.cityDisabled === 'true'; });
 
@@ -293,8 +312,7 @@ export function bindCityField(container, id, onChange) {
                 return;
             }
             const value = node.dataset.cityValue || '';
-            setCityFieldValue(container, id, value);
-            onChange?.(value);
+            changeCityField(container, field, value);
         });
         return;
     }
@@ -306,14 +324,12 @@ export function bindCityField(container, id, onChange) {
                 return;
             }
             const value = node.dataset.cityValue || '';
-            setCityFieldValue(container, id, value);
-            onChange?.(value);
+            changeCityField(container, field, value);
         });
         return;
     }
 
     field.querySelector('select')?.addEventListener('change', (event) => {
-        syncCityBackground(container);
-        onChange?.(event.target.value);
+        changeCityField(container, field, event.target.value);
     });
 }

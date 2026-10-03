@@ -371,14 +371,13 @@ export function incompleteClass(value) {
 
 /**
  * Shared price input. Icon sits beside the field (never inside). Meta sits in a
- * fixed-height foot under the field so sibling columns stay aligned.
+ * foot under the field only when metadata is provided.
  *
  * @param {object} opts
  * @param {string} [opts.fieldClass='farming-price-field']
  * @param {string|null} [opts.iconId] item uniqueName — shown left of the input
  * @param {string} [opts.mark] HTML for top-right float-cut badge (e.g. NPC)
  * @param {string} [opts.meta] plain text under the field (e.g. birim …)
- * @param {boolean} [opts.showFoot=true] reserve the meta row below the field
  */
 export function priceFieldHtml({
     id,
@@ -392,8 +391,7 @@ export function priceFieldHtml({
     fieldClass = 'farming-price-field',
     iconId = null,
     mark = '',
-    meta = '',
-    showFoot = true
+    meta = ''
 }) {
     const filled = String(value ?? '').length > 0 ? ' is-filled' : '';
     const isStale = !manual && !missing && (Boolean(stale) || isStalePriceDate(date));
@@ -403,7 +401,7 @@ export function priceFieldHtml({
         : '';
     const foot = meta
         ? `<span class="price-field-meta">${escapeHtml(meta)}</span>`
-        : '<span class="price-field-meta is-empty" aria-hidden="true">&nbsp;</span>';
+        : '';
     return `
         <div class="price-field-stack${iconId ? ' has-aside' : ''}">
             <div class="price-field-row">
@@ -416,7 +414,7 @@ export function priceFieldHtml({
                     ${mark}
                 </div>
             </div>
-            ${showFoot ? `<div class="price-field-foot">${foot}</div>` : ''}
+            ${foot ? `<div class="price-field-foot">${foot}</div>` : ''}
         </div>
     `;
 }

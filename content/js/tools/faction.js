@@ -626,7 +626,6 @@ function renderCapeMats() {
                     <li class="ava-mat ava-mat--tier" data-price-card="${escapeHtml(uniqueName)}">
                         <span class="ava-mat-text">
                             <span class="ava-mat-label">T${tier} Cape</span>
-                            <span class="ava-mat-meta">${escapeHtml(priceSideHint(state.matSide, 'buy'))}</span>
                             <span class="ava-tier-row">
                                 ${itemIconHtml(uniqueName)}
                                 ${priceFieldHtml({

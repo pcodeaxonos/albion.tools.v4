@@ -118,7 +118,7 @@
 .royal-wizard-skip { padding: 0.6rem 0.9rem; border: 1px solid #f3c95a; border-radius: 0.35rem; background: #f3c95a; color: #17232c; font-weight: 700; }
 .royal-wizard-results .royal-plan-sheet { padding: 1rem 1.35rem; overflow: auto; }
 @media (max-width: 991px) {
-    .royal-wizard-dialog { width: calc(100vw - 5rem); max-width: calc(100vw - 5rem); }
+    .royal-wizard-dialog { width: calc(100vw - 2rem - var(--app-dialog-close-clearance)); max-width: calc(100vw - 2rem - var(--app-dialog-close-clearance)); }
     .royal-wizard-body { grid-template-columns: 1fr; }
 }
 @media (max-width: 620px) {
@@ -297,7 +297,7 @@
     overflow: auto;
 }
 @media (max-width: 800px) {
-    .royal-wizard-dialog { width: calc(100vw - 4rem); max-width: calc(100vw - 4rem); height: calc(100dvh - 1.5rem); }
+    .royal-wizard-dialog { width: calc(100vw - 2rem - var(--app-dialog-close-clearance)); max-width: calc(100vw - 2rem - var(--app-dialog-close-clearance)); height: calc(100dvh - 1.5rem); }
     .royal-wizard-body { grid-template-columns: 1fr; }
     .royal-wizard-groups { grid-template-columns: 1fr; }
     .royal-wizard-group { min-height: auto; border-top: 1px solid rgba(91, 140, 179, 0.22); border-left: 0; }
@@ -347,7 +347,7 @@
     .royal-wizard-step-two .royal-wizard-skip { margin-left: auto; min-width: 0; }
 }
 @media (max-width: 540px) {
-    .royal-wizard-dialog:has(.royal-wizard-step-two) { width: calc(100vw - 5rem); max-width: calc(100vw - 5rem); margin-left: 0.75rem; }
+    .royal-wizard-dialog:has(.royal-wizard-step-two) { width: calc(100vw - 5rem); max-width: calc(100vw - 5rem); margin: auto; }
     .royal-wizard-step-two .royal-wizard-recent,
     .royal-wizard-item-grid { grid-template-columns: 1fr; }
     .royal-wizard-missing > summary { flex-wrap: wrap; gap: 0.5rem; }

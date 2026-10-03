@@ -40,7 +40,7 @@ import {
     explainHint
 } from '../utils/calc-explain.js';
 import { getCraftRecipes, cityProductionBonus } from '../core/catalog.js';
-import { formatSilver, formatPct, formatDateTime } from '../utils/format.js';
+import { formatSilver, formatPct } from '../utils/format.js';
 import { parsePrice, isManualPrice, manualQuote } from '../core/manual-pricing.js';
 import { cityNames as listCityNames, cityLabel as getCityLabel, readStoredCity, saveStoredCity } from '../core/city-utils.js';
 import { profitClass } from '../utils/profit.js';
@@ -298,19 +298,6 @@ function renderBonusNote() {
         <a href="${routeHref('daily-bonus')}">Günlük bonus</a></p>`;
 }
 
-function matMetaText(mat) {
-    const hint = priceSideHint(state.matSide, 'buy');
-    const used = matQuote(mat.key);
-    if (used?.manual) {
-        return `elle · ${hint}`;
-    }
-    const fetched = fetchedMatQuote(mat.key);
-    const count = fetched?.count ?? 0;
-    const total = cityNames().length;
-    const source = fetched?.date ? formatDateTime(fetched.date) : '';
-    return `${count}/${total} şehir ortalama · ${hint}${source ? ` · ${source}` : ''}`;
-}
-
 function renderEnergyCard() {
     const mat = mats()[0];
     const fetched = fetchedMatQuote(mat.key);
@@ -321,7 +308,6 @@ function renderEnergyCard() {
                 ${itemIconHtml(mat.uniqueName)}
                 <span class="ava-mat-text">
                     <span class="ava-mat-label">${escapeHtml(itemLabel(mat.uniqueName, 'Avalonian Energy'))}</span>
-                    <span class="ava-mat-meta">${escapeHtml(matMetaText(mat))} · RR yok</span>
                     ${priceFieldHtml({
                         id: 'matPrice-energy',
                         label: 'Alış',
@@ -350,7 +336,6 @@ function renderTierMats() {
                     <li class="ava-mat ava-mat--tier">
                         <span class="ava-mat-text">
                             <span class="ava-mat-label">T${tier}</span>
-                            <span class="ava-mat-meta">${escapeHtml(priceSideHint(state.matSide, 'buy'))}</span>
                             <span class="ava-tier-row" data-mat-card="${escapeHtml(plank.key)}">
                                 ${priceFieldHtml({
                                     id: `matPrice-${plank.key}`,
@@ -734,10 +719,6 @@ function refreshCalc(container) {
         const card = container.querySelector(`[data-mat-card="${mat.key}"]`);
         if (!card) {
             return;
-        }
-        const meta = card.querySelector('.ava-mat-meta');
-        if (meta && mat.key === 'energy') {
-            meta.textContent = `${matMetaText(mat)} · RR yok`;
         }
         const field = card.querySelector('.ava-price-field');
         if (field) {

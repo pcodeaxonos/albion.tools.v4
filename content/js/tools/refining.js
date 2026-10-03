@@ -767,8 +767,7 @@ function renderTable(list) {
                         missing: !rawFetched,
                         date: rawFetched?.date,
                         dataAttr: `data-raw-id="${escapeHtml(row.rawId)}"`,
-                        iconId: row.rawId,
-                        showFoot: false
+                        iconId: row.rawId
                     })}
                 </td>
                 <td class="num farming-num farming-price-cell" data-sort-value="${row.outQuote?.price ?? ''}">
@@ -780,8 +779,7 @@ function renderTable(list) {
                         missing: !outFetched,
                         date: outFetched?.date,
                         dataAttr: `data-out-id="${escapeHtml(row.outId)}"`,
-                        iconId: row.outId,
-                        showFoot: false
+                        iconId: row.outId
                     })}
                 </td>
                 <td class="num farming-num${incompleteClass(row.cost)}" data-sort-value="${row.cost ?? ''}">${formatSilver(row.cost)}</td>
@@ -794,7 +792,7 @@ function renderTable(list) {
 
     return `
         <div class="table-responsive calc-table-wrap">
-            <table class="table table-striped farming-table calc-table">
+            <table class="table table-striped farming-table refining-table calc-table">
                 <colgroup>
                     <col class="farming-col-item">
                     <col class="farming-col-price">

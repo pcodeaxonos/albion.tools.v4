@@ -1361,9 +1361,7 @@ function bindPage(container) {
             return;
         }
         state.islandCity = value;
-        state.sellCity = value;
         saveCity(CITY_STORAGE_KEY, value);
-        saveCity(SELL_CITY_STORAGE_KEY, value);
         renderPage(container);
     });
 

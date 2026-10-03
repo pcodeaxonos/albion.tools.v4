@@ -381,7 +381,7 @@ input[type="month"].form-control {
     transition: none;
 }
 
-/* Icon beside the field; meta in a reserved foot — input chrome stays clean. */
+/* Icon beside the field; optional metadata below the input. */
 .price-field-stack {
     display: flex;
     flex-direction: column;
@@ -1955,7 +1955,8 @@ $city-colors: (
     "martlock": #075caf,
     "thetford": #832aa9,
     "caerleon": #25242b,
-    "brecilien": #6ec9c0
+    "brecilien": #6ec9c0,
+    "black-market": #000
 );
 
 :root {
@@ -1974,16 +1975,19 @@ $city-colors: (
 
 .city-selected {
     --city-selected-gradient: radial-gradient(
-        ellipse at center,
-        transparent 48%,
-        color-mix(in srgb, var(--color-city, var(--color-primary)) 3%, transparent) 62%,
-        color-mix(in srgb, var(--color-city, var(--color-primary)) 16%, transparent) 78%,
-        color-mix(in srgb, var(--color-city, var(--color-primary)) 38%, transparent) 92%,
-        color-mix(in srgb, var(--color-city, var(--color-primary)) 55%, transparent) 100%
+        ellipse 80% 100% at 50% 0%,
+        transparent 65%,
+        color-mix(in srgb, var(--color-city, var(--color-primary)) 3%, transparent) 75%,
+        color-mix(in srgb, var(--color-city, var(--color-primary)) 16%, transparent) 90%,
+        color-mix(in srgb, var(--color-city, var(--color-primary)) 38%, transparent) 105%,
+        color-mix(in srgb, var(--color-city, var(--color-primary)) 55%, transparent) 120%
     );
-    background-image: var(--city-selected-gradient);
-    background-repeat: no-repeat;
-    background-size: 100% 100%;
+    .page-body {
+        background-image: var(--city-selected-gradient);
+        background-position: center bottom;
+        background-repeat: no-repeat;
+        background-size: 100% 65%;
+    }
 }
 
 /*
@@ -1991,7 +1995,20 @@ $city-colors: (
  * Empty button — no × glyph. See .cursor/rules/dialog-close.mdc
  */
 .app-dialog {
+    --app-dialog-close-clearance: calc(20px + 2.85rem);
+    position: fixed;
+    inset: 0;
+    margin: auto;
+    max-width: calc(100vw - 2rem - var(--app-dialog-close-clearance));
+    max-height: calc(100dvh - 2rem);
     overflow: visible;
+    color: var(--color-text);
+
+    &::backdrop {
+        background: color-mix(in srgb, #000 58%, transparent);
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+    }
 }
 
 .app-dialog-close {

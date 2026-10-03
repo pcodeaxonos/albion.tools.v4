@@ -782,7 +782,7 @@ input[type=month].form-control {
   transition: none;
 }
 
-/* Icon beside the field; meta in a reserved foot — input chrome stays clean. */
+/* Icon beside the field; optional metadata below the input. */
 .price-field-stack {
   display: flex;
   flex-direction: column;
@@ -2244,6 +2244,7 @@ input[type=month].form-control {
   --color-city-thetford: #832aa9;
   --color-city-caerleon: #25242b;
   --color-city-brecilien: #6ec9c0;
+  --color-city-black-market: #000;
 }
 
 [data-city] {
@@ -2285,18 +2286,26 @@ input[type=month].form-control {
   --color-city: var(--color-city-brecilien);
 }
 
+[data-city=black-market],
+.city-selected--black-market {
+  --color-city: var(--color-city-black-market);
+}
+
 .city-selected {
   --city-selected-gradient: radial-gradient(
-      ellipse at center,
-      transparent 48%,
-      color-mix(in srgb, var(--color-city, var(--color-primary)) 3%, transparent) 62%,
-      color-mix(in srgb, var(--color-city, var(--color-primary)) 16%, transparent) 78%,
-      color-mix(in srgb, var(--color-city, var(--color-primary)) 38%, transparent) 92%,
-      color-mix(in srgb, var(--color-city, var(--color-primary)) 55%, transparent) 100%
+      ellipse 80% 100% at 50% 0%,
+      transparent 65%,
+      color-mix(in srgb, var(--color-city, var(--color-primary)) 3%, transparent) 75%,
+      color-mix(in srgb, var(--color-city, var(--color-primary)) 16%, transparent) 90%,
+      color-mix(in srgb, var(--color-city, var(--color-primary)) 38%, transparent) 105%,
+      color-mix(in srgb, var(--color-city, var(--color-primary)) 55%, transparent) 120%
   );
+}
+.city-selected .page-body {
   background-image: var(--city-selected-gradient);
+  background-position: center bottom;
   background-repeat: no-repeat;
-  background-size: 100% 100%;
+  background-size: 100% 65%;
 }
 
 /*
@@ -2304,7 +2313,19 @@ input[type=month].form-control {
  * Empty button — no × glyph. See .cursor/rules/dialog-close.mdc
  */
 .app-dialog {
+  --app-dialog-close-clearance: calc(20px + 2.85rem);
+  position: fixed;
+  inset: 0;
+  margin: auto;
+  max-width: calc(100vw - 2rem - var(--app-dialog-close-clearance));
+  max-height: calc(100dvh - 2rem);
   overflow: visible;
+  color: var(--color-text);
+}
+.app-dialog::backdrop {
+  background: color-mix(in srgb, #000 58%, transparent);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
 }
 
 .app-dialog-close {
@@ -5056,7 +5077,7 @@ a.tool-card:hover {
   z-index: 1;
   inset: 0;
   content: "";
-  background: rgba(5, 11, 16, 0.18);
+  background: linear-gradient(to bottom, rgba(5, 11, 16, 0.18), transparent);
   pointer-events: none;
 }
 
@@ -5098,16 +5119,26 @@ a.tool-card:hover {
 
 main:has(.page-head) {
   --page-head-content-height: 5vw;
-  --page-head-fade-midpoint: calc(var(--page-head-content-height) * 0.55);
+  --page-head-fade-height: max(8rem, calc(var(--page-head-content-height) * 2));
+  position: relative;
+  isolation: isolate;
   display: flex;
   flex: 1 1 auto;
   flex-direction: column;
   min-height: 0;
   padding-top: 0;
-  background-image: var(--city-selected-gradient, linear-gradient(transparent, transparent)), linear-gradient(to bottom, transparent 0, color-mix(in srgb, var(--color-bg) 42%, transparent) var(--page-head-fade-midpoint), var(--color-bg) var(--page-head-content-height)), var(--page-head-image);
-  background-position: top, top, 56% top;
+}
+main:has(.page-head)::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  inset: 0 0 auto;
+  height: var(--page-head-fade-height);
+  pointer-events: none;
+  background-image: linear-gradient(to bottom, transparent 0, color-mix(in srgb, var(--color-bg) 12%, transparent) calc(var(--page-head-fade-height) * 0.2), color-mix(in srgb, var(--color-bg) 40%, transparent) calc(var(--page-head-fade-height) * 0.4), color-mix(in srgb, var(--color-bg) 72%, transparent) calc(var(--page-head-fade-height) * 0.6), color-mix(in srgb, var(--color-bg) 92%, transparent) calc(var(--page-head-fade-height) * 0.8), var(--color-bg) var(--page-head-fade-height)), var(--page-head-image);
+  background-position: top, 56% top;
   background-repeat: no-repeat;
-  background-size: 100% 100%, 100% auto, 100% auto;
+  background-size: 100% 100%, cover;
 }
 
 .tool-page {
@@ -6601,8 +6632,7 @@ main:has(.page-head[data-page-head=enchanting]) {
   line-height: 1.25;
 }
 
-.carleon-mat-meta,
-.ava-mat-meta {
+.carleon-mat-meta {
   font-size: 0.6875rem;
   color: var(--color-text-muted);
   line-height: 1.2;
@@ -6615,9 +6645,6 @@ main:has(.page-head[data-page-head=enchanting]) {
 .ava-tier-row .price-field-stack {
   width: 100%;
   gap: 0;
-}
-.ava-tier-row .price-field-foot {
-  display: none;
 }
 .ava-tier-row .ava-price-field {
   margin-top: 0;
@@ -6658,6 +6685,11 @@ main:has(.page-head[data-page-head=enchanting]) {
 .enchant-item > span,
 .farming-item > span {
   min-width: 0;
+}
+
+[data-tool=furniture] .ava-item .item-icon {
+  width: 4rem;
+  height: 4rem;
 }
 
 .carleon-item-name,
@@ -6705,10 +6737,14 @@ main:has(.page-head[data-page-head=enchanting]) {
   font-size: 0.75rem;
 }
 
-.carleon-chip-icon,
-.ava-chip-icon {
+.carleon-chip-icon {
   width: 1.125rem;
   height: 1.125rem;
+}
+
+.ava-chip-icon {
+  width: 2.25rem;
+  height: 2.25rem;
 }
 
 .carleon-num,
@@ -6821,9 +6857,6 @@ main:has(.page-head[data-page-head=enchanting]) {
 }
 .enchant-mat .price-field-stack {
   gap: 0;
-}
-.enchant-mat .price-field-foot {
-  display: none;
 }
 .enchant-mat .price-field-aside {
   width: 2rem;
@@ -6997,9 +7030,6 @@ main:has(.page-head[data-page-head=enchanting]) {
   min-width: 0;
   width: 100%;
 }
-.royal-sealed-field .price-field-foot {
-  display: none;
-}
 .royal-sealed-field .farming-price-field {
   flex: 1 1 auto;
   min-width: 0;
@@ -7058,9 +7088,6 @@ main:has(.page-head[data-page-head=enchanting]) {
 }
 .royal-mat .price-field-stack {
   gap: 0;
-}
-.royal-mat .price-field-foot {
-  display: none;
 }
 .royal-mat .price-field-aside {
   width: 2rem;
@@ -7589,23 +7616,6 @@ main:has(.page-head[data-page-head=enchanting]) {
   text-align: center;
 }
 
-.royal-bonus-dialog > .app-dialog-close {
-  z-index: 2;
-  width: 2.8rem;
-  height: 2.8rem;
-  border: 0;
-  background: url("../../content/images/royal-bonus/buttons/close-default.png") center/contain no-repeat;
-}
-
-.royal-bonus-dialog > .app-dialog-close::before,
-.royal-bonus-dialog > .app-dialog-close::after {
-  content: none;
-}
-
-.royal-bonus-dialog > .app-dialog-close:hover {
-  background-image: url("../../content/images/royal-bonus/buttons/close-hover.png");
-}
-
 .bonus-analysis-trigger[data-royal-bonus]:disabled {
   cursor: not-allowed;
   opacity: 0.5;
@@ -7613,8 +7623,8 @@ main:has(.page-head[data-page-head=enchanting]) {
 
 @media (max-width: 760px) {
   .royal-bonus-dialog {
-    width: calc(100vw - 3.5rem);
-    max-width: calc(100vw - 3.5rem);
+    width: calc(100vw - 2rem - var(--app-dialog-close-clearance));
+    max-width: calc(100vw - 2rem - var(--app-dialog-close-clearance));
   }
   .royal-bonus-sheet {
     padding: 1rem 0.65rem;
@@ -7643,10 +7653,6 @@ main:has(.page-head[data-page-head=enchanting]) {
   .royal-bonus-city-scene {
     width: 70%;
     opacity: 0.55;
-  }
-  .royal-bonus-dialog > .app-dialog-close {
-    width: 2.3rem;
-    height: 2.3rem;
   }
 }
 .royal-plan-sheet {
@@ -8070,6 +8076,19 @@ main:has(.page-head[data-page-head=enchanting]) {
 
 .farming-type-btn-label {
   min-width: 0;
+}
+
+.refining-table .farming-item .item-icon {
+  width: 4rem;
+  height: 4rem;
+}
+.refining-table .price-field-aside {
+  width: 3rem;
+  height: 2.75rem;
+}
+.refining-table .price-field-aside-icon {
+  width: 2.75rem;
+  height: 2.75rem;
 }
 
 .farming-spec {
@@ -12511,7 +12530,18 @@ main:has(.page-head[data-page-head=enchanting]) {
 }
 
 .trades-price-action {
-  min-width: 6rem;
+  padding: 0.15rem 0.35rem;
+  --trades-price-action-bg: color-mix(in srgb, var(--color-primary) 16%, var(--color-surface));
+  border: 1px solid var(--trades-price-action-bg);
+  border-radius: 0.3rem;
+  background: var(--trades-price-action-bg);
+  color: var(--color-text);
+  font: inherit;
+  font-weight: var(--font-weight-semibold);
+  cursor: pointer;
+}
+.trades-price-action:hover {
+  --trades-price-action-bg: color-mix(in srgb, var(--color-primary) 28%, var(--color-surface));
 }
 
 .trades-diff.is-up, .trades-status-ok, .trades-summary .is-up {
@@ -12592,8 +12622,9 @@ main:has(.page-head[data-page-head=enchanting]) {
 }
 
 .trades-confirm-sheet {
-  width: min(25rem, 100vw - 4rem);
-  max-height: min(80vh, 35rem);
+  width: 25rem;
+  max-width: 100%;
+  max-height: min(100dvh - 2rem, 35rem);
   overflow: auto;
   padding: 1rem;
   background: var(--color-surface);
@@ -12618,6 +12649,7 @@ main:has(.page-head[data-page-head=enchanting]) {
 
 .trades-confirm-values dd {
   font-family: var(--font-family-mono);
+  text-align: right;
 }
 
 .trades-confirm-actions {
@@ -12697,6 +12729,242 @@ main:has(.page-head[data-page-head=enchanting]) {
     padding-bottom: 0.2rem;
   }
 }
+/* Reuse the shared data-city tokens for history row backgrounds. */
+.trades-panel-body[data-history] .trades-table tbody tr[data-city] td {
+  background-color: color-mix(in srgb, var(--color-city) 12%, var(--color-surface));
+}
+.trades-panel-body[data-history] .trades-table tbody tr[data-city]:hover td {
+  background-color: color-mix(in srgb, var(--color-city) 24%, var(--color-surface));
+}
+
+.trades-item-analysis [data-items] {
+  flex: 1 1 auto;
+}
+.trades-item-analysis .trades-item-chart {
+  flex: 0 0 auto;
+  margin-top: auto;
+  padding: 0.65rem;
+  border-top: 1px solid var(--color-border);
+}
+
+.trades-item-chart h3 {
+  margin: 0;
+  font-size: 1rem;
+}
+.trades-item-chart svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-height: clamp(6rem, 20vh, 12rem);
+}
+.trades-item-chart svg text {
+  fill: var(--color-text-muted);
+  font-size: 19px;
+  font-weight: var(--font-weight-semibold);
+}
+.trades-item-chart .trades-empty {
+  margin: 0;
+}
+
+.trades-chart-note {
+  margin: 0.25rem 0;
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+}
+
+.trades-chart-grid {
+  stroke: var(--color-border);
+  stroke-width: 1;
+}
+
+.trades-chart-series polyline {
+  fill: none;
+  stroke: var(--color-city);
+  stroke-width: 2;
+}
+.trades-chart-series circle {
+  fill: var(--color-city);
+  stroke: var(--color-text-muted);
+  stroke-width: 0.5;
+}
+
+.trades-chart-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem 0.75rem;
+  font-size: 0.8rem;
+}
+.trades-chart-legend span {
+  color: var(--color-city);
+  font-weight: var(--font-weight-semibold);
+}
+
+@media (max-width: 1100px) {
+  .trades-item-chart svg {
+    max-height: 16rem;
+  }
+}
+.trades-table .trades-extreme-tag {
+  margin-right: 0;
+  font-size: inherit;
+}
+
+.trades-extreme-tag.trades-side-buy, .trades-extreme-tag.trades-side-sell {
+  color: var(--color-text);
+  padding: 0.15rem 0.3rem;
+  border-radius: 0.3rem;
+}
+
+.trades-extreme-tag.trades-side-buy {
+  background: color-mix(in srgb, var(--color-info) 12%, var(--color-surface));
+}
+
+.trades-extreme-tag.trades-side-sell {
+  background: color-mix(in srgb, var(--color-danger) 12%, var(--color-surface));
+}
+
+.trades-price-pair {
+  position: relative;
+  display: inline-block;
+}
+
+.trades-diff {
+  position: absolute;
+  top: 0;
+  transform: translateY(-50%);
+  font-size: 13px;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.trades-price-pair--sell .trades-price-difference {
+  left: calc(100% + 0.4rem);
+}
+
+.trades-price-pair--buy .trades-price-difference {
+  right: calc(100% + 0.4rem);
+}
+
+.trades-suggestion-price {
+  position: relative;
+  display: inline-block;
+}
+
+.trades-table .trades-price-action {
+  margin-right: 0;
+  font-size: inherit;
+}
+
+.trades-suggestion-diff {
+  left: calc(100% + 0.15rem);
+}
+
+.trades-price-action.is-applicable {
+  --trades-price-action-bg: color-mix(in srgb, var(--color-success) 16%, var(--color-surface));
+}
+.trades-price-action.is-applicable:hover {
+  --trades-price-action-bg: color-mix(in srgb, var(--color-success) 28%, var(--color-surface));
+}
+.trades-price-action.is-unchanged {
+  --trades-price-action-bg: var(--color-surface-raised);
+  color: var(--color-text-muted);
+}
+.trades-price-action.is-insufficient {
+  --trades-price-action-bg: color-mix(in srgb, var(--color-warning) 10%, var(--color-surface));
+  color: var(--color-warning);
+  cursor: default;
+}
+
+.trades-suggestions .trades-table {
+  --trades-price-column-width: min(9vw, 11%);
+  --trades-suggestion-column-width: min(5vw, 7%);
+  table-layout: fixed;
+  width: 100%;
+  min-width: 0;
+}
+.trades-suggestions .trades-table col.trades-price-column {
+  width: var(--trades-price-column-width);
+}
+.trades-suggestions .trades-table col.trades-count-column {
+  width: min(2.5vw, 3%, 2.5rem);
+}
+.trades-suggestions .trades-table col.trades-suggestion-column {
+  width: var(--trades-suggestion-column-width);
+}
+.trades-suggestions .trades-table td.trades-suggestion-column {
+  text-align: center;
+}
+.trades-suggestions .trades-table th.trades-price-column, .trades-suggestions .trades-table td.trades-price-column {
+  text-align: center;
+}
+.trades-suggestions .trades-table th, .trades-suggestions .trades-table td {
+  padding: 0;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+.trades-suggestions .trades-table th:first-child, .trades-suggestions .trades-table td:first-child {
+  padding-left: 0.5rem;
+  text-align: left;
+}
+.trades-suggestions .trades-table th:last-child, .trades-suggestions .trades-table td:last-child {
+  padding-right: 0.35rem;
+  text-align: right;
+}
+.trades-suggestions .trades-table tbody tr, .trades-suggestions .trades-table tbody td {
+  height: 3.25rem;
+}
+.trades-suggestions .trades-table tbody td {
+  vertical-align: middle;
+}
+.trades-suggestions .trades-table .trades-table-identity {
+  gap: 0.3rem;
+  flex-wrap: nowrap;
+}
+.trades-suggestions .trades-table .trades-table-identity > .badge {
+  flex: 0 0 auto;
+}
+.trades-suggestions .trades-table .trades-table-item-icon {
+  flex-basis: clamp(1.25rem, 2.5vw, 2rem);
+  width: clamp(1.25rem, 2.5vw, 2rem);
+  height: clamp(1.25rem, 2.5vw, 2rem);
+}
+.trades-suggestions .trades-table .trades-table-identity > span:last-child {
+  min-width: 0;
+  flex: 1 1 auto;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-height: 1.4;
+  max-height: 2.8em;
+  /* Deliberate text clipping: keep item names to two lines with ellipsis. */
+  overflow: hidden;
+}
+.trades-suggestions .trades-table .trades-price-action, .trades-suggestions .trades-table .trades-extreme-tag {
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+.trades-suggestion-diff--left {
+  left: auto;
+  right: calc(100% + 0.15rem);
+}
+
+.trades-confirm-values .trades-confirm-proposed-label {
+  align-self: center;
+  color: var(--color-primary);
+  font-weight: var(--font-weight-semibold);
+}
+
+.trades-confirm-values .trades-confirm-proposed {
+  color: var(--color-primary);
+  font-weight: var(--font-weight-semibold);
+}
+
+.trades-confirm-arrow {
+  display: inline-block;
+  margin-right: 0.4rem;
+}
+
 /* Shared wizard shell. Keep these base rules here: the step-specific rules below
    deliberately build on them. */
 .royal-wizard-dialog {
@@ -13043,8 +13311,8 @@ main:has(.page-head[data-page-head=enchanting]) {
 
 @media (max-width: 991px) {
   .royal-wizard-dialog {
-    width: calc(100vw - 5rem);
-    max-width: calc(100vw - 5rem);
+    width: calc(100vw - 2rem - var(--app-dialog-close-clearance));
+    max-width: calc(100vw - 2rem - var(--app-dialog-close-clearance));
   }
   .royal-wizard-body {
     grid-template-columns: 1fr;
@@ -13581,8 +13849,8 @@ main:has(.page-head[data-page-head=enchanting]) {
 
 @media (max-width: 800px) {
   .royal-wizard-dialog {
-    width: calc(100vw - 4rem);
-    max-width: calc(100vw - 4rem);
+    width: calc(100vw - 2rem - var(--app-dialog-close-clearance));
+    max-width: calc(100vw - 2rem - var(--app-dialog-close-clearance));
     height: calc(100dvh - 1.5rem);
   }
   .royal-wizard-body {
@@ -13763,7 +14031,7 @@ main:has(.page-head[data-page-head=enchanting]) {
   .royal-wizard-dialog:has(.royal-wizard-step-two) {
     width: calc(100vw - 5rem);
     max-width: calc(100vw - 5rem);
-    margin-left: 0.75rem;
+    margin: auto;
   }
   .royal-wizard-step-two .royal-wizard-recent,
   .royal-wizard-item-grid {
@@ -16074,8 +16342,13 @@ main:has(.page-head[data-page-head=enchanting]) {
 }
 
 .island-v2-confirm-sheet {
-  min-width: min(25rem, 100vw - 3rem);
+  width: 25rem;
+  max-width: 100%;
+  max-height: calc(100dvh - 2rem);
+  overflow: auto;
   padding: 1.1rem;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
 }
 
 .island-v2-confirm-sheet > p {

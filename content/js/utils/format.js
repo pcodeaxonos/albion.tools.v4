@@ -72,3 +72,27 @@ export function formatIsoDate(isoDate) {
     }
     return `${day}.${month}.${year}`;
 }
+
+export function formatRelativeDateTime(value, { now = new Date(), empty = '—' } = {}) {
+    if (value == null || value === '') return empty;
+    const date = new Date(value);
+    const current = new Date(now);
+    if (!Number.isFinite(date.getTime()) || !Number.isFinite(current.getTime())) return empty;
+
+    // Compare calendar days so midnight and daylight-saving changes stay correct.
+    const calendarDay = day => Date.UTC(day.getFullYear(), day.getMonth(), day.getDate());
+    const days = (calendarDay(current) - calendarDay(date)) / 86400000;
+    let label;
+    if (days === 0) label = 'Bugün';
+    else if (days === 1) label = 'Dün';
+    else if (days > 1 && days < 7) label = `${days} gün önce`;
+    else if (days >= 7 && days < 28) label = `${Math.floor(days / 7)} hafta önce`;
+    else {
+        const dd = String(date.getDate()).padStart(2, '0');
+        const mm = String(date.getMonth() + 1).padStart(2, '0');
+        const yy = String(date.getFullYear()).slice(-2);
+        label = `${dd}.${mm}.${yy}`;
+    }
+    const clock = date.toLocaleTimeString(DEFAULT_LOCALE, { hour: '2-digit', minute: '2-digit', hour12: false });
+    return `${label} ${clock}`;
+}

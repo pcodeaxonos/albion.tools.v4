@@ -1,3 +1,4 @@
+import { initDialogBackdropClose } from '../components/dialog.js';
 import { escapeHtml } from '../utils/utils.js';
 import { currentPageId, isCurrentRoute, pageById, routeHref } from './routes.js';
 import { PAGES, getToolGroups, isNewTool } from './tools.js';
@@ -163,6 +164,7 @@ function ensureBackdrop() {
 }
 
 export function initNav() {
+    initDialogBackdropClose();
     recordCurrentToolVisit();
 
     document.querySelectorAll('[data-route-id]').forEach((link) => {

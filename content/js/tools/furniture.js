@@ -333,7 +333,6 @@ function renderTierMats() {
                     <li class="ava-mat ava-mat--tier">
                         <span class="ava-mat-text">
                             <span class="ava-mat-label">T${tier}</span>
-                            <span class="ava-mat-meta">${escapeHtml(priceSideHint(state.matSide, 'buy'))}</span>
                             ${mats.map((mat) => {
                                 const fetched = fetchedMatQuote(mat.key);
                                 return `
@@ -346,8 +345,7 @@ function renderTierMats() {
                                             missing: !fetched,
                                             date: fetched?.date,
                                             dataAttr: `data-mat-price="${escapeHtml(mat.key)}"`,
-                                            fieldClass: 'ava-price-field',
-                                            iconId: mat.uniqueName
+                                            fieldClass: 'ava-price-field'
                                         })}
                                     </span>
                                 `;
@@ -574,8 +572,7 @@ function renderTable() {
                         missing: !fetched,
                         date: fetched?.date,
                         dataAttr: `data-item-price="${escapeHtml(row.item.id)}"`,
-                        fieldClass: 'ava-price-field',
-                        iconId: row.item.uniqueName
+                        fieldClass: 'ava-price-field'
                     })}
                 </td>
                 <td class="num ava-num${incompleteClass(row.sell)}" data-sort-value="${row.sell ?? ''}">${formatSilver(row.sell)}</td>
