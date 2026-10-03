@@ -8648,8 +8648,8 @@ main:has(.page-head[data-page-head=enchanting]) {
   display: flex;
   align-items: center;
   flex-wrap: wrap;
-  gap: 0.75rem;
-  margin-bottom: 1rem;
+  gap: 0.65rem;
+  margin-bottom: 0;
 }
 .yield-period-controls .yield-month-field {
   flex: 0 0 12rem;
@@ -8659,7 +8659,41 @@ main:has(.page-head[data-page-head=enchanting]) {
 .yield-period-presets {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.4rem;
+  gap: 0.3rem;
+  flex: 1 1 16rem;
+  padding-left: 0.65rem;
+  border-left: 1px solid var(--color-border);
+}
+.yield-period-presets .btn {
+  padding: 0.35rem 0.55rem;
+  min-width: 0;
+  font-size: 0.7rem;
+}
+
+.yield-city-sort {
+  flex: 0 0 auto;
+}
+.yield-city-sort > span {
+  display: block;
+  margin-bottom: 0.25rem;
+  color: var(--color-text-muted);
+  font-size: 0.7rem;
+}
+.yield-city-sort > div {
+  display: flex;
+  gap: 0.35rem;
+}
+.yield-city-sort .btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.4rem 0.65rem;
+  font-size: 0.75rem;
+}
+.yield-city-sort svg {
+  width: 1rem;
+  height: 1rem;
+  flex: none;
 }
 
 .yield-avg-row {
@@ -8732,9 +8766,10 @@ main:has(.page-head[data-page-head=enchanting]) {
 }
 
 .yield-city-comparison-head {
-  display: flex;
-  align-items: end;
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: minmax(12rem, 1fr) minmax(0, 2fr);
+  grid-template-areas: "title controls" "description controls";
+  align-items: center;
   gap: var(--spacing-sm);
   margin-bottom: var(--spacing-sm);
 }
@@ -8742,11 +8777,25 @@ main:has(.page-head[data-page-head=enchanting]) {
   margin: 0;
 }
 .yield-city-comparison-head > p {
+  grid-area: description;
   margin: 0;
   color: var(--color-text-muted);
   font-size: var(--font-size-sm);
 }
+.yield-city-comparison-head > div:first-child {
+  grid-area: title;
+  min-width: 0;
+}
+.yield-city-comparison-head > .yield-period-controls {
+  grid-area: controls;
+}
 
+@media (max-width: 1100px) {
+  .yield-city-comparison-head {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas: "title" "description" "controls";
+  }
+}
 .yield-city-comparison-kicker {
   margin: 0 0 0.1rem;
   color: var(--color-text-muted);
@@ -8798,7 +8847,8 @@ main:has(.page-head[data-page-head=enchanting]) {
   box-shadow: inset 3px 0 0 var(--yield-city-color), 0 0 0 1px color-mix(in srgb, var(--yield-city-color) 22%, transparent);
 }
 .yield-city-card.is-empty {
-  opacity: 0.68;
+  opacity: 0.3;
+  filter: grayscale(0.75);
 }
 .yield-city-card header {
   display: flex;
@@ -8989,9 +9039,7 @@ main:has(.page-head[data-page-head=enchanting]) {
   background: #46515f;
 }
 
-.yield-avg-card.is-confidence-1 .yield-confidence i:nth-child(-n+1),
-.yield-avg-card.is-confidence-2 .yield-confidence i:nth-child(-n+2),
-.yield-avg-card.is-confidence-3 .yield-confidence i:nth-child(-n+3) {
+.yield-confidence i.is-filled {
   background: #ffd361;
   box-shadow: 0 0 5px rgba(255, 211, 97, 0.3);
 }
@@ -11724,10 +11772,7 @@ main:has(.page-head[data-page-head=enchanting]) {
   height: 0.42rem;
 }
 
-.yield-avg-card.is-confidence-1 .yield-confidence i:nth-child(-n+1),
-.yield-avg-card.is-confidence-2 .yield-confidence i:nth-child(-n+2),
-.yield-avg-card.is-confidence-3 .yield-confidence i:nth-child(-n+3),
-.yield-avg-card.is-confidence-4 .yield-confidence i:nth-child(-n+4) {
+.yield-confidence i.is-filled {
   background: #ffd361;
   box-shadow: 0 0 5px rgba(255, 211, 97, 0.3);
 }
@@ -14361,6 +14406,72 @@ main:has(.page-head[data-page-head=enchanting]) {
   box-shadow: var(--yield-card-light);
 }
 
+.yield-card-body {
+  position: relative;
+  height: 11.1rem;
+  min-height: 11.1rem;
+}
+
+.yield-avg-card.is-confidence-max {
+  overflow: visible;
+  box-shadow: 0 0 0.8rem color-mix(in srgb, var(--color-item-tier) 28%, transparent), var(--yield-card-light);
+}
+.yield-avg-card.is-confidence-max .yield-card-body {
+  border-radius: inherit;
+  box-shadow: inset 0 0 0 1px var(--color-item-tier);
+}
+
+.yield-confidence-header {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 100%;
+  border: 1px solid var(--color-item-tier);
+  border-bottom: 0;
+  border-radius: 0.64rem 0.64rem 0 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+  min-height: 2rem;
+  padding: 0.35rem 0.25rem;
+  color: color-mix(in srgb, var(--color-item-tier) 40%, white);
+  background: color-mix(in srgb, var(--color-item-tier) 24%, #0b1016);
+  font-size: 0.68rem;
+  font-weight: 700;
+  line-height: 1.2;
+  text-align: center;
+}
+
+.yield-confidence-note {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 100%;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin: 0;
+  padding: 0.5rem 0.65rem 0.6rem;
+  border: 1px solid var(--color-item-tier);
+  border-top: 0;
+  border-radius: 0 0 0.64rem 0.64rem;
+  background: color-mix(in srgb, var(--color-item-tier) 15%, #0b1016);
+  color: color-mix(in srgb, var(--color-item-tier) 40%, white);
+  font-size: 0.65rem;
+  font-weight: 600;
+  line-height: 1.25;
+}
+.yield-confidence-note svg {
+  width: 1.15rem;
+  height: 1.15rem;
+  flex: none;
+}
+.yield-confidence-note span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
 .yield-avg-card::before, .yield-avg-card::after {
   content: none;
 }
@@ -14667,7 +14778,7 @@ main:has(.page-head[data-page-head=enchanting]) {
   background: color-mix(in srgb, var(--color-item-tier) 42%, #11161d 58%);
 }
 
-.yield-avg-card.is-confidence-1 .yield-confidence i:nth-child(-n+1), .yield-avg-card.is-confidence-2 .yield-confidence i:nth-child(-n+2), .yield-avg-card.is-confidence-3 .yield-confidence i:nth-child(-n+3), .yield-avg-card.is-confidence-4 .yield-confidence i:nth-child(-n+4) {
+.yield-confidence i.is-filled {
   background: var(--color-item-tier);
   box-shadow: 0 0 0.42rem color-mix(in srgb, var(--color-item-tier) 70%, transparent);
 }
@@ -14679,7 +14790,7 @@ main:has(.page-head[data-page-head=enchanting]) {
 }
 
 .yield-avg-card.is-selected {
-  outline: 2px solid color-mix(in srgb, var(--color-item-tier) 45%, white 55%);
+  outline: 4px solid color-mix(in srgb, var(--color-item-tier) 45%, white 55%);
   outline-offset: 2px;
 }
 

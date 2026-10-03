@@ -5,12 +5,19 @@ import { baseYield, premiumYield, cityYieldBonus } from './island/economy-config
 const TABLE = 'islandYieldLogs';
 const BOOTSTRAP_REPLICATES = 5000;
 
+// Ordered from broadest to most stable; the final band is maximum confidence.
+export const YIELD_CONFIDENCE_BANDS = Object.freeze([
+    { maxRelativeError: Infinity, minRecords: 2 },
+    { maxRelativeError: 0.10, minRecords: 2 },
+    { maxRelativeError: 0.05, minRecords: 2 },
+    { maxRelativeError: 0.02, minRecords: 3 }
+].map(Object.freeze));
+export const MAX_YIELD_CONFIDENCE = YIELD_CONFIDENCE_BANDS.length;
+
 export function yieldConfidenceLevel(relativeError, n) {
     if (n < 2 || !Number.isFinite(relativeError) || relativeError < 0) return 0;
-    if (relativeError > 0.10) return 1;
-    if (relativeError > 0.05) return 2;
-    if (relativeError > 0.02 || n < 3) return 3;
-    return 4;
+    return YIELD_CONFIDENCE_BANDS.reduce((level, band, index) =>
+        relativeError <= band.maxRelativeError && n >= band.minRecords ? index + 1 : level, 0);
 }
 
 /** Percentile 95% CI for the ratio of totals, resampling whole independent logs. */
@@ -113,14 +120,15 @@ export function yieldAverage(islandCity, itemKey, {
     premium = true,
     water = false,
     itemType = 'plant',
-    includeConfidence = false
+    includeConfidence = false,
+    logRows = listYieldLogs()
 } = {}) {
     if (!islandCity || !itemKey) {
         return null;
     }
     const wantPremium = bool(premium);
     const wantWater = bool(water);
-    const rows = listYieldLogs().filter((row) =>
+    const rows = logRows.filter((row) =>
         row.islandCity === islandCity
         && rowItemType(row) === itemType
         && rowItemKey(row) === itemKey

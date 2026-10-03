@@ -33,8 +33,8 @@ Silver grants fame per resolved payout, not per silver coin.
 
 Baseline return yield is 100%, selectable from 50–150%. No happiness-to-XP formula
 is invented. Results are expected-loot scenarios, not guaranteed random outcomes
-or exact stochastic hitting times. Expected economics includes one empty journal
-as a scenario convention, not a parsed XML guarantee. Manual cycle inspection
+or exact stochastic hitting times. Expected economics includes an empty journal only when its return is verified
+by data; existence of an empty item ID alone does not prove return. Manual cycle inspection
 requires observed quantities for every asset including the empty journal;
 explicit zero is valid, blank remains unknown.
 
@@ -84,3 +84,17 @@ journal, then current-tier Generalist, then highest accepted expected fame. This
 route is explicitly not an economic recommendation. Missing prices retain cycles,
 planning days, actual hours, thresholds and carry-over; only acquisition-only
 capital is exposed separately, never as a complete initial/peak capital estimate.
+
+Economic audit: quotes record the selected AODP field and distinguish absent rows,
+zero prices, absent/future/stale timestamps. AODP suffixless timestamps are UTC,
+normalized in the shared price resolver. Cycle valuation retains independently
+known purchase and reward totals when another part is missing. The test script
+accepts an optional path to an actual AODP response and prints a Fletcher trace.
+
+Selected-tier missing prices are collected from the actual route purchase/reward
+quotes plus contract and market acquisition quotes. Unpriced optimizer alternatives
+are excluded. The existing scoped override controls appear together without an
+accordion; manually resolved entries stay visible for reset. Result price state is
+LIVE / MANUAL / STALE / MISSING. Overrides use server, item, city, book side and
+intent; reset deletes that exact key. No other-city, opposite-book or stale-price
+substitution was introduced. Mechanical planning remains unchanged.

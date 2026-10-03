@@ -1,0 +1,3245 @@
+{
+  "source": "https://europe.albion-online-data.com",
+  "capturedAt": "2026-10-03T19:37:58.9259801Z",
+  "scenario": "Fletcher / Martlock / Buy Order / Sell Order / Premium / 100% yield",
+  "manualOverrides": [
+    {
+      "item": "T2_JOURNAL_HUNTER_FULL",
+      "intent": "buy",
+      "price": 8400,
+      "reason": "zeroPrice"
+    },
+    {
+      "item": "T3_LABOURER_CONTRACT_HUNTER",
+      "intent": "sell",
+      "price": 21998,
+      "reason": "staleTimestamp"
+    },
+    {
+      "item": "T3_JOURNAL_HUNTER_FULL",
+      "intent": "buy",
+      "price": 10000,
+      "reason": "zeroPrice"
+    },
+    {
+      "item": "T4_LABOURER_CONTRACT_HUNTER",
+      "intent": "sell",
+      "price": 109999,
+      "reason": "staleTimestamp"
+    },
+    {
+      "item": "T4_JOURNAL_HUNTER_FULL",
+      "intent": "buy",
+      "price": 20000,
+      "reason": "zeroPrice"
+    },
+    {
+      "item": "T4_PLANKS_LEVEL1@1",
+      "intent": "sell",
+      "price": 468,
+      "reason": "staleTimestamp"
+    },
+    {
+      "item": "T4_PLANKS_LEVEL2@2",
+      "intent": "sell",
+      "price": 1440,
+      "reason": "staleTimestamp"
+    },
+    {
+      "item": "T4_PLANKS_LEVEL3@3",
+      "intent": "sell",
+      "price": 7199,
+      "reason": "staleTimestamp"
+    },
+    {
+      "item": "T5_JOURNAL_HUNTER_FULL",
+      "intent": "buy",
+      "price": 40000,
+      "reason": "zeroPrice"
+    },
+    {
+      "item": "T5_PLANKS_LEVEL1@1",
+      "intent": "sell",
+      "price": 1651,
+      "reason": "staleTimestamp"
+    },
+    {
+      "item": "T5_PLANKS_LEVEL2@2",
+      "intent": "sell",
+      "price": 5489,
+      "reason": "staleTimestamp"
+    },
+    {
+      "item": "T5_PLANKS_LEVEL3@3",
+      "intent": "sell",
+      "price": 25989,
+      "reason": "staleTimestamp"
+    },
+    {
+      "item": "T6_LABOURER_CONTRACT_HUNTER",
+      "intent": "sell",
+      "price": 299890,
+      "reason": "staleTimestamp"
+    },
+    {
+      "item": "T5_LABOURER_CONTRACT_HUNTER",
+      "intent": "sell",
+      "price": 239996,
+      "reason": "staleTimestamp"
+    }
+  ],
+  "orderedTrace": [
+    [
+      "1 Acquisition cost",
+      1000
+    ],
+    [
+      "2 Fame threshold",
+      75
+    ],
+    [
+      "3 Journal",
+      "T2_JOURNAL_HUNTER_FULL"
+    ],
+    [
+      "4 Expected labourer fame / cycle",
+      76
+    ],
+    [
+      "5 Cycle count",
+      1
+    ],
+    [
+      "6 Planning days",
+      1
+    ],
+    [
+      "7 Mechanical hours",
+      22
+    ],
+    [
+      "8 Journal unit price",
+      8400
+    ],
+    [
+      "9 Journal gross cost",
+      8610
+    ],
+    [
+      "10 Loot quantities",
+      [
+        {
+          "item": "T2_LEATHER",
+          "quantity": 17.272727272727273
+        },
+        {
+          "item": "T2_PLANKS",
+          "quantity": 10.363636363636363
+        },
+        {
+          "item": "T2_METALBAR",
+          "quantity": 10.363636363636363
+        }
+      ]
+    ],
+    [
+      "11 Reward prices",
+      [
+        {
+          "item": "T2_LEATHER",
+          "usedPrice": 70,
+          "mode": "live"
+        },
+        {
+          "item": "T2_PLANKS",
+          "usedPrice": 37,
+          "mode": "live"
+        },
+        {
+          "item": "T2_METALBAR",
+          "usedPrice": 12,
+          "mode": "live"
+        }
+      ]
+    ],
+    [
+      "12 Reward gross",
+      1716.909090909091
+    ],
+    [
+      "13 Reward net",
+      1605.3100000000002
+    ],
+    [
+      "14 Empty journal",
+      {
+        "value": 0,
+        "included": false,
+        "reason": "Return not verified in dump; no observed return supplied."
+      }
+    ],
+    [
+      "15 Net leveling cost",
+      8004.69
+    ],
+    [
+      "16 Contract gross",
+      21998
+    ],
+    [
+      "17 Contract tax",
+      879.9200000000001
+    ],
+    [
+      "18 Contract setup",
+      549.95
+    ],
+    [
+      "19 Contract net",
+      20568.13
+    ],
+    [
+      "20 Net profit",
+      12563.440000000002
+    ],
+    [
+      "21 Profit/day",
+      12563.440000000002
+    ],
+    [
+      "22 Profit/slot/day",
+      12563.440000000002
+    ],
+    [
+      "23 Break-even gross",
+      8562
+    ]
+  ],
+  "results": [
+    {
+      "scenario": "T2→T3",
+      "expected": {
+        "grossJournalCost": 8610,
+        "rewardNet": 1605.3100000000002,
+        "levelingCost": 8004.69,
+        "contractGross": 21998,
+        "contractNet": 20568.13,
+        "profit": 12563.440000000002,
+        "profitDay": 12563.440000000002,
+        "profitSlotDay": 12563.440000000002,
+        "breakEven": 8562,
+        "days": 1,
+        "actualHours": 22
+      },
+      "actual": {
+        "status": "ok",
+        "issues": [
+          "T2_JOURNAL_TROPHY_GENERAL_FULL · Martlock: Alış fiyatı bulunamadı · API item kaydı dönmedi (buy_price_max)",
+          "T2_FURNITUREITEM_TROPHY_GENERAL · Martlock: Satış fiyatı bulunamadı · API item kaydı dönmedi (sell_price_min)"
+        ],
+        "optimal": false,
+        "scenario": "expected-loot",
+        "cycles": 1,
+        "journals": 1,
+        "days": 1,
+        "actualHours": 22,
+        "grossJournalCost": 8610,
+        "rewardNet": 1605.31,
+        "levelingCost": 8004.6900000000005,
+        "contractGross": 21998,
+        "contractNet": 20568.129999999997,
+        "profit": 12563.439999999997,
+        "perLaborer": 12563.439999999997,
+        "profitDay": 12563.439999999997,
+        "profitSlotDay": 12563.439999999997,
+        "roi": 1.569509874835877,
+        "breakEven": 8562,
+        "setupCost": 0,
+        "profitAfterSetup": 12563.439999999997,
+        "initialCapital": 9610,
+        "peakCapital": 9610
+      },
+      "cycles": [
+        {
+          "journal": "T2_JOURNAL_HUNTER_FULL",
+          "threshold": 75,
+          "fame": 76,
+          "unitPrice": 8400,
+          "gross": 8610,
+          "loot": [
+            {
+              "item": "T2_LEATHER",
+              "quantity": 17.272727272727273,
+              "usedPrice": 70,
+              "mode": "live"
+            },
+            {
+              "item": "T2_PLANKS",
+              "quantity": 10.363636363636363,
+              "usedPrice": 37,
+              "mode": "live"
+            },
+            {
+              "item": "T2_METALBAR",
+              "quantity": 10.363636363636363,
+              "usedPrice": 12,
+              "mode": "live"
+            }
+          ],
+          "grossReward": 1716.909090909091,
+          "netReward": 1605.3100000000002,
+          "emptyJournalValue": 0
+        }
+      ]
+    },
+    {
+      "scenario": "T2→T4",
+      "expected": {
+        "grossJournalCost": 39360,
+        "rewardNet": 15840.43,
+        "levelingCost": 24519.57,
+        "contractGross": 109999,
+        "contractNet": 102849.06499999999,
+        "profit": 78329.495,
+        "profitDay": 19582.37375,
+        "profitSlotDay": 19582.37375,
+        "breakEven": 26225,
+        "days": 4,
+        "actualHours": 88
+      },
+      "actual": {
+        "status": "ok",
+        "issues": [
+          "T3_JOURNAL_TROPHY_GENERAL_FULL · Martlock: Alış fiyatı bulunamadı · API item kaydı dönmedi (buy_price_max)",
+          "T3_FURNITUREITEM_TROPHY_GENERAL · Martlock: Satış fiyatı bulunamadı · API item kaydı dönmedi (sell_price_min)",
+          "T2_JOURNAL_TROPHY_GENERAL_FULL · Martlock: Alış fiyatı bulunamadı · API item kaydı dönmedi (buy_price_max)",
+          "T2_FURNITUREITEM_TROPHY_GENERAL · Martlock: Satış fiyatı bulunamadı · API item kaydı dönmedi (sell_price_min)"
+        ],
+        "optimal": false,
+        "scenario": "expected-loot",
+        "cycles": 4,
+        "journals": 4,
+        "days": 4,
+        "actualHours": 88,
+        "grossJournalCost": 39360,
+        "rewardNet": 15840.43,
+        "levelingCost": 24519.57,
+        "contractGross": 109999,
+        "contractNet": 102849.06499999999,
+        "profit": 78329.495,
+        "perLaborer": 78329.495,
+        "profitDay": 19582.37375,
+        "profitSlotDay": 19582.37375,
+        "roi": 3.1945705002167655,
+        "breakEven": 26225,
+        "setupCost": 0,
+        "profitAfterSetup": 78329.495,
+        "initialCapital": 9610,
+        "peakCapital": 29264.61
+      },
+      "cycles": [
+        {
+          "journal": "T2_JOURNAL_HUNTER_FULL",
+          "threshold": 75,
+          "fame": 76,
+          "unitPrice": 8400,
+          "gross": 8610,
+          "loot": [
+            {
+              "item": "T2_LEATHER",
+              "quantity": 17.272727272727273,
+              "usedPrice": 70,
+              "mode": "live"
+            },
+            {
+              "item": "T2_PLANKS",
+              "quantity": 10.363636363636363,
+              "usedPrice": 37,
+              "mode": "live"
+            },
+            {
+              "item": "T2_METALBAR",
+              "quantity": 10.363636363636363,
+              "usedPrice": 12,
+              "mode": "live"
+            }
+          ],
+          "grossReward": 1716.909090909091,
+          "netReward": 1605.3100000000002,
+          "emptyJournalValue": 0
+        },
+        {
+          "journal": "T3_JOURNAL_HUNTER_FULL",
+          "threshold": 360,
+          "fame": 120,
+          "unitPrice": 10000,
+          "gross": 10250,
+          "loot": [
+            {
+              "item": "T3_LEATHER",
+              "quantity": 10.909090909090908,
+              "usedPrice": 239,
+              "mode": "live"
+            },
+            {
+              "item": "T3_PLANKS",
+              "quantity": 6.545454545454546,
+              "usedPrice": 219,
+              "mode": "live"
+            },
+            {
+              "item": "T3_METALBAR",
+              "quantity": 6.545454545454546,
+              "usedPrice": 158,
+              "mode": "live"
+            }
+          ],
+          "grossReward": 5074.909090909091,
+          "netReward": 4745.04,
+          "emptyJournalValue": 0
+        },
+        {
+          "journal": "T3_JOURNAL_HUNTER_FULL",
+          "threshold": 360,
+          "fame": 120,
+          "unitPrice": 10000,
+          "gross": 10250,
+          "loot": [
+            {
+              "item": "T3_LEATHER",
+              "quantity": 10.909090909090908,
+              "usedPrice": 239,
+              "mode": "live"
+            },
+            {
+              "item": "T3_PLANKS",
+              "quantity": 6.545454545454546,
+              "usedPrice": 219,
+              "mode": "live"
+            },
+            {
+              "item": "T3_METALBAR",
+              "quantity": 6.545454545454546,
+              "usedPrice": 158,
+              "mode": "live"
+            }
+          ],
+          "grossReward": 5074.909090909091,
+          "netReward": 4745.04,
+          "emptyJournalValue": 0
+        },
+        {
+          "journal": "T3_JOURNAL_HUNTER_FULL",
+          "threshold": 360,
+          "fame": 120,
+          "unitPrice": 10000,
+          "gross": 10250,
+          "loot": [
+            {
+              "item": "T3_LEATHER",
+              "quantity": 10.909090909090908,
+              "usedPrice": 239,
+              "mode": "live"
+            },
+            {
+              "item": "T3_PLANKS",
+              "quantity": 6.545454545454546,
+              "usedPrice": 219,
+              "mode": "live"
+            },
+            {
+              "item": "T3_METALBAR",
+              "quantity": 6.545454545454546,
+              "usedPrice": 158,
+              "mode": "live"
+            }
+          ],
+          "grossReward": 5074.909090909091,
+          "netReward": 4745.04,
+          "emptyJournalValue": 0
+        }
+      ]
+    },
+    {
+      "scenario": "T2→T6",
+      "expected": {
+        "grossJournalCost": 510860,
+        "rewardNet": 215540.88520000008,
+        "levelingCost": 296319.1147999999,
+        "contractGross": 299890,
+        "contractNet": 280397.15,
+        "profit": -15921.9647999999,
+        "profitDay": -346.12966956521524,
+        "profitSlotDay": -346.12966956521524,
+        "breakEven": 316919,
+        "days": 46,
+        "actualHours": 1012
+      },
+      "actual": {
+        "status": "ok",
+        "issues": [
+          "T4_JOURNAL_TROPHY_GENERAL_FULL · Martlock: Alış fiyatı bulunamadı · API item kaydı dönmedi (buy_price_max)",
+          "T4_FURNITUREITEM_TROPHY_GENERAL · Martlock: Satış fiyatı bulunamadı · API item kaydı dönmedi (sell_price_min)",
+          "T5_JOURNAL_TROPHY_GENERAL_FULL · Martlock: Alış fiyatı bulunamadı · API item kaydı dönmedi (buy_price_max)",
+          "T5_FURNITUREITEM_TROPHY_GENERAL · Martlock: Satış fiyatı bulunamadı · API item kaydı dönmedi (sell_price_min)",
+          "T3_JOURNAL_TROPHY_GENERAL_FULL · Martlock: Alış fiyatı bulunamadı · API item kaydı dönmedi (buy_price_max)",
+          "T3_FURNITUREITEM_TROPHY_GENERAL · Martlock: Satış fiyatı bulunamadı · API item kaydı dönmedi (sell_price_min)",
+          "T2_JOURNAL_TROPHY_GENERAL_FULL · Martlock: Alış fiyatı bulunamadı · API item kaydı dönmedi (buy_price_max)",
+          "T2_FURNITUREITEM_TROPHY_GENERAL · Martlock: Satış fiyatı bulunamadı · API item kaydı dönmedi (sell_price_min)",
+          "Arama sınırı: bulunan rota gösteriliyor; global optimum doğrulanmadı."
+        ],
+        "optimal": false,
+        "scenario": "expected-loot",
+        "cycles": 46,
+        "journals": 46,
+        "days": 46,
+        "actualHours": 1012,
+        "grossJournalCost": 510860,
+        "rewardNet": 215540.88520000008,
+        "levelingCost": 296319.1147999999,
+        "contractGross": 299890,
+        "contractNet": 280397.14999999997,
+        "profit": -15921.964799999958,
+        "perLaborer": -15921.964799999958,
+        "profitDay": -346.1296695652165,
+        "profitSlotDay": -346.1296695652165,
+        "roi": -0.053732493129059394,
+        "breakEven": 316919,
+        "setupCost": 0,
+        "profitAfterSetup": -15921.964799999958,
+        "initialCapital": 9610,
+        "peakCapital": 301064.1547999999
+      },
+      "cycles": [
+        {
+          "journal": "T2_JOURNAL_HUNTER_FULL",
+          "threshold": 75,
+          "fame": 76,
+          "unitPrice": 8400,
+          "gross": 8610,
+          "loot": [
+            {
+              "item": "T2_LEATHER",
+              "quantity": 17.272727272727273,
+              "usedPrice": 70,
+              "mode": "live"
+            },
+            {
+              "item": "T2_PLANKS",
+              "quantity": 10.363636363636363,
+              "usedPrice": 37,
+              "mode": "live"
+            },
+            {
+              "item": "T2_METALBAR",
+              "quantity": 10.363636363636363,
+              "usedPrice": 12,
+              "mode": "live"
+            }
+          ],
+          "grossReward": 1716.909090909091,
+          "netReward": 1605.3100000000002,
+          "emptyJournalValue": 0
+        },
+        {
+          "journal": "T3_JOURNAL_HUNTER_FULL",
+          "threshold": 360,
+          "fame": 120,
+          "unitPrice": 10000,
+          "gross": 10250,
+          "loot": [
+            {
+              "item": "T3_LEATHER",
+              "quantity": 10.909090909090908,
+              "usedPrice": 239,
+              "mode": "live"
+            },
+            {
+              "item": "T3_PLANKS",
+              "quantity": 6.545454545454546,
+              "usedPrice": 219,
+              "mode": "live"
+            },
+            {
+              "item": "T3_METALBAR",
+              "quantity": 6.545454545454546,
+              "usedPrice": 158,
+              "mode": "live"
+            }
+          ],
+          "grossReward": 5074.909090909091,
+          "netReward": 4745.04,
+          "emptyJournalValue": 0
+        },
+        {
+          "journal": "T3_JOURNAL_HUNTER_FULL",
+          "threshold": 360,
+          "fame": 120,
+          "unitPrice": 10000,
+          "gross": 10250,
+          "loot": [
+            {
+              "item": "T3_LEATHER",
+              "quantity": 10.909090909090908,
+              "usedPrice": 239,
+              "mode": "live"
+            },
+            {
+              "item": "T3_PLANKS",
+              "quantity": 6.545454545454546,
+              "usedPrice": 219,
+              "mode": "live"
+            },
+            {
+              "item": "T3_METALBAR",
+              "quantity": 6.545454545454546,
+              "usedPrice": 158,
+              "mode": "live"
+            }
+          ],
+          "grossReward": 5074.909090909091,
+          "netReward": 4745.04,
+          "emptyJournalValue": 0
+        },
+        {
+          "journal": "T3_JOURNAL_HUNTER_FULL",
+          "threshold": 360,
+          "fame": 120,
+          "unitPrice": 10000,
+          "gross": 10250,
+          "loot": [
+            {
+              "item": "T3_LEATHER",
+              "quantity": 10.909090909090908,
+              "usedPrice": 239,
+              "mode": "live"
+            },
+            {
+              "item": "T3_PLANKS",
+              "quantity": 6.545454545454546,
+              "usedPrice": 219,
+              "mode": "live"
+            },
+            {
+              "item": "T3_METALBAR",
+              "quantity": 6.545454545454546,
+              "usedPrice": 158,
+              "mode": "live"
+            }
+          ],
+          "grossReward": 5074.909090909091,
+          "netReward": 4745.04,
+          "emptyJournalValue": 0
+        },
+        {
+          "journal": "T4_JOURNAL_HUNTER_FULL",
+          "threshold": 1200,
+          "fame": 239.99999999999997,
+          "unitPrice": 20000,
+          "gross": 20500,
+          "loot": [
+            {
+              "item": "T4_LEATHER",
+              "quantity": 6.869090909090909,
+              "usedPrice": 319,
+              "mode": "live"
+            },
+            {
+              "item": "T4_LEATHER_LEVEL1@1",
+              "quantity": 0.36363636363636365,
+              "usedPrice": 476,
+              "mode": "live"
+            },
+            {
+              "item": "T4_LEATHER_LEVEL2@2",
+              "quantity": 0.03636363636363636,
+              "usedPrice": 2293,
+              "mode": "live"
+            },
+            {
+              "item": "T4_LEATHER_LEVEL3@3",
+              "quantity": 0.0036363636363636364,
+              "usedPrice": 7987,
+              "mode": "live"
+            },
+            {
+              "item": "T4_PLANKS",
+              "quantity": 4.1214545454545455,
+              "usedPrice": 323,
+              "mode": "live"
+            },
+            {
+              "item": "T4_PLANKS_LEVEL1@1",
+              "quantity": 0.21818181818181817,
+              "usedPrice": 468,
+              "mode": "manual"
+            },
+            {
+              "item": "T4_PLANKS_LEVEL2@2",
+              "quantity": 0.02181818181818182,
+              "usedPrice": 1440,
+              "mode": "manual"
+            },
+            {
+              "item": "T4_PLANKS_LEVEL3@3",
+              "quantity": 0.002181818181818182,
+              "usedPrice": 7199,
+              "mode": "manual"
+            },
+            {
+              "item": "T4_METALBAR",
+              "quantity": 4.1214545454545455,
+              "usedPrice": 260,
+              "mode": "live"
+            },
+            {
+              "item": "T4_METALBAR_LEVEL1@1",
+              "quantity": 0.21818181818181817,
+              "usedPrice": 448,
+              "mode": "live"
+            },
+            {
+              "item": "T4_METALBAR_LEVEL2@2",
+              "quantity": 0.02181818181818182,
+              "usedPrice": 1898,
+              "mode": "live"
+            },
+            {
+              "item": "T4_METALBAR_LEVEL3@3",
+              "quantity": 0.002181818181818182,
+              "usedPrice": 7449,
+              "mode": "live"
+            }
+          ],
+          "grossReward": 5184.2072727272725,
+          "netReward": 4847.2338,
+          "emptyJournalValue": 0
+        },
+        {
+          "journal": "T4_JOURNAL_HUNTER_FULL",
+          "threshold": 1200,
+          "fame": 239.99999999999997,
+          "unitPrice": 20000,
+          "gross": 20500,
+          "loot": [
+            {
+              "item": "T4_LEATHER",
+              "quantity": 6.869090909090909,
+              "usedPrice": 319,
+              "mode": "live"
+            },
+            {
+              "item": "T4_LEATHER_LEVEL1@1",
+              "quantity": 0.36363636363636365,
+              "usedPrice": 476,
+              "mode": "live"
+            },
+            {
+              "item": "T4_LEATHER_LEVEL2@2",
+              "quantity": 0.03636363636363636,
+              "usedPrice": 2293,
+              "mode": "live"
+            },
+            {
+              "item": "T4_LEATHER_LEVEL3@3",
+              "quantity": 0.0036363636363636364,
+              "usedPrice": 7987,
+              "mode": "live"
+            },
+            {
+              "item": "T4_PLANKS",
+              "quantity": 4.1214545454545455,
+              "usedPrice": 323,
+              "mode": "live"
+            },
+            {
+              "item": "T4_PLANKS_LEVEL1@1",
+              "quantity": 0.21818181818181817,
+              "usedPrice": 468,
+              "mode": "manual"
+            },
+            {
+              "item": "T4_PLANKS_LEVEL2@2",
+              "quantity": 0.02181818181818182,
+              "usedPrice": 1440,
+              "mode": "manual"
+            },
+            {
+              "item": "T4_PLANKS_LEVEL3@3",
+              "quantity": 0.002181818181818182,
+              "usedPrice": 7199,
+              "mode": "manual"
+            },
+            {
+              "item": "T4_METALBAR",
+              "quantity": 4.1214545454545455,
+              "usedPrice": 260,
+              "mode": "live"
+            },
+            {
+              "item": "T4_METALBAR_LEVEL1@1",
+              "quantity": 0.21818181818181817,
+              "usedPrice": 448,
+              "mode": "live"
+            },
+            {
+              "item": "T4_METALBAR_LEVEL2@2",
+              "quantity": 0.02181818181818182,
+              "usedPrice": 1898,
+              "mode": "live"
+            },
+            {
+              "item": "T4_METALBAR_LEVEL3@3",
+              "quantity": 0.002181818181818182,
+              "usedPrice": 7449,
+              "mode": "live"
+            }
+          ],
+          "grossReward": 5184.2072727272725,
+          "netReward": 4847.2338,
+          "emptyJournalValue": 0
+        },
+        {
+          "journal": "T4_JOURNAL_HUNTER_FULL",
+          "threshold": 1200,
+          "fame": 239.99999999999997,
+          "unitPrice": 20000,
+          "gross": 20500,
+          "loot": [
+            {
+              "item": "T4_LEATHER",
+              "quantity": 6.869090909090909,
+              "usedPrice": 319,
+              "mode": "live"
+            },
+            {
+              "item": "T4_LEATHER_LEVEL1@1",
+              "quantity": 0.36363636363636365,
+              "usedPrice": 476,
+              "mode": "live"
+            },
+            {
+              "item": "T4_LEATHER_LEVEL2@2",
+              "quantity": 0.03636363636363636,
+              "usedPrice": 2293,
+              "mode": "live"
+            },
+            {
+              "item": "T4_LEATHER_LEVEL3@3",
+              "quantity": 0.0036363636363636364,
+              "usedPrice": 7987,
+              "mode": "live"
+            },
+            {
+              "item": "T4_PLANKS",
+              "quantity": 4.1214545454545455,
+              "usedPrice": 323,
+              "mode": "live"
+            },
+            {
+              "item": "T4_PLANKS_LEVEL1@1",
+              "quantity": 0.21818181818181817,
+              "usedPrice": 468,
+              "mode": "manual"
+            },
+            {
+              "item": "T4_PLANKS_LEVEL2@2",
+              "quantity": 0.02181818181818182,
+              "usedPrice": 1440,
+              "mode": "manual"
+            },
+            {
+              "item": "T4_PLANKS_LEVEL3@3",
+              "quantity": 0.002181818181818182,
+              "usedPrice": 7199,
+              "mode": "manual"
+            },
+            {
+              "item": "T4_METALBAR",
+              "quantity": 4.1214545454545455,
+              "usedPrice": 260,
+              "mode": "live"
+            },
+            {
+              "item": "T4_METALBAR_LEVEL1@1",
+              "quantity": 0.21818181818181817,
+              "usedPrice": 448,
+              "mode": "live"
+            },
+            {
+              "item": "T4_METALBAR_LEVEL2@2",
+              "quantity": 0.02181818181818182,
+              "usedPrice": 1898,
+              "mode": "live"
+            },
+            {
+              "item": "T4_METALBAR_LEVEL3@3",
+              "quantity": 0.002181818181818182,
+              "usedPrice": 7449,
+              "mode": "live"
+            }
+          ],
+          "grossReward": 5184.2072727272725,
+          "netReward": 4847.2338,
+          "emptyJournalValue": 0
+        },
+        {
+          "journal": "T4_JOURNAL_HUNTER_FULL",
+          "threshold": 1200,
+          "fame": 239.99999999999997,
+          "unitPrice": 20000,
+          "gross": 20500,
+          "loot": [
+            {
+              "item": "T4_LEATHER",
+              "quantity": 6.869090909090909,
+              "usedPrice": 319,
+              "mode": "live"
+            },
+            {
+              "item": "T4_LEATHER_LEVEL1@1",
+              "quantity": 0.36363636363636365,
+              "usedPrice": 476,
+              "mode": "live"
+            },
+            {
+              "item": "T4_LEATHER_LEVEL2@2",
+              "quantity": 0.03636363636363636,
+              "usedPrice": 2293,
+              "mode": "live"
+            },
+            {
+              "item": "T4_LEATHER_LEVEL3@3",
+              "quantity": 0.0036363636363636364,
+              "usedPrice": 7987,
+              "mode": "live"
+            },
+            {
+              "item": "T4_PLANKS",
+              "quantity": 4.1214545454545455,
+              "usedPrice": 323,
+              "mode": "live"
+            },
+            {
+              "item": "T4_PLANKS_LEVEL1@1",
+              "quantity": 0.21818181818181817,
+              "usedPrice": 468,
+              "mode": "manual"
+            },
+            {
+              "item": "T4_PLANKS_LEVEL2@2",
+              "quantity": 0.02181818181818182,
+              "usedPrice": 1440,
+              "mode": "manual"
+            },
+            {
+              "item": "T4_PLANKS_LEVEL3@3",
+              "quantity": 0.002181818181818182,
+              "usedPrice": 7199,
+              "mode": "manual"
+            },
+            {
+              "item": "T4_METALBAR",
+              "quantity": 4.1214545454545455,
+              "usedPrice": 260,
+              "mode": "live"
+            },
+            {
+              "item": "T4_METALBAR_LEVEL1@1",
+              "quantity": 0.21818181818181817,
+              "usedPrice": 448,
+              "mode": "live"
+            },
+            {
+              "item": "T4_METALBAR_LEVEL2@2",
+              "quantity": 0.02181818181818182,
+              "usedPrice": 1898,
+              "mode": "live"
+            },
+            {
+              "item": "T4_METALBAR_LEVEL3@3",
+              "quantity": 0.002181818181818182,
+              "usedPrice": 7449,
+              "mode": "live"
+            }
+          ],
+          "grossReward": 5184.2072727272725,
+          "netReward": 4847.2338,
+          "emptyJournalValue": 0
+        },
+        {
+          "journal": "T3_JOURNAL_HUNTER_FULL",
+          "threshold": 1200,
+          "fame": 120,
+          "unitPrice": 10000,
+          "gross": 10250,
+          "loot": [
+            {
+              "item": "T3_LEATHER",
+              "quantity": 10.909090909090908,
+              "usedPrice": 239,
+              "mode": "live"
+            },
+            {
+              "item": "T3_PLANKS",
+              "quantity": 6.545454545454546,
+              "usedPrice": 219,
+              "mode": "live"
+            },
+            {
+              "item": "T3_METALBAR",
+              "quantity": 6.545454545454546,
+              "usedPrice": 158,
+              "mode": "live"
+            }
+          ],
+          "grossReward": 5074.909090909091,
+          "netReward": 4745.04,
+          "emptyJournalValue": 0
+        },
+        {
+          "journal": "T3_JOURNAL_HUNTER_FULL",
+          "threshold": 1200,
+          "fame": 120,
+          "unitPrice": 10000,
+          "gross": 10250,
+          "loot": [
+            {
+              "item": "T3_LEATHER",
+              "quantity": 10.909090909090908,
+              "usedPrice": 239,
+              "mode": "live"
+            },
+            {
+              "item": "T3_PLANKS",
+              "quantity": 6.545454545454546,
+              "usedPrice": 219,
+              "mode": "live"
+            },
+            {
+              "item": "T3_METALBAR",
+              "quantity": 6.545454545454546,
+              "usedPrice": 158,
+              "mode": "live"
+            }
+          ],
+          "grossReward": 5074.909090909091,
+          "netReward": 4745.04,
+          "emptyJournalValue": 0
+        },
+        {
+          "journal": "T3_JOURNAL_HUNTER_FULL",
+          "threshold": 4320,
+          "fame": 120,
+          "unitPrice": 10000,
+          "gross": 10250,
+          "loot": [
+            {
+              "item": "T3_LEATHER",
+              "quantity": 10.909090909090908,
+              "usedPrice": 239,
+              "mode": "live"
+            },
+            {
+              "item": "T3_PLANKS",
+              "quantity": 6.545454545454546,
+              "usedPrice": 219,
+              "mode": "live"
+            },
+            {
+              "item": "T3_METALBAR",
+              "quantity": 6.545454545454546,
+              "usedPrice": 158,
+              "mode": "live"
+            }
+          ],
+          "grossReward": 5074.909090909091,
+          "netReward": 4745.04,
+          "emptyJournalValue": 0
+        },
+        {
+          "journal": "T3_JOURNAL_HUNTER_FULL",
+          "threshold": 4320,
+          "fame": 120,
+          "unitPrice": 10000,
+          "gross": 10250,
+          "loot": [
+            {
+              "item": "T3_LEATHER",
+              "quantity": 10.909090909090908,
+              "usedPrice": 239,
+              "mode": "live"
+            },
+            {
+              "item": "T3_PLANKS",
+              "quantity": 6.545454545454546,
+              "usedPrice": 219,
+              "mode": "live"
+            },
+            {
+              "item": "T3_METALBAR",
+              "quantity": 6.545454545454546,
+              "usedPrice": 158,
+              "mode": "live"
+            }
+          ],
+          "grossReward": 5074.909090909091,
+          "netReward": 4745.04,
+          "emptyJournalValue": 0
+        },
+        {
+          "journal": "T3_JOURNAL_HUNTER_FULL",
+          "threshold": 4320,
+          "fame": 120,
+          "unitPrice": 10000,
+          "gross": 10250,
+          "loot": [
+            {
+              "item": "T3_LEATHER",
+              "quantity": 10.909090909090908,
+              "usedPrice": 239,
+              "mode": "live"
+            },
+            {
+              "item": "T3_PLANKS",
+              "quantity": 6.545454545454546,
+              "usedPrice": 219,
+              "mode": "live"
+            },
+            {
+              "item": "T3_METALBAR",
+              "quantity": 6.545454545454546,
+              "usedPrice": 158,
+              "mode": "live"
+            }
+          ],
+          "grossReward": 5074.909090909091,
+          "netReward": 4745.04,
+          "emptyJournalValue": 0
+        },
+        {
+          "journal": "T3_JOURNAL_HUNTER_FULL",
+          "threshold": 4320,
+          "fame": 120,
+          "unitPrice": 10000,
+          "gross": 10250,
+          "loot": [
+            {
+              "item": "T3_LEATHER",
+              "quantity": 10.909090909090908,
+              "usedPrice": 239,
+              "mode": "live"
+            },
+            {
+              "item": "T3_PLANKS",
+              "quantity": 6.545454545454546,
+              "usedPrice": 219,
+              "mode": "live"
+            },
+            {
+              "item": "T3_METALBAR",
+              "quantity": 6.545454545454546,
+              "usedPrice": 158,
+              "mode": "live"
+            }
+          ],
+          "grossReward": 5074.909090909091,
+          "netReward": 4745.04,
+          "emptyJournalValue": 0
+        },
+        {
+          "journal": "T3_JOURNAL_HUNTER_FULL",
+          "threshold": 4320,
+          "fame": 120,
+          "unitPrice": 10000,
+          "gross": 10250,
+          "loot": [
+            {
+              "item": "T3_LEATHER",
+              "quantity": 10.909090909090908,
+              "usedPrice": 239,
+              "mode": "live"
+            },
+            {
+              "item": "T3_PLANKS",
+              "quantity": 6.545454545454546,
+              "usedPrice": 219,
+              "mode": "live"
+            },
+            {
+              "item": "T3_METALBAR",
+              "quantity": 6.545454545454546,
+              "usedPrice": 158,
+              "mode": "live"
+            }
+          ],
+          "grossReward": 5074.909090909091,
+          "netReward": 4745.04,
+          "emptyJournalValue": 0
+        },
+        {
+          "journal": "T3_JOURNAL_HUNTER_FULL",
+          "threshold": 4320,
+          "fame": 120,
+          "unitPrice": 10000,
+          "gross": 10250,
+          "loot": [
+            {
+              "item": "T3_LEATHER",
+              "quantity": 10.909090909090908,
+              "usedPrice": 239,
+              "mode": "live"
+            },
+            {
+              "item": "T3_PLANKS",
+              "quantity": 6.545454545454546,
+              "usedPrice": 219,
+              "mode": "live"
+            },
+            {
+              "item": "T3_METALBAR",
+              "quantity": 6.545454545454546,
+              "usedPrice": 158,
+              "mode": "live"
+            }
+          ],
+          "grossReward": 5074.909090909091,
+          "netReward": 4745.04,
+          "emptyJournalValue": 0
+        },
+        {
+          "journal": "T3_JOURNAL_HUNTER_FULL",
+          "threshold": 4320,
+          "fame": 120,
+          "unitPrice": 10000,
+          "gross": 10250,
+          "loot": [
+            {
+              "item": "T3_LEATHER",
+              "quantity": 10.909090909090908,
+              "usedPrice": 239,
+              "mode": "live"
+            },
+            {
+              "item": "T3_PLANKS",
+              "quantity": 6.545454545454546,
+              "usedPrice": 219,
+              "mode": "live"
+            },
+            {
+              "item": "T3_METALBAR",
+              "quantity": 6.545454545454546,
+              "usedPrice": 158,
+              "mode": "live"
+            }
+          ],
+          "grossReward": 5074.909090909091,
+          "netReward": 4745.04,
+          "emptyJournalValue": 0
+        },
+        {
+          "journal": "T3_JOURNAL_HUNTER_FULL",
+          "threshold": 4320,
+          "fame": 120,
+          "unitPrice": 10000,
+          "gross": 10250,
+          "loot": [
+            {
+              "item": "T3_LEATHER",
+              "quantity": 10.909090909090908,
+              "usedPrice": 239,
+              "mode": "live"
+            },
+            {
+              "item": "T3_PLANKS",
+              "quantity": 6.545454545454546,
+              "usedPrice": 219,
+              "mode": "live"
+            },
+            {
+              "item": "T3_METALBAR",
+              "quantity": 6.545454545454546,
+              "usedPrice": 158,
+              "mode": "live"
+            }
+          ],
+          "grossReward": 5074.909090909091,
+          "netReward": 4745.04,
+          "emptyJournalValue": 0
+        },
+        {
+          "journal": "T3_JOURNAL_HUNTER_FULL",
+          "threshold": 4320,
+          "fame": 120,
+          "unitPrice": 10000,
+          "gross": 10250,
+          "loot": [
+            {
+              "item": "T3_LEATHER",
+              "quantity": 10.909090909090908,
+              "usedPrice": 239,
+              "mode": "live"
+            },
+            {
+              "item": "T3_PLANKS",
+              "quantity": 6.545454545454546,
+              "usedPrice": 219,
+              "mode": "live"
+            },
+            {
+              "item": "T3_METALBAR",
+              "quantity": 6.545454545454546,
+              "usedPrice": 158,
+              "mode": "live"
+            }
+          ],
+          "grossReward": 5074.909090909091,
+          "netReward": 4745.04,
+          "emptyJournalValue": 0
+        },
+        {
+          "journal": "T3_JOURNAL_HUNTER_FULL",
+          "threshold": 4320,
+          "fame": 120,
+          "unitPrice": 10000,
+          "gross": 10250,
+          "loot": [
+            {
+              "item": "T3_LEATHER",
+              "quantity": 10.909090909090908,
+              "usedPrice": 239,
+              "mode": "live"
+            },
+            {
+              "item": "T3_PLANKS",
+              "quantity": 6.545454545454546,
+              "usedPrice": 219,
+              "mode": "live"
+            },
+            {
+              "item": "T3_METALBAR",
+              "quantity": 6.545454545454546,
+              "usedPrice": 158,
+              "mode": "live"
+            }
+          ],
+          "grossReward": 5074.909090909091,
+          "netReward": 4745.04,
+          "emptyJournalValue": 0
+        },
+        {
+          "journal": "T3_JOURNAL_HUNTER_FULL",
+          "threshold": 4320,
+          "fame": 120,
+          "unitPrice": 10000,
+          "gross": 10250,
+          "loot": [
+            {
+              "item": "T3_LEATHER",
+              "quantity": 10.909090909090908,
+              "usedPrice": 239,
+              "mode": "live"
+            },
+            {
+              "item": "T3_PLANKS",
+              "quantity": 6.545454545454546,
+              "usedPrice": 219,
+              "mode": "live"
+            },
+            {
+              "item": "T3_METALBAR",
+              "quantity": 6.545454545454546,
+              "usedPrice": 158,
+              "mode": "live"
+            }
+          ],
+          "grossReward": 5074.909090909091,
+          "netReward": 4745.04,
+          "emptyJournalValue": 0
+        },
+        {
+          "journal": "T3_JOURNAL_HUNTER_FULL",
+          "threshold": 4320,
+          "fame": 120,
+          "unitPrice": 10000,
+          "gross": 10250,
+          "loot": [
+            {
+              "item": "T3_LEATHER",
+              "quantity": 10.909090909090908,
+              "usedPrice": 239,
+              "mode": "live"
+            },
+            {
+              "item": "T3_PLANKS",
+              "quantity": 6.545454545454546,
+              "usedPrice": 219,
+              "mode": "live"
+            },
+            {
+              "item": "T3_METALBAR",
+              "quantity": 6.545454545454546,
+              "usedPrice": 158,
+              "mode": "live"
+            }
+          ],
+          "grossReward": 5074.909090909091,
+          "netReward": 4745.04,
+          "emptyJournalValue": 0
+        },
+        {
+          "journal": "T3_JOURNAL_HUNTER_FULL",
+          "threshold": 4320,
+          "fame": 120,
+          "unitPrice": 10000,
+          "gross": 10250,
+          "loot": [
+            {
+              "item": "T3_LEATHER",
+              "quantity": 10.909090909090908,
+              "usedPrice": 239,
+              "mode": "live"
+            },
+            {
+              "item": "T3_PLANKS",
+              "quantity": 6.545454545454546,
+              "usedPrice": 219,
+              "mode": "live"
+            },
+            {
+              "item": "T3_METALBAR",
+              "quantity": 6.545454545454546,
+              "usedPrice": 158,
+              "mode": "live"
+            }
+          ],
+          "grossReward": 5074.909090909091,
+          "netReward": 4745.04,
+          "emptyJournalValue": 0
+        },
+        {
+          "journal": "T3_JOURNAL_HUNTER_FULL",
+          "threshold": 4320,
+          "fame": 120,
+          "unitPrice": 10000,
+          "gross": 10250,
+          "loot": [
+            {
+              "item": "T3_LEATHER",
+              "quantity": 10.909090909090908,
+              "usedPrice": 239,
+              "mode": "live"
+            },
+            {
+              "item": "T3_PLANKS",
+              "quantity": 6.545454545454546,
+              "usedPrice": 219,
+              "mode": "live"
+            },
+            {
+              "item": "T3_METALBAR",
+              "quantity": 6.545454545454546,
+              "usedPrice": 158,
+              "mode": "live"
+            }
+          ],
+          "grossReward": 5074.909090909091,
+          "netReward": 4745.04,
+          "emptyJournalValue": 0
+        },
+        {
+          "journal": "T3_JOURNAL_HUNTER_FULL",
+          "threshold": 4320,
+          "fame": 120,
+          "unitPrice": 10000,
+          "gross": 10250,
+          "loot": [
+            {
+              "item": "T3_LEATHER",
+              "quantity": 10.909090909090908,
+              "usedPrice": 239,
+              "mode": "live"
+            },
+            {
+              "item": "T3_PLANKS",
+              "quantity": 6.545454545454546,
+              "usedPrice": 219,
+              "mode": "live"
+            },
+            {
+              "item": "T3_METALBAR",
+              "quantity": 6.545454545454546,
+              "usedPrice": 158,
+              "mode": "live"
+            }
+          ],
+          "grossReward": 5074.909090909091,
+          "netReward": 4745.04,
+          "emptyJournalValue": 0
+        },
+        {
+          "journal": "T3_JOURNAL_HUNTER_FULL",
+          "threshold": 4320,
+          "fame": 120,
+          "unitPrice": 10000,
+          "gross": 10250,
+          "loot": [
+            {
+              "item": "T3_LEATHER",
+              "quantity": 10.909090909090908,
+              "usedPrice": 239,
+              "mode": "live"
+            },
+            {
+              "item": "T3_PLANKS",
+              "quantity": 6.545454545454546,
+              "usedPrice": 219,
+              "mode": "live"
+            },
+            {
+              "item": "T3_METALBAR",
+              "quantity": 6.545454545454546,
+              "usedPrice": 158,
+              "mode": "live"
+            }
+          ],
+          "grossReward": 5074.909090909091,
+          "netReward": 4745.04,
+          "emptyJournalValue": 0
+        },
+        {
+          "journal": "T3_JOURNAL_HUNTER_FULL",
+          "threshold": 4320,
+          "fame": 120,
+          "unitPrice": 10000,
+          "gross": 10250,
+          "loot": [
+            {
+              "item": "T3_LEATHER",
+              "quantity": 10.909090909090908,
+              "usedPrice": 239,
+              "mode": "live"
+            },
+            {
+              "item": "T3_PLANKS",
+              "quantity": 6.545454545454546,
+              "usedPrice": 219,
+              "mode": "live"
+            },
+            {
+              "item": "T3_METALBAR",
+              "quantity": 6.545454545454546,
+              "usedPrice": 158,
+              "mode": "live"
+            }
+          ],
+          "grossReward": 5074.909090909091,
+          "netReward": 4745.04,
+          "emptyJournalValue": 0
+        },
+        {
+          "journal": "T3_JOURNAL_HUNTER_FULL",
+          "threshold": 4320,
+          "fame": 120,
+          "unitPrice": 10000,
+          "gross": 10250,
+          "loot": [
+            {
+              "item": "T3_LEATHER",
+              "quantity": 10.909090909090908,
+              "usedPrice": 239,
+              "mode": "live"
+            },
+            {
+              "item": "T3_PLANKS",
+              "quantity": 6.545454545454546,
+              "usedPrice": 219,
+              "mode": "live"
+            },
+            {
+              "item": "T3_METALBAR",
+              "quantity": 6.545454545454546,
+              "usedPrice": 158,
+              "mode": "live"
+            }
+          ],
+          "grossReward": 5074.909090909091,
+          "netReward": 4745.04,
+          "emptyJournalValue": 0
+        },
+        {
+          "journal": "T3_JOURNAL_HUNTER_FULL",
+          "threshold": 4320,
+          "fame": 120,
+          "unitPrice": 10000,
+          "gross": 10250,
+          "loot": [
+            {
+              "item": "T3_LEATHER",
+              "quantity": 10.909090909090908,
+              "usedPrice": 239,
+              "mode": "live"
+            },
+            {
+              "item": "T3_PLANKS",
+              "quantity": 6.545454545454546,
+              "usedPrice": 219,
+              "mode": "live"
+            },
+            {
+              "item": "T3_METALBAR",
+              "quantity": 6.545454545454546,
+              "usedPrice": 158,
+              "mode": "live"
+            }
+          ],
+          "grossReward": 5074.909090909091,
+          "netReward": 4745.04,
+          "emptyJournalValue": 0
+        },
+        {
+          "journal": "T3_JOURNAL_HUNTER_FULL",
+          "threshold": 4320,
+          "fame": 120,
+          "unitPrice": 10000,
+          "gross": 10250,
+          "loot": [
+            {
+              "item": "T3_LEATHER",
+              "quantity": 10.909090909090908,
+              "usedPrice": 239,
+              "mode": "live"
+            },
+            {
+              "item": "T3_PLANKS",
+              "quantity": 6.545454545454546,
+              "usedPrice": 219,
+              "mode": "live"
+            },
+            {
+              "item": "T3_METALBAR",
+              "quantity": 6.545454545454546,
+              "usedPrice": 158,
+              "mode": "live"
+            }
+          ],
+          "grossReward": 5074.909090909091,
+          "netReward": 4745.04,
+          "emptyJournalValue": 0
+        },
+        {
+          "journal": "T3_JOURNAL_HUNTER_FULL",
+          "threshold": 4320,
+          "fame": 120,
+          "unitPrice": 10000,
+          "gross": 10250,
+          "loot": [
+            {
+              "item": "T3_LEATHER",
+              "quantity": 10.909090909090908,
+              "usedPrice": 239,
+              "mode": "live"
+            },
+            {
+              "item": "T3_PLANKS",
+              "quantity": 6.545454545454546,
+              "usedPrice": 219,
+              "mode": "live"
+            },
+            {
+              "item": "T3_METALBAR",
+              "quantity": 6.545454545454546,
+              "usedPrice": 158,
+              "mode": "live"
+            }
+          ],
+          "grossReward": 5074.909090909091,
+          "netReward": 4745.04,
+          "emptyJournalValue": 0
+        },
+        {
+          "journal": "T3_JOURNAL_HUNTER_FULL",
+          "threshold": 4320,
+          "fame": 120,
+          "unitPrice": 10000,
+          "gross": 10250,
+          "loot": [
+            {
+              "item": "T3_LEATHER",
+              "quantity": 10.909090909090908,
+              "usedPrice": 239,
+              "mode": "live"
+            },
+            {
+              "item": "T3_PLANKS",
+              "quantity": 6.545454545454546,
+              "usedPrice": 219,
+              "mode": "live"
+            },
+            {
+              "item": "T3_METALBAR",
+              "quantity": 6.545454545454546,
+              "usedPrice": 158,
+              "mode": "live"
+            }
+          ],
+          "grossReward": 5074.909090909091,
+          "netReward": 4745.04,
+          "emptyJournalValue": 0
+        },
+        {
+          "journal": "T3_JOURNAL_HUNTER_FULL",
+          "threshold": 4320,
+          "fame": 120,
+          "unitPrice": 10000,
+          "gross": 10250,
+          "loot": [
+            {
+              "item": "T3_LEATHER",
+              "quantity": 10.909090909090908,
+              "usedPrice": 239,
+              "mode": "live"
+            },
+            {
+              "item": "T3_PLANKS",
+              "quantity": 6.545454545454546,
+              "usedPrice": 219,
+              "mode": "live"
+            },
+            {
+              "item": "T3_METALBAR",
+              "quantity": 6.545454545454546,
+              "usedPrice": 158,
+              "mode": "live"
+            }
+          ],
+          "grossReward": 5074.909090909091,
+          "netReward": 4745.04,
+          "emptyJournalValue": 0
+        },
+        {
+          "journal": "T3_JOURNAL_HUNTER_FULL",
+          "threshold": 4320,
+          "fame": 120,
+          "unitPrice": 10000,
+          "gross": 10250,
+          "loot": [
+            {
+              "item": "T3_LEATHER",
+              "quantity": 10.909090909090908,
+              "usedPrice": 239,
+              "mode": "live"
+            },
+            {
+              "item": "T3_PLANKS",
+              "quantity": 6.545454545454546,
+              "usedPrice": 219,
+              "mode": "live"
+            },
+            {
+              "item": "T3_METALBAR",
+              "quantity": 6.545454545454546,
+              "usedPrice": 158,
+              "mode": "live"
+            }
+          ],
+          "grossReward": 5074.909090909091,
+          "netReward": 4745.04,
+          "emptyJournalValue": 0
+        },
+        {
+          "journal": "T3_JOURNAL_HUNTER_FULL",
+          "threshold": 4320,
+          "fame": 120,
+          "unitPrice": 10000,
+          "gross": 10250,
+          "loot": [
+            {
+              "item": "T3_LEATHER",
+              "quantity": 10.909090909090908,
+              "usedPrice": 239,
+              "mode": "live"
+            },
+            {
+              "item": "T3_PLANKS",
+              "quantity": 6.545454545454546,
+              "usedPrice": 219,
+              "mode": "live"
+            },
+            {
+              "item": "T3_METALBAR",
+              "quantity": 6.545454545454546,
+              "usedPrice": 158,
+              "mode": "live"
+            }
+          ],
+          "grossReward": 5074.909090909091,
+          "netReward": 4745.04,
+          "emptyJournalValue": 0
+        },
+        {
+          "journal": "T3_JOURNAL_HUNTER_FULL",
+          "threshold": 4320,
+          "fame": 120,
+          "unitPrice": 10000,
+          "gross": 10250,
+          "loot": [
+            {
+              "item": "T3_LEATHER",
+              "quantity": 10.909090909090908,
+              "usedPrice": 239,
+              "mode": "live"
+            },
+            {
+              "item": "T3_PLANKS",
+              "quantity": 6.545454545454546,
+              "usedPrice": 219,
+              "mode": "live"
+            },
+            {
+              "item": "T3_METALBAR",
+              "quantity": 6.545454545454546,
+              "usedPrice": 158,
+              "mode": "live"
+            }
+          ],
+          "grossReward": 5074.909090909091,
+          "netReward": 4745.04,
+          "emptyJournalValue": 0
+        },
+        {
+          "journal": "T3_JOURNAL_HUNTER_FULL",
+          "threshold": 4320,
+          "fame": 120,
+          "unitPrice": 10000,
+          "gross": 10250,
+          "loot": [
+            {
+              "item": "T3_LEATHER",
+              "quantity": 10.909090909090908,
+              "usedPrice": 239,
+              "mode": "live"
+            },
+            {
+              "item": "T3_PLANKS",
+              "quantity": 6.545454545454546,
+              "usedPrice": 219,
+              "mode": "live"
+            },
+            {
+              "item": "T3_METALBAR",
+              "quantity": 6.545454545454546,
+              "usedPrice": 158,
+              "mode": "live"
+            }
+          ],
+          "grossReward": 5074.909090909091,
+          "netReward": 4745.04,
+          "emptyJournalValue": 0
+        },
+        {
+          "journal": "T3_JOURNAL_HUNTER_FULL",
+          "threshold": 4320,
+          "fame": 120,
+          "unitPrice": 10000,
+          "gross": 10250,
+          "loot": [
+            {
+              "item": "T3_LEATHER",
+              "quantity": 10.909090909090908,
+              "usedPrice": 239,
+              "mode": "live"
+            },
+            {
+              "item": "T3_PLANKS",
+              "quantity": 6.545454545454546,
+              "usedPrice": 219,
+              "mode": "live"
+            },
+            {
+              "item": "T3_METALBAR",
+              "quantity": 6.545454545454546,
+              "usedPrice": 158,
+              "mode": "live"
+            }
+          ],
+          "grossReward": 5074.909090909091,
+          "netReward": 4745.04,
+          "emptyJournalValue": 0
+        },
+        {
+          "journal": "T3_JOURNAL_HUNTER_FULL",
+          "threshold": 4320,
+          "fame": 120,
+          "unitPrice": 10000,
+          "gross": 10250,
+          "loot": [
+            {
+              "item": "T3_LEATHER",
+              "quantity": 10.909090909090908,
+              "usedPrice": 239,
+              "mode": "live"
+            },
+            {
+              "item": "T3_PLANKS",
+              "quantity": 6.545454545454546,
+              "usedPrice": 219,
+              "mode": "live"
+            },
+            {
+              "item": "T3_METALBAR",
+              "quantity": 6.545454545454546,
+              "usedPrice": 158,
+              "mode": "live"
+            }
+          ],
+          "grossReward": 5074.909090909091,
+          "netReward": 4745.04,
+          "emptyJournalValue": 0
+        },
+        {
+          "journal": "T3_JOURNAL_HUNTER_FULL",
+          "threshold": 4320,
+          "fame": 120,
+          "unitPrice": 10000,
+          "gross": 10250,
+          "loot": [
+            {
+              "item": "T3_LEATHER",
+              "quantity": 10.909090909090908,
+              "usedPrice": 239,
+              "mode": "live"
+            },
+            {
+              "item": "T3_PLANKS",
+              "quantity": 6.545454545454546,
+              "usedPrice": 219,
+              "mode": "live"
+            },
+            {
+              "item": "T3_METALBAR",
+              "quantity": 6.545454545454546,
+              "usedPrice": 158,
+              "mode": "live"
+            }
+          ],
+          "grossReward": 5074.909090909091,
+          "netReward": 4745.04,
+          "emptyJournalValue": 0
+        },
+        {
+          "journal": "T3_JOURNAL_HUNTER_FULL",
+          "threshold": 4320,
+          "fame": 120,
+          "unitPrice": 10000,
+          "gross": 10250,
+          "loot": [
+            {
+              "item": "T3_LEATHER",
+              "quantity": 10.909090909090908,
+              "usedPrice": 239,
+              "mode": "live"
+            },
+            {
+              "item": "T3_PLANKS",
+              "quantity": 6.545454545454546,
+              "usedPrice": 219,
+              "mode": "live"
+            },
+            {
+              "item": "T3_METALBAR",
+              "quantity": 6.545454545454546,
+              "usedPrice": 158,
+              "mode": "live"
+            }
+          ],
+          "grossReward": 5074.909090909091,
+          "netReward": 4745.04,
+          "emptyJournalValue": 0
+        },
+        {
+          "journal": "T3_JOURNAL_HUNTER_FULL",
+          "threshold": 4320,
+          "fame": 120,
+          "unitPrice": 10000,
+          "gross": 10250,
+          "loot": [
+            {
+              "item": "T3_LEATHER",
+              "quantity": 10.909090909090908,
+              "usedPrice": 239,
+              "mode": "live"
+            },
+            {
+              "item": "T3_PLANKS",
+              "quantity": 6.545454545454546,
+              "usedPrice": 219,
+              "mode": "live"
+            },
+            {
+              "item": "T3_METALBAR",
+              "quantity": 6.545454545454546,
+              "usedPrice": 158,
+              "mode": "live"
+            }
+          ],
+          "grossReward": 5074.909090909091,
+          "netReward": 4745.04,
+          "emptyJournalValue": 0
+        },
+        {
+          "journal": "T3_JOURNAL_HUNTER_FULL",
+          "threshold": 4320,
+          "fame": 120,
+          "unitPrice": 10000,
+          "gross": 10250,
+          "loot": [
+            {
+              "item": "T3_LEATHER",
+              "quantity": 10.909090909090908,
+              "usedPrice": 239,
+              "mode": "live"
+            },
+            {
+              "item": "T3_PLANKS",
+              "quantity": 6.545454545454546,
+              "usedPrice": 219,
+              "mode": "live"
+            },
+            {
+              "item": "T3_METALBAR",
+              "quantity": 6.545454545454546,
+              "usedPrice": 158,
+              "mode": "live"
+            }
+          ],
+          "grossReward": 5074.909090909091,
+          "netReward": 4745.04,
+          "emptyJournalValue": 0
+        },
+        {
+          "journal": "T3_JOURNAL_HUNTER_FULL",
+          "threshold": 4320,
+          "fame": 120,
+          "unitPrice": 10000,
+          "gross": 10250,
+          "loot": [
+            {
+              "item": "T3_LEATHER",
+              "quantity": 10.909090909090908,
+              "usedPrice": 239,
+              "mode": "live"
+            },
+            {
+              "item": "T3_PLANKS",
+              "quantity": 6.545454545454546,
+              "usedPrice": 219,
+              "mode": "live"
+            },
+            {
+              "item": "T3_METALBAR",
+              "quantity": 6.545454545454546,
+              "usedPrice": 158,
+              "mode": "live"
+            }
+          ],
+          "grossReward": 5074.909090909091,
+          "netReward": 4745.04,
+          "emptyJournalValue": 0
+        },
+        {
+          "journal": "T3_JOURNAL_HUNTER_FULL",
+          "threshold": 4320,
+          "fame": 120,
+          "unitPrice": 10000,
+          "gross": 10250,
+          "loot": [
+            {
+              "item": "T3_LEATHER",
+              "quantity": 10.909090909090908,
+              "usedPrice": 239,
+              "mode": "live"
+            },
+            {
+              "item": "T3_PLANKS",
+              "quantity": 6.545454545454546,
+              "usedPrice": 219,
+              "mode": "live"
+            },
+            {
+              "item": "T3_METALBAR",
+              "quantity": 6.545454545454546,
+              "usedPrice": 158,
+              "mode": "live"
+            }
+          ],
+          "grossReward": 5074.909090909091,
+          "netReward": 4745.04,
+          "emptyJournalValue": 0
+        },
+        {
+          "journal": "T3_JOURNAL_HUNTER_FULL",
+          "threshold": 4320,
+          "fame": 120,
+          "unitPrice": 10000,
+          "gross": 10250,
+          "loot": [
+            {
+              "item": "T3_LEATHER",
+              "quantity": 10.909090909090908,
+              "usedPrice": 239,
+              "mode": "live"
+            },
+            {
+              "item": "T3_PLANKS",
+              "quantity": 6.545454545454546,
+              "usedPrice": 219,
+              "mode": "live"
+            },
+            {
+              "item": "T3_METALBAR",
+              "quantity": 6.545454545454546,
+              "usedPrice": 158,
+              "mode": "live"
+            }
+          ],
+          "grossReward": 5074.909090909091,
+          "netReward": 4745.04,
+          "emptyJournalValue": 0
+        }
+      ]
+    },
+    {
+      "scenario": "T5→T6",
+      "expected": {
+        "grossJournalCost": 369000,
+        "rewardNet": 170821.43999999997,
+        "levelingCost": 198178.56000000003,
+        "contractGross": 299890,
+        "contractNet": 280397.15,
+        "profit": 82218.59,
+        "profitDay": 2283.849722222222,
+        "profitSlotDay": 2283.849722222222,
+        "breakEven": 211956,
+        "days": 36,
+        "actualHours": 792
+      },
+      "actual": {
+        "status": "ok",
+        "issues": [
+          "T5_JOURNAL_TROPHY_GENERAL_FULL · Martlock: Alış fiyatı bulunamadı · API item kaydı dönmedi (buy_price_max)",
+          "T5_FURNITUREITEM_TROPHY_GENERAL · Martlock: Satış fiyatı bulunamadı · API item kaydı dönmedi (sell_price_min)",
+          "T4_JOURNAL_TROPHY_GENERAL_FULL · Martlock: Alış fiyatı bulunamadı · API item kaydı dönmedi (buy_price_max)",
+          "T4_FURNITUREITEM_TROPHY_GENERAL · Martlock: Satış fiyatı bulunamadı · API item kaydı dönmedi (sell_price_min)",
+          "T3_JOURNAL_TROPHY_GENERAL_FULL · Martlock: Alış fiyatı bulunamadı · API item kaydı dönmedi (buy_price_max)",
+          "T3_FURNITUREITEM_TROPHY_GENERAL · Martlock: Satış fiyatı bulunamadı · API item kaydı dönmedi (sell_price_min)",
+          "T2_JOURNAL_TROPHY_GENERAL_FULL · Martlock: Alış fiyatı bulunamadı · API item kaydı dönmedi (buy_price_max)",
+          "T2_FURNITUREITEM_TROPHY_GENERAL · Martlock: Satış fiyatı bulunamadı · API item kaydı dönmedi (sell_price_min)"
+        ],
+        "optimal": false,
+        "scenario": "expected-loot",
+        "cycles": 36,
+        "journals": 36,
+        "days": 36,
+        "actualHours": 792,
+        "grossJournalCost": 369000,
+        "rewardNet": 170821.43999999997,
+        "levelingCost": 198178.56000000003,
+        "contractGross": 299890,
+        "contractNet": 280397.14999999997,
+        "profit": 82218.58999999994,
+        "perLaborer": 82218.58999999994,
+        "profitDay": 2283.8497222222204,
+        "profitSlotDay": 2283.8497222222204,
+        "roi": 0.4148712655899807,
+        "breakEven": 211956,
+        "setupCost": 0,
+        "profitAfterSetup": 82218.58999999994,
+        "initialCapital": 10250,
+        "peakCapital": 202923.59999999998
+      },
+      "cycles": [
+        {
+          "journal": "T3_JOURNAL_HUNTER_FULL",
+          "threshold": 4320,
+          "fame": 120,
+          "unitPrice": 10000,
+          "gross": 10250,
+          "loot": [
+            {
+              "item": "T3_LEATHER",
+              "quantity": 10.909090909090908,
+              "usedPrice": 239,
+              "mode": "live"
+            },
+            {
+              "item": "T3_PLANKS",
+              "quantity": 6.545454545454546,
+              "usedPrice": 219,
+              "mode": "live"
+            },
+            {
+              "item": "T3_METALBAR",
+              "quantity": 6.545454545454546,
+              "usedPrice": 158,
+              "mode": "live"
+            }
+          ],
+          "grossReward": 5074.909090909091,
+          "netReward": 4745.04,
+          "emptyJournalValue": 0
+        },
+        {
+          "journal": "T3_JOURNAL_HUNTER_FULL",
+          "threshold": 4320,
+          "fame": 120,
+          "unitPrice": 10000,
+          "gross": 10250,
+          "loot": [
+            {
+              "item": "T3_LEATHER",
+              "quantity": 10.909090909090908,
+              "usedPrice": 239,
+              "mode": "live"
+            },
+            {
+              "item": "T3_PLANKS",
+              "quantity": 6.545454545454546,
+              "usedPrice": 219,
+              "mode": "live"
+            },
+            {
+              "item": "T3_METALBAR",
+              "quantity": 6.545454545454546,
+              "usedPrice": 158,
+              "mode": "live"
+            }
+          ],
+          "grossReward": 5074.909090909091,
+          "netReward": 4745.04,
+          "emptyJournalValue": 0
+        },
+        {
+          "journal": "T3_JOURNAL_HUNTER_FULL",
+          "threshold": 4320,
+          "fame": 120,
+          "unitPrice": 10000,
+          "gross": 10250,
+          "loot": [
+            {
+              "item": "T3_LEATHER",
+              "quantity": 10.909090909090908,
+              "usedPrice": 239,
+              "mode": "live"
+            },
+            {
+              "item": "T3_PLANKS",
+              "quantity": 6.545454545454546,
+              "usedPrice": 219,
+              "mode": "live"
+            },
+            {
+              "item": "T3_METALBAR",
+              "quantity": 6.545454545454546,
+              "usedPrice": 158,
+              "mode": "live"
+            }
+          ],
+          "grossReward": 5074.909090909091,
+          "netReward": 4745.04,
+          "emptyJournalValue": 0
+        },
+        {
+          "journal": "T3_JOURNAL_HUNTER_FULL",
+          "threshold": 4320,
+          "fame": 120,
+          "unitPrice": 10000,
+          "gross": 10250,
+          "loot": [
+            {
+              "item": "T3_LEATHER",
+              "quantity": 10.909090909090908,
+              "usedPrice": 239,
+              "mode": "live"
+            },
+            {
+              "item": "T3_PLANKS",
+              "quantity": 6.545454545454546,
+              "usedPrice": 219,
+              "mode": "live"
+            },
+            {
+              "item": "T3_METALBAR",
+              "quantity": 6.545454545454546,
+              "usedPrice": 158,
+              "mode": "live"
+            }
+          ],
+          "grossReward": 5074.909090909091,
+          "netReward": 4745.04,
+          "emptyJournalValue": 0
+        },
+        {
+          "journal": "T3_JOURNAL_HUNTER_FULL",
+          "threshold": 4320,
+          "fame": 120,
+          "unitPrice": 10000,
+          "gross": 10250,
+          "loot": [
+            {
+              "item": "T3_LEATHER",
+              "quantity": 10.909090909090908,
+              "usedPrice": 239,
+              "mode": "live"
+            },
+            {
+              "item": "T3_PLANKS",
+              "quantity": 6.545454545454546,
+              "usedPrice": 219,
+              "mode": "live"
+            },
+            {
+              "item": "T3_METALBAR",
+              "quantity": 6.545454545454546,
+              "usedPrice": 158,
+              "mode": "live"
+            }
+          ],
+          "grossReward": 5074.909090909091,
+          "netReward": 4745.04,
+          "emptyJournalValue": 0
+        },
+        {
+          "journal": "T3_JOURNAL_HUNTER_FULL",
+          "threshold": 4320,
+          "fame": 120,
+          "unitPrice": 10000,
+          "gross": 10250,
+          "loot": [
+            {
+              "item": "T3_LEATHER",
+              "quantity": 10.909090909090908,
+              "usedPrice": 239,
+              "mode": "live"
+            },
+            {
+              "item": "T3_PLANKS",
+              "quantity": 6.545454545454546,
+              "usedPrice": 219,
+              "mode": "live"
+            },
+            {
+              "item": "T3_METALBAR",
+              "quantity": 6.545454545454546,
+              "usedPrice": 158,
+              "mode": "live"
+            }
+          ],
+          "grossReward": 5074.909090909091,
+          "netReward": 4745.04,
+          "emptyJournalValue": 0
+        },
+        {
+          "journal": "T3_JOURNAL_HUNTER_FULL",
+          "threshold": 4320,
+          "fame": 120,
+          "unitPrice": 10000,
+          "gross": 10250,
+          "loot": [
+            {
+              "item": "T3_LEATHER",
+              "quantity": 10.909090909090908,
+              "usedPrice": 239,
+              "mode": "live"
+            },
+            {
+              "item": "T3_PLANKS",
+              "quantity": 6.545454545454546,
+              "usedPrice": 219,
+              "mode": "live"
+            },
+            {
+              "item": "T3_METALBAR",
+              "quantity": 6.545454545454546,
+              "usedPrice": 158,
+              "mode": "live"
+            }
+          ],
+          "grossReward": 5074.909090909091,
+          "netReward": 4745.04,
+          "emptyJournalValue": 0
+        },
+        {
+          "journal": "T3_JOURNAL_HUNTER_FULL",
+          "threshold": 4320,
+          "fame": 120,
+          "unitPrice": 10000,
+          "gross": 10250,
+          "loot": [
+            {
+              "item": "T3_LEATHER",
+              "quantity": 10.909090909090908,
+              "usedPrice": 239,
+              "mode": "live"
+            },
+            {
+              "item": "T3_PLANKS",
+              "quantity": 6.545454545454546,
+              "usedPrice": 219,
+              "mode": "live"
+            },
+            {
+              "item": "T3_METALBAR",
+              "quantity": 6.545454545454546,
+              "usedPrice": 158,
+              "mode": "live"
+            }
+          ],
+          "grossReward": 5074.909090909091,
+          "netReward": 4745.04,
+          "emptyJournalValue": 0
+        },
+        {
+          "journal": "T3_JOURNAL_HUNTER_FULL",
+          "threshold": 4320,
+          "fame": 120,
+          "unitPrice": 10000,
+          "gross": 10250,
+          "loot": [
+            {
+              "item": "T3_LEATHER",
+              "quantity": 10.909090909090908,
+              "usedPrice": 239,
+              "mode": "live"
+            },
+            {
+              "item": "T3_PLANKS",
+              "quantity": 6.545454545454546,
+              "usedPrice": 219,
+              "mode": "live"
+            },
+            {
+              "item": "T3_METALBAR",
+              "quantity": 6.545454545454546,
+              "usedPrice": 158,
+              "mode": "live"
+            }
+          ],
+          "grossReward": 5074.909090909091,
+          "netReward": 4745.04,
+          "emptyJournalValue": 0
+        },
+        {
+          "journal": "T3_JOURNAL_HUNTER_FULL",
+          "threshold": 4320,
+          "fame": 120,
+          "unitPrice": 10000,
+          "gross": 10250,
+          "loot": [
+            {
+              "item": "T3_LEATHER",
+              "quantity": 10.909090909090908,
+              "usedPrice": 239,
+              "mode": "live"
+            },
+            {
+              "item": "T3_PLANKS",
+              "quantity": 6.545454545454546,
+              "usedPrice": 219,
+              "mode": "live"
+            },
+            {
+              "item": "T3_METALBAR",
+              "quantity": 6.545454545454546,
+              "usedPrice": 158,
+              "mode": "live"
+            }
+          ],
+          "grossReward": 5074.909090909091,
+          "netReward": 4745.04,
+          "emptyJournalValue": 0
+        },
+        {
+          "journal": "T3_JOURNAL_HUNTER_FULL",
+          "threshold": 4320,
+          "fame": 120,
+          "unitPrice": 10000,
+          "gross": 10250,
+          "loot": [
+            {
+              "item": "T3_LEATHER",
+              "quantity": 10.909090909090908,
+              "usedPrice": 239,
+              "mode": "live"
+            },
+            {
+              "item": "T3_PLANKS",
+              "quantity": 6.545454545454546,
+              "usedPrice": 219,
+              "mode": "live"
+            },
+            {
+              "item": "T3_METALBAR",
+              "quantity": 6.545454545454546,
+              "usedPrice": 158,
+              "mode": "live"
+            }
+          ],
+          "grossReward": 5074.909090909091,
+          "netReward": 4745.04,
+          "emptyJournalValue": 0
+        },
+        {
+          "journal": "T3_JOURNAL_HUNTER_FULL",
+          "threshold": 4320,
+          "fame": 120,
+          "unitPrice": 10000,
+          "gross": 10250,
+          "loot": [
+            {
+              "item": "T3_LEATHER",
+              "quantity": 10.909090909090908,
+              "usedPrice": 239,
+              "mode": "live"
+            },
+            {
+              "item": "T3_PLANKS",
+              "quantity": 6.545454545454546,
+              "usedPrice": 219,
+              "mode": "live"
+            },
+            {
+              "item": "T3_METALBAR",
+              "quantity": 6.545454545454546,
+              "usedPrice": 158,
+              "mode": "live"
+            }
+          ],
+          "grossReward": 5074.909090909091,
+          "netReward": 4745.04,
+          "emptyJournalValue": 0
+        },
+        {
+          "journal": "T3_JOURNAL_HUNTER_FULL",
+          "threshold": 4320,
+          "fame": 120,
+          "unitPrice": 10000,
+          "gross": 10250,
+          "loot": [
+            {
+              "item": "T3_LEATHER",
+              "quantity": 10.909090909090908,
+              "usedPrice": 239,
+              "mode": "live"
+            },
+            {
+              "item": "T3_PLANKS",
+              "quantity": 6.545454545454546,
+              "usedPrice": 219,
+              "mode": "live"
+            },
+            {
+              "item": "T3_METALBAR",
+              "quantity": 6.545454545454546,
+              "usedPrice": 158,
+              "mode": "live"
+            }
+          ],
+          "grossReward": 5074.909090909091,
+          "netReward": 4745.04,
+          "emptyJournalValue": 0
+        },
+        {
+          "journal": "T3_JOURNAL_HUNTER_FULL",
+          "threshold": 4320,
+          "fame": 120,
+          "unitPrice": 10000,
+          "gross": 10250,
+          "loot": [
+            {
+              "item": "T3_LEATHER",
+              "quantity": 10.909090909090908,
+              "usedPrice": 239,
+              "mode": "live"
+            },
+            {
+              "item": "T3_PLANKS",
+              "quantity": 6.545454545454546,
+              "usedPrice": 219,
+              "mode": "live"
+            },
+            {
+              "item": "T3_METALBAR",
+              "quantity": 6.545454545454546,
+              "usedPrice": 158,
+              "mode": "live"
+            }
+          ],
+          "grossReward": 5074.909090909091,
+          "netReward": 4745.04,
+          "emptyJournalValue": 0
+        },
+        {
+          "journal": "T3_JOURNAL_HUNTER_FULL",
+          "threshold": 4320,
+          "fame": 120,
+          "unitPrice": 10000,
+          "gross": 10250,
+          "loot": [
+            {
+              "item": "T3_LEATHER",
+              "quantity": 10.909090909090908,
+              "usedPrice": 239,
+              "mode": "live"
+            },
+            {
+              "item": "T3_PLANKS",
+              "quantity": 6.545454545454546,
+              "usedPrice": 219,
+              "mode": "live"
+            },
+            {
+              "item": "T3_METALBAR",
+              "quantity": 6.545454545454546,
+              "usedPrice": 158,
+              "mode": "live"
+            }
+          ],
+          "grossReward": 5074.909090909091,
+          "netReward": 4745.04,
+          "emptyJournalValue": 0
+        },
+        {
+          "journal": "T3_JOURNAL_HUNTER_FULL",
+          "threshold": 4320,
+          "fame": 120,
+          "unitPrice": 10000,
+          "gross": 10250,
+          "loot": [
+            {
+              "item": "T3_LEATHER",
+              "quantity": 10.909090909090908,
+              "usedPrice": 239,
+              "mode": "live"
+            },
+            {
+              "item": "T3_PLANKS",
+              "quantity": 6.545454545454546,
+              "usedPrice": 219,
+              "mode": "live"
+            },
+            {
+              "item": "T3_METALBAR",
+              "quantity": 6.545454545454546,
+              "usedPrice": 158,
+              "mode": "live"
+            }
+          ],
+          "grossReward": 5074.909090909091,
+          "netReward": 4745.04,
+          "emptyJournalValue": 0
+        },
+        {
+          "journal": "T3_JOURNAL_HUNTER_FULL",
+          "threshold": 4320,
+          "fame": 120,
+          "unitPrice": 10000,
+          "gross": 10250,
+          "loot": [
+            {
+              "item": "T3_LEATHER",
+              "quantity": 10.909090909090908,
+              "usedPrice": 239,
+              "mode": "live"
+            },
+            {
+              "item": "T3_PLANKS",
+              "quantity": 6.545454545454546,
+              "usedPrice": 219,
+              "mode": "live"
+            },
+            {
+              "item": "T3_METALBAR",
+              "quantity": 6.545454545454546,
+              "usedPrice": 158,
+              "mode": "live"
+            }
+          ],
+          "grossReward": 5074.909090909091,
+          "netReward": 4745.04,
+          "emptyJournalValue": 0
+        },
+        {
+          "journal": "T3_JOURNAL_HUNTER_FULL",
+          "threshold": 4320,
+          "fame": 120,
+          "unitPrice": 10000,
+          "gross": 10250,
+          "loot": [
+            {
+              "item": "T3_LEATHER",
+              "quantity": 10.909090909090908,
+              "usedPrice": 239,
+              "mode": "live"
+            },
+            {
+              "item": "T3_PLANKS",
+              "quantity": 6.545454545454546,
+              "usedPrice": 219,
+              "mode": "live"
+            },
+            {
+              "item": "T3_METALBAR",
+              "quantity": 6.545454545454546,
+              "usedPrice": 158,
+              "mode": "live"
+            }
+          ],
+          "grossReward": 5074.909090909091,
+          "netReward": 4745.04,
+          "emptyJournalValue": 0
+        },
+        {
+          "journal": "T3_JOURNAL_HUNTER_FULL",
+          "threshold": 4320,
+          "fame": 120,
+          "unitPrice": 10000,
+          "gross": 10250,
+          "loot": [
+            {
+              "item": "T3_LEATHER",
+              "quantity": 10.909090909090908,
+              "usedPrice": 239,
+              "mode": "live"
+            },
+            {
+              "item": "T3_PLANKS",
+              "quantity": 6.545454545454546,
+              "usedPrice": 219,
+              "mode": "live"
+            },
+            {
+              "item": "T3_METALBAR",
+              "quantity": 6.545454545454546,
+              "usedPrice": 158,
+              "mode": "live"
+            }
+          ],
+          "grossReward": 5074.909090909091,
+          "netReward": 4745.04,
+          "emptyJournalValue": 0
+        },
+        {
+          "journal": "T3_JOURNAL_HUNTER_FULL",
+          "threshold": 4320,
+          "fame": 120,
+          "unitPrice": 10000,
+          "gross": 10250,
+          "loot": [
+            {
+              "item": "T3_LEATHER",
+              "quantity": 10.909090909090908,
+              "usedPrice": 239,
+              "mode": "live"
+            },
+            {
+              "item": "T3_PLANKS",
+              "quantity": 6.545454545454546,
+              "usedPrice": 219,
+              "mode": "live"
+            },
+            {
+              "item": "T3_METALBAR",
+              "quantity": 6.545454545454546,
+              "usedPrice": 158,
+              "mode": "live"
+            }
+          ],
+          "grossReward": 5074.909090909091,
+          "netReward": 4745.04,
+          "emptyJournalValue": 0
+        },
+        {
+          "journal": "T3_JOURNAL_HUNTER_FULL",
+          "threshold": 4320,
+          "fame": 120,
+          "unitPrice": 10000,
+          "gross": 10250,
+          "loot": [
+            {
+              "item": "T3_LEATHER",
+              "quantity": 10.909090909090908,
+              "usedPrice": 239,
+              "mode": "live"
+            },
+            {
+              "item": "T3_PLANKS",
+              "quantity": 6.545454545454546,
+              "usedPrice": 219,
+              "mode": "live"
+            },
+            {
+              "item": "T3_METALBAR",
+              "quantity": 6.545454545454546,
+              "usedPrice": 158,
+              "mode": "live"
+            }
+          ],
+          "grossReward": 5074.909090909091,
+          "netReward": 4745.04,
+          "emptyJournalValue": 0
+        },
+        {
+          "journal": "T3_JOURNAL_HUNTER_FULL",
+          "threshold": 4320,
+          "fame": 120,
+          "unitPrice": 10000,
+          "gross": 10250,
+          "loot": [
+            {
+              "item": "T3_LEATHER",
+              "quantity": 10.909090909090908,
+              "usedPrice": 239,
+              "mode": "live"
+            },
+            {
+              "item": "T3_PLANKS",
+              "quantity": 6.545454545454546,
+              "usedPrice": 219,
+              "mode": "live"
+            },
+            {
+              "item": "T3_METALBAR",
+              "quantity": 6.545454545454546,
+              "usedPrice": 158,
+              "mode": "live"
+            }
+          ],
+          "grossReward": 5074.909090909091,
+          "netReward": 4745.04,
+          "emptyJournalValue": 0
+        },
+        {
+          "journal": "T3_JOURNAL_HUNTER_FULL",
+          "threshold": 4320,
+          "fame": 120,
+          "unitPrice": 10000,
+          "gross": 10250,
+          "loot": [
+            {
+              "item": "T3_LEATHER",
+              "quantity": 10.909090909090908,
+              "usedPrice": 239,
+              "mode": "live"
+            },
+            {
+              "item": "T3_PLANKS",
+              "quantity": 6.545454545454546,
+              "usedPrice": 219,
+              "mode": "live"
+            },
+            {
+              "item": "T3_METALBAR",
+              "quantity": 6.545454545454546,
+              "usedPrice": 158,
+              "mode": "live"
+            }
+          ],
+          "grossReward": 5074.909090909091,
+          "netReward": 4745.04,
+          "emptyJournalValue": 0
+        },
+        {
+          "journal": "T3_JOURNAL_HUNTER_FULL",
+          "threshold": 4320,
+          "fame": 120,
+          "unitPrice": 10000,
+          "gross": 10250,
+          "loot": [
+            {
+              "item": "T3_LEATHER",
+              "quantity": 10.909090909090908,
+              "usedPrice": 239,
+              "mode": "live"
+            },
+            {
+              "item": "T3_PLANKS",
+              "quantity": 6.545454545454546,
+              "usedPrice": 219,
+              "mode": "live"
+            },
+            {
+              "item": "T3_METALBAR",
+              "quantity": 6.545454545454546,
+              "usedPrice": 158,
+              "mode": "live"
+            }
+          ],
+          "grossReward": 5074.909090909091,
+          "netReward": 4745.04,
+          "emptyJournalValue": 0
+        },
+        {
+          "journal": "T3_JOURNAL_HUNTER_FULL",
+          "threshold": 4320,
+          "fame": 120,
+          "unitPrice": 10000,
+          "gross": 10250,
+          "loot": [
+            {
+              "item": "T3_LEATHER",
+              "quantity": 10.909090909090908,
+              "usedPrice": 239,
+              "mode": "live"
+            },
+            {
+              "item": "T3_PLANKS",
+              "quantity": 6.545454545454546,
+              "usedPrice": 219,
+              "mode": "live"
+            },
+            {
+              "item": "T3_METALBAR",
+              "quantity": 6.545454545454546,
+              "usedPrice": 158,
+              "mode": "live"
+            }
+          ],
+          "grossReward": 5074.909090909091,
+          "netReward": 4745.04,
+          "emptyJournalValue": 0
+        },
+        {
+          "journal": "T3_JOURNAL_HUNTER_FULL",
+          "threshold": 4320,
+          "fame": 120,
+          "unitPrice": 10000,
+          "gross": 10250,
+          "loot": [
+            {
+              "item": "T3_LEATHER",
+              "quantity": 10.909090909090908,
+              "usedPrice": 239,
+              "mode": "live"
+            },
+            {
+              "item": "T3_PLANKS",
+              "quantity": 6.545454545454546,
+              "usedPrice": 219,
+              "mode": "live"
+            },
+            {
+              "item": "T3_METALBAR",
+              "quantity": 6.545454545454546,
+              "usedPrice": 158,
+              "mode": "live"
+            }
+          ],
+          "grossReward": 5074.909090909091,
+          "netReward": 4745.04,
+          "emptyJournalValue": 0
+        },
+        {
+          "journal": "T3_JOURNAL_HUNTER_FULL",
+          "threshold": 4320,
+          "fame": 120,
+          "unitPrice": 10000,
+          "gross": 10250,
+          "loot": [
+            {
+              "item": "T3_LEATHER",
+              "quantity": 10.909090909090908,
+              "usedPrice": 239,
+              "mode": "live"
+            },
+            {
+              "item": "T3_PLANKS",
+              "quantity": 6.545454545454546,
+              "usedPrice": 219,
+              "mode": "live"
+            },
+            {
+              "item": "T3_METALBAR",
+              "quantity": 6.545454545454546,
+              "usedPrice": 158,
+              "mode": "live"
+            }
+          ],
+          "grossReward": 5074.909090909091,
+          "netReward": 4745.04,
+          "emptyJournalValue": 0
+        },
+        {
+          "journal": "T3_JOURNAL_HUNTER_FULL",
+          "threshold": 4320,
+          "fame": 120,
+          "unitPrice": 10000,
+          "gross": 10250,
+          "loot": [
+            {
+              "item": "T3_LEATHER",
+              "quantity": 10.909090909090908,
+              "usedPrice": 239,
+              "mode": "live"
+            },
+            {
+              "item": "T3_PLANKS",
+              "quantity": 6.545454545454546,
+              "usedPrice": 219,
+              "mode": "live"
+            },
+            {
+              "item": "T3_METALBAR",
+              "quantity": 6.545454545454546,
+              "usedPrice": 158,
+              "mode": "live"
+            }
+          ],
+          "grossReward": 5074.909090909091,
+          "netReward": 4745.04,
+          "emptyJournalValue": 0
+        },
+        {
+          "journal": "T3_JOURNAL_HUNTER_FULL",
+          "threshold": 4320,
+          "fame": 120,
+          "unitPrice": 10000,
+          "gross": 10250,
+          "loot": [
+            {
+              "item": "T3_LEATHER",
+              "quantity": 10.909090909090908,
+              "usedPrice": 239,
+              "mode": "live"
+            },
+            {
+              "item": "T3_PLANKS",
+              "quantity": 6.545454545454546,
+              "usedPrice": 219,
+              "mode": "live"
+            },
+            {
+              "item": "T3_METALBAR",
+              "quantity": 6.545454545454546,
+              "usedPrice": 158,
+              "mode": "live"
+            }
+          ],
+          "grossReward": 5074.909090909091,
+          "netReward": 4745.04,
+          "emptyJournalValue": 0
+        },
+        {
+          "journal": "T3_JOURNAL_HUNTER_FULL",
+          "threshold": 4320,
+          "fame": 120,
+          "unitPrice": 10000,
+          "gross": 10250,
+          "loot": [
+            {
+              "item": "T3_LEATHER",
+              "quantity": 10.909090909090908,
+              "usedPrice": 239,
+              "mode": "live"
+            },
+            {
+              "item": "T3_PLANKS",
+              "quantity": 6.545454545454546,
+              "usedPrice": 219,
+              "mode": "live"
+            },
+            {
+              "item": "T3_METALBAR",
+              "quantity": 6.545454545454546,
+              "usedPrice": 158,
+              "mode": "live"
+            }
+          ],
+          "grossReward": 5074.909090909091,
+          "netReward": 4745.04,
+          "emptyJournalValue": 0
+        },
+        {
+          "journal": "T3_JOURNAL_HUNTER_FULL",
+          "threshold": 4320,
+          "fame": 120,
+          "unitPrice": 10000,
+          "gross": 10250,
+          "loot": [
+            {
+              "item": "T3_LEATHER",
+              "quantity": 10.909090909090908,
+              "usedPrice": 239,
+              "mode": "live"
+            },
+            {
+              "item": "T3_PLANKS",
+              "quantity": 6.545454545454546,
+              "usedPrice": 219,
+              "mode": "live"
+            },
+            {
+              "item": "T3_METALBAR",
+              "quantity": 6.545454545454546,
+              "usedPrice": 158,
+              "mode": "live"
+            }
+          ],
+          "grossReward": 5074.909090909091,
+          "netReward": 4745.04,
+          "emptyJournalValue": 0
+        },
+        {
+          "journal": "T3_JOURNAL_HUNTER_FULL",
+          "threshold": 4320,
+          "fame": 120,
+          "unitPrice": 10000,
+          "gross": 10250,
+          "loot": [
+            {
+              "item": "T3_LEATHER",
+              "quantity": 10.909090909090908,
+              "usedPrice": 239,
+              "mode": "live"
+            },
+            {
+              "item": "T3_PLANKS",
+              "quantity": 6.545454545454546,
+              "usedPrice": 219,
+              "mode": "live"
+            },
+            {
+              "item": "T3_METALBAR",
+              "quantity": 6.545454545454546,
+              "usedPrice": 158,
+              "mode": "live"
+            }
+          ],
+          "grossReward": 5074.909090909091,
+          "netReward": 4745.04,
+          "emptyJournalValue": 0
+        },
+        {
+          "journal": "T3_JOURNAL_HUNTER_FULL",
+          "threshold": 4320,
+          "fame": 120,
+          "unitPrice": 10000,
+          "gross": 10250,
+          "loot": [
+            {
+              "item": "T3_LEATHER",
+              "quantity": 10.909090909090908,
+              "usedPrice": 239,
+              "mode": "live"
+            },
+            {
+              "item": "T3_PLANKS",
+              "quantity": 6.545454545454546,
+              "usedPrice": 219,
+              "mode": "live"
+            },
+            {
+              "item": "T3_METALBAR",
+              "quantity": 6.545454545454546,
+              "usedPrice": 158,
+              "mode": "live"
+            }
+          ],
+          "grossReward": 5074.909090909091,
+          "netReward": 4745.04,
+          "emptyJournalValue": 0
+        },
+        {
+          "journal": "T3_JOURNAL_HUNTER_FULL",
+          "threshold": 4320,
+          "fame": 120,
+          "unitPrice": 10000,
+          "gross": 10250,
+          "loot": [
+            {
+              "item": "T3_LEATHER",
+              "quantity": 10.909090909090908,
+              "usedPrice": 239,
+              "mode": "live"
+            },
+            {
+              "item": "T3_PLANKS",
+              "quantity": 6.545454545454546,
+              "usedPrice": 219,
+              "mode": "live"
+            },
+            {
+              "item": "T3_METALBAR",
+              "quantity": 6.545454545454546,
+              "usedPrice": 158,
+              "mode": "live"
+            }
+          ],
+          "grossReward": 5074.909090909091,
+          "netReward": 4745.04,
+          "emptyJournalValue": 0
+        },
+        {
+          "journal": "T3_JOURNAL_HUNTER_FULL",
+          "threshold": 4320,
+          "fame": 120,
+          "unitPrice": 10000,
+          "gross": 10250,
+          "loot": [
+            {
+              "item": "T3_LEATHER",
+              "quantity": 10.909090909090908,
+              "usedPrice": 239,
+              "mode": "live"
+            },
+            {
+              "item": "T3_PLANKS",
+              "quantity": 6.545454545454546,
+              "usedPrice": 219,
+              "mode": "live"
+            },
+            {
+              "item": "T3_METALBAR",
+              "quantity": 6.545454545454546,
+              "usedPrice": 158,
+              "mode": "live"
+            }
+          ],
+          "grossReward": 5074.909090909091,
+          "netReward": 4745.04,
+          "emptyJournalValue": 0
+        },
+        {
+          "journal": "T3_JOURNAL_HUNTER_FULL",
+          "threshold": 4320,
+          "fame": 120,
+          "unitPrice": 10000,
+          "gross": 10250,
+          "loot": [
+            {
+              "item": "T3_LEATHER",
+              "quantity": 10.909090909090908,
+              "usedPrice": 239,
+              "mode": "live"
+            },
+            {
+              "item": "T3_PLANKS",
+              "quantity": 6.545454545454546,
+              "usedPrice": 219,
+              "mode": "live"
+            },
+            {
+              "item": "T3_METALBAR",
+              "quantity": 6.545454545454546,
+              "usedPrice": 158,
+              "mode": "live"
+            }
+          ],
+          "grossReward": 5074.909090909091,
+          "netReward": 4745.04,
+          "emptyJournalValue": 0
+        }
+      ]
+    }
+  ]
+}

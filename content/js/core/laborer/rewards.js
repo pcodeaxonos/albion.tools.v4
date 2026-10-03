@@ -19,7 +19,9 @@ export function resolveRewards(journal, { returnYield = 1, quantities } = {}) {
         return { item: row.item, quantity, labourerFame: fameUnits * row.labourerFame };
     });
     const rewards = expectedLoot.map(({ item, quantity }) => ({ item, quantity }));
-    if (journal.empty) {
+    // An item ID proves that the empty journal exists, not that a job returns it.
+    // Include it only in an explicit observation or when the data proves return.
+    if (journal.empty && (quantities !== undefined || journal.emptyReturnVerified === true)) {
         const raw = quantities?.[journal.empty];
         const quantity = quantities === undefined ? 1 : raw == null || raw === '' ? null : Number(raw);
         if (!Number.isFinite(quantity) || quantity < 0) issues.push(`${journal.empty}: cycle başına gerçek dönüş miktarı gerekli (dönmediyse 0).`);

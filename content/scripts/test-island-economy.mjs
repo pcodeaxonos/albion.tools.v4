@@ -106,6 +106,15 @@ test('confidence uses only the matching group and excludes marked outliers', () 
     store.replaceAllRows('islandYieldLogs', []);
 });
 
+test('period-scoped yield averages exclude records outside the supplied period', () => {
+    const base = { islandCity: 'Martlock', itemKey: 'wheat', itemType: 'plant', premium: true, water: false, seedsPlanted: 10, seedsReturned: 7 };
+    const current = { ...base, plantsHarvested: 90 };
+    store.replaceAllRows('islandYieldLogs', [current, { ...base, plantsHarvested: 200 }]);
+    near(stats.yieldAverage('Martlock', 'wheat', { logRows: [current] }).avgPlantYield, 9, 'selected period only');
+    assert.equal(stats.yieldAverage('Martlock', 'wheat', { logRows: [] }), null);
+    store.replaceAllRows('islandYieldLogs', []);
+});
+
 test('nine slots, crop premium/city, focus changes returns only', () => {
     assert.equal(economy.plantSlots(), 9);
     near(stats.standardPlantYield(wheat, 'Martlock', true), 9.5, 'intentional empirical premium city yield');

@@ -58,11 +58,19 @@ function isLiveDate(value) {
     return Boolean(value) && !String(value).startsWith('0001');
 }
 
+// AODP emits UTC timestamps without a suffix; packet timestamps already carry
+// their offset. Never interpret the former using the browser's local timezone.
+export function normalizePriceDate(value) {
+    if (!isLiveDate(value)) return null;
+    const date = String(value);
+    return /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?$/.test(date) ? `${date}Z` : date;
+}
+
 export function isStalePriceDate(value) {
     if (!isLiveDate(value)) {
         return false;
     }
-    const at = Date.parse(value);
+    const at = Date.parse(normalizePriceDate(value));
     return Number.isFinite(at) && Date.now() - at > PRICE_STALE_MS;
 }
 
@@ -79,7 +87,7 @@ export function quoteFromRow(row, side, intent) {
             return null;
         }
         const tick = intent === 'buy' ? 1 : 0;
-        const date = isLiveDate(row.buy_price_max_date) ? row.buy_price_max_date : null;
+        const date = normalizePriceDate(row.buy_price_max_date);
         return {
             price: row.buy_price_max + tick,
             book: row.buy_price_max,
@@ -97,7 +105,7 @@ export function quoteFromRow(row, side, intent) {
     }
 
     const tick = intent === 'sell' ? -1 : 0;
-    const date = isLiveDate(row.sell_price_min_date) ? row.sell_price_min_date : null;
+    const date = normalizePriceDate(row.sell_price_min_date);
     return {
         price: Math.max(1, row.sell_price_min + tick),
         book: row.sell_price_min,

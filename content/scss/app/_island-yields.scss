@@ -14,6 +14,64 @@
   box-shadow:var(--yield-card-light);
 }
 .yield-avg-card.is-thin:not(.is-passive) { box-shadow:var(--yield-card-light); }
+.yield-card-body { position:relative; height:11.1rem; min-height:11.1rem; }
+
+// Completion decorations extend outside the card without changing the matrix height.
+.yield-avg-card.is-confidence-max {
+  // Keep the completion header and note visible beyond the standard card silhouette.
+  overflow:visible;
+  box-shadow:0 0 .8rem color-mix(in srgb,var(--color-item-tier) 28%,transparent),var(--yield-card-light);
+
+  .yield-card-body {
+    border-radius:inherit;
+    box-shadow:inset 0 0 0 1px var(--color-item-tier);
+  }
+}
+
+.yield-confidence-header {
+  position:absolute;
+  left:0;
+  right:0;
+  bottom:100%;
+  border:1px solid var(--color-item-tier);
+  border-bottom:0;
+  border-radius:.64rem .64rem 0 0;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:.25rem;
+  min-height:2rem;
+  padding:.35rem .25rem;
+  color:color-mix(in srgb,var(--color-item-tier) 40%,white);
+  background:color-mix(in srgb,var(--color-item-tier) 24%,#0b1016);
+  font-size:.68rem;
+  font-weight:700;
+  line-height:1.2;
+  text-align:center;
+}
+
+.yield-confidence-note {
+  position:absolute;
+  left:0;
+  right:0;
+  top:100%;
+  display:flex;
+  align-items:center;
+  gap:.4rem;
+  margin:0;
+  padding:.5rem .65rem .6rem;
+  border:1px solid var(--color-item-tier);
+  border-top:0;
+  border-radius:0 0 .64rem .64rem;
+  background:color-mix(in srgb,var(--color-item-tier) 15%,#0b1016);
+  color:color-mix(in srgb,var(--color-item-tier) 40%,white);
+  font-size:.65rem;
+  font-weight:600;
+  line-height:1.25;
+
+  svg { width:1.15rem; height:1.15rem; flex:none; }
+  span { min-width:0; overflow-wrap:anywhere; }
+}
 .yield-avg-card::before,.yield-avg-card::after { content:none; }
 
 .yield-ref-stage { position:absolute; inset:0; z-index:2; }
@@ -62,8 +120,8 @@
 .yield-ref-values::after { content:""; position:absolute; left:0; right:0; top:1.7rem; border-top:1px solid rgba(16,21,28,.26); }
 .yield-ref-values b { color:#fff; font-family:var(--font-family-mono); font-size:.96rem; line-height:1; font-weight:850; letter-spacing:-.04rem; }.yield-ref-value.is-default b { color:#f5f5f7; font-size:.7rem; font-weight:500; }.yield-ref-values small { display:none; }.yield-ref-values.is-single { grid-template-rows:1.7rem; }.yield-ref-values.is-single::before,.yield-ref-values.is-single::after { display:none; }.yield-ref-values.is-single .yield-ref-value.is-default { grid-row:1; }
 
-.yield-card-footer { position:absolute; left:.76rem; right:.76rem; bottom:.3rem; z-index:3; display:flex; align-items:center; justify-content:space-between; height:1.13rem; min-height:0; margin:0; padding:0; border:0; border-radius:0; color:#fff; background:transparent; font-size:.64rem; }.yield-card-footer svg { width:13px; height:13px; flex:none; vertical-align:middle; }.yield-confidence { display:flex; align-items:center; gap:.19rem; }.yield-confidence i { width:.6rem; height:.6rem; border-radius:50%; background:color-mix(in srgb,var(--color-item-tier) 42%,#11161d 58%); }.yield-avg-card.is-confidence-1 .yield-confidence i:nth-child(-n + 1),.yield-avg-card.is-confidence-2 .yield-confidence i:nth-child(-n + 2),.yield-avg-card.is-confidence-3 .yield-confidence i:nth-child(-n + 3),.yield-avg-card.is-confidence-4 .yield-confidence i:nth-child(-n + 4) { background:var(--color-item-tier); box-shadow:0 0 .42rem color-mix(in srgb,var(--color-item-tier) 70%,transparent); }
-.yield-avg-card.is-passive { --color-item-tier:var(--color-border-strong); opacity:.28; filter:grayscale(1) saturate(0); }.yield-avg-card.is-selected { outline:2px solid color-mix(in srgb,var(--color-item-tier) 45%,white 55%); outline-offset:2px; }
+.yield-card-footer { position:absolute; left:.76rem; right:.76rem; bottom:.3rem; z-index:3; display:flex; align-items:center; justify-content:space-between; height:1.13rem; min-height:0; margin:0; padding:0; border:0; border-radius:0; color:#fff; background:transparent; font-size:.64rem; }.yield-card-footer svg { width:13px; height:13px; flex:none; vertical-align:middle; }.yield-confidence { display:flex; align-items:center; gap:.19rem; }.yield-confidence i { width:.6rem; height:.6rem; border-radius:50%; background:color-mix(in srgb,var(--color-item-tier) 42%,#11161d 58%); }.yield-confidence i.is-filled { background:var(--color-item-tier); box-shadow:0 0 .42rem color-mix(in srgb,var(--color-item-tier) 70%,transparent); }
+.yield-avg-card.is-passive { --color-item-tier:var(--color-border-strong); opacity:.28; filter:grayscale(1) saturate(0); }.yield-avg-card.is-selected { outline:4px solid color-mix(in srgb,var(--color-item-tier) 45%,white 55%); outline-offset:2px; }
 @media (max-width:640px) { .yield-avg-row { gap:.2rem; } }
 
 /* Grup sekmeleri solda kalır; seçili grubun tier kartları sağda gösterilir. */

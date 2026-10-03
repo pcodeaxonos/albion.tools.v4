@@ -21,7 +21,7 @@ import { acquisitionStartTier, hireCost } from '../core/laborer/acquisition.mjs'
 import { resolvePrice, overrideKey, priceIssue } from '../core/laborer/prices.js';
 import { liquidity } from '../core/laborer/liquidity.js';
 import { planProgression } from '../core/laborer/planning.js';
-import { cycleEconomics, evaluatePlan, compareContinue, optimum, netSale } from '../core/laborer/economics.js';
+import { cycleEconomics, evaluatePlan, compareContinue, optimum, netSale, economicPriceState } from '../core/laborer/economics.js';
 import { rewardAssets, observedRewards, resolveRewards } from '../core/laborer/rewards.js';
 import { progressionRules } from '../core/laborer/progression-rules.js';
 
@@ -128,7 +128,9 @@ function model() {
             plan: plan(contract.tier, next.tier, progression.status === 'ok' ? progression.end.progress : 0),
             currentSale: sale, nextSale: quote(next.item, 'sell'), quantity: count, premium: state.premium
         }) : null;
-        return { ...contract, sale, progression, economics, continuation,
+        const priceState = economicPriceState({ plan: progression, sale,
+            acquisitionQuote: state.acquisitionMode === 'market' ? quote(contractAt(startTier()).item, 'buy') : null });
+        return { ...contract, sale, progression, economics, continuation, priceState,
             liquidity: liquidity(historyAt(history, contract.item, state.sellCity), count) };
     });
     return { rows, issues: [] };
@@ -153,14 +155,15 @@ function priceField(item, intent) {
     return `<div class="laborer-price">
         <div class="form-floating ava-price-field${manual ? ' is-manual' : ''}${status ? ' is-missing' : ''}">
             <input id="${fieldId}" class="form-control" type="number" min="1" step="1" data-price-item="${esc(item)}" data-price-intent="${intent}" value="${esc(String(value))}" placeholder=" " aria-label="${esc(itemLabel(item))} manuel ${intent === 'buy' ? 'alış' : 'satış'} fiyatı">
-            <label for="${fieldId}">${intent === 'buy' ? 'Alış' : 'Satış'} fiyatı</label>
+            <label for="${fieldId}">Manuel ${intent === 'buy' ? 'alış' : 'satış'} fiyatı</label>
         </div>
-        <small class="laborer-price-meta">${esc(itemLabel(item))} · ${esc(price.city)} · ${manual ? 'Manuel' : 'Canlı'} · ${esc(formatDateTime(price.date, { empty: 'Tarih yok' }))}${status ? ` · ${esc(status)}` : ''}</small>
+        <small class="laborer-price-meta">${esc(itemLabel(item))} · ${esc(price.city)} · ${intent === 'buy' ? price.side === 'buy' ? 'Buy Order' : 'Buy' : price.side === 'sell' ? 'Sell Order' : 'Sell'} · ${manual ? 'Manuel fiyat' : status ? 'Canlı fiyat: Yok' : 'Canlı'} · ${esc(formatDateTime(price.date, { empty: 'Tarih yok' }))}${status ? ` · ${esc(status)}` : ''}</small>
         ${manual ? `<button type="button" class="btn btn-sm btn-secondary" data-price-reset="${esc(item)}" data-price-intent="${intent}">Canlı fiyata dön</button>` : ''}
     </div>`;
 }
 
 const priceStatus = (sale) => sale.status === 'ok' ? sale.mode === 'manual' ? 'Manuel' : 'Canlı' : sale.status === 'stale' ? 'Eski fiyat' : sale.status === 'invalid' ? 'Geçersiz fiyat' : 'Fiyat yok';
+const economicPriceStatus = (row) => row.priceState.missing.length ? `${row.priceState.missing.length} fiyat ${row.priceState.status === 'STALE' ? 'eski' : 'eksik'}` : row.priceState.status === 'MANUAL' ? 'Manuel' : 'Canlı';
 const metricList = (entries) => `<dl class="laborer-metrics">${entries.map(([label, value]) => `<div><dt>${esc(label)}</dt><dd>${value}</dd></div>`).join('')}</dl>`;
 const detailCard = (title, content) => `<section class="laborer-detail-card"><h3>${esc(title)}</h3>${content}</section>`;
 const issueText = (issue) => issue.replace(/T\d_[A-Z0-9_]+/g, (item) => itemLabel(item));
@@ -170,7 +173,9 @@ function detail(row) {
     const p = row.progression;
     const c = row.continuation;
     const issues = [...new Set([...(p.issues || []), ...(e.issues || []), ...(c?.issues || [])])];
-    return `<div class="laborer-detail-identity">${itemIconHtml(row.item, { size: 64 })}<div><strong>T${row.tier}</strong><p>${esc(itemLabel(row.item))}</p></div><span class="laborer-price-status">${esc(priceStatus(row.sale))}</span></div>
+    const editablePrices = row.priceState.dependencies.filter(price => priceIssue(price) || price.mode === 'manual');
+    return `<div class="laborer-detail-identity">${itemIconHtml(row.item, { size: 64 })}<div><strong>T${row.tier}</strong><p>${esc(itemLabel(row.item))}</p></div><span class="laborer-price-status">${esc(economicPriceStatus(row))}</span></div>
+        ${editablePrices.length ? `<section class="laborer-detail-card" data-laborer-missing-prices><h3>Eksik fiyatlar</h3>${editablePrices.map(price => priceField(price.item, price.intent)).join('')}</section>` : ''}
         <div class="laborer-detail-grid">
         ${detailCard('Fiyat özeti', metricList([
             ['Net satış', formatSilver(netSale(row.sale, quantity(), state.premium))],
@@ -229,7 +234,7 @@ function renderResults() {
         <div class="laborer-dashboard-middle">
         <section class="laborer-result-card laborer-comparison"><h2 class="laborer-section-title">Contract tier karşılaştırması</h2><div class="table-responsive calc-table-wrap" data-laborer-comparison-scroll><table class="table table-striped calc-table">
         <thead><tr><th>Contract</th><th>Cycle / Journal</th><th>Planlama günü</th><th>Net satış</th><th>Net kâr</th><th>Kâr / slot / gün</th><th>Fiyat durumu</th></tr></thead>
-        <tbody>${rows.map((row) => `<tr data-laborer-result-tier="${row.tier}" class="${row.tier === selectedRow?.tier ? 'is-selected' : ''}"><td><button type="button" class="laborer-contract-item" data-laborer-select-tier="${row.tier}" aria-pressed="${row.tier === selectedRow?.tier}" aria-label="T${row.tier} detaylarını göster">${itemIconHtml(row.item, { size: 64 })}<span>T${row.tier}</span></button></td><td>${Number.isFinite(row.economics.cycles) ? `${row.economics.cycles} / ${row.economics.journals}` : '—'}</td><td>${formatQuantity(row.economics.days)}</td><td>${formatSilver(netSale(row.sale, quantity(), state.premium))}</td><td>${formatSilver(row.economics.profit)}</td><td>${formatSilver(row.economics.profitSlotDay)}</td><td>${esc(row.progression.economicAvailable === false ? 'Journal fiyatı eksik' : priceStatus(row.sale))}</td></tr>`).join('')}</tbody></table></div>
+        <tbody>${rows.map((row) => `<tr data-laborer-result-tier="${row.tier}" class="${row.tier === selectedRow?.tier ? 'is-selected' : ''}"><td><button type="button" class="laborer-contract-item" data-laborer-select-tier="${row.tier}" aria-pressed="${row.tier === selectedRow?.tier}" aria-label="T${row.tier} detaylarını göster">${itemIconHtml(row.item, { size: 64 })}<span>T${row.tier}</span></button></td><td>${Number.isFinite(row.economics.cycles) ? `${row.economics.cycles} / ${row.economics.journals}` : '—'}</td><td>${formatQuantity(row.economics.days)}</td><td>${formatSilver(netSale(row.sale, quantity(), state.premium))}</td><td>${formatSilver(row.economics.profit)}</td><td>${formatSilver(row.economics.profitSlotDay)}</td><td><span class="laborer-price-status" data-economic-price-status="${row.priceState.status}">${esc(economicPriceStatus(row))}</span></td></tr>`).join('')}</tbody></table></div>
         <p class="calc-note">${esc(feeMetaText(state.premium))}. ${state.sellSide === 'sell' ? 'Satış emri: sell −1 ve setup.' : 'Anında satış: buy, setup yok.'} Eski/tarihsiz fiyatlar net gelir ve önerilerde kullanılmaz.</p></section>
         <section class="laborer-result-card laborer-selected-detail"><h2 class="laborer-section-title" data-laborer-detail-title>Seçili tier detayları${selectedRow ? ` — T${selectedRow.tier}` : ''}</h2><div class="laborer-panel-scroll" data-laborer-selected-detail>${selectedRow ? detail(selectedRow) : '<p>Geçerli laborer adedi gerekli.</p>'}</div></section>
         </div>
@@ -244,7 +249,7 @@ function renderResults() {
             ['Piyasa', `${esc(state.buyCity)} → ${esc(state.sellCity)}`],
             ['Alış / satış', `${state.buySide === 'buy' ? 'Buy Order' : 'Buy'} / ${state.sellSide === 'sell' ? 'Sell Order' : 'Sell'}`],
             ['Likidite', esc(selectedRow?.liquidity.label || 'Hesaplanamıyor')],
-            ['Fiyat durumu', selectedRow ? esc(priceStatus(selectedRow.sale)) : '—']
+            ['Fiyat durumu', selectedRow ? esc(economicPriceStatus(selectedRow)) : '—']
         ])}<p class="calc-note">Hacim, seçilen fiyattan satış garantisi değildir. Eski/tarihsiz fiyatlar net gelir ve önerilerde kullanılmaz.</p></div></section>
         </div>`;
     initForms(result);

@@ -6,6 +6,17 @@ function ratio(numerator, denominator) {
     return Number.isFinite(value) ? value : null;
 }
 
+// Only prices consumed by this route affect its status. Missing alternatives
+// considered by the optimizer are not dependencies of the chosen result.
+export function economicPriceState({ plan, sale, acquisitionQuote }) {
+    const quotes = [sale, acquisitionQuote, ...(plan.sequence || []).flatMap(cycle =>
+        [cycle.economics?.purchase, ...(cycle.economics?.rewardPrices || []).map(reward => reward.quote)])].filter(Boolean);
+    const dependencies = [...new Map(quotes.map(quote => [JSON.stringify([quote.item, quote.city, quote.side, quote.intent]), quote])).values()];
+    const missing = dependencies.filter(quote => priceIssue(quote));
+    const status = missing.some(quote => quote.status !== 'stale') ? 'MISSING' : missing.length ? 'STALE' : dependencies.some(quote => quote.mode === 'manual') ? 'MANUAL' : 'LIVE';
+    return { status, dependencies, missing };
+}
+
 export function netSale(quote, quantity, premium) {
     if (priceIssue(quote) || !Number.isSafeInteger(quantity) || quantity < 1) return null;
     const value = saleProceeds(quote.price, { premium, setup: quote.setup }) * quantity;
@@ -21,21 +32,27 @@ export function breakEven(cost, { premium, setup }) {
 export function cycleEconomics(journal, quoteFor, premium) {
     const purchase = quoteFor(journal.filled, 'buy');
     const issues = [priceIssue(purchase)].filter(Boolean);
-    let rewardNet = 0;
+    let rewardNet = 0, rewardGross = 0;
+    const rewardPrices = [];
+    const missingRewards = [];
     if (!journal.rewardsVerified || !Array.isArray(journal.rewards)) issues.push(`${journal.filled}: doğrulanmış reward modeli yok`);
     for (const reward of journal.rewards || []) {
         if (!(reward.quantity >= 0) || !Number.isFinite(reward.quantity)) { issues.push('Geçersiz reward miktarı'); continue; }
         if (reward.quantity === 0) continue;
-        if (reward.item === 'SILVER') { rewardNet += reward.quantity; continue; }
+        if (reward.item === 'SILVER') { rewardNet += reward.quantity; rewardGross += reward.quantity; continue; }
         const quote = quoteFor(reward.item, 'sell');
         const issue = priceIssue(quote);
-        if (issue) issues.push(issue);
-        else rewardNet += saleProceeds(quote.price, { premium, setup: quote.setup }) * reward.quantity;
+        rewardPrices.push({ item: reward.item, quantity: reward.quantity, quote });
+        if (issue) { issues.push(issue); missingRewards.push(reward.item); }
+        else { rewardGross += quote.price * reward.quantity; rewardNet += saleProceeds(quote.price, { premium, setup: quote.setup }) * reward.quantity; }
     }
-    if (issues.length) return { status: 'unknown', issues };
-    const gross = purchaseCost(purchase.price, { setup: purchase.setup });
+    const gross = priceIssue(purchase) ? null : purchaseCost(purchase.price, { setup: purchase.setup });
+    const rewardsAvailable = issues.length === Number(Boolean(priceIssue(purchase))) && journal.rewardsVerified && Array.isArray(journal.rewards);
+    if (issues.length) return { status: 'unknown', economicStatus: 'partial', missingReason: priceIssue(purchase) ? 'missingJournalPrice' : 'missingRewardPrice',
+        purchase, rewardPrices, missingRewards, gross, rewardGross: rewardsAvailable ? rewardGross : null,
+        rewardNet: rewardsAvailable ? rewardNet : null, net: null, issues };
     if (![gross, rewardNet, gross - rewardNet].every(Number.isFinite)) return { status: 'unknown', issues: ['Cycle ekonomi değeri sayı sınırını aşıyor.'] };
-    return { status: 'ok', gross, rewardNet, expectedRewardValue: rewardNet, expectedLoot: journal.expectedLoot, expectedLabourerFame: journal.expectedLabourerFame, net: gross - rewardNet };
+    return { status: 'ok', economicStatus: 'ok', purchase, rewardPrices, gross, rewardGross, rewardNet, expectedRewardValue: rewardNet, expectedLoot: journal.expectedLoot, expectedLabourerFame: journal.expectedLabourerFame, net: gross - rewardNet };
 }
 
 export function evaluatePlan({ plan, acquisition, quantity, sale, premium, setupCost = 0 }) {
@@ -49,10 +66,13 @@ export function evaluatePlan({ plan, acquisition, quantity, sale, premium, setup
         setupCost == null ? 'Yeni setup toplam maliyeti bilinmiyor' : null].filter(Boolean);
     if (plan.economicAvailable === false) return {
         status: 'partial', issues, optimal: false, scenario: plan.scenario,
+        economicStatus: 'partial', missingReason: plan.sequence.some(cycle => cycle.economics?.missingReason === 'missingJournalPrice') ? 'missingJournalPrice' : 'missingRewardPrice',
+        missingRewards: [...new Set(plan.sequence.flatMap(cycle => cycle.economics?.missingRewards || []))],
         cycles: plan.sequence.length, journals: plan.sequence.length * quantity,
         days: plan.hours / 24, actualHours: plan.actualHours,
         acquisitionCapital: acquisition == null ? null : acquisition * quantity,
-        grossJournalCost: null, rewardNet: null, levelingCost: null,
+        grossJournalCost: plan.sequence.every((cycle) => Number.isFinite(cycle.economics?.gross)) ? plan.sequence.reduce((sum, cycle) => sum + cycle.economics.gross, 0) * quantity : null,
+        rewardNet: plan.sequence.every((cycle) => Number.isFinite(cycle.economics?.rewardNet)) ? plan.sequence.reduce((sum, cycle) => sum + cycle.economics.rewardNet, 0) * quantity : null, levelingCost: null,
         contractNet: netSale(sale, quantity, premium), contractGross: sale.status === 'ok' ? sale.price * quantity : null,
         profit: null, perLaborer: null, profitDay: null, profitSlotDay: null, roi: null,
         breakEven: null, setupCost, profitAfterSetup: null, initialCapital: null, peakCapital: null
@@ -86,8 +106,11 @@ export function evaluatePlan({ plan, acquisition, quantity, sale, premium, setup
 }
 
 export function compareContinue({ plan, currentSale, nextSale, quantity, premium }) {
-    const issues = [priceIssue(currentSale), priceIssue(nextSale), ...(plan.issues || [])].filter(Boolean);
-    if (issues.length || plan.economicAvailable === false || plan.status !== 'ok' || !(plan.hours > 0) || !Number.isSafeInteger(quantity) || quantity < 1) return { status: 'unknown', issues };
+    const priceIssues = [priceIssue(currentSale), priceIssue(nextSale)].filter(Boolean);
+    const issues = [...priceIssues, ...(plan.issues || [])];
+    // Scope warnings about unpriced alternatives do not invalidate the chosen
+    // priced route's actual cost or its opportunity-value comparison.
+    if (priceIssues.length || plan.economicAvailable === false || plan.status !== 'ok' || !(plan.hours > 0) || !Number.isSafeInteger(quantity) || quantity < 1) return { status: 'unknown', issues };
     const opportunityCost = netSale(currentSale, quantity, premium);
     const incrementalCost = plan.cost * quantity;
     const nextNet = netSale(nextSale, quantity, premium);

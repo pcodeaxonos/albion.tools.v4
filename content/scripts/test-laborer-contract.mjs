@@ -156,12 +156,13 @@ test('weighted loot and progression share one return-yield resolver', () => {
     near(less.expectedLabourerFame, baseline.expectedLabourerFame * .5);
     near(zero.expectedLabourerFame, 0);
     for (let i = 0; i < baseline.expectedLoot.length; i++) near(more.expectedLoot[i].quantity, baseline.expectedLoot[i].quantity * 1.5);
-    assert.equal(baseline.rewards.find(r=>r.item===journal.empty).quantity,1);
+    assert.equal(baseline.rewards.some(r=>r.item===journal.empty), false);
+    assert.equal(rewardsModule.resolveRewards({ ...journal, emptyReturnVerified: true }).rewards.find(r=>r.item===journal.empty).quantity, 1);
     const changed = rewardsModule.resolveRewards({ ...journal, fillFame: 999999999 });
     near(changed.expectedLabourerFame, baseline.expectedLabourerFame);
     const valued = economics.cycleEconomics({ ...journal, ...baseline, rewardsVerified: true }, (item)=>sale(item===journal.filled?100:2),true);
     near(valued.expectedLabourerFame, baseline.expectedLabourerFame);
-    near(valued.expectedRewardValue, (38+1)*2*(1-fees.taxPremiumRate()));
+    near(valued.expectedRewardValue, 38*2*(1-fees.taxPremiumRate()));
 });
 test('mixed fame entries and silver payouts never sum fame blindly or grant fame per coin', () => {
     const journal = { filled:'full', empty:'empty', baseLootAmount:4, loot:[
@@ -384,4 +385,95 @@ test('total profit and time efficiency may select different tiers', () => {
     assert.equal(economics.optimum(rows).total.tier, 4); assert.equal(economics.optimum(rows).efficiency.tier, 3);
     assert.equal(economics.optimum([]).total, null);
 });
+test('missing journal manual override opens economics and reset isolates the exact market key', () => {
+    const rules = progressionRules(catalog, 'hunter');
+    const journal = rules.stages[2].journals.find(row => row.filled === 'T2_JOURNAL_HUNTER_FULL');
+    const stamp = new Date().toISOString();
+    const index = indexPrices([...journal.rewards.map(row => row.item), 'T3_LABOURER_CONTRACT_HUNTER'].map(item_id =>
+        ({ item_id, city: 'Martlock', quality: 1, sell_price_min: 100, sell_price_min_date: stamp })));
+    const overrides = {};
+    const quote = (item, intent, city = 'Martlock', side = intent === 'buy' ? 'buy' : 'sell') => prices.resolvePrice({ index, item, city, side, intent,
+        override: overrides[prices.overrideKey('europe', item, city, side, intent)] });
+    const run = () => {
+        const plan = planning.planProgression({ mechanics: rules, startTier: 2, targetTier: 3, journalEconomics: row => economics.cycleEconomics(row, quote, true) });
+        const sale = quote('T3_LABOURER_CONTRACT_HUNTER', 'sell');
+        return { plan, values: economics.evaluatePlan({ plan, acquisition: 1000, quantity: 1, sale, premium: true }), state: economics.economicPriceState({ plan, sale }) };
+    };
+    const missing = run();
+    assert.equal(missing.plan.cycles, 1);
+    assert.equal(missing.values.profit, null);
+    assert.equal(missing.state.status, 'MISSING');
+    assert.equal(missing.state.missing.length, 1);
+    assert.equal(missing.state.missing[0].item, journal.filled);
+    const key = prices.overrideKey('europe', journal.filled, 'Martlock', 'buy', 'buy');
+    overrides[key] = '8400';
+    const manual = run();
+    assert.equal(manual.plan.economicAvailable, true);
+    assert.equal(manual.state.status, 'MANUAL');
+    assert.equal(manual.state.missing.length, 0);
+    assert.ok(Number.isFinite(manual.values.profit) && Number.isFinite(manual.values.breakEven));
+    assert.deepEqual(plain(manual.plan.mechanical), plain(missing.plan.mechanical));
+    assert.equal(quote(journal.filled, 'buy', 'Fort Sterling').status, 'missing');
+    assert.equal(quote(journal.filled, 'buy', 'Martlock', 'sell').status, 'missing');
+    delete overrides[key];
+    assert.equal(run().values.profit, null);
+    assert.equal(run().state.status, 'MISSING');
+    const general = rules.stages[2].journals.find(row => row.filled.includes('_TROPHY_GENERAL_'));
+    const alternative = planning.planProgression({ mechanics: rules, startTier: 2, targetTier: 3,
+        journalEconomics: row => row.filled === general.filled ? cycle : economics.cycleEconomics(row, quote, true) });
+    assert.equal(alternative.economicAvailable, true);
+    assert.equal(alternative.sequence[0].journal, general.filled);
+});
+
+test('Fletcher T2 economic trace uses shared book semantics and preserves partial prices', () => {
+    const rules = progressionRules(catalog, 'hunter');
+    const journal = rules.stages[2].journals.find(row => row.filled === 'T2_JOURNAL_HUNTER_FULL');
+    const target = 'T3_LABOURER_CONTRACT_HUNTER';
+    const ids = [journal.filled, ...journal.rewards.map(row => row.item), target];
+    const stamp = new Date().toISOString();
+    const rows = ids.map(item_id => ({ item_id, city: 'Martlock', quality: 1,
+        buy_price_max: item_id === journal.filled ? 8400 : 10,
+        sell_price_min: item_id === target ? 22000 : 50,
+        buy_price_max_date: stamp, sell_price_min_date: stamp }));
+    const run = (input) => {
+        const index = indexPrices(input);
+        const quote = (item, intent) => prices.resolvePrice({ index, item, city: 'Martlock', side: intent === 'buy' ? 'buy' : 'sell', intent });
+        const route = planning.planProgression({ mechanics: rules, startTier: 2, targetTier: 3,
+            manual: { 2: journal.filled }, journalEconomics: row => economics.cycleEconomics(row, quote, true) });
+        return { route, cycle: economics.cycleEconomics(journal, quote, true),
+            values: economics.evaluatePlan({ plan: route, acquisition: 1000, quantity: 1, sale: quote(target, 'sell'), premium: true }), quote };
+    };
+    const complete = run(rows);
+    assert.equal(complete.quote(journal.filled, 'buy').field, 'buy_price_max');
+    assert.equal(complete.quote(journal.filled, 'buy').price, 8401);
+    assert.equal(complete.quote(target, 'sell').field, 'sell_price_min');
+    const utcWithoutSuffix = new Date(Date.now() - 3 * 60 * 60 * 1000).toISOString().replace('Z', '');
+    const utc = run(rows.map(row => ({ ...row, buy_price_max_date: utcWithoutSuffix, sell_price_min_date: utcWithoutSuffix })));
+    assert.equal(utc.quote(journal.filled, 'buy').status, 'ok');
+    assert.equal(utc.quote(journal.filled, 'buy').date, `${utcWithoutSuffix}Z`);
+    const index = indexPrices(rows);
+    assert.equal(prices.resolvePrice({ index, item: journal.filled, city: 'Martlock', side: 'sell', intent: 'buy' }).price, 50);
+    assert.equal(prices.resolvePrice({ index, item: target, city: 'Martlock', side: 'buy', intent: 'sell' }).price, 10);
+    assert.ok(complete.cycle.gross > 0 && complete.cycle.rewardNet >= 0);
+    assert.ok(Number.isFinite(complete.values.levelingCost) && Number.isFinite(complete.values.profitDay));
+    for (const missing of [journal.filled, journal.rewards[0].item, target]) {
+        const result = run(rows.filter(row => row.item_id !== missing));
+        assert.deepEqual(plain(result.route.mechanical), plain(complete.route.mechanical));
+        assert.equal(result.values.profit, null);
+        if (missing === journal.filled) { assert.equal(result.cycle.gross, null); assert.ok(Number.isFinite(result.values.rewardNet)); }
+        if (missing === journal.rewards[0].item) { assert.ok(result.values.grossJournalCost > 0); assert.equal(result.values.rewardNet, null); assert.equal(result.cycle.missingReason, 'missingRewardPrice'); }
+        if (missing === target) assert.ok(Number.isFinite(result.values.levelingCost));
+    }
+    const stale = run(rows.map(row => row.item_id === journal.filled ? { ...row, buy_price_max_date: '2000-01-01T00:00:00Z' } : row));
+    assert.equal(stale.quote(journal.filled, 'buy').reason, 'staleTimestamp');
+    assert.equal(stale.values.profit, null);
+    if (process.argv[2]) {
+        const live = run(JSON.parse(fs.readFileSync(process.argv[2], 'utf8')));
+        console.log('LIVE FLETCHER ECONOMIC TRACE', JSON.stringify({ journal: journal.filled,
+            purchase: live.cycle.purchase, loot: journal.expectedLoot, rewards: live.cycle.rewardPrices,
+            cycle: live.cycle, acquisition: 1000, contract: live.quote(target, 'sell'), result: live.values }, null, 2));
+    }
+});
 console.log(`OK ${checks} laborer calculation checks (XML mechanics, expected-loot scenarios and synthetic arithmetic fixtures)`);
+
+export { load, catalog, economics, planning, prices, progressionRules, indexPrices };

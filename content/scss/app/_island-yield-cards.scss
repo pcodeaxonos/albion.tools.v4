@@ -527,10 +527,7 @@
 .yield-confidence { gap: 0.14rem; }
 .yield-confidence i { width: 0.42rem; height: 0.42rem; }
 
-.yield-avg-card.is-confidence-1 .yield-confidence i:nth-child(-n + 1),
-.yield-avg-card.is-confidence-2 .yield-confidence i:nth-child(-n + 2),
-.yield-avg-card.is-confidence-3 .yield-confidence i:nth-child(-n + 3),
-.yield-avg-card.is-confidence-4 .yield-confidence i:nth-child(-n + 4) {
+.yield-confidence i.is-filled {
     background: #ffd361;
     box-shadow: 0 0 5px rgba(255, 211, 97, 0.3);
 }
