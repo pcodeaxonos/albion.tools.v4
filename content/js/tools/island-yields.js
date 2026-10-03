@@ -20,6 +20,7 @@ import { cityYieldBonus, productQtyConst } from '../core/island/economy-config.j
 import { getPlants, getAnimals } from '../core/catalog.js';
 import { itemIconHtml } from '../components/item-icon.js';
 import { showToast } from '../components/toast.js';
+import { entryWarnings } from '../core/island-yield-validation.mjs';
 import { formatPct as formatPercent, formatQuantity, formatIsoDate as formatDate } from '../utils/format.js';
 import { cityLabel as getCityLabel, readStoredCity, saveStoredCity } from '../core/city-utils.js';
 
@@ -1388,7 +1389,18 @@ function bindResult(container) {
     });
 }
 
-function saveEntry(container) {
+function confirmYieldEntry(container, warnings) {
+    const dialog = container.querySelector('[data-yield-entry-warning]');
+    dialog.querySelector('[data-yield-entry-warning-text]').textContent = `Kontrol et: ${warnings.join('; ')}.`;
+    dialog.returnValue = '';
+    return new Promise((resolve) => {
+        dialog.addEventListener('close', () => resolve(dialog.returnValue === 'save'), { once: true });
+        dialog.showModal();
+    });
+}
+
+async function saveEntry(container) {
+    if (container.querySelector('[data-yield-entry-warning]')?.open) return;
     const date = container.querySelector('#yieldDate')?.value;
     const plantKey = selectedItemKey(container);
     const seedsPlanted = Number(container.querySelector('#seedsPlanted')?.value);
@@ -1416,6 +1428,33 @@ function saveEntry(container) {
         showToast('Üretilen ürün sayısını kontrol et.', { kind: 'error' });
         return;
     }
+    const item = itemForKey(plantKey);
+    const entry = {
+        id: state.editingId, date, islandCity: state.islandCity, itemKey: plantKey,
+        itemType: productOnly ? 'animalProduct' : itemTypeForKind(),
+        premium: state.premium, water: state.water, seedsPlanted,
+        seedsReturned: productOnly ? 0 : seedsReturned,
+        plantsHarvested: productOnly ? productsHarvested : plantsHarvested
+    };
+    const productOutput = (city) => standardAnimalProductOutput(item, city);
+    const oppositeCity = state.cities.find((city) => hasCityBonus(item, city.marketApiName) !== hasCityBonus(item, state.islandCity))?.marketApiName;
+    const options = {
+        rows: getAll(TABLE), today: todayIso(),
+        expectedOutput: productOnly ? productOutput(state.islandCity) : standardOutput(item),
+        expectedReturn: standardReturn(item),
+        alternateReturn: state.yieldKind === 'plant' ? standardSeedReturn(item, !state.water) : standardAnimalReturn(item, { focus: !state.water }),
+        alternatePremiumOutput: state.yieldKind === 'plant' ? standardPlantYield(item, state.islandCity, !state.premium) : null,
+        alternateCityOutput: oppositeCity ? (productOnly ? productOutput(oppositeCity) : standardOutput(item, oppositeCity)) : null,
+        modeLabel: state.yieldKind === 'plant' ? 'sulama' : 'odak'
+    };
+    const warnings = entryWarnings(entry, options);
+    if (!productOnly && productsHarvested != null && state.yieldKind === 'pasture') {
+        warnings.push(...entryWarnings({ ...entry, itemType: 'animalProduct', seedsReturned: 0, plantsHarvested: productsHarvested }, {
+            ...options, expectedOutput: productOutput(state.islandCity),
+            alternateCityOutput: oppositeCity ? productOutput(oppositeCity) : null
+        }));
+    }
+    if (warnings.length && !await confirmYieldEntry(container, [...new Set(warnings)])) return;
     if (!productOnly) {
         returnedInput.value = String(seedsReturned);
         if (harvestedInput) harvestedInput.value = String(plantsHarvested);
@@ -1567,6 +1606,17 @@ function renderPage(container) {
                 <ul class="app-warning-dialog-list" data-yield-slot-warning-details></ul>
                 <div class="form-actions"><button type="button" class="btn btn-primary" data-yield-slot-warning-close>Tamam</button></div>
             </div>
+        </dialog>
+        <dialog class="app-dialog app-warning-dialog" data-yield-entry-warning aria-labelledby="yield-entry-warning-title" aria-describedby="yield-entry-warning-text">
+            <button type="button" class="app-dialog-close" aria-label="Kapat" data-yield-entry-warning-close></button>
+            <div class="app-warning-dialog-sheet">
+                <h2 id="yield-entry-warning-title">Kaydı kontrol edelim</h2>
+                <p id="yield-entry-warning-text" data-yield-entry-warning-text></p>
+                <div class="form-actions form-actions--inline">
+                    <button type="button" class="btn btn-outline-secondary" data-yield-entry-warning-close autofocus>Bir düşüneyim</button>
+                    <button type="button" class="btn btn-primary" data-yield-entry-warning-save>Böyle kaydet</button>
+                </div>
+            </div>
         </dialog>`,
     });
     container.querySelectorAll(sectionSelector).forEach((section) => {
@@ -1580,6 +1630,11 @@ function renderPage(container) {
 }
 
 function bindPage(container) {
+    const entryWarning = container.querySelector('[data-yield-entry-warning]');
+    entryWarning?.addEventListener('click', (event) => {
+        if (event.target.closest('[data-yield-entry-warning-save]')) entryWarning.close('save');
+        else if (event.target === entryWarning || event.target.closest('[data-yield-entry-warning-close]')) entryWarning.close('cancel');
+    });
     const slotWarning = container.querySelector('[data-yield-slot-warning]');
     slotWarning?.addEventListener('click', (event) => {
         if (event.target === slotWarning || event.target.closest('[data-yield-slot-warning-close]')) {

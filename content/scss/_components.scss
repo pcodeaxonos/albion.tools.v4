@@ -1037,7 +1037,7 @@ input[type="month"].form-control {
     border: var(--border-width) solid var(--color-border);
     border-radius: 0;
     box-shadow: var(--shadow-sm);
-    overflow: hidden;
+    overflow: visible;
     transition:
         border-color var(--transition-normal),
         box-shadow var(--transition-normal);
@@ -1163,7 +1163,7 @@ input[type="month"].form-control {
     }
 
     &.db-sidebar--editing {
-        overflow: hidden;
+        overflow: visible;
 
         .db-sidebar-chrome,
         .db-table-list {
@@ -1350,7 +1350,7 @@ input[type="month"].form-control {
     box-shadow: var(--shadow-sm);
 
     &:has(.db-table-panel) {
-        overflow: hidden;
+        overflow: visible;
     }
 
     > :not(.db-table-panel) {
@@ -1948,14 +1948,43 @@ input[type="month"].form-control {
 [data-tier="7"] { --color-on-item-tier: #161108; }
 
 /* Shared city color tokens for city-scoped cards and status panels. */
+$city-colors: (
+    "bridgewatch": #e87800,
+    "fort-sterling": #fff,
+    "lymhurst": #6d9600,
+    "martlock": #075caf,
+    "thetford": #832aa9,
+    "caerleon": #25242b,
+    "brecilien": #6ec9c0
+);
+
+:root {
+    @each $city, $color in $city-colors {
+        --color-city-#{$city}: #{$color};
+    }
+}
+
 [data-city] { --color-city: var(--color-primary); }
-[data-city="bridgewatch"] { --color-city: #e87800; }
-[data-city="fort-sterling"] { --color-city: #fff; }
-[data-city="lymhurst"] { --color-city: #6d9600; }
-[data-city="martlock"] { --color-city: #075caf; }
-[data-city="thetford"] { --color-city: #832aa9; }
-[data-city="caerleon"] { --color-city: #25242b; }
-[data-city="brecilien"] { --color-city: #6ec9c0; }
+@each $city, $color in $city-colors {
+    [data-city="#{$city}"],
+    .city-selected--#{if($city == "fort-sterling", "fortsterling", $city)} {
+        --color-city: var(--color-city-#{$city});
+    }
+}
+
+.city-selected {
+    --city-selected-gradient: radial-gradient(
+        ellipse at center,
+        transparent 48%,
+        color-mix(in srgb, var(--color-city, var(--color-primary)) 3%, transparent) 62%,
+        color-mix(in srgb, var(--color-city, var(--color-primary)) 16%, transparent) 78%,
+        color-mix(in srgb, var(--color-city, var(--color-primary)) 38%, transparent) 92%,
+        color-mix(in srgb, var(--color-city, var(--color-primary)) 55%, transparent) 100%
+    );
+    background-image: var(--city-selected-gradient);
+    background-repeat: no-repeat;
+    background-size: 100% 100%;
+}
 
 /*
  * Modal close: hangs outside the dialog (right side, 20px gap), CSS X via ::before/::after.

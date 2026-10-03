@@ -1,0 +1,24 @@
+import assert from 'node:assert/strict';
+import { entryWarnings } from '../js/core/island-yield-validation.mjs';
+
+const entry = { date: '2026-10-02', islandCity: 'A', itemType: 'plant', itemKey: 'carrot', premium: true, water: true, seedsPlanted: 90, seedsReturned: 180, plantsHarvested: 810 };
+const options = { rows: [], today: entry.date, expectedOutput: 9, expectedReturn: 2, alternateReturn: 0, alternatePremiumOutput: 4.5, alternateCityOutput: 9.5, modeLabel: 'sulama' };
+const check = (changes = {}, overrides = {}) => entryWarnings({ ...entry, ...changes }, { ...options, ...overrides });
+assert.deepEqual(check(), []);
+assert.ok(check({ seedsReturned: 0 }).some((w) => w.includes('sulama')));
+assert.ok(check({ plantsHarvested: 405 }).some((w) => w.includes('premium')));
+assert.ok(check({ plantsHarvested: 855 }).some((w) => w.includes('şehir')));
+assert.deepEqual(check({ seedsPlanted: 9, seedsReturned: 18, plantsHarvested: 86 }), []);
+assert.ok(check({ date: '2026-10-03' }).some((w) => w.includes('gelecekte')));
+const row = { ...entry, id: 1 };
+assert.ok(check({}, { rows: [row] }).some((w) => w.includes('zaten')));
+assert.deepEqual(check({ id: 1 }, { rows: [row] }), []);
+assert.ok(check({}, { rows: [{ ...row, islandCity: 'B' }] }).some((w) => w.includes('şehir')));
+assert.deepEqual(check({ itemType: 'animal', plantsHarvested: 90 }), []);
+assert.deepEqual(check({ itemType: 'animalProduct', seedsReturned: 0, plantsHarvested: 1620 }, { expectedOutput: 18, alternateCityOutput: null }), []);
+assert.ok(check({ plantsHarvested: 0 }).length);
+assert.ok(check({ seedsPlanted: 1.5 }).some((w) => w.includes('tam sayı')));
+const history = [1, 2, 3].map((id) => ({ ...row, id, date: '2026-10-01', plantsHarvested: 540 }));
+assert.ok(check({}, { rows: history }).some((w) => w.includes('ortalamasından')));
+assert.deepEqual(check({}, { rows: history.map((r) => ({ ...r, isOutlier: true })) }), []);
+console.log('14 island yield validation checks passed.');

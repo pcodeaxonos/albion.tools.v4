@@ -1384,7 +1384,7 @@ input[type=month].form-control {
   border: var(--border-width) solid var(--color-border);
   border-radius: 0;
   box-shadow: var(--shadow-sm);
-  overflow: hidden;
+  overflow: visible;
   transition: border-color var(--transition-normal), box-shadow var(--transition-normal);
 }
 .card:hover {
@@ -1503,7 +1503,7 @@ input[type=month].form-control {
   }
 }
 .db-sidebar.db-sidebar--editing {
-  overflow: hidden;
+  overflow: visible;
 }
 .db-sidebar.db-sidebar--editing .db-sidebar-chrome,
 .db-sidebar.db-sidebar--editing .db-table-list {
@@ -1682,7 +1682,7 @@ input[type=month].form-control {
   box-shadow: var(--shadow-sm);
 }
 .db-content:has(.db-table-panel) {
-  overflow: hidden;
+  overflow: visible;
 }
 .db-content > :not(.db-table-panel) {
   flex-shrink: 0;
@@ -2236,36 +2236,67 @@ input[type=month].form-control {
 }
 
 /* Shared city color tokens for city-scoped cards and status panels. */
+:root {
+  --color-city-bridgewatch: #e87800;
+  --color-city-fort-sterling: #fff;
+  --color-city-lymhurst: #6d9600;
+  --color-city-martlock: #075caf;
+  --color-city-thetford: #832aa9;
+  --color-city-caerleon: #25242b;
+  --color-city-brecilien: #6ec9c0;
+}
+
 [data-city] {
   --color-city: var(--color-primary);
 }
 
-[data-city=bridgewatch] {
-  --color-city: #e87800;
+[data-city=bridgewatch],
+.city-selected--bridgewatch {
+  --color-city: var(--color-city-bridgewatch);
 }
 
-[data-city=fort-sterling] {
-  --color-city: #fff;
+[data-city=fort-sterling],
+.city-selected--fortsterling {
+  --color-city: var(--color-city-fort-sterling);
 }
 
-[data-city=lymhurst] {
-  --color-city: #6d9600;
+[data-city=lymhurst],
+.city-selected--lymhurst {
+  --color-city: var(--color-city-lymhurst);
 }
 
-[data-city=martlock] {
-  --color-city: #075caf;
+[data-city=martlock],
+.city-selected--martlock {
+  --color-city: var(--color-city-martlock);
 }
 
-[data-city=thetford] {
-  --color-city: #832aa9;
+[data-city=thetford],
+.city-selected--thetford {
+  --color-city: var(--color-city-thetford);
 }
 
-[data-city=caerleon] {
-  --color-city: #25242b;
+[data-city=caerleon],
+.city-selected--caerleon {
+  --color-city: var(--color-city-caerleon);
 }
 
-[data-city=brecilien] {
-  --color-city: #6ec9c0;
+[data-city=brecilien],
+.city-selected--brecilien {
+  --color-city: var(--color-city-brecilien);
+}
+
+.city-selected {
+  --city-selected-gradient: radial-gradient(
+      ellipse at center,
+      transparent 48%,
+      color-mix(in srgb, var(--color-city, var(--color-primary)) 3%, transparent) 62%,
+      color-mix(in srgb, var(--color-city, var(--color-primary)) 16%, transparent) 78%,
+      color-mix(in srgb, var(--color-city, var(--color-primary)) 38%, transparent) 92%,
+      color-mix(in srgb, var(--color-city, var(--color-primary)) 55%, transparent) 100%
+  );
+  background-image: var(--city-selected-gradient);
+  background-repeat: no-repeat;
+  background-size: 100% 100%;
 }
 
 /*
@@ -3897,7 +3928,7 @@ main:has(.container--db) {
   display: flex;
   flex-direction: column;
   padding-bottom: var(--spacing-md);
-  overflow: hidden;
+  overflow: visible;
 }
 @media (max-width: 576px) {
   main:has(.container--db) {
@@ -5016,7 +5047,7 @@ a.tool-card:hover {
   position: relative;
   min-height: var(--page-head-content-height, 5vw);
   margin: 0;
-  overflow: hidden;
+  overflow: visible;
   background-color: transparent;
   box-shadow: none;
 }
@@ -5073,10 +5104,10 @@ main:has(.page-head) {
   flex-direction: column;
   min-height: 0;
   padding-top: 0;
-  background-image: linear-gradient(to bottom, transparent 0, color-mix(in srgb, var(--color-bg) 42%, transparent) var(--page-head-fade-midpoint), var(--color-bg) var(--page-head-content-height)), var(--page-head-image);
-  background-position: top, 56% top;
+  background-image: var(--city-selected-gradient, linear-gradient(transparent, transparent)), linear-gradient(to bottom, transparent 0, color-mix(in srgb, var(--color-bg) 42%, transparent) var(--page-head-fade-midpoint), var(--color-bg) var(--page-head-content-height)), var(--page-head-image);
+  background-position: top, top, 56% top;
   background-repeat: no-repeat;
-  background-size: 100% auto, 100% auto;
+  background-size: 100% 100%, 100% auto, 100% auto;
 }
 
 .tool-page {
@@ -8614,7 +8645,7 @@ main:has(.page-head[data-page-head=enchanting]) {
 
 .yield-avg-row {
   grid-template-columns: repeat(8, minmax(9.5rem, 1fr));
-  overflow-x: auto;
+  overflow: visible;
   padding: 0.2rem;
 }
 
@@ -16470,7 +16501,7 @@ main.tool-page > .page-body {
   flex: 0.78 1 0;
   min-height: 0;
   margin-top: var(--spacing-sm);
-  overflow: auto;
+  overflow: visible;
 }
 
 .page-body > .tool-split {
@@ -16489,8 +16520,7 @@ main.tool-page > .page-body {
 .page-body > .tool-split > .left {
   position: sticky;
   top: 0;
-  overflow: auto;
-  overscroll-behavior: contain;
+  overflow: visible;
   gap: var(--spacing-md);
 }
 .page-body > .tool-split > .left > .controls {
@@ -16516,8 +16546,7 @@ main.tool-page > .page-body {
   flex-direction: column;
   min-width: 0;
   min-height: 0;
-  overflow: auto;
-  overscroll-behavior: contain;
+  overflow: visible;
 }
 
 .tool-page .result :where(div, section):has(.calc-table-wrap) {
@@ -16638,20 +16667,263 @@ main.tool-page > .page-body {
     font-size: var(--font-size-sm);
   }
 }
-[data-tool=laborer-contract] .ava-side-field {
-  grid-template-columns: minmax(0, 1fr);
+[data-tool=laborer-contract] .laborer-result [data-laborer-results] {
+  display: grid;
+  grid-template-rows: minmax(0, 6rem) minmax(0, 1fr) minmax(0, 9rem);
+  flex: 1 1 0;
+  min-height: 0;
+  min-width: 0;
   gap: var(--spacing-sm);
 }
-[data-tool=laborer-contract] label {
+[data-tool=laborer-contract] .laborer-dashboard-top,
+[data-tool=laborer-contract] .laborer-dashboard-middle,
+[data-tool=laborer-contract] .laborer-dashboard-bottom,
+[data-tool=laborer-contract] .laborer-kpis,
+[data-tool=laborer-contract] .laborer-detail-grid {
+  display: grid;
+  min-height: 0;
+  min-width: 0;
+  gap: var(--spacing-sm);
+}
+[data-tool=laborer-contract] .laborer-dashboard-top {
+  grid-template-columns: minmax(0, 1fr);
+}
+[data-tool=laborer-contract] .laborer-kpis {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+[data-tool=laborer-contract] .laborer-result .laborer-dashboard-middle {
+  display: grid;
+  grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr);
+}
+[data-tool=laborer-contract] .laborer-dashboard-bottom {
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 1.1fr) minmax(0, 1fr);
+}
+[data-tool=laborer-contract] .laborer-result-card {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  margin: 0;
+  padding: var(--spacing-xs);
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--border-radius-sm);
+  background: var(--color-surface);
+}
+[data-tool=laborer-contract] .laborer-result-card > .laborer-section-title {
+  margin: 0 0 var(--spacing-xs);
+}
+[data-tool=laborer-contract] .laborer-status-panel,
+[data-tool=laborer-contract] .laborer-kpi {
+  overflow: auto;
+  overscroll-behavior: contain;
+}
+[data-tool=laborer-contract] .laborer-status-panel {
+  font-size: var(--font-size-xs);
+}
+[data-tool=laborer-contract] .laborer-kpi {
+  justify-content: flex-start;
+  gap: var(--spacing-xs);
+}
+[data-tool=laborer-contract] .laborer-kpi h2, [data-tool=laborer-contract] .laborer-kpi small {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+}
+[data-tool=laborer-contract] .laborer-kpi strong {
+  font-size: var(--font-size-sm);
+  font-family: var(--font-family-mono);
+  overflow-wrap: anywhere;
+}
+[data-tool=laborer-contract] .laborer-result .laborer-panel-scroll {
+  display: block;
+  flex: 1 1 0;
+  min-height: 0;
+  min-width: 0;
+  overflow: auto;
+  overscroll-behavior: contain;
+  font-size: var(--font-size-xs);
+}
+[data-tool=laborer-contract] .laborer-result .laborer-panel-scroll > p {
+  margin: 0 0 var(--spacing-sm);
+}
+[data-tool=laborer-contract] .laborer-comparison .calc-table {
+  min-width: 36rem;
+  font-size: var(--font-size-xs);
+}
+[data-tool=laborer-contract] .laborer-comparison .calc-table th {
+  white-space: normal;
+}
+[data-tool=laborer-contract] .laborer-comparison .calc-table td {
+  vertical-align: middle;
+  padding-block: var(--spacing-xs);
+}
+[data-tool=laborer-contract] .laborer-comparison .calc-table td:last-child {
+  min-width: 5rem;
+}
+[data-tool=laborer-contract] .laborer-comparison .calc-table thead th {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: var(--color-surface);
+}
+[data-tool=laborer-contract] .laborer-comparison .calc-note {
+  flex: 0 0 auto;
+  margin-bottom: 0;
+  max-height: 3rem;
+  overflow: auto;
+}
+[data-tool=laborer-contract] .laborer-comparison tr[data-laborer-result-tier] {
+  cursor: pointer;
+}
+[data-tool=laborer-contract] .laborer-comparison .laborer-contract-item .item-icon {
+  width: 3rem;
+  height: 3rem;
+}
+[data-tool=laborer-contract] .laborer-comparison tr.is-selected > td {
+  background: color-mix(in srgb, var(--color-primary) 18%, var(--color-surface));
+  box-shadow: inset 0 1px var(--color-primary), inset 0 -1px var(--color-primary);
+}
+[data-tool=laborer-contract] .laborer-detail-identity {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  margin-bottom: var(--spacing-sm);
+}
+[data-tool=laborer-contract] .laborer-detail-identity p {
+  margin: 0;
+  color: var(--color-text-muted);
+}
+[data-tool=laborer-contract] .laborer-detail-identity .item-icon {
+  width: 3rem;
+  height: 3rem;
+}
+[data-tool=laborer-contract] .laborer-price-status {
+  margin-left: auto;
+  color: var(--color-primary);
+}
+[data-tool=laborer-contract] .laborer-result .laborer-detail-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-rows: repeat(3, minmax(0, 1fr));
+  flex: 1 1 0;
+}
+[data-tool=laborer-contract] .laborer-result .laborer-detail-grid .laborer-journal-content {
+  display: block;
+}
+[data-tool=laborer-contract] .laborer-result .laborer-detail-grid .calc-table-wrap {
+  max-height: 18rem;
+}
+[data-tool=laborer-contract] .laborer-result .laborer-detail-card {
+  display: block;
+  min-width: 0;
+  padding: var(--spacing-sm);
+  border: var(--border-width) solid var(--color-border);
+  background: var(--color-surface);
+  min-height: 0;
+  overflow: auto;
+  overscroll-behavior: contain;
+}
+[data-tool=laborer-contract] .laborer-result .laborer-detail-card h3 {
+  margin: 0 0 var(--spacing-sm);
+  color: var(--color-primary);
+  font-size: var(--font-size-xs);
+}
+[data-tool=laborer-contract] .laborer-metrics {
+  margin: 0;
+  font-size: var(--font-size-xs);
+}
+[data-tool=laborer-contract] .laborer-metrics > div {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--spacing-sm);
+  padding: 0;
+}
+[data-tool=laborer-contract] .laborer-metrics dt {
+  color: var(--color-text-muted);
   min-width: 0;
 }
-[data-tool=laborer-contract] label > :is(input.form-control, select.form-select) {
-  display: block;
-  width: 100%;
-  margin-top: var(--spacing-sm);
+[data-tool=laborer-contract] .laborer-metrics dd {
+  margin: 0;
+  font-family: var(--font-family-mono);
+  text-align: right;
+  overflow-wrap: anywhere;
+  min-width: 0;
+}
+[data-tool=laborer-contract] .laborer-plan-sequence {
+  padding-left: 1rem;
+}
+[data-tool=laborer-contract] .laborer-result .laborer-selected-detail > .laborer-panel-scroll {
+  display: flex;
+  flex-direction: column;
+}
+[data-tool=laborer-contract] .laborer-result .laborer-selected-detail > .laborer-panel-scroll > .laborer-detail-identity, [data-tool=laborer-contract] .laborer-result .laborer-selected-detail > .laborer-panel-scroll > details {
+  flex: 0 0 auto;
+}
+@media (min-width: 992px) {
+  [data-tool=laborer-contract] .page-body > .tool-split {
+    grid-template-columns: 20rem minmax(0, 1fr);
+    gap: var(--spacing-sm);
+  }
+  [data-tool=laborer-contract] .page-body > .tool-split > .left > .controls {
+    flex: 1 1 0;
+    min-height: 0;
+    overflow: auto;
+    padding-top: var(--spacing-sm);
+  }
+}
+@media (max-width: 1399px) and (min-width: 992px) {
+  [data-tool=laborer-contract] .laborer-result [data-laborer-results] {
+    grid-template-rows: minmax(0, 1.2fr) minmax(0, 4fr) minmax(0, 1.3fr);
+  }
+  [data-tool=laborer-contract] .laborer-result .laborer-dashboard-middle {
+    grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+  }
+  [data-tool=laborer-contract] .laborer-result .laborer-detail-grid {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: none;
+    flex: 0 0 auto;
+  }
+}
+@media (max-width: 991px) {
+  [data-tool=laborer-contract] .laborer-result [data-laborer-results] {
+    display: flex;
+    flex: 1 0 auto;
+  }
+  [data-tool=laborer-contract] .laborer-dashboard-top {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  [data-tool=laborer-contract] .laborer-result .laborer-dashboard-middle {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: 26rem 30rem;
+    flex: 0 0 auto;
+  }
+  [data-tool=laborer-contract] .laborer-dashboard-bottom {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-rows: repeat(2, minmax(0, 1fr));
+    height: 22rem;
+    flex: 0 0 auto;
+  }
+  [data-tool=laborer-contract] .laborer-status-panel, [data-tool=laborer-contract] .laborer-kpi {
+    min-height: 5rem;
+  }
+}
+@media (max-width: 575px) {
+  [data-tool=laborer-contract] .laborer-kpis {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  [data-tool=laborer-contract] .laborer-dashboard-bottom {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: repeat(3, minmax(0, 1fr));
+    height: 36rem;
+  }
+  [data-tool=laborer-contract] .laborer-result .laborer-detail-grid {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: none;
+    flex: 0 0 auto;
+  }
 }
 [data-tool=laborer-contract] .calc-table {
-  min-width: 48rem;
+  min-width: 40rem;
 }
 [data-tool=laborer-contract] .calc-table th {
   white-space: nowrap;
@@ -16663,19 +16935,144 @@ main.tool-page > .page-body {
   white-space: nowrap;
 }
 [data-tool=laborer-contract] .calc-table td:last-child {
-  min-width: 16rem;
-  max-width: 28rem;
+  min-width: 7rem;
   overflow-wrap: anywhere;
+}
+[data-tool=laborer-contract] .laborer-contract-item {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  border: 0;
+  background: transparent;
+  color: inherit;
+  padding: 0;
+  cursor: pointer;
+}
+[data-tool=laborer-contract] .laborer-contract-item .item-icon {
+  width: 4.5rem;
+  height: 4.5rem;
+}
+[data-tool=laborer-contract] .laborer-section-title {
+  margin: 0 0 var(--spacing-md);
+  font-size: var(--h5-size, 1rem);
+  font-weight: var(--font-weight-semibold);
+}
+[data-tool=laborer-contract] .laborer-controls {
+  display: grid;
+  gap: var(--spacing-lg);
+}
+[data-tool=laborer-contract] .laborer-control-pair {
+  display: grid;
+  grid-template-columns: 4.5rem minmax(0, 1fr);
+  gap: var(--spacing-sm);
+}
+[data-tool=laborer-contract] .laborer-tiers .price-side-btn {
+  flex: 1 1 0;
+  min-width: 0;
+  padding-inline: 0;
+  border-color: var(--color-item-tier);
+  color: var(--color-item-tier);
+}
+[data-tool=laborer-contract] .laborer-tiers .price-side-btn.is-active {
+  background: var(--color-item-tier);
+  color: var(--color-on-item-tier, #fff);
+}
+[data-tool=laborer-contract] .laborer-control-group {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--spacing-sm);
+  min-width: 0;
+}
+[data-tool=laborer-contract] .laborer-control-group > * {
+  grid-column: 1/-1;
+  min-width: 0;
+}
+[data-tool=laborer-contract] .laborer-control-group > .city-field--diagonal {
+  grid-column: auto;
+}
+[data-tool=laborer-contract] .laborer-control-group > .price-side {
+  width: 100%;
+}
+[data-tool=laborer-contract] .laborer-control-group > .price-side > .price-side-btn {
+  flex: 1 1 0;
+  min-width: 0;
+}
+[data-tool=laborer-contract] .laborer-control-group h2 {
+  margin: 0 0 var(--spacing-xs);
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: 0.04em;
+}
+[data-tool=laborer-contract] .laborer-control-group p {
+  margin: 0;
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+}
+[data-tool=laborer-contract] .laborer-journal-content {
+  padding-top: var(--spacing-sm);
+}
+[data-tool=laborer-contract] [data-laborer-results] > details > summary {
+  padding-block: var(--spacing-sm);
+}
+[data-tool=laborer-contract] .calc-table td:not(:first-child) {
+  font-variant-numeric: tabular-nums;
+}
+[data-tool=laborer-contract] .laborer-price {
+  display: grid;
+  gap: var(--spacing-sm);
+  min-width: 0;
+  margin-block: var(--spacing-sm);
+}
+[data-tool=laborer-contract] .laborer-price > .btn {
+  justify-self: start;
+}
+[data-tool=laborer-contract] .laborer-price-meta, [data-tool=laborer-contract] .calc-note, [data-tool=laborer-contract] small {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+[data-tool=laborer-contract] .calc-note {
+  margin-block: var(--spacing-sm);
+}
+[data-tool=laborer-contract] [data-laborer-results] > [role=status],
+[data-tool=laborer-contract] [data-laborer-results] > [role=alert],
+[data-tool=laborer-contract] .alert {
+  margin: 0 0 var(--spacing-md);
+  padding: var(--spacing-md);
+  background: var(--color-surface);
+  border: var(--border-width) solid var(--color-border);
+  font-size: var(--font-size-sm);
+  line-height: 1.6;
+}
+[data-tool=laborer-contract] [data-laborer-results] > [role=status] p,
+[data-tool=laborer-contract] [data-laborer-results] > [role=alert] p,
+[data-tool=laborer-contract] .alert p {
+  margin: var(--spacing-sm) 0 0;
+}
+[data-tool=laborer-contract] .alert-warning {
+  border-inline-start: 3px solid var(--color-warning, var(--color-primary));
 }
 [data-tool=laborer-contract] details {
   margin-top: var(--spacing-sm);
+  padding-block: var(--spacing-sm);
+  border-top: var(--border-width) solid var(--color-border);
+  font-size: var(--font-size-sm);
+  line-height: 1.6;
 }
 [data-tool=laborer-contract] summary {
   cursor: pointer;
+  color: var(--color-text);
+  font-weight: var(--font-weight-medium);
+}
+[data-tool=laborer-contract] summary:focus-visible {
+  outline: var(--focus-outline-width) solid var(--color-focus-ring);
+  outline-offset: var(--focus-outline-offset);
 }
 [data-tool=laborer-contract] details > :not(summary) {
   margin-top: var(--spacing-sm);
 }
-[data-tool=laborer-contract] small {
-  color: var(--color-text-muted);
+[data-tool=laborer-contract] .calc-table td > .form-control {
+  min-width: 7rem;
 }

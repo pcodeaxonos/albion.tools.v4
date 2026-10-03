@@ -1,0 +1,79 @@
+{
+  "verified": true,
+  "tier": 2,
+  "cost": 1000,
+  "byType": {
+    "wood": {
+      "verified": true,
+      "tier": 2,
+      "cost": 1000
+    },
+    "stone": {
+      "verified": true,
+      "tier": 2,
+      "cost": 1000
+    },
+    "fiber": {
+      "verified": true,
+      "tier": 2,
+      "cost": 1000
+    },
+    "hide": {
+      "verified": true,
+      "tier": 2,
+      "cost": 1000
+    },
+    "ore": {
+      "verified": true,
+      "tier": 2,
+      "cost": 1000
+    },
+    "mercenary": {
+      "verified": true,
+      "tier": 2,
+      "cost": 1000
+    },
+    "fish": {
+      "verified": true,
+      "tier": 2,
+      "cost": 1000
+    },
+    "hunter": {
+      "verified": true,
+      "tier": 2,
+      "cost": 1000
+    },
+    "mage": {
+      "verified": true,
+      "tier": 2,
+      "cost": 1000
+    },
+    "warrior": {
+      "verified": true,
+      "tier": 2,
+      "cost": 1000
+    },
+    "toolmaker": {
+      "verified": true,
+      "tier": 2,
+      "cost": 1000
+    }
+  },
+  "source": "https://github.com/ao-data/ao-bin-dumps/blob/master/buildings.xml",
+  "costSource": "buildings.xml.labourer.hireprice",
+  "provenance": {
+    "source": "https://github.com/ao-data/ao-bin-dumps/blob/master/buildings.xml",
+    "buildingsXmlSha256": "39127be65741632442410e083a30490beace46eba9a43cd0e6d3d950ae23934e",
+    "fields": [
+      "labourer.uniquename",
+      "contractitem",
+      "tier",
+      "hireprice",
+      "fametoprogress",
+      "joblength",
+      "profession",
+      "upgradeableto",
+      "journalsaccepted.journal.uniquename"
+    ]
+  }
+}

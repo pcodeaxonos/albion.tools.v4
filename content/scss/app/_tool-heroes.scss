@@ -2,7 +2,7 @@
     position: relative;
     min-height: var(--page-head-content-height, 5vw);
     margin: 0;
-    overflow: hidden;
+    overflow: visible;
     background-color: transparent;
     box-shadow: none;
 
@@ -64,6 +64,7 @@ main:has(.page-head) {
     min-height: 0;
     padding-top: 0;
     background-image:
+        var(--city-selected-gradient, linear-gradient(transparent, transparent)),
         linear-gradient(
             to bottom,
             transparent 0,
@@ -71,9 +72,9 @@ main:has(.page-head) {
             var(--color-bg) var(--page-head-content-height)
         ),
         var(--page-head-image);
-    background-position: top, 56% top;
+    background-position: top, top, 56% top;
     background-repeat: no-repeat;
-    background-size: 100% auto, 100% auto;
+    background-size: 100% 100%, 100% auto, 100% auto;
 }
 
 .tool-page {

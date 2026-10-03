@@ -33,11 +33,16 @@ const economics = await load('content/js/core/laborer/economics.js');
 const planning = await load('content/js/core/laborer/planning.js');
 const prices = await load('content/js/core/laborer/prices.js');
 const dataModule = await load('content/js/core/laborer/data.js');
+const { progressionRules } = await load('content/js/core/laborer/progression-rules.js');
+const acquisitionModule = await load('content/js/core/laborer/acquisition.mjs');
+const { parseLaborerXml, mechanicsFromLaborers, acquisitionFromMechanics } = await import('./laborer-mechanics.mjs');
+const xmlFixture = fs.readFileSync('content/scripts/fixtures/laborer-buildings.xml', 'utf8');
 const { liquidity } = await load('content/js/core/laborer/liquidity.js');
 const { indexPrices } = await load('content/js/core/market.js');
 const fees = await load('content/js/core/market-fees.js');
 const catalog = JSON.parse(fs.readFileSync('data/laborer-contract.json', 'utf8'));
 catalog.mechanics = JSON.parse(fs.readFileSync('data/laborer-progression-rules.json', 'utf8'));
+catalog.acquisition = JSON.parse(fs.readFileSync('data/laborer-acquisition.json', 'utf8'));
 const rewardsModule = await load('content/js/core/laborer/rewards.js');
 let checks = 0;
 function test(name, run) { run(); checks++; console.log(`PASS ${name}`); }
@@ -45,7 +50,7 @@ const near = (actual, expected) => assert.ok(Math.abs(actual - expected) < 1e-8,
 const plain = (value) => JSON.parse(JSON.stringify(value));
 
 // Synthetic arithmetic fixtures are NOT Albion mechanic values. Production
-// remains blocked by the real catalog's unverified mechanic manifest.
+// remain isolated from the parsed production mechanics.
 const mechanics = { verified: true, source: 'synthetic-test-only', cycleHours: 24, carryOver: true,
     stages: {
         2: { requiredFame: 100, journals: [{ filled: 'journal-a', fame: 60 }] },
@@ -56,9 +61,154 @@ const plan = (options = {}) => planning.planProgression({ mechanics, startTier: 
 const sale = (price, setup = false) => ({ item: 'contract', city: 'fixture', price, setup, status: 'ok', mode: 'manual' });
 const evaluate = (options = {}) => economics.evaluatePlan({ plan: plan(), acquisition: 100, quantity: 1, sale: sale(500), premium: true, ...options });
 
-test('production never calculates with unverified mechanics', () => {
-    assert.equal(plan({ mechanics: catalog.mechanics }).status, 'unsupported');
-    assert.ok(dataModule.mechanicIssues(catalog.mechanics).length);
+test('all null prices retain Fletcher mechanical routes and acquisition-only capital', () => {
+    const rules = progressionRules(catalog, 'hunter');
+    assert.equal(rules.stages[2].requiredFame, 75);
+    assert.equal(rules.stages[2].accepted.length, 2);
+    const journal = rules.stages[2].journals.find((row) => row.filled === 'T2_JOURNAL_HUNTER_FULL');
+    assert.equal(journal.fame, 76);
+    const missingQuote = (item, intent) => ({ item, intent, status: 'missing', price: null });
+    for (let targetTier = 3; targetTier <= 8; targetTier++) {
+        const options = { mechanics: rules, startTier: 2, targetTier };
+        const result = planning.planProgression({ ...options, journalEconomics: (row) => economics.cycleEconomics(row, missingQuote, true) });
+        assert.equal(result.reachable, true);
+        assert.equal(result.economicAvailable, false);
+        assert.ok(result.cycles > 0 && result.planningDays > 0 && result.mechanicalHours > 0);
+        assert.equal(result.sequence[0].journal, journal.filled);
+        if (targetTier === 3) { assert.equal(result.cycles, 1); assert.equal(result.mechanicalHours, 22); }
+        const values = economics.evaluatePlan({ plan: result, acquisition: 1000, quantity: 1, sale: missingQuote('contract', 'sell'), premium: true });
+        assert.equal(values.cycles, result.cycles);
+        assert.equal(values.profit, null);
+        assert.equal(values.roi, null);
+        assert.equal(values.peakCapital, null);
+        assert.equal(values.acquisitionCapital, 1000);
+        const priced = planning.planProgression({ ...options, journalEconomics: () => cycle });
+        assert.deepEqual(plain(priced.mechanical), plain(result.mechanical));
+        assert.equal(priced.economicAvailable, true);
+        const pricedValues = economics.evaluatePlan({ plan: priced, acquisition: 1000, quantity: 1, sale: sale(5000), premium: true });
+        assert.ok(Number.isFinite(pricedValues.profit));
+    }
+});
+
+test('NPC hire costs 1000 for one laborer and 10000 for ten', () => {
+    assert.equal(acquisitionModule.hireCost(catalog, 'wood', 1), 1000);
+    assert.equal(acquisitionModule.hireCost(catalog, 'wood', 10), 10000);
+    for (const premium of [true, false]) {
+        for (const quantity of [1, 10]) {
+            const result = evaluate({ acquisition: acquisitionModule.hireCost(catalog, 'wood'), quantity, premium });
+            near(result.levelingCost - result.grossJournalCost + result.rewardNet, 1000 * quantity);
+        }
+    }
+});
+test('NPC acquisition starts at T2 regardless of selected or persisted tier', () => {
+    for (const startTier of [2, 4, 8]) {
+        assert.equal(acquisitionModule.acquisitionStartTier(catalog, { type: 'wood', acquisitionMode: 'new', startTier }), 2);
+        assert.equal(acquisitionModule.acquisitionStartTier(catalog, { type: 'wood', acquisitionMode: 'market', startTier }), startTier);
+    }
+});
+test('current XML fixture imports all 77 laborers and joins contracts/journals', () => {
+    const rows = parseLaborerXml(xmlFixture);
+    assert.equal(rows.length, 77);
+    const parsed = mechanicsFromLaborers(rows, catalog.contracts, catalog.journals, { source: 'fixture' });
+    assert.deepEqual(parsed.byType, catalog.mechanics.byType);
+    const hire = acquisitionFromMechanics(parsed);
+    assert.equal(hire.tier, 2); assert.equal(hire.cost, 1000);
+    assert.throws(() => parseLaborerXml('<buildings/>'));
+    assert.throws(() => parseLaborerXml(xmlFixture.replace('fametoprogress="75"', 'fametoprogress="bad"')));
+});
+test('XML Fletcher thresholds, job length and exact acceptance are authoritative', () => {
+    const rules = progressionRules(catalog, 'hunter');
+    assert.deepEqual(Object.values(rules.stages).map(stage => stage.requiredFame), [75, 360, 1200, 4320, 12480, 36480, 0]);
+    for (const tier of [2, 3, 4, 5]) {
+        assert.ok(rules.stages[5].accepted.includes(`T${tier}_JOURNAL_HUNTER_FULL`));
+        assert.ok(rules.stages[5].accepted.includes(`T${tier}_JOURNAL_TROPHY_GENERAL_FULL`));
+    }
+    assert.ok(!rules.stages[5].accepted.includes('T6_JOURNAL_HUNTER_FULL'));
+    assert.equal(rules.stages[2].hirePrice, 1000);
+    assert.equal(rules.stages[2].jobLengthSeconds, 79200);
+    assert.equal(rules.cycleHours, 22);
+    assert.equal(rules.carryOver, true);
+    assert.deepEqual(plain(dataModule.mechanicIssues(rules)), []);
+    assert.equal(planning.applyCycle({ tier: 5, progress: 0 }, { filled: 'T6_JOURNAL_HUNTER_FULL', fame: 1000 }, rules), null);
+});
+test('XML profile thresholds retain regression totals without runtime hardcodes', () => {
+    for (const [type, values, total] of [
+        ['wood', [75,360,1200,4320,12480,36480,0], 54915],
+        ['fish', [76,393,1255,4374,12519,36537,0], 55154],
+        ['mercenary', [282,1302,3265,7866,15223,30286,0], 58224]
+    ]) {
+        const actual = Object.values(progressionRules(catalog, type).stages).map(stage => stage.requiredFame);
+        assert.deepEqual(actual, values);
+        assert.equal(actual.reduce((a,b)=>a+b,0),total);
+    }
+    assert.equal(catalog.mechanics.profiles, undefined);
+    assert.equal(catalog.mechanics.behavior.source, 'verified-behavior');
+    assert.equal(catalog.mechanics.behavior.confidence, 'behavioral/high');
+});
+test('weighted loot and progression share one return-yield resolver', () => {
+    const journal = catalog.journals.find(j => j.item === 'T2_JOURNAL_HUNTER');
+    const baseline = rewardsModule.resolveRewards(journal);
+    const more = rewardsModule.resolveRewards(journal, { returnYield: 1.5 });
+    const less = rewardsModule.resolveRewards(journal, { returnYield: .5 });
+    const zero = rewardsModule.resolveRewards(journal, { returnYield: 0 });
+    assert.equal(baseline.status, 'ok'); near(baseline.expectedLabourerFame, 76);
+    near(more.expectedLabourerFame, baseline.expectedLabourerFame * 1.5);
+    near(less.expectedLabourerFame, baseline.expectedLabourerFame * .5);
+    near(zero.expectedLabourerFame, 0);
+    for (let i = 0; i < baseline.expectedLoot.length; i++) near(more.expectedLoot[i].quantity, baseline.expectedLoot[i].quantity * 1.5);
+    assert.equal(baseline.rewards.find(r=>r.item===journal.empty).quantity,1);
+    const changed = rewardsModule.resolveRewards({ ...journal, fillFame: 999999999 });
+    near(changed.expectedLabourerFame, baseline.expectedLabourerFame);
+    const valued = economics.cycleEconomics({ ...journal, ...baseline, rewardsVerified: true }, (item)=>sale(item===journal.filled?100:2),true);
+    near(valued.expectedLabourerFame, baseline.expectedLabourerFame);
+    near(valued.expectedRewardValue, (38+1)*2*(1-fees.taxPremiumRate()));
+});
+test('mixed fame entries and silver payouts never sum fame blindly or grant fame per coin', () => {
+    const journal = { filled:'full', empty:'empty', baseLootAmount:4, loot:[
+        {item:'a',amount:1,weight:1,labourerFame:2}, {item:'b',amount:1,weight:3,labourerFame:10}
+    ] };
+    const resolved = rewardsModule.resolveRewards(journal);
+    near(resolved.expectedLabourerFame,32);
+    const mercenary = catalog.journals.find(j=>j.item==='T3_JOURNAL_MERCENARY');
+    const silver = rewardsModule.resolveRewards(mercenary);
+    near(silver.expectedLabourerFame, mercenary.loot[0].labourerFame);
+    near(silver.rewards.find(r=>r.item==='SILVER').quantity,mercenary.loot[0].amount);
+});
+test('fractional expected fame works and carry-over permits one advance per job', () => {
+    const rules = progressionRules(catalog,'hunter');
+    const journal = rules.stages[2].journals.find(j=>j.filled==='T2_JOURNAL_HUNTER_FULL');
+    assert.deepEqual(plain(planning.applyCycle({tier:2,progress:0},journal,rules)),{tier:3,progress:1});
+    assert.deepEqual(plain(planning.applyCycle({tier:3,progress:1},{filled:'T3_JOURNAL_HUNTER_FULL',fame:0},rules)),{tier:3,progress:1});
+    const fractional = { ...journal, fame:37.5 };
+    assert.equal(planning.applyCycle({tier:2,progress:0},fractional,rules).progress,37.5);
+    const huge = planning.applyCycle({tier:2,progress:0},{...journal,fame:10000},rules);
+    assert.equal(huge.tier,3); assert.equal(huge.progress,9925);
+});
+test('planner rechecks next-tier journal acceptance after carry-over', () => {
+    const rules = { ...mechanics, stages: {
+        2:{requiredFame:10,accepted:['a'],journals:[{filled:'a',fame:11}]},
+        3:{requiredFame:20,accepted:['b'],journals:[{filled:'b',fame:20}]},
+        4:{requiredFame:0,accepted:[],journals:[]}
+    } };
+    const result = plan({mechanics:rules,targetTier:4});
+    assert.deepEqual(plain(result.sequence.map(c=>c.journal)),['a','b']);
+    assert.deepEqual(plain(result.end),{tier:4,progress:1});
+});
+test('production baseline progression runs from parsed XML at 22 real hours per job', () => {
+    for (const type of dataModule.laborerTypes(catalog)) {
+        const rules = progressionRules(catalog,type.type);
+        const result = plan({mechanics:rules});
+        assert.equal(result.status,'ok', type.type);
+        assert.equal(result.sequence.length,1);
+        assert.equal(result.actualHours,22);
+        assert.equal(result.hours,24);
+    }
+});
+
+test('T8 zero threshold never progresses to T9', () => {
+    const rules = { ...mechanics, stages: { 7: { requiredFame: 10 }, 8: { requiredFame: 0 } } };
+    assert.deepEqual(plain(planning.applyCycle({ tier: 7, progress: 0 }, { fame: 15 }, rules)), { tier: 8, progress: 5 });
+    assert.equal(planning.applyCycle({ tier: 8, progress: 0 }, { fame: 15 }, rules), null);
 });
 test('contract and journal catalog joins existing item DB', () => {
     const items = new Set(JSON.parse(fs.readFileSync('data/items.json', 'utf8')).map((row) => row.uniqueName));
@@ -90,6 +240,16 @@ test('deterministic two cycle progression and carry-over', () => {
     assert.equal(result.status, 'ok'); assert.equal(result.sequence.length, 2);
     assert.deepEqual(plain(result.end), { tier: 3, progress: 20 }); near(result.hours, 48);
 });
+test('22-hour jobs count as one full planning day per cycle', () => {
+    const dailyMechanics = { ...mechanics, cycleHours: 22 };
+    const single = plan({ mechanics: dailyMechanics, progress: 40 });
+    assert.equal(single.sequence.length, 1);
+    assert.equal(single.hours, 24);
+    const multiple = plan({ mechanics: dailyMechanics, targetTier: 4 });
+    assert.equal(multiple.hours, multiple.sequence.length * 24);
+    near(evaluate({ plan: multiple }).days, multiple.sequence.length);
+    assert.equal(dailyMechanics.cycleHours, 22);
+});
 test('target T4 accounts for carried fame', () => {
     const result = plan({ targetTier: 4 });
     assert.equal(result.sequence.length, 4); assert.deepEqual(plain(result.end), { tier: 4, progress: 20 });
@@ -98,7 +258,7 @@ test('different starting tier and partial progress', () => {
     assert.equal(plan({ startTier: 3, progress: 100, targetTier: 4 }).sequence.length, 1);
     assert.equal(plan({ progress: 50 }).sequence.length, 1);
     assert.equal(plan({ progress: -1 }).status, 'unsupported');
-    assert.equal(plan({ progress: 100 }).status, 'unsupported');
+    assert.equal(plan({ progress: 100 }).sequence.length, 1);
 });
 test('verified no carry-over drops excess', () => {
     assert.equal(plan({ mechanics: { ...mechanics, carryOver: false } }).end.progress, 0);
@@ -114,7 +274,26 @@ test('manual selection overrides automatic exact cost optimum', () => {
 });
 test('missing alternative prevents an unsupported optimum claim', () => {
     const choices = { ...mechanics, stages: { 2: { requiredFame: 100, journals: [{ filled: 'a', fame: 100 }, { filled: 'b', fame: 100 }] } } };
-    assert.equal(plan({ mechanics: choices, journalEconomics: (journal) => journal.filled === 'b' ? { status: 'unknown', issues: ['missing b'] } : cycle }).status, 'unknown');
+    const result = plan({ mechanics: choices, journalEconomics: (journal) => journal.filled === 'b' ? { status: 'unknown', issues: ['missing b'] } : cycle });
+    assert.equal(result.status, 'ok'); assert.equal(result.optimal, false); assert.ok(result.issues.includes('missing b'));
+});
+test('missing contract sale preserves costs, cycles, capital and planning time', () => {
+    const result = evaluate({ sale: { ...sale(500), price: null, status: 'missing' } });
+    assert.equal(result.status, 'partial');
+    near(result.cycles, 2); near(result.days, 2); near(result.grossJournalCost, 100);
+    near(result.levelingCost, 180); near(result.initialCapital, 150);
+    assert.equal(result.profit, null); assert.equal(result.contractNet, null);
+    assert.ok(result.breakEven > 0);
+});
+test('baseline T2 to T8 route remains available across all professions', () => {
+    for (const type of dataModule.laborerTypes(catalog)) {
+        const rules = progressionRules(catalog, type.type);
+        const result = plan({ mechanics: rules, targetTier: 8 });
+        assert.equal(result.status, 'ok', type.type);
+        assert.ok(result.sequence.length >= 6);
+        assert.equal(result.end.tier, 8);
+        assert.ok(result.sequence.every(cycle => cycle.to.tier - cycle.from.tier <= 1));
+    }
 });
 test('one laborer hand fixture gross 100 reward 20 profit 300', () => {
     const result = evaluate();
@@ -159,12 +338,12 @@ test('break-even rounds up, first price covering fee-adjusted cost', () => {
 });
 test('setup stays separate and impacts capital', () => {
     const result = evaluate({ setupCost: 1000 }); near(result.profit, 300); near(result.profitAfterSetup, -700); near(result.initialCapital, 1150);
-    assert.equal(evaluate({ setupCost: null }).status, 'unknown');
+    assert.equal(evaluate({ setupCost: null }).status, 'partial');
 });
 test('invalid inputs never produce meaningful results', () => {
     for (const count of [0, -1, 1.5, NaN, Infinity]) assert.equal(evaluate({ quantity: count }).status, 'unknown');
-    for (const status of ['missing', 'stale', 'invalid']) assert.equal(evaluate({ sale: { ...sale(500), status } }).status, 'unknown');
-    assert.equal(evaluate({ acquisition: null }).status, 'unknown');
+    for (const status of ['missing', 'stale', 'invalid']) assert.equal(evaluate({ sale: { ...sale(500), status } }).status, 'partial');
+    assert.equal(evaluate({ acquisition: null }).status, 'partial');
     assert.equal(evaluate({ acquisition: -1 }).status, 'unknown');
 });
 test('numeric overflow and undefined rates remain unavailable', () => {
@@ -205,4 +384,4 @@ test('total profit and time efficiency may select different tiers', () => {
     assert.equal(economics.optimum(rows).total.tier, 4); assert.equal(economics.optimum(rows).efficiency.tier, 3);
     assert.equal(economics.optimum([]).total, null);
 });
-console.log(`OK ${checks} laborer calculation checks (synthetic mechanics; production verification gate enforced)`);
+console.log(`OK ${checks} laborer calculation checks (XML mechanics, expected-loot scenarios and synthetic arithmetic fixtures)`);

@@ -1,5 +1,6 @@
-// Shared viewport contract for every tool. Panels, never clipped page shells,
-// own overflow; min-height: 0 carries the available height down to each table.
+// Shared viewport contract for every tool. Outer slots allow outlines, shadows
+// and floating controls to extend beyond their layout bounds. Only inner tables
+// and dedicated panels own scrollports; app-content handles page overflow.
 main.tool-page {
     --page-head-content-height: clamp(5rem, 5vw, 7rem);
     flex: 1 1 0;
@@ -31,7 +32,7 @@ main.tool-page {
     flex: .78 1 0;
     min-height: 0;
     margin-top: var(--spacing-sm);
-    overflow: auto;
+    overflow: visible;
 }
 
 
@@ -52,8 +53,7 @@ main.tool-page {
     > .left {
         position: sticky;
         top: 0;
-        overflow: auto;
-        overscroll-behavior: contain;
+        overflow: visible;
         gap: var(--spacing-md);
     }
 
@@ -61,7 +61,7 @@ main.tool-page {
     > .left > .summary { flex: 0 0 auto; margin-top: auto; }
 
     // Opt-in panels consume spare height without shrinking their content.
-    // The left column remains the scrollport when space runs out.
+    // Content exceeding the viewport remains reachable through app-content.
     @media (min-width: 992px) {
         > .left > .tool-split-controls--fill {
             flex: 1 0 auto;
@@ -78,8 +78,7 @@ main.tool-page {
         flex-direction: column;
         min-width: 0;
         min-height: 0;
-        overflow: auto;
-        overscroll-behavior: contain;
+        overflow: visible;
     }
 }
 

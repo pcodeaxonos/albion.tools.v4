@@ -11,9 +11,10 @@
 
 import { createServer } from 'node:http';
 import { createTradeWatcher } from './sat-trades/index.mjs';
+import { TRADE_HUB_HOST, TRADE_HUB_PORT } from '../js/core/trade-config.mjs';
 
-const PORT = Number(process.env.TRADE_HUB_PORT) || 3002;
-const HOST = process.env.TRADE_HUB_HOST || '127.0.0.1';
+const PORT = Number(process.env.TRADE_HUB_PORT) || TRADE_HUB_PORT;
+const HOST = process.env.TRADE_HUB_HOST || TRADE_HUB_HOST;
 
 /** @type {object[]} */
 let trades = [];

@@ -1,4 +1,5 @@
 import { normalizePriceSide } from './price-side.js';
+import { TRADE_HUB_URL } from './trade-config.mjs';
 import {
     getPriceServers,
     getPriceSources,
@@ -67,7 +68,7 @@ export function localPriceHost() {
 
 /** SAT Trade Hub (scripts/trade-hub.mjs) — independent of price-hub */
 export function localTradeHost() {
-    return 'http://127.0.0.1:3002';
+    return TRADE_HUB_URL;
 }
 
 /** @deprecated use localPriceHost() — static fallback for early imports */

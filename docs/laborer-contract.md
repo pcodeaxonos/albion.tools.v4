@@ -1,134 +1,86 @@
 # Laborer Contract Calculator
 
-Canonical route: `/pages/tools/laborer-contract/`, stable ID `laborer-contract`.
-The existing site publishes authored `pages/*` locations; no parallel router or
-redirect was introduced for the optional `/tools/laborer-contract/` preference.
+Canonical route: `/pages/tools/laborer-contract/`.
 
-## Delivered behavior
+## Sources of truth
 
-- Independent tool, sidebar/dashboard catalog integration, shared `.tool-split`
-  layout and sticky calculator tables. Island/Farming/Pasture code is untouched.
-- Eleven real professions, 77 T2–T8 contracts, 133 journal definitions from the
-  current dump, joined to existing `data/items.json` labels/IDs.
-- Shared server and independent purchase/sale cities; instant/order sides,
-  premium tax, setup fee, quantity, owned/market/new acquisition modes.
-- Contract sale quotes, net proceeds, fresh/manual/stale/missing metadata;
-  override keys isolate server, city, book side, intent and item. Empty input and
-  reset restore live quotes. No missing quote is treated as zero.
-- Independent journal cycle valuation: full journal purchase minus net returned
-  assets. Actual per-laborer quantities are explicit user observations, including
-  zero for absent assets. Blank quantities are unknown, not zero. Empty journal
-  existence does not imply a guaranteed return: its quantity must also be supplied.
-- Enchanted loot IDs join the existing item DB using dump enchantment fields;
-  silver rewards are cash and incur no market fees. Generalist loot remains
-  trophy loot, never substituted with profession resources.
-- Shared cached daily history for contract volume; observed volume versus batch
-  quantity provides confidence, not guaranteed order-book depth or price impact.
-- Existing setup is sunk cost. New setup accepts a user-supplied actual combined
-  building/furniture total and is separate from production profitability. No
-  unverified house layout/capacity, recipe or amortization assumption is added.
-- Pure progression, economics, price, reward, liquidity and rules modules.
-  Missing production rules block cycles, elapsed time, tier profit, optimal tier,
-  continuation and marginal break-even output. Verified-rule arithmetic is tested
-  using clearly synthetic fixtures, which are never shipped as game values.
+Current snapshot imported on 2026-10-03. Generated manifests retain SHA-256 hashes.
+Earlier investigation missed the labourer definitions: placement references are
+not the mechanic source.
 
-## Sources and audit
+- [buildings.xml](https://github.com/ao-data/ao-bin-dumps/blob/master/buildings.xml):
+  77 definitions with tier, contract, profession, hire price, progression threshold,
+  job duration, next tier and exact accepted full journal IDs. Runtime profiles are
+  generated from XML; the old three threshold profiles remain regression tests only.
+- [items.json](https://github.com/ao-data/ao-bin-dumps/blob/master/items.json):
+  journal base loot, weights, quantities, enchantments, silver payouts and labourerfame.
+  Journal maxfame is filling capacity and never enters progression.
+- AODP: market prices and historical volume only; existing shared market fees apply.
+- `content/js/core/laborer/behavior.mjs`: single carry-over configuration,
+  source verified-behavior, confidence behavioral/high. Evidence: 1/360 remaining
+  fame after a T2 Generalist tier-up and a zero-fame T3 job. This is not an XML flag.
 
-Examined on 2026-10-01:
-[ao-data/ao-bin-dumps](https://github.com/ao-data/ao-bin-dumps).
-`data/laborer-contract.json` records SHA-256 hashes of the downloaded items and
-gamedata snapshots. The generator takes an explicit dump directory and does not
-modify shared game/market data or authored progression rules.
+NPC acquisition uses the first XML stage: T2, 1,000 silver per laborer. Ten cost
+10,000 silver. New acquisition ignores the selected starting contract tier and
+applies no market fees to the NPC cost.
 
-Used fields:
+## Expected return scenarios
 
-- `items.labourercontract.@uniquename`, `@tier`, `@shopsubcategory3` identify
-  contracts/professions. Labels and internal item IDs come from the existing DB.
-- `items.journalitem.@uniquename`, `@tier`, `@shopsubcategory3`,
-  `famefillingmissions` identify journal catalogue/mission categories. Category
-  matching is not asserted to prove acceptance at a laborer's current tier.
-- `journalitem.@maxfame`: journal filling capacity **only**, never laborer XP
-  required for a tier. `@baselootamount` and `lootlist.loot.@weight` are displayed
-  as raw reference fields; sampling/yield semantics are not inferred.
-- Loot `@itemname`, `@itemenchantmentlevel`, `@itemamount`, `@silveramount`,
-  `@weight`, `@labourerfame` are preserved. Enchantment is resolved against the DB;
-  `@labourerfame` is not promoted to deterministic per-cycle XP without proof.
-- `AO-GameData.LabourerSettings.@maxyield` is a yield cap only; it does not prove
-  a happiness function or its effect on progression.
+One resolver supplies loot and progression fame; reward valuation consumes that
+same loot. Expected item units use base loot, normalized weights, amount and
+explicit return yield. Fame uses those units and each entry's labourerfame.
+Silver grants fame per resolved payout, not per silver coin.
 
-Also inspected `progressiontables.json`, `gamedata.json`, `settings.json`,
-`characters.json`, `mobs.json`, `buildings.json`, `piledobjects.json`,
-`resources.json`, `times.json`, `loot.json`, existing project data and local data
-snapshot. `progressiontables.table` contains named season/activity progressions
-(siphoning mage, crystal spider, PvE, gathering, etc.), with no verified laborer
-relationship. Building `placelaborer` references do not specify tier thresholds.
-No supported tier-XP/carry-over relationship was found. Old guides/forums were
-not used to fill gaps. No separate current source was provided by the user.
+Baseline return yield is 100%, selectable from 50–150%. No happiness-to-XP formula
+is invented. Results are expected-loot scenarios, not guaranteed random outcomes
+or exact stochastic hitting times. Expected economics includes one empty journal
+as a scenario convention, not a parsed XML guarantee. Manual cycle inspection
+requires observed quantities for every asset including the empty journal;
+explicit zero is valid, blank remains unknown.
 
-## Rules boundary
+## Planning and partial results
 
-`data/laborer-progression-rules.json` is the **single authored production rule
-manifest**. `progression-rules.js` selects its profession-specific `byType` entry
-or default. It is deliberately not regenerated by the catalog importer.
+Each completed job checks current-tier acceptance, adds resolved fame and advances
+at most one tier, preserving excess. The next job checks the new tier's accepted
+journals again. T8 is terminal. XML job length is 79,200 seconds / 22 hours.
+Operational planning counts each job as one day, labeled Planlama günü; actual
+job hours are shown separately. Quantity scales money and journals, not time.
 
-To activate a profession after verification, supply `verified: true`, a source,
-`cycleHours`, boolean `carryOver`, and `stages[tier]` with positive integer
-`requiredFame` and compatible `journals`. Each journal must contain `filled`,
-verified deterministic progression `fame`, `rewardsVerified: true`, and actual
-expected `rewards: [{ item, quantity }]`. Rewards must include an empty journal
-only when its return is verified. Supply acquisition tier/cost/source only when
-verified. If fame is stochastic rather than deterministic, extend this rules
-boundary and planner deliberately; do not mark an expected value deterministic.
+Bounded dynamic search minimizes total net journal cost over progression states,
+including carry-over and acceptance. It does not assume a greedy silver/fame ratio
+is optimal. Manual choices constrain candidates. Search limits or missing-price
+alternatives retain feasible results but flag optimization as limited to evaluated
+priced routes; a global optimum is not claimed.
 
-The planner searches finite increasing progression states, preserving partial
-progress and configured carry-over. It minimizes total net journal cost per
-target; manual stage selections constrain candidates. Missing candidate prices
-block an optimum claim rather than silently optimizing the priced subset.
-Search bounds return unavailable. An overshooting tier cannot be sold as a
-lower tier contract. The controller compares all contract tiers at/above start.
+Missing contract sale quotes do not erase cycles, days, journal costs, capital or
+break-even when their own inputs exist. Missing acquisition/setup inputs affect
+dependent metrics only. Missing quotes never mean zero. Continuation includes the
+current contract's net sell-now opportunity cost. Shared fee calculations and
+manual quote/reset behavior are retained.
 
-Economics uses shared `purchaseCost`/`saleProceeds` without duplicated rates.
-Quantity multiplies money/journals, not elapsed time. Continuation subtracts the
-current contract's **net sell-now opportunity value**, including for owned
-laborers. Gross break-even rounds upward through the shared fee multiplier.
-Zero/negative capital bases and zero time have unavailable ROI/rates. Setup stays
-separate; theoretical peak capital assumes rewards can be sold after each cycle
-and before the next purchase. Unknown setup totals block capital estimates.
+## Generation and verification
 
-## Reused infrastructure
+The importer requires buildings.xml, items.json and gamedata.json in an explicit
+dump directory. It generates 11 professions, 77 contracts and 133 journals.
 
-`market.js` (`fetchPrices`, `indexPrices`, `cityRow`), `market-history.js`
-(`fetchHistoryIndex`, `historyAt` and its server/city cache), `price-live.js`,
-`price-side.js`, `market-fees.js`, settings/server/city catalogs and picker,
-storage helpers, item label/icon helpers, route registry/runtime catalog,
-`toolPageHtml`, `bindCalcSticky` and design tokens.
+```sh
+node content/scripts/build-laborer-catalog.mjs /path/to/dump
+node --experimental-vm-modules content/scripts/test-laborer-contract.mjs
+node node_modules/sass/sass.js content/scss/main.scss output/css/site.css --no-source-map
+```
 
-Market IDs are gathered/batched before requests. The in-page snapshot is reused
-for quantity, fees, setup, acquisition and observed reward edits. Selection/city/
-server changes invalidate it; manual refresh and matching packet events reload it.
-Request tokens discard obsolete results. No cell makes its own API request.
+The checked-in current XML fixture covers all 77 definitions. Tests cover exact
+acceptance/thresholds, NPC acquisition quantity, weighted loot fame, yield, silver,
+maxfame isolation, zero loot, carry-over, one advance per job, next-stage acceptance,
+T8, all professions, dynamic search, missing-price partial results, fees and time.
 
-## Validation
+Existing dashboard selection remains presentation state separate from starting
+tier. Desktop panels use bounded heights and internal scrollports; narrow screens
+retain stacked flow. No independent market or fee implementation was introduced.
 
-- `node --experimental-vm-modules content/scripts/test-laborer-contract.mjs`:
-  27 deterministic checks passed, including real catalog joins, silver/enchanted
-  IDs, observed rewards, production gating, partial progression, carry-over,
-  automatic/manual choice, quantity, fees, owned opportunity cost, marginal
-  break-even, missing/stale/manual quotes, capital, rounding and liquidity.
-- Route build/test: 20 routes passed. CSS compilation succeeded.
-- Existing island economy regression: 18 checks passed.
-- Trade self-test could not run: local StatisticsAnalysisTool folder absent.
-- Browser verified direct nested route, canonical sidebar link, overrides and
-  reset, 30-laborer quantity scaling, disabled progression, and independent
-  journal valuation. Synthetic journal example: full 1000, 38 logs at 10, one
-  empty at 500; premium sell orders net 822.8 reward, 177.2 net cycle cost;
-  30 laborers cost 5316. These are arithmetic test inputs, not game defaults.
-
-## Files
-
-Added: tool page/controller; `core/laborer/{data,prices,planning,economics,
-liquidity,rewards,progression-rules}.js`; two laborer JSON data/rules files;
-catalog importer; unit tests; scoped SCSS; this report.
-Minimal integration: route registry, generated site-tools catalog, seed revision,
-SCSS index/output bundle, package test script. Other existing workspace changes
-belong to ongoing work and were not edited by this task.
+Mechanical feasibility is calculated independently of all market quotes. If no
+priced route exists, the deterministic fallback prefers the current-tier profession
+journal, then current-tier Generalist, then highest accepted expected fame. This
+route is explicitly not an economic recommendation. Missing prices retain cycles,
+planning days, actual hours, thresholds and carry-over; only acquisition-only
+capital is exposed separately, never as a complete initial/peak capital estimate.

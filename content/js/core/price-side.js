@@ -445,14 +445,14 @@ export function setPriceFieldMeta(stackOrField, meta) {
     }
 }
 
-export function priceSideToggleHtml(name, selected) {
+export function priceSideToggleHtml(name, selected, labels = {}) {
     return PRICE_SIDES.map((side) => {
         const pressed = side === selected;
         return `
             <button type="button" class="price-side-btn${pressed ? ' is-active' : ''}"
                 data-price-for="${escapeHtml(name)}" data-price-side="${side}"
                 aria-pressed="${pressed ? 'true' : 'false'}">
-                ${side === 'buy' ? 'Buy' : 'Sell'}
+                ${escapeHtml(labels[side] ?? (side === 'buy' ? 'Buy' : 'Sell'))}
             </button>
         `;
     }).join('');

@@ -35,42 +35,59 @@ export function cycleEconomics(journal, quoteFor, premium) {
     if (issues.length) return { status: 'unknown', issues };
     const gross = purchaseCost(purchase.price, { setup: purchase.setup });
     if (![gross, rewardNet, gross - rewardNet].every(Number.isFinite)) return { status: 'unknown', issues: ['Cycle ekonomi değeri sayı sınırını aşıyor.'] };
-    return { status: 'ok', gross, rewardNet, net: gross - rewardNet };
+    return { status: 'ok', gross, rewardNet, expectedRewardValue: rewardNet, expectedLoot: journal.expectedLoot, expectedLabourerFame: journal.expectedLabourerFame, net: gross - rewardNet };
 }
 
 export function evaluatePlan({ plan, acquisition, quantity, sale, premium, setupCost = 0 }) {
-    const issue = priceIssue(sale);
-    if (issue || plan.status !== 'ok' || !Number.isFinite(acquisition) || acquisition < 0 || !Number.isSafeInteger(quantity) || quantity < 1 || !Number.isFinite(setupCost) || setupCost < 0) {
-        return { status: 'unknown', issues: [issue, ...(plan.issues || []), ...(!Number.isFinite(acquisition) ? ['Başlangıç maliyeti bilinmiyor'] : []), ...(!Number.isFinite(setupCost) ? ['Yeni setup toplam maliyeti bilinmiyor'] : [])].filter(Boolean) };
+    if (plan.status !== 'ok' || !Number.isSafeInteger(quantity) || quantity < 1 ||
+        (acquisition != null && (!Number.isFinite(acquisition) || acquisition < 0)) ||
+        (setupCost != null && (!Number.isFinite(setupCost) || setupCost < 0))) {
+        return { status: 'unknown', issues: [...(plan.issues || []), 'Geçersiz maliyet veya laborer adedi.'] };
     }
+    const issues = [...(plan.issues || []), priceIssue(sale),
+        acquisition == null ? 'Başlangıç maliyeti bilinmiyor' : null,
+        setupCost == null ? 'Yeni setup toplam maliyeti bilinmiyor' : null].filter(Boolean);
+    if (plan.economicAvailable === false) return {
+        status: 'partial', issues, optimal: false, scenario: plan.scenario,
+        cycles: plan.sequence.length, journals: plan.sequence.length * quantity,
+        days: plan.hours / 24, actualHours: plan.actualHours,
+        acquisitionCapital: acquisition == null ? null : acquisition * quantity,
+        grossJournalCost: null, rewardNet: null, levelingCost: null,
+        contractNet: netSale(sale, quantity, premium), contractGross: sale.status === 'ok' ? sale.price * quantity : null,
+        profit: null, perLaborer: null, profitDay: null, profitSlotDay: null, roi: null,
+        breakEven: null, setupCost, profitAfterSetup: null, initialCapital: null, peakCapital: null
+    };
     const grossJournalCost = plan.sequence.reduce((sum, cycle) => sum + cycle.economics.gross, 0) * quantity;
     const rewardNet = plan.sequence.reduce((sum, cycle) => sum + cycle.economics.rewardNet, 0) * quantity;
-    const levelingCost = acquisition * quantity + grossJournalCost - rewardNet;
+    const levelingCost = acquisition == null ? null : acquisition * quantity + grossJournalCost - rewardNet;
     const contractNet = netSale(sale, quantity, premium);
-    const profit = contractNet - levelingCost;
-    if (contractNet == null || ![grossJournalCost, rewardNet, levelingCost, profit, setupCost + acquisition * quantity, plan.hours, plan.cost].every(Number.isFinite) || plan.hours < 0) return { status: 'unknown', issues: ['Ekonomi / progression değeri sayı sınırını aşıyor.'] };
-    let cash = acquisition * quantity + setupCost;
+    const profit = contractNet == null || levelingCost == null ? null : contractNet - levelingCost;
+    let cash = acquisition == null || setupCost == null ? null : acquisition * quantity + setupCost;
     let peakCapital = cash;
-    for (const cycle of plan.sequence) {
+    if (cash != null) for (const cycle of plan.sequence) {
         cash += cycle.economics.gross * quantity;
         peakCapital = Math.max(peakCapital, cash);
         cash -= cycle.economics.rewardNet * quantity;
     }
-    const initialCapital = acquisition * quantity + (plan.sequence[0]?.economics.gross || 0) * quantity + setupCost;
+    const initialCapital = acquisition == null || setupCost == null ? null : acquisition * quantity + (plan.sequence[0]?.economics.gross || 0) * quantity + setupCost;
     const days = plan.hours / 24;
-    if (![initialCapital, peakCapital, profit - setupCost].every(Number.isFinite)) return { status: 'unknown', issues: ['Sermaye değeri sayı sınırını aşıyor.'] };
-    return { status: 'ok', cycles: plan.sequence.length, journals: plan.sequence.length * quantity, days,
-        grossJournalCost, rewardNet, levelingCost, contractGross: sale.price * quantity, contractNet,
-        profit, perLaborer: ratio(profit, quantity), profitDay: ratio(profit, days),
-        profitSlotDay: ratio(profit / quantity, days),
-        roi: ratio(profit, levelingCost),
-        breakEven: breakEven(levelingCost / quantity, { premium, setup: sale.setup }),
-        setupCost, profitAfterSetup: profit - setupCost, initialCapital, peakCapital };
+    const profitAfterSetup = profit == null || setupCost == null ? null : profit - setupCost;
+    const values = [grossJournalCost, rewardNet, levelingCost, profit, initialCapital, peakCapital, profitAfterSetup, plan.hours, plan.cost];
+    if (values.some((value) => value != null && !Number.isFinite(value)) || plan.hours < 0 || (sale.status === 'ok' && contractNet == null)) return { status: 'unknown', issues: ['Ekonomi / progression değeri sayı sınırını aşıyor.'] };
+    return { status: profit == null || initialCapital == null ? 'partial' : 'ok', issues,
+        optimal: plan.optimal, scenario: plan.scenario, cycles: plan.sequence.length,
+        journals: plan.sequence.length * quantity, days, actualHours: plan.actualHours ?? plan.hours,
+        grossJournalCost, rewardNet, levelingCost, contractGross: contractNet == null ? null : sale.price * quantity, contractNet,
+        profit, perLaborer: profit == null ? null : ratio(profit, quantity), profitDay: profit == null ? null : ratio(profit, days),
+        profitSlotDay: profit == null ? null : ratio(profit / quantity, days),
+        roi: profit == null || levelingCost == null ? null : ratio(profit, levelingCost),
+        breakEven: levelingCost == null ? null : breakEven(levelingCost / quantity, { premium, setup: sale.setup }),
+        setupCost, profitAfterSetup, initialCapital, peakCapital };
 }
 
 export function compareContinue({ plan, currentSale, nextSale, quantity, premium }) {
     const issues = [priceIssue(currentSale), priceIssue(nextSale), ...(plan.issues || [])].filter(Boolean);
-    if (issues.length || plan.status !== 'ok' || !(plan.hours > 0) || !Number.isSafeInteger(quantity) || quantity < 1) return { status: 'unknown', issues };
+    if (issues.length || plan.economicAvailable === false || plan.status !== 'ok' || !(plan.hours > 0) || !Number.isSafeInteger(quantity) || quantity < 1) return { status: 'unknown', issues };
     const opportunityCost = netSale(currentSale, quantity, premium);
     const incrementalCost = plan.cost * quantity;
     const nextNet = netSale(nextSale, quantity, premium);
@@ -83,7 +100,7 @@ export function compareContinue({ plan, currentSale, nextSale, quantity, premium
 }
 
 export function optimum(rows) {
-    const valid = rows.filter((row) => row.economics?.status === 'ok');
+    const valid = rows.filter((row) => ['ok', 'partial'].includes(row.economics?.status));
     const best = (key) => valid.filter((row) => Number.isFinite(row.economics[key])).sort((a, b) => b.economics[key] - a.economics[key] || a.tier - b.tier)[0] || null;
     return { total: best('profit'), efficiency: best('profitSlotDay') };
 }

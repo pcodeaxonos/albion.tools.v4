@@ -1,30 +1,241 @@
 [data-tool="laborer-contract"] {
-    .ava-side-field {
-        grid-template-columns: minmax(0, 1fr);
+    .laborer-result [data-laborer-results] {
+        display: grid;
+        grid-template-rows: minmax(0, 6rem) minmax(0, 1fr) minmax(0, 9rem);
+        flex: 1 1 0;
+        min-height: 0;
+        min-width: 0;
         gap: var(--spacing-sm);
     }
-
-    label { min-width: 0; }
-    label > :is(input.form-control, select.form-select) {
-        display: block;
-        width: 100%;
-        margin-top: var(--spacing-sm);
+    .laborer-dashboard-top,
+    .laborer-dashboard-middle,
+    .laborer-dashboard-bottom,
+    .laborer-kpis,
+    .laborer-detail-grid {
+        display: grid;
+        min-height: 0;
+        min-width: 0;
+        gap: var(--spacing-sm);
     }
-
+    .laborer-dashboard-top { grid-template-columns: minmax(0, 1fr); }
+    .laborer-kpis { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+    .laborer-result .laborer-dashboard-middle { display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr); }
+    .laborer-dashboard-bottom { grid-template-columns: minmax(0, 1.1fr) minmax(0, 1.1fr) minmax(0, 1fr); }
+    .laborer-result-card {
+        display: flex;
+        flex-direction: column;
+        min-width: 0;
+        min-height: 0;
+        margin: 0;
+        padding: var(--spacing-xs);
+        border: var(--border-width) solid var(--color-border);
+        border-radius: var(--border-radius-sm);
+        background: var(--color-surface);
+    }
+    .laborer-result-card > .laborer-section-title { margin: 0 0 var(--spacing-xs); }
+    .laborer-status-panel,
+    .laborer-kpi { overflow: auto; overscroll-behavior: contain; }
+    .laborer-status-panel { font-size: var(--font-size-xs); }
+    .laborer-kpi {
+        justify-content: flex-start;
+        gap: var(--spacing-xs);
+        h2, small { margin: 0; color: var(--color-text-muted); font-size: var(--font-size-xs); }
+        strong { font-size: var(--font-size-sm); font-family: var(--font-family-mono); overflow-wrap: anywhere; }
+    }
+    .laborer-result .laborer-panel-scroll {
+        display: block;
+        flex: 1 1 0;
+        min-height: 0;
+        min-width: 0;
+        overflow: auto;
+        overscroll-behavior: contain;
+        font-size: var(--font-size-xs);
+        > p { margin: 0 0 var(--spacing-sm); }
+    }
+    .laborer-comparison {
+        .calc-table { min-width: 36rem; font-size: var(--font-size-xs); }
+        .calc-table th { white-space: normal; }
+        .calc-table td { vertical-align: middle; padding-block: var(--spacing-xs); }
+        .calc-table td:last-child { min-width: 5rem; }
+        .calc-table thead th { position: sticky; top: 0; z-index: 2; background: var(--color-surface); }
+        .calc-note { flex: 0 0 auto; margin-bottom: 0; max-height: 3rem; overflow: auto; }
+        tr[data-laborer-result-tier] { cursor: pointer; }
+        .laborer-contract-item .item-icon { width: 3rem; height: 3rem; }
+        tr.is-selected > td { background: color-mix(in srgb, var(--color-primary) 18%, var(--color-surface)); box-shadow: inset 0 1px var(--color-primary), inset 0 -1px var(--color-primary); }
+    }
+    .laborer-detail-identity {
+        display: flex;
+        align-items: center;
+        gap: var(--spacing-sm);
+        margin-bottom: var(--spacing-sm);
+        p { margin: 0; color: var(--color-text-muted); }
+        .item-icon { width: 3rem; height: 3rem; }
+    }
+    .laborer-price-status { margin-left: auto; color: var(--color-primary); }
+    .laborer-result .laborer-detail-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        grid-template-rows: repeat(3, minmax(0, 1fr));
+        flex: 1 1 0;
+        .laborer-journal-content { display: block; }
+        .calc-table-wrap { max-height: 18rem; }
+    }
+    .laborer-result .laborer-detail-card {
+        display: block;
+        min-width: 0;
+        padding: var(--spacing-sm);
+        border: var(--border-width) solid var(--color-border);
+        background: var(--color-surface);
+        min-height: 0;
+        overflow: auto;
+        overscroll-behavior: contain;
+        h3 { margin: 0 0 var(--spacing-sm); color: var(--color-primary); font-size: var(--font-size-xs); }
+    }
+    .laborer-metrics {
+        margin: 0;
+        font-size: var(--font-size-xs);
+        > div { display: flex; justify-content: space-between; gap: var(--spacing-sm); padding: 0; }
+        dt { color: var(--color-text-muted); min-width: 0; }
+        dd { margin: 0; font-family: var(--font-family-mono); text-align: right; overflow-wrap: anywhere; min-width: 0; }
+    }
+    .laborer-plan-sequence { padding-left: 1rem; }
+    .laborer-result .laborer-selected-detail > .laborer-panel-scroll {
+        display: flex;
+        flex-direction: column;
+        > .laborer-detail-identity, > details { flex: 0 0 auto; }
+    }
+    @media (min-width: 992px) {
+        // The app shell supplies the viewport height. Every potentially long
+        // child below owns a bounded scrollport; this wrapper is not a scrollport.
+        .page-body > .tool-split { grid-template-columns: 20rem minmax(0, 1fr); gap: var(--spacing-sm); }
+        .page-body > .tool-split > .left > .controls {
+            flex: 1 1 0;
+            min-height: 0;
+            overflow: auto;
+            padding-top: var(--spacing-sm);
+        }
+    }
+    @media (max-width: 1399px) and (min-width: 992px) {
+        .laborer-result [data-laborer-results] { grid-template-rows: minmax(0, 1.2fr) minmax(0, 4fr) minmax(0, 1.3fr); }
+        .laborer-result .laborer-dashboard-middle { grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); }
+        .laborer-result .laborer-detail-grid { grid-template-columns: minmax(0, 1fr); grid-template-rows: none; flex: 0 0 auto; }
+    }
+    @media (max-width: 991px) {
+        .laborer-result [data-laborer-results] { display: flex; flex: 1 0 auto; }
+        .laborer-dashboard-top { grid-template-columns: minmax(0, 1fr); }
+        .laborer-result .laborer-dashboard-middle { grid-template-columns: minmax(0, 1fr); grid-template-rows: 26rem 30rem; flex: 0 0 auto; }
+        .laborer-dashboard-bottom { grid-template-columns: repeat(2, minmax(0, 1fr)); grid-template-rows: repeat(2, minmax(0, 1fr)); height: 22rem; flex: 0 0 auto; }
+        .laborer-status-panel, .laborer-kpi { min-height: 5rem; }
+    }
+    @media (max-width: 575px) {
+        .laborer-kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        .laborer-dashboard-bottom { grid-template-columns: minmax(0, 1fr); grid-template-rows: repeat(3, minmax(0, 1fr)); height: 36rem; }
+        .laborer-result .laborer-detail-grid { grid-template-columns: minmax(0, 1fr); grid-template-rows: none; flex: 0 0 auto; }
+    }
     .calc-table {
-        min-width: 48rem;
+        min-width: 40rem;
         th { white-space: nowrap; }
         td { vertical-align: top; }
         td:first-child { white-space: nowrap; }
         td:last-child {
-            min-width: 16rem;
-            max-width: 28rem;
+            min-width: 7rem;
             overflow-wrap: anywhere;
         }
     }
 
-    details { margin-top: var(--spacing-sm); }
-    summary { cursor: pointer; }
+    .laborer-contract-item { display: inline-flex; align-items: center; gap: var(--spacing-sm); border: 0; background: transparent; color: inherit; padding: 0; cursor: pointer; }
+    .laborer-contract-item .item-icon { width: 4.5rem; height: 4.5rem; }
+
+    .laborer-section-title {
+        margin: 0 0 var(--spacing-md);
+        font-size: var(--h5-size, 1rem);
+        font-weight: var(--font-weight-semibold);
+    }
+
+    .laborer-controls { display: grid; gap: var(--spacing-lg); }
+    .laborer-control-pair { display: grid; grid-template-columns: 4.5rem minmax(0, 1fr); gap: var(--spacing-sm); }
+    .laborer-tiers .price-side-btn {
+        flex: 1 1 0;
+        min-width: 0;
+        padding-inline: 0;
+        border-color: var(--color-item-tier);
+        color: var(--color-item-tier);
+        &.is-active {
+            background: var(--color-item-tier);
+            color: var(--color-on-item-tier, #fff);
+        }
+    }
+    .laborer-control-group {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: var(--spacing-sm);
+        min-width: 0;
+        > * { grid-column: 1 / -1; min-width: 0; }
+        > .city-field--diagonal { grid-column: auto; }
+        > .price-side {
+            width: 100%;
+            > .price-side-btn { flex: 1 1 0; min-width: 0; }
+        }
+        h2 {
+            margin: 0 0 var(--spacing-xs);
+            color: var(--color-text-muted);
+            font-size: var(--font-size-xs);
+            font-weight: var(--font-weight-semibold);
+            letter-spacing: .04em;
+        }
+        p { margin: 0; font-size: var(--font-size-xs); color: var(--color-text-muted); }
+    }
+    .laborer-journal-content { padding-top: var(--spacing-sm); }
+    [data-laborer-results] > details > summary { padding-block: var(--spacing-sm); }
+    .calc-table td:not(:first-child) { font-variant-numeric: tabular-nums; }
+
+
+    .laborer-price {
+        display: grid;
+        gap: var(--spacing-sm);
+        min-width: 0;
+        margin-block: var(--spacing-sm);
+        > .btn { justify-self: start; }
+    }
+
+    .laborer-price-meta, .calc-note, small {
+        color: var(--color-text-muted);
+        font-size: var(--font-size-xs);
+        line-height: 1.6;
+        overflow-wrap: anywhere;
+    }
+
+    .calc-note { margin-block: var(--spacing-sm); }
+    [data-laborer-results] > [role="status"],
+    [data-laborer-results] > [role="alert"],
+    .alert {
+        margin: 0 0 var(--spacing-md);
+        padding: var(--spacing-md);
+        background: var(--color-surface);
+        border: var(--border-width) solid var(--color-border);
+        font-size: var(--font-size-sm);
+        line-height: 1.6;
+        p { margin: var(--spacing-sm) 0 0; }
+    }
+    .alert-warning { border-inline-start: 3px solid var(--color-warning, var(--color-primary)); }
+
+    details {
+        margin-top: var(--spacing-sm);
+        padding-block: var(--spacing-sm);
+        border-top: var(--border-width) solid var(--color-border);
+        font-size: var(--font-size-sm);
+        line-height: 1.6;
+    }
+    summary {
+        cursor: pointer;
+        color: var(--color-text);
+        font-weight: var(--font-weight-medium);
+        &:focus-visible {
+            outline: var(--focus-outline-width) solid var(--color-focus-ring);
+            outline-offset: var(--focus-outline-offset);
+        }
+    }
     details > :not(summary) { margin-top: var(--spacing-sm); }
-    small { color: var(--color-text-muted); }
+    .calc-table td > .form-control { min-width: 7rem; }
+
 }

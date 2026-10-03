@@ -195,12 +195,25 @@ export function getCityFieldValue(container, id) {
     return input?.value ?? '';
 }
 
+// The first city field represents the tool's operating city; secondary market
+// fields must not overwrite it when a page has separate buy / sell selections.
+function syncCityBackground(container) {
+    const value = container.querySelector('[data-city-field] [data-city-input]')?.value;
+    const city = String(value || '').toLowerCase().replace(/[\s_-]+/g, '');
+    for (const className of [...container.classList]) {
+        if (className.startsWith('city-selected--')) container.classList.remove(className);
+    }
+    container.classList.toggle('city-selected', Boolean(city));
+    if (city) container.classList.add(`city-selected--${city}`);
+}
+
 export function setCityFieldValue(container, id, value) {
     const field = container.querySelector(`[data-city-field="${CSS.escape(id)}"]`);
     const input = container.querySelector(`[data-city-field="${CSS.escape(id)}"] [data-city-input]`);
     if (input) {
         input.value = value ?? '';
     }
+    syncCityBackground(container);
     if (!field?.classList.contains('city-field--horizontal') && !field?.classList.contains('city-field--diagonal')) {
         return;
     }
@@ -225,6 +238,7 @@ export function syncCityField(container, id, opts) {
     const list = orderedCities(Array.isArray(opts.cities) ? opts.cities : loadActiveCities(), opts.order);
     const selected = opts.selected;
     const decorate = opts.decorate;
+    setCityFieldValue(container, id, selected);
 
     if (field.classList.contains('city-field--horizontal')) {
         const input = field.querySelector('[data-city-input]');
@@ -265,6 +279,7 @@ export function syncCityField(container, id, opts) {
 
 export function bindCityField(container, id, onChange) {
     const field = container.querySelector(`[data-city-field="${CSS.escape(id)}"]`);
+    syncCityBackground(container);
     if (!field || field.dataset.cityBound === 'on') {
         return;
     }
@@ -298,6 +313,7 @@ export function bindCityField(container, id, onChange) {
     }
 
     field.querySelector('select')?.addEventListener('change', (event) => {
+        syncCityBackground(container);
         onChange?.(event.target.value);
     });
 }

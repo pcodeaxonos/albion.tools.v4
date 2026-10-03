@@ -4,8 +4,8 @@ export async function loadLaborerData() {
         if (!response.ok) throw new Error(`Laborer verisi yüklenemedi (${response.status})`);
         return response.json();
     };
-    const [catalog, mechanics] = await Promise.all([read('laborer-contract'), read('laborer-progression-rules')]);
-    return { ...catalog, mechanics };
+    const [catalog, mechanics, acquisition] = await Promise.all([read('laborer-contract'), read('laborer-progression-rules'), read('laborer-acquisition')]);
+    return { ...catalog, mechanics, acquisition };
 }
 
 export function laborerTypes(data) {

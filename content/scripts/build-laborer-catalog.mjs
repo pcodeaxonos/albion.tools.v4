@@ -1,6 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import crypto from 'node:crypto';
+import { parseLaborerXml, mechanicsFromLaborers, acquisitionFromMechanics } from './laborer-mechanics.mjs';
 
 // Supply the downloaded ao-data/ao-bin-dumps directory. No market data belongs here.
 const directory = process.argv[2];
@@ -8,6 +9,8 @@ if (!directory) throw new Error('Usage: node content/scripts/build-laborer-catal
 const read = (name) => fs.readFileSync(path.join(directory, `${name}.json`), 'utf8');
 const itemsText = read('items');
 const gameText = read('gamedata');
+const buildingsText = fs.readFileSync(path.join(directory, 'buildings.xml'), 'utf8');
+const laborers = parseLaborerXml(buildingsText);
 const raw = JSON.parse(itemsText).items;
 const list = (value) => value == null ? [] : Array.isArray(value) ? value : [value];
 const items = JSON.parse(fs.readFileSync('data/items.json', 'utf8'));
@@ -42,5 +45,13 @@ const data = {
     maxRewardYield: Number(JSON.parse(gameText)['AO-GameData'].LabourerSettings['@maxyield']),
     contracts, journals
 };
+const mechanics = mechanicsFromLaborers(laborers, contracts, journals, {
+    source: 'https://github.com/ao-data/ao-bin-dumps/blob/master/buildings.xml',
+    buildingsXmlSha256: crypto.createHash('sha256').update(buildingsText).digest('hex'),
+    fields: ['labourer.uniquename', 'contractitem', 'tier', 'hireprice', 'fametoprogress', 'joblength', 'profession', 'upgradeableto', 'journalsaccepted.journal.uniquename']
+});
+const acquisition = acquisitionFromMechanics(mechanics);
 fs.writeFileSync('data/laborer-contract.json', `${JSON.stringify(data, null, 2)}\n`);
-console.log(`Laborer catalog: ${contracts.length} contracts, ${journals.length} journals; progression unsupported`);
+fs.writeFileSync('data/laborer-progression-rules.json', `${JSON.stringify(mechanics, null, 2)}\n`);
+fs.writeFileSync('data/laborer-acquisition.json', `${JSON.stringify(acquisition, null, 2)}\n`);
+console.log(`Laborer catalog: ${contracts.length} contracts, ${journals.length} journals, ${laborers.length} XML labourer definitions`);

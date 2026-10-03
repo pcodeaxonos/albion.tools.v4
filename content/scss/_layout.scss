@@ -753,7 +753,7 @@ main:has(.container--db) {
     display: flex;
     flex-direction: column;
     padding-bottom: var(--spacing-md);
-    overflow: hidden;
+    overflow: visible;
 
     @media (max-width: 576px) {
         display: block;
