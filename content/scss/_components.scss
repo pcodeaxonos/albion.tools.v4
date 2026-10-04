@@ -1932,6 +1932,31 @@ input[type="month"].form-control {
 }
 
 /* Albion item-tier tokens (T1–T8) for badges / tints. */
+.badge[data-tier] {
+    background-color: var(--color-item-tier);
+    color: var(--color-on-item-tier, var(--color-on-tier));
+}
+
+.badge.badge-inline {
+    position: relative;
+    isolation: isolate;
+    display: inline;
+    padding: 0 0.3em;
+    font-size: inherit;
+    line-height: inherit;
+    vertical-align: baseline;
+    background: transparent;
+
+    &::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        z-index: -1;
+        background-color: var(--color-item-tier, var(--color-secondary));
+        pointer-events: none;
+    }
+}
+
 [data-tier="1"],
 [data-tier="2"] { --color-item-tier: var(--color-tier-2); }
 [data-tier="3"] { --color-item-tier: var(--color-tier-3); }

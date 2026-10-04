@@ -23,7 +23,7 @@ function moduleFor(file) {
     if (modules.has(file)) return modules.get(file);
     let code = fs.readFileSync(file, 'utf8');
     if (file.endsWith(`${path.sep}nav.js`)) code = 'export function initNav() {}';
-    if (file.endsWith(`${path.sep}island-planner-v2.js`)) code = code.replace(/init\(\);\s*$/, 'export { state };');
+    if (file.endsWith(`${path.sep}island-planner-v2.js`)) code = code.replace(/init\(\);\s*$/, 'export { state, priceSummaryLabel };');
     const module = new vm.SourceTextModule(code, { context, identifier: file });
     modules.set(file, module);
     return module;
@@ -312,5 +312,146 @@ test('buy-order replacement setup is applied only to expected missing offspring'
     const options = ctx(); options.buySide = 'buy';
     const row = economy.listIslandLedger(options).find((r) => r.itemKey === 'chicken' && r.pathId === 'grow' && r.feedMode === 'market');
     near(row.profit, 9 * (5000 * .96 - 1001 * 1.025 * .4 - 9 * 101 * 1.025), 'replacement setup');
+});
+test('V2 trial placement does not mutate the visible plan or derived totals', () => {
+    plan(['wheat', 'chicken']);
+    const visible = v2.state.derived;
+    const draft = JSON.stringify(v2.state.draft);
+    const trial = v2.calculateIslandPlan({ entries: [v2.state.draft.slots[0]], update: false });
+    assert.equal(v2.state.derived, visible);
+    assert.equal(JSON.stringify(v2.state.draft), draft);
+    assert.ok(Number.isFinite(trial.summary.net));
+    assert.equal(trial.slots.size, 1);
+    assert.equal(v2.calculateIslandPlan({ entries: [], update: false }).summary.net, 0);
+});
+test('V2 price summary handles missing and stale prices without UI variables', () => {
+    assert.equal(v2.priceSummaryLabel({ missing: 2, stale: 3 }), '2 eksik · 3 güncel değil');
+    assert.equal(v2.priceSummaryLabel({ missing: 0, stale: 3 }), '3 güncel değil');
+    assert.equal(v2.priceSummaryLabel({ missing: 2, stale: 0 }), '2 eksik');
+    assert.equal(v2.priceSummaryLabel({ missing: 0, stale: 0 }), 'Güncel');
+});
+test('V2 Focus totals use catalog nurture cost and preserve unknown watering cost', () => {
+    plan(['chicken'], { focus: true });
+    v2.state.draft.slots[0].productionMode = 'butcher';
+    v2.calculateIslandPlan();
+    near(v2.state.derived.summary.focus, chicken.focusCost * chicken.pens, 'daily nurture');
+    const mixed = plan(['wheat', 'chicken'], { focus: true });
+    assert.equal(mixed.summary.focus, null, 'unknown character watering must not be zero');
+    assert.equal(mixed.slots.get('R1').dependencies.focus.length, 1);
+    assert.equal(plan(['wheat', 'chicken']).summary.focus, 0);
+});
+async function placementTest(name, run) { await run(); checks++; console.log(`PASS ${name}`); }
+await placementTest('V2 filling preserves occupied and locked slots; validates marginal total against engine', async () => {
+    plan(['wheat']);
+    const fixed = v2.state.draft.slots[0];
+    v2.state.draft.islandLevel = 2;
+    v2.state.draft.slots.push({ id: 'R2', item: null }, { id: 'R3', item: 'chicken', productionMode: 'product' }, { id: 'R16', item: null });
+    const before = JSON.stringify(v2.state.draft);
+    const profile = v2.calculateIslandPlan({ entries: [{ id: 'trial', item: 'chicken', productionMode: 'product' }], update: false }).profiles[0];
+    const { result, next, derived } = await v2.optimizeDraftPlacement([profile], { isLocked: id => id === 'R16' });
+    assert.equal(next[0], fixed);
+    assert.equal(next[2], v2.state.draft.slots[2]);
+    assert.equal(next[3], v2.state.draft.slots[3]);
+    assert.equal(JSON.stringify(v2.state.draft), before, 'trial cannot apply itself');
+    near(result.marginalNet, derived.summary.net - result.baseline, 'marginal objective');
+    near(result.net, derived.summary.net, 'engine validation');
+});
+await placementTest('V2 existing animal demand changes the best addition', async () => {
+    plan(['chicken']);
+    v2.state.draft.slots.push({ id: 'R2', item: null });
+    v2.state.draft.islandLevel = 6;
+    const crop = v2.calculateIslandPlan({ entries: [{ id: 'trial', item: 'wheat' }], update: false }).profiles[0];
+    const { result, derived } = await v2.optimizeDraftPlacement([crop]);
+    near(result.net, derived.summary.net, 'animal + crop');
+    assert.ok(result.marginalNet > crop.net, 'existing feed demand supplies synergy');
+});
+await placementTest('V2 missing baseline prices stop filling without modifying draft', async () => {
+    plan(['chicken'], { baby: false });
+    v2.state.draft.slots[0].productionMode = 'grow';
+    const before = JSON.stringify(v2.state.draft);
+    await assert.rejects(v2.optimizeDraftPlacement([]), /hesaplanamıyor/);
+    assert.equal(JSON.stringify(v2.state.draft), before);
+});
+await placementTest('V2 catalog-wide 16-slot filling agrees with the complete engine', async () => {
+    plan([]);
+    v2.state.draft.islandLevel = 6;
+    v2.state.draft.slots = Array.from({ length: 16 }, (_, i) => ({ id: `R${i + 1}`, item: null }));
+    const items = (await load('content/js/tools/island-planner-v2/items.js')).namespace;
+    const candidates = items.itemRows().filter(items.isEconomicItem).flatMap(item => {
+        const modes = items.animalProductionModes(item);
+        return (modes.length ? modes.map(mode => mode.value) : [null]).flatMap(productionMode => {
+            const result = v2.calculateIslandPlan({ entries: [{ id: 'trial', item: item.key, productionMode, focus: false }], update: false });
+            return Number.isFinite(result.profiles[0]?.net) ? result.profiles : [];
+        });
+    });
+    const started = performance.now();
+    const { result, derived } = await v2.optimizeDraftPlacement(candidates);
+    near(result.net, derived.summary.net, 'catalog total');
+    assert.ok(result.entries.length <= 16);
+    console.log(`catalog ${candidates.length} candidates, ${result.metadata.visited} nodes, ${Math.round(performance.now() - started)} ms`);
+});
+test('V2 candidate screening excludes missing data but keeps and reports stale quotes', () => {
+    plan([], { baby: false });
+    const entries = [{ id: 'trial', item: 'chicken', productionMode: 'grow' }, { id: 'trial', item: 'wheat' }];
+    let screened = v2.evaluatePlacementCandidates(entries);
+    assert.equal(screened.candidates.length, 1);
+    assert.equal(screened.skipped, 1);
+    assert.ok(screened.diagnostics.some(value => value.itemId === chicken.babyId));
+    v2.state.priceIndex = market.indexPrices(priceRows().map(row => ({ ...row, buy_price_max_date: '2000-01-01T00:00:00Z', sell_price_min_date: '2000-01-01T00:00:00Z' })));
+    screened = v2.evaluatePlacementCandidates(entries);
+    assert.equal(screened.candidates.length, 2);
+    assert.equal(screened.staleCandidates, 2);
+    assert.ok(screened.diagnostics.some(value => value.type === 'stale-price'));
+});
+await placementTest('V2 validation rejects a mismatched optimizer economic profile', async () => {
+    plan([]);
+    v2.state.draft.slots = [{ id: 'R1', item: null }];
+    const profile = v2.calculateIslandPlan({ entries: [{ id: 'trial', item: 'wheat' }], update: false }).profiles[0];
+    await assert.rejects(v2.optimizeDraftPlacement([{ ...profile, net: profile.net + 100000 }]), /doğrulanamadı/);
+    assert.equal(v2.state.draft.slots[0].item, null);
+});
+test('V2 catalog price screening catches invalid prices on unplaced candidates', () => {
+    plan([]);
+    v2.state.priceIndex = market.indexPrices(priceRows().map(row => row.item_id === chicken.grownId ? { ...row, buy_price_max: -1, sell_price_min: 0 } : row));
+    const result = v2.evaluatePlacementCandidates(v2.optimizationEntries());
+    assert.ok(result.diagnostics.some(value => value.itemId === chicken.grownId && value.type === 'missing-price'));
+    assert.ok(result.skipped > 0);
+    assert.equal(v2.state.draft.slots.length, 0);
+});
+test('V2 non-feeding crops contribute zero to market feed totals, not unknown', () => {
+    const derived = plan(['wheat', 'chicken', 'chicken', 'chicken']);
+    assert.equal(derived.slots.get('R1').market, 0);
+    const animals = [...derived.slots.values()].slice(1);
+    near(derived.summary.market, animals.reduce((sum, value) => sum + value.market, 0), 'market feed aggregate');
+    near(derived.summary.feed, derived.summary.market + derived.summary.internal, 'actual total feed');
+    near(derived.summary.surplus, [...derived.slots.values()].reduce((sum, value) => sum + value.netOutput, 0), 'all sellable output');
+    assert.ok(derived.summary.market > 0);
+    assert.equal(plan(['wheat']).summary.market, 0);
+    assert.equal(plan(['wheat']).summary.feed, 0);
+});
+test('V2 pumpkin supplies cow feed when internal use is cheaper, otherwise sells it', () => {
+    let derived = plan(['pumpkin', 'cow']);
+    assert.ok(derived.summary.internal > 0, 'matching pumpkin is used by cow');
+    near(derived.summary.internal, derived.slots.get('R2').internal, 'internal total');
+    const pumpkin = economy.listCrops().find(item => item.key === 'pumpkin');
+    v2.state.priceIndex = market.indexPrices(priceRows().map(row => row.item_id === pumpkin.plantId ? { ...row, sell_price_min: 10000, buy_price_max: 100 } : row));
+    v2.state.draft.seedSide = 'buy';
+    v2.state.draft.harvestSide = 'sell';
+    derived = v2.calculateIslandPlan({ update: false });
+    assert.equal(derived.summary.internal, 0, 'selling pumpkin and buying cheap feed is preferable');
+    assert.ok(derived.slots.get('R2').market > 0);
+    near(derived.slots.get('R1').netOutput, derived.slots.get('R1').output, 'pumpkin remains for sale');
+});
+test('V2 per-unit production cost uses full output and includes internal feed opportunity cost', () => {
+    const derived = plan(['pumpkin', 'cow']);
+    const crop = derived.slots.get('R1'), cow = derived.slots.get('R2');
+    near(crop.unitCost, crop.expense / crop.output, 'pumpkin average cost');
+    near(cow.unitCost, (cow.expense + cow.internalTransferIn) / cow.output, 'milk average cost');
+    assert.ok(cow.internalTransferIn > 0);
+    assert.ok(cow.unitCost > cow.expense / cow.output, 'internal feed is not free');
+    plan(['chicken'], { baby: false });
+    v2.state.draft.slots[0].productionMode = 'grow';
+    const missing = v2.calculateIslandPlan({ update: false }).slots.get('R1');
+    assert.equal(missing.unitCost, null, 'missing input cost must not become zero');
 });
 console.log(`${checks} island economy checks passed.`);

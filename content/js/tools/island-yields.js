@@ -1012,8 +1012,8 @@ function renderComparisonControls(isProduct) {
     const periods = [...LOG_PERIODS, ...[...new Set(getAll(TABLE).map((row) => toYearMonth(row.date)).filter(Boolean))]
         .sort().reverse().map((key) => ({ key, label: key }))];
     const sortIcons = {
-        product: '<path d="M5 20 19 4M9 16C3 16 3 10 7 11s3 3 2 5Zm4-4C7 12 7 6 11 7s3 3 2 5Zm3-4c-1-5 3-7 4-4s-1 4-4 4Z"/>',
-        seed: '<path d="M5 19c-2-8 2-15 13-15 2 10-3 16-13 15Zm0 0L17 7M10 14v-4M10 14h4"/>'
+        product: '<path d="M12 21V7M12 7c-3-2-3-4 0-6 3 2 3 4 0 6Z"/><path d="M12 11C8 11 5 9 5 5c4 0 7 2 7 6Zm0 0c4 0 7-2 7-6-4 0-7 2-7 6ZM12 17c-4 0-7-2-7-6 4 0 7 2 7 6Zm0 0c4 0 7-2 7-6-4 0-7 2-7 6Z"/>',
+        seed: '<path d="M12 21v-7M4 21h16M12 14C6 14 3 11 3 6c6 0 9 3 9 8Zm0-2c0-6 3-9 9-9 0 6-3 9-9 9Z"/><path d="m7 10 5 4m5-7-5 5"/>'
     };
     return `<div class="yield-period-controls">
         <div class="yield-city-sort" role="group" aria-label="Şehirlere göre sırala">
@@ -1049,21 +1049,15 @@ function renderCityComparison() {
                         <span>${plant ? escapeHtml(itemLabel(plant.key, itemType)) : 'Ürün seçin'}</span>
                         ${plant ? `<span class="yield-city-comparison-tier" ${tierAttribute(plant.tier)}>T${plant.tier}</span>` : ''}
                     </h3>
-                </div>
                 <p>${plant ? `Seçili Premium / ${escapeHtml(metricCopy().mode)} ayarındaki tüm ada şehirleri · ${escapeHtml(LOG_PERIODS.find((period) => period.key === state.month)?.label ?? state.month)} ortalaması.` : 'Detayları görmek için bir ürün seçin.'}</p>
+                </div>
                 ${renderComparisonControls(isProduct)}
             </div>
             <div class="yield-city-comparison-grid">
                 ${cities.map((city) => {
                     const cityName = city.marketApiName;
                     const avg = averages.get(cityName);
-                    const standardYield = plant ? (isProduct ? standardAnimalProductOutput(plant, cityName) : standardOutput(plant, cityName)) : null;
-                    const standardSeed = plant ? standardReturn(plant, cityName) : null;
                     const hasData = avg && avg.avgPlantYield > 0;
-                    const yieldDelta = hasData ? (avg.avgPlantYield - standardYield) / standardYield : null;
-                    const seedDelta = hasData && Number.isFinite(avg.avgSeedReturn) && Number.isFinite(standardSeed)
-                        ? avg.avgSeedReturn - standardSeed
-                        : null;
                     const bonus = plant && state.yieldKind === 'plant' && hasCityBonus(plant, cityName);
                     return `
                         <article class="yield-city-card${cityName === state.islandCity ? ' is-current' : ''}${hasData ? '' : ' is-empty'}"
@@ -1074,15 +1068,10 @@ function renderCityComparison() {
                             </header>
                             <div class="yield-city-card-metric">
                                 <span>${escapeHtml(isProduct ? 'Ürün' : metricCopy().outputShort)}</span>
-                                <b>${hasData ? formatQty(avg.avgPlantYield) : '—'}</b>
-                                <small>${hasData ? `${formatSigned(avg.avgPlantYield - standardYield, { digits: 1 })} · ${formatRelativeDifference(avg.avgPlantYield, standardYield)}` : `Vars. ${formatQty(standardYield)}`}</small>
+                                <b title="Gerçek ürün ortalaması">${hasData ? formatQty(avg.avgPlantYield) : '—'}</b>
+                                ${isProduct ? '' : `<b title="${escapeHtml(metricCopy().returnShort)} dönüşü">${hasData ? formatPct(avg.avgSeedReturn) : '—'}</b>`}
+                                <small>n=${hasData ? avg.n : 0}</small>
                             </div>
-                            ${isProduct ? '' : `<div class="yield-city-card-metric">
-                                <span>${escapeHtml(metricCopy().returnShort)}</span>
-                                <b>${hasData ? formatPct(avg.avgSeedReturn) : '—'}</b>
-                                <small>${hasData ? formatSigned(seedDelta, { asPctPoints: true }) : `Vars. ${formatPct(standardSeed)}`}</small>
-                            </div>`}
-                            <footer>${hasData ? `n=${avg.n} kayıt` : 'Kayıt yok'}</footer>
                         </article>
                     `;
                 }).join('')}

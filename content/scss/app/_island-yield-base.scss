@@ -418,11 +418,12 @@
 }
 
 .yield-city-sort {
+    position: relative;
     flex: 0 0 auto;
-    > span { display: block; margin-bottom: 0.25rem; color: var(--color-text-muted); font-size: 0.7rem; }
+    > span { position: absolute; left: 0; bottom: calc(100% + 0.25rem); color: var(--color-text-muted); font-size: 0.7rem; white-space: nowrap; }
     > div { display: flex; gap: 0.35rem; }
     .btn { display: inline-flex; align-items: center; gap: 0.35rem; padding: 0.4rem 0.65rem; font-size: 0.75rem; }
-    svg { width: 1rem; height: 1rem; flex: none; }
+    svg { width: 1.15rem; height: 1.15rem; flex: none; }
 }
 
 // Island yields — percentage-difference cards
@@ -501,9 +502,7 @@
 }
 
 .yield-city-comparison-head {
-    display: grid;
-    grid-template-columns: minmax(12rem, 1fr) minmax(0, 2fr);
-    grid-template-areas: "title controls" "description controls";
+    display: flex;
     align-items: center;
     gap: var(--spacing-sm);
     margin-bottom: var(--spacing-sm);
@@ -511,20 +510,26 @@
     .island-planner-subhead {
         margin: 0;
     }
-    > p {
-        grid-area: description;
+    > div:first-child p {
         margin: 0;
         color: var(--color-text-muted);
         font-size: var(--font-size-sm);
+        line-height: 1.5rem;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
     }
-    > div:first-child { grid-area: title; min-width: 0; }
-    > .yield-period-controls { grid-area: controls; }
+    > div:first-child { flex: 1 1 0; min-width: 0; }
+    > .yield-period-controls { flex: 0 1 auto; justify-content: flex-end; margin-left: auto; padding-top: 1.25rem; }
+    .yield-period-presets { flex: 0 1 auto; }
+    .btn { height: 2.2rem; }
 }
 
 @media (max-width: 1100px) {
     .yield-city-comparison-head {
-        grid-template-columns: minmax(0, 1fr);
-        grid-template-areas: "title" "description" "controls";
+        flex-wrap: wrap;
+        > div:first-child { flex-basis: 100%; }
+        > .yield-period-controls { flex-basis: 100%; }
     }
 }
 
@@ -541,6 +546,9 @@
     display: flex;
     align-items: center;
     gap: 0.35rem;
+    height: 1.7rem;
+    min-width: 0;
+    > span:not(.yield-city-comparison-tier) { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
     .item-icon {
         width: 1.7rem;
@@ -570,7 +578,7 @@
 .yield-city-card {
     --yield-city-color: var(--color-primary);
     min-width: 0;
-    padding: 0.45rem;
+    padding: 0.65rem;
     border: var(--border-width) solid color-mix(in srgb, var(--yield-city-color) 48%, var(--color-border));
     border-radius: 0.4rem;
     background-color: color-mix(in srgb, var(--yield-city-color) 9%, var(--color-surface));
@@ -591,7 +599,8 @@
         align-items: center;
         justify-content: space-between;
         gap: 0.4rem;
-        margin-bottom: 0.35rem;
+        margin-bottom: 0.65rem;
+        height: 1.2rem;
     }
     header strong {
         color: var(--yield-city-color);
@@ -614,12 +623,12 @@
 
 .yield-city-card-metric {
     display: grid;
-    grid-template-columns: minmax(0, 3.25rem) auto minmax(0, 1fr);
-    gap: 0.25rem;
+    grid-template-columns: auto minmax(0, 1fr) minmax(0, 1fr) auto;
+    column-gap: 0.65rem;
     align-items: baseline;
     min-width: 0;
     padding: 0.2rem 0;
-    border-top: 1px solid color-mix(in srgb, var(--color-border) 70%, transparent);
+    white-space: nowrap;
 
     > span,
     small {
@@ -628,13 +637,17 @@
         font-size: 0.625rem;
     }
     b {
+        text-align: center;
         color: #ffd361;
         font-family: var(--font-family-mono);
-        font-size: 0.75rem;
+        font-size: 0.85rem;
     }
     small {
+        grid-column: 4;
+        margin-left: auto;
+        padding-left: 0.4rem;
+        border-left: 1px solid var(--color-border);
         text-align: right;
-        overflow-wrap: anywhere;
     }
 }
 

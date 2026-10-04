@@ -172,10 +172,16 @@ function detail(row) {
     const e = row.economics;
     const p = row.progression;
     const c = row.continuation;
-    const issues = [...new Set([...(p.issues || []), ...(e.issues || []), ...(c?.issues || [])])];
-    const editablePrices = row.priceState.dependencies.filter(price => priceIssue(price) || price.mode === 'manual');
+    const selectedPriceIssues = row.priceState.missing.map(priceIssue);
+    const planIssues = new Set(p.issues || []);
+    const issues = [...new Set([...selectedPriceIssues, ...(e.issues || []).filter(issue => !planIssues.has(issue))])];
+    const routeNotes = [...new Set((p.issues || []).filter(issue => !issues.includes(issue)))];
+    const manualPrices = row.priceState.dependencies.filter(price => price.mode === 'manual');
     return `<div class="laborer-detail-identity">${itemIconHtml(row.item, { size: 64 })}<div><strong>T${row.tier}</strong><p>${esc(itemLabel(row.item))}</p></div><span class="laborer-price-status">${esc(economicPriceStatus(row))}</span></div>
-        ${editablePrices.length ? `<section class="laborer-detail-card" data-laborer-missing-prices><h3>Eksik fiyatlar</h3>${editablePrices.map(price => priceField(price.item, price.intent)).join('')}</section>` : ''}
+        ${row.priceState.missing.length || manualPrices.length ? `<section class="laborer-detail-card" data-laborer-missing-prices>
+            ${row.priceState.missing.length ? `<h3>Eksik fiyatlar</h3><p class="calc-note">Hesabı engelleyen: ${row.priceState.missing.length}</p><div data-laborer-blocking-prices>${row.priceState.missing.map(price => priceField(price.item, price.intent)).join('')}</div>` : ''}
+            ${manualPrices.length ? `<h3>Manuel fiyatlar</h3><div data-laborer-manual-prices>${manualPrices.map(price => priceField(price.item, price.intent)).join('')}</div>` : ''}
+        </section>` : ''}
         <div class="laborer-detail-grid">
         ${detailCard('Fiyat özeti', metricList([
             ['Net satış', formatSilver(netSale(row.sale, quantity(), state.premium))],
@@ -203,7 +209,8 @@ function detail(row) {
             ['Planlama günü', formatQuantity(c.days)], ['Ek kâr / gün', formatSilver(c.additionalProfitDay)],
             ['Marginal break-even', formatSilver(c.marginalBreakEven)]
         ]) : `<p class="calc-note">${c ? 'Karşılaştırma için gerekli fiyatlar veya hesap verileri eksik.' : 'Son contract tier — sonraki tier yok.'}</p>`)}
-        </div>${issues.length ? `<details data-laborer-disclosure="selected-issues"><summary>Hesap belirsizlikleri</summary><ul class="calc-note">${issues.map((issue) => `<li>${esc(issueText(issue))}</li>`).join('')}</ul></details>` : ''}`;
+        </div>${issues.length ? `<details data-laborer-disclosure="selected-issues"><summary>Seçili sonucun eksik girdileri</summary><ul class="calc-note">${issues.map((issue) => `<li>${esc(issueText(issue))}</li>`).join('')}</ul></details>` : ''}
+        ${routeNotes.length ? `<details data-laborer-disclosure="alternative-prices"><summary>Alternatif rotalar ve optimizasyon notları</summary><p class="calc-note">Bu notlar seçili sonucun eksik fiyat sayısına dahil değildir.</p><ul class="calc-note">${routeNotes.map(issue => `<li>${esc(issueText(issue))}</li>`).join('')}</ul></details>` : ''}`;
 }
 
 function renderResults() {
@@ -212,6 +219,9 @@ function renderResults() {
     const tableScroll = result.querySelector('[data-laborer-comparison-scroll]');
     const scrollTop = tableScroll?.scrollTop || 0;
     const scrollLeft = tableScroll?.scrollLeft || 0;
+    const detailScroll = result.querySelector('[data-laborer-selected-detail]');
+    const detailScrollTop = detailScroll?.scrollTop || 0;
+    const previousTier = detailScroll?.dataset.laborerTier;
     priceFieldSequence = 0;
     rememberDisclosures();
     const { rows, issues } = model();
@@ -221,21 +231,22 @@ function renderResults() {
     const currentNet = netSale(quote(current.item, 'sell'), quantity(), state.premium);
     const selectedRow = rows.find((row) => row.tier === Number(state.selectedTier)) || rows[0];
     if (selectedRow) state.selectedTier = selectedRow.tier;
-    const summaryLabel = (row) => row ? `${row.economics.optimal === false ? 'Mevcut fiyatlı rotalar · ' : ''}${row.liquidity.status !== 'observed' ? 'Teorik ' : ''}T${row.tier}: ${formatSilver(row.economics.profit)}` : 'Hesaplanamıyor';
-    const efficiencyLabel = best.efficiency ? `${best.efficiency.liquidity.status !== 'observed' ? 'Teorik ' : ''}T${best.efficiency.tier}: ${formatSilver(best.efficiency.economics.profitSlotDay)}` : 'Hesaplanamıyor';
-    const summaryCard = (title, value, note) => `<section class="laborer-result-card laborer-kpi"><h2>${esc(title)}</h2><strong>${value}</strong><small>${esc(note)}</small></section>`;
+    const tierBadge = (tier) => `<span class="badge badge-inline" data-tier="${Number(tier)}">T${Number(tier)}</span>`;
+    const summaryLabel = (row) => row ? `${row.economics.optimal === false ? 'Mevcut fiyatlı rotalar · ' : ''}${row.liquidity.status !== 'observed' ? 'Teorik ' : ''}${tierBadge(row.tier)}: ${formatSilver(row.economics.profit)}` : 'Hesaplanamıyor';
+    const efficiencyLabel = best.efficiency ? `${best.efficiency.liquidity.status !== 'observed' ? 'Teorik ' : ''}${tierBadge(best.efficiency.tier)}: ${formatSilver(best.efficiency.economics.profitSlotDay)}` : 'Hesaplanamıyor';
+    const summaryCard = (title, value, note) => `<section class="laborer-result-card laborer-kpi"><h2>${esc(title)}</h2><strong>${value}</strong><small>${note}</small></section>`;
     result.innerHTML = `<div class="laborer-dashboard-top">
         <div class="laborer-kpis">
-        ${summaryCard('Şimdi sat', formatSilver(currentNet), `T${current.tier} · net gümüş`)}
+        ${summaryCard('Şimdi sat', formatSilver(currentNet), `${tierBadge(current.tier)} · net gümüş`)}
         ${summaryCard('En yüksek toplam kâr', summaryLabel(best.total), 'Net gümüş')}
         ${summaryCard('En yüksek kâr / slot / gün', efficiencyLabel, 'Net gümüş / slot / gün')}
-        ${summaryCard('Gerekli sermaye', formatSilver(selectedRow?.economics.initialCapital), `${formatQuantity(quantity())} laborer · T${selectedRow?.tier ?? current.tier}`)}
+        ${summaryCard('Gerekli sermaye', formatSilver(selectedRow?.economics.initialCapital), `${formatQuantity(quantity())} laborer · ${tierBadge(selectedRow?.tier ?? current.tier)}`)}
         </div></div>
         <div class="laborer-dashboard-middle">
         <section class="laborer-result-card laborer-comparison"><h2 class="laborer-section-title">Contract tier karşılaştırması</h2><div class="table-responsive calc-table-wrap" data-laborer-comparison-scroll><table class="table table-striped calc-table">
         <thead><tr><th>Contract</th><th>Cycle / Journal</th><th>Planlama günü</th><th>Net satış</th><th>Net kâr</th><th>Kâr / slot / gün</th><th>Fiyat durumu</th></tr></thead>
         <tbody>${rows.map((row) => `<tr data-laborer-result-tier="${row.tier}" class="${row.tier === selectedRow?.tier ? 'is-selected' : ''}"><td><button type="button" class="laborer-contract-item" data-laborer-select-tier="${row.tier}" aria-pressed="${row.tier === selectedRow?.tier}" aria-label="T${row.tier} detaylarını göster">${itemIconHtml(row.item, { size: 64 })}<span>T${row.tier}</span></button></td><td>${Number.isFinite(row.economics.cycles) ? `${row.economics.cycles} / ${row.economics.journals}` : '—'}</td><td>${formatQuantity(row.economics.days)}</td><td>${formatSilver(netSale(row.sale, quantity(), state.premium))}</td><td>${formatSilver(row.economics.profit)}</td><td>${formatSilver(row.economics.profitSlotDay)}</td><td><span class="laborer-price-status" data-economic-price-status="${row.priceState.status}">${esc(economicPriceStatus(row))}</span></td></tr>`).join('')}</tbody></table></div>
-        <p class="calc-note">${esc(feeMetaText(state.premium))}. ${state.sellSide === 'sell' ? 'Satış emri: sell −1 ve setup.' : 'Anında satış: buy, setup yok.'} Eski/tarihsiz fiyatlar net gelir ve önerilerde kullanılmaz.</p></section>
+        <p class="calc-note" data-info>${esc(feeMetaText(state.premium))}. ${state.sellSide === 'sell' ? 'Satış emri: sell −1 ve setup.' : 'Anında satış: buy, setup yok.'} Eski/tarihsiz fiyatlar net gelir ve önerilerde kullanılmaz.</p></section>
         <section class="laborer-result-card laborer-selected-detail"><h2 class="laborer-section-title" data-laborer-detail-title>Seçili tier detayları${selectedRow ? ` — T${selectedRow.tier}` : ''}</h2><div class="laborer-panel-scroll" data-laborer-selected-detail>${selectedRow ? detail(selectedRow) : '<p>Geçerli laborer adedi gerekli.</p>'}</div></section>
         </div>
         <div class="laborer-dashboard-bottom">
@@ -243,15 +254,18 @@ function renderResults() {
         <section class="laborer-result-card laborer-status-panel" role="status"><h2 class="laborer-section-title">Hesap durumu</h2><div class="laborer-panel-scroll"><strong>${mechanicErrors.length ? 'Mekanik veri eksik.' : 'XML mekanikleri ve davranışsal carry-over kullanılıyor. Sonuçlar beklenen loot senaryosudur.'}</strong>
         ${mechanicErrors.length ? `<p>${esc(mechanicErrors.join(' '))}</p><p>Job süresi 22 saat; planlamada her job 1 gün sayılır. Journal dönüşlerini manuel girebilirsin.</p>` : ''}
         ${issues.map((issue) => `<p role="alert">${esc(issueText(issue))}</p>`).join('')}</div></section>
-        <section class="laborer-result-card"><h2 class="laborer-section-title">Fiyat / likidite / debug</h2><div class="laborer-panel-scroll">${metricList([
+        <section class="laborer-result-card"><h2 class="laborer-section-title">Fiyat / likidite / debug<span class="laborer-info"><button type="button" aria-label="Hacim, seçilen fiyattan satış garantisi değildir. Eski/tarihsiz fiyatlar net gelir ve önerilerde kullanılmaz."><svg aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 11v6"/><path d="M12 7.5h.01"/></svg></button><span role="tooltip">Hacim, seçilen fiyattan satış garantisi değildir. Eski/tarihsiz fiyatlar net gelir ve önerilerde kullanılmaz.</span></span></h2><div class="laborer-panel-scroll">${metricList([
             ['Fiyat tarihi', esc(formatDateTime(selectedRow?.sale.date, { empty: 'Tarih yok' }))],
             ['Veri kaynağı', esc(getSettings().priceSource)],
             ['Piyasa', `${esc(state.buyCity)} → ${esc(state.sellCity)}`],
             ['Alış / satış', `${state.buySide === 'buy' ? 'Buy Order' : 'Buy'} / ${state.sellSide === 'sell' ? 'Sell Order' : 'Sell'}`],
             ['Likidite', esc(selectedRow?.liquidity.label || 'Hesaplanamıyor')],
             ['Fiyat durumu', selectedRow ? esc(economicPriceStatus(selectedRow)) : '—']
-        ])}<p class="calc-note">Hacim, seçilen fiyattan satış garantisi değildir. Eski/tarihsiz fiyatlar net gelir ve önerilerde kullanılmaz.</p></div></section>
+        ])}</div></section>
         </div>`;
+    const newDetailScroll = result.querySelector('[data-laborer-selected-detail]');
+    newDetailScroll.dataset.laborerTier = String(selectedRow?.tier ?? '');
+    if (previousTier === newDetailScroll.dataset.laborerTier) newDetailScroll.scrollTop = detailScrollTop;
     initForms(result);
     bindPriceFields();
     bindRewardFields();

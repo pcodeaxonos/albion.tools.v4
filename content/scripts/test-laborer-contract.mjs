@@ -385,6 +385,27 @@ test('total profit and time efficiency may select different tiers', () => {
     assert.equal(economics.optimum(rows).total.tier, 4); assert.equal(economics.optimum(rows).efficiency.tier, 3);
     assert.equal(economics.optimum([]).total, null);
 });
+test('selected route counts two blocking prices independently of twenty missing alternatives', () => {
+    const missing = (item, intent = 'buy') => ({ item, city: 'Martlock', side: intent === 'buy' ? 'buy' : 'sell', intent, status: 'missing', price: null });
+    const selectedJournal = { filled: 'chosen', type: 'fixture', tier: 2, fame: 100, rewardsVerified: true, rewards: [{ item: 'chosen-reward', quantity: 1 }] };
+    const alternatives = Array.from({ length: 20 }, (_, i) => ({ filled: `alternative-${i}`, fame: 100, rewardsVerified: true, rewards: [] }));
+    const rules = { ...mechanics, profession: 'fixture', stages: { 2: { requiredFame: 100, journals: [selectedJournal, ...alternatives] } } };
+    const result = planning.planProgression({ mechanics: rules, startTier: 2, targetTier: 3, journalEconomics: journal => economics.cycleEconomics(journal, missing, true) });
+    assert.equal(result.sequence[0].journal, 'chosen');
+    assert.ok(result.issues.filter(issue => issue.includes('alternative-')).length >= 20);
+    const targetSale = { ...sale(22000, true), side: 'sell', intent: 'sell' };
+    const state = economics.economicPriceState({ plan: result, sale: targetSale });
+    assert.equal(state.missing.length, 2);
+    assert.deepEqual(plain(state.missing.map(quote => quote.item)), ['chosen', 'chosen-reward']);
+    assert.equal(`${state.missing.length} fiyat eksik`, '2 fiyat eksik');
+    const values = economics.evaluatePlan({ plan: result, acquisition: 1000, quantity: 1, sale: targetSale, premium: true });
+    near(values.contractNet, 22000 * .935);
+    assert.equal(values.cycles, 1);
+    assert.equal(values.journals, 1);
+    assert.equal(values.days, 1);
+    for (const field of ['profit', 'levelingCost', 'profitSlotDay', 'roi', 'initialCapital', 'peakCapital', 'breakEven']) assert.equal(values[field], null);
+});
+
 test('missing journal manual override opens economics and reset isolates the exact market key', () => {
     const rules = progressionRules(catalog, 'hunter');
     const journal = rules.stages[2].journals.find(row => row.filled === 'T2_JOURNAL_HUNTER_FULL');

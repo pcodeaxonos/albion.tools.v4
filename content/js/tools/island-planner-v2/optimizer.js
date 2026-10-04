@@ -1,0 +1,49 @@
+import { placementValue } from '../../core/island/placement-model.js';
+
+// Count search: fixed productions participate in every score and relaxation.
+// The continuous relaxation permits fractional plots; its optimum is therefore
+// an upper bound on every integer completion, including all feed synergies.
+export async function optimizePlacement(options, fixed, slotCount, { cancelled = () => false } = {}) {
+    const baseline = placementValue(fixed).net;
+    const profiles = new Map();
+    for (const option of options) {
+        const key = JSON.stringify([option.supplies, option.feed]);
+        if (!profiles.has(key) || option.net > profiles.get(key).net) profiles.set(key, option);
+    }
+    const choices = [...profiles.values()].sort((a, b) => b.net - a.net);
+    let best = { net: baseline, marginalNet: 0, entries: [] };
+    let visited = 0, pruned = 0;
+    const selected = [];
+    const evaluate = () => {
+        const net = placementValue([...fixed, ...selected]).net;
+        if (net > best.net + 1e-7) best = { net, marginalNet: net - baseline, entries: selected.map(profile => profile.entry) };
+    };
+    // Cheap incumbents improve pruning, without restricting the exact search.
+    for (const choice of choices) {
+        for (let count = 1; count <= slotCount; count++) {
+            selected.push(choice); evaluate();
+        }
+        selected.length = 0;
+    }
+    async function search(index, remaining) {
+        if (++visited % 128 === 0) {
+            await new Promise(resolve => setTimeout(resolve, 0));
+            if (cancelled()) throw new Error('Plan değişti; otomatik doldurma iptal edildi.');
+        }
+        evaluate(); // Leaving all remaining slots empty is a real candidate.
+        if (!remaining || index === choices.length) return;
+        const upper = placementValue([...fixed, ...selected], choices.slice(index), remaining).upper;
+        // Only the certified dual bound can prune; equal optima need no new plan.
+        if (upper <= best.net) { pruned++; return; }
+        const length = selected.length;
+        for (let count = remaining; count >= 0; count--) {
+            selected.length = length;
+            selected.push(...Array(count).fill(choices[index]));
+            await search(index + 1, remaining - count);
+        }
+        selected.length = length;
+    }
+    if (cancelled()) throw new Error('Plan değişti; otomatik doldurma iptal edildi.');
+    await search(0, slotCount);
+    return { ...best, baseline, metadata: { candidates: options.length, profiles: choices.length, visited, pruned, objective: 'afterNet - beforeNet' } };
+}

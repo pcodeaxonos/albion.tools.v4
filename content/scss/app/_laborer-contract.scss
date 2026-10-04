@@ -1,7 +1,8 @@
 [data-tool="laborer-contract"] {
     .laborer-result [data-laborer-results] {
         display: grid;
-        grid-template-rows: minmax(0, 6rem) minmax(0, 1fr) minmax(0, 9rem);
+        grid-template-rows: max-content minmax(0, 3fr) minmax(0, 1fr);
+        overflow: auto;
         flex: 1 1 0;
         min-height: 0;
         min-width: 0;
@@ -20,7 +21,33 @@
     .laborer-dashboard-top { grid-template-columns: minmax(0, 1fr); }
     .laborer-kpis { grid-template-columns: repeat(4, minmax(0, 1fr)); }
     .laborer-result .laborer-dashboard-middle { display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr); }
-    .laborer-dashboard-bottom { grid-template-columns: minmax(0, 1.1fr) minmax(0, 1.1fr) minmax(0, 1fr); }
+    .laborer-dashboard-bottom {
+        grid-template-columns: minmax(0, 1.1fr) minmax(0, 1.1fr) minmax(0, 1fr);
+        align-items: stretch;
+    }
+    .laborer-info {
+        position: relative;
+        display: inline-flex;
+        margin-left: var(--spacing-xs);
+        button { display: inline-flex; align-items: center; border: 0; padding: 0; background: transparent; color: var(--color-text-muted); font: inherit; cursor: help; }
+        svg { width: 1rem; height: 1rem; }
+        [role="tooltip"] {
+            display: none;
+            position: absolute;
+            right: 0;
+            bottom: 100%;
+            z-index: 5;
+            width: 16rem;
+            max-width: 70vw;
+            padding: var(--spacing-sm);
+            border: var(--border-width) solid var(--color-border);
+            background: var(--color-surface);
+            color: var(--color-text);
+            font-size: var(--font-size-xs);
+            font-weight: normal;
+        }
+        &:hover [role="tooltip"], &:focus-within [role="tooltip"] { display: block; }
+    }
     .laborer-result-card {
         display: flex;
         flex-direction: column;
@@ -33,7 +60,6 @@
         background: var(--color-surface);
     }
     .laborer-result-card > .laborer-section-title { margin: 0 0 var(--spacing-xs); }
-    .laborer-status-panel,
     .laborer-kpi { overflow: auto; overscroll-behavior: contain; }
     .laborer-status-panel { font-size: var(--font-size-xs); }
     .laborer-kpi {
@@ -52,10 +78,15 @@
         font-size: var(--font-size-xs);
         > p { margin: 0 0 var(--spacing-sm); }
     }
-    .laborer-comparison {
+    .laborer-result .laborer-comparison {
+        padding: 0;
+        border: 0;
+        background: transparent;
+        > .laborer-section-title { padding-block: var(--spacing-sm); }
+        .calc-table-wrap.table-responsive { flex: 1 1 0; }
         .calc-table { min-width: 36rem; font-size: var(--font-size-xs); }
         .calc-table th { white-space: normal; }
-        .calc-table td { vertical-align: middle; padding-block: var(--spacing-xs); }
+        .calc-table td { vertical-align: middle; }
         .calc-table td:last-child { min-width: 5rem; }
         .calc-table thead th { position: sticky; top: 0; z-index: 2; background: var(--color-surface); }
         .calc-note { flex: 0 0 auto; margin-bottom: 0; max-height: 3rem; overflow: auto; }
@@ -75,8 +106,8 @@
     .laborer-result .laborer-detail-grid {
         display: grid;
         grid-template-columns: repeat(2, minmax(0, 1fr));
-        grid-template-rows: repeat(3, minmax(0, 1fr));
-        flex: 1 1 0;
+        grid-template-rows: none;
+        flex: 0 0 auto;
         .laborer-journal-content { display: block; }
         .calc-table-wrap { max-height: 18rem; }
     }
@@ -86,9 +117,9 @@
         padding: var(--spacing-sm);
         border: var(--border-width) solid var(--color-border);
         background: var(--color-surface);
-        min-height: 0;
-        overflow: auto;
-        overscroll-behavior: contain;
+        // Detail cards grow with their content; the enclosing panel owns scrolling.
+        min-height: auto;
+        overflow: visible;
         h3 { margin: 0 0 var(--spacing-sm); color: var(--color-primary); font-size: var(--font-size-xs); }
     }
     .laborer-metrics {
@@ -102,7 +133,7 @@
     .laborer-result .laborer-selected-detail > .laborer-panel-scroll {
         display: flex;
         flex-direction: column;
-        > .laborer-detail-identity, > details { flex: 0 0 auto; }
+        > * { flex: 0 0 auto; }
     }
     @media (min-width: 992px) {
         // The app shell supplies the viewport height. Every potentially long
@@ -116,16 +147,14 @@
         }
     }
     @media (max-width: 1399px) and (min-width: 992px) {
-        .laborer-result [data-laborer-results] { grid-template-rows: minmax(0, 1.2fr) minmax(0, 4fr) minmax(0, 1.3fr); }
         .laborer-result .laborer-dashboard-middle { grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); }
         .laborer-result .laborer-detail-grid { grid-template-columns: minmax(0, 1fr); grid-template-rows: none; flex: 0 0 auto; }
     }
     @media (max-width: 991px) {
         .laborer-result [data-laborer-results] { display: flex; flex: 1 0 auto; }
-        .laborer-dashboard-top { grid-template-columns: minmax(0, 1fr); }
-        .laborer-result .laborer-dashboard-middle { grid-template-columns: minmax(0, 1fr); grid-template-rows: 26rem 30rem; flex: 0 0 auto; }
-        .laborer-dashboard-bottom { grid-template-columns: repeat(2, minmax(0, 1fr)); grid-template-rows: repeat(2, minmax(0, 1fr)); height: 22rem; flex: 0 0 auto; }
-        .laborer-status-panel, .laborer-kpi { min-height: 5rem; }
+        .laborer-dashboard-top { grid-template-columns: minmax(0, 1fr); flex: 0 0 auto; }
+        .laborer-result .laborer-dashboard-middle { grid-template-columns: minmax(0, 1fr); grid-template-rows: 22rem 26rem; flex: 0 0 auto; }
+        .laborer-dashboard-bottom { grid-template-columns: repeat(2, minmax(0, 1fr)); grid-template-rows: repeat(2, minmax(0, 1fr)); height: 24rem; flex: 0 0 auto; }
     }
     @media (max-width: 575px) {
         .laborer-kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -134,6 +163,7 @@
     }
     .calc-table {
         min-width: 40rem;
+        th, td { padding-top: var(--spacing-xs); padding-bottom: 0; }
         th { white-space: nowrap; }
         td { vertical-align: top; }
         td:first-child { white-space: nowrap; }
