@@ -43694,5 +43694,109 @@
     "qty": 12,
     "appliesRr": true,
     "sortValue": 2
+  },
+  {
+    "id": 5786,
+    "outputItemId": 3068,
+    "inputItemId": 3050,
+    "qty": 1,
+    "appliesRr": false,
+    "sortValue": 1
+  },
+  {
+    "id": 5787,
+    "outputItemId": 3068,
+    "inputItemId": 1147,
+    "qty": 20,
+    "appliesRr": true,
+    "sortValue": 2
+  },
+  {
+    "id": 5788,
+    "outputItemId": 3068,
+    "inputItemId": 9877,
+    "qty": 10000,
+    "appliesRr": false,
+    "sortValue": 3
+  },
+  {
+    "id": 5789,
+    "outputItemId": 3072,
+    "inputItemId": 3033,
+    "qty": 1,
+    "appliesRr": false,
+    "sortValue": 1
+  },
+  {
+    "id": 5790,
+    "outputItemId": 3072,
+    "inputItemId": 120,
+    "qty": 1,
+    "appliesRr": false,
+    "sortValue": 2
+  },
+  {
+    "id": 5791,
+    "outputItemId": 3073,
+    "inputItemId": 84,
+    "qty": 1,
+    "appliesRr": false,
+    "sortValue": 1
+  },
+  {
+    "id": 5792,
+    "outputItemId": 3073,
+    "inputItemId": 1144,
+    "qty": 20,
+    "appliesRr": true,
+    "sortValue": 2
+  },
+  {
+    "id": 5793,
+    "outputItemId": 3074,
+    "inputItemId": 3073,
+    "qty": 1,
+    "appliesRr": false,
+    "sortValue": 1
+  },
+  {
+    "id": 5794,
+    "outputItemId": 3074,
+    "inputItemId": 121,
+    "qty": 1,
+    "appliesRr": false,
+    "sortValue": 2
+  },
+  {
+    "id": 5795,
+    "outputItemId": 3075,
+    "inputItemId": 3037,
+    "qty": 1,
+    "appliesRr": false,
+    "sortValue": 1
+  },
+  {
+    "id": 5796,
+    "outputItemId": 3075,
+    "inputItemId": 123,
+    "qty": 1,
+    "appliesRr": false,
+    "sortValue": 2
+  },
+  {
+    "id": 5797,
+    "outputItemId": 3077,
+    "inputItemId": 62,
+    "qty": 1,
+    "appliesRr": false,
+    "sortValue": 1
+  },
+  {
+    "id": 5798,
+    "outputItemId": 3077,
+    "inputItemId": 1147,
+    "qty": 20,
+    "appliesRr": true,
+    "sortValue": 2
   }
 ]

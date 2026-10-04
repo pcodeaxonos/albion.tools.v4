@@ -3,37 +3,232 @@
   "referenceImageWidth": 1254,
   "referenceImageHeight": 1254,
   "layoutGroup": "royal",
-  "cities": ["martlock", "thetford", "fort_sterling", "lymhurst", "bridgewatch"],
+  "cities": [
+    "martlock",
+    "thetford",
+    "fort_sterling",
+    "lymhurst",
+    "bridgewatch"
+  ],
   "coordinateMode": "normalized",
   "coordinateSpace": "v2-square-island-asset",
   "historicalReference": {
     "referenceImageWidth": 1555,
     "referenceImageHeight": 995,
     "overlayReferencePx": {
-      "outerDiamond": [76, 56],
-      "innerDiamond": [66, 48],
-      "itemIcon": [26, 30],
-      "slotNumberBadge": [24, 20]
+      "outerDiamond": [
+        76,
+        56
+      ],
+      "innerDiamond": [
+        66,
+        48
+      ],
+      "itemIcon": [
+        26,
+        30
+      ],
+      "slotNumberBadge": [
+        24,
+        20
+      ]
     },
     "note": "Original handoff screenshot coordinate-space. Retained for traceability only; runtime does not use these pixel values."
   },
   "slots": {
-    "R1": { "x": 0.334928, "y": 0.233652, "sourcePx": [420, 293], "historicalSourcePx": [529, 296] },
-    "R2": { "x": 0.305423, "y": 0.320574, "sourcePx": [383, 402], "historicalSourcePx": [522, 347] },
-    "R3": { "x": 0.484051, "y": 0.307815, "sourcePx": [607, 386], "historicalSourcePx": [676, 327] },
-    "R4": { "x": 0.587719, "y": 0.365231, "sourcePx": [737, 458], "historicalSourcePx": [759, 319] },
-    "R5": { "x": 0.406699, "y": 0.377193, "sourcePx": [510, 473], "historicalSourcePx": [594, 390] },
-    "R6": { "x": 0.379585, "y": 0.492823, "sourcePx": [476, 618], "historicalSourcePx": [565, 444] },
-    "R7": { "x": 0.564593, "y": 0.408293, "sourcePx": [708, 512], "historicalSourcePx": [756, 373] },
-    "R8": { "x": 0.666667, "y": 0.413876, "sourcePx": [836, 519], "historicalSourcePx": [837, 373] },
-    "R9": { "x": 0.72488, "y": 0.433812, "sourcePx": [909, 544], "historicalSourcePx": [889, 393] },
-    "R10": { "x": 0.500797, "y": 0.452951, "sourcePx": [628, 568], "historicalSourcePx": [723, 437], "note": "main building physical position" },
-    "R11": { "x": 0.643541, "y": 0.488038, "sourcePx": [807, 612], "historicalSourcePx": [836, 475] },
-    "R12": { "x": 0.486443, "y": 0.586124, "sourcePx": [610, 735], "historicalSourcePx": [669, 520] },
-    "R13": { "x": 0.58453, "y": 0.559011, "sourcePx": [733, 701], "historicalSourcePx": [756, 520] },
-    "R14": { "x": 0.681021, "y": 0.681818, "sourcePx": [854, 855], "historicalSourcePx": [857, 586] },
-    "R15": { "x": 0.778309, "y": 0.62201, "sourcePx": [976, 780], "historicalSourcePx": [919, 557] },
-    "R16": { "x": 0.779107, "y": 0.748804, "sourcePx": [977, 939], "historicalSourcePx": [890, 637] }
+    "R1": {
+      "x": 0.334928,
+      "y": 0.233652,
+      "sourcePx": [
+        420,
+        293
+      ],
+      "historicalSourcePx": [
+        529,
+        296
+      ]
+    },
+    "R2": {
+      "x": 0.305423,
+      "y": 0.320574,
+      "sourcePx": [
+        383,
+        402
+      ],
+      "historicalSourcePx": [
+        522,
+        347
+      ]
+    },
+    "R3": {
+      "x": 0.484051,
+      "y": 0.307815,
+      "sourcePx": [
+        607,
+        386
+      ],
+      "historicalSourcePx": [
+        676,
+        327
+      ]
+    },
+    "R4": {
+      "x": 0.587719,
+      "y": 0.365231,
+      "sourcePx": [
+        737,
+        458
+      ],
+      "historicalSourcePx": [
+        759,
+        319
+      ]
+    },
+    "R5": {
+      "x": 0.406699,
+      "y": 0.377193,
+      "sourcePx": [
+        510,
+        473
+      ],
+      "historicalSourcePx": [
+        594,
+        390
+      ]
+    },
+    "R6": {
+      "x": 0.379585,
+      "y": 0.492823,
+      "sourcePx": [
+        476,
+        618
+      ],
+      "historicalSourcePx": [
+        565,
+        444
+      ]
+    },
+    "R7": {
+      "x": 0.564593,
+      "y": 0.408293,
+      "sourcePx": [
+        708,
+        512
+      ],
+      "historicalSourcePx": [
+        756,
+        373
+      ]
+    },
+    "R8": {
+      "x": 0.666667,
+      "y": 0.413876,
+      "sourcePx": [
+        836,
+        519
+      ],
+      "historicalSourcePx": [
+        837,
+        373
+      ]
+    },
+    "R9": {
+      "x": 0.72488,
+      "y": 0.433812,
+      "sourcePx": [
+        909,
+        544
+      ],
+      "historicalSourcePx": [
+        889,
+        393
+      ]
+    },
+    "R10": {
+      "x": 0.500797,
+      "y": 0.452951,
+      "sourcePx": [
+        628,
+        568
+      ],
+      "historicalSourcePx": [
+        723,
+        437
+      ],
+      "note": "main building physical position"
+    },
+    "R11": {
+      "x": 0.643541,
+      "y": 0.488038,
+      "sourcePx": [
+        807,
+        612
+      ],
+      "historicalSourcePx": [
+        836,
+        475
+      ]
+    },
+    "R12": {
+      "x": 0.486443,
+      "y": 0.586124,
+      "sourcePx": [
+        610,
+        735
+      ],
+      "historicalSourcePx": [
+        669,
+        520
+      ]
+    },
+    "R13": {
+      "x": 0.58453,
+      "y": 0.559011,
+      "sourcePx": [
+        733,
+        701
+      ],
+      "historicalSourcePx": [
+        756,
+        520
+      ]
+    },
+    "R14": {
+      "x": 0.681021,
+      "y": 0.681818,
+      "sourcePx": [
+        854,
+        855
+      ],
+      "historicalSourcePx": [
+        857,
+        586
+      ]
+    },
+    "R15": {
+      "x": 0.778309,
+      "y": 0.62201,
+      "sourcePx": [
+        976,
+        780
+      ],
+      "historicalSourcePx": [
+        919,
+        557
+      ]
+    },
+    "R16": {
+      "x": 0.779107,
+      "y": 0.748804,
+      "sourcePx": [
+        977,
+        939
+      ],
+      "historicalSourcePx": [
+        890,
+        637
+      ]
+    }
   },
   "overlayRatios": {
     "slotWidthRatio": 0.076555,
@@ -47,5 +242,134 @@
     "badgeFontHeightRatio": 0.210526,
     "plusHeightRatio": 0.421053,
     "selectedOutlineWidthRatio": 0.041667
+  },
+  "specialCities": {
+    "brecilien": {
+      "referenceImage": "assets/island-planner-v2/islands/brecilien.png",
+      "coordinateMode": "normalized",
+      "note": "16 large plots mapped from user minimap. Small diamond excluded. R10 uses the shared royal center. Initial visual alignment; Shift-drag refinements remain available.",
+      "slots": {
+        "R1": {
+          "x": 0.299043,
+          "y": 0.219298,
+          "sourcePx": [
+            375,
+            275
+          ]
+        },
+        "R2": {
+          "x": 0.314992,
+          "y": 0.291069,
+          "sourcePx": [
+            395,
+            365
+          ]
+        },
+        "R3": {
+          "x": 0.484051,
+          "y": 0.307815,
+          "sourcePx": [
+            607,
+            386
+          ]
+        },
+        "R4": {
+          "x": 0.587719,
+          "y": 0.365231,
+          "sourcePx": [
+            737,
+            458
+          ]
+        },
+        "R5": {
+          "x": 0.227273,
+          "y": 0.386762,
+          "sourcePx": [
+            285,
+            485
+          ]
+        },
+        "R6": {
+          "x": 0.307018,
+          "y": 0.446571,
+          "sourcePx": [
+            385,
+            560
+          ]
+        },
+        "R7": {
+          "x": 0.564593,
+          "y": 0.408293,
+          "sourcePx": [
+            708,
+            512
+          ]
+        },
+        "R8": {
+          "x": 0.666667,
+          "y": 0.413876,
+          "sourcePx": [
+            836,
+            519
+          ]
+        },
+        "R9": {
+          "x": 0.643541,
+          "y": 0.488038,
+          "sourcePx": [
+            807,
+            612
+          ]
+        },
+        "R11": {
+          "x": 0.586124,
+          "y": 0.542265,
+          "sourcePx": [
+            735,
+            680
+          ]
+        },
+        "R12": {
+          "x": 0.438596,
+          "y": 0.574163,
+          "sourcePx": [
+            550,
+            720
+          ]
+        },
+        "R13": {
+          "x": 0.522329,
+          "y": 0.602073,
+          "sourcePx": [
+            655,
+            755
+          ]
+        },
+        "R14": {
+          "x": 0.681021,
+          "y": 0.681818,
+          "sourcePx": [
+            854,
+            855
+          ]
+        },
+        "R15": {
+          "x": 0.778309,
+          "y": 0.62201,
+          "sourcePx": [
+            976,
+            780
+          ]
+        },
+        "R16": {
+          "x": 0.779107,
+          "y": 0.748804,
+          "sourcePx": [
+            977,
+            939
+          ]
+        }
+      }
+    }
   }
 }

@@ -52,6 +52,8 @@ function summarizeSeries(points) {
         return null;
     }
     return {
+        meanAvgPrice: mean(prices),
+        meanAvgPrice: mean(prices),
         medianAvgPrice: median(prices),
         avgItemCount: mean(counts) ?? 0,
         cv: coefficientOfVariation(prices),

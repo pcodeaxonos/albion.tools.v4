@@ -158,10 +158,12 @@ function dayAccentColor(isoDate) {
 
 function confidenceTooltip(avg) {
     const confidence = avg?.confidence;
-    const error = confidence?.relativeError;
-    const detail = Number.isFinite(error) ? ` · %95 bootstrap aralığının bağıl yarı genişliği: ±${formatQty(error * 100)}%` : " · Veri yetersiz / hesaplanamıyor";
+    const metricDetail = (label, metric) => Number.isFinite(metric?.relativeError)
+        ? `${label}: ±${formatQty(metric.relativeError * 100)}%`
+        : `${label}: veri yetersiz / hesaplanamıyor`;
+    const detail = ` · %95 bootstrap belirsizliği · ${metricDetail('Hasat', confidence?.harvest)}${confidence?.seedReturn ? ` · ${metricDetail('Tohum / yavru dönüşü', confidence.seedReturn)}` : ''}`;
     const maxBand = YIELD_CONFIDENCE_BANDS.at(-1);
-    return `Güven seviyesi ${confidence?.level ?? 0}/${MAX_YIELD_CONFIDENCE} · Örnek miktarı değil, ortalamanın istatistiksel stabilitesi${detail}. ${MAX_YIELD_CONFIDENCE} nokta: mevcut veriye göre yaklaşık ±${formatPct(maxBand.maxRelativeError)} bandı; makul ek kayıtların ortalamayı anlamlı ölçüde değiştirme ihtimali düşük. En az ${maxBand.minRecords} bağımsız kayıt gerekir.`;
+    return `Güven seviyesi ${confidence?.level ?? 0}/${MAX_YIELD_CONFIDENCE} · ${confidence?.seedReturn ? 'Hasat ve dönüş ortalamalarının istatistiksel stabilitesi; düşük olan seviye belirleyicidir' : 'Hasat ortalamasının istatistiksel stabilitesi'}${detail}. ${MAX_YIELD_CONFIDENCE} nokta: mevcut veriye göre yaklaşık ±${formatPct(maxBand.maxRelativeError)} bandı; makul ek kayıtların ortalamayı anlamlı ölçüde değiştirme ihtimali düşük. En az ${maxBand.minRecords} bağımsız kayıt gerekir.`;
 }
 
 function renderConfidence(avg) {

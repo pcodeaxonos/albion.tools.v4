@@ -6,7 +6,7 @@
 import fs from 'node:fs';
 import https from 'node:https';
 
-const DATA = new URL('../data/', import.meta.url);
+const DATA = new URL('../../data/', import.meta.url);
 const read = (name) => JSON.parse(fs.readFileSync(new URL(name, DATA), 'utf8'));
 const write = (name, value) => fs.writeFileSync(new URL(name, DATA), `${JSON.stringify(value, null, 2)}\n`, 'utf8');
 
@@ -41,10 +41,11 @@ function collectRecipes(node, output) {
         node.forEach((value) => collectRecipes(value, output));
         return;
     }
-    const uniqueName = node['@uniquename'];
+    const itemUnique = (row) => `${row['@uniquename']}${Number(row['@enchantmentlevel']) > 0 ? `@${Number(row['@enchantmentlevel'])}` : ''}`;
+    const uniqueName = node['@uniquename'] ? itemUnique(node) : null;
     const requirements = asList(node.craftingrequirements)[0];
     const materials = asList(requirements?.craftresource)
-        .map((row) => ({ uniqueName: row['@uniquename'], qty: Number(row['@count']) || 0 }))
+        .map((row) => ({ uniqueName: row['@uniquename'] ? itemUnique(row) : null, qty: Number(row['@count']) || 0, appliesRr: row['@maxreturnamount'] !== '0' }))
         .filter((row) => row.uniqueName && row.qty > 0);
     if (uniqueName && materials.length && !output.has(uniqueName)) output.set(uniqueName, materials);
     Object.entries(node).forEach(([key, value]) => {
@@ -74,7 +75,7 @@ for (const [uniqueName, inputMaterials] of gameRecipes) {
     }
     materialRows.forEach((material, index) => recipeMaterials.push({
         id: nextLineId++, outputItemId, inputItemId: material.inputItemId,
-        qty: material.qty, appliesRr: true, sortValue: index + 1
+        qty: material.qty, appliesRr: material.appliesRr, sortValue: index + 1
     }));
     existingOutputIds.add(outputItemId);
     imported += 1;

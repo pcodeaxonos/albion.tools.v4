@@ -21,15 +21,23 @@ export function yieldConfidenceLevel(relativeError, n) {
 }
 
 /** Percentile 95% CI for the ratio of totals, resampling whole independent logs. */
-export function bootstrapYieldConfidence(rows) {
+export function bootstrapYieldConfidence(rows, { includeReturn = true } = {}) {
+    const harvest = bootstrapRatioConfidence(rows, 'plantsHarvested');
+    const seedReturn = includeReturn ? bootstrapRatioConfidence(rows, 'seedsReturned', true) : null;
+    const limiting = seedReturn && seedReturn.level < harvest.level ? seedReturn : harvest;
+    return { ...limiting, level: seedReturn ? Math.min(harvest.level, seedReturn.level) : harvest.level, harvest, seedReturn };
+}
+
+function bootstrapRatioConfidence(rows, outputField, allowZero = false) {
     const samples = rows.filter((row) => row.isOutlier !== true && row.isOutlier !== 'true')
-        .map((row) => ({ input: num(row.seedsPlanted), output: Math.max(0, num(row.plantsHarvested) ?? 0) }))
-        .filter((row) => row.input > 0);
+        .map((row) => ({ input: num(row.seedsPlanted), output: row[outputField] == null ? null : num(row[outputField]) }))
+        .filter((row) => row.input > 0 && row.output != null && row.output >= 0);
     const n = samples.length;
     const mean = samples.reduce((sum, row) => sum + row.output, 0)
         / samples.reduce((sum, row) => sum + row.input, 0);
     const unavailable = { level: 0, n, low: null, high: null, relativeError: null };
-    if (n < 2 || !(mean > 0) || !Number.isFinite(mean)) return unavailable;
+    if (n < 2 || !Number.isFinite(mean) || mean < 0 || (!allowZero && mean === 0)) return unavailable;
+    if (mean === 0) return { level: yieldConfidenceLevel(0, n), n, low: 0, high: 0, relativeError: 0 };
     // Local deterministic PRNG: repeated renders must not flicker between grades.
     let seed = 0x6d2b79f5;
     const random = () => {
@@ -160,7 +168,7 @@ export function yieldAverage(islandCity, itemKey, {
         seedsPlanted: planted,
         avgPlantYield: harvested / planted,
         avgSeedReturn: returned / planted,
-        ...(includeConfidence ? { confidence: bootstrapYieldConfidence(rows) } : {}),
+        ...(includeConfidence ? { confidence: bootstrapYieldConfidence(rows, { includeReturn: itemType !== 'animalProduct' }) } : {}),
         source: 'user'
     };
 }

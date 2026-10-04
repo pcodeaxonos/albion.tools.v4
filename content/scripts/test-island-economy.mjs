@@ -59,7 +59,7 @@ let checks = 0;
 function test(name, run) { run(); checks++; console.log(`PASS ${name}`); }
 
 test('bootstrap confidence measures dispersion rather than input quantity', () => {
-    const row = (input, output) => ({ seedsPlanted: input, plantsHarvested: output });
+    const row = (input, output) => ({ seedsPlanted: input, plantsHarvested: output, seedsReturned: input });
     const stable = Array.from({ length: 20 }, () => row(10, 100));
     const variable = Array.from({ length: 20 }, (_, i) => row(10, i % 2 ? 190 : 10));
     const tight = stats.bootstrapYieldConfidence(stable);
@@ -88,9 +88,24 @@ test('bootstrap confidence measures dispersion rather than input quantity', () =
     }
 });
 
+test('confidence includes return dispersion and handles zero returns and product logs', () => {
+    const rows = Array.from({ length: 20 }, (_, i) => ({ seedsPlanted: 10, plantsHarvested: 90, seedsReturned: i % 2 ? 20 : 0 }));
+    const result = stats.bootstrapYieldConfidence(rows);
+    assert.equal(result.harvest.level, 4);
+    assert.equal(result.seedReturn.level, 1);
+    assert.equal(result.level, 1);
+    const zero = rows.map((row) => ({ ...row, seedsReturned: 0 }));
+    assert.equal(stats.bootstrapYieldConfidence(zero).level, 4);
+    const missing = rows.map(({ seedsReturned, ...row }) => row);
+    assert.equal(stats.bootstrapYieldConfidence(missing).level, 0);
+    assert.equal(stats.bootstrapYieldConfidence(missing, { includeReturn: false }).level, 4);
+    const variableHarvest = rows.map((row, i) => ({ ...row, seedsReturned: 10, plantsHarvested: i % 2 ? 190 : 10 }));
+    assert.equal(stats.bootstrapYieldConfidence(variableHarvest).level, 1);
+});
+
 test('confidence uses only the matching group and excludes marked outliers', () => {
     const base = { islandCity: 'Martlock', itemKey: 'wheat', itemType: 'plant', premium: true, water: true, seedsPlanted: 10, seedsReturned: 14, plantsHarvested: 100 };
-    const included = [base, { ...base, seedsPlanted: 20, plantsHarvested: 200 }, base];
+    const included = [base, { ...base, seedsPlanted: 20, plantsHarvested: 200, seedsReturned: 28 }, base];
     store.replaceAllRows('islandYieldLogs', [...included,
         ...[true, 'true'].map((isOutlier) => ({ ...base, isOutlier, plantsHarvested: 10000 })),
         ...[{ islandCity: 'Lymhurst' }, { itemKey: 'carrot' }, { itemType: 'animal' }, { premium: false }, { water: false }]
@@ -100,7 +115,7 @@ test('confidence uses only the matching group and excludes marked outliers', () 
     assert.equal(avg.n, 3);
     assert.equal(avg.seedsPlanted, 40);
     near(avg.avgPlantYield, 10, 'unchanged weighted output');
-    near(avg.avgSeedReturn, 42 / 40, 'unchanged weighted return');
+    near(avg.avgSeedReturn, 56 / 40, 'unchanged weighted return');
     assert.equal(avg.confidence.level, 4);
     assert.equal(JSON.stringify(avg.confidence), JSON.stringify(stats.bootstrapYieldConfidence(included)));
     store.replaceAllRows('islandYieldLogs', []);
@@ -301,7 +316,7 @@ test('fixed input/output prices stay separate and internal transfers deduct sale
         { itemId: wheat.plantId, role: 'output', price: 100 },
         { itemId: chicken.productId, role: 'output', price: 200 }
     ];
-    v2.state.draft.seedSide = 'fixed'; v2.state.draft.harvestSide = 'fixed';
+    v2.state.draft.seedFixed = true; v2.state.draft.harvestFixed = true;
     v2.calculateIslandPlan();
     const p = v2.state.derived;
     near(p.slots.get('R2').internalTransferIn, 81 * 100 * .935 * daily, 'fixed net sales alternative');

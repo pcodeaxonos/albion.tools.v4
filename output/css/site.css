@@ -3223,6 +3223,32 @@ input[type=month].form-control {
   color: var(--toast-fg);
 }
 
+.app-toast__report {
+  flex: 1;
+  min-width: 0;
+}
+.app-toast__report dl {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 0.35rem 1rem;
+  margin: 0.75rem 0 0;
+  font-size: var(--font-size-sm);
+}
+.app-toast__report dt {
+  font-weight: normal;
+}
+.app-toast__report dd {
+  margin: 0;
+  text-align: right;
+  font-weight: var(--font-weight-semibold);
+}
+
+.app-toast__note {
+  margin: 0.75rem 0 0;
+  font-size: var(--font-size-sm);
+  line-height: 1.35;
+}
+
 .app-toast__close {
   position: relative;
   flex-shrink: 0;
@@ -15023,18 +15049,8 @@ main:has(.page-head[data-page-head=enchanting]) {
   min-width: 0;
 }
 
-.island-v2-controls .city-field-label {
-  font-size: var(--font-size-sm);
-  line-height: 1.1;
-}
-
 .island-v2-group-label {
   margin: 0 0 0.1rem;
-  color: var(--color-text-muted);
-  font-size: var(--font-size-sm);
-  line-height: 1.1;
-  font-weight: 600;
-  letter-spacing: 0.08em;
 }
 
 .island-v2-segment {
@@ -15578,13 +15594,45 @@ main:has(.page-head[data-page-head=enchanting]) {
 }
 
 .island-v2-detail-list p {
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: minmax(0, 1fr);
   column-gap: 0.5rem;
   row-gap: 0.04rem;
 }
 
 .island-v2-detail-list p > b {
   grid-column: 1/-1;
+}
+
+.island-v2-volume-inputs {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  min-width: 0;
+}
+
+.island-v2-volume-inputs input[type=range] {
+  flex: 1;
+  min-width: 0;
+  width: 100%;
+  accent-color: var(--color-primary);
+}
+
+.island-v2-volume-inputs input[type=number] {
+  width: 4.5rem;
+  min-width: 0;
+  padding: 0.15rem 0.25rem;
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-size: var(--font-size-sm);
+}
+
+.island-v2-volume small {
+  display: block;
+  margin-top: 0.15rem;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+  line-height: 1.2;
 }
 
 /* Area 3: reference styling fitted inside the existing 4 × 4 tracks.
@@ -15594,6 +15642,7 @@ main:has(.page-head[data-page-head=enchanting]) {
   --v2-card-negative: #ff405d;
   --v2-card-state: #8e9ba8;
   --v2-card-edge: #244653;
+  --v2-card-selection: #7de6ff;
   position: relative;
   container-type: size;
   display: grid;
@@ -15601,8 +15650,9 @@ main:has(.page-head[data-page-head=enchanting]) {
   min-width: 0;
   min-height: 0;
   padding: 0.3rem;
-  border: 1px solid var(--v2-card-edge);
+  border: 2px solid var(--v2-card-edge);
   border-radius: 0.22rem;
+  overflow: hidden;
   background: radial-gradient(ellipse at 50% 40%, #09232b, #031319 85%);
   color: #f3f7fa;
   text-align: center;
@@ -15618,8 +15668,18 @@ main:has(.page-head[data-page-head=enchanting]) {
 }
 
 .island-v2-card.is-selected {
-  --v2-card-edge: #19efad;
-  box-shadow: inset 0 0 0 1px rgba(25, 239, 173, 0.4666666667), inset 0 0 0.7rem rgba(25, 239, 173, 0.1254901961);
+  --v2-card-edge: var(--v2-card-selection);
+  border-color: var(--v2-card-edge);
+  border-style: solid;
+  background: linear-gradient(145deg, #205c78, #10384d 65%, #092b3c);
+  box-shadow: inset 0 0 0 2px var(--v2-card-selection), 0 0 0.65rem rgba(125, 230, 255, 0.6);
+}
+
+.island-v2-card.is-selected .island-v2-slot-number {
+  border-color: var(--v2-card-edge);
+  background: var(--v2-card-edge);
+  color: #031319;
+  box-shadow: none;
 }
 
 .island-v2-card:focus-visible {
@@ -15707,10 +15767,13 @@ main:has(.page-head[data-page-head=enchanting]) {
   height: min(65cqw, 37cqh);
   max-width: 100%;
   object-fit: contain;
+  transform: scale(1.5);
   filter: drop-shadow(0 2px 2px rgba(0, 0, 0, 0.6));
 }
 
 .island-v2-card-item > span {
+  position: relative;
+  z-index: 1;
   max-width: 100%;
   color: #f3f7fa;
   font: 700 min(12cqw, 10cqh)/1.1 var(--font-family-base);
@@ -15743,14 +15806,15 @@ main:has(.page-head[data-page-head=enchanting]) {
 }
 
 .island-v2-finance b {
+  position: relative;
   display: grid;
   place-items: center;
   grid-row: 1;
   width: min(12cqw, 10cqh);
   height: min(12cqw, 10cqh);
   box-sizing: border-box;
-  border: 1px solid currentColor;
-  border-radius: 0.1rem;
+  border: 0;
+  background: none;
   font: 700 min(11cqw, 10cqh)/0.8 var(--font-family-base);
 }
 
@@ -15762,12 +15826,20 @@ main:has(.page-head[data-page-head=enchanting]) {
 
 .island-v2-income b {
   color: var(--v2-card-positive);
-  background: #06312a;
 }
 
 .island-v2-expense b {
   color: var(--v2-card-negative);
-  background: #2b101b;
+}
+
+.island-v2-finance b::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: -1px;
+  width: 30cqw;
+  height: 1px;
+  transform: translateX(-50%);
 }
 
 .island-v2-finance em {
@@ -15812,8 +15884,12 @@ main:has(.page-head[data-page-head=enchanting]) {
   left: 9%;
   right: 9%;
   height: 1px;
-  background: linear-gradient(90deg, transparent, var(--v2-card-state) 18%, color-mix(in srgb, var(--v2-card-state) 70%, white) 50%, var(--v2-card-state) 82%, transparent);
-  filter: drop-shadow(0 0 2px var(--v2-card-state)) drop-shadow(0 0 4px color-mix(in srgb, var(--v2-card-state) 45%, transparent));
+}
+
+.island-v2-finance b::after,
+.island-v2-net::before {
+  background: linear-gradient(90deg, transparent, currentColor 18%, color-mix(in srgb, currentColor 70%, white) 50%, currentColor 82%, transparent);
+  filter: drop-shadow(0 0 2px currentColor) drop-shadow(0 0 4px color-mix(in srgb, currentColor 45%, transparent));
 }
 
 .island-v2-card.is-empty {
@@ -15875,7 +15951,8 @@ main:has(.page-head[data-page-head=enchanting]) {
 }
 
 .island-v2-card.is-empty.is-selected {
-  --v2-card-edge: #19efad;
+  --v2-card-edge: var(--v2-card-selection);
+  border-style: solid;
 }
 
 .island-v2-lock {
@@ -15912,6 +15989,8 @@ main:has(.page-head[data-page-head=enchanting]) {
   container-type: inline-size;
   grid-template-columns: auto minmax(0, 1fr) auto;
   grid-template-areas: "number main controls" "kpis kpis kpis" "list list list";
+  align-content: start;
+  overflow: auto;
   gap: 0.18rem 0.42rem;
   padding: 0.32rem 0.45rem;
   border-color: #18394a;
@@ -15919,6 +15998,7 @@ main:has(.page-head[data-page-head=enchanting]) {
 }
 
 .island-v2-detail-number {
+  justify-self: start;
   display: grid;
   place-items: center;
   min-width: 1.7rem;
@@ -15944,6 +16024,16 @@ main:has(.page-head[data-page-head=enchanting]) {
   align-items: center;
   gap: 0.28rem;
   min-width: 0;
+  flex: 1;
+}
+
+.island-v2-detail-identity h2 {
+  min-width: 0;
+  flex: 1;
+}
+
+.island-v2-detail-identity > span {
+  flex-shrink: 0;
 }
 
 .island-v2-detail h2 {
@@ -15977,6 +16067,16 @@ main:has(.page-head[data-page-head=enchanting]) {
 .island-v2-detail-controls {
   align-items: center;
   gap: 0.2rem;
+  flex-wrap: nowrap;
+  min-width: 0;
+}
+
+.island-v2-detail-controls .island-v2-control-label {
+  display: none;
+}
+
+.island-v2-detail > .farming-note {
+  grid-column: 1/-1;
 }
 
 .island-v2-control-label {
@@ -16120,12 +16220,27 @@ main:has(.page-head[data-page-head=enchanting]) {
   font-size: 0.85rem;
 }
 
+.island-v2-detail [data-tone=is-positive] {
+  --detail-value-color: var(--color-success);
+}
+
+.island-v2-detail [data-tone=is-negative] {
+  --detail-value-color: var(--color-danger);
+}
+
+.island-v2-detail [data-tone] b {
+  color: var(--detail-value-color, var(--color-text));
+}
+
 .island-v2-detail-list {
+  grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
   gap: 0.45rem;
 }
 
 .island-v2-detail-list p {
   grid-template-columns: minmax(0, 1fr);
+  align-content: start;
+  grid-auto-rows: max-content;
   column-gap: 0.45rem;
   row-gap: 0.08rem;
   font-size: 0.75rem;
@@ -16143,7 +16258,15 @@ main:has(.page-head[data-page-head=enchanting]) {
   border-bottom: 1px solid rgba(40, 83, 106, 0.28);
 }
 
-.island-v2-detail-list p > span:nth-last-child(-n+2) {
+.island-v2-detail-list p > span:last-child {
+  border-bottom: 0;
+}
+
+.island-v2-detail-list .island-v2-detail-economy {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.island-v2-detail-list .island-v2-detail-economy > span:nth-last-child(2) {
   border-bottom: 0;
 }
 
@@ -16158,15 +16281,117 @@ main:has(.page-head[data-page-head=enchanting]) {
   font-size: 0.8rem;
 }
 
+.island-v2-production-source {
+  white-space: nowrap;
+}
+
+.island-v2-metric-breakdown {
+  position: relative;
+}
+
+.island-v2-summary-breakdown {
+  display: none;
+  position: absolute;
+  z-index: 30;
+  right: 0;
+  bottom: 100%;
+  width: 21rem;
+  max-width: calc(100vw - 2rem);
+  max-height: min(24rem, 60dvh);
+  overflow: auto;
+  padding: 0.65rem;
+  border: 1px solid var(--color-border-strong);
+  border-radius: 0.25rem;
+  background: var(--color-surface-raised);
+  color: var(--color-text);
+  box-shadow: 0 0.3rem 1rem rgba(0, 0, 0, 0.5333333333);
+  text-align: left;
+}
+
+.island-v2-metric-breakdown:is(:hover, :focus-within) .island-v2-summary-breakdown {
+  display: block;
+}
+
+.island-v2-summary-breakdown > strong {
+  font-size: 0.75rem;
+  margin-bottom: 0.4rem;
+}
+
+.island-v2-summary-breakdown ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.island-v2-summary-breakdown li {
+  display: grid;
+  grid-template-columns: 1.75rem minmax(0, 1fr) auto;
+  gap: 0.4rem;
+  align-items: center;
+  padding: 0.3rem 0;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.island-v2-summary-breakdown .item-icon {
+  width: 1.75rem;
+  height: 1.75rem;
+  object-fit: contain;
+}
+
+.island-v2-summary-breakdown li span {
+  font-size: 0.75rem;
+  color: var(--color-text);
+}
+
+.island-v2-summary-breakdown li b {
+  font-size: 0.75rem;
+  white-space: nowrap;
+}
+
+.island-v2-summary-breakdown small {
+  display: block;
+  font-size: 0.6rem;
+  color: var(--color-text-muted);
+}
+
+.island-v2-summary-breakdown p {
+  margin: 0.4rem 0 0;
+  font-size: 0.65rem;
+  color: var(--color-text-muted);
+}
+
+.island-v2-detail-feed {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding-left: 1.7rem;
+  box-sizing: border-box;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.island-v2-detail-feed .item-icon {
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 1.5rem;
+  height: 1.5rem;
+  object-fit: contain;
+}
+
+.island-v2-detail-feed > span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .island-v2-detail-controls button {
   font-size: 0.65rem;
 }
 
-@container (min-width: 34rem) {
-  .island-v2-detail-list p {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-}
 /* Area 2 locked toolbar: one transparent floating row, independent of slots. */
 .island-v2-toolbar {
   --island-v2-toolbar-tile-size: 60px;
@@ -16208,6 +16433,22 @@ main:has(.page-head[data-page-head=enchanting]) {
 
 .island-v2-toolbar-tile:hover:not(:disabled) {
   box-shadow: 0 0 0.45rem rgba(83, 215, 232, 0.18);
+}
+
+.island-v2-toolbar-item {
+  position: relative;
+}
+
+.island-v2-toolbar-tier {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  max-width: calc(100% - 12px);
+  box-sizing: border-box;
+  padding: 0.1rem 0.2rem;
+  border-radius: 0.15rem;
+  font: 700 0.6rem/1 var(--font-family-base);
+  pointer-events: none;
 }
 
 .island-v2-toolbar-tile.is-active {
@@ -16422,13 +16663,19 @@ main:has(.page-head[data-page-head=enchanting]) {
   content: "BOŞALT";
 }
 
-.island-v2-clear-drop {
+.island-v2-drop-actions {
   position: absolute;
   z-index: 13;
   right: 0.45rem;
   bottom: 0.45rem;
   display: none;
-  min-width: 8rem;
+  gap: 0.35rem;
+  max-width: calc(100% - 0.9rem);
+}
+
+.island-v2-clear-drop,
+.island-v2-lock-drop {
+  min-width: 0;
   padding: 0.7rem 1rem;
   border: 1px dashed var(--color-danger, #d66363);
   border-radius: 0.35rem;
@@ -16438,8 +16685,54 @@ main:has(.page-head[data-page-head=enchanting]) {
   text-align: center;
 }
 
-[data-island-planner-v2].is-v2-copy-drag .island-v2-clear-drop {
-  display: block;
+.island-v2-lock-drop {
+  border-color: #e5bb6a;
+  background: color-mix(in srgb, #e5bb6a 16%, var(--color-surface));
+}
+
+[data-island-planner-v2].is-v2-copy-drag .island-v2-drop-actions {
+  display: flex;
+}
+
+.island-v2-drag-preview.is-lock::before {
+  box-shadow: inset 0 0 0 2px #e5bb6a;
+}
+
+.island-v2-drag-preview.is-lock::after {
+  color: #e5bb6a;
+  content: "KİLİT";
+}
+
+.island-v2-slot-lock {
+  position: relative;
+  z-index: 2;
+  width: 1rem;
+  height: 1rem;
+  margin-left: 0.2rem;
+  color: #e5bb6a;
+  flex-shrink: 0;
+  filter: drop-shadow(0 1px 2px #000);
+}
+
+.island-v2-slot-anchor > .island-v2-slot-lock {
+  position: absolute;
+  z-index: 4;
+  left: 50%;
+  top: calc(50% - var(--island-v2-diamond-height, 2.2rem) * 0.336 * var(--island-v2-art-scale));
+  width: calc(var(--island-v2-diamond-width, 3rem) * 0.24);
+  height: calc(var(--island-v2-diamond-height, 2.2rem) * 0.24);
+  box-sizing: border-box;
+  margin: 0;
+  padding: 1px;
+  border: 1px solid #e5bb6a;
+  border-radius: 50%;
+  background: rgba(11, 17, 21, 0.94);
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+
+.island-v2-overlay.is-protected {
+  border-color: #e5bb6a;
 }
 
 .island-v2-confirm {
@@ -16571,8 +16864,8 @@ main:has(.page-head[data-page-head=enchanting]) {
   pointer-events: none;
 }
 
-.island-v2-slot-anchor:has(.island-v2-overlay.is-filled) .island-v2-overlay-number,
-.island-v2-drag-preview:not(.is-empty) .island-v2-drag-preview-number {
+.island-v2-slot-anchor .island-v2-overlay-number,
+.island-v2-drag-preview .island-v2-drag-preview-number {
   left: 50%;
   top: calc(50% + var(--island-v2-diamond-height, 2.2rem) * 0.336 * var(--island-v2-art-scale));
   width: calc(var(--island-v2-diamond-width, 3rem) * 0.24);
@@ -16829,7 +17122,8 @@ main:has(.page-head[data-page-head=enchanting]) {
   --summary-accent: #bc79f6;
 }
 
-.island-v2-metric-has-dependencies > .island-v2-metric-trigger {
+.island-v2-metric-has-dependencies > .island-v2-metric-trigger,
+.island-v2-metric-breakdown > .island-v2-metric-trigger {
   grid-column: 1/-1;
   grid-row: 1/-1;
 }
@@ -16850,6 +17144,7 @@ main:has(.page-head[data-page-head=enchanting]) {
 }
 /* All price and calculation warnings share one popover and row layout. */
 .island-v2-dependency-popover {
+  --v2-warning-accent: #e5bb6a;
   position: fixed;
   inset: auto;
   width: max-content;
@@ -16885,7 +17180,7 @@ main:has(.page-head[data-page-head=enchanting]) {
 }
 .island-v2-dependency-popover header strong {
   margin: 0;
-  color: #f0c970;
+  color: var(--v2-warning-heading, #f0c970);
   font-size: 0.72rem;
 }
 .island-v2-dependency-popover > strong {
@@ -16900,6 +17195,21 @@ main:has(.page-head[data-page-head=enchanting]) {
   padding: 0;
   overflow: auto;
   list-style: none;
+}
+
+.island-v2-dependency-popover[data-v2-dependency-list=optimization-prices] {
+  --v2-warning-accent: #ff8791;
+  --v2-warning-heading: var(--v2-warning-accent);
+  border-color: color-mix(in srgb, var(--v2-warning-accent) 65%, var(--color-border));
+}
+.island-v2-dependency-popover[data-v2-dependency-list=optimization-prices] header {
+  border-bottom-color: color-mix(in srgb, var(--v2-warning-accent) 42%, transparent);
+}
+.island-v2-dependency-popover[data-v2-dependency-list=optimization-prices] .island-v2-warning-source {
+  color: var(--v2-warning-accent);
+}
+.island-v2-dependency-popover[data-v2-dependency-list=optimization-prices] .island-v2-warning-row[data-v2-warning-type=stale-price] {
+  --v2-warning-accent: #e5bb6a;
 }
 
 .island-v2-warning-row {
@@ -16962,31 +17272,35 @@ main:has(.page-head[data-page-head=enchanting]) {
 
 .island-v2-warning-head em {
   flex-shrink: 0;
-  color: #e5bb6a;
+  color: var(--v2-warning-accent, #e5bb6a);
   font-style: normal;
 }
 
-.island-v2-card.is-uncalculated {
+.island-v2-card.is-uncalculated:not(.is-selected) {
   border-color: #e5bb6a;
   background: linear-gradient(150deg, rgba(91, 61, 19, 0.5), rgba(8, 24, 31, 0.98));
   box-shadow: inset 0 0 0 1px rgba(229, 187, 106, 0.25);
 }
 
-.island-v2-card.is-price-stale {
+.island-v2-card.is-price-stale:not(.is-selected) {
   border-color: #a8874d;
 }
 
 .island-v2-card-price-unavailable {
-  grid-row: 3/5;
+  grid-row: 3/-1;
   display: grid;
-  place-items: center;
+  align-content: center;
+  justify-items: center;
+  gap: 1cqh;
   min-height: 0;
+  color: #e5bb6a;
+  font: 600 min(11cqw, 9cqh)/1.2 var(--font-family-base);
 }
 
 .island-v2-card-warning-icon {
   display: block;
-  width: min(42cqw, 32cqh);
-  height: min(42cqw, 32cqh);
+  width: min(28cqw, 21cqh);
+  height: min(28cqw, 21cqh);
   color: #e5bb6a;
 }
 

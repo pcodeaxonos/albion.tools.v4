@@ -7,6 +7,7 @@ export const V2_COMMITTED_TABLE = 'islandPlannerV2CommittedPlans';
 export const V2_CITIES = ['martlock', 'thetford', 'fort_sterling', 'lymhurst', 'bridgewatch', 'brecilien', 'caerleon'];
 export const V2_ROYAL_CITIES = new Set(['martlock', 'thetford', 'fort_sterling', 'lymhurst', 'bridgewatch']);
 
-// Intentionally empty: the handoff explicitly leaves these datasets unresolved.
+// Island-level unlock mapping is still unresolved.
 export const V2_UNLOCKED_SLOTS_BY_LEVEL = null;
-export const V2_SPECIAL_CITY_GEOMETRY = Object.freeze({ brecilien: null, caerleon: null });
+// Resolved special-city layouts are loaded from the shared geometry dataset.
+export const V2_SPECIAL_CITY_GEOMETRY = Object.freeze({ caerleon: null });

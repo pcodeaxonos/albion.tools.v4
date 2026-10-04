@@ -1,4 +1,5 @@
 import { itemForSlot, productionModeFor } from './items.js';
+import { normalizeSalesVolume, SALES_VOLUME } from './volume.js';
 
 const SLOT_COUNT = 16;
 
@@ -9,6 +10,7 @@ export function blankSlot(id) {
         type: null,
         tier: null,
         focus: false,
+        locked: false,
         productionMode: null
     };
 }
@@ -31,6 +33,7 @@ export function normalizeSlot(entry, id) {
         ...(entry && typeof entry === 'object' ? entry : {}),
         id
     };
+    normalized.locked = normalized.locked === true;
     const item = itemForSlot(normalized);
 
     if (!item) {
@@ -52,6 +55,12 @@ export function normalizeDraft(value, islandCity, baseDraft) {
         ...baseDraft,
         ...source,
         islandCity,
+        minSalesVolume: normalizeSalesVolume(source.minSalesVolume ?? baseDraft.minSalesVolume ?? SALES_VOLUME.default),
+        minSalesVolume: normalizeSalesVolume(source.minSalesVolume ?? baseDraft.minSalesVolume ?? SALES_VOLUME.default),
+        seedSide: source.seedSide === 'fixed' ? baseDraft.seedSide : (source.seedSide ?? baseDraft.seedSide),
+        harvestSide: source.harvestSide === 'fixed' ? baseDraft.harvestSide : (source.harvestSide ?? baseDraft.harvestSide),
+        seedFixed: source.seedFixed ?? source.seedSide === 'fixed',
+        harvestFixed: source.harvestFixed ?? source.harvestSide === 'fixed',
         slots: Array.from(
             { length: SLOT_COUNT },
             (_, index) => normalizeSlot(source.slots?.[index], `R${index + 1}`)

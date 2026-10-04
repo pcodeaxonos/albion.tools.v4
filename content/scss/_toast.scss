@@ -91,6 +91,28 @@
     color: var(--toast-fg);
 }
 
+.app-toast__report {
+    flex: 1;
+    min-width: 0;
+
+    dl {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 0.35rem 1rem;
+        margin: 0.75rem 0 0;
+        font-size: var(--font-size-sm);
+    }
+
+    dt { font-weight: normal; }
+    dd { margin: 0; text-align: right; font-weight: var(--font-weight-semibold); }
+}
+
+.app-toast__note {
+    margin: 0.75rem 0 0;
+    font-size: var(--font-size-sm);
+    line-height: 1.35;
+}
+
 .app-toast__close {
     position: relative;
     flex-shrink: 0;
