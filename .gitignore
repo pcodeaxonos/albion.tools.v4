@@ -18,6 +18,8 @@ start.bat_yedek
 
 _tmp_xlsm_report/
 .price-hub.json
+.price-order-history.json
+.price-order-history.json.tmp
 .albion-tools-data.json
 # Item icons: local only — run `npm run data:icons`
 content/icons/*

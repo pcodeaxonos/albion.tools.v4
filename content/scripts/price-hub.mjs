@@ -9,15 +9,25 @@
 import { execFile } from 'node:child_process';
 import { createServer } from 'node:http';
 import https from 'node:https';
-import { readFileSync, writeFileSync } from 'node:fs';
+import { readFileSync, writeFileSync, renameSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { promisify } from 'node:util';
+import { normalizePriceDate, marketSeriesKey, BOOK_PRICE_FIELDS } from '../js/core/market-primitives.mjs';
+import { ORDER_HISTORY_POLICY } from '../js/core/market-history-config.mjs';
+import { OrderPriceHistory } from '../js/core/order-price-history.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 // The hub lives in content/scripts; persistent data and game catalogs belong
 // to the repository root.
 const ROOT = join(__dirname, '..', '..');
+const configuredServers = JSON.parse(readFileSync(join(ROOT, 'data', 'price-servers.json'), 'utf8')).map(row => row.code);
+const hubConfig = JSON.parse(readFileSync(join(ROOT, 'data', 'price-hub-config.json'), 'utf8'));
+// Explicit operator assignment: packets have no authenticated region identity.
+const MARKET_SERVER = process.env.PRICE_HUB_SERVER || hubConfig.server;
+if (!configuredServers.includes(MARKET_SERVER)) throw new Error('Configure a valid PRICE_HUB_SERVER in price-hub-config.json or environment');
+const HISTORY_PATH = join(ROOT, ORDER_HISTORY_POLICY.fileName);
+const orderHistory = new OrderPriceHistory({ servers: configuredServers });
 const PORT = Number(process.env.PRICE_HUB_PORT) || 3001;
 const HOST = process.env.PRICE_HUB_HOST || '127.0.0.1';
 const CACHE_PATH = join(ROOT, '.price-hub.json');
@@ -65,7 +75,14 @@ let adcProcessCache = { at: 0, running: null };
 const sseClients = new Set();
 
 loadCache();
+loadOrderHistory();
 loadLocalDataFile();
+
+// Quiet hubs also prune expired historical observations and persist the removal.
+setInterval(() => {
+    pruneExpired();
+    if (orderHistory.prune()) persistOrderHistory();
+}, ORDER_HISTORY_POLICY.maintenanceMs).unref();
 
 const server = createServer((req, res) => {
     applyCors(res);
@@ -93,6 +110,7 @@ server.on('error', (error) => {
 
 server.listen(PORT, HOST, () => {
     console.log(`Fiyat hub  http://${HOST}:${PORT}`);
+    console.log(`Market history server: ${MARKET_SERVER} (operator configured)`);
     console.log(`AODP client: albiondata-client.exe -i http://${HOST}:${PORT}`);
 });
 
@@ -131,6 +149,22 @@ async function route(req, res, url, path) {
     if (req.method === 'GET' && priceMatch) {
         pruneExpired();
         sendJson(res, 200, priceRows(priceMatch[1], url.searchParams));
+        return;
+    }
+
+    if (req.method === 'GET' && path === '/api/v1/market/order-history') {
+        if (orderHistory.prune()) persistOrderHistory();
+        const snapshot = orderHistory.snapshot();
+        const requestedServer = url.searchParams.get('server');
+        if (!configuredServers.includes(requestedServer)) {
+            sendJson(res, 400, { error: 'Explicit valid server required' });
+            return;
+        }
+        const filters = { itemId: splitCsv(url.searchParams.get('items')), city: splitCsv(url.searchParams.get('locations')),
+            quality: splitCsv(url.searchParams.get('qualities')), side: splitCsv(url.searchParams.get('sides')) };
+        snapshot.series = snapshot.series.filter(series => series.server === requestedServer
+            && Object.entries(filters).every(([key, values]) => !values.length || values.includes(String(series[key]))));
+        sendJson(res, 200, snapshot);
         return;
     }
 
@@ -247,6 +281,9 @@ function statusPayload(adcProcess = null) {
         lastCities,
         unknownLocations,
         ingestCount,
+        marketServer: MARKET_SERVER,
+        orderHistory: { series: orderHistory.series.size, policy: ORDER_HISTORY_POLICY,
+            serverAssignment: 'operator-configured; restart/reconfigure when client changes server' },
         books: books.size,
         orders: orderCount,
         cities: [...cities].sort()
@@ -435,6 +472,12 @@ function ingestMarketUpload(payload) {
             orders: new Map(batch.map((order) => [order.id, order]))
         };
         books.set(key, book);
+        // Aggregate only newly observed books. Never seed history from cached books.
+        const historySide = sample.side === 'request' ? 'buy' : 'sell';
+        const field = BOOK_PRICE_FIELDS[historySide];
+        const row = aggregateRow(sample.itemId, sample.city, sample.quality);
+        orderHistory.recordRow(MARKET_SERVER, { item_id: row.item_id, city: row.city, quality: row.quality,
+            [field]: row[field], [`${field}_date`]: row[`${field}_date`] });
     }
 
     if (snapshots.size === 0) {
@@ -558,7 +601,7 @@ function parseDate(value) {
     if (!value) {
         return null;
     }
-    const date = new Date(value);
+    const date = new Date(normalizePriceDate(value));
     return Number.isNaN(date.getTime()) ? null : date;
 }
 
@@ -649,7 +692,7 @@ function locationKeys(raw) {
 }
 
 function bookKey(itemId, city, quality, side) {
-    return `${itemId}|${city}|${quality}|${side}`;
+    return marketSeriesKey({ server: MARKET_SERVER, itemId, city, quality, side });
 }
 
 function pruneExpired() {
@@ -855,6 +898,7 @@ function schedulePersist() {
 
 function persistCache() {
     const payload = {
+        server: MARKET_SERVER,
         lastIngestAt,
         lastClientAt,
         lastIngestPath,
@@ -875,11 +919,35 @@ function persistCache() {
     } catch (error) {
         console.warn('önbellek yazılamadı:', error.message);
     }
+    persistOrderHistory();
+}
+
+function persistOrderHistory() {
+    try {
+        writeFileSync(`${HISTORY_PATH}.tmp`, JSON.stringify(orderHistory.snapshot()));
+        renameSync(`${HISTORY_PATH}.tmp`, HISTORY_PATH);
+    } catch (error) {
+        console.warn('order history could not be written:', error.message);
+    }
+}
+
+function loadOrderHistory() {
+    let raw;
+    try {
+        raw = readFileSync(HISTORY_PATH, 'utf8');
+    } catch (error) {
+        if (error.code === 'ENOENT') return;
+        throw error;
+    }
+    // Fail closed on corruption/schema mismatch; do not overwrite the existing archive.
+    orderHistory.restore(JSON.parse(raw));
+    persistOrderHistory();
 }
 
 function loadCache() {
     try {
         const parsed = JSON.parse(readFileSync(CACHE_PATH, 'utf8'));
+        if (parsed.server && parsed.server !== MARKET_SERVER) return;
         lastIngestAt = parsed.lastIngestAt ?? null;
         cachedMarketAt = lastIngestAt;
         lastClientAt = null;

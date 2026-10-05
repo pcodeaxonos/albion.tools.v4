@@ -1,5 +1,7 @@
 import { getSettings, getServer, localPriceHost } from './settings.js';
 import { isStalePriceDate } from './price-side.js';
+import { priceIndexKey, normalizePriceDate } from './market-primitives.mjs';
+export { priceIndexKey } from './market-primitives.mjs';
 
 const PRICE_REQUEST_TIMEOUT_MS = 10000;
 
@@ -11,7 +13,7 @@ function dateStamp(value) {
     if (!isLiveDate(value)) {
         return 0;
     }
-    const stamp = Date.parse(value);
+    const stamp = Date.parse(normalizePriceDate(value));
     return Number.isFinite(stamp) ? stamp : 0;
 }
 
@@ -185,10 +187,6 @@ export async function fetchPrices(itemIds, locations = ['Black Market', 'Caerleo
 function priceQuality(row) {
     const quality = Number(row?.quality);
     return Number.isFinite(quality) && quality >= 1 ? quality : 1;
-}
-
-export function priceIndexKey(uniqueName, city, quality = 1) {
-    return `${uniqueName}|${city}|${Number(quality) || 1}`;
 }
 
 export function indexPrices(rows) {

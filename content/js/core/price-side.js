@@ -2,6 +2,8 @@ import { escapeHtml } from '../utils/utils.js';
 import { placesOrder } from './market-fees.js';
 import { itemIconHtml } from '../components/item-icon.js';
 import { parseSortNumber } from '../utils/table-sort.js';
+import { normalizePriceDate } from './market-primitives.mjs';
+export { normalizePriceDate } from './market-primitives.mjs';
 
 export const PRICE_SIDES = ['buy', 'sell'];
 /** Prices older than this are still shown, but marked stale (blue). */
@@ -56,14 +58,6 @@ export function normalizePriceSide(value, fallback = 'buy') {
 
 function isLiveDate(value) {
     return Boolean(value) && !String(value).startsWith('0001');
-}
-
-// AODP emits UTC timestamps without a suffix; packet timestamps already carry
-// their offset. Never interpret the former using the browser's local timezone.
-export function normalizePriceDate(value) {
-    if (!isLiveDate(value)) return null;
-    const date = String(value);
-    return /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?$/.test(date) ? `${date}Z` : date;
 }
 
 export function isStalePriceDate(value) {
