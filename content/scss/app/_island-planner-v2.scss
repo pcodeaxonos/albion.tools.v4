@@ -890,3 +890,4 @@
 .island-v2-optimization-price-status.has-issues { color: #fff; background: #b52c42; border-color: #e85361; }
 .island-v2-optimization-price-status.is-healthy:disabled { color: #c7ffeb; background: #116b50; border-color: #27b58b; opacity: 1; }
 .island-v2-optimization-price-status.is-pending { color: var(--color-text-muted); background: var(--color-surface-raised); }
+.island-v2-detail-list .island-v2-reference-meta { display: block; max-width: 100%; font: 400 .55rem/1.2 var(--font-family-base); }

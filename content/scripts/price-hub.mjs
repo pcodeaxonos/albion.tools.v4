@@ -16,6 +16,7 @@ import { promisify } from 'node:util';
 import { normalizePriceDate, marketSeriesKey, BOOK_PRICE_FIELDS } from '../js/core/market-primitives.mjs';
 import { ORDER_HISTORY_POLICY } from '../js/core/market-history-config.mjs';
 import { OrderPriceHistory } from '../js/core/order-price-history.mjs';
+import { startQuoteService } from './quote-service.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 // The hub lives in content/scripts; persistent data and game catalogs belong
@@ -77,11 +78,13 @@ const sseClients = new Set();
 loadCache();
 loadOrderHistory();
 loadLocalDataFile();
+const quoteService = startQuoteService({ root: ROOT, server: MARKET_SERVER, packetHistory: orderHistory });
 
 // Quiet hubs also prune expired historical observations and persist the removal.
 setInterval(() => {
     pruneExpired();
     if (orderHistory.prune()) persistOrderHistory();
+    try { quoteService.repository?.flush(); } catch (error) { console.warn('AODP repository maintenance:', error.message); }
 }, ORDER_HISTORY_POLICY.maintenanceMs).unref();
 
 const server = createServer((req, res) => {
@@ -121,6 +124,26 @@ function applyCors(res) {
 }
 
 async function route(req, res, url, path) {
+    if (req.method === 'GET' && path === '/api/v1/market/long-term') {
+        if (quoteService.error) {
+            sendJson(res, 503, { error: `AODP repository unavailable: ${quoteService.error}` }); return;
+        }
+        const requestedServer = url.searchParams.get('server');
+        if (requestedServer !== MARKET_SERVER) {
+            sendJson(res, 400, { error: 'Hub server differs from requested server', server: MARKET_SERVER });
+            return;
+        }
+        const sides = splitCsv(url.searchParams.get('sides'));
+        const qualities = splitCsv(url.searchParams.get('qualities'));
+        if (sides.some(side => !BOOK_PRICE_FIELDS[side]) || qualities.some(q => !/^[1-5]$/.test(q))) {
+            sendJson(res, 400, { error: 'Invalid side or quality' }); return;
+        }
+        sendJson(res, 200, { server: MARKET_SERVER, collector: quoteService.collector.state,
+            references: quoteService.references({ requestedServer,
+                items: splitCsv(url.searchParams.get('items')), locations: splitCsv(url.searchParams.get('locations')),
+                qualities: qualities.length ? qualities.map(Number) : [1], sides: sides.length ? sides : ['buy', 'sell'] }) });
+        return;
+    }
     if (req.method === 'GET' && path === '/pow') {
         notePow();
         sendJson(res, 200, { key: 'local', wanted: '' });
@@ -268,6 +291,7 @@ function statusPayload(adcProcess = null) {
         ok: true,
         host: `http://${HOST}:${PORT}`,
         startedAt,
+        collector: quoteService.collector.state,
         lastIngestAt,
         lastClientAt,
         lastIngestPath,

@@ -23,7 +23,7 @@ function moduleFor(file) {
     if (modules.has(file)) return modules.get(file);
     let code = fs.readFileSync(file, 'utf8');
     if (file.endsWith(`${path.sep}nav.js`)) code = 'export function initNav() {}';
-    if (file.endsWith(`${path.sep}island-planner-v2.js`)) code = code.replace(/init\(\);\s*$/, 'export { state, priceSummaryLabel };');
+    if (file.endsWith(`${path.sep}island-planner-v2.js`)) code = code.replace(/init\(\);\s*$/, 'export { state, priceSummaryLabel, renderPriceSegment, priceLookup, fetchPlanPrices };');
     const module = new vm.SourceTextModule(code, { context, identifier: file });
     modules.set(file, module);
     return module;
@@ -438,5 +438,63 @@ test('V2 per-unit production cost uses full output and includes internal feed op
     v2.state.draft.slots[0].productionMode = 'grow';
     const missing = v2.calculateIslandPlan({ update: false }).slots.get('R1');
     assert.equal(missing.unitCost, null, 'missing input cost must not become zero');
+});
+await placementTest('V2 Long Term UI and normal quote provider preserve tick, fees, feed and optimizer', async () => {
+    plan(['wheat', 'chicken']);
+    const prices = priceRows();
+    v2.state.draft.seedSide = 'buy'; v2.state.draft.harvestSide = 'sell';
+    const baseline = v2.calculateIslandPlan({ update: false });
+    const settings = (await load('content/js/core/settings.js')).namespace;
+    settings.saveSettings({ server: 'europe' });
+    const server = settings.getServer().id;
+    assert.equal(server, 'europe');
+    const key = (await load('content/js/core/market-primitives.mjs')).namespace.marketSeriesKey;
+    const references = prices.flatMap(row => ['buy', 'sell'].map(side => ({
+        server, itemId: row.item_id, city: row.city, quality: 1, side,
+        price: side === 'buy' ? row.buy_price_max : row.sell_price_min,
+        source: 'quote-history', sources: ['aodp-current'], validDays: 1, validBuckets: 2,
+        sourceQuoteAt: new Date(Date.now() - 86400000).toISOString()
+    })));
+    context.AbortSignal = { timeout: () => undefined };
+    let hubReads = 0;
+    context.fetch = async url => ({ ok: true, json: async () => {
+        if (String(url).includes('/market/long-term?')) {
+            const request = new URL(url);
+            assert.equal(request.searchParams.get('server'), 'europe');
+            assert.ok(!String(url).includes('undefined'));
+            hubReads++; return { server, references };
+        }
+        return [];
+    } });
+    v2.state.draft.seedSide = 'long-term'; v2.state.draft.harvestSide = 'long-term';
+    const fetched = await v2.fetchPlanPrices(economy.allPriceItemIds(), ['Fort Sterling']);
+    assert.ok(hubReads > 0); assert.equal(fetched.longTerm.size, references.length);
+    v2.state.priceIndex = null; v2.state.longTermPriceIndex = fetched.longTerm;
+    const derived = v2.calculateIslandPlan({ update: false });
+    near(derived.summary.net, baseline.summary.net, 'same economics from references');
+    near(derived.slots.get('R1').purchaseQuote.tick, 1, 'buy order tick');
+    near(derived.slots.get('R1').saleQuote.tick, -1, 'sell order tick');
+    near(derived.slots.get('R2').internalTransferIn, baseline.slots.get('R2').internalTransferIn, 'shared feed opportunity cost');
+    assert.ok(v2.renderPriceSegment('Tohum', 'long-term', false, 'seed').includes('data-v2-seed="long-term"'));
+    assert.ok(v2.renderPriceSegment('Tohum', 'long-term', false, 'seed').includes('UV'));
+    const metadata = (await load('content/js/core/long-term-quotes.js')).namespace.longTermMetadata;
+    const partialQuote = { reference: { source: 'current-buy-fallback', validDays: 0, validBuckets: 0,
+        dayCoverage: [{ day: '2026-10-07', status: 'partial-day', accepted: false, validBucketCount: 2,
+            coverageRatio: 2 / 24, firstObservationAt: '2026-10-07T20:00:00Z',
+            lastObservationAt: '2026-10-07T21:00:00Z', reasons: ['insufficient-buckets', 'insufficient-time-span'] }] } };
+    assert.ok(metadata(partialQuote, { compact: true }).includes('1 partial-day'));
+    assert.ok(metadata(partialQuote).includes('2 bucket (%8)'));
+    assert.ok(metadata(partialQuote).includes('red (insufficient-buckets, insufficient-time-span)'));
+    v2.state.draft.focus = true;
+    assert.ok(v2.optimizationEntries().every(entry => entry.focus === false), 'autofill excludes focus');
+    const occupied = v2.state.draft.slots[0];
+    v2.state.draft.slots.push({ id: 'R3', item: null }, { id: 'R4', item: null, locked: true });
+    const screened = v2.evaluatePlacementCandidates([{ id: 'trial', item: 'wheat', focus: false }]);
+    const { result, next, derived: final } = await v2.optimizeDraftPlacement(screened.candidates);
+    assert.equal(next[0], occupied); assert.equal(next[3].item, null);
+    near(result.net, final.summary.net, 'long-term optimizer final common engine');
+    near(result.marginalNet, final.summary.net - result.baseline, 'long-term total profit difference');
+    v2.state.longTermPriceIndex = new Map(references.filter(ref => ref.itemId !== wheat.seedId).map(ref => [key(ref), ref]));
+    assert.equal(v2.evaluatePlacementCandidates([{ id: 'trial', item: 'wheat' }]).candidates.length, 0, 'missing references exclude candidate');
 });
 console.log(`${checks} island economy checks passed.`);

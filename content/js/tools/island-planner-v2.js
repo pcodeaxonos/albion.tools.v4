@@ -12,6 +12,7 @@ import { getItemLocalizedName, getItemUniqueName } from '../db/relations.js';
 import { itemIconHtml } from '../components/item-icon.js';
 import { cityRow, fetchPrices, indexPrices } from '../core/market.js';
 import { quoteFromRow } from '../core/price-side.js';
+import { fetchLongTermIndex, longTermQuote, longTermMetadata, LONG_TERM_PRICE_MODE, LONG_TERM_PRICE_LABEL } from '../core/long-term-quotes.js';
 import { purchaseCost, saleProceeds } from '../core/market-fees.js';
 import { butcherQty, cropHours, planCycleHours, planDayHours, plantSlots } from '../core/island-economy.js';
 import { animalCycleHours } from '../core/island/economy-config.js';
@@ -51,7 +52,7 @@ const TOOLBAR_TYPE_ICONS = Object.freeze({
     kennel: './content/icons/T5_FARM_COUGAR_GROWN.png',
     house: './content/icons/PLAYERISLAND_FURNITUREITEM_WOOD_GATE_BIG_B.png'
 });
-const state = { cities: [], geometry: null, geometryRows: [], fixedPrices: [], selectedSlotId: 'R1', hoveredSlotId: null, toolbar: { stage: 'type', type: null }, draftsByCity: {}, committedByCity: {}, draft: null, committed: null, priceIndex: null, averagePriceIndex: null, priceLoading: false, autoFilling: false, optimizationPricesChecked: false, autoFillPriceDiagnostics: [], autoFillResult: null, priceError: null, priceRequestId: 0, priceDiagnosticSignature: null, derivedDiagnosticSignature: null, openDependencyPopover: null, drag: null, pointerDrag: null, dragPreviewFrame: null, dragPreviewPoint: null, suppressClick: false, derived: { slots: new Map(), summary: null }, calculationTimer: null, overlayDebugSignature: null };
+const state = { cities: [], geometry: null, geometryRows: [], fixedPrices: [], selectedSlotId: 'R1', hoveredSlotId: null, toolbar: { stage: 'type', type: null }, draftsByCity: {}, committedByCity: {}, draft: null, committed: null, priceIndex: null, averagePriceIndex: null, longTermPriceIndex: null, priceLoading: false, autoFilling: false, optimizationPricesChecked: false, autoFillPriceDiagnostics: [], autoFillResult: null, priceError: null, priceRequestId: 0, priceDiagnosticSignature: null, derivedDiagnosticSignature: null, openDependencyPopover: null, drag: null, pointerDrag: null, dragPreviewFrame: null, dragPreviewPoint: null, suppressClick: false, derived: { slots: new Map(), summary: null }, calculationTimer: null, overlayDebugSignature: null };
 
 function defaultDraft(islandCity = getDefaultCity()) { const settings = getSettings(); return { premium: settings.premium !== false, focus: false, islandCity, sellCity: getDefaultCity(), islandLevel: 6, seedSide: settings.buyPriceSide, harvestSide: settings.sellPriceSide, seedFixed: false, harvestFixed: false, slots: Array.from({ length: 16 }, (_, i) => blankSlot(`R${i + 1}`)), pricesUpdatedAt: null }; }
 function normalizeDraft(value, islandCity) { return normalizeDraftModel(value, islandCity, defaultDraft(islandCity)); }
@@ -226,6 +227,9 @@ function priceLookup(itemId, city, side, intent, role = intent === 'buy' ? 'inpu
         if (fixed.quote) return fixed;
     }
     const lookup = { itemId: itemId ?? null, city: city ?? null, side, intent, row: null, quote: null, reason: null };
+    if (side === LONG_TERM_PRICE_MODE) {
+        return { ...lookup, ...longTermQuote(state.longTermPriceIndex, { itemId, city, intent }) };
+    }
     if (side === 'average') {
         const history = historyAt(state.averagePriceIndex, itemId, city);
         if (history?.meanAvgPrice > 0) {
@@ -647,7 +651,7 @@ return itemRows().filter(item => isEconomicItem(item) && item.plotType !== 'kenn
             const modes = animalProductionModes(item);
             return (modes.length ? modes.map(mode => mode.value) : [null]).flatMap(productionMode =>
                 (productionMode === 'mount' ? mountRecipes(item).map(recipe => recipe.uniqueName) : [null]).flatMap(mountItem =>
-                    (state.draft.focus && productionModeUsesFocus(item, productionMode) ? [false, true] : [false]).map(focus =>
+                    [false].map(focus =>
                         ({ ...blankSlot('R1'), item: item.key, type: item.plotType, tier: item.tier, productionMode, mountItem, focus }))));
         });
 }
@@ -668,10 +672,11 @@ async function autoFillIsland() {
         const entries = optimizationEntries();
         const ids = v2PriceItemIds([...state.draft.slots, ...entries]);
         if (ids.length) {
-            const { rows, history } = await fetchPlanPrices(ids, v2PriceCities([...state.draft.slots, ...entries]));
+            const { rows, history, longTerm } = await fetchPlanPrices(ids, v2PriceCities([...state.draft.slots, ...entries]));
             if (cancelled()) throw new Error('Plan değişti; otomatik doldurma iptal edildi.');
             state.priceIndex = indexPrices(rows);
             state.averagePriceIndex = history;
+            state.longTermPriceIndex = longTerm;
         }
         const baseline = calculateIslandPlan({ update: false });
         if (!Number.isFinite(baseline.summary.net) || baseline.profiles.some(profile => !Number.isFinite(profile.net))) {
@@ -732,11 +737,13 @@ async function autoFillIsland() {
 
 async function fetchPlanPrices(ids, cities) {
     const useAverage = state.draft.seedSide === 'average' || state.draft.harvestSide === 'average';
-    const [rows, history] = await Promise.all([
-        fetchPrices(ids, cities, { source: getSettings().priceSource }),
-        useAverage ? fetchHistoryIndex(ids, cities, { days: 28, timeScale: 24 }) : Promise.resolve(null)
+    const useLongTerm = [state.draft.seedSide, state.draft.harvestSide].includes(LONG_TERM_PRICE_MODE);
+    const [rows, history, longTerm] = await Promise.all([
+        fetchPrices(ids, cities, { source: getSettings().priceSource }).catch(error => { if (useLongTerm) return []; throw error; }),
+        useAverage ? fetchHistoryIndex(ids, cities, { days: 28, timeScale: 24 }) : Promise.resolve(null),
+        useLongTerm ? fetchLongTermIndex(ids, cities) : Promise.resolve(null)
     ]);
-    return { rows, history };
+    return { rows, history, longTerm };
 }
 async function loadV2Prices() {
     if (state.autoFilling) return;
@@ -755,10 +762,11 @@ async function loadV2Prices() {
     render();
     try {
         const cities = v2PriceCities(entries);
-        const { rows, history } = await fetchPlanPrices(ids, cities);
+        const { rows, history, longTerm } = await fetchPlanPrices(ids, cities);
         if (requestId !== state.priceRequestId) return;
         state.priceIndex = indexPrices(rows);
         state.averagePriceIndex = history;
+        state.longTermPriceIndex = longTerm;
         state.draft.pricesUpdatedAt = new Date().toISOString();
         persistDrafts();
         const selectedQuotes = state.draft.slots.filter((entry) => isEconomicItem(itemForSlot(entry))).map((entry) => {
@@ -789,7 +797,7 @@ function scheduleEconomicUpdate() {
 function renderSegment(label, values, current, attr, extra = '') { return `<div><p class="city-field-label island-v2-group-label">${label}</p><div class="island-v2-segment">${values.map(([value, text]) => `<button type="button" data-v2-${attr}="${value}" class="${String(value) === String(current) ? 'is-active' : ''}">${text}</button>`).join('')}${extra}</div></div>`; }
 function renderPriceSegment(label, side, fixed, attr) {
     const toggle = `<button type="button" data-v2-${attr}-fixed="1" aria-pressed="${Boolean(fixed)}" class="${fixed ? "is-active" : ""}" title="Sabit fiyat varsa öncelikle kullan; yoksa seçili fiyat yöntemini kullan">Sabit</button>`;
-    return renderSegment(label, [["buy", "Buy"], ["sell", "Sell"], ["average", "4H"]], side, attr, toggle);
+    return renderSegment(label, [["buy", "Buy"], ["sell", "Sell"], ["average", "4H"], [LONG_TERM_PRICE_MODE, LONG_TERM_PRICE_LABEL]], side, attr, toggle);
 }
 function renderCities(label, current, attr, disabled = false) {
     return cityFieldHtml({
@@ -861,6 +869,10 @@ function renderCards() {
         return `<button type="button" draggable="true" class="island-v2-card is-filled ${netTone}${stateClasses}${warningClass}" data-tier="${item.tier}" data-v2-slot="${entry.id}"${priceTitle}><span class="island-v2-card-head"><span class="island-v2-slot-number">${number}</span>${renderSlotLock(entry)}<i class="island-v2-focus-dot ${focusSelected ? 'is-on' : ''}${focusSelected && !values.effectiveFocus ? ' is-awaiting-master' : ''}" title="${escapeHtml(focusTitle)}" aria-label="${escapeHtml(focusTitle)}"></i><span class="island-v2-card-tier-stack"><span class="badge island-v2-tier" data-tier="${item.tier}">T${item.tier}</span>${bonus}</span></span><span class="island-v2-card-item">${icon}<span>${escapeHtml(itemName(item))}</span></span>${financialContent}</button>`;
     }).join('')}</section>`;
 }
+function referencePriceValue(quote) {
+    const value = displayValue(quote?.price);
+    return quote?.longTerm ? `${value}<small class="island-v2-reference-meta" title="${escapeHtml(longTermMetadata(quote))}">${escapeHtml(longTermMetadata(quote, { compact: true }))}</small>` : value;
+}
 function detailRow(label, value = '—', title = '', tone = '') { const hint = title ? ` title="${escapeHtml(title)}" aria-label="${escapeHtml(title)}"` : ''; return `<span${hint}${tone ? ` data-tone="${tone}"` : ''}><small>${label}</small><b>${value}</b></span>`; }
 function renderDetail() {
     const entry = displayedSlot();
@@ -884,7 +896,7 @@ function renderDetail() {
         : values.priceState === 'fixed'
             ? fixedComparisonTitle(values)
             : diagnosticsTitle(values.diagnostics ?? []);
-    return `<section class="island-v2-detail${editable ? '' : ' is-readonly'}"><strong class="island-v2-detail-number">${entry.id.slice(1).padStart(2,'0')}</strong><div class="island-v2-detail-main">${identity}</div><div class="island-v2-detail-controls">${focusControl}${modeControl}</div><div class="island-v2-kpis">${detailRow('Katkı / Gün', displayValue(values.contribution), dependencyHint('contribution'), valueTone(values.contribution))}${detailRow('Gelir / Gün', displayValue(values.income), dependencyHint('income'), 'is-positive')}${detailRow('Gider / Gün', displayValue(values.expense), dependencyHint('expense'), 'is-negative')}${detailRow('Focus / Gün', displayValue(values.focus), dependencyHint('focus'))}</div><div class="island-v2-detail-list"><p><b>ÜRETİM BİLGİLERİ</b>${detailRow('Günlük Çıktı', displayValue(values.output), dependencyHint('output'))}${detailRow('Büyüme Süresi', displayDays(values.productionHours))}${detailRow('RR / Geri Dönüş', displayRate(values.rr), dependencyHint('rr'))}${detailRow('Net Çıktı', displayValue(values.netOutput), dependencyHint('output'))}${detailRow('Veri Kaynağı', `<span class="island-v2-production-source">${productionSourceLabel(values)}</span>`, productionSourceTitle(values))}</p><p class="island-v2-detail-economy"><b>EKONOMİ / TEDARİK</b>${detailRow('Tohum / Yavru Alış', displayValue(values.purchaseQuote?.price), dependencyHint('expense'), 'is-negative')}${detailRow('Günlük Net Giriş', displayValue(values.net), dependencyHint('net'), valueTone(values.net))}${entry.productionMode === 'mount' ? detailRow('Binek Malzemesi / Gün', displayValue(values.mountCost), dependencyHint('expense'), 'is-negative') + (values.mountMaterials ?? []).map(line => detailRow(`${displayValue(line.netQty)} × ${line.short} / binek`, displayValue(line.quote?.price), `Birim market alış fiyatı; tarif ${line.qty} adet, craft RR ${displayRate(line.returnRate)}. Ada şehri ve seçili alış yöntemi kullanılır.`, 'is-negative')).join('') : ''}${detailRow('Satış Fiyatı', displayValue(values.saleQuote?.price), dependencyHint('income'), 'is-positive')}${detailRow('Birim Maliyet', displayValue(values.unitCost), '1 adet ürünün ortalama üretim maliyeti (gümüş): günlük dış giderler + adadan sağlanan yemin net satış fırsat maliyeti, günlük toplam üretim adedine bölünür. Tohum/yavru geri dönüşleri hesaba dahildir. Satış kesintileri dahil değildir.', 'is-negative')}${values.feedId ? detailRow('Yem Türü', `<span class="island-v2-detail-feed">${itemIconHtml(values.feedId, { size: 24 })}<span>${escapeHtml(getItemLocalizedName(values.feedId, values.feedId))}</span></span>`, 'Hesapta seçilen yem türü.') : ''}${detailRow('İçeriden Karşılanan', displayValue(values.internal), dependencyHint('internal'))}${detailRow('Marketten Alınan', displayValue(values.market), dependencyHint('market'))}${detailRow('Fiyat Durumu', values.priceState === 'current' ? 'Güncel' : values.priceState === 'stale' ? 'Eski' : values.priceState === 'fixed' ? 'Sabit' : values.priceState === 'missing' ? 'Eksik' : '—', priceDiagnostic)}</p></div></section>`;
+    return `<section class="island-v2-detail${editable ? '' : ' is-readonly'}"><strong class="island-v2-detail-number">${entry.id.slice(1).padStart(2,'0')}</strong><div class="island-v2-detail-main">${identity}</div><div class="island-v2-detail-controls">${focusControl}${modeControl}</div><div class="island-v2-kpis">${detailRow('Katkı / Gün', displayValue(values.contribution), dependencyHint('contribution'), valueTone(values.contribution))}${detailRow('Gelir / Gün', displayValue(values.income), dependencyHint('income'), 'is-positive')}${detailRow('Gider / Gün', displayValue(values.expense), dependencyHint('expense'), 'is-negative')}${detailRow('Focus / Gün', displayValue(values.focus), dependencyHint('focus'))}</div><div class="island-v2-detail-list"><p><b>ÜRETİM BİLGİLERİ</b>${detailRow('Günlük Çıktı', displayValue(values.output), dependencyHint('output'))}${detailRow('Büyüme Süresi', displayDays(values.productionHours))}${detailRow('RR / Geri Dönüş', displayRate(values.rr), dependencyHint('rr'))}${detailRow('Net Çıktı', displayValue(values.netOutput), dependencyHint('output'))}${detailRow('Veri Kaynağı', `<span class="island-v2-production-source">${productionSourceLabel(values)}</span>`, productionSourceTitle(values))}</p><p class="island-v2-detail-economy"><b>EKONOMİ / TEDARİK</b>${detailRow('Tohum / Yavru Alış', referencePriceValue(values.purchaseQuote), [dependencyHint('expense'), longTermMetadata(values.purchaseQuote)].filter(Boolean).join(' · '), 'is-negative')}${detailRow('Günlük Net Giriş', displayValue(values.net), dependencyHint('net'), valueTone(values.net))}${entry.productionMode === 'mount' ? detailRow('Binek Malzemesi / Gün', displayValue(values.mountCost), dependencyHint('expense'), 'is-negative') + (values.mountMaterials ?? []).map(line => detailRow(`${displayValue(line.netQty)} × ${line.short} / binek`, displayValue(line.quote?.price), `Birim market alış fiyatı; tarif ${line.qty} adet, craft RR ${displayRate(line.returnRate)}. Ada şehri ve seçili alış yöntemi kullanılır.`, 'is-negative')).join('') : ''}${detailRow('Satış Fiyatı', referencePriceValue(values.saleQuote), [dependencyHint('income'), longTermMetadata(values.saleQuote)].filter(Boolean).join(' · '), 'is-positive')}${detailRow('Birim Maliyet', displayValue(values.unitCost), '1 adet ürünün ortalama üretim maliyeti (gümüş): günlük dış giderler + adadan sağlanan yemin net satış fırsat maliyeti, günlük toplam üretim adedine bölünür. Tohum/yavru geri dönüşleri hesaba dahildir. Satış kesintileri dahil değildir.', 'is-negative')}${values.feedId ? detailRow('Yem Türü', `<span class="island-v2-detail-feed">${itemIconHtml(values.feedId, { size: 24 })}<span>${escapeHtml(getItemLocalizedName(values.feedId, values.feedId))}</span></span>`, 'Hesapta seçilen yem türü.') : ''}${detailRow('İçeriden Karşılanan', displayValue(values.internal), dependencyHint('internal'))}${detailRow('Marketten Alınan', displayValue(values.market), dependencyHint('market'))}${detailRow('Fiyat Durumu', values.priceState === 'current' ? 'Güncel' : values.priceState === 'stale' ? 'Eski' : values.priceState === 'fixed' ? 'Sabit' : values.priceState === 'missing' ? 'Eksik' : '—', priceDiagnostic)}</p></div></section>`;
 }
 const SUMMARY_ICON_PATHS = {
     net: '<ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v5c0 4 16 4 16 0V5M4 10v5c0 4 16 4 16 0v-5M4 15v4c0 4 16 4 16 0v-4"/>',
