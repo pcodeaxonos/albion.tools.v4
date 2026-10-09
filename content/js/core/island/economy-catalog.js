@@ -1,5 +1,7 @@
 import { getPlants, getAnimals } from '../catalog.js';
 import { islandPlotsByLevel } from './economy-config.js';
+import { getAll } from '../../db/store.js';
+import { islandMarketItemIds } from './market-scope.mjs';
 
 function islandAnimal(row) {
     return {
@@ -60,29 +62,6 @@ export function factionMountForCity(city, tier = 5) {
 }
 
 export function allPriceItemIds() {
-    const ids = new Set();
-    for (const item of listAllPlants()) {
-        ids.add(item.seedId);
-        ids.add(item.plantId);
-    }
-    for (const item of listAllAnimals()) {
-        ids.add(item.babyId);
-        ids.add(item.grownId);
-        if (item.meatId) {
-            ids.add(item.meatId);
-        }
-        if (item.productId) {
-            ids.add(item.productId);
-        }
-        if (item.feedSeedId) {
-            ids.add(item.feedSeedId);
-        }
-        if (item.feedPlantId) {
-            ids.add(item.feedPlantId);
-        }
-    }
-    for (let t = 3; t <= 8; t += 1) {
-        ids.add(`T${t}_MEAT`);
-    }
-    return [...ids];
+    return islandMarketItemIds({ plants: getAll('plants'), animals: getAll('animals'),
+        items: getAll('items'), recipeMaterials: getAll('recipeMaterials') });
 }
