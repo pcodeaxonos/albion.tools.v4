@@ -11,8 +11,8 @@ export function priceLoaderMessage(source, fallback = 'Fiyatlar alınıyor…') 
 export function priceRefreshActionsHtml() {
     return `
         <div class="tool-price-actions">
-            <button type="button" class="btn btn-outline-secondary" data-price-refresh title="Önce oyun (paket) verisi, yoksa veya daha eskiyse AODP ile birleştirir.">Fiyatları yenile</button>
-            <button type="button" class="btn btn-outline-secondary" data-price-refresh-api title="AODP’yi yeniden çeker; oyun verisi varsa güncel olan kazanır. Eksikler için oyunda marketi aç.">Fiyatları API’den çek</button>
+            <button type="button" class="btn btn-outline-secondary" data-price-refresh data-app-tooltip="Oyun ve API verilerinden en güncel fiyatları kullan.">Fiyatları yenile</button>
+            <button type="button" class="btn btn-outline-secondary" data-price-refresh-api data-app-tooltip="API fiyatlarını yenile. Eksik fiyatlar için oyunda marketi aç.">Fiyatları API’den çek</button>
         </div>
     `;
 }

@@ -248,7 +248,7 @@ function renderPage(container, cities) {
                                     <label for="settingAddCombo">Combo ekle</label>
                                 </div>
                                 <button type="button" class="btn btn-outline-secondary" id="settingAddComboBtn">Ekle</button>
-                                <button type="button" class="btn btn-outline-secondary" id="settingFillBandBtn" title="IP bandındaki combolarla listeyi değiştir">Bandı uygula</button>
+                                <button type="button" class="btn btn-outline-secondary" id="settingFillBandBtn" data-app-tooltip="IP bandındaki combolarla listeyi değiştir">Bandı uygula</button>
                             </div>
                         </div>
                         <p class="text-muted settings-note">Standart combolar Royal Crafting varsayılan filtresi ve Enchanting vurgusudur. Ekle / çıkar / sırala; IP bandı ile hızlı doldurabilirsin.</p>
@@ -446,7 +446,7 @@ function refreshStandardCombos(container) {
                 <label for="settingAddCombo">Combo ekle</label>
             </div>
             <button type="button" class="btn btn-outline-secondary" id="settingAddComboBtn">Ekle</button>
-            <button type="button" class="btn btn-outline-secondary" id="settingFillBandBtn" title="IP bandındaki combolarla listeyi değiştir">Bandı uygula</button>
+            <button type="button" class="btn btn-outline-secondary" id="settingFillBandBtn" data-app-tooltip="IP bandındaki combolarla listeyi değiştir">Bandı uygula</button>
         </div>
     `;
     initFloatingLabels(wrap);

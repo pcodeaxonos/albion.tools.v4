@@ -5,6 +5,7 @@
     "description": "Albion Online tools — static HTML, no backend",
     "scripts": {
         "city:test": "node --experimental-vm-modules content/scripts/test-city-picker.mjs",
+        "tooltip:test": "node --experimental-vm-modules content/scripts/test-tooltips.mjs && node --experimental-vm-modules content/scripts/test-tooltip-metadata.mjs",
         "laborer:test": "node --experimental-vm-modules content/scripts/test-laborer-contract.mjs",
         "css:build": "node node_modules/sass/sass.js content/scss/main.scss output/css/site.css --no-source-map",
         "css:watch": "node node_modules/sass/sass.js --watch content/scss/main.scss output/css/site.css --no-source-map",

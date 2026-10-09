@@ -1,0 +1,41 @@
+.app-tooltip {
+    display: none;
+    position: fixed;
+    inset: auto;
+    margin: 0;
+    z-index: 10000;
+    width: max-content;
+    max-width: min(340px, calc(100vw - 16px));
+    max-height: calc(100dvh - 16px);
+    overflow: auto;
+    padding: 10px 12px;
+    border: 1px solid #59616c;
+    border-radius: 6px;
+    background: #272a30;
+    color: #f1f3f5;
+    box-shadow: 0 6px 20px #0005;
+    font: 12px/1.5 system-ui, sans-serif;
+    text-align: left;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    pointer-events: auto;
+    &:popover-open, &.is-open { display: block; }
+
+    .app-tooltip-heading {
+        display: block;
+        margin-bottom: 8px;
+        padding-bottom: 7px;
+        border-bottom: 1px solid #ffffff20;
+        font-weight: 650;
+    }
+
+    .app-tooltip-list {
+        display: grid;
+        gap: 7px;
+        margin: 0;
+        padding: 0 0 0 16px;
+        list-style: disc;
+        li { padding-left: 2px; }
+        li::marker { color: #9bc8ff; }
+    }
+}

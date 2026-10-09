@@ -70,14 +70,14 @@ function renderIconNode(item, selected, iconId, selectedOutputMode = 'offspring'
             data-picker-value="${escapeHtml(item.key)}"
             aria-pressed="${pressed ? 'true' : 'false'}"
             aria-label="${escapeHtml(title)}"
-            title="${escapeHtml(title)}">
+            data-app-tooltip="${escapeHtml(title)}">
             ${iconId ? itemIconHtml(iconId, { size: 96, className: 'item-icon plant-icon-node-img' }) : `<span class="plant-icon-node-fallback">T${item.tier}</span>`}
         </button>
     `;
 }
 
 function renderEmptyIconNode(tier) {
-    return `<button type="button" class="plant-icon-node is-empty" disabled aria-label="T${tier} mevcut değil" title="T${tier} mevcut değil"><span class="plant-icon-node-fallback">T${tier}</span></button>`;
+    return `<button type="button" class="plant-icon-node is-empty" disabled aria-label="T${tier} mevcut değil" data-app-tooltip="T${tier} mevcut değil"><span class="plant-icon-node-fallback">T${tier}</span></button>`;
 }
 
 function renderIconRows(items, groups, selected, iconIdFor, includeAnimalProducts = false, selectedOutputMode = 'offspring', outputGroupKind = null, pickerKind = null) {
@@ -118,7 +118,7 @@ function renderAnimalProductRow(items, selected, tierSlots = false, selectedOutp
                     <button type="button" class="plant-icon-node plant-icon-node--product${item.key === selected && selectedOutputMode === 'product' ? ' is-selected' : ''}"
                         data-tier="${Number(item.tier) || 2}" data-picker-value="${escapeHtml(item.key)}" data-animal-output="product"
                         aria-pressed="${item.key === selected && selectedOutputMode === 'product' ? 'true' : 'false'}" aria-label="${escapeHtml(item.productLabel || item.label)}"
-                        title="${escapeHtml(item.productLabel || item.label)}">
+                        data-app-tooltip="${escapeHtml(item.productLabel || item.label)}">
                         ${itemIconHtml(item.productId, { size: 96, className: 'item-icon plant-icon-node-img' })}
                     </button>
             ` : renderEmptyIconNode(index + 1)).join('')}

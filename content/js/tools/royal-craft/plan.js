@@ -216,7 +216,7 @@ function renderPlanStationItem(row, profitTier = 'D') {
     const tierAttribute = Number.isFinite(itemTier) ? ` data-tier="${itemTier}"` : '';
     return `
         <button type="button" class="royal-plan-item is-profit-tier-${escapeHtml(profitTier)}"${tierAttribute} data-plan-row="${escapeHtml(row.id)}"
-            title="${escapeHtml(planRowTitle(row, profitTier))}">
+            data-app-tooltip="${escapeHtml(planRowTitle(row, profitTier))}">
             <span class="royal-plan-item-visual">
                 ${itemIconHtml(row.sellId, { className: 'item-icon royal-plan-item-icon', size: 80 })}
                 ${planTeHtml(row)}
@@ -248,7 +248,7 @@ function renderPlanMissingItem(row) {
     const type = parseKind(row.recipe.kind).type;
     return `
         <button type="button" class="royal-plan-miss-item" data-plan-row="${escapeHtml(row.id)}"
-            title="${escapeHtml(`${shortItemName(row.recipe.label)} · ${row.tierEnchant} · satış yok`)}">
+            data-app-tooltip="${escapeHtml(`${shortItemName(row.recipe.label)} · ${row.tierEnchant} · satış yok`)}">
             ${itemIconHtml(row.sellId, { className: 'item-icon royal-plan-miss-icon', size: 48 })}
             ${planTeHtml(row)}
             <span class="royal-plan-chip">${escapeHtml(type || '?')}</span>

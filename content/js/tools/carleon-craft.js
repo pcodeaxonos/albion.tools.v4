@@ -471,7 +471,7 @@ function renderTable() {
                     <tr>
                         ${sortHeaderHtml('Eşya', { key: 'item', type: 'text', direction: sort.key === 'item' ? sort.direction : null, title: 'Üretilen Caerleon eşyası' })}
                         ${sortHeaderHtml('Tarif', { key: 'recipe', type: 'text', direction: sort.key === 'recipe' ? sort.direction : null, title: 'Craft için gereken malzemeler' })}
-                        ${sortHeaderHtml('Maliyet', { key: 'cost', type: 'number', className: 'num carleon-num', direction: sort.key === 'cost' ? sort.direction : null, title: 'RR düşülmüş malzeme maliyeti' })}
+                        ${sortHeaderHtml('Maliyet', { key: 'cost', type: 'number', className: 'num carleon-num', direction: sort.key === 'cost' ? sort.direction : null, title: 'Malzeme iadesi sonrası maliyet' })}
                         ${sortHeaderHtml('BM', { key: 'bm', type: 'number', className: 'num carleon-num', direction: sort.key === 'bm' ? sort.direction : null, title: 'Black Market satış fiyatı' })}
                         ${sortHeaderHtml('Satış', { key: 'sell', type: 'number', className: 'num carleon-num', direction: sort.key === 'sell' ? sort.direction : null, title: 'Vergi sonrası net satış' })}
                         ${sortHeaderHtml('Kâr', { key: 'profit', type: 'number', className: 'num carleon-num', direction: sort.key === 'profit' ? sort.direction : null, title: 'Net satış eksi maliyet' })}

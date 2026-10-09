@@ -164,7 +164,7 @@ function renderAnalysisCard(row, rank, { reorderable = false, isFirst = false, i
     const profitLabel = missingMarketPrice ? '—' : number(Math.abs(profit));
     const profitTone = missingMarketPrice ? 'is-neutral' : profit > 0 ? 'is-profit' : profit < 0 ? 'is-loss' : 'is-neutral';
     const requirements = recipe.lines.map((line) => `${line.short} · ${number(line.qty)}`).join(' · ');
-    const resourceIcons = recipe.lines.map((line) => `<span title="${escapeHtml(`${line.short} · ${number(line.qty)}`)}">${itemIconHtml(line.uniqueName, { size: 28, className: 'item-icon' })}<b>${number(line.qty)}</b></span>`).join('');
+    const resourceIcons = recipe.lines.map((line) => `<span data-app-tooltip="${escapeHtml(`${line.short} · ${number(line.qty)}`)}">${itemIconHtml(line.uniqueName, { size: 28, className: 'item-icon' })}<b>${number(line.qty)}</b></span>`).join('');
     return `
         <article class="bonus-analysis-card is-unit-rank-${rank}${reorderable ? ' is-reorderable' : ''}" data-analysis-recipe="${escapeHtml(recipe.id)}">
             <div class="bonus-analysis-card-surface">
@@ -174,12 +174,12 @@ function renderAnalysisCard(row, rank, { reorderable = false, isFirst = false, i
                 <div class="bonus-analysis-card-details">
                     <div class="bonus-analysis-item-copy"><h3>${escapeHtml(recipe.label)}</h3><p>${escapeHtml(getBonusFamilyLabel(recipe.familyKey))}</p><span class="bonus-analysis-profit ${profitTone}"><small>Kâr / Adet</small><b>${profitLabel}${percent !== null ? ` <em>(%${percent})</em>` : ''}</b></span></div>
                     <dl class="bonus-analysis-prices">
-                        <div class="${missingMarketPrice ? 'is-missing-market-price' : ''}"><dt>BM Fiyatı${missingMarketPrice ? '<span class="bonus-analysis-price-warning" role="img" aria-label="BM fiyatı yok" title="BM fiyatı yok">!</span>' : ''}</dt><dd>${market > 0 ? number(market) : '—'}</dd></div>
+                        <div class="${missingMarketPrice ? 'is-missing-market-price' : ''}"><dt>BM Fiyatı${missingMarketPrice ? '<span class="bonus-analysis-price-warning" role="img" aria-label="BM fiyatı yok" data-app-tooltip="BM fiyatı yok">!</span>' : ''}</dt><dd>${market > 0 ? number(market) : '—'}</dd></div>
                         <div><dt>Birim Getiri</dt><dd>${materialYield > 0 ? number(materialYield) : '—'}</dd></div>
                     </dl>
                 </div>
             </div>
-            <div class="bonus-analysis-material"><div><span>Hammadde Maliyeti</span><strong>${material > 0 ? number(material) : '—'}</strong></div><div><span title="${escapeHtml(requirements)}">Tarif Hammadde · ${number(totalMaterialQty)}</span><div class="bonus-analysis-resources" aria-label="${escapeHtml(requirements)}">${resourceIcons}</div></div></div>
+            <div class="bonus-analysis-material"><div><span>Hammadde Maliyeti</span><strong>${material > 0 ? number(material) : '—'}</strong></div><div><span data-app-tooltip="${escapeHtml(requirements)}">Tarif Hammadde · ${number(totalMaterialQty)}</span><div class="bonus-analysis-resources" aria-label="${escapeHtml(requirements)}">${resourceIcons}</div></div></div>
             ${reorderable ? `<div class="bonus-analysis-card-order" aria-label="Kart sırası"><button type="button" data-analysis-card-move="up"${isFirst ? ' disabled' : ''} aria-label="Yukarı taşı">↑</button><button type="button" data-analysis-card-move="down"${isLast ? ' disabled' : ''} aria-label="Aşağı taşı">↓</button></div>` : ''}
             </div>
         </article>`;
@@ -522,9 +522,9 @@ function updateAnalysisTrigger(container) {
     button.disabled = state.analysis.preparing;
     button.classList.toggle('has-recipe-warning', state.analysis.usedRecipeFallback);
     if (state.analysis.usedRecipeFallback) {
-        button.title = 'Veritabanında eksik tarif bulundu; GameInfo fallback kullanıldı.';
+        button.dataset.appTooltip = 'Eksik tarifler oyun verisinden tamamlandı.';
     } else {
-        button.removeAttribute('title');
+        button.removeAttribute('data-app-tooltip');
     }
     button.innerHTML = state.analysis.preparing
         ? '<i class="bonus-analysis-trigger-spinner" aria-hidden="true"></i><span>Analiz hazırlanıyor…</span>'
@@ -556,7 +556,7 @@ function renderBonusAnalysisDialog() {
     const returnRate = analysisReturnRate(family?.familyKey);
     const specialtyBonus = analysisSpecialtyBonus(family?.familyKey);
     const productionBonus = analysisProductionBonus(family?.familyKey);
-    const rrTitle = `Royal şehir bonusu %${cityProductionBonus()} + yerel şehir bonusu %${specialtyBonus} + günlük bonus %${dailyBonus}; RR = ${productionBonus} / ${100 + productionBonus}`;
+    const rrTitle = `Malzeme iadesi: %${formatAnalysisPercent(returnRate)}\nŞehir %${cityProductionBonus()} + yerel %${specialtyBonus} + günlük %${dailyBonus} üretim bonusundan hesaplanır.`;
     const analysisNote = activeAnalysis.error
         ? escapeHtml(activeAnalysis.error)
         : `Hammadde maliyeti, %${cityProductionBonus()} Royal şehir + %${specialtyBonus} yerel şehir + %${dailyBonus} günlük üretim bonusunun RRR'a çevrilmesiyle hesaplanır. Kartlar API tarif sırasıyla gösterilir; Kart Sırasını Düzenle ile kalıcı olarak elle değiştirilebilir ve tercih tüm tierlara uygulanır.`;
@@ -579,7 +579,7 @@ function renderBonusAnalysisDialog() {
                     <section class="bonus-analysis-controls" aria-label="Analiz filtreleri">
                         <div class="bonus-analysis-select"><span>Bonus grubu</span><div class="bonus-analysis-family-tabs">${familyOptions}</div><small>${escapeHtml(getCityApiName(family?.cityId) || 'Caerleon')}</small></div>
                         <div class="bonus-analysis-select"><span>Market</span><strong>Black Market</strong><small>En düşük satış emri −1</small></div>
-                        <span class="bonus-analysis-rr-badge" title="${escapeHtml(rrTitle)}"><i aria-hidden="true">↻</i><span><b>RR %${formatAnalysisPercent(returnRate)}</b><small>Royal %${cityProductionBonus()} + yerel %${specialtyBonus} + günlük %${dailyBonus}</small></span></span>
+                        <span class="bonus-analysis-rr-badge" data-app-tooltip="${escapeHtml(rrTitle)}"><i aria-hidden="true">↻</i><span><b>RR %${formatAnalysisPercent(returnRate)}</b><small>Royal %${cityProductionBonus()} + yerel %${specialtyBonus} + günlük %${dailyBonus}</small></span></span>
                         <div class="bonus-analysis-tiers" role="group" aria-label="Tier seçimi">
                             ${ANALYSIS_TIERS.map((tier) => analysisTierButtonHtml(tier, tierFilters)).join('')}
                             <button type="button" class="${tierFilters.showAll ? 'is-active' : ''}" data-analysis-filter="all">Tüm Tierlar</button>
@@ -897,8 +897,8 @@ function bindLogSort(container) {
 
 function renderGapRow(date) {
     return `
-        <tr class="is-gap" data-date="${escapeHtml(date)}" title="Kayıt yok">
-            <td class="text-nowrap" data-sort-value="${escapeHtml(date)}" title="${escapeHtml(bonusWindowLabel(date))}">${escapeHtml(formatDate(date))}</td>
+        <tr class="is-gap" data-date="${escapeHtml(date)}" data-app-tooltip="Kayıt yok">
+            <td class="text-nowrap" data-sort-value="${escapeHtml(date)}" data-app-tooltip="${escapeHtml(bonusWindowLabel(date))}">${escapeHtml(formatDate(date))}</td>
             <td></td>
             <td class="num"></td>
             <td class="num"></td>
@@ -946,7 +946,7 @@ function renderLogTable(month, highlightKeys = []) {
 
             return `
             <tr data-id="${row.id}" data-slot1="${escapeHtml(row.slot1FamilyKey)}" data-slot2="${escapeHtml(row.slot2FamilyKey)}"${logRowClasses(row, highlightKeys)}>
-                <td class="text-nowrap" data-sort-value="${escapeHtml(row.date)}" title="${escapeHtml(bonusWindowLabel(row.date))}">${escapeHtml(formatDate(row.date))}</td>
+                <td class="text-nowrap" data-sort-value="${escapeHtml(row.date)}" data-app-tooltip="${escapeHtml(bonusWindowLabel(row.date))}">${escapeHtml(formatDate(row.date))}</td>
                 ${familyCell(row.slot1FamilyKey, highlightKeys)}
                 <td class="num" data-sort-value="${escapeHtml(String(row.slot1Rate))}">${escapeHtml(String(row.slot1Rate))}%</td>
                 <td class="num" data-sort-value="${count1}">${count1}</td>
@@ -991,7 +991,7 @@ function renderPage(container) {
         head: `<section class="page-head" data-page-head="daily-bonus">
             <h1>Günlük Bonus</h1>
             <p>Her gün iki craft / refine bonusu. Gün 13:00’te yenilenir. Oyun API’sinden gelmez; buraya kaydedilir. Unutulan günler boş bırakılabilir.</p>
-            <div class="bonus-page-actions"><button type="button" class="bonus-analysis-trigger${state.analysis.usedRecipeFallback ? ' has-recipe-warning' : ''}" id="openBonusAnalysis"${state.analysis.preparing ? ' disabled' : ''}${state.analysis.usedRecipeFallback ? ' title="Veritabanında eksik tarif bulundu; GameInfo fallback kullanıldı."' : ''}>${state.analysis.preparing ? '<i class="bonus-analysis-trigger-spinner" aria-hidden="true"></i><span>Analiz hazırlanıyor…</span>' : '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 19V5m0 14h16M7 15l3-3 3 2 5-6"/><path d="M15 8h3v3"/></svg><span>Craft Analizi</span>'}</button></div>
+            <div class="bonus-page-actions"><button type="button" class="bonus-analysis-trigger${state.analysis.usedRecipeFallback ? ' has-recipe-warning' : ''}" id="openBonusAnalysis"${state.analysis.preparing ? ' disabled' : ''}${state.analysis.usedRecipeFallback ? ' data-app-tooltip="Eksik tarifler oyun verisinden tamamlandı."' : ''}>${state.analysis.preparing ? '<i class="bonus-analysis-trigger-spinner" aria-hidden="true"></i><span>Analiz hazırlanıyor…</span>' : '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 19V5m0 14h16M7 15l3-3 3 2 5-6"/><path d="M15 8h3v3"/></svg><span>Craft Analizi</span>'}</button></div>
         </section>`,
         controls: `
                 <div class="bonus-toolbar">

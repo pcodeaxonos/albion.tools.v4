@@ -309,9 +309,9 @@ export function applyPriceFieldState(field, { manual, missing, stale, date, disp
     field.classList.toggle('is-stale', isStale);
     const title = priceFieldTitle({ manual: isManual, missing: isMissing, stale: isStale });
     if (title) {
-        field.title = title;
+        field.dataset.appTooltip = title;
     } else {
-        field.removeAttribute('title');
+        field.removeAttribute('data-app-tooltip');
     }
 
     const input = field.querySelector('.form-control');
@@ -408,7 +408,7 @@ export function priceFieldHtml({
         <div class="price-field-stack${iconId ? ' has-aside' : ''}">
             <div class="price-field-row">
                 ${aside}
-                <div class="form-floating ${escapeHtml(fieldClass)}${priceFieldClass({ manual, missing, stale: isStale })}"${title ? ` title="${escapeHtml(title)}"` : ''}>
+                <div class="form-floating ${escapeHtml(fieldClass)}${priceFieldClass({ manual, missing, stale: isStale })}"${title ? ` data-app-tooltip="${escapeHtml(title)}"` : ''}>
                     <input type="text" class="form-control${filled}" id="${escapeHtml(id)}"
                         ${dataAttr} value="${escapeHtml(value)}" placeholder=" "
                         inputmode="decimal" autocomplete="off" spellcheck="false">

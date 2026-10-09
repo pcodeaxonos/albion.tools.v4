@@ -169,7 +169,7 @@ function renderSidebar() {
                     const active = state.tableName === name ? ' active' : '';
                     const source = getSourceLabel(table.source);
                     return `
-                        <a class="db-table-card${active}" href="#" data-table-name="${escapeHtml(name)}" title="${escapeHtml(name)}">
+                        <a class="db-table-card${active}" href="#" data-table-name="${escapeHtml(name)}" data-app-tooltip="${escapeHtml(name)}">
                             <span class="db-table-card-title">${escapeHtml(table.displayName)}</span>
                             <span class="db-table-card-meta">
                                 <span class="badge bg-secondary">${count}</span>
@@ -518,9 +518,9 @@ function renderTableView() {
             </div>
             <div class="db-table-actions">
                 <button type="button" class="btn btn-success" id="btnCreate">+ Yeni</button>
-                <button type="button" class="btn btn-outline-secondary" id="btnExport" title="JSON indir">Dışa aktar</button>
-                <button type="button" class="btn btn-outline-secondary" id="btnImport" title="JSON yükle">İçe aktar</button>
-                <button type="button" class="btn btn-outline-secondary" id="btnReseed" title="Seed dosyasından yenile">Seed’e dön</button>
+                <button type="button" class="btn btn-outline-secondary" id="btnExport" data-app-tooltip="JSON indir">Dışa aktar</button>
+                <button type="button" class="btn btn-outline-secondary" id="btnImport" data-app-tooltip="JSON yükle">İçe aktar</button>
+                <button type="button" class="btn btn-outline-secondary" id="btnReseed" data-app-tooltip="Seed dosyasından yenile">Seed’e dön</button>
                 <input type="file" id="importFile" accept="application/json,.json" hidden>
             </div>
         </div>
@@ -937,7 +937,7 @@ function renderMaterialsCell(ids) {
 
     const icons = renderMatsHtml(keys);
     if (icons) {
-        return `<span class="db-cell-mats" title="${escapeHtml(labels)}">${icons}</span>`;
+        return `<span class="db-cell-mats" data-app-tooltip="${escapeHtml(labels)}">${icons}</span>`;
     }
 
     return escapeHtml(labels);
@@ -948,7 +948,7 @@ function renderDataRow(table, columns, row) {
     const isEditing = state.mode === 'edit' && String(state.editId) === String(id);
     const editingClass = isEditing ? ' is-editing' : '';
     const deleteBtn = `
-        <button type="button" class="db-row-delete btn-delete" data-id="${escapeHtml(id)}" title="Sil" aria-label="Sil">
+        <button type="button" class="db-row-delete btn-delete" data-id="${escapeHtml(id)}" data-app-tooltip="Sil" aria-label="Sil">
             <svg class="db-row-delete-icon" viewBox="0 0 16 16" width="18" height="18" aria-hidden="true" focusable="false">
                 <path fill="currentColor" d="M6.5 1h3a.5.5 0 0 1 .5.5V3h3.5a.5.5 0 0 1 0 1H2a.5.5 0 0 1 0-1H5.5V1.5a.5.5 0 0 1 .5-.5M3.118 4 3 4.059V13.5A1.5 1.5 0 0 0 4.5 15h7a1.5 1.5 0 0 0 1.5-1.5V4.059L12.882 4zM5 6.5a.5.5 0 0 1 .5-.5h.01a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-.5.5H5.5a.5.5 0 0 1-.5-.5zm3 0a.5.5 0 0 1 .5-.5h.01a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-.5.5H8.5a.5.5 0 0 1-.5-.5zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0z"/>
             </svg>
@@ -1003,7 +1003,7 @@ function formatCellValue(value, column, parentId = null, row = null) {
             const text = column.refLabel ? String(refRow[column.refLabel] ?? refRow.id) : String(refRow.id);
             const icon = materialIconHtml(refRow);
             if (icon) {
-                return `<span class="db-cell-mats" title="${escapeHtml(text)}">${icon}</span>`;
+                return `<span class="db-cell-mats" data-app-tooltip="${escapeHtml(text)}">${icon}</span>`;
             }
             return escapeHtml(text);
         }
@@ -1020,7 +1020,7 @@ function formatCellValue(value, column, parentId = null, row = null) {
                 const uniqueName = refRow.uniqueName || getItemUniqueName(refRow.id);
                 const icon = itemIconHtml(uniqueName, { size: 56, className: 'item-icon db-cell-item-icon' });
                 if (icon) {
-                    return `<span class="db-cell-item-row" title="${escapeHtml(text)}">${icon}<span class="db-cell-item-name">${escapeHtml(text)}</span></span>`;
+                    return `<span class="db-cell-item-row" data-app-tooltip="${escapeHtml(text)}">${icon}<span class="db-cell-item-name">${escapeHtml(text)}</span></span>`;
                 }
             }
             return escapeHtml(text);
@@ -1031,10 +1031,10 @@ function formatCellValue(value, column, parentId = null, row = null) {
         const icon = materialIconHtml(row);
         const text = escapeHtml(String(value));
         if (icon && column.name === 'itemId') {
-            return `<span class="db-cell-mats" title="${text}">${icon}<span class="db-cell-mats-id">${text}</span></span>`;
+            return `<span class="db-cell-mats" data-app-tooltip="${text}">${icon}<span class="db-cell-mats-id">${text}</span></span>`;
         }
         if (icon && column.name === 'key') {
-            return `<span class="db-cell-mats" title="${text}">${icon}<span class="db-cell-mats-text">${text}</span></span>`;
+            return `<span class="db-cell-mats" data-app-tooltip="${text}">${icon}<span class="db-cell-mats-text">${text}</span></span>`;
         }
     }
 
@@ -1062,7 +1062,7 @@ function formatCellValue(value, column, parentId = null, row = null) {
     const str = String(value);
     if (shouldTruncateCode(column, str)) {
         const display = str.slice(0, CODE_CHAR_LIMIT) + '...';
-        return `<span class="db-cell-truncate" title="${escapeHtml(str)}">${escapeHtml(display)}</span>`;
+        return `<span class="db-cell-truncate" data-app-tooltip="${escapeHtml(str)}">${escapeHtml(display)}</span>`;
     }
 
     return escapeHtml(str);
@@ -1689,7 +1689,7 @@ function renderRefsOption(column, row, selected, { withIcon = false } = {}) {
     const checked = selected.has(Number(row.id)) ? ' checked' : '';
     const text = column.refLabel ? String(row[column.refLabel] ?? row.key ?? row.id) : String(row.key || row.id);
     const icon = withIcon ? materialIconHtml(row) : '';
-    const titleAttr = withIcon ? ` title="${escapeHtml(text)}"` : '';
+    const titleAttr = withIcon ? ` data-app-tooltip="${escapeHtml(text)}"` : '';
     return `
         <div class="form-check db-refs-option${withIcon ? ' db-refs-option--mat' : ''}"${titleAttr}>
             <input class="form-check-input" type="checkbox" name="${escapeHtml(column.name)}" id="${escapeHtml(id)}" value="${escapeHtml(row.id)}"${checked}>

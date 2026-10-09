@@ -41,16 +41,19 @@ export function longTermQuote(index, { server = getServer().id, itemId, city, qu
 export function longTermMetadata(quote, { compact = false } = {}) {
     const ref = quote?.reference;
     if (!ref) return '';
-    const labels = { 'quote-history': 'Quote geçmişi', 'sales-history-anchor': 'Satış geçmişi anchor', 'current-buy-fallback': 'Güncel Buy fallback' };
+    const labels = { 'quote-history': 'Geçmiş emir fiyatları', 'sales-history-anchor': 'Gerçekleşen satış ortalaması', 'current-buy-fallback': 'Güncel alış fiyatı' };
     const days = ref.dayCoverage ?? [];
     const partialCount = days.filter(day => day.status === 'partial-day').length;
-    const summary = `${labels[ref.source] ?? ref.source} · ${ref.validDays ?? 0} gün · ${ref.validBuckets ?? 0} bucket`
-        + (partialCount ? ` · ${partialCount} partial-day` : '');
+    const summary = `${labels[ref.source] ?? 'Uzun vadeli fiyat'} · ${ref.validDays ?? 0} gün`;
     if (compact) return summary;
-    const coverageDetails = days.map(day => `${day.day}: ${day.validBucketCount} bucket`
-        + `${day.coverageRatio == null ? '' : ` (%${Math.round(day.coverageRatio * 100)})`} · ${day.firstObservationAt} → ${day.lastObservationAt}`
-        + ` · ${day.status} · ${day.accepted ? 'kabul' : 'red'} (${day.reasons.join(', ')})`).join('; ');
-    return summary + (coverageDetails ? ` · Coverage: ${coverageDetails}` : '') + `${ref.sources?.length ? ` · Kaynaklar: ${ref.sources.join(', ')}` : ref.quoteSource ? ` · Kaynak: ${ref.quoteSource}` : ''}` +
-        `${ref.sourceQuoteAt ? ` · Son kaynak: ${new Date(ref.sourceQuoteAt).toLocaleString('tr-TR')}` : ''}` +
-        `${ref.fallbackReason ? ` · ${ref.fallbackReason}` : ''}`;
+    const explanation = ref.source === 'sales-history-anchor'
+        ? 'Emir geçmişi yetersiz; gerçekleşen satışların ortalaması kullanıldı.'
+        : ref.source === 'current-buy-fallback'
+            ? 'Geçmiş veri yetersiz; güncel alış fiyatı kullanıldı.'
+            : 'Yeterli veri bulunan tamamlanmış günlerden hesaplandı.';
+    const stamp = new Date(ref.sourceQuoteAt);
+    return [summary, explanation,
+        partialCount ? `${partialCount} eksik gün emir ortalamasına alınmadı.` : '',
+        ref.sourceQuoteAt && Number.isFinite(stamp.getTime()) ? `Son veri: ${stamp.toLocaleString('tr-TR', { dateStyle: 'short', timeStyle: 'short' })}` : ''
+    ].filter(Boolean).join('\n');
 }

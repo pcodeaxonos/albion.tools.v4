@@ -102,7 +102,7 @@ export function sortHeaderHtml(label, options = {}) {
     const { key, type = 'text', className = '', direction = null, title = '' } = options;
     const classes = className ? ` class="${escapeHtml(className)}"` : '';
     const aria = direction === 'desc' ? 'descending' : direction === 'asc' ? 'ascending' : 'none';
-    const titleAttr = title ? ` title="${escapeHtml(title)}"` : '';
+    const titleAttr = title ? ` data-app-tooltip="${escapeHtml(title)}"` : '';
 
     return `<th${classes} data-sort="${escapeHtml(type)}" data-sort-key="${escapeHtml(key)}" aria-sort="${aria}"${titleAttr}><button type="button" class="table-sort-btn"${titleAttr}>${escapeHtml(label)}</button></th>`;
 }

@@ -807,7 +807,7 @@ function renderTable(list) {
                         ${sortHeaderHtml('Ürün', { key: 'item', type: 'number', direction: dir('item'), title: 'İşlenen kademe' })}
                         ${sortHeaderHtml('Ham', { key: 'raw', type: 'number', className: 'num farming-num', direction: dir('raw'), title: 'Hammadde alış fiyatı' })}
                         ${sortHeaderHtml(family.outWord, { key: 'out', type: 'number', className: 'num farming-num', direction: dir('out'), title: 'Ürün satış fiyatı' })}
-                        ${sortHeaderHtml('Maliyet', { key: 'cost', type: 'number', className: 'num farming-num', direction: dir('cost'), title: 'RR ve fee düşülmüş maliyet' })}
+                        ${sortHeaderHtml('Maliyet', { key: 'cost', type: 'number', className: 'num farming-num', direction: dir('cost'), title: 'Malzeme iadesi ve istasyon ücreti dahil maliyet' })}
                         ${sortHeaderHtml('Satış net', { key: 'sell', type: 'number', className: 'num farming-num', direction: dir('sell'), title: 'Vergi sonrası net satış' })}
                         ${sortHeaderHtml('Kâr', { key: 'profit', type: 'number', className: 'num farming-num', direction: dir('profit'), title: 'Net satış eksi maliyet' })}
                         ${sortHeaderHtml('Kâr%', { key: 'pct', type: 'number', className: 'num farming-num', direction: dir('pct'), title: 'Kârın maliyete oranı' })}

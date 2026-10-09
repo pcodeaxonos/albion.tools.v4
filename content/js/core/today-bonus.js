@@ -60,7 +60,7 @@ export function renderRecipesHtml(variants, { labels = true, className = 'bonus-
         const label = labels && recipe.label
             ? `<span class="bonus-mat-recipe-label">${escapeHtml(recipe.label)}</span>`
             : '';
-        return `<span class="bonus-mat-recipe" title="${escapeHtml(title)}">${label}${renderMatsHtml(recipe.materials, className, size)}</span>`;
+        return `<span class="bonus-mat-recipe" data-app-tooltip="${escapeHtml(title)}">${label}${renderMatsHtml(recipe.materials, className, size)}</span>`;
     }).join('')}</span>`;
 }
 
@@ -123,7 +123,7 @@ function renderSidebarSlots(bonuses) {
         const cityAttr = slug ? ` data-city="${escapeHtml(slug)}"` : '';
         const station = bonusStationLine(bonus);
         return `
-            <span class="sidebar-today-slot"${cityAttr} title="${escapeHtml(slotTitle(bonus))}">
+            <span class="sidebar-today-slot"${cityAttr} data-app-tooltip="${escapeHtml(slotTitle(bonus))}">
                 <span class="sidebar-today-copy">
                     <span class="sidebar-today-city">
                         <span class="sidebar-today-city-full">${escapeHtml(city)}</span>
@@ -176,7 +176,7 @@ function paint() {
     if (topbar) {
         topbar.classList.toggle('is-empty', empty);
         topbar.innerHTML = renderTopbarSlots(bonuses);
-        topbar.title = empty
+        topbar.dataset.appTooltip = empty
             ? 'Bugün günlük bonus kaydı yok'
             : bonuses.map(slotTitle).join(' · ');
     }

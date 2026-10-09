@@ -386,7 +386,7 @@ function setVariantIconsHtml(setBase) {
         const label = setLabel(row.uniqueName);
         const price = row.price != null ? formatSilver(row.price) : 'fiyat yok';
         return `
-            <span class="royal-set-icon-wrap${row.price == null ? ' is-missing' : ''}" title="${escapeHtml(`${label} · ${price}`)}">
+            <span class="royal-set-icon-wrap${row.price == null ? ' is-missing' : ''}" data-app-tooltip="${escapeHtml(`${label} · ${price}`)}">
                 ${itemIconHtml(row.uniqueName, { className: 'item-icon royal-set-icon', size: 18 })}
             </span>
         `;
@@ -401,7 +401,7 @@ function craftMatIconHtml(row) {
     }
     const title = `${spec.label} · T${row.recipe.tier} · ${spec.qty} adet`;
     return `
-        <span class="royal-item-mat" title="${escapeHtml(title)}" aria-label="${escapeHtml(title)}">
+        <span class="royal-item-mat" data-app-tooltip="${escapeHtml(title)}" aria-label="${escapeHtml(title)}">
             ${itemIconHtml(spec.uniqueName, { className: 'item-icon royal-item-mat-icon', size: 48 })}
         </span>
     `;
@@ -896,8 +896,8 @@ function renderTable(list) {
                         ${sortHeaderHtml('Eşya', { key: 'item', type: 'text', className: 'royal-col-item', direction: sortDir('item') })}
                         ${sortHeaderHtml('T.E', { key: 'te', type: 'text', className: 'num royal-col-te', direction: sortDir('te') })}
                         ${sortHeaderHtml('Kalite', { key: 'quality', type: 'text', className: 'royal-col-quality', direction: sortDir('quality') })}
-                        ${sortHeaderHtml('SET', { key: 'set', type: 'number', className: 'num royal-col-num', direction: sortDir('set'), title: state.setPath === 'craft' ? 'SET craft-from-mats' : state.setPath === 'buy' ? 'SET Excellent buy' : 'min(SET craft-from-mats, SET Excellent buy)' })}
-                        ${sortHeaderHtml('Ucuz', { key: 'cheaper', type: 'text', className: 'royal-col-path', direction: sortDir('cheaper'), title: 'Hangisi daha ucuz: SET craft mi Excellent buy mu' })}
+                        ${sortHeaderHtml('SET', { key: 'set', type: 'number', className: 'num royal-col-num', direction: sortDir('set'), title: state.setPath === 'craft' ? 'Set üretim maliyeti' : state.setPath === 'buy' ? 'Excellent set alış fiyatı' : 'Set üretimi ile hazır alımın ucuzu' })}
+                        ${sortHeaderHtml('Ucuz', { key: 'cheaper', type: 'text', className: 'royal-col-path', direction: sortDir('cheaper'), title: 'Seti üretmek mi, Excellent kalitede almak mı daha ucuz?' })}
                         ${sortHeaderHtml('Sigil', { key: 'sigil', type: 'number', className: 'num royal-col-num', direction: sortDir('sigil') })}
                         ${sortHeaderHtml('Enchant', { key: 'enchantCost', type: 'number', className: 'num royal-col-num', direction: sortDir('enchantCost') })}
                         ${sortHeaderHtml('Maliyet', { key: 'cost', type: 'number', className: 'num royal-col-num', direction: sortDir('cost') })}
@@ -915,9 +915,9 @@ function renderTable(list) {
                             row.standard && standardRank(row.recipe.tier, row.enchant) === 0 ? 'is-main' : ''
                         ].filter(Boolean).join(' ');
                         const costTitle = row.setSource === 'buy'
-                            ? 'SET Excellent buy + sigil + enchant (royal craft RR yok)'
+                            ? 'Hazır set + sigil + büyüleme maliyeti. Royal üretiminde malzeme iadesi yok.'
                             : row.setSource === 'craft'
-                                ? 'SET craft-from-mats (RR) + sigil + enchant (royal craft RR yok)'
+                                ? 'İade sonrası set üretimi + sigil + büyüleme. Royal üretiminde iade yok.'
                                 : '';
                         const cheaperTitle = row.setCheaper === 'craft'
                             ? `Craft daha ucuz · craft ${formatSilver(row.setCraft)} · buy ${formatSilver(row.setBuy)}`
@@ -948,7 +948,7 @@ function renderTable(list) {
                                 <td class="royal-item-cell">
                                     <span class="royal-item">
                                         ${itemIconHtml(row.sellId, { className: 'item-icon royal-item-icon', size: 56 })}
-                                        <span class="royal-item-text" title="${escapeHtml(row.recipe.label)} · ${escapeHtml(setName)}">
+                                        <span class="royal-item-text" data-app-tooltip="${escapeHtml(row.recipe.label)} · ${escapeHtml(setName)}">
                                             <span class="royal-item-name">${escapeHtml(shortItemName(row.recipe.label))}</span>
                                             <span class="royal-item-meta">
                                                 <span class="royal-item-set">${escapeHtml(setName)}</span>
@@ -959,17 +959,17 @@ function renderTable(list) {
                                     </span>
                                 </td>
                                 <td class="num" data-sort-value="${escapeHtml(row.tierEnchant)}">${escapeHtml(row.tierEnchant)}</td>
-                                <td data-sort-value="${escapeHtml(row.quality.label)}" title="${sellProxy ? escapeHtml(sellProxyTitle) : 'Satış kalitesi'}">
-                                    <span class="royal-quality${sellProxyClass}">${escapeHtml(row.quality.short)}${sellProxy ? `<span class="royal-proxy-tag" title="${escapeHtml(sellProxyTitle)}">~${escapeHtml(sellProxy.short)}</span>` : ''}</span>
+                                <td data-sort-value="${escapeHtml(row.quality.label)}" data-app-tooltip="${sellProxy ? escapeHtml(sellProxyTitle) : 'Satış kalitesi'}">
+                                    <span class="royal-quality${sellProxyClass}">${escapeHtml(row.quality.short)}${sellProxy ? `<span class="royal-proxy-tag" data-app-tooltip="${escapeHtml(sellProxyTitle)}">~${escapeHtml(sellProxy.short)}</span>` : ''}</span>
                                 </td>
-                                <td class="num${incompleteClass(row.setDisplay)}" data-sort-value="${row.setDisplay ?? ''}" title="${row.setSource === 'craft' ? 'SET craft (RR sonrası)' : row.setSource === 'buy' ? 'SET Excellent buy (ham)' : ''}">${formatSilver(row.setDisplay)}</td>
-                                <td class="royal-path-cell" data-sort-value="${escapeHtml(row.setCheaper || '')}"${cheaperTitle ? ` title="${escapeHtml(cheaperTitle)}"` : ''}>${setCheaperTag(row.setCheaper)}</td>
-                                <td class="num${incompleteClass(row.sigilRaw)}" data-sort-value="${row.sigilRaw ?? ''}" title="${row.sigilQty != null ? `${row.sigilQty} adet · ${row.sealedSigil ? 'sealed birim × adet · RR yok' : 'RR yok'}` : ''}">${formatSilver(row.sigilRaw)}</td>
+                                <td class="num${incompleteClass(row.setDisplay)}" data-sort-value="${row.setDisplay ?? ''}" data-app-tooltip="${row.setSource === 'craft' ? 'Malzeme iadesi sonrası set üretim maliyeti' : row.setSource === 'buy' ? 'Excellent setin market alış fiyatı' : ''}">${formatSilver(row.setDisplay)}</td>
+                                <td class="royal-path-cell" data-sort-value="${escapeHtml(row.setCheaper || '')}"${cheaperTitle ? ` data-app-tooltip="${escapeHtml(cheaperTitle)}"` : ''}>${setCheaperTag(row.setCheaper)}</td>
+                                <td class="num${incompleteClass(row.sigilRaw)}" data-sort-value="${row.sigilRaw ?? ''}" data-app-tooltip="${row.sigilQty != null ? `${row.sigilQty} adet · ${row.sealedSigil ? 'sealed birim × adet · RR yok' : 'RR yok'}` : ''}">${formatSilver(row.sigilRaw)}</td>
                                 <td class="num${incompleteClass(row.enchantRaw)}" data-sort-value="${row.enchantRaw ?? ''}">${formatSilver(row.enchantRaw)}</td>
-                                <td class="num${incompleteClass(row.cost)}" data-sort-value="${row.cost ?? ''}"${costTitle ? ` title="${escapeHtml(costTitle)}"` : ''}>${formatSilver(row.cost)}</td>
-                                <td class="num${sellProxyClass}${incompleteClass(row.sell)}" data-sort-value="${row.sell ?? ''}"${sellProxyTitle ? ` title="${escapeHtml(sellProxyTitle)}"` : ''}>${formatSilver(row.sell)}</td>
-                                <td class="num${profitClass(row.profit)}${sellProxyClass}${incompleteClass(row.profit)}" data-sort-value="${row.profit ?? ''}"${sellProxyTitle ? ` title="${escapeHtml(sellProxyTitle)}"` : ''}>${formatSilver(row.profit, { signed: true })}</td>
-                                <td class="num royal-pct${profitClass(row.pct)}${sellProxyClass}${incompleteClass(row.pct)}" data-sort-value="${row.pct ?? ''}"${sellProxyTitle ? ` title="${escapeHtml(sellProxyTitle)}"` : ''}>${formatPercent(row.pct, { digits: 0, rounding: 'math' })}</td>
+                                <td class="num${incompleteClass(row.cost)}" data-sort-value="${row.cost ?? ''}"${costTitle ? ` data-app-tooltip="${escapeHtml(costTitle)}"` : ''}>${formatSilver(row.cost)}</td>
+                                <td class="num${sellProxyClass}${incompleteClass(row.sell)}" data-sort-value="${row.sell ?? ''}"${sellProxyTitle ? ` data-app-tooltip="${escapeHtml(sellProxyTitle)}"` : ''}>${formatSilver(row.sell)}</td>
+                                <td class="num${profitClass(row.profit)}${sellProxyClass}${incompleteClass(row.profit)}" data-sort-value="${row.profit ?? ''}"${sellProxyTitle ? ` data-app-tooltip="${escapeHtml(sellProxyTitle)}"` : ''}>${formatSilver(row.profit, { signed: true })}</td>
+                                <td class="num royal-pct${profitClass(row.pct)}${sellProxyClass}${incompleteClass(row.pct)}" data-sort-value="${row.pct ?? ''}"${sellProxyTitle ? ` data-app-tooltip="${escapeHtml(sellProxyTitle)}"` : ''}>${formatPercent(row.pct, { digits: 0, rounding: 'math' })}</td>
                             </tr>
                         `;
                     }).join('')}
@@ -1003,7 +1003,7 @@ function renderSummary(list) {
     return `
         <p class="farming-note">
             Alış ${escapeHtml(cityLabel(state.buyCity))} · satış ${escapeHtml(cityLabel(state.sellCity))} ·
-            RR ${escapeHtml(rrPct)}% yalnız SET craft-from-mats (şehir ${cityProductionBonus()}%) ·
+            RR ${escapeHtml(rrPct)}% yalnız set üretiminde (şehir ${cityProductionBonus()}%) ·
             royal craft RR yok · ${escapeHtml(sigilNote)} ·
             maliyet = ${escapeHtml(setPathLabel)} + sigil + enchant ·
             ${escapeHtml(feeMetaText(state.premium))}
@@ -1324,7 +1324,7 @@ function renderWizardRoyalCard(item) {
     return `<article class="royal-wizard-recent-card is-${status}">
         ${itemIconHtml(item.id, { className: 'item-icon royal-wizard-recent-icon', size: 64 })}
         <span>${escapeHtml(item.tier)}</span><small>${escapeHtml(item.label)}</small>
-        <b title="${label}" aria-label="${label}">${status === 'complete' ? '✓' : status === 'proxy' ? '◐' : '!'}</b>
+        <b data-app-tooltip="${label}" aria-label="${label}">${status === 'complete' ? '✓' : status === 'proxy' ? '◐' : '!'}</b>
     </article>`;
 }
 
@@ -1747,7 +1747,7 @@ function renderRoyalExplain(key, { hovered } = {}) {
             resultCap: 'ham'
         }));
         setCraftLines.push(explainStep({
-            label: 'SET craft (RR sonrası)',
+            label: 'Malzeme iadesi sonrası set üretim maliyeti',
             note: `Classic SET craft · ödenen pay ${formatPercent(keep, { digits: 0, rounding: 'math' })} · royal craft’ta ek RR yok`,
             formula: [
                 explainNum(row.setMatRaw, { tone: 'cost', cap: 'ham' }),
@@ -1943,7 +1943,7 @@ function renderRoyalExplain(key, { hovered } = {}) {
                 lines: [
                     explainStep({
                         label: 'İade oranı',
-                        note: 'bonus / (100 + bonus) — yalnız SET craft-from-mats; royal craft ve sigil RR almaz',
+                        note: 'bonus / (100 + bonus) — yalnız set üretiminde; royal craft ve sigil RR almaz',
                         formula: [
                             explainNum(bonus, { kind: 'qty', tone: 'bonus', cap: 'bonus' }),
                             explainOp('/'),
@@ -1955,8 +1955,8 @@ function renderRoyalExplain(key, { hovered } = {}) {
                     })
                 ]
             },
-            { title: 'SET craft-from-mats', tone: 'cost', lines: setCraftLines },
-            { title: 'SET Excellent buy vs craft', tone: 'cost', lines: setBuyLines },
+            { title: 'Set üretim maliyeti', tone: 'cost', lines: setCraftLines },
+            { title: 'Set alış / üretim karşılaştırması', tone: 'cost', lines: setBuyLines },
             { title: row.sealedSigil ? 'Sealed sigil' : 'Sigil', tone: 'cost', lines: sigilLines },
             { title: 'Enchant + toplam', tone: 'cost', lines: enchantLines },
             {
@@ -2028,10 +2028,10 @@ function renderRoyalAnalysis() {
                     <strong>${escapeHtml(city.label)}</strong>
                     <div class="royal-analysis-groups">${city.groups.map((group) => `<section class="royal-analysis-group">
                         <h3>${escapeHtml(group.label)}</h3>
-                        <div class="royal-analysis-items">${group.material ? `<span class="royal-analysis-material" title="${escapeHtml(group.material.label)}">
+                        <div class="royal-analysis-items">${group.material ? `<span class="royal-analysis-material" data-app-tooltip="${escapeHtml(group.material.label)}">
                             ${itemIconHtml(group.material.uniqueName, { className: 'item-icon', size: 32 })}
                         </span>` : ''}${group.items.map((recipe) => `
-                            <span class="royal-analysis-item" title="${escapeHtml(recipe.label)}">
+                            <span class="royal-analysis-item" data-app-tooltip="${escapeHtml(recipe.label)}">
                                 ${itemIconHtml(recipe.uniqueName, { className: 'item-icon royal-analysis-item-icon', size: 96 })}
                             </span>`).join('')}</div>
                     </section>`).join('')}</div>

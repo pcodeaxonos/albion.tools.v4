@@ -118,7 +118,7 @@ export function explainChips(items) {
         return '';
     }
     return `<div class="calc-explain-chips">${items.map((item) => `
-        <span class="calc-explain-chip is-${escapeHtml(item.tone || 'city')}"${item.title ? ` title="${escapeHtml(item.title)}"` : ''}>
+        <span class="calc-explain-chip is-${escapeHtml(item.tone || 'city')}"${item.title ? ` data-app-tooltip="${escapeHtml(item.title)}"` : ''}>
             <span class="calc-explain-chip-label">${escapeHtml(item.label)}</span>
             ${item.html ?? explainNum(item.value, {
                 kind: item.kind ?? 'qty',
@@ -284,7 +284,7 @@ export function bindCalcExplain({ root, key, table, rowKey, keys, render, itemCe
         button.className = 'calc-explain-trigger';
         button.dataset.calcExplainTrigger = '';
         button.setAttribute('aria-haspopup', 'dialog');
-        button.title = 'Hesap detayını aç';
+        button.dataset.appTooltip = 'Hesap detayını aç';
         button.append(...cell.childNodes);
         cell.append(button);
     });

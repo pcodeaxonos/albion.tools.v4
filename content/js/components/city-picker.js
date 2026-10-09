@@ -93,7 +93,7 @@ function renderHorizontalNodes(cities, selected, decorate, crests = false) {
                 style="--city-color:${escapeHtml(color)};"
                 aria-pressed="${pressed ? 'true' : 'false'}"
                 aria-label="${escapeHtml(title)}"
-                title="${escapeHtml(title)}">
+                data-app-tooltip="${escapeHtml(title)}">
                 ${crests ? `<img class="city-crest" src="assets/cities/${escapeHtml(cityKey(city))}.png" alt="" aria-hidden="true">` : ''}
                 <span class="city-map-tip" aria-hidden="true">${escapeHtml(city.displayName)}</span>
             </button>
@@ -115,7 +115,7 @@ function renderDiagonalNodes(cities, selected, decorate) {
                 style="--city-color:${escapeHtml(color)};--x:${pos.x}%;--y:${pos.y}%;"
                 aria-pressed="${pressed ? 'true' : 'false'}"
                 aria-label="${escapeHtml(title)}"
-                title="${escapeHtml(title)}">
+                data-app-tooltip="${escapeHtml(title)}">
                 <span class="city-map-tip" aria-hidden="true">${escapeHtml(city.displayName)}</span>
             </button>
         `;
@@ -130,7 +130,7 @@ function applyDiagonalNodeDecor(node, city, selected, decorate) {
     node.classList.toggle('is-muted', muted);
     node.setAttribute('aria-pressed', pressed ? 'true' : 'false');
     node.setAttribute('aria-label', title);
-    node.title = title;
+    node.dataset.appTooltip = title;
     const tip = node.querySelector('.city-map-tip');
     if (tip) {
         tip.textContent = city.displayName;
