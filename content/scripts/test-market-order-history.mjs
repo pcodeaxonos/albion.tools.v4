@@ -78,7 +78,9 @@ const buckets = [{ price: 100, seenAt: '2026-10-02T10:00:00Z' },
         seenAt: `2026-10-03T${String(hour).padStart(2, '0')}:00:00Z` })),
     { price: 200, seenAt: '2026-10-04T10:00:00Z' }];
 const bookRef = orderLongTermReference({ ...base, buckets }, { now });
-assert.equal(bookRef.price, 200, 'Busy day must have only one daily vote');
+assert.equal(bookRef.price, 900, 'Sparse days must not vote alongside a covered day');
+assert.equal(bookRef.validDays, 1);
+assert.equal(bookRef.dayCoverage.filter(day => day.status === 'partial-day').length, 2);
 assert.equal(bookRef.side, 'buy');
 
 // Exercise the actual hub ingest/persistence/routes without starting a live hub
@@ -99,6 +101,7 @@ class PacketHistory extends OrderPriceHistory {
     prune(at = packetNow) { return super.prune(at); }
 }
 const context = vm.createContext({ console, URL, URLSearchParams, Map, Set, Buffer,
+    startQuoteService: () => ({ repository: { flush() {} }, collector: { state: {} } }),
     process: { env: {}, argv: [] }, Date: PacketDate, Promise, OrderPriceHistory: PacketHistory, ORDER_HISTORY_POLICY,
     normalizePriceDate, marketSeriesKey, BOOK_PRICE_FIELDS,
     readFileSync: path => {

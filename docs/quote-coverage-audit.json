@@ -1,0 +1,75 @@
+{
+  "evaluatedAt": "2026-10-09T07:07:00.000Z",
+  "policy": {
+    "minBucketCount": 12,
+    "minObservationSpanMs": 43200000
+  },
+  "counts": {
+    "before": {
+      "buy:missing": 764,
+      "sell:quote-history": 868,
+      "sell:missing": 207,
+      "buy:quote-history": 470,
+      "buy:current-buy-fallback": 26,
+      "sell:sales-history-anchor": 185
+    },
+    "after": {
+      "buy:missing": 773,
+      "sell:sales-history-anchor": 912,
+      "sell:missing": 348,
+      "buy:current-buy-fallback": 487
+    }
+  },
+  "transitions": {
+    "buy:missing → missing": 764,
+    "sell:quote-history → sales-history-anchor": 727,
+    "sell:missing → missing": 207,
+    "sell:quote-history → missing": 141,
+    "buy:quote-history → current-buy-fallback": 461,
+    "buy:current-buy-fallback → current-buy-fallback": 26,
+    "sell:sales-history-anchor → sales-history-anchor": 185,
+    "buy:quote-history → missing": 9
+  },
+  "coverageByDay": {
+    "2026-10-07": {
+      "series": 1012,
+      "accepted": 0,
+      "partial": 1012,
+      "minBuckets": 1,
+      "maxBuckets": 2,
+      "maxSpanHours": 2.7919811111111112
+    },
+    "2026-10-08": {
+      "series": 964,
+      "accepted": 0,
+      "partial": 964,
+      "minBuckets": 1,
+      "maxBuckets": 3,
+      "maxSpanHours": 2.0668847222222224
+    },
+    "2026-10-09": {
+      "series": 352,
+      "accepted": 0,
+      "partial": 352,
+      "minBuckets": 1,
+      "maxBuckets": 1,
+      "maxSpanHours": 0
+    },
+    "2026-10-06": {
+      "series": 13,
+      "accepted": 0,
+      "partial": 13,
+      "minBuckets": 1,
+      "maxBuckets": 1,
+      "maxSpanHours": 0
+    },
+    "2026-10-05": {
+      "series": 21,
+      "accepted": 0,
+      "partial": 21,
+      "minBuckets": 1,
+      "maxBuckets": 3,
+      "maxSpanHours": 9.784815277777778
+    }
+  }
+}
