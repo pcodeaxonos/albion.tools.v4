@@ -58,7 +58,13 @@ main.tool-page {
     }
 
     > .left > .controls { flex: 0 0 auto; }
-    > .left > .summary { flex: 0 0 auto; margin-top: auto; }
+    > .left > .summary {
+        display: flex;
+        flex-direction: column;
+        flex: 1 0 auto;
+        justify-content: flex-end;
+        margin: 0;
+    }
 
     // Opt-in panels consume spare height without shrinking their content.
     // Content exceeding the viewport remains reachable through app-content.

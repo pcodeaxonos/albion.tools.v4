@@ -10,6 +10,8 @@
         "css:watch": "node node_modules/sass/sass.js --watch content/scss/main.scss output/css/site.css --no-source-map",
         "data:fetch": "node content/scripts/fetch-game-data.mjs",
         "island:test": "node --experimental-vm-modules content/scripts/test-island-economy.mjs",
+        "island:stability:test": "node content/scripts/test-island-yield-stability.mjs",
+        "island:forecast:test": "node content/scripts/test-island-yield-forecast.mjs",
         "data:icons": "node content/scripts/fetch-item-icons.mjs",
     "data:farm": "node content/scripts/build-farm-catalog.mjs",
     "data:craft": "node content/scripts/build-craft-catalog.mjs && node content/scripts/build-game-recipe-catalog.mjs",

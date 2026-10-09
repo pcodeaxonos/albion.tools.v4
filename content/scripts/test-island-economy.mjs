@@ -58,49 +58,20 @@ const near = (actual, expected, label) => assert.ok(Math.abs(actual - expected) 
 let checks = 0;
 function test(name, run) { run(); checks++; console.log(`PASS ${name}`); }
 
-test('bootstrap confidence measures dispersion rather than input quantity', () => {
-    const row = (input, output) => ({ seedsPlanted: input, plantsHarvested: output, seedsReturned: input });
-    const stable = Array.from({ length: 20 }, () => row(10, 100));
-    const variable = Array.from({ length: 20 }, (_, i) => row(10, i % 2 ? 190 : 10));
-    const tight = stats.bootstrapYieldConfidence(stable);
-    const wide = stats.bootstrapYieldConfidence(variable);
-    near(tight.low, 10, 'stable mean');
-    near(tight.high, 10, 'stable mean upper');
-    near(variable.reduce((sum, r) => sum + r.plantsHarvested, 0) / 200, 10, 'same weighted mean');
-    assert.equal(tight.level, 4);
-    assert.equal(wide.level, 1);
-    assert.ok(wide.relativeError > 0.10);
-    assert.equal(stats.bootstrapYieldConfidence([row(1000000, 10000000)]).level, 0);
-    assert.equal(stats.bootstrapYieldConfidence(stable.slice(0, 2)).level, 3);
-    assert.equal(stats.bootstrapYieldConfidence([]).level, 0);
-    assert.equal(stats.bootstrapYieldConfidence([row(10, 0), row(10, 0)]).level, 0);
-    assert.equal(stats.bootstrapYieldConfidence([row(0, 100), row(-1, 10)]).level, 0);
-    assert.equal(JSON.stringify(wide), JSON.stringify(stats.bootstrapYieldConfidence(variable)), 'deterministic interval');
-    const scaled = variable.map((r) => row(r.seedsPlanted * 1000, r.plantsHarvested * 1000));
-    near(stats.bootstrapYieldConfidence(scaled).relativeError, wide.relativeError, 'quantity scaling cannot inflate confidence');
-    // Two whole records give ratios 1, 91/11 and 9, never the unweighted mean 5.
-    const weighted = stats.bootstrapYieldConfidence([row(1, 1), row(10, 90)]);
-    near(weighted.low, 1, 'whole record lower');
-    near(weighted.high, 9, 'whole record upper');
-    near(weighted.relativeError, 4 / (91 / 11), 'weighted bootstrap ratio');
-    for (const [error, expected] of [[0.101, 1], [0.10, 2], [0.051, 2], [0.05, 3], [0.021, 3], [0.02, 4]]) {
-        assert.equal(stats.yieldConfidenceLevel(error, 3), expected);
-    }
-});
-
-test('confidence includes return dispersion and handles zero returns and product logs', () => {
+test('stability considers both return and output, missing fields, zero and invalid inputs', () => {
     const rows = Array.from({ length: 20 }, (_, i) => ({ seedsPlanted: 10, plantsHarvested: 90, seedsReturned: i % 2 ? 20 : 0 }));
-    const result = stats.bootstrapYieldConfidence(rows);
+    const result = stats.yieldStability(rows);
     assert.equal(result.harvest.level, 4);
-    assert.equal(result.seedReturn.level, 1);
-    assert.equal(result.level, 1);
-    const zero = rows.map((row) => ({ ...row, seedsReturned: 0 }));
-    assert.equal(stats.bootstrapYieldConfidence(zero).level, 4);
+    assert.ok(result.seedReturn.level < 4);
+    assert.equal(result.level, result.seedReturn.level);
     const missing = rows.map(({ seedsReturned, ...row }) => row);
-    assert.equal(stats.bootstrapYieldConfidence(missing).level, 0);
-    assert.equal(stats.bootstrapYieldConfidence(missing, { includeReturn: false }).level, 4);
-    const variableHarvest = rows.map((row, i) => ({ ...row, seedsReturned: 10, plantsHarvested: i % 2 ? 190 : 10 }));
-    assert.equal(stats.bootstrapYieldConfidence(variableHarvest).level, 1);
+    assert.equal(stats.yieldStability(missing).level, 1);
+    assert.equal(stats.yieldStability(missing, { includeReturn: false }).level, 4);
+    assert.equal(stats.yieldStability([]).level, 0);
+    assert.equal(stats.yieldStability(rows.slice(0, 1)).level, 1);
+    assert.equal(stats.yieldStability([{ seedsPlanted: 0, plantsHarvested: 100 }]).level, 0);
+    assert.equal(stats.yieldStability(rows.map(row => ({ ...row, seedsReturned: 0 }))).seedReturn.level, 4,
+        'a realistic positive return is permitted but its bounded absolute impact is negligible');
 });
 
 test('confidence uses only the matching group and excludes marked outliers', () => {
@@ -116,8 +87,7 @@ test('confidence uses only the matching group and excludes marked outliers', () 
     assert.equal(avg.seedsPlanted, 40);
     near(avg.avgPlantYield, 10, 'unchanged weighted output');
     near(avg.avgSeedReturn, 56 / 40, 'unchanged weighted return');
-    assert.equal(avg.confidence.level, 4);
-    assert.equal(JSON.stringify(avg.confidence), JSON.stringify(stats.bootstrapYieldConfidence(included)));
+    assert.equal(JSON.stringify(avg.confidence), JSON.stringify(stats.yieldStability(included)));
     store.replaceAllRows('islandYieldLogs', []);
 });
 

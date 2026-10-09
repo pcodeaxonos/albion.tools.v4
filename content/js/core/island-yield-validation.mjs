@@ -1,5 +1,6 @@
 // Linear in log count; no confidence/bootstrap computation on the save path.
-export function entryWarnings(entry, { rows, today, expectedOutput, expectedReturn, alternateReturn, alternatePremiumOutput, alternateCityOutput, modeLabel }) {
+import { isYieldOutlier } from './island-yield-stability.mjs';
+export function entryWarnings(entry, { rows, today, expectedOutput, expectedReturn, alternateReturn, alternatePremiumOutput, alternateCityOutput, modeLabel, flaggedMetrics = new Set() }) {
     const warnings = [];
     const input = entry.seedsPlanted;
     const output = entry.plantsHarvested / input;
@@ -15,11 +16,13 @@ export function entryWarnings(entry, { rows, today, expectedOutput, expectedRetu
     if (entry.date > today) warnings.push('tarih gelecekte');
     if (!Number.isSafeInteger(input) || !Number.isSafeInteger(entry.seedsReturned) || !Number.isSafeInteger(entry.plantsHarvested)) warnings.push('miktarlar tam sayı sınırının dışında');
     if (!product && Math.abs(returned - expectedReturn) > returnTolerance) {
+        flaggedMetrics.add('return');
         warnings.push(closer(returned, expectedReturn, alternateReturn, returnTolerance)
             ? `${modeLabel} seçimi dönüş miktarıyla uyuşmuyor olabilir`
             : 'dönüş miktarı beklenenden belirgin farklı');
     }
     if ((plant || product) && Math.abs(output - expectedOutput) > outputTolerance) {
+        flaggedMetrics.add('output');
         if (closer(output, expectedOutput, alternatePremiumOutput, outputTolerance)) warnings.push('premium seçimi hasat miktarıyla uyuşmuyor olabilir');
         else warnings.push('çıktı miktarı beklenenden belirgin farklı; şehir, ürün ve girdi miktarını kontrol et');
     }
@@ -29,6 +32,7 @@ export function entryWarnings(entry, { rows, today, expectedOutput, expectedRetu
         && Math.abs(output - expectedOutput) > Math.max(0.25, 2 / Math.sqrt(input))
         && Math.abs(output - alternateCityOutput) < Math.abs(output - expectedOutput) / 2) {
         warnings.push('hasat başka bir şehir bonusuna daha yakın; ada şehri yanlış seçilmiş olabilir');
+        flaggedMetrics.add('output');
     }
     let duplicate = false;
     let count = 0;
@@ -40,7 +44,7 @@ export function entryWarnings(entry, { rows, today, expectedOutput, expectedRetu
             || Boolean(row.premium) !== entry.premium || Boolean(row.water) !== entry.water) continue;
         if (row.date === entry.date && Number(row.seedsPlanted) === input
             && Number(row.seedsReturned) === entry.seedsReturned && Number(row.plantsHarvested) === entry.plantsHarvested) duplicate = true;
-        if (row.islandCity !== entry.islandCity || row.isOutlier === true || row.isOutlier === 'true' || !(Number(row.seedsPlanted) > 0)) continue;
+        if (row.islandCity !== entry.islandCity || isYieldOutlier(row) || !(Number(row.seedsPlanted) > 0)) continue;
         count++;
         totalInput += Number(row.seedsPlanted);
         totalOutput += Number(row.plantsHarvested);
@@ -49,6 +53,7 @@ export function entryWarnings(entry, { rows, today, expectedOutput, expectedRetu
     if ((plant || product) && count >= 3 && totalInput >= 45 && totalOutput > 0
         && Math.abs(output - totalOutput / totalInput) > Math.max(outputTolerance, 0.25 * totalOutput / totalInput)) {
         warnings.push('çıktı önceki kayıtlarının ortalamasından belirgin farklı');
+        flaggedMetrics.add('output');
     }
     return warnings;
 }

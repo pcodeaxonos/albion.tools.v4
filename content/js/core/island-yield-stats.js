@@ -3,73 +3,8 @@ import { getPlants, getAnimals, getEconomyConstant } from './catalog.js';
 import { baseYield, premiumYield, cityYieldBonus } from './island/economy-config.js';
 
 const TABLE = 'islandYieldLogs';
-const BOOTSTRAP_REPLICATES = 5000;
-
-// Ordered from broadest to most stable; the final band is maximum confidence.
-export const YIELD_CONFIDENCE_BANDS = Object.freeze([
-    { maxRelativeError: Infinity, minRecords: 2 },
-    { maxRelativeError: 0.10, minRecords: 2 },
-    { maxRelativeError: 0.05, minRecords: 2 },
-    { maxRelativeError: 0.02, minRecords: 3 }
-].map(Object.freeze));
-export const MAX_YIELD_CONFIDENCE = YIELD_CONFIDENCE_BANDS.length;
-
-export function yieldConfidenceLevel(relativeError, n) {
-    if (n < 2 || !Number.isFinite(relativeError) || relativeError < 0) return 0;
-    return YIELD_CONFIDENCE_BANDS.reduce((level, band, index) =>
-        relativeError <= band.maxRelativeError && n >= band.minRecords ? index + 1 : level, 0);
-}
-
-/** Percentile 95% CI for the ratio of totals, resampling whole independent logs. */
-export function bootstrapYieldConfidence(rows, { includeReturn = true } = {}) {
-    const harvest = bootstrapRatioConfidence(rows, 'plantsHarvested');
-    const seedReturn = includeReturn ? bootstrapRatioConfidence(rows, 'seedsReturned', true) : null;
-    const limiting = seedReturn && seedReturn.level < harvest.level ? seedReturn : harvest;
-    return { ...limiting, level: seedReturn ? Math.min(harvest.level, seedReturn.level) : harvest.level, harvest, seedReturn };
-}
-
-function bootstrapRatioConfidence(rows, outputField, allowZero = false) {
-    const samples = rows.filter((row) => row.isOutlier !== true && row.isOutlier !== 'true')
-        .map((row) => ({ input: num(row.seedsPlanted), output: row[outputField] == null ? null : num(row[outputField]) }))
-        .filter((row) => row.input > 0 && row.output != null && row.output >= 0);
-    const n = samples.length;
-    const mean = samples.reduce((sum, row) => sum + row.output, 0)
-        / samples.reduce((sum, row) => sum + row.input, 0);
-    const unavailable = { level: 0, n, low: null, high: null, relativeError: null };
-    if (n < 2 || !Number.isFinite(mean) || mean < 0 || (!allowZero && mean === 0)) return unavailable;
-    if (mean === 0) return { level: yieldConfidenceLevel(0, n), n, low: 0, high: 0, relativeError: 0 };
-    // Local deterministic PRNG: repeated renders must not flicker between grades.
-    let seed = 0x6d2b79f5;
-    const random = () => {
-        seed = (seed + 0x6d2b79f5) | 0;
-        let value = Math.imul(seed ^ (seed >>> 15), 1 | seed);
-        value ^= value + Math.imul(value ^ (value >>> 7), 61 | value);
-        return ((value ^ (value >>> 14)) >>> 0) / 4294967296;
-    };
-    const means = [];
-    for (let replicate = 0; replicate < BOOTSTRAP_REPLICATES; replicate++) {
-        let input = 0;
-        let output = 0;
-        for (let i = 0; i < n; i++) {
-            const row = samples[Math.floor(random() * n)];
-            input += row.input;
-            output += row.output;
-        }
-        const estimate = output / input;
-        if (!Number.isFinite(estimate)) return unavailable;
-        means.push(estimate);
-    }
-    means.sort((a, b) => a - b);
-    const quantile = (p) => {
-        const index = (means.length - 1) * p;
-        const lower = Math.floor(index);
-        return means[lower] + (means[Math.ceil(index)] - means[lower]) * (index - lower);
-    };
-    const low = quantile(0.025);
-    const high = quantile(0.975);
-    const relativeError = ((high - low) / 2) / mean;
-    return { level: yieldConfidenceLevel(relativeError, n), n, low, high, relativeError };
-}
+import { yieldStability, isYieldOutlier } from './island-yield-stability.mjs';
+export { yieldStability, YIELD_CONFIDENCE_BANDS, MAX_YIELD_CONFIDENCE } from './island-yield-stability.mjs';
 
 function num(value) {
     const n = Number(value);
@@ -121,6 +56,13 @@ export function listYieldLogs() {
     return getAll(TABLE).slice();
 }
 
+export function yieldGroupRows(logRows, islandCity, itemKey, { premium = true, water = false, itemType = 'plant' } = {}) {
+    return logRows.filter(row => row.islandCity === islandCity
+        && rowItemType(row) === itemType && rowItemKey(row) === itemKey
+        && bool(row.premium) === bool(premium) && bool(row.water) === bool(water)
+        && !isYieldOutlier(row));
+}
+
 /**
  * Aggregate user observations for one island + item + premium/water-or-focus context.
  */
@@ -129,22 +71,13 @@ export function yieldAverage(islandCity, itemKey, {
     water = false,
     itemType = 'plant',
     includeConfidence = false,
+    stabilityOptions = {},
     logRows = listYieldLogs()
 } = {}) {
     if (!islandCity || !itemKey) {
         return null;
     }
-    const wantPremium = bool(premium);
-    const wantWater = bool(water);
-    const rows = logRows.filter((row) =>
-        row.islandCity === islandCity
-        && rowItemType(row) === itemType
-        && rowItemKey(row) === itemKey
-        && bool(row.premium) === wantPremium
-        && bool(row.water) === wantWater
-        && row.isOutlier !== true
-        && row.isOutlier !== 'true'
-    );
+    const rows = yieldGroupRows(logRows, islandCity, itemKey, { premium, water, itemType });
 
     let planted = 0;
     let returned = 0;
@@ -168,7 +101,7 @@ export function yieldAverage(islandCity, itemKey, {
         seedsPlanted: planted,
         avgPlantYield: harvested / planted,
         avgSeedReturn: returned / planted,
-        ...(includeConfidence ? { confidence: bootstrapYieldConfidence(rows, { includeReturn: itemType !== 'animalProduct' }) } : {}),
+        ...(includeConfidence ? { confidence: yieldStability(rows, { ...stabilityOptions, includeReturn: itemType !== 'animalProduct' }) } : {}),
         source: 'user'
     };
 }

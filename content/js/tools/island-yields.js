@@ -13,7 +13,8 @@ import {
     bindPlantField,
     setPlantFieldValue,
     kindForIslandYieldKey,
-    outputGroupsForKind
+    outputGroupsForKind,
+    islandYieldSections
 } from '../components/plant-picker.js?v=20260929-island-sections';
 import { getSettings, saveSettings, getDefaultCity } from '../core/settings.js';
 import { cityYieldBonus, productQtyConst } from '../core/island/economy-config.js';
@@ -24,12 +25,16 @@ import { entryWarnings } from '../core/island-yield-validation.mjs';
 import { formatPct as formatPercent, formatQuantity, formatIsoDate as formatDate } from '../utils/format.js';
 import { cityLabel as getCityLabel, readStoredCity, saveStoredCity } from '../core/city-utils.js';
 
-const formatPct = (ratio) => formatPercent(ratio, { digits: 0 });
-const formatQty = (value) => formatQuantity(value, { digits: 2 });
+import { YIELD_DISPLAY, yieldDisplayValues, isYieldOutlier as isOutlier } from '../core/island-yield-stability.mjs';
+import { forecastYieldStability } from '../core/island-yield-forecast.mjs';
+import { yieldHistory, yieldHistoryKey, yieldHistoryExtent } from '../core/island-yield-history.mjs';
+const formatPct = (ratio) => formatPercent(ratio, { digits: YIELD_DISPLAY.percentDigits });
+const formatQty = (value) => formatQuantity(value, { digits: YIELD_DISPLAY.quantityDigits });
 import {
     YIELD_CONFIDENCE_BANDS,
     MAX_YIELD_CONFIDENCE,
     yieldAverage,
+    yieldGroupRows,
     standardPlantYield,
     standardSeedReturn,
     standardAnimalReturn
@@ -61,7 +66,7 @@ const SLOT_WARNING_GROUPS = [
 ];
 
 const state = {
-    month: 'all',
+    month: 'current',
     citySort: 'product',
     editingId: null,
     islandCity: getDefaultCity(),
@@ -142,12 +147,12 @@ function formatDeltaMagnitude(value, { digits = 2, asPctPoints = false } = {}) {
 
 function formatRelativeDifference(actual, expected) {
     if (!Number.isFinite(actual) || !Number.isFinite(expected) || expected === 0) return '—';
-    return formatRelativeRatio((actual - expected) / expected);
+    return `${yieldDisplayValues(actual, { reference: expected }).difference}%`;
 }
 
 function formatRelativeRatio(value) {
     if (!Number.isFinite(value)) return '—';
-    return `${Math.abs(value * 100).toLocaleString('tr-TR', { maximumFractionDigits: 0 })}%`;
+    return `${Math.abs(value * 100).toLocaleString('tr-TR', { maximumFractionDigits: YIELD_DISPLAY.percentDigits })}%`;
 }
 
 function dayAccentColor(isoDate) {
@@ -156,19 +161,57 @@ function dayAccentColor(isoDate) {
     return palette[hash % palette.length];
 }
 
-function confidenceTooltip(avg) {
-    const confidence = avg?.confidence;
-    const metricDetail = (label, metric) => Number.isFinite(metric?.relativeError)
-        ? `${label}: ±${formatQty(metric.relativeError * 100)}%`
-        : `${label}: veri yetersiz / hesaplanamıyor`;
-    const detail = ` · %95 bootstrap belirsizliği · ${metricDetail('Hasat', confidence?.harvest)}${confidence?.seedReturn ? ` · ${metricDetail('Tohum / yavru dönüşü', confidence.seedReturn)}` : ''}`;
-    const maxBand = YIELD_CONFIDENCE_BANDS.at(-1);
-    return `Güven seviyesi ${confidence?.level ?? 0}/${MAX_YIELD_CONFIDENCE} · ${confidence?.seedReturn ? 'Hasat ve dönüş ortalamalarının istatistiksel stabilitesi; düşük olan seviye belirleyicidir' : 'Hasat ortalamasının istatistiksel stabilitesi'}${detail}. ${MAX_YIELD_CONFIDENCE} nokta: mevcut veriye göre yaklaşık ±${formatPct(maxBand.maxRelativeError)} bandı; makul ek kayıtların ortalamayı anlamlı ölçüde değiştirme ihtimali düşük. En az ${maxBand.minRecords} bağımsız kayıt gerekir.`;
+const FORECAST_SCENARIOS = [
+    { key: 'optimistic', label: 'İyimser', icon: '<circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M2 12h2m16 0h2M5 5l1.5 1.5m11 11L19 19M5 19l1.5-1.5m11-11L19 5"/>' },
+    { key: 'expected', label: 'Beklenen', icon: '<path d="M3 12h18m-6-6 6 6-6 6"/>' },
+    { key: 'cautious', label: 'Temkinli', icon: '<path d="M12 3 4 6v6c0 5 8 9 8 9s8-4 8-9V6z"/><path d="m9 12 2 2 4-4"/>' }
+];
+
+function forecastLines(forecast, unitsPerSlot) {
+    return FORECAST_SCENARIOS.map(({ key, label, icon }) => {
+        const value = forecast?.scenarios?.[key];
+        const result = value?.sampleQuantity != null
+            ? `<b>~${formatQuantity(Math.ceil(value.sampleQuantity / unitsPerSlot), { digits: 0 })} slot</b>`
+            : value?.status === 'unreachable'
+                ? `<span class="yield-forecast-unavailable">—<small>Miktar hedefi sayısal hesap sınırını aşıyor.</small></span>`
+                : `<span class="yield-forecast-unavailable">${!forecast ? 'Hesaplanıyor' : forecast.status === 'insufficient' ? 'Veri yetersiz' : 'Belirsiz'}</span>`;
+        return `<span class="yield-forecast-line is-${key}"><span class="yield-forecast-label"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${icon}</svg>${label}</span><span class="yield-forecast-value">${result}</span></span>`;
+    }).join('');
 }
 
-function renderConfidence(avg) {
+let forecastTooltipSequence = 0;
+function renderConfidence(avg, item, islandCity, itemType = itemTypeForKind()) {
     const level = avg?.confidence?.level ?? 0;
-    return `<span class="yield-confidence"${tipAttr(confidenceTooltip(avg))}>${YIELD_CONFIDENCE_BANDS.map((_, index) => `<i${index < level ? ' class="is-filled"' : ''}></i>`).join('')}</span>`;
+    const dots = YIELD_CONFIDENCE_BANDS.map((_, index) => `<i${index < level ? ' class="is-filled"' : ''}></i>`).join('');
+    const label = `Güven seviyesi ${level}/${MAX_YIELD_CONFIDENCE}`;
+    if (!avg || level === MAX_YIELD_CONFIDENCE) return `<span class="yield-confidence" aria-label="${label}">${dots}</span>`;
+    const tooltipId = `yield-forecast-tip-${++forecastTooltipSequence}`;
+    return `<span class="yield-forecast" data-yield-forecast="${escapeHtml(item.key)}" data-forecast-city="${escapeHtml(islandCity)}" data-forecast-type="${itemType}"><button type="button" class="yield-confidence yield-forecast-trigger" aria-describedby="${tooltipId}" aria-label="${label} · 4. derece tahmini">${dots}</button><span class="yield-forecast-tooltip" role="tooltip" id="${tooltipId}">${forecastLines(null)}</span></span>`;
+}
+
+async function updateConfidenceForecasts(container) {
+    const tasks = [...container.querySelectorAll('[data-yield-forecast]')].map(host => {
+        const itemType = host.dataset.forecastType;
+        const item = (itemType === 'plant' ? getPlants() : getAnimals()).find(row => row.key === host.dataset.yieldForecast);
+        const city = host.dataset.forecastCity;
+        return { host, rows: yieldGroupRows(getAll(TABLE), city, item.key, { premium: state.premium, water: state.water, itemType }),
+            options: { ...stabilityOptionsFor(item, city, itemType), includeReturn: itemType !== 'animalProduct' } };
+    });
+    for (const { host, rows, options } of tasks) {
+        if (!host.isConnected) break;
+        try {
+            const forecast = await forecastYieldStability(rows, options);
+            if (!host.isConnected) continue;
+            const tooltip = host.querySelector('[role="tooltip"]');
+            tooltip.innerHTML = forecastLines(forecast, rows.length ? unitsPerSlotForRow(rows[0]) : undefined);
+
+        } catch (error) {
+            if (host.isConnected) {
+                host.querySelector('[role="tooltip"]').innerHTML = forecastLines({ status: 'uncertain' });
+            }
+            console.error('Yield forecast failed', error);
+        }
+    }
 }
 
 function renderConfidencePanel(level, part) {
@@ -250,6 +293,7 @@ function rowMatchesKind(row, kind = state.yieldKind) {
 }
 
 function rowsForMonth(month, {
+    kind = state.yieldKind,
     islandCity = null,
     plantKey = null,
     itemType = null,
@@ -260,7 +304,7 @@ function rowsForMonth(month, {
     return getAll(TABLE)
         .filter((row) => !range || (toYearMonth(row.date) >= range.start && toYearMonth(row.date) <= range.end))
         .filter((row) => !islandCity || row.islandCity === islandCity)
-        .filter((row) => rowMatchesKind(row))
+        .filter((row) => !kind || rowMatchesKind(row, kind))
         .filter((row) => !plantKey || rowItemKey(row) === plantKey)
         .filter((row) => !itemType || rowItemType(row) === itemType)
         .filter((row) => premium == null || Boolean(row.premium) === premium)
@@ -280,8 +324,16 @@ function averageFor(item, islandCity = state.islandCity, itemType = itemTypeForK
         premium: state.premium,
         water: state.water,
         itemType,
-        includeConfidence: true
+        includeConfidence: true,
+        stabilityOptions: stabilityOptionsFor(item, islandCity, itemType)
     });
+}
+
+function stabilityOptionsFor(item, islandCity, itemType) {
+    return {
+        harvestDisplay: { reference: itemType === 'animalProduct' ? standardAnimalProductOutput(item, islandCity) : standardOutput(item, islandCity) },
+        returnDisplay: { kind: 'percent', reference: standardReturn(item, islandCity) }
+    };
 }
 
 function standardOutput(item, islandCity = state.islandCity) {
@@ -378,29 +430,52 @@ function renderEntrySummary(islandCity) {
 
     const currentRows = entrySummaryRows(islandCity, today);
     const referenceRows = entrySummaryRows(islandCity, referenceDate);
-    const productKeys = [...new Set([...currentRows, ...referenceRows]
-        .filter((row) => rowItemType(row) === 'animalProduct')
-        .map(rowItemKey))];
-    const productSlots = (rows, key) => rows
-        .filter((row) => rowItemType(row) === 'animalProduct' && rowItemKey(row) === key)
-        .reduce((total, row) => total + (estimatedSlotsForRow(row) ?? 0), 0);
-    const lines = [...SLOT_WARNING_GROUPS.map((group) => ({
-        label: group.label,
-        currentSlots: dailyEstimatedSlots(islandCity, today, group.id),
-        referenceSlots: dailyEstimatedSlots(islandCity, referenceDate, group.id)
-    })), ...productKeys.map((key) => ({
-        label: itemLabel(key, 'animalProduct'),
-        currentSlots: productSlots(currentRows, key),
-        referenceSlots: productSlots(referenceRows, key)
-    }))].filter((line) => line.currentSlots > 0 || line.referenceSlots > 0);
+    // Animal and linked product logs describe the same occupied slots.
+    const slotsForKey = (rows, key) => {
+        const totals = new Map();
+        rows.filter((row) => rowItemKey(row) === key).forEach((row) => {
+            const type = rowItemType(row);
+            totals.set(type, (totals.get(type) ?? 0) + (estimatedSlotsForRow(row) ?? 0));
+        });
+        return Math.max(0, ...totals.values());
+    };
+    const lines = islandYieldSections().map((section) => {
+        const sectionRows = [...referenceRows, ...currentRows].filter((row) => kindForIslandYieldKey(rowItemKey(row)) === section.kind);
+        const keys = [...new Set(sectionRows.map(rowItemKey))];
+        const total = (rows) => keys.reduce((sum, key) => sum + slotsForKey(rows, key), 0);
+        return {
+            keys: keys.map((key) => {
+                const type = sectionRows.some((row) => rowItemKey(row) === key && rowItemType(row) === 'animalProduct')
+                    ? 'animalProduct' : sectionRows.find((row) => rowItemKey(row) === key).itemType || 'plant';
+                return type + ':' + key;
+            }),
+            label: section.label,
+            currentSlots: total(currentRows),
+            referenceSlots: total(referenceRows)
+        };
+    }).filter((line) => line.currentSlots > 0 || line.referenceSlots > 0);
     const complete = lines.length > 0 && lines.every((line) => line.currentSlots === line.referenceSlots);
 
     return `
-        <section class="app-entry-summary${complete ? ' is-complete' : ''}" aria-label="Günlük kayıt özeti">
+        <section class="app-entry-summary yield-entry-summary${complete ? ' is-complete' : ''}" aria-label="Günlük kayıt özeti">
+            <div class="yield-entry-summary-caption"><span>Bugün / ${escapeHtml(formatDate(referenceDate))}</span><span>slot</span></div>
             <ul class="app-warning-dialog-list">
                 ${lines.map((line) => {
                     const tone = line.currentSlots === line.referenceSlots ? 'is-equal' : line.currentSlots > line.referenceSlots ? 'is-extra' : 'is-missing';
-                    return `<li class="${tone}"><strong>${escapeHtml(line.label)}</strong><span>${line.currentSlots}</span><small>Bugün</small><i aria-hidden="true">${line.currentSlots === line.referenceSlots ? '=' : '≠'}</i><span>${line.referenceSlots}</span><small>${escapeHtml(formatDate(referenceDate))}</small></li>`;
+                    const icons = line.keys.flatMap((identity) => {
+                        const [type, key] = identity.split(':');
+                        const count = (rows) => rows.filter((row) => rowItemType(row) === type && rowItemKey(row) === key).reduce((sum, row) => sum + (estimatedSlotsForRow(row) ?? 0), 0);
+                        const current = count(currentRows);
+                        const reference = count(referenceRows);
+                        const icon = itemIconId(itemForKey(key, type), type);
+                        return Array.from({ length: Math.max(current, reference) }, (_, index) => {
+                            const missing = index >= current;
+                            const extra = index >= reference;
+                            const description = `${itemLabel(key, type)} · ${missing ? 'Bugün kaydedilmedi' : extra ? 'Önceki kayda ek slot' : 'Bugün kaydedildi'} · 1 slot`;
+                            return { missing, html: `<span class="yield-entry-slot${missing ? ' is-missing' : extra ? ' is-extra' : ''}" title="${escapeHtml(description)}" aria-label="${escapeHtml(description)}">${icon ? itemIconHtml(icon, { size: 48 }) : escapeHtml(itemLabel(key, type))}</span>` };
+                        });
+                    }).sort((a, b) => Number(a.missing) - Number(b.missing)).map((slot) => slot.html).join('');
+                    return `<li class="${tone}"><strong>${escapeHtml(line.label)}</strong><span>${line.currentSlots}<small> / ${line.referenceSlots}</small></span><div class="yield-entry-slots">${icons}</div></li>`;
                 }).join('')}
             </ul>
         </section>
@@ -737,6 +812,10 @@ function fillForm(container, row) {
         cancel.hidden = true;
         remove.hidden = true;
     }
+    container.querySelectorAll('[data-plant-field="plantKey"] .plant-icon-node').forEach((node) => {
+        const kind = node.closest('[data-picker-kind]')?.dataset.pickerKind;
+        node.disabled = Boolean(state.editingId && kind && kind !== state.yieldKind);
+    });
     initFloatingLabels(container);
 }
 
@@ -753,10 +832,39 @@ function syncToggles(container) {
     });
 }
 
+function showYieldHistory(container, id, period = null) {
+    const rows = getAll(TABLE);
+    const row = rows.find(entry => String(entry.id) === String(id));
+    if (!row) return;
+    const points = yieldHistory(period ? rowsForMonth(period, { kind: null }) : rows).groups.get(yieldHistoryKey(row))?.points;
+    if (!points?.length) return;
+    const type = rowItemType(row);
+    const name = itemLabel(rowItemKey(row), type);
+    const chart = (metric, label, format) => {
+        const valid = points.filter(point => Number.isFinite(point[metric]));
+        if (!valid.length) return `<p>${escapeHtml(label)}: geçerli kayıt yok.</p>`;
+        const width = 760, height = 220, left = 65, right = 25, top = 20, bottom = 40;
+        const values = valid.map(point => point[metric]);
+        const { low, high } = yieldHistoryExtent(values);
+        const x = index => left + (width - left - right) * (valid.length === 1 ? .5 : index / (valid.length - 1));
+        const y = value => top + (height - top - bottom) * (1 - (value - low) / (high - low));
+        const grid = Array.from({ length: 4 }, (_, index) => {
+            const value = low + (high - low) * index / 3;
+            return `<line x1="${left}" x2="${width - right}" y1="${y(value)}" y2="${y(value)}" class="yield-history-grid"/><text x="${left - 8}" y="${y(value) + 4}" text-anchor="end">${escapeHtml(format(value))}</text>`;
+        }).join('');
+        return `<section class="yield-history-chart" style="--history-color:${metric === 'avgPlantYield' ? '#9bc8ff' : '#8cdbb2'}"><div class="yield-history-chart-heading"><h3>${escapeHtml(label)}</h3><strong>${escapeHtml(format(valid.at(-1)[metric]))}<small>Son ortalama</small></strong></div><svg viewBox="0 0 ${width} ${height}" role="img" aria-label="${escapeHtml(`${name} · ${label} tarihsel grafiği`)}">${grid}<polyline class="yield-history-line" points="${valid.map((point, index) => `${x(index)},${y(point[metric])}`).join(' ')}"/>${valid.map((point, index) => `<circle cx="${x(index)}" cy="${y(point[metric])}" r="4"><title>${escapeHtml(`${formatDate(point.date)} · ${format(point[metric])} · ${point.n} kayıt`)}</title></circle>`).join('')}<text x="${left}" y="${height - 10}">${escapeHtml(formatDate(valid[0].date))}</text><text x="${width - right}" y="${height - 10}" text-anchor="end">${escapeHtml(formatDate(valid.at(-1).date))}</text></svg></section>`;
+    };
+    const dialog = container.querySelector('[data-yield-history-dialog]');
+    const iconId = itemIconId(itemForKey(rowItemKey(row), type), type);
+    const mode = type === 'plant' ? 'Sulama' : 'Odak';
+    dialog.querySelector('[data-yield-history-content]').innerHTML = `<header class="yield-history-heading">${iconId ? itemIconHtml(iconId, { className: 'item-icon' }) : ''}<div><h2>${escapeHtml(name)}</h2><p>Ortalama geçmişi</p></div><span class="yield-history-count">${points.at(-1).n} geçerli kayıt</span></header><div class="yield-history-context"><span>${escapeHtml(cityLabel(row.islandCity))}</span><span>${row.premium ? 'Premium' : 'Premium yok'}</span><span>${mode}${row.water ? ' var' : ' yok'}</span><span>${escapeHtml(formatDate(points[0].date))} – ${escapeHtml(formatDate(points.at(-1).date))}</span></div>${chart('avgPlantYield', 'Kümülatif birim verim', formatQty)}${type === 'animalProduct' ? '' : chart('avgSeedReturn', 'Kümülatif dönüş oranı', formatPct)}<footer class="yield-history-note">Her nokta, o kayıt dahil girdi ağırlıklı ortalamayı gösterir. Şüpheli kayıtlar hariçtir.<br>Noktalar kayıt sırasıyla eşit aralıklıdır. Ayrıntı için noktanın üzerine gel.</footer>`;
+    dialog.showModal();
+}
+
 function renderLogTable(month) {
-    const copy = metricCopy();
     const selectedItem = state.filteredPlantKey || null;
     const rows = rowsForMonth(month, {
+        kind: null,
         islandCity: state.islandCity,
         plantKey: selectedItem,
         itemType: state.filteredItemType,
@@ -766,9 +874,8 @@ function renderLogTable(month) {
     if (!rows.length) {
         const city = state.islandCity ? cityLabel(state.islandCity) : 'seçili ada';
         const plant = selectedItem ? ` · ${itemLabel(selectedItem, state.filteredItemType ?? undefined)}` : '';
-        const context = `${state.premium ? 'Premium' : 'Free'} · ${state.water ? copy.on : copy.off}`;
         const periodLabel = LOG_PERIODS.find((period) => period.key === month)?.label || month;
-        return `<div class="alert alert-info">${escapeHtml(periodLabel)} · ${escapeHtml(city)}${escapeHtml(plant)} · ${escapeHtml(context)} için kayıt yok.${logPeriodRange(month) ? ' Üst kartlar tüm ayların ortalamasını gösterir; tüm ayları seçerek geçmiş kayıtları görebilirsin.' : ' Soldan hasat sonucu ekle.'}</div>`;
+        return `<div class="alert alert-info">${escapeHtml(periodLabel)} · ${escapeHtml(city)}${escapeHtml(plant)} için kayıt yok.${logPeriodRange(month) ? ' Üst kartlar tüm ayların ortalamasını gösterir; tüm ayları seçerek geçmiş kayıtları görebilirsin.' : ' Soldan hasat sonucu ekle.'}</div>`;
     }
     const today = todayIso();
     const body = rows.map((row) => {
@@ -785,10 +892,10 @@ function renderLogTable(month) {
                 <td class="text-nowrap"${row.date === today ? ' title="Bugünün kaydı"' : ''}>${escapeHtml(formatDate(row.date))}</td>
                 <td>${escapeHtml(cityLabel(row.islandCity))}</td>
                 <td>
-                    <span class="farming-item">
+                    <button type="button" class="farming-item yield-history-trigger" data-yield-history="${escapeHtml(row.id)}" aria-label="${escapeHtml(itemLabel(key, type))} ortalama geçmişi">
                         ${iconId ? itemIconHtml(iconId, { className: 'item-icon' }) : ''}
                         <span class="yield-log-item-name">${escapeHtml(itemLabel(key, type))}</span>
-                    </span>
+                    </button>
                 </td>
                 <td class="num">${row.seedsPlanted}</td>
                 <td class="num" title="1 slot = ${unitsPerSlot}">${estimatedSlots ?? '—'}</td>
@@ -796,7 +903,7 @@ function renderLogTable(month) {
                 <td class="num">${row.plantsHarvested}</td>
                 <td class="num">${formatQty(perSeed)}</td>
                 <td class="num">${type === 'animalProduct' ? '—' : formatPct(seedRate)}</td>
-                <td>${row.premium ? 'P' : 'F'}${row.water ? ` · ${state.yieldKind === 'plant' ? 'su' : 'odak'}` : ''}</td>
+                <td>${row.premium ? 'P' : 'F'}${row.water ? ` · ${type === 'plant' ? 'su' : 'odak'}` : ''}</td>
             </tr>
         `;
     }).join('');
@@ -809,23 +916,19 @@ function renderLogTable(month) {
                         <th>Gün</th>
                         <th>Ada</th>
                         <th>Çıktı</th>
-                        <th class="num">${state.yieldKind === 'plant' ? 'Ekilen tohum' : 'Başlangıç yavrusu'}</th>
-                        <th class="num">Tahmini slot</th>
-                        <th class="num">${escapeHtml(copy.returned)}</th>
-                        <th class="num">${state.yieldKind === 'plant' ? 'Hasat' : 'Yetişen hayvan'}</th>
-                        <th class="num">Birim verim</th>
-                        <th class="num">${state.yieldKind === 'plant' ? 'Tohum dönüşü' : 'Yavru dönüşü'}</th>
-                        <th>Premium / ${escapeHtml(copy.mode)}</th>
+                        <th class="num">Girdi</th>
+                        <th class="num">Tahmini<br>slot</th>
+                        <th class="num">Dönen tohum<br>/ yavru</th>
+                        <th class="num">Hasat<br>/ çıktı</th>
+                        <th class="num">Birim<br>verim</th>
+                        <th class="num">Dönüş<br>oranı</th>
+                        <th>Premium<br>/ Sulama / Odak</th>
                     </tr>
                 </thead>
                 <tbody>${body}</tbody>
             </table>
         </div>
     `;
-}
-
-function isOutlier(row) {
-    return row.isOutlier === true || row.isOutlier === 'true';
 }
 
 function outlierGroupKey(row) {
@@ -922,7 +1025,7 @@ function renderAvgCard(plant, islandCity) {
 
     return `
         <article class="yield-avg-card${active ? '' : ' is-passive'}${thin ? ' is-thin' : ''}${state.filteredPlantKey === plant.key && state.filteredItemType === itemTypeForKind() ? ' is-selected' : ''}${confidence === MAX_YIELD_CONFIDENCE ? ' is-confidence-max' : ''}" ${active ? tierAttribute(plant.tier) : ''}
-            data-yield-item="${escapeHtml(plant.key)}" data-yield-item-type="${itemTypeForKind()}" role="button" tabindex="0" aria-pressed="${state.filteredPlantKey === plant.key && state.filteredItemType === itemTypeForKind() ? 'true' : 'false'}" ${tipAttr(`${name} — kayıtları filtrele`)}>
+            data-yield-item="${escapeHtml(plant.key)}" data-yield-item-type="${itemTypeForKind()}" role="button" tabindex="0" aria-pressed="${state.filteredPlantKey === plant.key && state.filteredItemType === itemTypeForKind() ? 'true' : 'false'}" aria-label="${escapeHtml(`${name} — kayıtları filtrele`)}">
             ${renderConfidencePanel(confidence, 'header')}
             <div class="yield-card-body">
             <div class="yield-ref-stage">
@@ -941,7 +1044,7 @@ function renderAvgCard(plant, islandCity) {
                 <span class="yield-ref-value is-actual"><b data-yield-change="seed">${active ? formatPct(avg.avgSeedReturn) : '—'}</b><small>Gerçek</small></span><span class="yield-ref-value is-actual"><b data-yield-change="product">${active ? formatQty(avg.avgPlantYield) : '—'}</b><small>Gerçek</small></span>
                 <span class="yield-ref-value is-default"><b>${formatPct(wikiSeed)}</b><small>Vars.</small></span><span class="yield-ref-value is-default"><b>${formatQty(wikiYield)}</b><small>Vars.</small></span>
             </div>
-            <footer class="yield-card-footer"><span title="Ortalamaya giren kayıt sayısı">${yieldDocumentIcon()} <b>n=${active ? avg.n : 0}</b></span>${renderConfidence(active ? avg : null)}</footer>
+            <footer class="yield-card-footer"><span title="Ortalamaya giren kayıt sayısı">${yieldDocumentIcon()} <b>n=${active ? avg.n : 0}</b></span>${renderConfidence(active ? avg : null, plant, islandCity)}</footer>
             </div>
             ${renderConfidencePanel(confidence, 'note')}
         </article>
@@ -987,8 +1090,8 @@ function renderAvgLegend(plant, islandCity) {
         }] : []),
         {
             sample: avgTag('n=3', { kind: 'n', tip: 'Kayıt sayısı' }),
-            text: `n kayıt sayısıdır; güven noktaları örnek miktarını değil, aynı ürün, şehir, Premium ve ${copy.mode.toLocaleLowerCase("tr-TR")} grubundaki ağırlıklı ortalamanın istatistiksel stabilitesini gösterir. Aykırı kayıtlar hariç, bütün kayıtlar yeniden örneklenerek %95 bootstrap güven aralığı hesaplanır. ${YIELD_CONFIDENCE_BANDS.map((band, index) => `${index + 1} nokta: ${Number.isFinite(band.maxRelativeError) ? `≤${formatPct(band.maxRelativeError)}` : 'geniş aralık'}, en az ${band.minRecords} bağımsız kayıt`).join('; ')}. Maksimum güven, makul ek verinin sonucu anlamlı ölçüde değiştirme ihtimalinin düşük olduğu seviyedir; Veri tamam rozeti bu kartları işaretler.`,
-            formula: 'Bağıl hata = ((üst sınır − alt sınır) / 2) / ağırlıklı ortalama'
+            text: `n kayıt sayısıdır. Veri yoksa 0; geçerli veri varsa en az 1 nokta verilir. Güven, tipik yeni kayıtların etkisini ve üst taraftaki makul etkiyi birlikte değerlendirir. ${YIELD_CONFIDENCE_BANDS.slice(1, -1).map((band, index) => `${index + 2} nokta: tipik etki ≤${band.maxTypicalSteps}, birleşik etki ≤${band.maxImpactSteps} anlamlı adım`).join('; ')}. Anlamlı adım ürün miktarında %1, dönüşte 1 yüzde puanıdır; varsayılan değere göre yüzde farkı da değerlendirilir. 4 nokta için üst etki yarım gösterim adımını aşmamalı ve yuvarlanmış değerler aynı kalmalıdır. Aynı gündeki kayıtlar bir grup sayılır; aykırı işaretli kayıtlar dışlanır.`,
+            formula: 'Birleşik etki = √(tipik etki × üst makul etki)'
         },
         {
             sample: '<span class="yield-delta-stack"><strong>—</strong></span>',
@@ -1011,7 +1114,13 @@ function renderAvgLegend(plant, islandCity) {
 }
 
 function renderComparisonControls(isProduct) {
+    const singleMonthPresets = new Map(LOG_PERIODS.flatMap(period => {
+        const range = logPeriodRange(period.key);
+        return range && range.start === range.end ? [[range.start, period.key]] : [];
+    }));
+    state.month = singleMonthPresets.get(state.month) || state.month;
     const periods = [...LOG_PERIODS, ...[...new Set(getAll(TABLE).map((row) => toYearMonth(row.date)).filter(Boolean))]
+        .filter(key => !singleMonthPresets.has(key))
         .sort().reverse().map((key) => ({ key, label: key }))];
     const sortIcons = {
         product: '<path d="M12 21V7M12 7c-3-2-3-4 0-6 3 2 3 4 0 6Z"/><path d="M12 11C8 11 5 9 5 5c4 0 7 2 7 6Zm0 0c4 0 7-2 7-6-4 0-7 2-7 6ZM12 17c-4 0-7-2-7-6 4 0 7 2 7 6Zm0 0c4 0 7-2 7-6-4 0-7 2-7 6Z"/>',
@@ -1026,11 +1135,27 @@ function renderComparisonControls(isProduct) {
     </div>`;
 }
 
+function renderCityHistory(points, itemType) {
+    const chart = (metric, label, format) => {
+        const valid = points.filter(point => Number.isFinite(point[metric]));
+        if (!valid.length) return '';
+        const values = valid.map(point => point[metric]);
+        const { low, high } = yieldHistoryExtent(values);
+        const x = index => valid.length === 1 ? 60 : 5 + index / (valid.length - 1) * 110;
+        const y = value => high === low ? 19 : 32 - (value - low) / (high - low) * 26;
+        return `<span class="yield-city-sparkline"><span>${escapeHtml(label)}</span><svg viewBox="0 0 120 38" role="img" aria-label="${escapeHtml(`${label} kümülatif ortalama geçmişi`)}"><path class="yield-city-sparkline-baseline" d="M5 33H115"/><polyline points="${valid.map((point, index) => `${x(index)},${y(point[metric])}`).join(' ')}"/>${valid.map((point, index) => `<circle cx="${x(index)}" cy="${y(point[metric])}" r="${index === valid.length - 1 ? 2.5 : 1.5}"><title>${escapeHtml(`${formatDate(point.date)} · ${format(point[metric])}`)}</title></circle>`).join('')}</svg></span>`;
+    };
+    const last = points.at(-1);
+    if (!last || !points.some(point => Number.isFinite(point.avgPlantYield))) return '';
+    return `<button type="button" class="yield-city-history" data-yield-history="${escapeHtml(last.id)}" data-yield-history-period="${escapeHtml(state.month)}" aria-label="Şehrin seçili dönem ortalama geçmişini aç" title="Seçili dönemin kümülatif ortalaması · Detay için tıkla">${chart('avgPlantYield', 'Verim', formatQty)}${itemType === 'animalProduct' ? '' : chart('avgSeedReturn', 'Dönüş', formatPct)}</button>`;
+}
+
 function renderCityComparison() {
     const itemType = state.filteredItemType || itemTypeForKind();
     const isProduct = itemType === 'animalProduct';
     const plant = itemForKey(state.filteredPlantKey, itemType);
     const periodRows = rowsForMonth(state.month);
+    const history = yieldHistory(periodRows);
     const averages = new Map(comparisonCities().map((city) => [city.marketApiName, plant ? yieldAverage(city.marketApiName, plant.key, {
         premium: state.premium, water: state.water, itemType, logRows: periodRows
     }) : null]));
@@ -1061,6 +1186,7 @@ function renderCityComparison() {
                     const avg = averages.get(cityName);
                     const hasData = avg && avg.avgPlantYield > 0;
                     const bonus = plant && state.yieldKind === 'plant' && hasCityBonus(plant, cityName);
+                    const cityHistory = plant ? history.groups.get(yieldHistoryKey({ islandCity: cityName, itemKey: plant.key, itemType, premium: state.premium, water: state.water }))?.points || [] : [];
                     return `
                         <article class="yield-city-card${cityName === state.islandCity ? ' is-current' : ''}${hasData ? '' : ' is-empty'}"
                             style="--yield-city-color:${escapeHtml(cityColorHex(city))}">
@@ -1074,6 +1200,7 @@ function renderCityComparison() {
                                 ${isProduct ? '' : `<b title="${escapeHtml(metricCopy().returnShort)} dönüşü">${hasData ? formatPct(avg.avgSeedReturn) : '—'}</b>`}
                                 <small>n=${hasData ? avg.n : 0}</small>
                             </div>
+                            ${renderCityHistory(cityHistory, itemType)}
                         </article>
                     `;
                 }).join('')}
@@ -1092,7 +1219,7 @@ function renderAnimalProductAvgCard(animal, islandCity) {
 
     return `
         <article class="yield-avg-card${active ? '' : ' is-passive'}${thin ? ' is-thin' : ''}${state.filteredPlantKey === animal.key && state.filteredItemType === 'animalProduct' ? ' is-selected' : ''}${confidence === MAX_YIELD_CONFIDENCE ? ' is-confidence-max' : ''}" ${active ? tierAttribute(animal.tier) : ''}
-            data-yield-item="${escapeHtml(animal.key)}" data-yield-item-type="animalProduct" role="button" tabindex="0" aria-pressed="${state.filteredPlantKey === animal.key && state.filteredItemType === 'animalProduct' ? 'true' : 'false'}" ${tipAttr(`T${animal.tier} ${itemLabel(animal.key, 'animalProduct')} — kayıtları filtrele`)}>
+            data-yield-item="${escapeHtml(animal.key)}" data-yield-item-type="animalProduct" role="button" tabindex="0" aria-pressed="${state.filteredPlantKey === animal.key && state.filteredItemType === 'animalProduct' ? 'true' : 'false'}" aria-label="${escapeHtml(`T${animal.tier} ${itemLabel(animal.key, 'animalProduct')} — kayıtları filtrele`)}">
             ${renderConfidencePanel(confidence, 'header')}
             <div class="yield-card-body">
             <div class="yield-ref-stage">
@@ -1102,7 +1229,7 @@ function renderAnimalProductAvgCard(animal, islandCity) {
             </div>
             <div class="yield-ref-deltas is-single"><div class="yield-ref-delta ${deltaTone(relative)}"${tipAttr('Varsayılan ürüne göre yüzde farkı')}><strong>${active ? formatRelativeDifference(avg.avgPlantYield, standard) : '—'}</strong><span>${active ? formatDeltaMagnitude(avg.avgPlantYield - standard, { digits: 1 }) : ''}</span></div></div>
             <div class="yield-ref-values is-single" aria-label="Ürün gerçek ve varsayılan değeri"><span class="yield-ref-value is-actual"><b>${active ? formatQty(avg.avgPlantYield) : '—'}</b><small>Gerçek</small></span><span class="yield-ref-value is-default"><b>${formatQty(standard)}</b><small>Vars.</small></span></div>
-            <footer class="yield-card-footer"><span title="Ortalamaya giren kayıt sayısı">${yieldDocumentIcon()} <b>n=${active ? avg.n : 0}</b></span>${renderConfidence(active ? avg : null)}</footer>
+            <footer class="yield-card-footer"><span title="Ortalamaya giren kayıt sayısı">${yieldDocumentIcon()} <b>n=${active ? avg.n : 0}</b></span>${renderConfidence(active ? avg : null, animal, islandCity, 'animalProduct')}</footer>
             </div>
             ${renderConfidencePanel(confidence, 'note')}
         </article>
@@ -1335,9 +1462,32 @@ function refreshResult(container) {
     bindResult(container);
     bindCalcSticky(container);
     initFloatingLabels(container);
+    window.setTimeout(() => updateConfidenceForecasts(container), 0);
 }
 
 function bindResult(container) {
+    container.querySelectorAll('[data-yield-forecast]').forEach(host => {
+        const button = host.querySelector('button');
+        const tooltip = host.querySelector('[role="tooltip"]');
+        tooltip.setAttribute('popover', 'manual');
+        const hide = () => {
+            if (typeof tooltip.hidePopover === 'function' && tooltip.matches(':popover-open')) tooltip.hidePopover();
+            tooltip.classList.remove('is-open');
+        };
+        const show = () => {
+            if (typeof tooltip.showPopover === 'function') tooltip.showPopover();
+            else tooltip.classList.add('is-open');
+            const anchor = button.getBoundingClientRect();
+            const box = tooltip.getBoundingClientRect();
+            tooltip.style.left = `${Math.max(8, Math.min(anchor.right - box.width, window.innerWidth - box.width - 8))}px`;
+            tooltip.style.top = `${Math.max(8, anchor.top - box.height - 6)}px`;
+        };
+        host.addEventListener('pointerenter', show);
+        host.addEventListener('pointerleave', () => { if (!host.matches(':focus-within')) hide(); });
+        host.addEventListener('focusin', show);
+        host.addEventListener('focusout', () => { if (!host.matches(':hover')) hide(); });
+        button.addEventListener('keydown', event => { if (event.key === 'Escape') { hide(); event.stopPropagation(); } });
+    });
     const setPlantFilter = (plantKey, itemType) => {
         const isCurrent = state.filteredPlantKey === plantKey && state.filteredItemType === itemType;
         state.filteredPlantKey = isCurrent ? null : plantKey;
@@ -1346,8 +1496,12 @@ function bindResult(container) {
         container.querySelector('.yield-log-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     };
     container.querySelectorAll('[data-yield-item]').forEach((card) => {
-        card.addEventListener('click', () => setPlantFilter(card.dataset.yieldItem, card.dataset.yieldItemType));
+        card.addEventListener('click', (event) => {
+            if (event.target.closest('[data-yield-forecast]')) return;
+            setPlantFilter(card.dataset.yieldItem, card.dataset.yieldItemType);
+        });
         card.addEventListener('keydown', (event) => {
+            if (event.target.closest('[data-yield-forecast]')) return;
             if (event.key === 'Enter' || event.key === ' ') {
                 event.preventDefault();
                 setPlantFilter(card.dataset.yieldItem, card.dataset.yieldItemType);
@@ -1395,6 +1549,12 @@ function bindResult(container) {
             refreshResult(container);
         });
     });
+    container.querySelectorAll('[data-yield-history]').forEach(button => {
+        button.addEventListener('click', event => {
+            event.stopPropagation();
+            showYieldHistory(container, button.dataset.yieldHistory, button.dataset.yieldHistoryPeriod || null);
+        });
+    });
     bindLogTableRows(container, (id) => {
         const clicked = getAll(TABLE).find((item) => String(item.id) === id);
         const row = clicked?.itemType === 'animalProduct'
@@ -1416,9 +1576,38 @@ function bindResult(container) {
     });
 }
 
-function confirmYieldEntry(container, warnings) {
+function confirmYieldEntry(container, warnings, entry, comparisons) {
     const dialog = container.querySelector('[data-yield-entry-warning]');
     dialog.querySelector('[data-yield-entry-warning-text]').textContent = `Kontrol et: ${warnings.join('; ')}.`;
+    const summaryRows = comparisons.flatMap(({ entry: record, expectedOutput, expectedReturn, flaggedMetrics }) => {
+        const rows = [[record.itemType === 'animalProduct' ? 'Üretilen ürün' : 'Hasat / çıktı', record.plantsHarvested, expectedOutput * record.seedsPlanted, flaggedMetrics.has('output')]];
+        if (record.itemType !== 'animalProduct') rows.push(['Dönen tohum / yavru', record.seedsReturned, expectedReturn * record.seedsPlanted, flaggedMetrics.has('return')]);
+        return rows;
+    });
+    const iconId = itemIconId(itemForKey(entry.itemKey), entry.itemType);
+    dialog.querySelector('[data-yield-entry-warning-summary]').innerHTML = `
+        <div class="yield-review-heading">
+            ${iconId ? itemIconHtml(iconId, { size: 56 }) : ''}
+            <div><strong>${escapeHtml(itemLabel(entry.itemKey, entry.itemType))}</strong><small>${escapeHtml(cityLabel(entry.islandCity))} · ${escapeHtml(formatDate(entry.date))}</small></div>
+            <div class="yield-review-input"><small>Girdi</small><strong>${formatQty(entry.seedsPlanted)}</strong></div>
+        </div>
+        <div class="yield-review-status">
+            <span class="${entry.premium ? 'is-on' : ''}">Premium <b>${entry.premium ? 'Var' : 'Yok'}</b></span>
+            <span class="${entry.water ? 'is-on' : ''}">${state.yieldKind === 'plant' ? 'Sulama' : 'Odak'} <b>${entry.water ? 'Var' : 'Yok'}</b></span>
+        </div>
+        <div class="yield-review-cards">${summaryRows.map(([label, actual, expected, flagged]) => {
+            const scale = Math.max(actual, expected, 1);
+            const difference = expected > 0 ? (actual / expected - 1) : null;
+            return `<section class="yield-review-card${flagged ? ' is-flagged' : ''}">
+                <header><strong>${label}</strong>${difference != null ? `<span>${difference > 0 ? '+' : ''}${formatPct(difference)}</span>` : ''}</header>
+                <small class="yield-review-verdict">${flagged ? 'Kontrol et · belirgin sapma' : 'Olağan aralıkta'}</small>
+                <div class="yield-review-value"><small>Girilen</small><b>${formatQty(actual)}</b></div>
+                <div class="yield-review-bar is-actual" style="--review-width:${Math.max(0, actual / scale * 100)}%" aria-hidden="true"></div>
+                <div class="yield-review-value is-expected"><small>Beklenen ≈</small><b>${formatQty(expected)}</b></div>
+                <div class="yield-review-bar" style="--review-width:${Math.max(0, expected / scale * 100)}%" aria-hidden="true"></div>
+            </section>`;
+        }).join('')}</div>
+    `;
     dialog.returnValue = '';
     return new Promise((resolve) => {
         dialog.addEventListener('close', () => resolve(dialog.returnValue === 'save'), { once: true });
@@ -1474,14 +1663,19 @@ async function saveEntry(container) {
         alternateCityOutput: oppositeCity ? (productOnly ? productOutput(oppositeCity) : standardOutput(item, oppositeCity)) : null,
         modeLabel: state.yieldKind === 'plant' ? 'sulama' : 'odak'
     };
+    options.flaggedMetrics = new Set();
     const warnings = entryWarnings(entry, options);
+    const comparisons = [{ entry, ...options }];
     if (!productOnly && productsHarvested != null && state.yieldKind === 'pasture') {
-        warnings.push(...entryWarnings({ ...entry, itemType: 'animalProduct', seedsReturned: 0, plantsHarvested: productsHarvested }, {
-            ...options, expectedOutput: productOutput(state.islandCity),
+        const productEntry = { ...entry, itemType: 'animalProduct', seedsReturned: 0, plantsHarvested: productsHarvested };
+        const productOptions = {
+            ...options, flaggedMetrics: new Set(), expectedOutput: productOutput(state.islandCity),
             alternateCityOutput: oppositeCity ? productOutput(oppositeCity) : null
-        }));
+        };
+        warnings.push(...entryWarnings(productEntry, productOptions));
+        comparisons.push({ entry: productEntry, ...productOptions });
     }
-    if (warnings.length && !await confirmYieldEntry(container, [...new Set(warnings)])) return;
+    if (warnings.length && !await confirmYieldEntry(container, [...new Set(warnings)], entry, comparisons)) return;
     if (!productOnly) {
         returnedInput.value = String(seedsReturned);
         if (harvestedInput) harvestedInput.value = String(plantsHarvested);
@@ -1626,7 +1820,10 @@ function renderPage(container) {
                 `,
         summary: `<div data-yield-entry-summary></div>`,
         result: ``,
-        overlays: `<dialog class="app-dialog app-warning-dialog" data-yield-slot-warning aria-labelledby="yield-slot-warning-title">
+        overlays: `<dialog class="app-dialog yield-history-dialog" data-yield-history-dialog aria-label="Kümülatif ortalama geçmişi">
+            <button type="button" class="app-dialog-close" aria-label="Kapat" data-yield-history-close></button>
+            <div class="yield-history-sheet" data-yield-history-content></div>
+        </dialog><dialog class="app-dialog app-warning-dialog" data-yield-slot-warning aria-labelledby="yield-slot-warning-title">
             <button type="button" class="app-dialog-close" aria-label="Kapat" data-yield-slot-warning-close></button>
             <div class="app-warning-dialog-sheet">
                 <h2 id="yield-slot-warning-title">Bugünkü slot sayısı uyuşmuyor</h2>
@@ -1640,6 +1837,7 @@ function renderPage(container) {
             <div class="app-warning-dialog-sheet">
                 <h2 id="yield-entry-warning-title">Kaydı kontrol edelim</h2>
                 <p id="yield-entry-warning-text" data-yield-entry-warning-text></p>
+                <div data-yield-entry-warning-summary></div>
                 <div class="form-actions form-actions--inline">
                     <button type="button" class="btn btn-outline-secondary" data-yield-entry-warning-close autofocus>Bir düşüneyim</button>
                     <button type="button" class="btn btn-primary" data-yield-entry-warning-save>Böyle kaydet</button>
@@ -1657,7 +1855,16 @@ function renderPage(container) {
     refreshResult(container);
 }
 
+// Keep the result and its scroll position stable while editing a record.
+function refreshResultFromControls(container) {
+    if (!state.editingId) refreshResult(container);
+}
+
 function bindPage(container) {
+    const historyDialog = container.querySelector('[data-yield-history-dialog]');
+    historyDialog?.addEventListener('click', event => {
+        if (event.target === historyDialog || event.target.closest('[data-yield-history-close]')) historyDialog.close();
+    });
     const entryWarning = container.querySelector('[data-yield-entry-warning]');
     entryWarning?.addEventListener('click', (event) => {
         if (event.target.closest('[data-yield-entry-warning-save]')) entryWarning.close('save');
@@ -1689,24 +1896,29 @@ function bindPage(container) {
         if (!state.cities.some((city) => city.marketApiName === value)) {
             return;
         }
-        if (value !== state.islandCity) {
+        if (!state.editingId && value !== state.islandCity) {
             showSlotMismatchWarning(container, state.islandCity);
         }
         state.islandCity = value;
         saveStoredCity(CITY_STORAGE_KEY, value);
         syncAutomaticPlots(container);
-        refreshResult(container);
+        refreshResultFromControls(container);
     });
     bindPlantField(container, 'plantKey', (value, outputMode, kind) => {
         const nextKind = kind || kindForIslandYieldKey(value) || state.yieldKind;
         const kindChanged = nextKind !== state.yieldKind;
+        if (state.editingId && kindChanged) {
+            const row = getAll(TABLE).find((item) => String(item.id) === String(state.editingId));
+            if (row) setSelectedItem(container, rowItemKey(row));
+            return;
+        }
         state.yieldKind = nextKind;
         state.animalOutputMode = outputMode || 'offspring';
         if (!state.editingId) {
             state.filteredPlantKey = value || null;
             state.filteredItemType = value ? itemTypeForPickerOutput(outputMode, nextKind) : null;
         }
-        openAverageGroup(value, itemTypeForPickerOutput(outputMode, nextKind));
+        if (!state.editingId) openAverageGroup(value, itemTypeForPickerOutput(outputMode, nextKind));
         if (kindChanged) {
             state.editingId = null;
             renderPage(container);
@@ -1717,7 +1929,7 @@ function bindPage(container) {
         }
         syncAnimalProductField(container);
         syncAutomaticPlots(container);
-        refreshResult(container);
+        refreshResultFromControls(container);
     });
     container.querySelectorAll('[data-plots]').forEach((button) => {
         button.addEventListener('click', () => {

@@ -201,6 +201,10 @@ const ISLAND_YIELD_SECTIONS = [
     }
 ];
 
+export function islandYieldSections() {
+    return ISLAND_YIELD_SECTIONS.map(({ kind, label }) => ({ kind, label }));
+}
+
 export function kindForIslandYieldKey(key) {
     if (!key) return null;
     if (getPlants().some((item) => item.key === key)) return 'plant';

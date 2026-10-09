@@ -12,7 +12,11 @@
     min-width: 0;
 
     > [data-yield-entry-summary] {
-        margin-top: auto;
+        display: flex;
+        flex-direction: column;
+        flex: 1 0 auto;
+        justify-content: flex-end;
+        margin: 0;
     }
 }
 
@@ -367,6 +371,22 @@
 .yield-log-section {
     min-width: 0;
 
+    .log-table {
+        table-layout: auto;
+
+        th, td { overflow: visible; }
+
+        th.num, td.num {
+            padding-inline: 0.55rem;
+        }
+
+        th {
+            white-space: nowrap;
+        }
+
+        td.num { white-space: nowrap; }
+    }
+
     .log-table tbody td:first-child {
         border-left: 0.25rem solid var(--yield-day-color, transparent);
         padding-left: 0.5rem;
@@ -374,7 +394,10 @@
 
     .yield-log-item-name {
         white-space: nowrap;
+        flex-shrink: 0;
     }
+
+    .yield-history-trigger { width: max-content; max-width: none; }
 
     .calc-table-wrap.table-responsive {
         height: clamp(14rem, 35dvh, 22rem);

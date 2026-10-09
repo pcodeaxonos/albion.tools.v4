@@ -2142,6 +2142,78 @@ $city-colors: (
     }
 }
 
+.yield-review-heading {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    margin-bottom: 0.7rem;
+    small { display: block; color: var(--color-text-muted); }
+    > div { min-width: 0; }
+    .yield-review-input {
+        margin-left: auto;
+        text-align: right;
+        strong { font-size: 1.6rem; }
+    }
+}
+
+.yield-review-status {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    margin-bottom: 0.8rem;
+    span {
+        padding: 0.3rem 0.6rem;
+        border: 1px solid var(--color-text-muted);
+        border-radius: 2rem;
+        font-size: 0.75rem;
+        color: var(--color-text-muted);
+    }
+    b { margin-left: 0.4rem; }
+    .is-on { color: var(--color-warning); border-color: currentColor; }
+}
+
+.yield-review-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 11rem), 1fr));
+    gap: 0.6rem;
+    margin-bottom: 0.6rem;
+}
+
+.yield-review-card {
+    min-width: 0;
+    padding: 0.8rem;
+    border: 1px solid color-mix(in srgb, var(--color-text-muted) 30%, transparent);
+    background: color-mix(in srgb, var(--color-text-muted) 5%, transparent);
+    header { display: flex; justify-content: space-between; gap: 0.4rem; font-size: 0.75rem; }
+    header span { color: var(--color-text-muted); white-space: nowrap; }
+    .yield-review-verdict { display: block; margin-top: .4rem; color: var(--color-text-muted); }
+    .yield-review-bar.is-actual::before { background: var(--color-text-muted); }
+    &.is-flagged {
+        border-color: var(--color-warning);
+        background: color-mix(in srgb, var(--color-warning) 10%, transparent);
+        header span, .yield-review-verdict, .yield-review-value:not(.is-expected) b { color: var(--color-warning); }
+        .yield-review-verdict { font-weight: var(--font-weight-semibold); }
+        .yield-review-bar.is-actual::before { background: var(--color-warning); }
+    }
+}
+
+.yield-review-value {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    margin-top: 0.6rem;
+    small { color: var(--color-text-muted); }
+    b { font-size: 1.5rem; font-family: var(--font-family-mono); }
+    &.is-expected b { font-size: 1.1rem; color: var(--color-text-muted); }
+}
+
+.yield-review-bar {
+    height: 0.3rem;
+    background: color-mix(in srgb, var(--color-text-muted) 15%, transparent);
+    &::before { content: ''; display: block; height: 100%; width: var(--review-width); background: var(--color-text-muted); }
+    &.is-actual::before { background: var(--color-warning); }
+}
+
 .app-warning-dialog-list {
     display: grid;
     gap: 0.45rem;
@@ -2176,7 +2248,7 @@ $city-colors: (
 .app-entry-summary {
     display: grid;
     gap: 0.35rem;
-    margin-top: 0.5rem;
+    margin: 0;
     padding: 0;
 
     .app-warning-dialog-list {
@@ -2202,6 +2274,12 @@ $city-colors: (
     }
 
     .app-warning-dialog-list li.is-equal i { color: var(--color-success); }
+
+    .app-warning-dialog-list li.is-missing {
+        background: linear-gradient(to left,
+            color-mix(in srgb, var(--color-success) 16%, var(--color-surface)) 0 var(--entry-progress, 0%),
+            color-mix(in srgb, var(--color-danger) 16%, var(--color-surface)) var(--entry-progress, 0%) 100%);
+    }
 
     .app-warning-dialog-list li.is-extra {
         border-left-color: var(--color-warning);
