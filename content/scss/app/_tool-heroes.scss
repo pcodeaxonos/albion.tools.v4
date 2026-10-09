@@ -133,19 +133,32 @@ $page-head-images: (
     "ava-craft": "12-ava-craft",
     "caerleon-craft": "13-caerleon-craft",
     "royal-crafting": "14-royal-crafting",
-    "enchanting": "15-enchanting"
+    "enchanting": "15-enchanting",
+    "trades": (desktop: "trade-dashboard-header.png"),
+    "laborer-contract": (desktop: "laborer-contract-header.png")
 );
+
+// Explicit assets can reuse the desktop image when no mobile variant is supplied.
+@function page-head-image-path($image, $variant) {
+    @if type-of($image) == "map" {
+        @if map-has-key($image, $variant) {
+            @return "#{$variant}/#{map-get($image, $variant)}";
+        }
+        @return "desktop/#{map-get($image, desktop)}";
+    }
+    @return "#{$variant}/#{$image}.webp";
+}
 
 @each $page, $image in $page-head-images {
     main:has(.page-head[data-page-head="#{$page}"]) {
-        --page-head-image: url('../../content/images/page-heads/desktop/#{$image}.webp');
+        --page-head-image: url('../../content/images/page-heads/#{page-head-image-path($image, desktop)}');
     }
 }
 
 @media (max-width: 768px) {
     @each $page, $image in $page-head-images {
         main:has(.page-head[data-page-head="#{$page}"]) {
-            --page-head-image: url('../../content/images/page-heads/mobile/#{$image}.webp');
+            --page-head-image: url('../../content/images/page-heads/#{page-head-image-path($image, mobile)}');
         }
     }
 }
