@@ -1,11 +1,11 @@
-import { dailyFocusRequirement } from '../core/island/focus.js';
+import { focusRequirement, focusSourceLabel, focusSourceSummary } from '../core/island/focus.js';
 import { allocateInternalFeed } from '../core/island/placement-model.js';
 import { optimizePlacement } from './island-planner-v2/optimizer.js';
 import { showToast } from '../components/toast.js';
 import { escapeHtml } from '../utils/utils.js';
 import { initNav } from '../core/nav.js';
 import { getAll, initStore, replaceAllRows } from '../db/store.js';
-import { getSettings, getDefaultCity } from '../core/settings.js';
+import { getSettings, saveSettings, getDefaultCity } from '../core/settings.js';
 import { loadActiveCities } from '../core/cities.js';
 import { cityFieldHtml, bindCityField, cityIslandDecorate } from '../components/city-picker.js';
 import { getItemLocalizedName, getItemUniqueName } from '../db/relations.js';
@@ -13,7 +13,7 @@ import { itemIconHtml } from '../components/item-icon.js';
 import { cityRow, fetchPrices, indexPrices } from '../core/market.js';
 import { quoteFromRow } from '../core/price-side.js';
 import { fetchLongTermIndex, longTermQuote, longTermMetadata, LONG_TERM_PRICE_MODE, LONG_TERM_PRICE_LABEL } from '../core/long-term-quotes.js';
-import { purchaseCost, saleProceeds } from '../core/market-fees.js';
+import { purchaseCost, saleProceeds, salesTaxRate, setupFeeRate } from '../core/market-fees.js';
 import { butcherQty, cropHours, planCycleHours, planDayHours, plantSlots } from '../core/island-economy.js';
 import { animalCycleHours } from '../core/island/economy-config.js';
 import { animalForFeed, feedPlants } from '../core/island/feeding.js';
@@ -44,6 +44,11 @@ import {
 } from './island-planner-v2/items.js';
 import { readPlanTable, writePlanTable } from './island-planner-v2/persistence.js';
 
+// Shared left-to-right order for cards, detail KPIs, and ledger columns.
+const FINANCIAL_ORDER = Object.freeze(['income', 'expense']);
+function renderFinancialOrder(sections, separator = '') {
+    return FINANCIAL_ORDER.map(key => sections[key]).join(separator);
+}
 const OVERLAY_DEBUG = new URLSearchParams(location.search).has('islandOverlayDebug');
 const TOOLBAR_TYPE_ICONS = Object.freeze({
     farm: './content/icons/T3_WHEAT.png',
@@ -80,7 +85,7 @@ function renderIslandCityBonuses() {
     return `<aside class="island-v2-island-bonuses" aria-label="${escapeHtml(city)} şehir bonusları"><span class="island-v2-island-bonuses-label">Şehir Bonusu</span><span class="island-v2-island-bonuses-items">${bonuses.map((item) => {
         const uniqueName = item.productId || itemUniqueName(item);
         const label = item.productLabel || itemName(item);
-        return `<span class="island-v2-island-bonus" data-tier="${item.tier}" title="${escapeHtml(`${city} · ${label} üretim bonusu`)}">${itemIconHtml(uniqueName, { size: 68 })}</span>`;
+        return `<span class="island-v2-island-bonus" data-tier="${item.tier}" data-app-tooltip="${escapeHtml(`${city} · ${label} üretim bonusu`)}">${itemIconHtml(uniqueName, { size: 68 })}</span>`;
     }).join('')}</span></aside>`;
 }
 function effectiveSlotFocus(entry, item) {
@@ -137,11 +142,11 @@ function renderToolbar() {
     let choices = '';
     const back = current.stage === 'type'
         ? '<span class="island-v2-toolbar-leading-space" aria-hidden="true"></span>'
-        : '<button type="button" class="island-v2-toolbar-tile island-v2-toolbar-back" data-v2-toolbar-back aria-label="Geri" title="Geri"><span aria-hidden="true">‹</span></button>';
+        : '<button type="button" class="island-v2-toolbar-tile island-v2-toolbar-back" data-v2-toolbar-back aria-label="Geri" data-app-tooltip="Geri"><span aria-hidden="true">‹</span></button>';
     if (current.stage === 'type') {
         choices = ['farm', 'herb', 'pasture', 'kennel', 'house'].map((type) => {
             const active = current.type === type ? ' is-active' : '';
-            return `<button type="button" class="island-v2-toolbar-tile island-v2-toolbar-type${active}" data-v2-toolbar-type="${type}" title="${typeLabel(type)}" aria-pressed="${active ? 'true' : 'false'}"><img class="island-v2-toolbar-type-icon" src="${TOOLBAR_TYPE_ICONS[type]}" alt="" aria-hidden="true"><span>${typeLabel(type)}</span></button>`;
+            return `<button type="button" class="island-v2-toolbar-tile island-v2-toolbar-type${active}" data-v2-toolbar-type="${type}" data-app-tooltip="${typeLabel(type)}" aria-pressed="${active ? 'true' : 'false'}"><img class="island-v2-toolbar-type-icon" src="${TOOLBAR_TYPE_ICONS[type]}" alt="" aria-hidden="true"><span>${typeLabel(type)}</span></button>`;
         }).join('');
     }
     if (current.stage === 'item') {
@@ -150,7 +155,7 @@ function renderToolbar() {
             if (!groups.has(item.tier)) groups.set(item.tier, []);
             groups.get(item.tier).push(item);
         });
-        choices = groups.size ? `<span class="island-v2-toolbar-option-groups">${[...groups.entries()].map(([tier, items]) => `<span class="island-v2-toolbar-option-group" data-v2-toolbar-tier-group="${tier}"><span class="island-v2-toolbar-option-stack">${items.map((item) => `<button type="button" class="island-v2-toolbar-tile island-v2-toolbar-item" data-tier="${item.tier}" data-v2-toolbar-item="${escapeHtml(item.key)}" title="T${item.tier} · ${escapeHtml(itemName(item))}" aria-label="T${item.tier} ${escapeHtml(itemName(item))}">${itemIconHtml(itemUniqueName(item), { size: 60 })}${item.plotType === 'house' ? `<span class="badge island-v2-toolbar-tier" data-tier="${item.tier}" aria-hidden="true">T${item.tier}</span>` : ''}</button>`).join('')}</span></span>`).join('')}</span>` : '<span class="island-v2-toolbar-empty">Bu tür için seçenek bulunamadı.</span>';
+        choices = groups.size ? `<span class="island-v2-toolbar-option-groups">${[...groups.entries()].map(([tier, items]) => `<span class="island-v2-toolbar-option-group" data-v2-toolbar-tier-group="${tier}"><span class="island-v2-toolbar-option-stack">${items.map((item) => `<button type="button" class="island-v2-toolbar-tile island-v2-toolbar-item" data-tier="${item.tier}" data-v2-toolbar-item="${escapeHtml(item.key)}" data-app-tooltip="T${item.tier} · ${escapeHtml(itemName(item))}" aria-label="T${item.tier} ${escapeHtml(itemName(item))}">${itemIconHtml(itemUniqueName(item), { size: 60 })}${item.plotType === 'house' ? `<span class="badge island-v2-toolbar-tier" data-tier="${item.tier}" aria-hidden="true">T${item.tier}</span>` : ''}</button>`).join('')}</span></span>`).join('')}</span>` : '<span class="island-v2-toolbar-empty">Bu tür için seçenek bulunamadı.</span>';
     }
     return `<div class="island-v2-toolbar">${back}<div class="island-v2-toolbar-choices">${choices}</div></div>`;
 }
@@ -299,7 +304,7 @@ function fixedComparisonTitle(values) {
     return rows.map(([label, quote, comparison]) => {
         const percent = Number.isFinite(comparison.percent) ? Math.abs(comparison.percent).toLocaleString('tr-TR', { maximumFractionDigits: 1 }) : '—';
         const direction = comparison.difference < 0 ? 'altında' : comparison.difference > 0 ? 'üstünde' : 'ile aynı';
-        return `${label}: Sabit order ${displayValue(quote.price)} · pazar order ${displayValue(comparison.marketQuote.price)} · ${comparison.difference >= 0 ? '+' : ''}${displayValue(comparison.difference)} / %${percent} · Pazar hedefin %${percent} ${direction}.`;
+        return `${label}: Sabit ${displayValue(quote.price)} · pazar ${displayValue(comparison.marketQuote.price)}\nPazar fiyatı sabit fiyatın ${comparison.difference === 0 ? 'aynısı' : `%${percent} ${direction}`}.`;
     }).join('\n');
 }
 function missingPriceDiagnostic({ entry, item, lookup, role, blocked }) {
@@ -330,11 +335,8 @@ function stalePriceDiagnostic({ entry, item, itemId, city, side, quote, role, us
         reason: `Son fiyat güncellemesi: ${quote.date ? new Date(quote.date).toLocaleString('tr-TR') : 'bilinmiyor'} (${formatPriceAge(quote.date)}).`
     };
 }
-function diagnosticText(diagnostic) {
-    return `${diagnostic.slotId} · ${diagnostic.item} · ${diagnostic.itemId || 'itemId yok'} · ${diagnostic.city || 'şehir yok'} · ${diagnostic.side} · ${diagnostic.blocked}: ${diagnostic.reason}`;
-}
 function diagnosticsTitle(diagnostics) {
-    return diagnostics.length ? diagnostics.map(diagnosticText).join('\n') : '';
+    return dependencyTitle(diagnostics);
 }
 function logMissingPriceDiagnostics(diagnostics) {
     const signature = JSON.stringify(diagnostics);
@@ -360,12 +362,9 @@ function dependencyTypeLabel(type) {
         'missing-ledger-row': 'Hesap satırı eksik'
     })[type] ?? 'Hesap verisi eksik';
 }
-function dependencyText(value) {
-    const lookup = [value.itemId, value.city, value.side].filter(Boolean).join(' · ');
-    return `${value.slotId} · ${value.item} · ${dependencyTypeLabel(value.type)} · ${value.blocked}${lookup ? ` · ${lookup}` : ''}: ${value.reason}`;
-}
 function dependencyTitle(values) {
-    return values?.length ? values.map(dependencyText).join('\n') : '';
+    const unique = [...new Set((values ?? []).map(value => `${value.item} · ${dependencyTypeLabel(value.type)}${value.city ? ` (${cityName(value.city)})` : ''}${value.age ? ` · ${value.age}` : ''}`))];
+    return [...unique.slice(0, 3), unique.length > 3 ? `+${unique.length - 3} diğer eksik veri. Ayrıntılar uyarı listesinde.` : ''].filter(Boolean).join('\n');
 }
 function dependencyRow(value, { price = false } = {}) {
     const item = itemForSlot(slot(value.slotId));
@@ -374,7 +373,8 @@ function dependencyRow(value, { price = false } = {}) {
     const date = value.updatedAt ? new Date(value.updatedAt) : null;
     const timestamp = date && Number.isFinite(date.getTime()) ? `${date.toLocaleDateString('tr-TR', { day: '2-digit', month: '2-digit', year: '2-digit' })} ${date.toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })}${value.age ? ` (${value.age})` : ''}` : '';
     const meta = [itemId, value.blocked, timestamp, !price && (value.slotIds?.join(', ') || value.slotId), !price && value.reason].filter(Boolean).join(' · ');
-    return `<li class="island-v2-warning-row" data-v2-warning-type="${escapeHtml(value.type)}">${icon}<div class="island-v2-warning-content"><div class="island-v2-warning-head"><span class="island-v2-warning-name" title="${escapeHtml(value.item)}">${escapeHtml(value.item)}</span>${value.side ? `<span class="island-v2-warning-source">${escapeHtml([value.city && cityName(value.city), value.side].filter(Boolean).join(' · '))}</span>` : ''}<em>${escapeHtml(dependencyTypeLabel(value.type))}</em></div><small title="${escapeHtml(meta)}">${escapeHtml(meta)}</small></div></li>`;
+    const hint = [dependencyTypeLabel(value.type), value.blocked && `Etkilenen: ${value.blocked}`, timestamp && `Son fiyat: ${timestamp}`].filter(Boolean).join('\n');
+    return `<li class="island-v2-warning-row" data-v2-warning-type="${escapeHtml(value.type)}">${icon}<div class="island-v2-warning-content"><div class="island-v2-warning-head"><span class="island-v2-warning-name" data-app-tooltip="${escapeHtml(value.item)}">${escapeHtml(value.item)}</span>${value.side ? `<span class="island-v2-warning-source">${escapeHtml([value.city && cityName(value.city), value.side].filter(Boolean).join(' · '))}</span>` : ''}<em>${escapeHtml(dependencyTypeLabel(value.type))}</em></div><small data-app-tooltip="${escapeHtml(hint)}">${escapeHtml(meta)}</small></div></li>`;
 }
 function dependencyList(values) {
     const unique = uniqueDependencies(values);
@@ -496,8 +496,14 @@ function productionSourceTitle(values) {
         return `GK: Ada Çıktı gözlemleri kullanıldı${values.productionSamples ? ` (${values.productionSamples} kayıt)` : ''}.`;
     }
     return values.productionSource === 'standard'
-        ? 'Ref.: Referans varsayılan. Ada Çıktı gözlemi yok; mevcut katalog/ekonomi varsayılanı kullanıldı.'
+        ? 'Ada Çıktı kaydı yok; standart üretim değerleri kullanıldı.'
         : dependencyTitle([...(values.dependencies?.output ?? []), ...(values.dependencies?.rr ?? [])]);
+}
+export function purchaseExpenseLines(label, quantity, quote, total) {
+    const base = quantity === 0 ? 0 : quote && Number.isFinite(quantity) ? quote.price * quantity : null;
+    const lines = [{ kind: 'purchase', label, quantity, unitPrice: quote?.price ?? null, cost: base, total }];
+    if (quote?.setup) lines.push({ kind: 'setup', label: `${label} emir ücreti`, cost: Number.isFinite(total) && Number.isFinite(base) ? total - base : null });
+    return lines;
 }
 export function calculateIslandPlan({ entries = state.draft.slots, update = true } = {}) {
     const slots = new Map(); const candidates = []; const profiles = [];
@@ -547,8 +553,12 @@ export function calculateIslandPlan({ entries = state.draft.slots, update = true
             const lookup = priceLookup(line.uniqueName, state.draft.islandCity, state.draft.seedSide, 'buy', 'input');
             return { ...line, ...mountMaterialConsumption(line), lookup, quote: lookup.quote };
         });
-        const mountCost = sumFinite(mountMaterials.map(line => line.quote && Number.isFinite(production.output)
-            ? purchaseCost(line.quote.price, { setup: line.quote.setup }) * line.netQty * production.output : null));
+        for (const line of mountMaterials) {
+            line.dailyQuantity = Number.isFinite(production.output) ? line.netQty * production.output : null;
+            line.dailyCost = line.quote && Number.isFinite(line.dailyQuantity)
+                ? purchaseCost(line.quote.price, { setup: line.quote.setup }) * line.dailyQuantity : null;
+        }
+        const mountCost = sumFinite(mountMaterials.map(line => line.dailyCost));
         const slotDiagnostics = [];
         for (const line of mountMaterials) if (!line.quote) slotDiagnostics.push(missingPriceDiagnostic({ entry, item, lookup: line.lookup, role: 'binek malzemesi', blocked: 'Bineğe dönüştürme gideri' }));
         if (production.requiresInput && !purchaseQuote) slotDiagnostics.push(missingPriceDiagnostic({ entry, item, lookup: purchaseLookup, role: 'alış', blocked: 'Tohum / yavru maliyeti' }));
@@ -564,11 +574,20 @@ export function calculateIslandPlan({ entries = state.draft.slots, update = true
         const effectiveFeed = feedQuote ? purchaseCost(feedQuote.price, { setup: feedQuote.setup }) : null;
         const seedOrBabyCost = !production.requiresInput ? 0 : (Number.isFinite(effectiveBuy) && Number.isFinite(candidate.inputQuantity) ? effectiveBuy * candidate.inputQuantity : null);
         const feedCost = candidate.market > 0 ? (Number.isFinite(effectiveFeed) ? effectiveFeed * candidate.market : null) : 0;
+        const expenseLines = [
+            ...purchaseExpenseLines(item.plantId ? 'Tohum' : 'Yavru', production.requiresInput ? candidate.inputQuantity : 0, purchaseQuote, seedOrBabyCost),
+            ...(production.requiresFeed ? purchaseExpenseLines(`Yem: ${getItemLocalizedName(candidate.feedId, candidate.feedId)}`, candidate.market, feedQuote, feedCost) : []),
+            ...mountMaterials.flatMap(line => purchaseExpenseLines(line.short, line.dailyQuantity, line.quote, line.dailyCost))
+        ];
         const feedRuleReady = !production.requiresFeed || (candidate.feedIds.length > 0 && Number.isFinite(candidate.feedQuantity));
         const expense = Number.isFinite(seedOrBabyCost) && Number.isFinite(feedCost) && Number.isFinite(mountCost) && feedRuleReady ? seedOrBabyCost + feedCost + mountCost : null;
         const saleQuantity = Math.max(0, (production.output ?? 0) - candidate.consumed);
         const income = Number.isFinite(effectiveSell) && Number.isFinite(production.output)
             ? effectiveSell * (item.plantId ? saleQuantity : production.output) : null;
+        const grossIncome = saleQuote && Number.isFinite(production.output)
+            ? saleQuote.price * (item.plantId ? saleQuantity : production.output) : null;
+        const saleTax = Number.isFinite(grossIncome) ? grossIncome * salesTaxRate(state.draft.premium) : null;
+        const saleSetup = Number.isFinite(grossIncome) ? (saleQuote.setup ? grossIncome * setupFeeRate() : 0) : null;
         const standaloneFeedCost = production.requiresFeed ? (Number.isFinite(effectiveFeed) && Number.isFinite(candidate.feedQuantity) ? effectiveFeed * candidate.feedQuantity : null) : 0;
         const standaloneIncome = Number.isFinite(effectiveSell) && Number.isFinite(production.output) ? effectiveSell * production.output : null;
         const standaloneExpense = Number.isFinite(seedOrBabyCost) && Number.isFinite(standaloneFeedCost) && Number.isFinite(mountCost) && feedRuleReady ? seedOrBabyCost + standaloneFeedCost + mountCost : null;
@@ -589,7 +608,9 @@ export function calculateIslandPlan({ entries = state.draft.slots, update = true
         staleRows.push(...mountMaterials.map(line => [line.quote, line.uniqueName, state.draft.islandCity, state.draft.seedSide, 'binek malzemesi', 'Bineğe dönüştürme gideri']));
         staleRows.forEach(([quote, itemId, city, side, role, usedIn]) => { if (quote?.stale) slotStaleDiagnostics.push(stalePriceDiagnostic({ entry, item, itemId, city, side, quote, role, usedIn })); });
         if (slotStaleDiagnostics.length) staleDiagnostics.push(...slotStaleDiagnostics);
-        const focus = dailyFocusRequirement(item, { focused: production.effectiveFocus, capacity: candidate.capacity, hours: production.hours });
+        const focusInfo = focusRequirement(item, { focused: production.effectiveFocus, capacity: candidate.capacity, hours: production.hours });
+        const focus = focusInfo.focusPerDay;
+        Object.assign(profiles[candidates.indexOf(candidate)], focusInfo);
         const dependencies = {
             income: Number.isFinite(income) ? [] : [...priceDependencies.filter((value) => value.blocked === 'Hasat satış geliri'), ...baseDependencies],
             expense: Number.isFinite(expense) ? [] : [...priceDependencies.filter((value) => value.blocked !== 'Hasat satış geliri'), ...baseDependencies],
@@ -602,7 +623,7 @@ export function calculateIslandPlan({ entries = state.draft.slots, update = true
             internal: [], market: []
         };
         Object.values(dependencies).forEach((values) => derivedDependencies.push(...values));
-        slots.set(entry.id, { mountCost, mountMaterials, income: externalIncome, expense: externalExpense, net: externalNet, externalIncome, externalExpense, externalNet, contribution, unitCost, profitPercent: Number.isFinite(contribution) && Number.isFinite(externalExpense + candidate.internalTransferIn) && externalExpense + candidate.internalTransferIn > 0 ? (contribution / (externalExpense + candidate.internalTransferIn)) * 100 : null, focus, usesFocus: production.usesFocus, effectiveFocus: production.effectiveFocus, output: production.output, netOutput: item.plantId ? saleQuantity : production.output, rr: production.rr, productionSource: production.source, productionSamples: production.samples, productionHours: production.hours, internal: candidate.internal, market: candidate.market, internalTransferIn: candidate.internalTransferIn, internalTransferOut: candidate.internalTransferOut, economic: true, saleItemId: production.saleItemId, purchaseItemId: purchaseItemId(item), purchaseQuantity: candidate.inputQuantity, internalFeed: candidate.internalFeed, feedId: candidate.feedId, feed: Number.isFinite(candidate.market) ? candidate.internal + candidate.market : null, priceState, purchaseQuote, saleQuote, feedQuote, purchaseEffective: effectiveBuy, saleEffective: effectiveSell, feedEffective: effectiveFeed, purchaseComparison: fixedMarketComparison(purchaseItemId(item), state.draft.islandCity, 'input', purchaseQuote), saleComparison: fixedMarketComparison(production.saleItemId, state.draft.sellCity, 'output', saleQuote), feedComparison: fixedMarketComparison(candidate.feedId, state.draft.islandCity, 'input', feedQuote), diagnostics: slotDiagnostics, staleDiagnostics: slotStaleDiagnostics, dependencies });
+        slots.set(entry.id, { expenseLines, grossIncome, saleTax, saleSetup, mountCost, mountMaterials, income: externalIncome, expense: externalExpense, net: externalNet, externalIncome, externalExpense, externalNet, contribution, unitCost, profitPercent: Number.isFinite(contribution) && Number.isFinite(externalExpense + candidate.internalTransferIn) && externalExpense + candidate.internalTransferIn > 0 ? (contribution / (externalExpense + candidate.internalTransferIn)) * 100 : null, ...focusInfo, focus, usesFocus: production.usesFocus, effectiveFocus: production.effectiveFocus, output: production.output, netOutput: item.plantId ? saleQuantity : production.output, rr: production.rr, productionSource: production.source, productionSamples: production.samples, productionHours: production.hours, internal: candidate.internal, market: candidate.market, internalTransferIn: candidate.internalTransferIn, internalTransferOut: candidate.internalTransferOut, economic: true, saleItemId: production.saleItemId, purchaseItemId: purchaseItemId(item), purchaseQuantity: candidate.inputQuantity, internalFeed: candidate.internalFeed, feedId: candidate.feedId, feed: Number.isFinite(candidate.market) ? candidate.internal + candidate.market : null, priceState, purchaseQuote, saleQuote, feedQuote, purchaseEffective: effectiveBuy, saleEffective: effectiveSell, feedEffective: effectiveFeed, purchaseComparison: fixedMarketComparison(purchaseItemId(item), state.draft.islandCity, 'input', purchaseQuote), saleComparison: fixedMarketComparison(production.saleItemId, state.draft.sellCity, 'output', saleQuote), feedComparison: fixedMarketComparison(candidate.feedId, state.draft.islandCity, 'input', feedQuote), diagnostics: slotDiagnostics, staleDiagnostics: slotStaleDiagnostics, dependencies });
     }
     const filled = [...slots.values()].filter((value) => value.economic === true);
     const contributionTotal = sumFinite(filled.map((value) => value.contribution));
@@ -621,7 +642,9 @@ export function calculateIslandPlan({ entries = state.draft.slots, update = true
 export async function optimizeDraftPlacement(candidates, { cancelled = () => false, baseline = calculateIslandPlan({ update: false }), isLocked = isSlotLocked } = {}) {
     const available = state.draft.slots.filter(entry => !entry.item && !isLocked(entry.id));
     if (!Number.isFinite(baseline.summary.net) || baseline.profiles.some(profile => !Number.isFinite(profile.net))) throw new Error('Mevcut taslağın net kârı hesaplanamıyor.');
-        const result = await optimizePlacement(candidates, baseline.profiles, available.length, { cancelled });
+        const focusBudget = getSettings().islandFocusBudget;
+        if (state.draft.focus && focusBudget == null) throw new Error('Focus ile otomatik doldurmak için günlük Focus bütçesini girin.');
+        const result = await optimizePlacement(candidates, baseline.profiles, available.length, { cancelled, focusBudget: state.draft.focus ? focusBudget : null });
         if (cancelled()) throw new Error('Plan değişti; otomatik doldurma iptal edildi.');
         const next = state.draft.slots.map(entry => {
             const index = available.findIndex(candidate => candidate.id === entry.id);
@@ -651,17 +674,24 @@ return itemRows().filter(item => isEconomicItem(item) && item.plotType !== 'kenn
             const modes = animalProductionModes(item);
             return (modes.length ? modes.map(mode => mode.value) : [null]).flatMap(productionMode =>
                 (productionMode === 'mount' ? mountRecipes(item).map(recipe => recipe.uniqueName) : [null]).flatMap(mountItem =>
-                    [false].map(focus =>
+                    (state.draft.focus && productionModeUsesFocus(item, productionMode) ? [false, true] : [false]).map(focus =>
                         ({ ...blankSlot('R1'), item: item.key, type: item.plotType, tier: item.tier, productionMode, mountItem, focus }))));
         });
 }
-async function autoFillIsland() {
+function clearDraftSlots() {
+    state.draft.slots = state.draft.slots.map(entry => entry.locked ? entry : blankSlot(entry.id));
+    state.autoFillResult = null;
+}
+async function autoFillIsland({ clearSlots = false } = {}) {
     if (state.autoFilling || state.priceLoading) return;
     clearTimeout(state.calculationTimer);
+    const previousSlots = clearSlots ? state.draft.slots : null;
+    if (clearSlots) clearDraftSlots();
     const available = state.draft.slots.filter(entry => !entry.item && !isSlotLocked(entry.id));
-    if (!available.length) { showToast('Doldurulabilecek açık ve boş slot yok.'); return; }
-    const signature = JSON.stringify(state.draft);
-    const cancelled = () => signature !== JSON.stringify(state.draft);
+    if (!available.length) { if (previousSlots) state.draft.slots = previousSlots; showToast('Doldurulabilecek açık ve boş slot yok.'); return; }
+    const planSignature = () => JSON.stringify([state.draft, getSettings().islandFocusBudget]);
+    const signature = planSignature();
+    const cancelled = () => signature !== planSignature();
     state.autoFillResult = null;
     state.autoFilling = true;
     state.autoFillPriceDiagnostics = [];
@@ -707,7 +737,7 @@ async function autoFillIsland() {
             volumeExcluded: volumeFilter.low, volumeUnknown: volumeFilter.unknown, minSalesVolume: minimum,
             stalePrices: uniquePriceDiagnosticCount(state.autoFillPriceDiagnostics.filter(value => value.type === 'stale-price')),
             baselineNet: baseline.summary.net, totalNet: derived.summary.net, marginalNet: result.marginalNet,
-            focusPerDay: derived.summary.focus, knownFocusPerDay: [...derived.slots.values()].reduce((sum, value) => sum + (Number.isFinite(value.focus) ? value.focus : 0), 0), focusBudget: null,
+            focusPerDay: derived.summary.focus, knownFocusPerDay: [...derived.slots.values()].reduce((sum, value) => sum + (Number.isFinite(value.focus) ? value.focus : 0), 0), focusBudget: result.metadata.focusBudget, focusSources: focusSourceSummary(derived.slots.values()),
             unknownFocusSlots: [...derived.slots.values()].filter(value => value.effectiveFocus && !Number.isFinite(value.focus)).length };
         state.draft.slots = next;
         state.draft.pricesUpdatedAt = new Date().toISOString();
@@ -719,7 +749,7 @@ async function autoFillIsland() {
             ['Net kâr / gün', displayValue(result.net)],
             ['Ek kazanç / gün', '+' + displayValue(result.marginalNet)]
         ];
-        if (state.draft.focus && derived.summary.focus > 0) reportRows.push(['Focus / gün', displayValue(derived.summary.focus)]);
+        if (state.draft.focus) reportRows.push(['Focus / gün', displayValue(derived.summary.focus)], ['Focus kaynakları', focusSourceSummary(derived.slots.values())]);
         if (missing) reportRows.push(['Eksik fiyat', String(missing)]);
         if (stale) reportRows.push(['Eski fiyat', String(stale)]);
         showToast('Otomatik doldurma tamamlandı', {
@@ -731,7 +761,9 @@ async function autoFillIsland() {
         showToast(error.message || 'Otomatik doldurma başarısız.', { kind: 'error' });
     } finally {
         state.autoFilling = false;
-        if (!applied && cancelled()) void loadV2Prices(); else calculateIslandPlan();
+        const planChanged = cancelled();
+        if (!applied && !planChanged && previousSlots) state.draft.slots = previousSlots;
+        if (!applied && planChanged) void loadV2Prices(); else calculateIslandPlan();
     }
 }
 
@@ -796,7 +828,7 @@ function scheduleEconomicUpdate() {
 
 function renderSegment(label, values, current, attr, extra = '') { return `<div><p class="city-field-label island-v2-group-label">${label}</p><div class="island-v2-segment">${values.map(([value, text]) => `<button type="button" data-v2-${attr}="${value}" class="${String(value) === String(current) ? 'is-active' : ''}">${text}</button>`).join('')}${extra}</div></div>`; }
 function renderPriceSegment(label, side, fixed, attr) {
-    const toggle = `<button type="button" data-v2-${attr}-fixed="1" aria-pressed="${Boolean(fixed)}" class="${fixed ? "is-active" : ""}" title="Sabit fiyat varsa öncelikle kullan; yoksa seçili fiyat yöntemini kullan">Sabit</button>`;
+    const toggle = `<button type="button" data-v2-${attr}-fixed="1" aria-pressed="${Boolean(fixed)}" class="${fixed ? "is-active" : ""}" data-app-tooltip="Tanımlı sabit fiyatı kullan. Yoksa seçili fiyat yöntemi uygulanır.">Sabit</button>`;
     return renderSegment(label, [["buy", "Buy"], ["sell", "Sell"], ["average", "4H"], [LONG_TERM_PRICE_MODE, LONG_TERM_PRICE_LABEL]], side, attr, toggle);
 }
 function renderCities(label, current, attr, disabled = false) {
@@ -812,13 +844,18 @@ function renderOptimizationPriceStatus() {
     const problem = issues.length > 0 || Boolean(state.priceError);
     const label = pending ? 'Optimizasyon fiyatları kontrol ediliyor' : problem ? 'Optimizasyonu sınırlayan fiyat sorunları' : 'Optimizasyon fiyatları güncel ve tam';
     const icon = problem ? '<path d="M9 3h11v14M4 7v14h16M3 3l18 18M13 8a3 3 0 0 1 3 3M11 16a3 3 0 0 1-3-3"/>' : pending ? '<path d="M12 3a9 9 0 1 0 9 9M12 7v5l3 2"/>' : '<path d="m4 12 5 5L20 6"/>';
-    return `<button class="btn island-v2-optimization-price-status ${pending ? 'is-pending' : problem ? 'has-issues' : 'is-healthy'}" type="button" data-v2-dependency-popover="optimization-prices" title="${label}" aria-label="${label}"${pending || !problem ? ' disabled' : ''}><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${icon}</svg></button>${problem ? `<div class="island-v2-dependency-popover" data-v2-dependency-list="optimization-prices" popover="auto"><header><span>Otomatik doldur</span><strong>Optimizasyon fiyat sorunları (${issues.length})</strong></header>${state.priceError ? `<p>${escapeHtml(state.priceError)}</p>` : ''}<ul>${priceDependencyList(issues)}</ul></div>` : ''}`;
+    return `<button class="btn island-v2-optimization-price-status ${pending ? 'is-pending' : problem ? 'has-issues' : 'is-healthy'}" type="button" data-v2-dependency-popover="optimization-prices" data-app-tooltip="${label}" aria-label="${label}"${pending || !problem ? ' disabled' : ''}><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${icon}</svg></button>${problem ? `<div class="island-v2-dependency-popover" data-v2-dependency-list="optimization-prices" popover="auto"><header><span>Otomatik doldur</span><strong>Optimizasyon fiyat sorunları (${issues.length})</strong></header>${state.priceError ? `<p>${escapeHtml(state.priceError)}</p>` : ''}<ul>${priceDependencyList(issues)}</ul></div>` : ''}`;
 }
 function renderSalesVolume() {
     const value = state.draft.minSalesVolume;
     return `<div class="island-v2-volume"><p class="city-field-label island-v2-group-label">Minimum satış hacmi</p><div class="island-v2-volume-inputs"><input type="range" min="${SALES_VOLUME.min}" max="${SALES_VOLUME.max}" step="${SALES_VOLUME.step}" value="${value}" data-v2-volume-range aria-label="Minimum günlük satış hacmi"><input type="number" min="${SALES_VOLUME.min}" max="${SALES_VOLUME.max}" step="1" value="${value}" data-v2-volume-number aria-label="Minimum günlük satış adedi"></div><small>adet/gün · Son ${SALES_VOLUME.days} gün ortalaması · 0: filtre kapalı</small></div>`;
 }
-function renderControls() { const d = state.draft; const plots = V2_UNLOCKED_SLOTS_BY_LEVEL?.[d.islandLevel]?.length; return `<aside class="island-v2-controls">${renderSegment('PREMIUM', [['1','Premium'],['0','Free']], d.premium ? '1' : '0', 'premium')}${renderSegment('FOCUS', [['1','Focus'],['0','Yok']], d.focus ? '1' : '0', 'focus')}${renderCities('ADA ŞEHRİ',d.islandCity,'island-city')}${renderCities('SATIŞ ŞEHRİ',d.sellCity,'sell-city')}${renderSegment('ADA SEVİYESİ',[[2,'L2'],[3,'L3'],[4,'L4'],[5,'L5'],[6,'L6']],d.islandLevel,'level')}<p class="island-v2-price-time">${plots == null ? 'Plot slot eşlemesi: TODO' : `${plots} plot`}</p>${renderPriceSegment('Tohum', d.seedSide, d.seedFixed, 'seed')}${renderPriceSegment('Hasat', d.harvestSide, d.harvestFixed, 'harvest')}${renderSalesVolume()}<div class="island-v2-actions"><button class="btn btn-outline-secondary" type="button" data-v2-clear-slots>Slotları Boşalt</button><div class="island-v2-auto-fill-row"><button class="btn btn-primary" type="button" data-v2-auto-fill${state.autoFilling || state.priceLoading ? ' disabled' : ''}>${state.autoFilling ? 'Hesaplanıyor…' : 'Otomatik Doldur'}</button>${renderOptimizationPriceStatus()}</div><button class="btn btn-primary" type="button" data-v2-save>Kaydet</button><button class="btn btn-outline-secondary" type="button" data-v2-revert>Kaydedilmiş Haline Dön</button><button class="btn btn-outline-secondary" type="button" data-v2-prices>Fiyatları Yenile</button><p class="island-v2-price-time">${escapeHtml(priceText())}</p></div></aside>`; }
+function renderFocusBudget() {
+    if (!state.draft.focus) return '';
+    const budget = getSettings().islandFocusBudget;
+    return `<label class="island-v2-field"><span>GÜNLÜK FOCUS BÜTÇESİ</span><input class="form-control" type="number" min="0" step="1" data-v2-focus-budget value="${budget ?? ''}" placeholder="Bütçe girin"><small>Otomatik Doldur bu toplam sınırı uygular.</small></label>`;
+}
+function renderControls() { const d = state.draft; const plots = V2_UNLOCKED_SLOTS_BY_LEVEL?.[d.islandLevel]?.length; return `<aside class="island-v2-controls">${renderSegment('PREMIUM', [['1','Premium'],['0','Free']], d.premium ? '1' : '0', 'premium')}${renderSegment('FOCUS', [['1','Focus'],['0','Yok']], d.focus ? '1' : '0', 'focus')}${renderFocusBudget()}${renderCities('ADA ŞEHRİ',d.islandCity,'island-city')}${renderCities('SATIŞ ŞEHRİ',d.sellCity,'sell-city')}${renderSegment('ADA SEVİYESİ',[[2,'L2'],[3,'L3'],[4,'L4'],[5,'L5'],[6,'L6']],d.islandLevel,'level')}<p class="island-v2-price-time">${plots == null ? 'Plot slot eşlemesi: TODO' : `${plots} plot`}</p>${renderPriceSegment('Tohum', d.seedSide, d.seedFixed, 'seed')}${renderPriceSegment('Hasat', d.harvestSide, d.harvestFixed, 'harvest')}${renderSalesVolume()}<div class="island-v2-actions"><button class="btn btn-success" type="button" data-v2-refill${state.autoFilling || state.priceLoading ? ' disabled' : ''}>Boşalt ve Doldur</button><button class="btn btn-outline-secondary" type="button" data-v2-clear-slots>Slotları Boşalt</button><div class="island-v2-auto-fill-row"><button class="btn btn-primary" type="button" data-v2-auto-fill${state.autoFilling || state.priceLoading ? ' disabled' : ''}>${state.autoFilling ? 'Hesaplanıyor…' : 'Otomatik Doldur'}</button>${renderOptimizationPriceStatus()}</div><button class="btn btn-primary" type="button" data-v2-save>Kaydet</button><button class="btn btn-outline-secondary" type="button" data-v2-revert>Kaydedilmiş Haline Dön</button><button class="btn btn-outline-secondary" type="button" data-v2-prices>Fiyatları Yenile</button><p class="island-v2-price-time">${escapeHtml(priceText())}</p></div></aside>`; }
 function renderIsland() { const points = geometryForCity(); const d = state.draft; const overlays = points ? `<div class="island-v2-overlay-layer" data-v2-overlay-layer>${d.slots.map((entry) => { const p = points[entry.id]; if (!p) return ''; const item = itemForSlot(entry); const active = entry.id === state.selectedSlotId; const hover = entry.id === state.hoveredSlotId; const debug = OVERLAY_DEBUG && ['R1','R10','R16'].includes(entry.id) ? ' is-debug' : ''; return `<div class="island-v2-slot-anchor${debug}" data-v2-overlay-anchor="${entry.id}" data-v2-x="${p.x}" data-v2-y="${p.y}"><button type="button" draggable="true" class="island-v2-overlay ${item ? 'is-filled' : 'is-empty'} ${active ? 'is-selected' : ''} ${hover ? 'is-hovered' : ''} ${entry.locked ? 'is-protected' : ''}" data-v2-slot="${entry.id}">${item ? itemIconHtml(itemUniqueName(item), { size: 30, className: 'island-v2-overlay-icon' }) : ''}</button><span class="island-v2-overlay-number">${entry.id.slice(1).padStart(2,'0')}</span>${renderSlotLock(entry)}</div>`; }).join('')}</div>` : `<div class="island-v2-unresolved">${cityKey(d.islandCity) === 'brecilien' ? 'Brecilien slot koordinatları yapılandırılmayı bekliyor.' : 'Caerleon slot koordinatları yapılandırılmayı bekliyor.'}</div>`; return `<section class="island-v2-island"><img class="island-v2-island-image" src="${islandImage(d.islandCity)}" alt="${escapeHtml(cityName(d.islandCity))} adası">${renderIslandCityBonuses()}${overlays}${renderToolbar()}${renderIslandPriceAlert()}<div class="island-v2-drop-actions"><div class="island-v2-clear-drop" data-v2-clear-drop>Boşalt</div><div class="island-v2-lock-drop" data-v2-lock-drop>Kilitle / Kilidi Aç</div></div></section>`; }
 function displayValue(value) { return Number.isFinite(value) ? new Intl.NumberFormat('tr-TR', { maximumFractionDigits: 0 }).format(value) : '—'; }
 
@@ -851,7 +888,7 @@ function renderCards() {
         if (!Number.isFinite(values.contribution)) {
             const label = !isEconomicItem(item) ? 'Hesap yok' : values.priceState === 'missing' ? 'Fiyat eksik' : 'Veri eksik';
             const hint = `${itemName(item)} · ${label}${!isEconomicItem(item) ? ': Bu ürün için ekonomi hesabı desteklenmiyor.' : `: ${diagnosticsTitle(values.diagnostics ?? []) || 'Üretim veya fiyat verisi bulunamadı.'}`}`;
-            return `<button type="button" draggable="true" class="island-v2-card is-filled is-uncalculated${stateClasses}" data-tier="${item.tier}" data-v2-slot="${entry.id}" title="${escapeHtml(hint)}" aria-label="${escapeHtml(hint)}"><span class="island-v2-card-head"><span class="island-v2-slot-number">${number}</span>${renderSlotLock(entry)}<span class="island-v2-card-tier-stack"><span class="badge island-v2-tier" data-tier="${item.tier}">T${item.tier}</span></span></span><span class="island-v2-card-item">${itemIconHtml(itemUniqueName(item), { size: 42, className: 'island-v2-card-icon' })}<span>${escapeHtml(itemName(item))}</span></span><span class="island-v2-card-price-unavailable">${cardWarningIcon(label)}<span>${label}</span></span></button>`;
+            return `<button type="button" draggable="true" class="island-v2-card is-filled is-uncalculated${stateClasses}" data-tier="${item.tier}" data-v2-slot="${entry.id}" data-app-tooltip="${escapeHtml(hint)}" aria-label="${escapeHtml(hint)}"><span class="island-v2-card-head"><span class="island-v2-slot-number">${number}</span>${renderSlotLock(entry)}<span class="island-v2-card-tier-stack"><span class="badge island-v2-tier" data-tier="${item.tier}">T${item.tier}</span></span></span><span class="island-v2-card-item">${itemIconHtml(itemUniqueName(item), { size: 42, className: 'island-v2-card-icon' })}<span>${escapeHtml(itemName(item))}</span></span><span class="island-v2-card-price-unavailable">${cardWarningIcon(label)}<span>${label}</span></span></button>`;
         }
         const profitPercent = values.profitPercent;
         const netTone = valueTone(values.contribution);
@@ -861,19 +898,15 @@ function renderCards() {
         const bonus = hasCityBonus(item, state.draft.islandCity) ? '<svg class="island-v2-card-city-bonus" viewBox="0 0 24 24" role="img" aria-label="Şehir Bonusu +10%"><title>Şehir Bonusu +10%</title><path fill="currentColor" d="M21 2C10 2 3 7 4 15c4 3 9 2 12-1 4-4 5-8 5-12Z"/><path d="M3 22 15 9M8 17l-1-5m4 2 5-1" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>' : '';
         const priceDiagnostic = diagnosticsTitle(values.diagnostics ?? []);
         const cardDiagnostic = priceDiagnostic;
-        const priceTitle = cardDiagnostic ? ` title="${escapeHtml(cardDiagnostic)}" aria-label="Hesap dependency teşhisi: ${escapeHtml(cardDiagnostic)}"` : '';
+        const priceTitle = cardDiagnostic ? ` data-app-tooltip="${escapeHtml(cardDiagnostic)}" aria-label="Hesap dependency teşhisi: ${escapeHtml(cardDiagnostic)}"` : '';
         const usesFocus = productionModeUsesFocus(item, entry.productionMode);
         const focusSelected = Boolean(entry.focus && usesFocus);
         const focusTitle = !usesFocus ? 'Bu üretim modu Focus kullanmaz.' : focusSelected && !values.effectiveFocus ? 'Bu slotta Focus seçili; hesap için global Focus master kapalı.' : focusSelected ? 'Focus etkin.' : 'Focus kapalı.';
-        const financialContent = `<span class="island-v2-finance"><span class="island-v2-income" title="Gelir: ${displayValue(values.income)}"><b aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><path d="M5 12h14M12 5v14" fill="none" stroke="currentColor" stroke-width="2.5"/></svg></b><span>${cardValue(values.income)}</span></span><em class="${valueTone(profitPercent)}">${cardValue(profitPercent, value => `${Math.round(value)}%`)}</em><span class="island-v2-expense" title="Gider: ${displayValue(values.expense)}"><span>${cardValue(values.expense)}</span><b aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><path d="M5 12h14" fill="none" stroke="currentColor" stroke-width="2.5"/></svg></b></span></span><strong class="island-v2-net">${cardValue(values.contribution, displayValue)}</strong>`;
-        return `<button type="button" draggable="true" class="island-v2-card is-filled ${netTone}${stateClasses}${warningClass}" data-tier="${item.tier}" data-v2-slot="${entry.id}"${priceTitle}><span class="island-v2-card-head"><span class="island-v2-slot-number">${number}</span>${renderSlotLock(entry)}<i class="island-v2-focus-dot ${focusSelected ? 'is-on' : ''}${focusSelected && !values.effectiveFocus ? ' is-awaiting-master' : ''}" title="${escapeHtml(focusTitle)}" aria-label="${escapeHtml(focusTitle)}"></i><span class="island-v2-card-tier-stack"><span class="badge island-v2-tier" data-tier="${item.tier}">T${item.tier}</span>${bonus}</span></span><span class="island-v2-card-item">${icon}<span>${escapeHtml(itemName(item))}</span></span>${financialContent}</button>`;
+        const financialContent = `<span class="island-v2-finance">${renderFinancialOrder({ income: `<span class="island-v2-income" data-app-tooltip="Gelir: ${displayValue(values.income)}"><b aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><path d="M5 12h14M12 5v14" fill="none" stroke="currentColor" stroke-width="2.5"/></svg></b><span>${cardValue(values.income)}</span></span>`, expense: `<span class="island-v2-expense" data-app-tooltip="Gider: ${displayValue(values.expense)}"><span>${cardValue(values.expense)}</span><b aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><path d="M5 12h14" fill="none" stroke="currentColor" stroke-width="2.5"/></svg></b></span>` }, `<em class="${valueTone(profitPercent)}">${cardValue(profitPercent, value => `${Math.round(value)}%`)}</em>`)}</span><strong class="island-v2-net">${cardValue(values.contribution, displayValue)}</strong>`;
+        return `<button type="button" draggable="true" class="island-v2-card is-filled ${netTone}${stateClasses}${warningClass}" data-tier="${item.tier}" data-v2-slot="${entry.id}"${priceTitle}><span class="island-v2-card-head"><span class="island-v2-slot-number">${number}</span>${renderSlotLock(entry)}<i class="island-v2-focus-dot ${focusSelected ? 'is-on' : ''}${focusSelected && !values.effectiveFocus ? ' is-awaiting-master' : ''}" data-app-tooltip="${escapeHtml(focusTitle)}" aria-label="${escapeHtml(focusTitle)}"></i><span class="island-v2-card-tier-stack"><span class="badge island-v2-tier" data-tier="${item.tier}">T${item.tier}</span>${bonus}</span></span><span class="island-v2-card-item">${icon}<span>${escapeHtml(itemName(item))}</span></span>${financialContent}${values.effectiveFocus ? `<span class="island-v2-focus-source is-${values.focusSource}">${focusSourceLabel(values.focusSource)}</span>` : ''}</button>`;
     }).join('')}</section>`;
 }
-function referencePriceValue(quote) {
-    const value = displayValue(quote?.price);
-    return quote?.longTerm ? `${value}<small class="island-v2-reference-meta" title="${escapeHtml(longTermMetadata(quote))}">${escapeHtml(longTermMetadata(quote, { compact: true }))}</small>` : value;
-}
-function detailRow(label, value = '—', title = '', tone = '') { const hint = title ? ` title="${escapeHtml(title)}" aria-label="${escapeHtml(title)}"` : ''; return `<span${hint}${tone ? ` data-tone="${tone}"` : ''}><small>${label}</small><b>${value}</b></span>`; }
+function detailRow(label, value = '—', title = '', tone = '') { const hint = title ? ` data-app-tooltip="${escapeHtml(title)}" aria-label="${escapeHtml(title)}"` : ''; return `<span${hint}${tone ? ` data-tone="${tone}"` : ''}><small>${label}</small><b>${value}</b></span>`; }
 function renderDetail() {
     const entry = displayedSlot();
     const item = itemForSlot(entry);
@@ -881,14 +914,14 @@ function renderDetail() {
     const disabled = editable ? '' : ' disabled';
     const values = state.derived.slots.get(entry.id) ?? {};
     const dependencyHint = (key) => dependencyTitle(values.dependencies?.[key] ?? []);
-    const bonus = item && hasCityBonus(item, state.draft.islandCity) ? '<i class="island-v2-city-bonus" title="Şehir Bonusu +10%" aria-label="Şehir Bonusu +10%"></i>' : '';
+    const bonus = item && hasCityBonus(item, state.draft.islandCity) ? '<i class="island-v2-city-bonus" data-app-tooltip="Şehir Bonusu +10%" aria-label="Şehir Bonusu +10%"></i>' : '';
     const modeOptions = item?.babyId ? animalProductionModes(item) : [];
     const modes = modeOptions.map(({ value, label }) => `<button type="button" data-v2-production-mode="${value}" class="${entry.productionMode === value ? 'is-active' : ''}"${disabled}>${escapeHtml(label)}</button>`).join('');
     const availableMounts = entry.productionMode === 'mount' ? mountRecipes(item) : [];
     const mountOptions = availableMounts.length > 1 ? availableMounts.map(recipe => `<button type="button" data-v2-mount-item="${escapeHtml(recipe.uniqueName)}" class="${mountRecipeFor(item, entry.mountItem)?.uniqueName === recipe.uniqueName ? 'is-active' : ''}"${disabled}>${escapeHtml(recipe.label)}</button>`).join('') : '';
     const modeControl = modes ? `<span class="island-v2-control-label">Üretim Modu</span><span class="island-v2-production-mode">${modes}</span>${mountOptions ? `<span class="island-v2-control-label">Binek</span><span class="island-v2-production-mode">${mountOptions}</span>` : ''}` : '';
     const focusControl = item && productionModeUsesFocus(item, entry.productionMode)
-        ? `<span class="island-v2-control-label">Focus</span><button type="button" data-v2-slot-focus class="island-v2-focus-toggle ${entry.focus ? 'is-active' : ''}${entry.focus && !state.draft.focus ? ' is-awaiting-master' : ''}" role="switch" aria-checked="${entry.focus ? 'true' : 'false'}" aria-label="${entry.focus && !state.draft.focus ? 'Focus seçili; global Focus kapalı olduğu için uygulanmıyor.' : 'Focus'}" title="${entry.focus && !state.draft.focus ? 'Focus seçili; global Focus kapalı olduğu için uygulanmıyor.' : ''}"${disabled}><i></i></button>`
+        ? `<span class="island-v2-control-label">Focus</span><button type="button" data-v2-slot-focus class="island-v2-focus-toggle ${entry.focus ? 'is-active' : ''}${entry.focus && !state.draft.focus ? ' is-awaiting-master' : ''}" role="switch" aria-checked="${entry.focus ? 'true' : 'false'}" aria-label="${entry.focus && !state.draft.focus ? 'Focus seçili; global Focus kapalı olduğu için uygulanmıyor.' : 'Focus'}" data-app-tooltip="${entry.focus && !state.draft.focus ? 'Focus seçili; global Focus kapalı olduğu için uygulanmıyor.' : ''}"${disabled}><i></i></button>`
         : '';
     const identity = item ? `${itemIconHtml(itemUniqueName(item), { size: 40, className: 'island-v2-detail-icon' })}<div class="island-v2-detail-identity"><h2>${escapeHtml(itemName(item))}</h2><span class="island-v2-detail-tier" data-tier="${item.tier}">T${item.tier}</span>${item.kind === 'faction-mount' ? '' : `<span class="island-v2-detail-category">${escapeHtml(itemCategory(item))}</span>`}${bonus}</div>` : '<div class="island-v2-detail-identity"><h2>Plot seçilmedi</h2><span class="island-v2-detail-category">Toolbar ile atama yapın.</span></div>';
     const priceDiagnostic = values.priceState === 'stale'
@@ -896,7 +929,50 @@ function renderDetail() {
         : values.priceState === 'fixed'
             ? fixedComparisonTitle(values)
             : diagnosticsTitle(values.diagnostics ?? []);
-    return `<section class="island-v2-detail${editable ? '' : ' is-readonly'}"><strong class="island-v2-detail-number">${entry.id.slice(1).padStart(2,'0')}</strong><div class="island-v2-detail-main">${identity}</div><div class="island-v2-detail-controls">${focusControl}${modeControl}</div><div class="island-v2-kpis">${detailRow('Katkı / Gün', displayValue(values.contribution), dependencyHint('contribution'), valueTone(values.contribution))}${detailRow('Gelir / Gün', displayValue(values.income), dependencyHint('income'), 'is-positive')}${detailRow('Gider / Gün', displayValue(values.expense), dependencyHint('expense'), 'is-negative')}${detailRow('Focus / Gün', displayValue(values.focus), dependencyHint('focus'))}</div><div class="island-v2-detail-list"><p><b>ÜRETİM BİLGİLERİ</b>${detailRow('Günlük Çıktı', displayValue(values.output), dependencyHint('output'))}${detailRow('Büyüme Süresi', displayDays(values.productionHours))}${detailRow('RR / Geri Dönüş', displayRate(values.rr), dependencyHint('rr'))}${detailRow('Net Çıktı', displayValue(values.netOutput), dependencyHint('output'))}${detailRow('Veri Kaynağı', `<span class="island-v2-production-source">${productionSourceLabel(values)}</span>`, productionSourceTitle(values))}</p><p class="island-v2-detail-economy"><b>EKONOMİ / TEDARİK</b>${detailRow('Tohum / Yavru Alış', referencePriceValue(values.purchaseQuote), [dependencyHint('expense'), longTermMetadata(values.purchaseQuote)].filter(Boolean).join(' · '), 'is-negative')}${detailRow('Günlük Net Giriş', displayValue(values.net), dependencyHint('net'), valueTone(values.net))}${entry.productionMode === 'mount' ? detailRow('Binek Malzemesi / Gün', displayValue(values.mountCost), dependencyHint('expense'), 'is-negative') + (values.mountMaterials ?? []).map(line => detailRow(`${displayValue(line.netQty)} × ${line.short} / binek`, displayValue(line.quote?.price), `Birim market alış fiyatı; tarif ${line.qty} adet, craft RR ${displayRate(line.returnRate)}. Ada şehri ve seçili alış yöntemi kullanılır.`, 'is-negative')).join('') : ''}${detailRow('Satış Fiyatı', referencePriceValue(values.saleQuote), [dependencyHint('income'), longTermMetadata(values.saleQuote)].filter(Boolean).join(' · '), 'is-positive')}${detailRow('Birim Maliyet', displayValue(values.unitCost), '1 adet ürünün ortalama üretim maliyeti (gümüş): günlük dış giderler + adadan sağlanan yemin net satış fırsat maliyeti, günlük toplam üretim adedine bölünür. Tohum/yavru geri dönüşleri hesaba dahildir. Satış kesintileri dahil değildir.', 'is-negative')}${values.feedId ? detailRow('Yem Türü', `<span class="island-v2-detail-feed">${itemIconHtml(values.feedId, { size: 24 })}<span>${escapeHtml(getItemLocalizedName(values.feedId, values.feedId))}</span></span>`, 'Hesapta seçilen yem türü.') : ''}${detailRow('İçeriden Karşılanan', displayValue(values.internal), dependencyHint('internal'))}${detailRow('Marketten Alınan', displayValue(values.market), dependencyHint('market'))}${detailRow('Fiyat Durumu', values.priceState === 'current' ? 'Güncel' : values.priceState === 'stale' ? 'Eski' : values.priceState === 'fixed' ? 'Sabit' : values.priceState === 'missing' ? 'Eksik' : '—', priceDiagnostic)}</p></div></section>`;
+    const expenses = [];
+    for (const line of values.expenseLines ?? []) {
+        if (line.kind === 'setup' && expenses.length) expenses.at(-1).setup = line.cost;
+        else expenses.push({ ...line, setup: 0 });
+    }
+    // Reserve the same ledger fields as the fullest slot in this plan, even
+    // when a hovered slot has no economic data. This is presentation only.
+    const expenseTemplate = [...state.derived.slots.values()]
+        .map(slot => (slot.expenseLines ?? []).filter(line => line.kind !== 'setup'))
+        .reduce((longest, lines) => lines.length > longest.length ? lines : longest, expenses);
+    while (expenses.length < expenseTemplate.length) {
+        expenses.push({ label: expenseTemplate[expenses.length].label, placeholder: true });
+    }
+    const priceStatus = { current: 'Güncel', stale: 'Fiyatlar eski', fixed: 'Sabit', missing: 'Fiyat eksik' }[values.priceState] ?? '—';
+    const deduction = value => Number.isFinite(value) && value > 0 ? '−' + displayValue(value) : displayValue(value);
+    const saleLabel = values.saleItemId ? getItemLocalizedName(values.saleItemId, values.saleItemId) : 'Satış';
+    return `<section class="island-v2-detail island-v2-production-card${editable ? '' : ' is-readonly'}">
+        <header class="island-v2-production-head"><strong class="island-v2-detail-number">${entry.id.slice(1).padStart(2,'0')}</strong><div class="island-v2-detail-main">${identity}</div><div class="island-v2-detail-controls">${focusControl}${modeControl}</div></header>
+        <div class="island-v2-production-body">
+            <div class="island-v2-production-facts"><h3>Üretim</h3>
+                ${detailRow('Günlük çıktı', displayValue(values.output), dependencyHint('output'))}
+                ${detailRow('Büyüme süresi', displayDays(values.productionHours))}
+                ${detailRow('Geri dönüş', displayRate(values.rr), dependencyHint('rr'))}
+                ${detailRow('Net çıktı', displayValue(values.netOutput), dependencyHint('output'))}
+                ${detailRow('Focus / gün', displayValue(values.focus), dependencyHint('focus'))}
+                ${values.effectiveFocus ? detailRow('Focus / kullanım', displayValue(values.focusPerUse) + ' <strong class="island-v2-focus-source is-' + values.focusSource + '">' + focusSourceLabel(values.focusSource) + '</strong>') + detailRow('Kullanım / cycle', displayValue(values.focusUsesPerCycle)) + detailRow('Cycle Focus', displayValue(values.cycleFocus)) + (values.focusObservedAt ? detailRow('Ölçüm', escapeHtml(values.focusObservedAt)) : '') : ''}
+                ${detailRow('Birim maliyet', displayValue(values.unitCost), 'Üretim gideri ve ada yemi değeri / günlük çıktı.')}
+                ${detailRow('Ada yemi', displayValue(values.internalTransferIn), 'Adadan karşılanan yemin satış değeri; nakit üretim giderine dahil değildir.')}
+                ${detailRow('Katkı / gün', displayValue(values.contribution), dependencyHint('contribution'), valueTone(values.contribution))}
+            </div>
+            <div class="island-v2-production-ledger"><h3>Günlük alış · satış</h3>
+                <table aria-label="Günlük alış ve satış hesabı"><thead><tr><th>Kalem</th><th>Adet</th><th>Birim fiyat</th><th>Emir ücreti</th><th>Vergi</th><th>Tutar</th></tr></thead>
+                <tbody class="island-v2-sale-rows"><tr class="island-v2-ledger-section"><th colspan="6">Satış</th></tr>
+                    <tr><th scope="row">${escapeHtml(saleLabel)}</th><td>${displayValue(values.netOutput)}</td><td data-app-tooltip="${escapeHtml(longTermMetadata(values.saleQuote))}">${displayValue(values.saleQuote?.price)}</td><td class="is-negative">${deduction(values.saleSetup)}</td><td class="is-negative">${deduction(values.saleTax)}</td><td class="is-positive">${displayValue(values.income)}</td></tr>
+                    <tr class="island-v2-gross-sale"><td colspan="6">Brüt satış: <b>${displayValue(values.grossIncome)}</b></td></tr>
+                </tbody><tbody class="island-v2-buy-rows"><tr class="island-v2-ledger-section"><th colspan="6">Alış / üretim</th></tr>
+                    ${expenses.map(line => `<tr><th scope="row">${line.placeholder ? `<span class="island-v2-field-placeholder" aria-hidden="true">${escapeHtml(line.label)}</span>` : escapeHtml(line.label)}</th><td>${displayValue(line.quantity)}</td><td>${displayValue(line.unitPrice)}</td><td>${displayValue(line.setup)}</td><td>—</td><td class="is-negative">${displayValue(line.total)}</td></tr>`).join('')}
+                </tbody></table>
+            </div>
+        </div>
+        <div class="island-v2-production-equation">${detailRow('Net satış / gün', displayValue(values.income), dependencyHint('income'))}<i aria-hidden="true">−</i>${detailRow('Üretim gideri / gün', displayValue(values.expense), dependencyHint('expense'), 'is-negative')}<i aria-hidden="true">=</i>${detailRow('Net kâr / gün', displayValue(values.net), dependencyHint('net'), valueTone(values.net))}</div>
+        <footer class="island-v2-production-foot"><span data-app-tooltip="${escapeHtml(productionSourceTitle(values))}">Kaynak: ${productionSourceLabel(values)}</span><span data-app-tooltip="${escapeHtml(priceDiagnostic)}">${priceStatus}</span></footer>
+    </section>`;
+
 }
 const SUMMARY_ICON_PATHS = {
     net: '<ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v5c0 4 16 4 16 0V5M4 10v5c0 4 16 4 16 0v-5M4 15v4c0 4 16 4 16 0v-4"/>',
@@ -907,14 +983,14 @@ const SUMMARY_ICON_PATHS = {
     feed: '<path d="M21 2C10 2 3 7 4 15c4 3 9 2 12-1 4-4 5-8 5-12ZM3 22 15 9"/>'
 };
 const SUMMARY_DESCRIPTIONS = Object.freeze({
-    net: 'Adanın günlük toplam net kârı (gümüş): market satışlarından gelen gelir eksi tohum/yavru yenileme ve dışarıdan alınan yem ile binek malzemesi giderleri. İç transferler toplam kârda birbirini götürür.',
+    net: 'Günlük satış geliri − tohum/yavru, yem ve binek malzemesi giderleri. Gümüş olarak gösterilir.',
     income: 'Günlük market satış geliri (gümüş). Adada yem olarak kullanılan bitkiler satışa dahil edilmez; pazar kesintileri düşülmüştür.',
-    expense: 'Günlük dış giderler (gümüş): geri dönüş oranına göre tohum/yavru yenileme maliyeti ve adadan karşılanamayan yem ile binek malzemesi alışları. İlgili pazar masrafları dahildir.',
-    focus: 'Mevcut üretimlerin günlük toplam Focus ihtiyacı. 0, Focus kullanılmadığını; —, tüketim verisinin eksik olduğunu belirtir. Günlük Focus bütçesi sınırı uygulanmaz.',
-    internal: 'Hayvanların yem ihtiyacının adada üretilen bitkilerden karşılanan günlük miktarı. Uygun bitki yalnız iç kullanım marketten almaktan daha kârlıysa tüketilir; net satış değeri yem alış maliyetinden yüksekse bitki satılır ve yem marketten alınır. Para değeri değildir; farklı yem türlerinin adetleri birlikte toplanır.',
-    market: 'İç üretimden karşılanamayıp marketten alınması gereken günlük yem miktarı. Para değeri değildir; farklı yem türlerinin adetleri birlikte toplanır. —, miktarın hesaplanamadığını belirtir.',
-    surplus: 'İç yem kullanımı sonrası satışa kalan günlük çıktı adedi. Bitki ve hayvan üretimlerinin farklı ürün adetleri birlikte toplanır; para değeri değildir.',
-    feed: 'Günlük kullanılan toplam yem adedi: adadan karşılanan ve marketten alınan yemlerin toplamı. Farklı yem türlerinin adetleri birlikte toplanır; para değeri değildir. —, yem miktarı verisinin eksik olduğunu belirtir.'
+    expense: 'Günlük tohum/yavru yenileme, dışarıdan yem ve binek malzemesi alışları. Pazar masrafları dahil.',
+    focus: 'Günlük Focus ihtiyacı; Otomatik Doldur günlük bütçeyi uygular.\n0: kullanılmıyor · —: veri eksik.',
+    internal: 'Adadan karşılanan günlük yem adedi. Bitkiyi yem olarak kullanmak, satıp yem almaktan daha kârlıysa içeriden karşılanır.',
+    market: 'Marketten alınacak günlük toplam yem adedi. Gümüş tutarı değildir; —: veri eksik.',
+    surplus: 'Yem ayrıldıktan sonra satılacak günlük toplam ürün adedi. Gümüş tutarı değildir.',
+    feed: 'Günlük toplam yem adedi = adadan karşılanan + marketten alınan.\n—: veri eksik.'
 });
 function metric(label, value = '—', dependencies = [], key = '') {
     const title = [SUMMARY_DESCRIPTIONS[key], dependencyTitle(dependencies)].filter(Boolean).join('\n\n');
@@ -925,8 +1001,8 @@ function metric(label, value = '—', dependencies = [], key = '') {
     if (['internal', 'market', 'surplus', 'feed'].includes(key)) {
         return `<div class="island-v2-metric island-v2-metric-breakdown" ${attrs}><button type="button" class="island-v2-metric-trigger" aria-label="${escapeHtml(label)} ürün dökümü">${content}</button><div class="island-v2-summary-breakdown" role="tooltip"><strong>${label} · Günlük ürün dökümü</strong>${renderSummaryBreakdown(key)}</div></div>`;
     }
-    if (!dependencies.length) return `<div class="island-v2-metric" ${attrs} title="${escapeHtml(title)}">${content}</div>`;
-    return `<div class="island-v2-metric island-v2-metric-has-dependencies" ${attrs} title="${escapeHtml(title)}"><button type="button" class="island-v2-metric-trigger" data-v2-dependency-popover="${escapeHtml(key)}" aria-label="${escapeHtml(label)} için eksik dependency listesini göster">${content}</button><div class="island-v2-dependency-popover" data-v2-dependency-list="${escapeHtml(key)}" popover="auto"><strong>${escapeHtml(label)} · Eksik dependency</strong><ul>${dependencyList(dependencies)}</ul></div></div>`;
+    if (!dependencies.length) return `<div class="island-v2-metric" ${attrs} data-app-tooltip="${escapeHtml(title)}">${content}</div>`;
+    return `<div class="island-v2-metric island-v2-metric-has-dependencies" ${attrs} data-app-tooltip="${escapeHtml(title)}"><button type="button" class="island-v2-metric-trigger" data-v2-dependency-popover="${escapeHtml(key)}" aria-label="${escapeHtml(label)} için eksik dependency listesini göster">${content}</button><div class="island-v2-dependency-popover" data-v2-dependency-list="${escapeHtml(key)}" popover="auto"><strong>${escapeHtml(label)} · Eksik dependency</strong><ul>${dependencyList(dependencies)}</ul></div></div>`;
 }
 function renderSummaryBreakdown(key) {
     const rows = new Map();
@@ -994,7 +1070,7 @@ function islandAlertTitle(heading, values) {
     return [heading, slotText && `Etkilenen: ${slotText}`, blockedText && `Engellenen: ${blockedText}`].filter(Boolean).join(' · ');
 }
 function islandAlertItem({ type, label, value, key, heading, values, list }) {
-    return `<div class="island-v2-island-alert-item" data-v2-alert-type="${escapeHtml(type)}"><button type="button" class="island-v2-alert-trigger" data-v2-dependency-popover="${key}" title="${escapeHtml(islandAlertTitle(heading, values))}" aria-label="${escapeHtml(`${label} ${value}`)} listesini göster"><span>${escapeHtml(label)}</span><strong>${escapeHtml(value)}</strong></button><div class="island-v2-dependency-popover island-v2-alert-popover" data-v2-dependency-list="${key}" popover="auto"><header><span>Hesap uyarısı</span><strong>${escapeHtml(heading)}</strong></header><ul>${list(values)}</ul></div></div>`;
+    return `<div class="island-v2-island-alert-item" data-v2-alert-type="${escapeHtml(type)}"><button type="button" class="island-v2-alert-trigger" data-v2-dependency-popover="${key}" data-app-tooltip="${escapeHtml(islandAlertTitle(heading, values))}" aria-label="${escapeHtml(`${label} ${value}`)} listesini göster"><span>${escapeHtml(label)}</span><strong>${escapeHtml(value)}</strong></button><div class="island-v2-dependency-popover island-v2-alert-popover" data-v2-dependency-list="${key}" popover="auto"><header><span>Hesap uyarısı</span><strong>${escapeHtml(heading)}</strong></header><ul>${list(values)}</ul></div></div>`;
 }
 function dependencyAlert({ type, values }) {
     return islandAlertItem({ type, label: islandAlertLabel(type), value: `${values.length} eksik`, key: `island-warning-${type}`, heading: dependencyTypeLabel(type), values, list: dependencyList });
@@ -1014,7 +1090,7 @@ function renderIslandPriceAlert() {
 function renderSummary() {
     const summary = state.derived.summary ?? {};
     const dependencies = summary.dependencies ?? {};
-    return `<section class="island-v2-summary"><div class="island-v2-summary-title" title="Mevcut ada yerleşiminin günlük ekonomi özeti. Değerler seçili şehir, Premium, Focus ve alış/satış ayarlarına göre hesaplanır; otomatik doldurma adayları bu toplama dahil değildir."><strong>05</strong><span class="island-v2-summary-name">Ada Özeti</span><span>${escapeHtml(cityName(state.draft.islandCity))} · Seviye ${state.draft.islandLevel}</span></div>${metric('Net Kâr / Gün', displayValue(summary.net), dependencies.net ?? [], 'net')}${metric('Gelir', displayValue(summary.income), dependencies.income ?? [], 'income')}${metric('Gider', displayValue(summary.expense), dependencies.expense ?? [], 'expense')}${metric('Focus / Gün', displayValue(summary.focus), dependencies.focus ?? [], 'focus')}${metric('İçeriden', displayValue(summary.internal), [], 'internal')}${metric('Marketten', displayValue(summary.market), [], 'market')}${metric('Satışa Kalan', displayValue(summary.surplus), [], 'surplus')}${metric('Yem', displayValue(summary.feed), [], 'feed')}</section>`;
+    return `<section class="island-v2-summary"><div class="island-v2-summary-title" data-app-tooltip="Mevcut yerleşimin günlük sonucu. Seçili şehir, Premium, Focus ve fiyat ayarları kullanılır."><strong>05</strong><span class="island-v2-summary-name">Ada Özeti</span><span>${escapeHtml(cityName(state.draft.islandCity))} · Seviye ${state.draft.islandLevel}</span></div>${metric('Net Kâr / Gün', displayValue(summary.net), dependencies.net ?? [], 'net')}${metric('Gelir', displayValue(summary.income), dependencies.income ?? [], 'income')}${metric('Gider', displayValue(summary.expense), dependencies.expense ?? [], 'expense')}${metric('Focus / Gün', `${displayValue(summary.focus)}<small class="island-v2-focus-summary">${focusSourceSummary(state.derived.slots.values())}</small>`, dependencies.focus ?? [], 'focus')}${metric('İçeriden', displayValue(summary.internal), [], 'internal')}${metric('Marketten', displayValue(summary.market), [], 'market')}${metric('Satışa Kalan', displayValue(summary.surplus), [], 'surplus')}${metric('Yem', displayValue(summary.feed), [], 'feed')}</section>`;
 }
 function syncLayoutGeometry(root) {
     const layout = root.querySelector('.island-v2-layout');
@@ -1023,8 +1099,10 @@ function syncLayoutGeometry(root) {
     const styles = getComputedStyle(layout);
     const gap = Number.parseFloat(styles.columnGap) || 0;
     const left = Number.parseFloat(styles.gridTemplateColumns) || 0;
-    const minimumRight = 24 * 16;
-    const upperHeight = layout.clientHeight - summary.getBoundingClientRect().height - (Number.parseFloat(styles.rowGap) || 0);
+    const minimumRight = Number.parseFloat(getComputedStyle(root.querySelector('.island-v2-right')).minWidth) || 0;
+    const summarySpace = summary.getBoundingClientRect().height + (Number.parseFloat(styles.rowGap) || 0);
+    // A growing ledger must not enlarge the island and take width back from the card.
+    const upperHeight = Math.min(layout.clientHeight, window.innerHeight - layout.getBoundingClientRect().top) - summarySpace;
     const availableWidth = layout.clientWidth - left - minimumRight - (gap * 2);
     const size = Math.max(0, Math.floor(Math.min(upperHeight, availableWidth)));
     layout.style.setProperty('--island-v2-size', `${size}px`);
@@ -1185,6 +1263,14 @@ async function completeDrag(root, target, clientX, clientY) {
     cleanupDrag(root);
 }
 function bind(root) {
+    root.addEventListener('change', event => {
+        if (!event.target.matches('[data-v2-focus-budget]')) return;
+        const value = event.target.value.trim();
+        const budget = value === '' ? null : Number(value);
+        if (budget != null && (!Number.isFinite(budget) || budget < 0)) return;
+        saveSettings({ islandFocusBudget: budget });
+        state.autoFillResult = null;
+    });
     root.addEventListener('input', event => {
         if (!event.target.matches('[data-v2-volume-range], [data-v2-volume-number]')) return;
         const value = normalizeSalesVolume(event.target.value);
@@ -1211,6 +1297,7 @@ function bind(root) {
         }
         if (d.v2Slot) { mutate(() => { state.selectedSlotId = d.v2Slot; }, false); return; }
         if (d.v2Premium) mutate(() => { state.draft.premium = d.v2Premium === '1'; });
+        if ('v2FocusBudget' in d) return;
         if (d.v2Focus) mutate(() => { state.draft.focus = d.v2Focus === '1'; });
         if (d.v2Level) mutate(() => { state.draft.islandLevel = Number(d.v2Level); });
         if (d.v2Seed) mutate(() => { state.draft.seedSide = d.v2Seed; });
@@ -1224,12 +1311,10 @@ function bind(root) {
         if (d.v2MountItem && isEditableDetail()) mutate(() => { slot(state.selectedSlotId).mountItem = d.v2MountItem; });
         if (d.v2ProductionMode && isEditableDetail()) mutate(() => { const target = slot(state.selectedSlotId); target.productionMode = productionModeFor(itemForSlot(target), d.v2ProductionMode); });
         if ('v2ClearSlots' in d) {
-            mutate(() => {
-                state.draft.slots = state.draft.slots.map(entry => entry.locked ? entry : blankSlot(entry.id));
-                state.autoFillResult = null;
-            });
+            mutate(clearDraftSlots);
             return;
         }
+        if ('v2Refill' in d) { void autoFillIsland({ clearSlots: true }); return; }
         if ('v2AutoFill' in d) { void autoFillIsland(); return; }
         if ('v2Save' in d) { persistDrafts(); state.committed = clone(state.draft); persistCommitted(); render(); }
         if ('v2Revert' in d && state.committed) { state.draft = normalizeDraft(state.committed, state.draft.islandCity); persistDrafts(); scheduleEconomicUpdate(); }
@@ -1289,6 +1374,14 @@ async function init() {
     try { const response = await fetch(V2_GEOMETRY_URL); state.geometry = response.ok ? await response.json() : null; } catch { state.geometry = null; }
     if (v2PriceItemIds().length) await loadV2Prices(); else calculateIslandPlan();
     const root = document.querySelector('[data-island-planner-v2]');
+    const focusTables = new Set(['islandYieldLogs', 'plants', 'animals']);
+    const onFocusData = tableName => {
+        if (focusTables.has(tableName)) { state.autoFillResult = null; calculateIslandPlan(); }
+    };
+    window.addEventListener('albiontools:db-write', event => onFocusData(event.detail?.tableName));
+    window.addEventListener('storage', event => {
+        if (event.key?.startsWith('albiontools.v4.')) onFocusData(event.key.slice('albiontools.v4.'.length));
+    });
     if (root && typeof ResizeObserver !== 'undefined') new ResizeObserver(() => { syncLayoutGeometry(root); syncOverlayGeometry(root); }).observe(root);
     bindLivePrices(() => {
         const entries = v2PriceEntries();

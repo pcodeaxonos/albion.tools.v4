@@ -62,4 +62,25 @@ assert.equal(placementValue(competing).net, 60); checks++;
 const focused = await optimizePlacement([option('focus-off', 10), option('focus-on', 20)], [], 1);
 assert.equal(focused.entries[0].item, 'focus-on'); checks++;
 await assert.rejects(optimizePlacement([crop], [], 1, { cancelled: () => true }), /iptal/); checks++;
+const focusedOption = (item, net, focusPerDay, supplies = [], demand = null) =>
+    ({ ...option(item, net, supplies, demand), focusPerDay });
+const constrained = [focusedOption('high-total', 100, 10), focusedOption('high-ratio', 80, 5), focusedOption('free', 20, 0)];
+const totalBest = await optimizePlacement(constrained, [], 1, { focusBudget: 10 });
+assert.equal(totalBest.entries[0].item, 'high-total', 'total profit, not profit/focus ranking'); checks++;
+assert.equal((await optimizePlacement(constrained, [], 2, { focusBudget: 10 })).net, 160); checks++;
+assert.equal((await optimizePlacement(constrained, [focusedOption('fixed', 10, 5)], 1, { focusBudget: 10 })).net, 90); checks++;
+await assert.rejects(optimizePlacement(constrained, [focusedOption('fixed', 10, 11)], 1, { focusBudget: 10 }), /bütçeyi/); checks++;
+await assert.rejects(optimizePlacement(constrained, [{ ...option('unknown', 10), entry: { focus: true } }], 1, { focusBudget: 10 }), /bilinmiyor/); checks++;
+assert.equal((await optimizePlacement(constrained, [], 2, { focusBudget: 0 })).net, 40); checks++;
+// Brute force verifies the certified bound with focus and feed interactions.
+for (let budget = 0; budget <= 12; budget++) {
+    const options = [focusedOption('crop', 7, 2, [supply('food', 10, 1)]),
+        focusedOption('animal', 13, 5, [], feed(1, 30, [{ id: 'food', quantity: 10 }])), focusedOption('free', 8, 0)];
+    let expected = 0;
+    for (let a = 0; a <= 3; a++) for (let b = 0; b <= 3 - a; b++) for (let c = 0; c <= 3 - a - b; c++) {
+        if (a * 2 + b * 5 > budget) continue;
+        expected = Math.max(expected, placementValue([...Array(a).fill(options[0]), ...Array(b).fill(options[1]), ...Array(c).fill(options[2])]).net);
+    }
+    assert.ok(Math.abs((await optimizePlacement(options, [], 3, { focusBudget: budget })).net - expected) < 1e-7); checks++;
+}
 console.log(`${checks} placement optimizer checks passed.`);

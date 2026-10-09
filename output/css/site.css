@@ -3428,6 +3428,52 @@ input[type=month].form-control {
     transform: none;
   }
 }
+.app-tooltip {
+  display: none;
+  position: fixed;
+  inset: auto;
+  margin: 0;
+  z-index: 10000;
+  width: max-content;
+  max-width: min(340px, 100vw - 16px);
+  max-height: calc(100dvh - 16px);
+  overflow: auto;
+  padding: 10px 12px;
+  border: 1px solid #59616c;
+  border-radius: 6px;
+  background: #272a30;
+  color: #f1f3f5;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3333333333);
+  font: 12px/1.5 system-ui, sans-serif;
+  text-align: left;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  pointer-events: auto;
+}
+.app-tooltip:popover-open, .app-tooltip.is-open {
+  display: block;
+}
+.app-tooltip .app-tooltip-heading {
+  display: block;
+  margin-bottom: 8px;
+  padding-bottom: 7px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1254901961);
+  font-weight: 650;
+}
+.app-tooltip .app-tooltip-list {
+  display: grid;
+  gap: 7px;
+  margin: 0;
+  padding: 0 0 0 16px;
+  list-style: disc;
+}
+.app-tooltip .app-tooltip-list li {
+  padding-left: 2px;
+}
+.app-tooltip .app-tooltip-list li::marker {
+  color: #9bc8ff;
+}
+
 .app-shell {
   display: flex;
   height: 100%;
@@ -8495,12 +8541,26 @@ main:has(.page-head[data-page-head=laborer-contract]) {
 }
 
 .yield-planted-pair {
-  grid-template-columns: minmax(0, 1fr) minmax(4.25rem, 5.5rem);
-  align-items: end;
+  grid-template-columns: minmax(0, 1fr) minmax(3.5rem, 4rem) auto;
+  align-items: stretch;
+  min-height: 2.125rem;
+}
+.yield-planted-pair > .btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0;
+  padding-inline: 0.5rem;
+  height: 100%;
 }
 
 .yield-harvest-pair {
-  grid-template-columns: 1fr 1fr;
+  display: flex;
+  flex-wrap: nowrap;
+}
+.yield-harvest-pair > .form-floating {
+  flex: 1;
+  width: 0;
 }
 
 .tool-split-controls .yield-planted-pair,
@@ -8521,7 +8581,7 @@ main:has(.page-head[data-page-head=laborer-contract]) {
   align-items: center;
   justify-content: center;
   width: 100%;
-  aspect-ratio: 1/1;
+  height: 100%;
   margin: 0;
   padding: 0;
   border: var(--border-width) solid var(--color-border);
@@ -14927,53 +14987,63 @@ main:has(.page-head[data-page-head=laborer-contract]) {
   display: none;
 }
 
-.yield-entry-summary {
-  --yield-icon-size: 2.5rem;
-  --yield-icon-inset: .2rem;
-  --yield-icon-block-inset: .1rem;
-  --yield-slot-height: calc(var(--yield-icon-size) - 2 * var(--yield-icon-block-inset));
+.app-entry-summary.yield-entry-summary {
+  --yield-icon-size: 2.15rem;
+  gap: 0;
 }
-.yield-entry-summary .app-warning-dialog-list {
-  gap: 0.1rem;
+.app-entry-summary.yield-entry-summary .app-warning-dialog-list {
+  gap: 0.5rem;
   align-content: start;
 }
-.yield-entry-summary strong, .yield-entry-summary .yield-entry-summary-caption {
+.app-entry-summary.yield-entry-summary strong, .app-entry-summary.yield-entry-summary .yield-entry-summary-caption {
   text-transform: uppercase;
 }
-.yield-entry-summary .yield-entry-summary-caption {
+.app-entry-summary.yield-entry-summary .yield-entry-summary-caption {
   display: flex;
   justify-content: space-between;
   gap: 0.5rem;
-  padding: 0 0.4rem 0.15rem;
+  padding: 0;
+  margin-bottom: 0;
   color: var(--color-text-muted);
   font-size: 0.65rem;
 }
-.yield-entry-summary .app-warning-dialog-list li {
+.app-entry-summary.yield-entry-summary .app-warning-dialog-list li {
   grid-template-columns: minmax(0, 1fr) auto;
-  grid-template-rows: 1rem auto;
+  grid-template-rows: auto auto;
   align-items: center;
-  gap: 0 0.4rem;
-  padding: 0.15rem 0.4rem;
+  gap: 0.4rem 0.5rem;
+  padding: 0.5rem;
   border-left-width: 2px;
-  background: transparent;
+  --yield-state-color: var(--color-danger);
+  border-left-color: var(--yield-state-color);
+  border-radius: 0 0.3rem 0.3rem 0;
+  background: linear-gradient(110deg, color-mix(in srgb, var(--yield-state-color) 17%, var(--color-surface)), color-mix(in srgb, var(--yield-state-color) 7%, var(--color-surface)));
   font-size: 0.75rem;
   line-height: 1.1;
+}
+.app-entry-summary.yield-entry-summary .app-warning-dialog-list li.is-equal {
+  --yield-state-color: var(--color-success);
+}
+.app-entry-summary.yield-entry-summary .app-warning-dialog-list li.is-extra {
+  --yield-state-color: var(--color-warning);
 }
 
 .app-entry-summary .yield-entry-slots {
   grid-column: 1/-1;
   display: flex;
   flex-wrap: wrap;
-  gap: 0;
+  gap: 0.15rem;
   min-width: 0;
   align-items: center;
-  min-height: var(--yield-slot-height);
+  min-height: var(--yield-icon-size);
 }
 
 .yield-entry-slot {
   display: inline-flex;
-  height: var(--yield-slot-height);
-  flex: 0 0 calc(var(--yield-icon-size) - 2 * var(--yield-icon-inset));
+  width: var(--yield-icon-size);
+  height: var(--yield-icon-size);
+  flex: 0 0 var(--yield-icon-size);
+  aspect-ratio: 1;
   justify-content: center;
   align-items: center;
   border-radius: 0.25rem;
@@ -14982,8 +15052,7 @@ main:has(.page-head[data-page-head=laborer-contract]) {
   width: var(--yield-icon-size);
   height: var(--yield-icon-size);
   max-width: none;
-  margin-inline: calc(-1 * var(--yield-icon-inset));
-  margin-block: calc(-1 * var(--yield-icon-block-inset));
+  margin: 0;
   object-fit: contain;
 }
 .yield-entry-slot.is-missing .item-icon {
@@ -15700,12 +15769,14 @@ main:has(.page-head[data-page-head=laborer-contract]) {
   background: transparent;
   color: var(--yield-city-color);
   text-align: left;
+}
+.yield-city-history:is(button) {
   cursor: pointer;
 }
-.yield-city-history:hover {
+.yield-city-history:is(button):hover {
   background: color-mix(in srgb, var(--yield-city-color) 8%, transparent);
 }
-.yield-city-history:focus-visible {
+.yield-city-history:is(button):focus-visible {
   outline: 2px solid var(--yield-city-color);
   outline-offset: 2px;
 }
@@ -16281,9 +16352,14 @@ main:has(.page-head[data-page-head=laborer-contract]) {
   }
   .island-v2-layout {
     min-height: 0;
+    grid-template-rows: minmax(min-content, 1fr) auto;
   }
   .island-v2-layout {
-    grid-template-columns: 13rem var(--island-v2-size, minmax(0, 1fr)) minmax(24rem, 1fr);
+    --island-v2-right-min-width: 34rem;
+    grid-template-columns: 13rem var(--island-v2-size, minmax(0, 1fr)) minmax(var(--island-v2-right-min-width), 1fr);
+  }
+  .island-v2-right {
+    min-width: var(--island-v2-right-min-width);
   }
   .island-v2-island {
     height: var(--island-v2-size, 100%);
@@ -16308,8 +16384,12 @@ main:has(.page-head[data-page-head=laborer-contract]) {
   }
   /* Keep the summary anchored while the right column shares the full upper row. */
   .island-v2-right {
-    grid-template-rows: minmax(0, 1fr) 12.5rem;
+    grid-template-rows: max-content auto;
+    align-content: start;
     gap: 0.4rem;
+  }
+  .island-v2-slot-grid {
+    grid-template-rows: repeat(4, 6.5rem);
   }
   .island-v2-slot-grid {
     gap: 0.22rem;
@@ -16648,7 +16728,7 @@ main:has(.page-head[data-page-head=laborer-contract]) {
   min-width: 0;
 }
 
-.island-v2-finance .island-v2-expense {
+.island-v2-finance > span:last-child {
   justify-items: end;
 }
 
@@ -17110,17 +17190,46 @@ main:has(.page-head[data-page-head=laborer-contract]) {
 }
 
 .island-v2-detail-list .island-v2-detail-economy {
+  display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-content: start;
+  gap: 0.2rem 0.45rem;
+  min-width: 0;
 }
 
-.island-v2-detail-list .island-v2-detail-economy > span:nth-last-child(2) {
-  border-bottom: 0;
+.island-v2-detail-economy > p:first-child {
+  border-right: 1px solid var(--color-border);
+  padding-right: 0.45rem;
+}
+
+.island-v2-detail-economy .island-v2-ledger-costs > b {
+  color: var(--color-danger);
+}
+
+.island-v2-detail-economy .island-v2-ledger-income > b {
+  color: var(--color-success);
+}
+
+.island-v2-detail-economy .island-v2-ledger-notes {
+  grid-column: 1/-1;
+  border-top: 1px solid var(--color-border);
+  padding-top: 0.15rem;
 }
 
 .island-v2-detail-list small {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.island-v2-detail-economy small {
+  overflow: visible;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+.island-v2-detail-economy p > span > b {
+  flex-shrink: 0;
 }
 
 .island-v2-detail-list p > span > b {
@@ -18194,12 +18303,236 @@ main:has(.page-head[data-page-head=laborer-contract]) {
   background: var(--color-surface-raised);
 }
 
-.island-v2-detail-list .island-v2-reference-meta {
-  display: block;
-  max-width: 100%;
-  font: 400 0.55rem/1.2 var(--font-family-base);
+.island-v2-focus-source {
+  display: inline-block;
+  padding: 0.15rem 0.4rem;
+  border-radius: 0.3rem;
+  font-size: 0.7rem;
+  font-weight: 700;
+}
+.island-v2-focus-source.is-default {
+  background: #ffd36a;
+  color: #332200;
+}
+.island-v2-focus-source.is-observed {
+  background: #c0ecd6;
+  color: #143e2b;
+}
+.island-v2-focus-source.is-unknown {
+  background: #efd0d0;
+  color: #541919;
 }
 
+.island-v2-focus-summary {
+  display: block;
+  font-size: 0.65rem;
+}
+
+.island-v2-card:has(> .island-v2-focus-source) {
+  grid-template-rows: minmax(0, 12fr) minmax(0, 38fr) minmax(0, 18fr) minmax(0, 20fr) minmax(0, 12fr);
+}
+
+.island-v2-card > .island-v2-focus-source {
+  align-self: center;
+  justify-self: center;
+  padding: 0 0.2rem;
+  font-size: min(9cqw, 8cqh);
+  line-height: 1.2;
+}
+
+.island-v2-production-card {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  overflow: visible;
+  padding: 0;
+  gap: 0;
+  align-self: start;
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  min-height: 0;
+  font-size: 0.75rem;
+  line-height: 1.3;
+}
+.island-v2-production-card .island-v2-production-head {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.15rem 0.5rem;
+  padding: 0.15rem 0.55rem;
+  box-sizing: border-box;
+  border-bottom: 1px solid #28536a;
+}
+.island-v2-production-card .island-v2-detail-main {
+  flex: 1;
+  min-width: 12rem;
+}
+.island-v2-production-card .island-v2-detail-identity {
+  flex-wrap: wrap;
+}
+.island-v2-production-card h2 {
+  max-width: none;
+  white-space: normal;
+  overflow: visible;
+}
+.island-v2-production-card .island-v2-detail-controls {
+  flex-wrap: wrap;
+  margin-left: auto;
+}
+.island-v2-production-card .island-v2-production-body {
+  display: grid;
+  grid-template-columns: minmax(10rem, 1fr) minmax(0, 3fr);
+}
+.island-v2-production-card h3 {
+  margin: 0;
+  padding: 0.25rem 0;
+  font-size: 0.8rem;
+  color: #afc5d2;
+  border-bottom: 1px solid #28536a;
+}
+.island-v2-production-card .island-v2-production-facts, .island-v2-production-card .island-v2-production-ledger {
+  min-width: 0;
+  padding: 0 0.55rem 0.15rem;
+}
+.island-v2-production-card .island-v2-production-facts {
+  border-right: 1px solid #28536a;
+}
+.island-v2-production-card .island-v2-production-facts > span {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 0.35rem;
+  padding: 0.1rem 0;
+  border-bottom: 1px solid rgba(40, 83, 106, 0.4);
+}
+.island-v2-production-card .island-v2-production-facts > span > b {
+  white-space: nowrap;
+}
+.island-v2-production-card small {
+  font-size: 0.75rem;
+  color: #afc5d2;
+}
+.island-v2-production-card b {
+  font-size: 0.8rem;
+  font-family: var(--font-family-mono);
+}
+.island-v2-production-card table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+  font-size: 0.75rem;
+}
+.island-v2-production-card th, .island-v2-production-card td {
+  padding: 0.12rem 0.2rem;
+  border-bottom: 1px solid rgba(40, 83, 106, 0.4);
+  text-align: right;
+  vertical-align: top;
+  overflow-wrap: anywhere;
+}
+.island-v2-production-card .island-v2-field-placeholder {
+  visibility: hidden;
+}
+.island-v2-production-card th:first-child {
+  width: 25%;
+  text-align: left;
+}
+.island-v2-production-card thead th:nth-child(2) {
+  width: 8%;
+}
+.island-v2-production-card thead th:nth-child(3), .island-v2-production-card thead th:nth-child(4) {
+  width: 17%;
+}
+.island-v2-production-card thead th:nth-child(5) {
+  width: 13%;
+}
+.island-v2-production-card thead th:nth-child(6) {
+  width: 20%;
+}
+.island-v2-production-card thead th {
+  color: #afc5d2;
+  font-weight: 400;
+}
+.island-v2-production-card tbody th {
+  font-weight: 400;
+}
+.island-v2-production-card td {
+  font-family: var(--font-family-mono);
+  font-weight: 600;
+  white-space: nowrap;
+}
+.island-v2-production-card .island-v2-ledger-section th {
+  text-align: left;
+  font-weight: 700;
+  padding-top: 0.2rem;
+}
+.island-v2-production-card .island-v2-sale-rows .island-v2-ledger-section {
+  color: var(--color-success);
+}
+.island-v2-production-card .island-v2-buy-rows .island-v2-ledger-section {
+  color: var(--color-danger);
+}
+.island-v2-production-card .island-v2-gross-sale td {
+  text-align: left;
+  font: inherit;
+  color: #afc5d2;
+}
+.island-v2-production-card .is-positive {
+  color: var(--color-success);
+}
+.island-v2-production-card .is-negative {
+  color: var(--color-danger);
+}
+.island-v2-production-card .island-v2-production-equation {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr) auto minmax(0, 1.2fr);
+  align-items: center;
+  gap: 0.35rem;
+  border-block: 1px solid #28536a;
+  padding: 0.25rem 0.55rem;
+}
+.island-v2-production-card .island-v2-production-equation > span {
+  display: grid;
+  gap: 0.15rem;
+  text-align: center;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.island-v2-production-card .island-v2-production-equation b {
+  font-size: 1.1rem;
+}
+.island-v2-production-card .island-v2-production-equation > span:last-child b {
+  font-size: 1.4rem;
+}
+.island-v2-production-card .island-v2-production-equation i {
+  font-style: normal;
+  font-size: 1.1rem;
+  color: #afc5d2;
+}
+.island-v2-production-card .island-v2-production-foot {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+  padding: 0.25rem 0.55rem;
+  color: #afc5d2;
+  font-size: 0.7rem;
+}
+
+@container (max-width: 30rem) {
+  .island-v2-production-card .island-v2-production-body {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .island-v2-production-card .island-v2-production-facts {
+    border-right: 0;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    column-gap: 0.7rem;
+  }
+  .island-v2-production-card .island-v2-production-facts h3 {
+    grid-column: 1/-1;
+  }
+}
 main.tool-page {
   --page-head-content-height: clamp(5rem, 5vw, 7rem);
   flex: 1 1 0;

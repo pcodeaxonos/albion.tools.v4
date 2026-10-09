@@ -472,7 +472,7 @@ function renderEntrySummary(islandCity) {
                             const missing = index >= current;
                             const extra = index >= reference;
                             const description = `${itemLabel(key, type)} · ${missing ? 'Bugün kaydedilmedi' : extra ? 'Önceki kayda ek slot' : 'Bugün kaydedildi'} · 1 slot`;
-                            return { missing, html: `<span class="yield-entry-slot${missing ? ' is-missing' : extra ? ' is-extra' : ''}" title="${escapeHtml(description)}" aria-label="${escapeHtml(description)}">${icon ? itemIconHtml(icon, { size: 48 }) : escapeHtml(itemLabel(key, type))}</span>` };
+                            return { missing, html: `<span class="yield-entry-slot${missing ? ' is-missing' : extra ? ' is-extra' : ''}" data-app-tooltip="${escapeHtml(description)}" aria-label="${escapeHtml(description)}">${icon ? itemIconHtml(icon, { size: 48 }) : escapeHtml(itemLabel(key, type))}</span>` };
                         });
                     }).sort((a, b) => Number(a.missing) - Number(b.missing)).map((slot) => slot.html).join('');
                     return `<li class="${tone}"><strong>${escapeHtml(line.label)}</strong><span>${line.currentSlots}<small> / ${line.referenceSlots}</small></span><div class="yield-entry-slots">${icons}</div></li>`;
@@ -547,7 +547,7 @@ function renderToggle(groupLabel, options, dataAttr, current) {
                 return `
                     <button type="button" class="farming-type-btn${pressed ? ' is-active' : ''}"
                         data-${dataAttr}="${option.value}" aria-pressed="${pressed ? 'true' : 'false'}"
-                        aria-label="${escapeHtml(option.label)}" title="${escapeHtml(option.label)}">
+                        aria-label="${escapeHtml(option.label)}" data-app-tooltip="${escapeHtml(option.label)}">
                         <svg class="farming-type-btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">${YIELD_TOGGLE_ICONS[option.icon]}</svg>
                     </button>
                 `;
@@ -716,6 +716,7 @@ function setSelectedItem(container, value) {
 }
 
 function syncAnimalProductField(container) {
+    syncToggles(container);
     const field = container.querySelector('[data-animal-product-field]');
     const offspringField = container.querySelector('[data-animal-offspring-field]');
     if (!field) return;
@@ -729,6 +730,8 @@ function productLogFormData(source, quantity, linkedLogId) {
     const fd = new FormData();
     for (const [key, value] of source.entries()) fd.append(key, value);
     fd.set('itemType', 'animalProduct');
+    fd.delete('focusPerUse');
+    fd.delete('focusObservedAt');
     fd.set('seedsReturned', '0');
     fd.set('plantsHarvested', String(quantity));
     fd.set('linkedLogId', String(linkedLogId));
@@ -745,11 +748,20 @@ function syncAutomaticPlots(container) {
     }
 }
 
+function setAutoPlots(container, enabled) {
+    state.autoPlots = enabled;
+    const button = container.querySelector('[data-yield-auto-plots]');
+    button?.setAttribute('aria-pressed', String(enabled));
+    button?.classList.toggle('btn-primary', enabled);
+    button?.classList.toggle('btn-outline-secondary', !enabled);
+    saveSettings({ islandYieldAutoPlots: enabled });
+}
+
 function renderPlotPicker(selectedPlots) {
     const unit = metricCopy().input.toLocaleLowerCase('tr-TR');
     return `
         <div class="yield-plot-picker" role="radiogroup" aria-label="Plot"
-            title="1 plot = ${unitsPerPlot()} ${escapeHtml(unit)}">
+            data-app-tooltip="1 plot = ${unitsPerPlot()} ${escapeHtml(unit)}">
             ${PLOT_CHOICES.map((n) => {
                 const pressed = n === selectedPlots;
                 return `
@@ -757,7 +769,7 @@ function renderPlotPicker(selectedPlots) {
                         class="yield-plot-btn${pressed ? ' is-active' : ''}"
                         data-plots="${n}"
                         aria-pressed="${pressed ? 'true' : 'false'}"
-                        title="${n} plot · ${n * unitsPerPlot()} ${escapeHtml(unit)}">
+                        data-app-tooltip="${n} plot · ${n * unitsPerPlot()} ${escapeHtml(unit)}">
                         ${n}
                     </button>
                 `;
@@ -767,6 +779,8 @@ function renderPlotPicker(selectedPlots) {
 }
 
 function fillForm(container, row) {
+    const focusInput = container.querySelector('[data-yield-focus-per-use]');
+    if (focusInput) focusInput.value = row?.focusPerUse ?? '';
     const dateInput = container.querySelector('#yieldDate');
     const returned = container.querySelector('#seedsReturned');
     const harvested = container.querySelector('#plantsHarvested');
@@ -820,6 +834,8 @@ function fillForm(container, row) {
 }
 
 function syncToggles(container) {
+    const focusField = container.querySelector('[data-yield-focus-field]');
+    if (focusField) focusField.hidden = !state.water || (state.yieldKind === 'pasture' && state.animalOutputMode === 'product');
     container.querySelectorAll('[data-premium]').forEach((button) => {
         const pressed = button.dataset.premium === (state.premium ? '1' : '0');
         button.classList.toggle('is-active', pressed);
@@ -889,7 +905,7 @@ function renderLogTable(month) {
         const seedRate = row.seedsPlanted > 0 ? row.seedsReturned / row.seedsPlanted : null;
         return `
             <tr data-id="${row.id}" class="${[String(state.editingId) === String(row.id) ? 'is-editing' : '', isOutlier(row) ? 'is-outlier' : '', row.date === today ? 'is-today' : ''].filter(Boolean).join(' ')}" style="--yield-day-color:${dayAccentColor(row.date)}">
-                <td class="text-nowrap"${row.date === today ? ' title="Bugünün kaydı"' : ''}>${escapeHtml(formatDate(row.date))}</td>
+                <td class="text-nowrap"${row.date === today ? ' data-app-tooltip="Bugünün kaydı"' : ''}>${escapeHtml(formatDate(row.date))}</td>
                 <td>${escapeHtml(cityLabel(row.islandCity))}</td>
                 <td>
                     <button type="button" class="farming-item yield-history-trigger" data-yield-history="${escapeHtml(row.id)}" aria-label="${escapeHtml(itemLabel(key, type))} ortalama geçmişi">
@@ -898,12 +914,12 @@ function renderLogTable(month) {
                     </button>
                 </td>
                 <td class="num">${row.seedsPlanted}</td>
-                <td class="num" title="1 slot = ${unitsPerSlot}">${estimatedSlots ?? '—'}</td>
+                <td class="num" data-app-tooltip="1 slot = ${unitsPerSlot}">${estimatedSlots ?? '—'}</td>
                 <td class="num">${type === 'animalProduct' ? '—' : row.seedsReturned}</td>
                 <td class="num">${row.plantsHarvested}</td>
                 <td class="num">${formatQty(perSeed)}</td>
                 <td class="num">${type === 'animalProduct' ? '—' : formatPct(seedRate)}</td>
-                <td>${row.premium ? 'P' : 'F'}${row.water ? ` · ${type === 'plant' ? 'su' : 'odak'}` : ''}</td>
+                <td>${row.premium ? 'P' : 'F'}${row.water ? ` · ${type === 'plant' ? 'su' : 'odak'}` : ''}${row.water && row.focusPerUse != null && type !== 'animalProduct' ? `<small class="d-block">${formatQty(row.focusPerUse)} Focus / kullanım · ÖLÇÜLEN</small>` : ''}</td>
             </tr>
         `;
     }).join('');
@@ -985,7 +1001,7 @@ function clearYieldOutliers() {
 }
 
 function tipAttr(label) {
-    return ` title="${escapeHtml(label)}" aria-label="${escapeHtml(label)}"`;
+    return ` data-app-tooltip="${escapeHtml(label)}" aria-label="${escapeHtml(label)}"`;
 }
 
 function avgTag(text, { kind = '', tone = '', tip = '', slot = '' } = {}) {
@@ -1044,7 +1060,7 @@ function renderAvgCard(plant, islandCity) {
                 <span class="yield-ref-value is-actual"><b data-yield-change="seed">${active ? formatPct(avg.avgSeedReturn) : '—'}</b><small>Gerçek</small></span><span class="yield-ref-value is-actual"><b data-yield-change="product">${active ? formatQty(avg.avgPlantYield) : '—'}</b><small>Gerçek</small></span>
                 <span class="yield-ref-value is-default"><b>${formatPct(wikiSeed)}</b><small>Vars.</small></span><span class="yield-ref-value is-default"><b>${formatQty(wikiYield)}</b><small>Vars.</small></span>
             </div>
-            <footer class="yield-card-footer"><span title="Ortalamaya giren kayıt sayısı">${yieldDocumentIcon()} <b>n=${active ? avg.n : 0}</b></span>${renderConfidence(active ? avg : null, plant, islandCity)}</footer>
+            <footer class="yield-card-footer"><span data-app-tooltip="Ortalamaya giren kayıt sayısı">${yieldDocumentIcon()} <b>n=${active ? avg.n : 0}</b></span>${renderConfidence(active ? avg : null, plant, islandCity)}</footer>
             </div>
             ${renderConfidencePanel(confidence, 'note')}
         </article>
@@ -1138,7 +1154,7 @@ function renderComparisonControls(isProduct) {
 function renderCityHistory(points, itemType) {
     const chart = (metric, label, format) => {
         const valid = points.filter(point => Number.isFinite(point[metric]));
-        if (!valid.length) return '';
+        if (!valid.length) return `<span class="yield-city-sparkline" aria-hidden="true"><span>${escapeHtml(label)}</span><svg viewBox="0 0 120 38"></svg></span>`;
         const values = valid.map(point => point[metric]);
         const { low, high } = yieldHistoryExtent(values);
         const x = index => valid.length === 1 ? 60 : 5 + index / (valid.length - 1) * 110;
@@ -1146,8 +1162,11 @@ function renderCityHistory(points, itemType) {
         return `<span class="yield-city-sparkline"><span>${escapeHtml(label)}</span><svg viewBox="0 0 120 38" role="img" aria-label="${escapeHtml(`${label} kümülatif ortalama geçmişi`)}"><path class="yield-city-sparkline-baseline" d="M5 33H115"/><polyline points="${valid.map((point, index) => `${x(index)},${y(point[metric])}`).join(' ')}"/>${valid.map((point, index) => `<circle cx="${x(index)}" cy="${y(point[metric])}" r="${index === valid.length - 1 ? 2.5 : 1.5}"><title>${escapeHtml(`${formatDate(point.date)} · ${format(point[metric])}`)}</title></circle>`).join('')}</svg></span>`;
     };
     const last = points.at(-1);
-    if (!last || !points.some(point => Number.isFinite(point.avgPlantYield))) return '';
-    return `<button type="button" class="yield-city-history" data-yield-history="${escapeHtml(last.id)}" data-yield-history-period="${escapeHtml(state.month)}" aria-label="Şehrin seçili dönem ortalama geçmişini aç" title="Seçili dönemin kümülatif ortalaması · Detay için tıkla">${chart('avgPlantYield', 'Verim', formatQty)}${itemType === 'animalProduct' ? '' : chart('avgSeedReturn', 'Dönüş', formatPct)}</button>`;
+    const charts = `${chart('avgPlantYield', 'Verim', formatQty)}${itemType === 'animalProduct' ? '' : chart('avgSeedReturn', 'Dönüş', formatPct)}`;
+    if (!last || !points.some(point => Number.isFinite(point.avgPlantYield))) {
+        return `<div class="yield-city-history" aria-hidden="true">${charts}</div>`;
+    }
+    return `<button type="button" class="yield-city-history" data-yield-history="${escapeHtml(last.id)}" data-yield-history-period="${escapeHtml(state.month)}" aria-label="Şehrin seçili dönem ortalama geçmişini aç" data-app-tooltip="Seçili dönemin kümülatif ortalaması · Detay için tıkla">${charts}</button>`;
 }
 
 function renderCityComparison() {
@@ -1192,12 +1211,12 @@ function renderCityComparison() {
                             style="--yield-city-color:${escapeHtml(cityColorHex(city))}">
                             <header>
                                 <strong>${escapeHtml(cityLabel(cityName))}</strong>
-                                ${bonus ? `<span title="Şehir üretim bonusu">+${formatPct(cityBonusPct())}</span>` : ''}
+                                ${bonus ? `<span data-app-tooltip="Şehir üretim bonusu">+${formatPct(cityBonusPct())}</span>` : ''}
                             </header>
                             <div class="yield-city-card-metric">
                                 <span>${escapeHtml(isProduct ? 'Ürün' : metricCopy().outputShort)}</span>
-                                <b title="Gerçek ürün ortalaması">${hasData ? formatQty(avg.avgPlantYield) : '—'}</b>
-                                ${isProduct ? '' : `<b title="${escapeHtml(metricCopy().returnShort)} dönüşü">${hasData ? formatPct(avg.avgSeedReturn) : '—'}</b>`}
+                                <b data-app-tooltip="Gerçek ürün ortalaması">${hasData ? formatQty(avg.avgPlantYield) : '—'}</b>
+                                ${isProduct ? '' : `<b data-app-tooltip="${escapeHtml(metricCopy().returnShort)} dönüşü">${hasData ? formatPct(avg.avgSeedReturn) : '—'}</b>`}
                                 <small>n=${hasData ? avg.n : 0}</small>
                             </div>
                             ${renderCityHistory(cityHistory, itemType)}
@@ -1229,7 +1248,7 @@ function renderAnimalProductAvgCard(animal, islandCity) {
             </div>
             <div class="yield-ref-deltas is-single"><div class="yield-ref-delta ${deltaTone(relative)}"${tipAttr('Varsayılan ürüne göre yüzde farkı')}><strong>${active ? formatRelativeDifference(avg.avgPlantYield, standard) : '—'}</strong><span>${active ? formatDeltaMagnitude(avg.avgPlantYield - standard, { digits: 1 }) : ''}</span></div></div>
             <div class="yield-ref-values is-single" aria-label="Ürün gerçek ve varsayılan değeri"><span class="yield-ref-value is-actual"><b>${active ? formatQty(avg.avgPlantYield) : '—'}</b><small>Gerçek</small></span><span class="yield-ref-value is-default"><b>${formatQty(standard)}</b><small>Vars.</small></span></div>
-            <footer class="yield-card-footer"><span title="Ortalamaya giren kayıt sayısı">${yieldDocumentIcon()} <b>n=${active ? avg.n : 0}</b></span>${renderConfidence(active ? avg : null, animal, islandCity, 'animalProduct')}</footer>
+            <footer class="yield-card-footer"><span data-app-tooltip="Ortalamaya giren kayıt sayısı">${yieldDocumentIcon()} <b>n=${active ? avg.n : 0}</b></span>${renderConfidence(active ? avg : null, animal, islandCity, 'animalProduct')}</footer>
             </div>
             ${renderConfidencePanel(confidence, 'note')}
         </article>
@@ -1320,11 +1339,11 @@ function renderAverages() {
         <section class="yield-averages" data-yield-averages aria-label="Ortalamalar">
             <div class="yield-averages-layout">
                 <nav class="yield-group-tabs" aria-label="Ürün grupları">
-                    <button type="button" class="yield-group-action" data-yield-group-previous aria-label="Önceki grup" title="Önceki grup" ${groups.length < 2 ? 'disabled' : ''}>${yieldTabArrow('previous')}</button>
+                    <button type="button" class="yield-group-action" data-yield-group-previous aria-label="Önceki grup" data-app-tooltip="Önceki grup" ${groups.length < 2 ? 'disabled' : ''}>${yieldTabArrow('previous')}</button>
                     <div class="yield-group-tab-list" role="tablist">
-                        ${groups.map((group) => `<button type="button" class="yield-group-tab${group.id === activeGroup?.id ? ' is-active' : ''}" data-yield-group="${escapeHtml(group.id)}" role="tab" aria-label="${escapeHtml(group.title)}" aria-selected="${group.id === activeGroup?.id ? 'true' : 'false'}" title="${escapeHtml(group.title)}">${yieldGroupIcon(group.id)}</button>`).join('')}
+                        ${groups.map((group) => `<button type="button" class="yield-group-tab${group.id === activeGroup?.id ? ' is-active' : ''}" data-yield-group="${escapeHtml(group.id)}" role="tab" aria-label="${escapeHtml(group.title)}" aria-selected="${group.id === activeGroup?.id ? 'true' : 'false'}" data-app-tooltip="${escapeHtml(group.title)}">${yieldGroupIcon(group.id)}</button>`).join('')}
                     </div>
-                    <button type="button" class="yield-group-action" data-yield-group-next aria-label="Sonraki grup" title="Sonraki grup" ${groups.length < 2 ? 'disabled' : ''}>${yieldTabArrow('next')}</button>
+                    <button type="button" class="yield-group-action" data-yield-group-next aria-label="Sonraki grup" data-app-tooltip="Sonraki grup" ${groups.length < 2 ? 'disabled' : ''}>${yieldTabArrow('next')}</button>
                 </nav>
                 <div class="yield-group-panel" role="tabpanel" aria-label="${escapeHtml(activeGroup?.title ?? '')}">
                     ${activeGroup ? renderTierMatrix(activeGroup, islandCity) : ''}
@@ -1631,6 +1650,12 @@ async function saveEntry(container) {
     const productInput = container.querySelector('[data-products-harvested]');
     const productsHarvested = productInput?.value.trim() ? parseQuantityExpression(productInput.value) : null;
     const productOnly = state.yieldKind === 'pasture' && state.animalOutputMode === 'product' && productsHarvested != null;
+    const focusText = container.querySelector('[data-yield-focus-per-use]')?.value.trim() || '';
+    const focusPerUse = state.water && !productOnly && focusText !== '' ? Number(focusText) : null;
+    if (focusPerUse != null && (!Number.isFinite(focusPerUse) || focusPerUse < 0)) {
+        showToast('Focus / kullanım sıfır veya pozitif bir sayı olmalı.', { kind: 'error' });
+        return;
+    }
 
     if (!date || !plantKey || !state.islandCity) {
         showToast(`Tarih, ada ve ${state.yieldKind === 'plant' ? 'bitki' : 'hayvan'} zorunlu.`, { kind: 'error' });
@@ -1690,6 +1715,10 @@ async function saveEntry(container) {
     fd.set('seedsPlanted', String(seedsPlanted));
     fd.set('seedsReturned', String(productOnly ? 0 : seedsReturned));
     fd.set('plantsHarvested', String(productOnly ? productsHarvested : plantsHarvested));
+    if (focusPerUse != null) {
+        fd.set('focusPerUse', String(focusPerUse));
+        fd.set('focusObservedAt', new Date().toISOString());
+    }
     if (state.premium) {
         fd.set('premium', 'on');
     }
@@ -1782,17 +1811,16 @@ function renderPage(container) {
                         <label for="yieldDate">Tarih</label>
                     </div>
                     ${yieldItemFieldHtml(state.filteredPlantKey || '')}
-                    <div class="yield-planted-pair" title="1 plot = ${unitsPerPlot()} ${escapeHtml(copy.input.toLocaleLowerCase('tr-TR'))}">
+                    <div class="yield-planted-pair" data-app-tooltip="1 plot = ${unitsPerPlot()} ${escapeHtml(copy.input.toLocaleLowerCase('tr-TR'))}">
                         ${renderPlotPicker(state.plotsSelected ?? 1)}
                         <div class="form-floating farming-city-field yield-seeds-field">
                             <input class="form-control is-filled" type="number" min="1" step="1" id="seedsPlanted" name="seedsPlanted" value="${unitsPerPlot()}" required>
                             <label for="seedsPlanted">${escapeHtml(copy.input)}</label>
                         </div>
+                        <button type="button" class="btn ${state.autoPlots ? 'btn-primary' : 'btn-outline-secondary'}" data-yield-auto-plots aria-pressed="${state.autoPlots}" aria-label="Otomatik parsel tahmini" data-app-tooltip="Otomatik parsel tahmini">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m4 20 12-12 4 4L8 24M14 10l4 4M5 3v4M3 5h4M18 2v4M16 4h4M20 17v4M18 19h4" transform="translate(0 -2)"/></svg>
+                        </button>
                     </div>
-                    <label class="form-check yield-auto-plots-check">
-                        <input class="form-check-input" type="checkbox" data-yield-auto-plots ${state.autoPlots ? 'checked' : ''}>
-                        <span class="form-check-label">Otomatik parsel tahmini</span>
-                    </label>
                     <div class="yield-harvest-pair">
                         <div class="form-floating farming-city-field" data-animal-offspring-field>
                             <input class="form-control" type="text" inputmode="decimal" autocomplete="off" id="seedsReturned" name="seedsReturned" placeholder="10-8" ${state.yieldKind === 'pasture' ? '' : 'required'}>
@@ -1810,6 +1838,10 @@ function renderPage(container) {
                                 <label>Üretilen ürün</label>
                             </div>
                         ` : ''}
+                        <div class="form-floating farming-city-field" data-yield-focus-field${state.water ? '' : ' hidden'} data-app-tooltip="Tek sulama / nurture maliyeti. İsteğe bağlı; çok günlük hayvanda son toplamada bir kez girin.">
+                            <input class="form-control" type="number" min="0" step="1" id="yieldFocusPerUse" placeholder="0" data-yield-focus-per-use>
+                            <label for="yieldFocusPerUse">Focus / kullanım</label>
+                        </div>
                     </div>
                     <div class="form-actions form-actions--inline">
                         <button type="submit" class="btn btn-primary" id="yieldSubmit">Kaydet</button>
@@ -1934,9 +1966,7 @@ function bindPage(container) {
     container.querySelectorAll('[data-plots]').forEach((button) => {
         button.addEventListener('click', () => {
             if (state.autoPlots) {
-                state.autoPlots = false;
-                container.querySelector('[data-yield-auto-plots]').checked = false;
-                saveSettings({ islandYieldAutoPlots: false });
+                setAutoPlots(container, false);
             }
             applyPlotChoice(container, Number(button.dataset.plots));
         });
@@ -1954,9 +1984,8 @@ function bindPage(container) {
             }
         });
     });
-    container.querySelector('[data-yield-auto-plots]')?.addEventListener('change', (event) => {
-        state.autoPlots = event.target.checked;
-        saveSettings({ islandYieldAutoPlots: state.autoPlots });
+    container.querySelector('[data-yield-auto-plots]')?.addEventListener('click', () => {
+        setAutoPlots(container, !state.autoPlots);
         syncAutomaticPlots(container);
     });
     container.querySelector('#yieldForm')?.addEventListener('submit', (event) => {

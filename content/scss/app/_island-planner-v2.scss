@@ -6,8 +6,9 @@
   main:has([data-island-planner-v2]) > .container { flex: 1 1 auto; min-height: 0; display: flex; }
   [data-island-planner-v2] { flex: 1 1 auto; min-height: 0; display: flex; }
   .island-v2-page { height: 100%; max-height: none; min-height: 0; flex: 1 1 auto; }
-  .island-v2-layout { min-height: 0; }
-  .island-v2-layout { grid-template-columns: 13rem var(--island-v2-size, minmax(0, 1fr)) minmax(24rem, 1fr); }
+  .island-v2-layout { min-height: 0; grid-template-rows: minmax(min-content, 1fr) auto; }
+  .island-v2-layout { --island-v2-right-min-width: 34rem; grid-template-columns: 13rem var(--island-v2-size, minmax(0, 1fr)) minmax(var(--island-v2-right-min-width), 1fr); }
+  .island-v2-right { min-width: var(--island-v2-right-min-width); }
   .island-v2-island { height: var(--island-v2-size, 100%); width: var(--island-v2-size, auto); min-height: 0; max-width: none; }
   .island-v2-right, .island-v2-slot-grid, .island-v2-detail, .island-v2-summary { min-height: 0; }
   .island-v2-controls {
@@ -20,7 +21,8 @@
   }
   .island-v2-actions { gap: .16rem; }
   /* Keep the summary anchored while the right column shares the full upper row. */
-  .island-v2-right { grid-template-rows: minmax(0, 1fr) 12.5rem; gap: .4rem; }
+  .island-v2-right { grid-template-rows: max-content auto; align-content: start; gap: .4rem; }
+  .island-v2-slot-grid { grid-template-rows: repeat(4, 6.5rem); }
   .island-v2-slot-grid { gap: .22rem; }
   .island-v2-detail { gap: .22rem .4rem; padding: .34rem .45rem; }
   .island-v2-detail-list { gap: .35rem; }
@@ -167,7 +169,7 @@
 .island-v2-card-item > span { position: relative; z-index: 1; max-width: 100%; color: #f3f7fa; font: 700 min(12cqw, 10cqh)/1.1 var(--font-family-base); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .island-v2-finance { display: grid; grid-template-columns: minmax(0,1fr) minmax(0,.9fr) minmax(0,1fr); align-items: end; gap: 2cqw; min-width: 0; min-height: 0; color: #f3f7fa; font: 700 min(9cqw, 10cqh)/1.05 var(--font-family-base); }
 .island-v2-finance > span { display: grid; justify-items: start; align-content: end; gap: 1cqh; min-width: 0; }
-.island-v2-finance .island-v2-expense { justify-items: end; }
+.island-v2-finance > span:last-child { justify-items: end; }
 .island-v2-finance b { position: relative; display: grid; place-items: center; grid-row: 1; width: min(12cqw, 10cqh); height: min(12cqw, 10cqh); box-sizing: border-box; border: 0; background: none; font: 700 min(11cqw, 10cqh)/.8 var(--font-family-base); }
 .island-v2-finance b > svg { display: block; width: 85%; height: 85%; }
 .island-v2-income b { color: var(--v2-card-positive); }
@@ -316,9 +318,14 @@
 .island-v2-detail-list p > b { color: #9bb4c7; font-size: .65rem; }
 .island-v2-detail-list p > span { min-width: 0; border-bottom: 1px solid rgba(40,83,106,.28); }
 .island-v2-detail-list p > span:last-child { border-bottom: 0; }
-.island-v2-detail-list .island-v2-detail-economy { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-.island-v2-detail-list .island-v2-detail-economy > span:nth-last-child(2) { border-bottom: 0; }
+.island-v2-detail-list .island-v2-detail-economy { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); align-content: start; gap: .2rem .45rem; min-width: 0; }
+.island-v2-detail-economy > p:first-child { border-right: 1px solid var(--color-border); padding-right: .45rem; }
+.island-v2-detail-economy .island-v2-ledger-costs > b { color: var(--color-danger); }
+.island-v2-detail-economy .island-v2-ledger-income > b { color: var(--color-success); }
+.island-v2-detail-economy .island-v2-ledger-notes { grid-column: 1 / -1; border-top: 1px solid var(--color-border); padding-top: .15rem; }
 .island-v2-detail-list small { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.island-v2-detail-economy small { overflow: visible; white-space: normal; overflow-wrap: anywhere; }
+.island-v2-detail-economy p > span > b { flex-shrink: 0; }
 .island-v2-detail-list p > span > b { color: var(--color-text); font-size: .8rem; }
 .island-v2-production-source { white-space: nowrap; }
 .island-v2-metric-breakdown { position: relative; }
@@ -890,4 +897,97 @@
 .island-v2-optimization-price-status.has-issues { color: #fff; background: #b52c42; border-color: #e85361; }
 .island-v2-optimization-price-status.is-healthy:disabled { color: #c7ffeb; background: #116b50; border-color: #27b58b; opacity: 1; }
 .island-v2-optimization-price-status.is-pending { color: var(--color-text-muted); background: var(--color-surface-raised); }
-.island-v2-detail-list .island-v2-reference-meta { display: block; max-width: 100%; font: 400 .55rem/1.2 var(--font-family-base); }
+.island-v2-focus-source {
+    display: inline-block;
+    padding: .15rem .4rem;
+    border-radius: .3rem;
+    font-size: .7rem;
+    font-weight: 700;
+    &.is-default { background: #ffd36a; color: #332200; }
+    &.is-observed { background: #c0ecd6; color: #143e2b; }
+    &.is-unknown { background: #efd0d0; color: #541919; }
+}
+.island-v2-focus-summary { display: block; font-size: .65rem; }
+.island-v2-card:has(> .island-v2-focus-source) {
+    grid-template-rows: minmax(0, 12fr) minmax(0, 38fr) minmax(0, 18fr) minmax(0, 20fr) minmax(0, 12fr);
+}
+.island-v2-card > .island-v2-focus-source {
+    align-self: center;
+    justify-self: center;
+    padding: 0 .2rem;
+    font-size: min(9cqw, 8cqh);
+    line-height: 1.2;
+}
+
+// The selected production card grows with its ledger; scrolling belongs to the page.
+.island-v2-production-card {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  overflow: visible;
+  padding: 0;
+  gap: 0;
+  align-self: start;
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  min-height: 0;
+  font-size: .75rem;
+  line-height: 1.3;
+
+  .island-v2-production-head {
+    display: flex; align-items: center; flex-wrap: wrap;
+    gap: .15rem .5rem; padding: .15rem .55rem;
+    box-sizing: border-box;
+    border-bottom: 1px solid #28536a;
+  }
+  .island-v2-detail-main { flex: 1; min-width: 12rem; }
+  .island-v2-detail-identity { flex-wrap: wrap; }
+  h2 { max-width: none; white-space: normal; overflow: visible; }
+  .island-v2-detail-controls { flex-wrap: wrap; margin-left: auto; }
+  .island-v2-production-body { display: grid; grid-template-columns: minmax(10rem, 1fr) minmax(0, 3fr); }
+  h3 { margin: 0; padding: .25rem 0; font-size: .8rem; color: #afc5d2; border-bottom: 1px solid #28536a; }
+  .island-v2-production-facts, .island-v2-production-ledger { min-width: 0; padding: 0 .55rem .15rem; }
+  .island-v2-production-facts { border-right: 1px solid #28536a; }
+  .island-v2-production-facts > span {
+    display: flex; justify-content: space-between; align-items: baseline; gap: .35rem;
+    padding: .1rem 0; border-bottom: 1px solid rgba(40,83,106,.4);
+  }
+  .island-v2-production-facts > span > b { white-space: nowrap; }
+  small { font-size: .75rem; color: #afc5d2; }
+  b { font-size: .8rem; font-family: var(--font-family-mono); }
+  table { width: 100%; border-collapse: collapse; table-layout: fixed; font-size: .75rem; }
+  th, td { padding: .12rem .2rem; border-bottom: 1px solid rgba(40,83,106,.4); text-align: right; vertical-align: top; overflow-wrap: anywhere; }
+  .island-v2-field-placeholder { visibility: hidden; }
+  th:first-child { width: 25%; text-align: left; }
+  thead th:nth-child(2) { width: 8%; }
+  thead th:nth-child(3), thead th:nth-child(4) { width: 17%; }
+  thead th:nth-child(5) { width: 13%; }
+  thead th:nth-child(6) { width: 20%; }
+  thead th { color: #afc5d2; font-weight: 400; }
+  tbody th { font-weight: 400; }
+  td { font-family: var(--font-family-mono); font-weight: 600; white-space: nowrap; }
+  .island-v2-ledger-section th { text-align: left; font-weight: 700; padding-top: .2rem; }
+  .island-v2-sale-rows .island-v2-ledger-section { color: var(--color-success); }
+  .island-v2-buy-rows .island-v2-ledger-section { color: var(--color-danger); }
+  .island-v2-gross-sale td { text-align: left; font: inherit; color: #afc5d2; }
+  .is-positive { color: var(--color-success); }
+  .is-negative { color: var(--color-danger); }
+  .island-v2-production-equation {
+    display: grid; grid-template-columns: minmax(0,1fr) auto minmax(0,1fr) auto minmax(0,1.2fr);
+    align-items: center; gap: .35rem; border-block: 1px solid #28536a; padding: .25rem .55rem;
+    > span { display: grid; gap: .15rem; text-align: center; min-width: 0; overflow-wrap: anywhere; }
+    b { font-size: 1.1rem; }
+    > span:last-child b { font-size: 1.4rem; }
+    i { font-style: normal; font-size: 1.1rem; color: #afc5d2; }
+  }
+  .island-v2-production-foot {
+    display: flex; justify-content: space-between; flex-wrap: wrap; gap: .3rem;
+    padding: .25rem .55rem; color: #afc5d2; font-size: .7rem;
+  }
+}
+@container (max-width: 30rem) {
+  .island-v2-production-card .island-v2-production-body { grid-template-columns: minmax(0,1fr); }
+  .island-v2-production-card .island-v2-production-facts { border-right: 0; display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); column-gap: .7rem; }
+  .island-v2-production-card .island-v2-production-facts h3 { grid-column: 1 / -1; }
+}

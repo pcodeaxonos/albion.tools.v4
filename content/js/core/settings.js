@@ -77,6 +77,7 @@ export const LOCAL_PRICE_HOST = 'http://127.0.0.1:3001';
 export const DEFAULT_SETTINGS = {
     premium: true,
     farmWater: false,
+    islandFocusBudget: null,
     server: 'europe',
     priceSource: 'api',
     buyPriceSide: 'buy',
@@ -340,6 +341,12 @@ export function getPlantPickerStyle(settings = getSettings()) {
     return normalizePlantPickerStyle(settings?.plantPickerStyle);
 }
 
+export function normalizeFocusBudget(value) {
+    if (value == null || value === '') return null;
+    const number = Number(value);
+    return Number.isFinite(number) && number >= 0 ? number : null;
+}
+
 export function getSettings() {
     try {
         const raw = localStorage.getItem(STORAGE_KEY);
@@ -371,7 +378,8 @@ export function getSettings() {
             dataSync: parsed.dataSync !== false,
             islandCities: normalizeIslandCities(parsed.islandCities),
             refineFollowSpecialty: parsed.refineFollowSpecialty === true,
-            islandYieldAutoPlots: parsed.islandYieldAutoPlots !== false
+            islandYieldAutoPlots: parsed.islandYieldAutoPlots !== false,
+            islandFocusBudget: normalizeFocusBudget(parsed.islandFocusBudget)
         };
     } catch {
         return {
@@ -405,6 +413,7 @@ export function saveSettings(partial) {
     next.islandCities = normalizeIslandCities(next.islandCities);
     next.refineFollowSpecialty = Boolean(next.refineFollowSpecialty);
     next.islandYieldAutoPlots = next.islandYieldAutoPlots !== false;
+    next.islandFocusBudget = normalizeFocusBudget(next.islandFocusBudget);
     localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
     return next;
 }

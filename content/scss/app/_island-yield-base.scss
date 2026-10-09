@@ -33,12 +33,28 @@
 }
 
 .yield-planted-pair {
-    grid-template-columns: minmax(0, 1fr) minmax(4.25rem, 5.5rem);
-    align-items: end;
+    grid-template-columns: minmax(0, 1fr) minmax(3.5rem, 4rem) auto;
+    align-items: stretch;
+    min-height: 2.125rem;
+
+    > .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0;
+        padding-inline: 0.5rem;
+        height: 100%;
+    }
 }
 
 .yield-harvest-pair {
-    grid-template-columns: 1fr 1fr;
+    display: flex;
+    flex-wrap: nowrap;
+
+    > .form-floating {
+        flex: 1;
+        width: 0;
+    }
 }
 
 .tool-split-controls .yield-planted-pair,
@@ -59,7 +75,7 @@
     align-items: center;
     justify-content: center;
     width: 100%;
-    aspect-ratio: 1 / 1;
+    height: 100%;
     margin: 0;
     padding: 0;
     border: var(--border-width) solid var(--color-border);
@@ -92,7 +108,7 @@
 }
 
 .yield-seeds-field {
-    // Let the square plot buttons determine the row height.
+    // Share the row height with the plot picker and automatic estimate button.
     contain: size;
     align-self: stretch;
 

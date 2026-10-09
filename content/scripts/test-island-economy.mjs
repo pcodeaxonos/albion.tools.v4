@@ -23,7 +23,7 @@ function moduleFor(file) {
     if (modules.has(file)) return modules.get(file);
     let code = fs.readFileSync(file, 'utf8');
     if (file.endsWith(`${path.sep}nav.js`)) code = 'export function initNav() {}';
-    if (file.endsWith(`${path.sep}island-planner-v2.js`)) code = code.replace(/init\(\);\s*$/, 'export { state, priceSummaryLabel, renderPriceSegment, priceLookup, fetchPlanPrices };');
+    if (file.endsWith(`${path.sep}island-planner-v2.js`)) code = code.replace(/init\(\);\s*$/, 'export { state, priceSummaryLabel, renderPriceSegment, priceLookup, fetchPlanPrices, renderDetail, renderSummary, renderControls };');
     const module = new vm.SourceTextModule(code, { context, identifier: file });
     modules.set(file, module);
     return module;
@@ -57,6 +57,15 @@ store.replaceAllRows('islandYieldLogs', []);
 const near = (actual, expected, label) => assert.ok(Math.abs(actual - expected) < 1e-7, `${label}: ${actual} != ${expected}`);
 let checks = 0;
 function test(name, run) { run(); checks++; console.log(`PASS ${name}`); }
+
+test('daily purchase expense lines reconcile order fees and retain missing prices', () => {
+    const lines = v2.purchaseExpenseLines('Yem', 90, { price: 100, setup: true }, 9225);
+    near(lines[0].cost, 9000, 'daily purchase base');
+    near(lines[1].cost, 225, 'daily order fee');
+    near(lines.reduce((sum, line) => sum + line.cost, 0), 9225, 'daily expense total');
+    assert.equal(v2.purchaseExpenseLines('Yem', 90, null, null)[0].cost, null);
+    assert.equal(v2.purchaseExpenseLines('Yavru', 0, null, 0)[0].cost, 0);
+});
 
 test('stability considers both return and output, missing fields, zero and invalid inputs', () => {
     const rows = Array.from({ length: 20 }, (_, i) => ({ seedsPlanted: 10, plantsHarvested: 90, seedsReturned: i % 2 ? 20 : 0 }));
@@ -315,14 +324,14 @@ test('V2 price summary handles missing and stale prices without UI variables', (
     assert.equal(v2.priceSummaryLabel({ missing: 2, stale: 0 }), '2 eksik');
     assert.equal(v2.priceSummaryLabel({ missing: 0, stale: 0 }), 'Güncel');
 });
-test('V2 Focus totals use catalog nurture cost and preserve unknown watering cost', () => {
+test('V2 Focus totals use editable item defaults for watering and nurture', () => {
     plan(['chicken'], { focus: true });
     v2.state.draft.slots[0].productionMode = 'butcher';
     v2.calculateIslandPlan();
-    near(v2.state.derived.summary.focus, chicken.focusCost * chicken.pens, 'daily nurture');
+    near(v2.state.derived.summary.focus, chicken.defaultFocusPerUse * chicken.maxNurtureCount * chicken.pens, 'daily nurture');
     const mixed = plan(['wheat', 'chicken'], { focus: true });
-    assert.equal(mixed.summary.focus, null, 'unknown character watering must not be zero');
-    assert.equal(mixed.slots.get('R1').dependencies.focus.length, 1);
+    assert.equal(mixed.summary.focus, wheat.defaultFocusPerUse * config.plantSlots(), 'adult product needs no focus');
+    assert.equal(mixed.slots.get('R1').dependencies.focus.length, 0);
     assert.equal(plan(['wheat', 'chicken']).summary.focus, 0);
 });
 async function placementTest(name, run) { await run(); checks++; console.log(`PASS ${name}`); }
@@ -482,11 +491,14 @@ await placementTest('V2 Long Term UI and normal quote provider preserve tick, fe
         dayCoverage: [{ day: '2026-10-07', status: 'partial-day', accepted: false, validBucketCount: 2,
             coverageRatio: 2 / 24, firstObservationAt: '2026-10-07T20:00:00Z',
             lastObservationAt: '2026-10-07T21:00:00Z', reasons: ['insufficient-buckets', 'insufficient-time-span'] }] } };
-    assert.ok(metadata(partialQuote, { compact: true }).includes('1 partial-day'));
-    assert.ok(metadata(partialQuote).includes('2 bucket (%8)'));
-    assert.ok(metadata(partialQuote).includes('red (insufficient-buckets, insufficient-time-span)'));
+    assert.equal(metadata(partialQuote, { compact: true }), 'Güncel alış fiyatı · 0 gün');
+    assert.ok(metadata(partialQuote).includes('1 eksik gün emir ortalamasına alınmadı.'));
+    assert.ok(metadata(partialQuote).includes('Geçmiş veri yetersiz; güncel alış fiyatı kullanıldı.'));
+    assert.ok(!metadata(partialQuote).includes('insufficient-buckets'));
     v2.state.draft.focus = true;
-    assert.ok(v2.optimizationEntries().every(entry => entry.focus === false), 'autofill excludes focus');
+    assert.ok(v2.optimizationEntries().some(entry => entry.focus === true), 'autofill includes focus');
+    const settingsModule = await load('content/js/core/settings.js');
+    settingsModule.namespace.saveSettings({ islandFocusBudget: 9000 });
     const occupied = v2.state.draft.slots[0];
     v2.state.draft.slots.push({ id: 'R3', item: null }, { id: 'R4', item: null, locked: true });
     const screened = v2.evaluatePlacementCandidates([{ id: 'trial', item: 'wheat', focus: false }]);
@@ -496,5 +508,147 @@ await placementTest('V2 Long Term UI and normal quote provider preserve tick, fe
     near(result.marginalNet, final.summary.net - result.baseline, 'long-term total profit difference');
     v2.state.longTermPriceIndex = new Map(references.filter(ref => ref.itemId !== wheat.seedId).map(ref => [key(ref), ref]));
     assert.equal(v2.evaluatePlacementCandidates([{ id: 'trial', item: 'wheat' }]).candidates.length, 0, 'missing references exclude candidate');
+});
+const focusModule = await load('content/js/core/island/focus.js');
+await focusModule.evaluate();
+const focusEngine = focusModule.namespace;
+const catalog = (await load('content/js/core/catalog.js')).namespace;
+test('Focus resolver uses latest per-use observation across cities, never averages', () => {
+    const row = { itemKey: wheat.key, itemType: 'plant', water: true, date: '2026-10-01', focusPerUse: 700, id: 1 };
+    const rows = [row, { ...row, id: 2, date: '2026-10-08', islandCity: 'Lymhurst', focusPerUse: 420 },
+        { ...row, id: 3, date: '2026-10-09', focusPerUse: null },
+        { ...row, id: 4, date: '2026-10-09', water: false, focusPerUse: 10 },
+        { ...row, id: 5, date: '2026-10-09', itemType: 'animalProduct', focusPerUse: 10 },
+        { ...row, id: 6, date: '2026-10-09', focusPerUse: -2 }];
+    const resolved = focusEngine.resolveFocus(wheat, rows);
+    assert.equal(resolved.focusPerUse, 420);
+    assert.equal(resolved.focusSource, 'observed');
+    assert.equal(resolved.focusObservedAt, '2026-10-08');
+    assert.equal(focusEngine.resolveFocus(wheat, []).focusSource, 'default');
+    assert.equal(focusEngine.resolveFocus({ ...wheat, defaultFocusPerUse: null }, []).focusSource, 'unknown');
+    assert.equal(focusEngine.resolveFocus({ ...wheat, defaultFocusPerUse: 333 }, []).focusPerUse, 333);
+    assert.equal(focusEngine.resolveFocus(wheat, [...rows, { ...row, id: 7, date: '2026-10-08', focusPerUse: 400 }]).focusPerUse, 400);
+});
+test('Real catalog focus cycles 1–6 use actual capacity and common planning days', () => {
+    const animals = catalog.getAnimals();
+    for (let uses = 1; uses <= 6; uses++) {
+        const animal = animals.find(item => item.maxNurtureCount === uses && item.plotType === 'pasture');
+        assert.ok(animal, `catalog ${uses} uses`);
+        const rows = [{ itemKey: animal.key, itemType: 'animal', water: true, date: '2026-10-09', focusPerUse: 420 }];
+        const hours = config.planCycleHours(config.animalCycleHours(animal, true));
+        const info = focusEngine.focusRequirement(animal, { focused: true, capacity: animal.pens, hours }, rows);
+        near(info.cycleFocus, 420 * uses * animal.pens, animal.key);
+        near(info.focusPerDay, info.cycleFocus / (hours / config.planDayHours()), 'planning normalization');
+    }
+    const ram = animals.find(item => item.key === 'faction-ram-t5');
+    const example = focusEngine.focusRequirement(ram, { focused: true, capacity: ram.pens,
+        hours: config.planCycleHours(config.animalCycleHours(ram, true)) }, [{ itemKey: ram.key, itemType: 'animal', water: true, date: '2026-10-09', focusPerUse: 420 }]);
+    assert.equal(example.focusUsesPerCycle, 3); assert.equal(example.cycleFocus, 5040); assert.equal(example.focusPerDay, 1680);
+    near(focusEngine.focusRequirement(wheat, { focused: true, capacity: 2, hours: config.planCycleHours(config.cropHours()) }, []).focusPerDay, 2000, 'crop actual capacity');
+});
+await placementTest('Focus additive migration is idempotent and preserves manual catalog data', async () => {
+    const original = store.getAll('plants');
+    const changed = original.map((row, i) => {
+        if (i === 0) return { ...row, defaultFocusPerUse: 321, vendorSilver: 777 };
+        if (i === 1) return { ...row, defaultFocusPerUse: null };
+        const { defaultFocusPerUse, maxNurtureCount, ...legacy } = row; return legacy;
+    });
+    store.replaceAllRows('plants', changed);
+    context.fetch = async url => ({ ok: true, json: async () => JSON.parse(fs.readFileSync(url, 'utf8')) });
+    await store.migrateFarmFocus();
+    assert.equal(store.getAll('plants')[0].defaultFocusPerUse, 321);
+    assert.equal(store.getAll('plants')[0].vendorSilver, 777);
+    assert.equal(store.getAll('plants')[1].defaultFocusPerUse, null);
+    assert.equal(store.getAll('plants')[2].defaultFocusPerUse, 1000);
+    const once = JSON.stringify(store.getAll('plants')); await store.migrateFarmFocus();
+    assert.equal(JSON.stringify(store.getAll('plants')), once);
+    store.replaceAllRows('plants', original);
+});
+await placementTest('V2 optimizer accepts default focus and reacts to observed focus through shared economics', async () => {
+    const settings = (await load('content/js/core/settings.js')).namespace;
+    settings.saveSettings({ islandFocusBudget: 9000 });
+    store.replaceAllRows('islandYieldLogs', []);
+    plan([], { focus: true });
+    v2.state.draft.slots = [{ id: 'R1' }, { id: 'R2' }];
+    const entry = { id: 'trial', item: 'wheat', focus: true };
+    let profile = v2.evaluatePlacementCandidates([entry]).candidates[0];
+    assert.ok(profile); assert.equal(profile.focusSource, 'default'); assert.equal(profile.focusPerDay, 9000);
+    let result = await v2.optimizeDraftPlacement([profile]);
+    assert.equal(result.result.entries.length, 1); assert.equal(result.derived.summary.focus, 9000);
+    store.replaceAllRows('islandYieldLogs', [{ id: 1, itemKey: wheat.key, itemType: 'plant', water: true, date: '2026-10-09', focusPerUse: 420 }]);
+    profile = v2.evaluatePlacementCandidates([entry]).candidates[0];
+    assert.equal(profile.focusSource, 'observed'); assert.equal(profile.focusPerDay, 3780);
+    result = await v2.optimizeDraftPlacement([profile]);
+    assert.equal(result.result.entries.length, 2); assert.equal(result.derived.summary.focus, 7560);
+    v2.state.draft.slots = [entry]; v2.state.selectedSlotId = entry.id;
+    v2.calculateIslandPlan({ update: true });
+    assert.ok(v2.renderDetail().includes('ÖLÇÜLEN'));
+    store.replaceAllRows('islandYieldLogs', []); v2.calculateIslandPlan();
+    assert.ok(v2.renderDetail().includes('DEFAULT'));
+    assert.ok(v2.renderSummary().includes('1 slot default'));
+    assert.ok(v2.renderControls().includes('data-v2-focus-budget'));
+});
+test('Focus seed imports game metadata once and preserves manual values', () => {
+    const rows = [...store.getAll('plants'), ...store.getAll('animals')];
+    const byId = new Map(store.getAll('items').map(item => [item.id, item]));
+    assert.equal(rows.length, 53);
+    for (const row of rows) {
+        const item = byId.get(row.seedItemId ?? row.babyItemId);
+        assert.equal(row.defaultFocusPerUse, item.activeFarmFocusCost, row.key);
+        assert.equal(row.maxNurtureCount, item.activeFarmMaxCycles, row.key);
+    }
+});
+const { seedFarmFocus } = await import('./farm-focus-seed.mjs');
+test('Focus seed fallback is seed-only; manual values survive repeat imports', () => {
+    const rows = [{ id: 1, seedItemId: 1 }, { id: 2, seedItemId: 1, defaultFocusPerUse: 123 },
+        { id: 3, seedItemId: 1, defaultFocusPerUse: null }];
+    const once = seedFarmFocus(rows, [{ id: 1, activeFarmMaxCycles: 1 }], 'seedItemId');
+    assert.equal(once[0].defaultFocusPerUse, 1000);
+    assert.equal(once[1].defaultFocusPerUse, 123);
+    assert.equal(once[2].defaultFocusPerUse, null);
+    assert.deepEqual(seedFarmFocus(once, [{ id: 1, activeFarmFocusCost: 999, activeFarmMaxCycles: 1 }], 'seedItemId'), once);
+});
+await placementTest('V2 full 16-slot focused catalog honors budget and common engine totals', async () => {
+    plan([], { focus: true });
+    v2.state.draft.slots = Array.from({ length: 16 }, (_, i) => ({ id: `R${i + 1}` }));
+    v2.state.longTermPriceIndex = new Map();
+    const items = (await load('content/js/tools/island-planner-v2/items.js')).namespace;
+    const quotes = items.itemRows().flatMap(item => [item.seedId, item.plantId, item.babyId, item.grownId, item.meatId, item.productId])
+        .filter(Boolean).map(item_id => ({ item_id, city: 'Fort Sterling', quality: 1, sell_price_min: 1000, buy_price_max: 800,
+            sell_price_min_date: new Date().toISOString(), buy_price_max_date: new Date().toISOString() }));
+    v2.state.priceIndex = market.indexPrices(quotes);
+    const candidates = v2.evaluatePlacementCandidates(v2.optimizationEntries()).candidates;
+    assert.ok(candidates.some(profile => profile.focusSource === 'default' && profile.focusPerDay > 0));
+    const result = await v2.optimizeDraftPlacement(candidates);
+    assert.ok(result.derived.summary.focus <= 9000);
+    near(result.result.net, result.derived.summary.net, 'focus complete plan total');
+    assert.ok(result.result.entries.length <= 16);
+});
+await placementTest('V2 production ledger renders every catalog mode and the largest material recipe', async () => {
+    plan([]);
+    const items = (await load('content/js/tools/island-planner-v2/items.js')).namespace;
+    let largest = null;
+    for (const item of items.itemRows().filter(items.isEconomicItem)) {
+        const modes = items.animalProductionModes(item);
+        for (const productionMode of modes.length ? modes.map(mode => mode.value) : [null]) {
+            for (const mountItem of productionMode === 'mount' ? items.mountRecipes(item).map(recipe => recipe.uniqueName) : [null]) {
+                const entry = { id: 'R1', item: item.key, productionMode, mountItem, focus: false };
+                v2.state.draft.slots = [entry];
+                v2.state.selectedSlotId = 'R1';
+                v2.state.hoveredSlotId = null;
+                const result = v2.calculateIslandPlan();
+                const value = result.slots.get('R1');
+                const html = v2.renderDetail();
+                const purchases = value.expenseLines.filter(line => line.kind === 'purchase');
+                assert.equal((html.match(/<th scope="row">/g) ?? []).length, purchases.length + 1, item.key);
+                if (purchases.some(line => line.unitPrice == null)) assert.ok(html.includes('<td>—</td>'), item.key);
+                if (Number.isFinite(value.expense)) near(purchases.reduce((sum, line) => sum + line.total, 0), value.expense, item.key);
+                assert.ok(html.includes('Net kâr / gün'));
+                if (!largest || purchases.length > largest.count) largest = { item: item.key, mountItem, count: purchases.length };
+            }
+        }
+    }
+    assert.ok(largest.count >= 3);
+    console.log('Largest production ledger:', JSON.stringify(largest));
 });
 console.log(`${checks} island economy checks passed.`);

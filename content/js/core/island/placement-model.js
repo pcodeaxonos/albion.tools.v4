@@ -37,7 +37,7 @@ export function maximizeLinear(objective, constraints) {
 
 // Prices and quantities come exclusively from the island calculation engine.
 // Different feeds keep their own sale opportunity value and nutrition quantity.
-export function placementValue(fixed, options = [], remaining = 0) {
+export function placementValue(fixed, options = [], remaining = 0, { focusBudget = null } = {}) {
     const all = [...fixed, ...options];
     const supplies = new Map();
     const demands = new Map();
@@ -55,6 +55,10 @@ export function placementValue(fixed, options = [], remaining = 0) {
     const objective = [...options.map(profile => profile.net), ...edges.map(edge => edge.saving)];
     const constraints = [];
     if (count) constraints.push({ coefficients: [...options.map(() => 1), ...edges.map(() => 0)], capacity: remaining });
+    if (count && focusBudget != null) constraints.push({
+        coefficients: [...options.map(profile => profile.focusPerDay ?? 0), ...edges.map(() => 0)],
+        capacity: Math.max(0, focusBudget - fixed.reduce((sum, profile) => sum + (profile.focusPerDay ?? 0), 0))
+    });
     const supplyRows = new Map();
     for (const [id] of supplies) {
         supplyRows.set(id, constraints.length);
