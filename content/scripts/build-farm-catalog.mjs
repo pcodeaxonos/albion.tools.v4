@@ -3,6 +3,7 @@
  * Run: node scripts/build-farm-catalog.mjs
  */
 import fs from 'fs';
+import { seedFarmFocus } from './farm-focus-seed.mjs';
 
 const items = JSON.parse(fs.readFileSync('data/items.json', 'utf8'));
 const cities = JSON.parse(fs.readFileSync('data/cities.json', 'utf8'));
@@ -308,15 +309,24 @@ const islandPlots = [
 ];
 
 function write(name, data) {
+    if (name === 'plants' || name === 'animals') {
+        const existing = new Map((fs.existsSync(`data/${name}.json`)
+            ? JSON.parse(fs.readFileSync(`data/${name}.json`, 'utf8')) : []).map(row => [row.key, row]));
+        data = data.map(row => {
+            const previous = existing.get(row.key);
+            return previous && Object.hasOwn(previous, 'defaultFocusPerUse')
+                ? { ...row, defaultFocusPerUse: previous.defaultFocusPerUse } : row;
+        });
+    }
     fs.writeFileSync(`data/${name}.json`, `${JSON.stringify(data, null, 2)}\n`);
     console.log(`wrote data/${name}.json (${data.length})`);
 }
 
 write('yield-ladders', yieldLadders);
 write('yield-ladder-steps', yieldLadderSteps);
-write('plants', plants);
+write('plants', seedFarmFocus(plants, items, 'seedItemId'));
 write('plant-bonus-cities', plantBonusCities);
-write('animals', animals);
+write('animals', seedFarmFocus(animals, items, 'babyItemId'));
 write('animal-bonus-cities', animalBonusCities);
 write('island-plots', islandPlots);
 

@@ -12,6 +12,7 @@ export const TABLE_GROUPS = [
 ];
 
 const COL = {
+    defaultFocus: { name: 'defaultFocusPerUse', type: 'number', label: 'DEFAULT Focus / kullanım' },
     id: { name: 'id', type: 'number', editable: false },
     active: { name: 'isActive', type: 'boolean', label: 'Aktif' }
 };
@@ -208,6 +209,8 @@ export const tables = {
             { name: 'tier', type: 'number', label: 'Tier' },
             { name: 'vendorSilver', type: 'number', label: 'Vendor' },
             { name: 'seedItemId', type: 'number', label: 'Tohum item id' },
+            COL.defaultFocus,
+            { name: 'maxNurtureCount', type: 'number', label: 'Maksimum Focus kullanımı / cycle' },
             { name: 'plantItemId', type: 'number', label: 'Ürün item id' },
             { name: 'ladderId', type: 'ref', refTable: 'yieldLadders', refLabel: 'code', label: 'Merdiven' },
             { name: 'plotType', type: 'enum', options: ['farm', 'herb'], label: 'Plot' },
@@ -244,6 +247,7 @@ export const tables = {
             { name: 'tier', type: 'number', label: 'Tier' },
             { name: 'vendorSilver', type: 'number', label: 'Vendor' },
             { name: 'focusCost', type: 'number', label: 'Focus' },
+            COL.defaultFocus,
             { name: 'babyItemId', type: 'number', label: 'Yavru item id' },
             { name: 'grownItemId', type: 'number', label: 'Yetişkin item id' },
             { name: 'meatItemId', type: 'number', label: 'Et item id' },
@@ -704,7 +708,9 @@ export const tables = {
             { name: 'linkedLogId', type: 'number', label: 'Bağlı kayıt' },
             { name: 'premium', type: 'boolean', label: 'Premium' },
             { name: 'water', type: 'boolean', label: 'Sulama' },
-            { name: 'isOutlier', type: 'boolean', label: 'Şüpheli kayıt' }
+            { name: 'isOutlier', type: 'boolean', label: 'Şüpheli kayıt' },
+            { name: 'focusPerUse', type: 'number', label: 'Focus / kullanım' },
+            { name: 'focusObservedAt', type: 'string', label: 'Focus kayıt zamanı' }
         ]
     }
 };

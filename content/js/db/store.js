@@ -196,6 +196,27 @@ export async function initStore() {
         await seedTableIfEmpty(tableName);
     }
     migrateFixedPrices();
+    await migrateFarmFocus();
+}
+
+// Additive migration: preserve every existing row and any manually set value.
+// No general seed revision bump, which would discard user catalog edits.
+export async function migrateFarmFocus() {
+    const key = STORAGE_PREFIX + 'farmFocusMigration';
+    if (localStorage.getItem(key) === '1') return;
+    for (const tableName of ['plants', 'animals']) {
+        const seeds = await fetchSeedRows(tables[tableName]);
+        const byKey = new Map(seeds.map(row => [row.key, row]));
+        const rows = readRows(tableName).map(row => {
+            const seed = byKey.get(row.key);
+            if (!seed) return row;
+            return { ...row,
+                defaultFocusPerUse: Object.hasOwn(row, 'defaultFocusPerUse') ? row.defaultFocusPerUse : seed.defaultFocusPerUse,
+                maxNurtureCount: row.maxNurtureCount ?? seed.maxNurtureCount };
+        });
+        persistRows(tableName, rows);
+    }
+    localStorage.setItem(key, '1');
 }
 
 function readRows(tableName) {

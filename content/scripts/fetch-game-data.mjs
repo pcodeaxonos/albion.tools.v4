@@ -132,7 +132,9 @@ function collectItemMetadata(itemsRoot) {
                 shopCategory: node['@shopcategory'] ?? '',
                 shopSubCategory: node['@shopsubcategory1'] ?? '',
                 shopSubCategory2: node['@shopsubcategory2'] ?? '',
-                tradeable: parseBooleanAttribute(node['@tradable'])
+                tradeable: parseBooleanAttribute(node['@tradable']),
+                activeFarmFocusCost: node['@activefarmfocuscost'] == null ? null : Number(node['@activefarmfocuscost']),
+                activeFarmMaxCycles: node['@activefarmmaxcycles'] == null ? null : Number(node['@activefarmmaxcycles'])
             };
 
             if ((metadata.shopCategory || metadata.shopSubCategory || metadata.shopSubCategory2 || metadata.tradeable != null) && !map.has(uniqueName)) {
@@ -180,7 +182,8 @@ function normalizeItems(rawItems, metadataMap) {
             shopCategory: metadata.shopCategory,
             shopSubCategory: metadata.shopSubCategory,
             shopSubCategory2: metadata.shopSubCategory2,
-            tradeable: metadata.tradeable
+            tradeable: metadata.tradeable,
+            ...(metadata.activeFarmMaxCycles != null ? { activeFarmFocusCost: metadata.activeFarmFocusCost, activeFarmMaxCycles: metadata.activeFarmMaxCycles } : {})
         };
     });
 }
