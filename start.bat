@@ -173,9 +173,8 @@ goto WAITADC
 REM ============================================================
 REM ADC GUI'YI TASKBAR'DAN VE EKRANDAN GIZLE
 REM
-REM Debug ile tespit edilen pencere:
-REM Class = WailsWebviewWindow
-REM Title = Albion Data Client
+REM Pencereler ADC process kimliginden bulunur.
+REM Izleyici ADC kapanana kadar yeniden acilan pencereleri de gizler.
 REM
 REM WS_EX_TOOLWINDOW eklenir
 REM WS_EX_APPWINDOW kaldirilir
@@ -187,7 +186,7 @@ REM ============================================================
 
 timeout /t 1 /nobreak >nul
 
-powershell.exe -NoProfile -WindowStyle Hidden -Command "$code='using System; using System.Runtime.InteropServices; public static class W { [DllImport(\"user32.dll\",CharSet=CharSet.Unicode)] public static extern IntPtr FindWindow(string c,string t); [DllImport(\"user32.dll\",EntryPoint=\"GetWindowLongPtrW\")] public static extern IntPtr GetWindowLongPtr(IntPtr h,int i); [DllImport(\"user32.dll\",EntryPoint=\"SetWindowLongPtrW\")] public static extern IntPtr SetWindowLongPtr(IntPtr h,int i,IntPtr v); [DllImport(\"user32.dll\")] public static extern bool SetWindowPos(IntPtr h,IntPtr a,int x,int y,int cx,int cy,uint f); [DllImport(\"user32.dll\")] public static extern bool ShowWindow(IntPtr h,int n); }'; Add-Type -TypeDefinition $code; $end=(Get-Date).AddSeconds(10); do { $h=[W]::FindWindow('WailsWebviewWindow','Albion Data Client'); if($h -ne [IntPtr]::Zero){ $s=[W]::GetWindowLongPtr($h,-20).ToInt64(); $s=($s -bor 0x80) -band (-bnot 0x40000); [void][W]::SetWindowLongPtr($h,-20,[IntPtr]$s); [void][W]::SetWindowPos($h,[IntPtr]::Zero,0,0,0,0,0x27); [void][W]::ShowWindow($h,0); break }; Start-Sleep -Milliseconds 250 } while((Get-Date) -lt $end)" >nul 2>&1
+powershell.exe -NoProfile -WindowStyle Hidden -Command "Start-Process -FilePath 'powershell.exe' -ArgumentList '-NoProfile','-WindowStyle','Hidden','-ExecutionPolicy','Bypass','-File',('\"' + '%ROOT%\content\scripts\hide-adc.ps1' + '\"') -WindowStyle Hidden -RedirectStandardError '%LOGDIR%\hide-adc-error.log'"
 
 
 REM ============================================================
