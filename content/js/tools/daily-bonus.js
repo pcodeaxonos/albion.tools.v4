@@ -471,7 +471,7 @@ async function loadAnalysisPrices(familyKey, { forcePrices = false } = {}) {
         const settings = getSettings();
         const matCity = getCityApiName(family?.cityId) || 'Caerleon';
         const rows = recipes.map((recipe) => {
-            const market = quoteFromRow(cityRow(prices, recipe.uniqueName, 'Black Market'), settings.sellPriceSide, 'sell')?.price || 0;
+            const market = quoteFromRow(cityRow(prices, recipe.uniqueName, 'Black Market'), 'sell', 'sell')?.price || 0;
             const grossMaterial = recipe.lines.reduce((sum, line) => sum + ((quoteFromRow(cityRow(prices, line.uniqueName, matCity), settings.buyPriceSide, 'buy')?.price || 0) * line.qty), 0);
             const returnRate = analysisReturnRate(familyKey);
             const material = grossMaterial * (1 - returnRate);
@@ -578,7 +578,7 @@ function renderBonusAnalysisDialog() {
                     </header>
                     <section class="bonus-analysis-controls" aria-label="Analiz filtreleri">
                         <div class="bonus-analysis-select"><span>Bonus grubu</span><div class="bonus-analysis-family-tabs">${familyOptions}</div><small>${escapeHtml(getCityApiName(family?.cityId) || 'Caerleon')}</small></div>
-                        <div class="bonus-analysis-select"><span>Market</span><strong>Black Market</strong><small>Satış fiyatı</small></div>
+                        <div class="bonus-analysis-select"><span>Market</span><strong>Black Market</strong><small>En düşük satış emri −1</small></div>
                         <span class="bonus-analysis-rr-badge" title="${escapeHtml(rrTitle)}"><i aria-hidden="true">↻</i><span><b>RR %${formatAnalysisPercent(returnRate)}</b><small>Royal %${cityProductionBonus()} + yerel %${specialtyBonus} + günlük %${dailyBonus}</small></span></span>
                         <div class="bonus-analysis-tiers" role="group" aria-label="Tier seçimi">
                             ${ANALYSIS_TIERS.map((tier) => analysisTierButtonHtml(tier, tierFilters)).join('')}
@@ -995,6 +995,7 @@ function renderPage(container) {
         </section>`,
         controls: `
                 <div class="bonus-toolbar">
+                    <button type="button" class="btn btn-primary" data-bonus-refresh-prices>Fiyatları güncelle</button>
                     <div class="form-floating bonus-month-field">
                         <input type="month" class="form-control is-filled" id="bonusMonth" value="${escapeHtml(monthInput)}" placeholder=" ">
                         <label for="bonusMonth">Ay</label>
@@ -1059,6 +1060,32 @@ function renderPage(container) {
 
 function bindPage(container) {
     initFloatingLabels(container);
+
+    container.querySelector('[data-bonus-refresh-prices]')?.addEventListener('click', async (event) => {
+        const button = event.currentTarget;
+        const families = todayAnalysisFamilies();
+        if (!families.length) {
+            showToast('Bugün için kayıtlı craft bonusu yok.', { kind: 'error' });
+            return;
+        }
+        button.disabled = true;
+        button.setAttribute('aria-busy', 'true');
+        button.textContent = 'Fiyatlar güncelleniyor…';
+        try {
+            await Promise.all(families.map(async (family) => {
+                await analysisPendingLoads.get(family.familyKey);
+                await requestAnalysisLoad(family.familyKey, { forcePrices: true });
+            }));
+            const dialog = container.querySelector('#bonusAnalysisDialog');
+            if (dialog?.open) renderAnalysisDialog(dialog);
+            const error = families.map((family) => analysisData(family.familyKey).error).find(Boolean);
+            showToast(error || 'Fiyatlar güncellendi.', error ? { kind: 'error' } : {});
+        } finally {
+            button.disabled = false;
+            button.removeAttribute('aria-busy');
+            button.textContent = 'Fiyatları güncelle';
+        }
+    });
 
     container.querySelector('#openBonusAnalysis')?.addEventListener('click', () => openBonusAnalysis(container));
 
