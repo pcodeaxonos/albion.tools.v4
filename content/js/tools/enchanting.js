@@ -504,7 +504,7 @@ async function init() {
     const settings = getSettings();
     state.matSide = settings.buyPriceSide;
 
-    showPageLoader('Enchanting yükleniyor…');
+    showPageLoader();
     try {
         await initStore();
         state.slot = readSavedSlot();

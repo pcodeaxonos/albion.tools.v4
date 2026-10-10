@@ -70,7 +70,7 @@ function debounce(fn, ms) {
 
 async function boot() {
     initNav();
-    showPageLoader('Veritabanı yükleniyor…');
+    showPageLoader();
 
     try {
         await initStore();
@@ -198,7 +198,7 @@ function bindResetButton() {
             return;
         }
 
-        showPageLoader('Veritabanı sıfırlanıyor…');
+        showPageLoader();
 
         try {
             await resetAllTables();

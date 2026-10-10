@@ -907,7 +907,7 @@ async function init() {
     state.matSide = settings.buyPriceSide;
     state.itemSide = settings.sellPriceSide;
 
-    showPageLoader('Furniture yükleniyor…');
+    showPageLoader();
     try {
         await initStore();
         ensureManualMaps();

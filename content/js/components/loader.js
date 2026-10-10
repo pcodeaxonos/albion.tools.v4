@@ -9,24 +9,14 @@ const activeAreaLoaders = new Set();
 const overlayObservers = new WeakMap();
 
 let pinListening = false;
+let pageLoaderListening = false;
+let pageLoaderObserver = null;
 
 function spinnerMarkup() {
     return `
-        <div class="loader-sigil" aria-hidden="true">
-            <svg class="loader-sigil__svg" viewBox="0 0 72 72" fill="none">
-                <g class="loader-sigil__orbit loader-sigil__orbit--outer">
-                    <circle class="loader-sigil__gold" cx="36" cy="36" r="30" stroke-width="1.2"></circle>
-                    <path class="loader-sigil__gold" stroke-width="1.6" d="M36 4v6M36 62v6M4 36h6M62 36h6"></path>
-                    <path class="loader-sigil__gold" stroke-width="1.1" d="M14.4 14.4l4.2 4.2M53.4 53.4l4.2 4.2M53.4 14.4l4.2-4.2M14.4 57.6l4.2-4.2"></path>
-                </g>
-                <g class="loader-sigil__orbit loader-sigil__orbit--runes">
-                    <circle class="loader-sigil__gold" cx="36" cy="36" r="24" stroke-width="1" stroke-dasharray="1.6 5.2"></circle>
-                </g>
-                <g class="loader-sigil__orbit loader-sigil__orbit--inner">
-                    <circle class="loader-sigil__silver" cx="36" cy="36" r="16" stroke-width="1.15" stroke-dasharray="22 10" stroke-linecap="square"></circle>
-                </g>
-                <path class="loader-sigil__gem" d="M36 24 L46 36 L36 48 L26 36 Z"></path>
-            </svg>
+        <div class="at-classic-flip" role="status" aria-label="Yükleniyor">
+            <span class="at-classic-flip__shadow" aria-hidden="true"></span>
+            <span class="at-classic-flip__coin" aria-hidden="true"><i class="at-classic-flip__mark">◆</i></span>
         </div>
     `;
 }
@@ -62,14 +52,6 @@ function restorePosition(container) {
 }
 
 function getViewportClipTop() {
-    const status = document.getElementById('appStatus');
-    if (status) {
-        const style = getComputedStyle(status);
-        if (style.display !== 'none') {
-            return Math.max(0, status.getBoundingClientRect().bottom);
-        }
-    }
-
     const bar = document.querySelector('.app-topbar') || document.querySelector('.navbar');
     if (!bar) {
         return 0;
@@ -169,6 +151,70 @@ export function yieldToMain() {
     });
 }
 
+function toolPageFrame() {
+    return document.querySelector('main.tool-page');
+}
+
+function syncPageLoaderFrame(loader) {
+    const page = toolPageFrame();
+    if (!page) {
+        loader.classList.remove('is-tool-bound');
+        return;
+    }
+
+    const rect = page.getBoundingClientRect();
+    loader.style.setProperty('--page-loader-top', `${rect.top}px`);
+    loader.style.setProperty('--page-loader-left', `${rect.left}px`);
+    loader.style.setProperty('--page-loader-width', `${rect.width}px`);
+    loader.style.setProperty('--page-loader-height', `${rect.height}px`);
+    loader.classList.add('is-tool-bound');
+}
+
+function onPageLoaderFrame() {
+    const loader = document.querySelector('[data-page-loader]');
+    if (!loader || loader.hidden) {
+        return;
+    }
+
+    syncPageLoaderFrame(loader);
+}
+
+function watchPageLoader(loader) {
+    syncPageLoaderFrame(loader);
+
+    if (!pageLoaderListening) {
+        pageLoaderListening = true;
+        window.addEventListener('scroll', onPageLoaderFrame, { passive: true, capture: true });
+        window.addEventListener('resize', onPageLoaderFrame);
+    }
+
+    const page = toolPageFrame();
+    if (!page || typeof ResizeObserver === 'undefined') {
+        return;
+    }
+
+    pageLoaderObserver?.disconnect();
+    pageLoaderObserver = new ResizeObserver(onPageLoaderFrame);
+    pageLoaderObserver.observe(page);
+    requestAnimationFrame(onPageLoaderFrame);
+}
+
+function unwatchPageLoader(loader) {
+    if (pageLoaderListening) {
+        pageLoaderListening = false;
+        window.removeEventListener('scroll', onPageLoaderFrame, { capture: true });
+        window.removeEventListener('resize', onPageLoaderFrame);
+    }
+
+    pageLoaderObserver?.disconnect();
+    pageLoaderObserver = null;
+    loader.classList.remove('is-tool-bound');
+    loader.style.removeProperty('--page-loader-top');
+    loader.style.removeProperty('--page-loader-left');
+    loader.style.removeProperty('--page-loader-width');
+    loader.style.removeProperty('--page-loader-height');
+}
+
 export function showPageLoader(message) {
     const loader = document.querySelector('[data-page-loader]');
     if (!loader) {
@@ -179,6 +225,7 @@ export function showPageLoader(message) {
     loader.hidden = false;
     loader.removeAttribute('aria-hidden');
     document.body.classList.add('is-page-loading');
+    watchPageLoader(loader);
 }
 
 export function hidePageLoader() {
@@ -190,6 +237,7 @@ export function hidePageLoader() {
     loader.hidden = true;
     loader.setAttribute('aria-hidden', 'true');
     document.body.classList.remove('is-page-loading');
+    unwatchPageLoader(loader);
 }
 
 export function showAreaLoader(container, message) {

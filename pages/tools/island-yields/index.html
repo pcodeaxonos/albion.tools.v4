@@ -15,21 +15,9 @@
 <body>
     <div id="page-loader" class="page-loader" hidden aria-hidden="true" aria-live="polite">
         <div class="page-loader__inner">
-            <div class="loader-sigil" aria-hidden="true">
-                <svg class="loader-sigil__svg" viewBox="0 0 72 72" fill="none">
-                    <g class="loader-sigil__orbit loader-sigil__orbit--outer">
-                        <circle class="loader-sigil__gold" cx="36" cy="36" r="30" stroke-width="1.2"></circle>
-                        <path class="loader-sigil__gold" stroke-width="1.6" d="M36 4v6M36 62v6M4 36h6M62 36h6"></path>
-                        <path class="loader-sigil__gold" stroke-width="1.1" d="M14.4 14.4l4.2 4.2M53.4 53.4l4.2 4.2M53.4 14.4l4.2-4.2M14.4 57.6l4.2-4.2"></path>
-                    </g>
-                    <g class="loader-sigil__orbit loader-sigil__orbit--runes">
-                        <circle class="loader-sigil__gold" cx="36" cy="36" r="24" stroke-width="1" stroke-dasharray="1.6 5.2"></circle>
-                    </g>
-                    <g class="loader-sigil__orbit loader-sigil__orbit--inner">
-                        <circle class="loader-sigil__silver" cx="36" cy="36" r="16" stroke-width="1.15" stroke-dasharray="22 10" stroke-linecap="square"></circle>
-                    </g>
-                    <path class="loader-sigil__gem" d="M36 24 L46 36 L36 48 L26 36 Z"></path>
-                </svg>
+            <div class="at-classic-flip" role="status" aria-label="Yükleniyor">
+                <span class="at-classic-flip__shadow" aria-hidden="true"></span>
+                <span class="at-classic-flip__coin" aria-hidden="true"><i class="at-classic-flip__mark">◆</i></span>
             </div>
             <p class="loader-message" hidden></p>
         </div>

@@ -744,7 +744,7 @@ async function init() {
     state.matSide = settings.buyPriceSide;
     state.itemSide = settings.sellPriceSide;
 
-    showPageLoader('Caerleon craft yükleniyor…');
+    showPageLoader();
     try {
         await initStore();
         ensureManualMaps();

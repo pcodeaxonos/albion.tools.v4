@@ -12,7 +12,7 @@ async function init() {
         return;
     }
 
-    showPageLoader('Dashboard yükleniyor…');
+    showPageLoader();
 
     try {
         await initStore();

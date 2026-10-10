@@ -1,12 +1,10 @@
 // ============================================
-// Loader — page & area overlays (MMORPG seal)
+// Loader — page & area overlays (Classic Flip)
 // ============================================
 
 @use "variables" as *;
 
 :root {
-    --loader-accent-gold: #e8c36a;
-    --loader-accent-silver: #a8a8b0;
     --loader-overlay-bg: rgba(12, 12, 14, 0.8);
     --loader-area-overlay-bg: rgba(12, 12, 14, 0.7);
 }
@@ -31,6 +29,15 @@
     display: flex;
     align-items: center;
     justify-content: center;
+
+    // Match the tool surface. Pages without main.tool-page keep the viewport box.
+    &.is-tool-bound {
+        inset: auto;
+        top: var(--page-loader-top);
+        left: var(--page-loader-left);
+        width: var(--page-loader-width);
+        height: var(--page-loader-height);
+    }
 }
 
 .area-loader {
@@ -73,111 +80,95 @@
     line-height: 1.4;
 }
 
-.loader-sigil {
-    position: relative;
-    width: 4.25rem;
-    height: 4.25rem;
-    flex-shrink: 0;
-}
-
-.loader-sigil::before {
-    content: "";
-    position: absolute;
-    inset: 18%;
-    background: radial-gradient(
-        circle,
-        color-mix(in srgb, var(--loader-accent-gold) 38%, transparent),
-        transparent 70%
-    );
-    animation: loader-aura 2.4s ease-in-out infinite;
-}
-
-.loader-sigil__svg {
-    position: relative;
-    display: block;
-    width: 100%;
-    height: 100%;
-    overflow: visible;
-}
-
-.loader-sigil__orbit {
-    transform-origin: 36px 36px;
-    transform-box: view-box;
-}
-
-.loader-sigil__orbit--outer {
-    animation: loader-spin 7s linear infinite;
-}
-
-.loader-sigil__orbit--runes {
-    animation: loader-spin 3.6s linear infinite reverse;
-}
-
-.loader-sigil__orbit--inner {
-    animation: loader-spin 2.2s linear infinite;
-}
-
-.loader-sigil__gold {
-    stroke: var(--loader-accent-gold);
-}
-
-.loader-sigil__silver {
-    stroke: var(--loader-accent-silver);
-}
-
-.loader-sigil__gem {
-    fill: var(--loader-accent-gold);
-    transform-origin: 36px 36px;
-    transform-box: view-box;
-    filter: drop-shadow(0 0 5px color-mix(in srgb, var(--loader-accent-gold) 70%, transparent));
-    animation: loader-gem 1.8s ease-in-out infinite;
-}
-
 .has-area-loader {
     overflow: hidden;
 }
 
-@keyframes loader-spin {
-    to {
-        transform: rotate(360deg);
-    }
+/* Classic Flip — scoped coin. Asset values stay on the component. */
+.at-classic-flip {
+    --at-coin-size: 35px;
+    --at-coin-gold: #e7b75e;
+    --at-coin-light: #ffe09c;
+    --at-coin-speed: 2.2s;
+    position: relative;
+    width: 86px;
+    height: 86px;
+    display: inline-grid;
+    place-items: center;
+    flex: none;
+    isolation: isolate;
+    perspective: 220px;
 }
 
-@keyframes loader-aura {
+.at-classic-flip__shadow {
+    position: absolute;
+    width: 43px;
+    height: 6px;
+    top: 69px;
+    left: 22px;
+    border-radius: 50%;
+    background: #e0af5440;
+    filter: blur(4px);
+    animation: at-classic-shadow var(--at-coin-speed) ease-in-out infinite;
+}
+
+.at-classic-flip__coin {
+    position: absolute;
+    width: var(--at-coin-size);
+    height: var(--at-coin-size);
+    border: 3px solid #f2cb7e;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    background: linear-gradient(135deg, #8b622e, #f5ce81 52%, #a97937);
+    box-shadow: inset 0 0 0 2px #9c742c, 0 3px 0 #624b2e, 0 8px 14px #0006;
+    transform-style: preserve-3d;
+    backface-visibility: visible;
+    animation: at-classic-flip var(--at-coin-speed) ease-in-out infinite;
+}
+
+.at-classic-flip__mark {
+    font: 500 14px/1 system-ui, sans-serif;
+    color: #8b6129;
+    font-style: normal;
+}
+
+@keyframes at-classic-flip {
     0%,
     100% {
-        opacity: 0.35;
-        transform: scale(0.82);
+        transform: translateY(5px) rotateY(0deg) rotate(-8deg);
     }
 
-    50% {
-        opacity: 1;
-        transform: scale(1.08);
+    40% {
+        transform: translateY(-11px) rotateY(180deg) rotate(5deg);
+    }
+
+    70% {
+        transform: translateY(-7px) rotateY(360deg);
     }
 }
 
-@keyframes loader-gem {
+@keyframes at-classic-shadow {
     0%,
     100% {
         opacity: 0.7;
-        transform: scale(0.88);
+        transform: scale(1);
     }
 
-    50% {
-        opacity: 1;
-        transform: scale(1);
+    40% {
+        opacity: 0.32;
+        transform: scale(0.7);
+    }
+
+    70% {
+        opacity: 0.4;
+        transform: scale(0.8);
     }
 }
 
 @media (prefers-reduced-motion: reduce) {
-    .loader-sigil::before,
-    .loader-sigil__orbit,
-    .loader-sigil__gem {
+    .at-classic-flip__coin,
+    .at-classic-flip__shadow {
         animation: none;
-    }
-
-    .loader-sigil::before,
-    .loader-sigil__gem {
-        opacity: 0.9;
     }
 }

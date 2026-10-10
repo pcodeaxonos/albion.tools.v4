@@ -1275,7 +1275,7 @@ async function init() {
     state.rawSide = settings.buyPriceSide;
     state.itemSide = settings.sellPriceSide;
 
-    showPageLoader('Refining yükleniyor…');
+    showPageLoader();
     try {
         await initStore();
         state.cities = loadActiveCities();

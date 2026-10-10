@@ -833,7 +833,7 @@ async function init() {
     state.plantSide = settings.buyPriceSide;
     readPrefs();
 
-    showPageLoader('Farming yükleniyor…');
+    showPageLoader();
     try {
         await initStore();
         ensureManualMaps();

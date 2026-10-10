@@ -1238,7 +1238,7 @@ async function init() {
         return;
     }
 
-    showPageLoader('Günlük bonus yükleniyor…');
+    showPageLoader();
 
     try {
         await initStore();

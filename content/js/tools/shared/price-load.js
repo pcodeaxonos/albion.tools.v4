@@ -19,7 +19,7 @@ export async function runPriceLoad({
 
     const message = priceLoaderMessage(source, loadingText);
     if (showLoader) {
-        showPageLoader(message);
+        showPageLoader();
     } else if (area) {
         showAreaLoader(area, message);
     }

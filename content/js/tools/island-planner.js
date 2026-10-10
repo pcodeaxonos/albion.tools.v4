@@ -1484,7 +1484,7 @@ async function init() {
     state.sellSide = settings.sellPriceSide;
     readPrefs();
 
-    showPageLoader('Ada Planlayıcı yükleniyor…');
+    showPageLoader();
     try {
         await initStore();
         state.cities = await loadActiveCities();

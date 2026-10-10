@@ -1438,7 +1438,7 @@ async function init() {
     state.productSide = settings.sellPriceSide;
     readPrefs();
 
-    showPageLoader('Pasture yükleniyor…');
+    showPageLoader();
     try {
         await initStore();
         state.cities = loadActiveCities();

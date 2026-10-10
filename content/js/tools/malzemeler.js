@@ -749,7 +749,7 @@ async function init() {
     state.buySide = settings.buyPriceSide;
     state.sellSide = settings.sellPriceSide;
 
-    showPageLoader('Şehir Makası yükleniyor…');
+    showPageLoader();
     try {
         await initStore();
         state.cities = loadActiveCities();
