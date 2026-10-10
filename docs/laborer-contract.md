@@ -74,8 +74,24 @@ acceptance/thresholds, NPC acquisition quantity, weighted loot fame, yield, silv
 maxfame isolation, zero loot, carry-over, one advance per job, next-stage acceptance,
 T8, all professions, dynamic search, missing-price partial results, fees and time.
 
-Existing dashboard selection remains presentation state separate from starting
-tier. Desktop panels use bounded heights and internal scrollports; narrow screens
+The decision strip shows sell-now net proceeds, the verified total-net-profit
+option, and that option's planning time and capital. Profit per slot-day and
+marginal continuation stay in the comparison and the selected tier; they are
+not folded into the recommendation. A tier is recommended only when the existing
+total-profit optimum is a complete live or manual result whose route is not
+flagged as a limited priced-route search. Missing or stale prices are not
+treated as zero profit. When other tiers cannot be verified, the recommendation
+states how many were left out.
+
+Desktop layout is scenario controls, the decision strip, tier comparison, and
+the selected tier. Journal strategy, return yield, and setup start closed.
+Cost, journal plan, rewards, fees, and one price editor are disclosures.
+Missing, stale, and manual prices open that editor; each quote is editable
+once. Game data and debug start closed. Mechanic errors and missing-price
+alerts stay visible. Comparison rows stay in tier order.
+
+Row selection remains presentation state separate from the starting tier.
+Desktop panels use bounded heights and internal scrollports; narrow screens
 retain stacked flow. No independent market or fee implementation was introduced.
 
 Mechanical feasibility is calculated independently of all market quotes. If no
@@ -93,8 +109,9 @@ accepts an optional path to an actual AODP response and prints a Fletcher trace.
 
 Selected-tier missing prices are collected from the actual route purchase/reward
 quotes plus contract and market acquisition quotes. Unpriced optimizer alternatives
-are excluded. The existing scoped override controls appear together without an
-accordion; manually resolved entries stay visible for reset. Result price state is
-LIVE / MANUAL / STALE / MISSING. Overrides use server, item, city, book side and
-intent; reset deletes that exact key. No other-city, opposite-book or stale-price
-substitution was introduced. Mechanical planning remains unchanged.
+are excluded. Those quotes, the journal observation quotes, and other tiers'
+missing quotes share one editor. The same server, item, city, book side, and
+intent is not editable in a second place. Missing, stale, and manual entries
+are visible for correction or reset; reset deletes that exact key. Result price
+state is LIVE / MANUAL / STALE / MISSING. No other-city, opposite-book or
+stale-price substitution was introduced. Mechanical planning remains unchanged.

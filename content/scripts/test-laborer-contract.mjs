@@ -495,6 +495,33 @@ test('Fletcher T2 economic trace uses shared book semantics and preserves partia
             cycle: live.cycle, acquisition: 1000, contract: live.quote(target, 'sell'), result: live.values }, null, 2));
     }
 });
+const { verifiedRecommendation } = await load('content/js/tools/laborer-contract/recommend.js');
+const recommendationRow = (tier, profit, extra = {}) => ({
+    tier,
+    economics: { status: 'ok', profit, optimal: true, profitSlotDay: extra.profitSlotDay ?? profit, ...extra.economics },
+    priceState: { status: 'LIVE', missing: [], ...extra.priceState }
+});
+test('recommendation follows verified total profit and ignores missing prices', () => {
+    const priced = [recommendationRow(3, 100, { profitSlotDay: 100 }), recommendationRow(4, 200, { profitSlotDay: 1 }), recommendationRow(2, -20)];
+    const verified = verifiedRecommendation(priced);
+    assert.equal(verified.tier.tier, 4);
+    assert.equal(verified.metric, 'profit');
+    assert.equal(verified.excluded, 0);
+    assert.equal(verified.reason, null);
+    const missing = [...priced, { tier: 8, economics: { status: 'partial', profit: null, optimal: false }, priceState: { status: 'MISSING', missing: [{ status: 'missing' }] } }];
+    const partial = verifiedRecommendation(missing);
+    assert.equal(partial.tier.tier, 4);
+    assert.equal(partial.excluded, 1);
+    assert.equal(verifiedRecommendation([recommendationRow(2, -50), { tier: 8, economics: { status: 'partial', profit: null }, priceState: { status: 'MISSING', missing: [{ status: 'missing' }] } }]).tier.tier, 2);
+    const staleLeader = [recommendationRow(4, 500, { priceState: { status: 'STALE', missing: [{ status: 'stale' }] } }), recommendationRow(3, 100)];
+    assert.equal(verifiedRecommendation(staleLeader).tier, null);
+    assert.match(verifiedRecommendation(staleLeader).reason, /eski fiyat/);
+    const limited = [recommendationRow(5, 900, { economics: { optimal: false } }), recommendationRow(3, 100)];
+    assert.equal(verifiedRecommendation(limited).tier, null);
+    assert.match(verifiedRecommendation(limited).reason, /global seçenek/);
+    assert.equal(verifiedRecommendation([]).tier, null);
+    assert.match(verifiedRecommendation([]).reason, /tier yok/);
+});
 console.log(`OK ${checks} laborer calculation checks (XML mechanics, expected-loot scenarios and synthetic arithmetic fixtures)`);
 
 export { load, catalog, economics, planning, prices, progressionRules, indexPrices };
