@@ -91,6 +91,19 @@
     "navVisible": true
   },
   {
+    "id": "opportunities",
+    "title": "Günün Fırsatları",
+    "description": "Arşivdeki Buy ve Sell fiyatlarını 28 günlük medyanla karşılaştırır; anormal hareketleri sıralar.",
+    "icon": "🔎",
+    "addedAt": "2026-10-10",
+    "frequent": true,
+    "path": "pages/tools/opportunities",
+    "navLabel": "Günün Fırsatları",
+    "navGroup": "Piyasa",
+    "navOrder": 44,
+    "navVisible": true
+  },
+  {
     "id": "trades",
     "title": "Trade Dashboard",
     "description": "SAT trade geçmişi: filtre, özet ve canlı akış.",

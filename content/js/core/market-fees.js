@@ -1,4 +1,5 @@
 import { getEconomyConstant } from './catalog.js';
+import { purchaseCostFromRates, saleProceedsFromRates } from './market-fees.mjs';
 
 export function setupFeeRate() {
     return getEconomyConstant('setup_fee', 0.025);
@@ -27,13 +28,11 @@ export function placesOrder(intent, side) {
 }
 
 export function purchaseCost(price, { setup }) {
-    return setup ? price * (1 + setupFeeRate()) : price;
+    return purchaseCostFromRates(price, { setup, setupFeeRate: setupFeeRate() });
 }
 
 export function saleProceeds(price, { premium, setup }) {
-    const tax = salesTaxRate(premium);
-    const fee = setup ? setupFeeRate() : 0;
-    return price * (1 - tax - fee);
+    return saleProceedsFromRates(price, { taxRate: salesTaxRate(premium), setup, setupFeeRate: setupFeeRate() });
 }
 
 export function feeMetaText(premium) {

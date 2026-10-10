@@ -101,13 +101,16 @@ class PacketHistory extends OrderPriceHistory {
     prune(at = packetNow) { return super.prune(at); }
 }
 const context = vm.createContext({ console, URL, URLSearchParams, Map, Set, Buffer,
-    startQuoteService: () => ({ repository: { flush() {} }, collector: { state: {} } }),
+    startQuoteService: () => ({ repository: { flush() {} }, collector: { state: {}, noteDiscovery() {} } }),
+    locationNamesByIndex: () => new Map(),
+    createNatsMarketAdapter: () => ({ start() {}, snapshot: () => ({ status: 'off' }) }),
     process: { env: {}, argv: [] }, Date: PacketDate, Promise, OrderPriceHistory: PacketHistory, ORDER_HISTORY_POLICY,
     normalizePriceDate, marketSeriesKey, BOOK_PRICE_FIELDS,
     readFileSync: path => {
         if (String(path).endsWith('price-servers.json')) return JSON.stringify(servers.map(code => ({ code })));
         if (String(path).endsWith('price-hub-config.json')) return '{"server":"europe"}';
         if (String(path).endsWith('locations.json')) return '[{"index":"3005","uniqueName":"Martlock"}]';
+        if (String(path).endsWith('cities.json')) return '[{"isActive":true,"marketApiName":"Martlock"}]';
         if (files.has(path)) return files.get(path);
         const error = new Error('missing'); error.code = 'ENOENT'; throw error;
     }, writeFileSync: diskWrite, renameSync: (from, to) => { files.set(to, files.get(from)); files.delete(from); },

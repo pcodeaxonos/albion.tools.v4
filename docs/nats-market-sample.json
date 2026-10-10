@@ -1,0 +1,59 @@
+{
+  "kind": "albion.tools.nats-market-sample",
+  "server": "europe",
+  "subject": "marketorders.deduped",
+  "startedAt": "2026-10-10T09:13:59.719Z",
+  "elapsedMs": 600031,
+  "complete": true,
+  "cities": {
+    "Caerleon": 6074
+  },
+  "bookLimit": {
+    "snapshotAvailable": false,
+    "reason": "NATS marketorders.deduped has no snapshot and no delete event. Absence is not a cancellation until the documented multi-hour timeout."
+  },
+  "status": "live",
+  "messages": 16021,
+  "validOrders": 15817,
+  "invalidOrders": 204,
+  "duplicateOrders": 0,
+  "items": 390,
+  "cells": 1163,
+  "buy": 2228,
+  "sell": 13589,
+  "inScope": 6074,
+  "outOfScope": 9743,
+  "qualities": {
+    "1": 8107,
+    "2": 3281,
+    "3": 2735,
+    "4": 1482,
+    "5": 212
+  },
+  "shapes": {
+    "order": 16021
+  },
+  "reasons": {
+    "expired": 204
+  },
+  "singleOrderCells": 563,
+  "multiOrderCells": 600,
+  "reliableBooks": 0,
+  "reconnects": 0,
+  "delayKnown": false,
+  "dedupeWindowMs": 300000,
+  "firstOrderKeys": [
+    "Id",
+    "ItemTypeId",
+    "ItemGroupTypeId",
+    "LocationId",
+    "QualityLevel",
+    "EnchantmentLevel",
+    "UnitPriceSilver",
+    "Amount",
+    "AuctionType",
+    "Expires"
+  ],
+  "lastMessageAt": "2026-10-10T09:23:59.557Z",
+  "lastError": null
+}

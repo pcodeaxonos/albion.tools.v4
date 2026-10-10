@@ -17,6 +17,8 @@ import { normalizePriceDate, marketSeriesKey, BOOK_PRICE_FIELDS } from '../js/co
 import { ORDER_HISTORY_POLICY } from '../js/core/market-history-config.mjs';
 import { OrderPriceHistory } from '../js/core/order-price-history.mjs';
 import { startQuoteService } from './quote-service.mjs';
+import { locationNamesByIndex } from '../js/core/market-catalog.mjs';
+import { createNatsMarketAdapter } from './aodp-nats-adapter.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 // The hub lives in content/scripts; persistent data and game catalogs belong
@@ -79,6 +81,17 @@ loadCache();
 loadOrderHistory();
 loadLocalDataFile();
 const quoteService = startQuoteService({ root: ROOT, server: MARKET_SERVER, packetHistory: orderHistory });
+const priceServers = JSON.parse(readFileSync(join(ROOT, 'data', 'price-servers.json'), 'utf8'));
+const locationRows = JSON.parse(readFileSync(LOCATIONS_PATH, 'utf8'));
+const cityRows = JSON.parse(readFileSync(join(ROOT, 'data', 'cities.json'), 'utf8'));
+const natsAdapter = createNatsMarketAdapter({
+    mode: hubConfig.nats === 'telemetry' ? 'telemetry' : 'off',
+    endpoint: priceServers.find((row) => row.code === MARKET_SERVER)?.nats,
+    locationNames: locationNamesByIndex(locationRows, cityRows),
+    cities: cityRows.filter((row) => row.isActive && row.marketApiName).map((row) => row.marketApiName),
+    onDiscovery: (itemIds) => quoteService.collector.noteDiscovery?.(itemIds)
+});
+natsAdapter.start();
 
 // Quiet hubs also prune expired historical observations and persist the removal.
 setInterval(() => {
@@ -142,6 +155,25 @@ async function route(req, res, url, path) {
             references: quoteService.references({ requestedServer,
                 items: splitCsv(url.searchParams.get('items')), locations: splitCsv(url.searchParams.get('locations')),
                 qualities: qualities.length ? qualities.map(Number) : [1], sides: sides.length ? sides : ['buy', 'sell'] }) });
+        return;
+    }
+    if (req.method === 'GET' && (path === '/api/v1/market/opportunities' || path === '/api/v1/market/opportunity-series')) {
+        if (quoteService.error) {
+            sendJson(res, 503, { error: `AODP repository unavailable: ${quoteService.error}` }); return;
+        }
+        const requestedServer = url.searchParams.get('server');
+        if (requestedServer !== MARKET_SERVER) {
+            sendJson(res, 400, { error: 'Hub server differs from requested server', server: MARKET_SERVER });
+            return;
+        }
+        if (path === '/api/v1/market/opportunity-series') {
+            const itemId = url.searchParams.get('item');
+            const city = url.searchParams.get('location');
+            if (!itemId || !city) { sendJson(res, 400, { error: 'Item and location required' }); return; }
+            sendJson(res, 200, quoteService.opportunitySeries({ requestedServer, itemId, city, quality: url.searchParams.get('quality') || 1 }));
+            return;
+        }
+        sendJson(res, 200, quoteService.opportunityScan({ requestedServer, premium: url.searchParams.get('premium') !== '0' }));
         return;
     }
     if (req.method === 'GET' && path === '/pow') {
@@ -292,6 +324,7 @@ function statusPayload(adcProcess = null) {
         host: `http://${HOST}:${PORT}`,
         startedAt,
         collector: quoteService.collector.state,
+        nats: natsAdapter.snapshot(),
         lastIngestAt,
         lastClientAt,
         lastIngestPath,

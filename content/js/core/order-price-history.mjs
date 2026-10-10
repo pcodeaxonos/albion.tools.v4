@@ -82,6 +82,12 @@ export class OrderPriceHistory {
                 buckets: [...buckets.values()].sort((a, b) => stamp(a.bucketAt) - stamp(b.bucketAt)) })) };
     }
 
+    identities(now = Date.now()) {
+        this.prune(now);
+        return [...this.series.values()].map(({ server, itemId, city, quality, side }) => (
+            { server, itemId, city, quality, side }));
+    }
+
     seriesFor(identity, now = Date.now()) {
         const series = this.series.get(marketSeriesKey(identity));
         if (!series) return null;

@@ -4,6 +4,7 @@
     "code": "europe",
     "label": "Europe",
     "host": "https://europe.albion-online-data.com",
+    "nats": "nats://public:thenewalbiondata@nats.albion-online-data.com:34222",
     "sortValue": 10
   },
   {
@@ -11,6 +12,7 @@
     "code": "west",
     "label": "Americas",
     "host": "https://west.albion-online-data.com",
+    "nats": "nats://public:thenewalbiondata@nats.albion-online-data.com:4222",
     "sortValue": 20
   },
   {
@@ -18,6 +20,7 @@
     "code": "east",
     "label": "Asia",
     "host": "https://east.albion-online-data.com",
+    "nats": "nats://public:thenewalbiondata@nats.albion-online-data.com:24222",
     "sortValue": 30
   }
 ]

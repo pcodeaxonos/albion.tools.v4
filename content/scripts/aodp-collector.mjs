@@ -33,7 +33,7 @@ export function requestAodp(url, timeoutMs) {
 }
 
 export function createAodpCollector({ host, server, ids, cities, repository,
-    policy = AODP_COLLECTOR_POLICY, request = requestAodp, now = Date.now,
+    policy = AODP_COLLECTOR_POLICY, collectionPlan = null, request = requestAodp, now = Date.now,
     sleep = ms => new Promise(resolve => setTimeout(resolve, ms)), log = console.log,
     timers = { setTimeout, clearTimeout } }) {
     const state = { status: 'scheduled', server, itemCount: ids.length, cityCount: cities.length,
@@ -50,8 +50,13 @@ export function createAodpCollector({ host, server, ids, cities, repository,
                 blockedUntil = 0;
             }
             summary.requests++;
+            if (collectionPlan && !collectionPlan.allowRequest(now())) {
+                const error = new Error('AODP request budget reached'); error.status = 429; error.budget = true; throw error;
+            }
+            collectionPlan?.noteRequest(now());
             try { return await request(url, policy.timeoutMs); }
             catch (error) {
+                if (error.budget) throw error;
                 if (error.status === 429) blockedUntil = now() + Math.max(error.retryAfterMs || 0, policy.retryBaseMs * 2 ** attempt);
                 if (attempt >= policy.retries || (error.status && error.status !== 429 && error.status < 500)) throw error;
                 if (error.status !== 429) await sleep(Math.min(policy.maxRetryMs, policy.retryBaseMs * 2 ** attempt));
@@ -61,11 +66,21 @@ export function createAodpCollector({ host, server, ids, cities, repository,
     async function run() {
         if (running || stopped) return;
         running = true; state.status = 'collecting';
-        const summary = { fetchedAt: new Date(now()).toISOString(), items: ids.length, cities: cities.length,
-            batches: 0, requests: 0, buy: 0, sell: 0, observations: 0, duplicates: 0, invalid: 0, stale: 0, errors: [] };
+        const due = collectionPlan ? collectionPlan.dueIds(now()) : ids;
+        const summary = { fetchedAt: new Date(now()).toISOString(), items: due.length, cities: cities.length,
+            batches: 0, requests: 0, buy: 0, sell: 0, observations: 0, duplicates: 0, invalid: 0, stale: 0,
+            deferred: false, errors: [] };
+        if (!due.length) {
+            state.status = 'ok'; state.lastRun = summary;
+            if (collectionPlan) state.collection = collectionPlan.publicState(now());
+            state.coverage = repository.coverage?.(now()) || null;
+            running = false; return summary;
+        }
         try {
             const makeUrl = batch => aodpUrl(host, 'prices', batch, cities, policy.quality);
-            for (const batch of priceBatches(ids, makeUrl, policy.maxUrlLength)) {
+            const completed = [];
+            for (const batch of priceBatches(due, makeUrl, policy.maxUrlLength)) {
+                if (collectionPlan && !collectionPlan.allowRequest(now())) { summary.deferred = true; break; }
                 summary.batches++;
                 try {
                     const rows = await fetchRows(makeUrl(batch), summary);
@@ -84,19 +99,32 @@ export function createAodpCollector({ host, server, ids, cities, repository,
                         }
                     }
                     repository.flush(now());
-                } catch (error) { summary.errors.push(error.message); }
+                    completed.push(...batch);
+                    collectionPlan?.notePrices(rows.flatMap((row) => Object.entries(BOOK_PRICE_FIELDS).map(([side, field]) => ({
+                        itemId: row.item_id, city: row.city, side, price: Number(row[field])
+                    }))), now());
+                } catch (error) {
+                    if (error.budget) { summary.deferred = true; break; }
+                    summary.errors.push(error.message);
+                }
                 await sleep(policy.requestGapMs);
             }
+            collectionPlan?.noteFetched(completed, now());
             // Sales averages are anchors only; never inserted as Sell/Buy quote observations.
-            const refreshIds = ids.filter(id => cities.some(city => {
+            const preferred = collectionPlan?.preferredIds;
+            const refreshIds = due.filter(id => cities.some(city => {
                 const anchor = repository.anchor(id, city, policy.quality, server);
                 return !anchor || now() - Date.parse(anchor.fetchedAt) >= policy.anchorRefreshMs;
             }));
             const end = new Date(now());
             const start = new Date(now() - LONG_TERM_STRATEGIES['median-28d'].windowMs);
+            if (preferred?.size) refreshIds.sort((a, b) => Number(preferred.has(b)) - Number(preferred.has(a)));
             const historyUrl = batch => aodpUrl(host, 'history', batch, cities, policy.quality,
                 { date: start.toISOString().slice(0, 10), end_date: end.toISOString().slice(0, 10), 'time-scale': '24' });
-            for (const batch of priceBatches(refreshIds, historyUrl, policy.maxUrlLength)) {
+            const historyBatches = priceBatches(refreshIds, historyUrl, policy.maxUrlLength);
+            const historyCap = collectionPlan ? collectionPlan.historyBatchCap : historyBatches.length;
+            for (const batch of historyBatches.slice(0, historyCap)) {
+                if (collectionPlan && !collectionPlan.allowRequest(now())) { summary.deferred = true; break; }
                 try {
                     const rows = await fetchRows(historyUrl(batch), summary);
                     for (const row of rows) if (inScope(row) && Array.isArray(row.data)) repository.setAnchor({ ...row, quality: Number(row.quality),
@@ -106,7 +134,10 @@ export function createAodpCollector({ host, server, ids, cities, repository,
                         repository.setAnchor({ item_id: id, location: city, quality: policy.quality, server,
                             data: [], fetchedAt: new Date(now()).toISOString(), source: 'aodp-sales-history' }, now());
                     repository.flush(now());
-                } catch (error) { summary.errors.push(error.message); }
+                } catch (error) {
+                    if (error.budget) { summary.deferred = true; break; }
+                    summary.errors.push(error.message);
+                }
                 await sleep(policy.requestGapMs);
             }
             repository.flush(now());
@@ -115,6 +146,8 @@ export function createAodpCollector({ host, server, ids, cities, repository,
         } catch (error) { summary.errors.push(error.message); state.status = 'error'; }
         finally {
             state.lastRun = summary; running = false;
+            if (collectionPlan) state.collection = collectionPlan.publicState(now());
+            state.coverage = repository.coverage?.(now()) || null;
             log(`[AODP collector] ${JSON.stringify(summary)}`);
         }
         return summary;
@@ -122,9 +155,18 @@ export function createAodpCollector({ host, server, ids, cities, repository,
     function schedule(delay) {
         if (stopped) return;
         state.nextRunAt = new Date(now() + delay).toISOString();
-        timer = timers.setTimeout(async () => { await run(); schedule(Math.max(policy.intervalMs, blockedUntil - now())); }, delay);
+        timer = timers.setTimeout(async () => {
+            await run();
+            schedule(Math.max(collectionPlan ? collectionPlan.tickMs : policy.intervalMs, blockedUntil - now()));
+        }, delay);
         timer?.unref?.();
     }
-    return { state, run, start() { if (timer === null && !stopped) schedule(policy.initialDelayMs); },
-        stop() { stopped = true; timers.clearTimeout(timer); } };
+    return {
+        state, run,
+        noteOpportunities(itemIds, at = now()) { collectionPlan?.noteOpportunities(itemIds, at); },
+        noteWatched(itemIds, at = now()) { collectionPlan?.noteWatched(itemIds, at); },
+        noteDiscovery(itemIds, at = now()) { return collectionPlan?.noteDiscovery(itemIds, at) || 0; },
+        start() { if (timer === null && !stopped) schedule(policy.initialDelayMs); },
+        stop() { stopped = true; timers.clearTimeout(timer); }
+    };
 }

@@ -62,6 +62,21 @@ export class QuoteHistoryRepository {
             && row.item_id && row.location && Number.isInteger(row.quality) && row.quality >= 1 && row.quality <= 5
             && Array.isArray(row.data) && Number.isFinite(Date.parse(row.fetchedAt));
     }
+    coverage(now) {
+        const hour = 60 * 60 * 1000;
+        let fresh1h = 0, fresh6h = 0, fresh24h = 0, sourceFresh6h = 0;
+        const cells = new Set();
+        for (const row of this.current.values()) {
+            const polled = now - Date.parse(row.fetchedAt);
+            const source = now - Date.parse(row.sourceQuoteAt);
+            cells.add(`${row.itemId}|${row.city}|${row.quality}`);
+            if (polled <= hour) fresh1h += 1;
+            if (polled <= 6 * hour) fresh6h += 1;
+            if (polled <= 24 * hour) fresh24h += 1;
+            if (source <= 6 * hour) sourceFresh6h += 1;
+        }
+        return { series: this.history.series.size, currentQuotes: this.current.size, cells: cells.size, fresh1h, fresh6h, fresh24h, sourceFresh6h };
+    }
     record(observation, now) {
         const at = Date.parse(normalizePriceDate(observation.sourceQuoteAt));
         const fetched = Date.parse(normalizePriceDate(observation.fetchedAt));
@@ -117,6 +132,7 @@ export class QuoteHistoryRepository {
         for (const [key, row] of this.anchors) if (now - Date.parse(row.fetchedAt) > this.history.policy.retentionMs) this.anchors.delete(key);
     }
     snapshot(now = Date.now()) { return this.history.snapshot(now); }
+    identities(now = Date.now()) { return this.history.identities(now); }
     seriesFor(identity, now = Date.now()) { return this.history.seriesFor(identity, now); }
     anchor(item, city, quality, server) { return this.anchors.get(salesKey(server, item, city, quality)); }
     currentQuote(identity) { return this.current.get(marketSeriesKey(identity)); }

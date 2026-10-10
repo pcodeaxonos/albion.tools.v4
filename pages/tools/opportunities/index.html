@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <base href="../../../">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Günün Fırsatları - Albion Tools</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+    <link rel="stylesheet" href="output/css/site.css">
+    <link rel="icon" type="image/png" href="assets/favicon.png?v=2">
+    <link rel="apple-touch-icon" href="assets/favicon.png?v=2">
+</head>
+<body>
+    <div data-page-loader class="page-loader" hidden aria-hidden="true" aria-live="polite">
+        <div class="page-loader__inner">
+            <div class="at-classic-flip" role="status" aria-label="Yükleniyor">
+                <span class="at-classic-flip__shadow" aria-hidden="true"></span>
+                <span class="at-classic-flip__coin" aria-hidden="true"><i class="at-classic-flip__mark">◆</i></span>
+            </div>
+            <p class="loader-message" hidden></p>
+        </div>
+    </div>
+
+    <div class="app-shell">
+        <aside data-app-sidebar class="app-sidebar" aria-label="Site menüsü"></aside>
+        <div class="app-content">
+            <header class="app-topbar">
+                <button type="button" class="sidebar-toggler" aria-controls="appSidebar" aria-expanded="false" aria-label="Menüyü aç">
+                    <span class="sidebar-toggler-icon"></span>
+                </button>
+                <a class="app-brand" data-route-id="home" href="/">Albion Tools</a>
+            </header>
+            <main role="main" class="tool-page opp-page" data-opportunities></main>
+        </div>
+    </div>
+
+    <script type="module" src="content/js/tools/opportunities.js"></script>
+</body>
+</html>

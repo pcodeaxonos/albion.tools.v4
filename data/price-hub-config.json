@@ -1,3 +1,4 @@
 {
-  "server": "europe"
+  "server": "europe",
+  "nats": "telemetry"
 }

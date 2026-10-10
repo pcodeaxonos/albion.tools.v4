@@ -6,7 +6,7 @@ import { QuoteHistoryRepository } from './quote-history-repository.mjs';
 import { startQuoteService } from './quote-service.mjs';
 import { OrderPriceHistory } from '../js/core/order-price-history.mjs';
 import { selectLongTermReference, quoteHistoryReference, estimateLongTermReference } from '../js/core/long-term-price.mjs';
-import { AODP_COLLECTOR_POLICY, DAY_MS, ORDER_HISTORY_POLICY, LONG_TERM_STRATEGIES } from '../js/core/market-history-config.mjs';
+import { AODP_COLLECTOR_POLICY, DAY_MS, MARKET_COLLECTION_POLICY, ORDER_HISTORY_POLICY, LONG_TERM_STRATEGIES } from '../js/core/market-history-config.mjs';
 import { islandMarketItemIds, islandMarketCities } from '../js/core/island/market-scope.mjs';
 
 const dir = mkdtempSync(join(process.cwd(), '.test-albion-quotes-'));
@@ -192,7 +192,7 @@ try {
             assert.equal(callbacks.length, 1); service.collector.start(); assert.equal(callbacks.length, 1);
             assert.equal(callbacks[0].delay, AODP_COLLECTOR_POLICY.initialDelayMs);
             await callbacks[0].callback();
-            assert.ok(requests.some(url => url.includes('/prices/'))); assert.equal(callbacks[1].delay, AODP_COLLECTOR_POLICY.intervalMs);
+            assert.ok(requests.some(url => url.includes('/prices/'))); assert.equal(callbacks[1].delay, MARKET_COLLECTION_POLICY.tickMs);
             assert.equal(service.collector.state.status, 'ok');
             assert.equal(service.repository.snapshot(now).series.every(s => s.buckets.every(p => p.source === 'aodp-current')), true);
             const refs = service.references({ requestedServer: 'europe', items: [service.repository.snapshot(now).series[0].itemId], locations: ['Martlock'], now });

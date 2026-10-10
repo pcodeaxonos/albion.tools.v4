@@ -76,8 +76,8 @@ export function orderLongTermReference(series, options = {}) {
             referenceType: 'order-book-observation' } });
 }
 
-/** Select one source per UTC bucket before giving completed days equal weight. */
-export function quoteHistoryReference(seriesList, options = {}) {
+/** One price per UTC hour. Packet observations outrank AODP when both occupy the hour. */
+export function mergedQuotePoints(seriesList) {
     const representatives = new Map();
     const priority = LONG_TERM_SELECTION.sourcePriority;
     for (const series of seriesList || []) for (const point of series.buckets || []) {
@@ -90,7 +90,12 @@ export function quoteHistoryReference(seriesList, options = {}) {
         if (rank < 0) continue;
         if (!previous || rank < priority.indexOf(previous.source)) representatives.set(bucket, { ...point, source });
     }
-    const points = [...representatives.values()];
+    return [...representatives.values()];
+}
+
+/** Select one source per UTC bucket before giving completed days equal weight. */
+export function quoteHistoryReference(seriesList, options = {}) {
+    const points = mergedQuotePoints(seriesList);
     const reference = estimateLongTermReference(points, { ...options, source: 'quote-history' });
     const end = Date.parse(reference.endAt), start = Date.parse(reference.startAt);
     const valid = points.filter(p => {

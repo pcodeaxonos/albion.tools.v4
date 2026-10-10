@@ -2,12 +2,12 @@ import { escapeHtml } from '../utils/utils.js';
 import { placesOrder } from './market-fees.js';
 import { itemIconHtml } from '../components/item-icon.js';
 import { parseSortNumber } from '../utils/table-sort.js';
-import { normalizePriceDate } from './market-primitives.mjs';
+import { normalizePriceDate, bookTick, quotedBookPrice } from './market-primitives.mjs';
+import { PRICE_STALE_MS } from './market-history-config.mjs';
 export { normalizePriceDate } from './market-primitives.mjs';
+export { PRICE_STALE_MS } from './market-history-config.mjs';
 
 export const PRICE_SIDES = ['buy', 'sell'];
-/** Prices older than this are still shown, but marked stale (blue). */
-export const PRICE_STALE_MS = 6 * 60 * 60 * 1000;
 /** How long a live price % delta stays on the field. */
 export const PRICE_DELTA_MS = 60_000;
 /** Skip "=" highlight when the same silver is re-touched within this window. */
@@ -80,10 +80,10 @@ export function quoteFromRow(row, side, intent) {
         if (!row || !(row.buy_price_max > 0)) {
             return null;
         }
-        const tick = intent === 'buy' ? 1 : 0;
+        const tick = bookTick('buy', intent);
         const date = normalizePriceDate(row.buy_price_max_date);
         return {
-            price: row.buy_price_max + tick,
+            price: quotedBookPrice(row.buy_price_max, 'buy', intent),
             book: row.buy_price_max,
             date,
             stale: isStalePriceDate(date),
@@ -98,10 +98,10 @@ export function quoteFromRow(row, side, intent) {
         return null;
     }
 
-    const tick = intent === 'sell' ? -1 : 0;
+    const tick = bookTick('sell', intent);
     const date = normalizePriceDate(row.sell_price_min_date);
     return {
-        price: Math.max(1, row.sell_price_min + tick),
+        price: quotedBookPrice(row.sell_price_min, 'sell', intent),
         book: row.sell_price_min,
         date,
         stale: isStalePriceDate(date),

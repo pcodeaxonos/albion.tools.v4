@@ -1,5 +1,7 @@
 const HOUR_MS = 60 * 60 * 1000;
 export const DAY_MS = 24 * HOUR_MS;
+/** Quotes older than this stay visible elsewhere, but are not current opportunities. */
+export const PRICE_STALE_MS = 6 * HOUR_MS;
 
 /** Storage policy, not a claim about estimator confidence. */
 export const ORDER_HISTORY_POLICY = Object.freeze({
@@ -31,6 +33,23 @@ export const LONG_TERM_SELECTION = Object.freeze({
     sourcePriority: ['market-order-packets', 'aodp-current'],
     // Any completed day meeting strategy coverage is usable. No 28-day warm-up.
     quoteMinCompletedDays: 1
+});
+
+/**
+ * REST cadence is computed from the live batch count and these official AODP caps.
+ * Class labels are dynamic; the targets are not per-item rules.
+ * https://www.albion-online-data.com/api/ — 180/minute and 300/5 minutes.
+ */
+export const MARKET_COLLECTION_POLICY = Object.freeze({
+    rateLimitPerMinute: 180,
+    rateLimitPerFiveMin: 300,
+    budgetRatio: 0.8,
+    targets: Object.freeze({ A: 15 * 60 * 1000, B: HOUR_MS, C: 4 * HOUR_MS }),
+    tickMs: 60 * 1000,
+    classARecentMs: 6 * HOUR_MS,
+    classBMinSamples: 4,
+    historyBatchCap: 4,
+    dedupeWindowMs: 5 * 60 * 1000
 });
 
 export const AODP_HISTORY_POLICY = Object.freeze({ ...ORDER_HISTORY_POLICY,
