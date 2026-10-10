@@ -22,6 +22,12 @@ Pages with filters/forms plus a result or table use `.tool-split`:
 - Place fee, RR, scenario, profitability, and timestamp notes below the result/table.
 - Never use `overflow: hidden` to suppress page scrolling or force a table into view. Establish a bounded flex/grid height chain with `min-height: 0`, then assign `overflow: auto` to the intended table or panel scrollport. Use clipping only for deliberate visual clipping (such as media) and document the reason.
 
+## Standard form inputs
+
+- New inputs must follow the existing shared form standard, including field structure, labels, dimensions, spacing, and interaction states.
+- Reuse shared form components and classes (such as `.form-floating` and `.form-control`) instead of introducing a custom appearance for an individual input.
+- Do not add input-specific CSS to bypass the shared standard. Extend the shared form primitive when a reusable capability is needed.
+
 ## Editable log tables
 
 - Use `.table.table-striped.log-table.calc-table` for editable day/month logs.
@@ -35,6 +41,15 @@ Pages with filters/forms plus a result or table use `.tool-split`:
 - Include an empty `<button class="app-dialog-close" aria-label="Kapat" data-*-close></button>` as the direct close control.
 - The shared CSS draws its X with pseudo-elements; do not add an X glyph, SVG, or text.
 - The close button sits outside the dialog on the right. Keep the dialog `overflow: visible`, scroll the inner sheet, and reserve room in the dialog max-width.
+
+## Item visuals
+
+Item and material images that sit in a row, cell, card, or other slot with spare space use `.item-visual`.
+
+- Wrap the image in `<span class="item-visual">`. `itemIconHtml(id, { visual: true })` does this.
+- Keep `.item-icon` on the image. Do not set a fixed width or height on that image, and do not add a page-specific icon size.
+- The slot stretches to the free block size of its table cell or grid row, stays square, and the image fills it. A grid row uses `grid-template-columns: auto …` so the slot can take that block size.
+- Use a fixed size only for a slot that must stay small, such as an autocomplete row, chip, form aside, or map marker. Those do not use `.item-visual`.
 
 ## DOM selectors
 

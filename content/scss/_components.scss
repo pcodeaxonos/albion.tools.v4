@@ -1931,6 +1931,49 @@ input[type="month"].form-control {
     }
 }
 
+// Square slot for item and material art. The image is taken out of flow so
+// its file size cannot stretch the row. The slot then uses the free block
+// size of that row or cell, and the image fills the square.
+.item-visual {
+    position: relative;
+    display: flex;
+    align-self: stretch;
+    justify-self: start;
+    flex: 0 0 auto;
+    box-sizing: border-box;
+    width: auto;
+    height: auto;
+    min-width: 1.75rem;
+    min-height: 1.75rem;
+    aspect-ratio: 1;
+
+    > .item-icon {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        min-width: 0;
+        min-height: 0;
+        max-width: none;
+        max-height: none;
+        object-fit: contain;
+    }
+}
+
+:is(td, th):has(.item-visual) {
+    height: 1px;
+}
+
+:is(td, th):has(.item-visual) > * {
+    height: 100%;
+    min-height: 0;
+}
+
+:is(td, th):has(.item-visual) .item-visual {
+    height: 0;
+    min-height: max(1.75rem, 100%);
+}
+
 /* Albion item-tier tokens (T1–T8) for badges / tints. */
 .badge[data-tier] {
     background-color: var(--color-item-tier);
@@ -1984,17 +2027,28 @@ $city-colors: (
     "black-market": #000
 );
 
+/* Dark city identities need a separate readable accent on dark surfaces. */
+$city-accent-overrides: (
+    "caerleon": #b8b6c2,
+    "black-market": #b8b6c2
+);
+
 :root {
     @each $city, $color in $city-colors {
         --color-city-#{$city}: #{$color};
+        --color-city-accent-#{$city}: #{if(map-has-key($city-accent-overrides, $city), map-get($city-accent-overrides, $city), $color)};
     }
 }
 
-[data-city] { --color-city: var(--color-primary); }
+[data-city] {
+    --color-city: var(--color-primary);
+    --color-city-accent: var(--color-primary);
+}
 @each $city, $color in $city-colors {
     [data-city="#{$city}"],
     .city-selected--#{if($city == "fort-sterling", "fortsterling", $city)} {
         --color-city: var(--color-city-#{$city});
+        --color-city-accent: var(--color-city-accent-#{$city});
     }
 }
 
@@ -2227,8 +2281,11 @@ $city-colors: (
         align-items: baseline;
         gap: 0.3rem;
         padding: 0.6rem 0.7rem;
-        border-left: 3px solid var(--color-danger);
-        background: color-mix(in srgb, var(--color-danger) 16%, var(--color-surface));
+        --yield-state-color: var(--color-danger);
+        border-left: 3px solid var(--yield-state-color);
+        background: color-mix(in srgb, var(--yield-state-color) 16%, var(--color-surface));
+        &.is-equal { --yield-state-color: var(--color-success); }
+        &.is-extra { --yield-state-color: var(--color-warning); }
     }
 
     span {
@@ -2239,7 +2296,7 @@ $city-colors: (
     small { color: var(--color-text-muted); }
 
     i {
-        color: var(--color-danger);
+        color: var(--yield-state-color);
         font-style: normal;
         font-weight: var(--font-weight-bold);
     }

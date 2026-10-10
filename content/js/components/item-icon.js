@@ -27,12 +27,13 @@ export function rawStoneId(tier) {
     return `T${tier}_ROCK`;
 }
 
-export function itemIconHtml(uniqueName, { size = DEFAULT_SIZE, className = 'item-icon' } = {}) {
+export function itemIconHtml(uniqueName, { size = DEFAULT_SIZE, className = 'item-icon', visual = false } = {}) {
     if (!uniqueName) {
         return '';
     }
 
     const alt = itemLabel(uniqueName, getItemByUniqueName(uniqueName)?.localizedName || uniqueName);
     const px = Number.isFinite(size) ? Math.min(217, Math.max(1, Math.round(size))) : DEFAULT_SIZE;
-    return `<img class="${escapeHtml(className)}" src="${escapeHtml(itemIconUrl(uniqueName, size))}" alt="${escapeHtml(alt)}" width="${px}" height="${px}" loading="lazy" decoding="async" onerror="this.hidden=true">`;
+    const img = `<img class="${escapeHtml(className)}" src="${escapeHtml(itemIconUrl(uniqueName, size))}" alt="${escapeHtml(alt)}" width="${px}" height="${px}" loading="lazy" decoding="async" onerror="this.hidden=true">`;
+    return visual ? `<span class="item-visual">${img}</span>` : img;
 }

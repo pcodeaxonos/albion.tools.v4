@@ -87,9 +87,13 @@
 
 }
 
-.tool-split-controls {
+.tool-split-controls,
+.tool-form-controls {
     --input-height: 2.25rem;
     --floating-label-inset: 0.625rem;
+}
+
+.tool-split-controls {
     display: flex;
     flex-direction: column;
     gap: var(--spacing-sm);

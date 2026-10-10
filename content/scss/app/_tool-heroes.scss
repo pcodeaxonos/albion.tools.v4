@@ -27,6 +27,7 @@
     align-items: center;
     gap: clamp(0.75rem, 2vw, 1.75rem);
     padding-inline: clamp(1rem, 3vw, 2rem);
+    padding-top: var(--app-status-offset, 0px);
 
     h1,
     p {
@@ -45,6 +46,10 @@
         max-width: 56rem;
         color: color-mix(in srgb, var(--color-text) 88%, transparent);
     }
+}
+
+.app-content > main:not(:has(.page-head)) {
+    padding-top: var(--app-status-offset, 0px);
 }
 
 .page-head-others {

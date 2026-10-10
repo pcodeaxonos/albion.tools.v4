@@ -269,7 +269,7 @@
         position: relative;
         grid-template-columns: minmax(0, 1fr);
         padding: 0 0.5rem;
-        border-left-color: var(--color-city, var(--color-primary));
+        border-left-color: var(--color-city-accent, var(--color-primary));
         background: color-mix(in srgb, var(--color-city, var(--color-primary)) 12%, var(--color-surface));
     }
 }
@@ -280,7 +280,7 @@
     right: 0.5rem;
     z-index: 1;
     padding: 0;
-    color: var(--color-city, var(--color-primary));
+    color: var(--color-city-accent, var(--color-primary));
     white-space: nowrap;
 }
 

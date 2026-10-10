@@ -12,11 +12,17 @@ const FRESH_MS = 8000;
 const ZONE_FIX = 'Oyunda bir zone geç (şehir kapısı veya teleport). ADC konum almadan market paketi göndermez; sonra Trading Post’u aç.';
 const INGEST_FIX = 'ADC’nin -i http://127.0.0.1:3001 ile çalıştığını doğrula. Gerekirse ADC’yi kapatıp start.bat ile yeniden başlat.';
 
+const ICON_STACK = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3.5" width="18" height="4" rx="2" fill="currentColor"/><rect x="3" y="10" width="18" height="4" rx="2" fill="currentColor"/><rect x="3" y="16.5" width="18" height="4" rx="2" fill="currentColor"/></svg>`;
+const ICON_CLIENT = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4.2 10.2a8.2 8.2 0 0 1 15.6 0" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/><path d="M7.3 13.6a4.4 4.4 0 0 1 9.4 0" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/><circle cx="12" cy="17.4" r="1.6" fill="currentColor"/></svg>`;
+const ICON_TOOLS = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5.2h6.6V19H6.4A2.4 2.4 0 0 1 4 16.6V5.2Z" fill="currentColor"/><path d="M13.4 5.2H20v11.4a2.4 2.4 0 0 1-2.4 2.4h-4.2V5.2Z" fill="currentColor"/></svg>`;
+const ICON_CHEVRON = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6.5 9.2 12 14.8l5.5-5.6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+
 let pollTimer = 0;
 let inFlight = 0;
 let lastReport = null;
 let freshUntil = 0;
 let freshText = '';
+let placeFrame = 0;
 
 function sourceLabel(id) {
     return PRICE_SOURCES.find((source) => source.id === id)?.label ?? id;
@@ -406,23 +412,44 @@ function setOpen(root, open) {
     }
 }
 
+function applyCopy(root, labelText, hintText) {
+    const label = root.querySelector('.app-status-label');
+    const hint = root.querySelector('.app-status-hint');
+    const toggle = root.querySelector('.app-status-toggle');
+    if (label) {
+        label.textContent = labelText;
+    }
+    if (hint) {
+        hint.textContent = hintText;
+    }
+    if (toggle) {
+        toggle.setAttribute('aria-label', `${labelText}. ${hintText}`);
+    }
+}
+
+function paintMarks(root, report) {
+    root.querySelectorAll('.app-status-mark').forEach((mark) => {
+        const item = report?.steps?.find((stepItem) => stepItem.id === mark.dataset.step);
+        mark.dataset.state = item?.state || 'pending';
+    });
+}
+
 function paint(root, report) {
     lastReport = report;
     root.dataset.state = report.worst;
-    const label = root.querySelector('.app-status-label');
-    const hint = root.querySelector('.app-status-hint');
     const panel = root.querySelector('.app-status-panel');
     const fresh = Date.now() < freshUntil;
     root.classList.toggle('is-fresh', fresh);
-    if (label) {
-        label.textContent = fresh ? freshText : summaryShort(report);
-    }
-    if (hint) {
-        hint.textContent = fresh ? 'Sayfadaki ilgili fiyatlar güncelleniyor' : summaryText(report);
-    }
+    applyCopy(
+        root,
+        fresh ? freshText : summaryShort(report),
+        fresh ? 'Sayfadaki ilgili fiyatlar güncelleniyor' : summaryText(report)
+    );
+    paintMarks(root, report);
     if (panel) {
         panel.innerHTML = renderSteps(report.steps);
     }
+    schedulePlace(root);
 }
 
 function signalFresh(root, detail) {
@@ -434,14 +461,7 @@ function signalFresh(root, detail) {
         paint(root, lastReport);
     } else {
         root.classList.add('is-fresh');
-        const label = root.querySelector('.app-status-label');
-        const hint = root.querySelector('.app-status-hint');
-        if (label) {
-            label.textContent = freshText;
-        }
-        if (hint) {
-            hint.textContent = 'Sayfadaki ilgili fiyatlar güncelleniyor';
-        }
+        applyCopy(root, freshText, 'Sayfadaki ilgili fiyatlar güncelleniyor');
     }
     window.setTimeout(() => {
         if (Date.now() >= freshUntil && lastReport) {
@@ -450,10 +470,71 @@ function signalFresh(root, detail) {
     }, FRESH_MS + 50);
 }
 
-function syncHeight(root) {
-    const toggle = root.querySelector('.app-status-toggle');
-    const height = Math.ceil((toggle || root).getBoundingClientRect().height);
-    document.documentElement.style.setProperty('--status-bar-height', `${height}px`);
+function scrollOffset(content) {
+    return content ? content.scrollTop : 0;
+}
+
+function place(root) {
+    const content = root.closest('.app-content');
+    const main = content?.querySelector('main') || document.querySelector('main');
+    const anchor = main || content;
+    if (!anchor) {
+        return;
+    }
+
+    document.querySelectorAll('.page-head-content.has-status-stack').forEach((node) => {
+        node.classList.remove('has-status-stack');
+    });
+    document.documentElement.style.setProperty('--app-status-reserve', '0px');
+
+    const box = anchor.getBoundingClientRect();
+    const top = box.top + scrollOffset(content);
+    root.style.top = `${Math.max(0, Math.round(top))}px`;
+    root.style.left = `${Math.round(box.left + box.width / 2)}px`;
+    root.style.right = 'auto';
+    root.style.maxWidth = `${Math.max(160, Math.round(box.width - 24))}px`;
+
+    const height = root.querySelector('.app-status-toggle')?.offsetHeight || root.offsetHeight || 0;
+    document.documentElement.style.setProperty('--app-status-offset', `${Math.ceil(height)}px`);
+}
+
+function schedulePlace(root) {
+    if (placeFrame) {
+        return;
+    }
+    placeFrame = window.requestAnimationFrame(() => {
+        placeFrame = 0;
+        place(root);
+    });
+}
+
+function watchPlacement(root, content) {
+    schedulePlace(root);
+    window.addEventListener('resize', () => schedulePlace(root));
+    if (typeof ResizeObserver !== 'undefined') {
+        const observer = new ResizeObserver(() => schedulePlace(root));
+        observer.observe(root);
+        const head = () => content.querySelector('.page-head-content');
+        const watchHead = () => {
+            const node = head();
+            if (node) {
+                observer.observe(node);
+            }
+        };
+        watchHead();
+        const mutations = new MutationObserver((records) => {
+            const outside = records.some((record) => {
+                const node = record.target.nodeType === 1 ? record.target : record.target.parentElement;
+                return !node?.closest?.(`#${ROOT_ID}`);
+            });
+            if (!outside) {
+                return;
+            }
+            watchHead();
+            schedulePlace(root);
+        });
+        mutations.observe(content, { childList: true, subtree: true });
+    }
 }
 
 function mount(content) {
@@ -464,31 +545,29 @@ function mount(content) {
         root.className = 'app-status';
         root.innerHTML = `
             <button type="button" class="app-status-toggle" aria-expanded="false" aria-controls="appStatusPanel">
-                <span class="app-status-dot" aria-hidden="true"></span>
-                <span class="app-status-copy">
-                    <span class="app-status-label">Kontrol ediliyor…</span>
-                    <span class="app-status-hint">Hub, ADC, kaynak ve API</span>
+                <span class="app-status-label">Kontrol ediliyor…</span>
+                <span class="app-status-live" aria-hidden="true"></span>
+                <span class="app-status-hint">Hub, ADC, kaynak ve API</span>
+                <span class="app-status-marks" aria-hidden="true">
+                    <span class="app-status-mark" data-step="source" data-state="pending">${ICON_STACK}</span>
+                    <span class="app-status-mark" data-step="hub" data-state="pending">${ICON_STACK}</span>
+                    <span class="app-status-mark" data-step="adc" data-state="pending">${ICON_CLIENT}</span>
+                    <span class="app-status-mark" data-step="tools" data-state="pending">${ICON_TOOLS}</span>
                 </span>
-                <span class="app-status-chevron" aria-hidden="true"></span>
+                <span class="app-status-chevron" aria-hidden="true">${ICON_CHEVRON}</span>
             </button>
             <div class="app-status-panel" id="appStatusPanel" hidden></div>
         `;
-        const topbar = content.querySelector('.app-topbar');
-        if (topbar) {
-            topbar.after(root);
-        } else {
-            content.prepend(root);
-        }
+        content.append(root);
         root.querySelector('.app-status-toggle')?.addEventListener('click', () => {
             setOpen(root, !root.classList.contains('is-open'));
+            schedulePlace(root);
         });
     }
 
     setOpen(root, isOpen());
-    syncHeight(root);
-    if (typeof ResizeObserver !== 'undefined') {
-        new ResizeObserver(() => syncHeight(root)).observe(root);
-    }
+    document.documentElement.style.setProperty('--status-bar-height', '0px');
+    watchPlacement(root, content);
     return root;
 }
 
@@ -500,7 +579,6 @@ async function tick(root) {
     try {
         const report = await probe();
         paint(root, report);
-        syncHeight(root);
     } catch (error) {
         console.error(error);
         paint(root, {
