@@ -38,18 +38,25 @@ export function longTermQuote(index, { server = getServer().id, itemId, city, qu
         longTerm: true, reference }, reason: null };
 }
 
+export function longTermSourceLabel(quote) {
+    return ({
+        'quote-history': 'UV: geçmiş emir fiyatları',
+        'sales-history-anchor': 'UV: gerçekleşen satış ortalaması',
+        'current-buy-fallback': 'UV: geçmiş yetersiz, son alış fiyatı'
+    })[quote?.reference?.source] ?? '';
+}
+
 export function longTermMetadata(quote, { compact = false } = {}) {
     const ref = quote?.reference;
     if (!ref) return '';
-    const labels = { 'quote-history': 'Geçmiş emir fiyatları', 'sales-history-anchor': 'Gerçekleşen satış ortalaması', 'current-buy-fallback': 'Güncel alış fiyatı' };
     const days = ref.dayCoverage ?? [];
     const partialCount = days.filter(day => day.status === 'partial-day').length;
-    const summary = `${labels[ref.source] ?? 'Uzun vadeli fiyat'} · ${ref.validDays ?? 0} gün`;
+    const summary = `${longTermSourceLabel(quote) || 'Uzun vadeli fiyat'}${ref.source === 'current-buy-fallback' ? '' : ` · ${ref.validDays ?? 0} gün`}`;
     if (compact) return summary;
     const explanation = ref.source === 'sales-history-anchor'
         ? 'Emir geçmişi yetersiz; gerçekleşen satışların ortalaması kullanıldı.'
         : ref.source === 'current-buy-fallback'
-            ? 'Geçmiş veri yetersiz; güncel alış fiyatı kullanıldı.'
+            ? 'Geçmiş veri yetersiz; son bilinen alış fiyatı kullanıldı. Güncellik, bu fiyatın kayıt zamanına göre değerlendirilir.'
             : 'Yeterli veri bulunan tamamlanmış günlerden hesaplandı.';
     const stamp = new Date(ref.sourceQuoteAt);
     return [summary, explanation,

@@ -217,8 +217,8 @@ async function updateConfidenceForecasts(container) {
 function renderConfidencePanel(level, part) {
     if (level !== MAX_YIELD_CONFIDENCE) return '';
     return part === 'header'
-        ? '<div class="yield-confidence-header"><span aria-hidden="true">✓</span> Veri sınırı aşıldı</div>'
-        : '<div class="yield-confidence-note"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10" fill="currentColor"/><path d="M12 10v7M12 7v1" stroke="#10161d" stroke-width="2"/></svg><span>Yeni kayıt ortalamayı anlamlı değiştirmez</span></div>';
+        ? '<div class="yield-confidence-header"><span aria-hidden="true">✓</span> Tahmini etki düşük</div>'
+        : '<div class="yield-confidence-note"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10" fill="currentColor"/><path d="M12 10v7M12 7v1" stroke="#10161d" stroke-width="2"/></svg><span>Yeni kaydın etkisi düşük</span></div>';
 }
 
 function deltaTone(value) {
@@ -421,6 +421,12 @@ function entrySummaryDate(islandCity, beforeDate) {
         .sort((a, b) => b.localeCompare(a))[0] ?? null;
 }
 
+function slotComparison(current, reference) {
+    return current === reference ? { tone: 'is-equal', symbol: '=' }
+        : current > reference ? { tone: 'is-extra', symbol: '&gt;' }
+            : { tone: 'is-missing', symbol: '&lt;' };
+}
+
 function renderEntrySummary(islandCity) {
     const today = todayIso();
     const referenceDate = entrySummaryDate(islandCity, today);
@@ -461,7 +467,7 @@ function renderEntrySummary(islandCity) {
             <div class="yield-entry-summary-caption"><span>Bugün / ${escapeHtml(formatDate(referenceDate))}</span><span>slot</span></div>
             <ul class="app-warning-dialog-list">
                 ${lines.map((line) => {
-                    const tone = line.currentSlots === line.referenceSlots ? 'is-equal' : line.currentSlots > line.referenceSlots ? 'is-extra' : 'is-missing';
+                    const { tone } = slotComparison(line.currentSlots, line.referenceSlots);
                     const icons = line.keys.flatMap((identity) => {
                         const [type, key] = identity.split(':');
                         const count = (rows) => rows.filter((row) => rowItemType(row) === type && rowItemKey(row) === key).reduce((sum, row) => sum + (estimatedSlotsForRow(row) ?? 0), 0);
@@ -516,9 +522,10 @@ function showSlotMismatchWarning(container, islandCity) {
     const dialog = container.querySelector('[data-yield-slot-warning]');
     const details = dialog?.querySelector('[data-yield-slot-warning-details]');
     if (!dialog || !details) return;
-    details.innerHTML = mismatches.map((mismatch) => `
-        <li><strong>${escapeHtml(mismatch.label)}</strong><span>${mismatch.currentSlots}</span><small>Bugün</small><i aria-hidden="true">≠</i><span>${mismatch.previousSlots}</span><small>${escapeHtml(formatDate(mismatch.previousDate))}</small></li>
-    `).join('');
+    details.innerHTML = mismatches.map((mismatch) => {
+        const { tone, symbol } = slotComparison(mismatch.currentSlots, mismatch.previousSlots);
+        return `<li class="${tone}"><strong>${escapeHtml(mismatch.label)}</strong><span>${mismatch.currentSlots}</span><small>Bugün</small><i aria-hidden="true">${symbol}</i><span>${mismatch.previousSlots}</span><small>${escapeHtml(formatDate(mismatch.previousDate))}</small></li>`;
+    }).join('');
     dialog.showModal();
 }
 
@@ -2024,7 +2031,7 @@ async function init() {
     state.water = settings.farmWater === true;
     state.autoPlots = settings.islandYieldAutoPlots !== false;
 
-    showPageLoader('Ada Çıktı yükleniyor…');
+    showPageLoader();
     try {
         await initStore();
         state.cities = await loadActiveCities();

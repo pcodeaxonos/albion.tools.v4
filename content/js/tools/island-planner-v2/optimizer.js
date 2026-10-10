@@ -3,13 +3,39 @@ import { placementValue } from '../../core/island/placement-model.js';
 // Count search: fixed productions participate in every score and relaxation.
 // The continuous relaxation permits fractional plots; its optimum is therefore
 // an upper bound on every integer completion, including all feed synergies.
-export async function optimizePlacement(options, fixed, slotCount, { cancelled = () => false, focusBudget = null } = {}) {
+export async function optimizePlacement(options, fixed, slotCount, { cancelled = () => false, focusBudget = null, varietyCount = null } = {}) {
     const limited = focusBudget != null;
     if (limited && (!Number.isFinite(focusBudget) || focusBudget < 0)) throw new Error('Geçerli günlük Focus bütçesi girin.');
     const focusOf = profile => profile.focusPerDay ?? (profile.entry?.focus ? null : 0);
     const fixedFocus = fixed.reduce((sum, profile) => sum + (focusOf(profile) ?? NaN), 0);
     if (limited && (!Number.isFinite(fixedFocus) || fixedFocus > focusBudget)) throw new Error('Mevcut slotların Focus ihtiyacı bilinmiyor veya günlük bütçeyi aşıyor.');
     const baseline = placementValue(fixed).net;
+    // Balanced alternatives rank each next group against the complete plan,
+    // including internal feed and the shared daily Focus budget.
+    if (varietyCount != null) {
+        if (!Number.isInteger(varietyCount) || varietyCount < 1 || varietyCount > slotCount) throw new Error('Tür sayısı boş slot sayısını aşamaz.');
+        const selected = [], used = new Set();
+        for (let group = 0; group < varietyCount; group++) {
+            if (cancelled()) throw new Error('Plan değişti; otomatik doldurma iptal edildi.');
+            const count = Math.floor(slotCount / varietyCount) + (group < slotCount % varietyCount ? 1 : 0);
+            let winner = null, bestNet = -Infinity;
+            for (const choice of options) {
+                if (used.has(choice.entry.item)) continue;
+                const trial = [...selected, ...Array(count).fill(choice)];
+                if (limited && (!trial.every(profile => Number.isFinite(focusOf(profile)))
+                    || fixedFocus + trial.reduce((sum, profile) => sum + focusOf(profile), 0) > focusBudget + 1e-7)) continue;
+                const net = placementValue([...fixed, ...trial]).net;
+                if (Number.isFinite(net) && net > bestNet) { winner = choice; bestNet = net; }
+            }
+            if (!winner) throw new Error('Seçilen tür sayısı için yeterli uygun alternatif yok; tür sayısını azaltın veya Focus bütçesini artırın.');
+            used.add(winner.entry.item);
+            selected.push(...Array(count).fill(winner));
+            await new Promise(resolve => setTimeout(resolve, 0));
+        }
+        const net = placementValue([...fixed, ...selected]).net;
+        return { net, baseline, marginalNet: net - baseline, entries: selected.map(profile => profile.entry),
+            metadata: { candidates: options.length, focusBudget, varietyCount, objective: 'balanced-ranked-alternatives' } };
+    }
     const profiles = new Map();
     for (const option of options) {
         if (limited && (!Number.isFinite(focusOf(option)) || focusOf(option) + fixedFocus > focusBudget)) continue;

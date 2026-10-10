@@ -83,4 +83,14 @@ for (let budget = 0; budget <= 12; budget++) {
     }
     assert.ok(Math.abs((await optimizePlacement(options, [], 3, { focusBudget: budget })).net - expected) < 1e-7); checks++;
 }
+const alternatives = [option('best', 30), option('second', 20), option('third', 10), option('best', 25)];
+for (const [varietyCount, expected] of [[1, { best: 11 }], [2, { best: 6, second: 5 }], [3, { best: 4, second: 4, third: 3 }]]) {
+    const balanced = await optimizePlacement(alternatives, [], 11, { varietyCount });
+    const counts = balanced.entries.reduce((map, entry) => { map[entry.item] = (map[entry.item] ?? 0) + 1; return map; }, {});
+    assert.deepEqual(counts, expected); checks++;
+    assert.equal(balanced.net, placementValue(balanced.entries.map(entry => alternatives.find(value => value.entry === entry))).net); checks++;
+}
+await assert.rejects(optimizePlacement(alternatives, [], 3, { varietyCount: 4 }), /boş slot/); checks++;
+await assert.rejects(optimizePlacement(alternatives, [], 5, { varietyCount: 4 }), /alternatif/); checks++;
+await assert.rejects(optimizePlacement([focusedOption('expensive', 40, 10)], [], 3, { varietyCount: 1, focusBudget: 20 }), /alternatif/); checks++;
 console.log(`${checks} placement optimizer checks passed.`);

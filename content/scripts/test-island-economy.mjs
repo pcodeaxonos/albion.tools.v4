@@ -23,6 +23,7 @@ function moduleFor(file) {
     if (modules.has(file)) return modules.get(file);
     let code = fs.readFileSync(file, 'utf8');
     if (file.endsWith(`${path.sep}nav.js`)) code = 'export function initNav() {}';
+    if (file.endsWith(`${path.sep}forms.js`)) code = 'export function initFloatingLabels() {}';
     if (file.endsWith(`${path.sep}island-planner-v2.js`)) code = code.replace(/init\(\);\s*$/, 'export { state, priceSummaryLabel, renderPriceSegment, priceLookup, fetchPlanPrices, renderDetail, renderSummary, renderControls };');
     const module = new vm.SourceTextModule(code, { context, identifier: file });
     modules.set(file, module);
@@ -491,9 +492,9 @@ await placementTest('V2 Long Term UI and normal quote provider preserve tick, fe
         dayCoverage: [{ day: '2026-10-07', status: 'partial-day', accepted: false, validBucketCount: 2,
             coverageRatio: 2 / 24, firstObservationAt: '2026-10-07T20:00:00Z',
             lastObservationAt: '2026-10-07T21:00:00Z', reasons: ['insufficient-buckets', 'insufficient-time-span'] }] } };
-    assert.equal(metadata(partialQuote, { compact: true }), 'Güncel alış fiyatı · 0 gün');
+    assert.equal(metadata(partialQuote, { compact: true }), 'UV: geçmiş yetersiz, son alış fiyatı');
     assert.ok(metadata(partialQuote).includes('1 eksik gün emir ortalamasına alınmadı.'));
-    assert.ok(metadata(partialQuote).includes('Geçmiş veri yetersiz; güncel alış fiyatı kullanıldı.'));
+    assert.ok(metadata(partialQuote).includes('Geçmiş veri yetersiz; son bilinen alış fiyatı kullanıldı.'));
     assert.ok(!metadata(partialQuote).includes('insufficient-buckets'));
     v2.state.draft.focus = true;
     assert.ok(v2.optimizationEntries().some(entry => entry.focus === true), 'autofill includes focus');
