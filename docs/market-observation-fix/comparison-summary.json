@@ -1,0 +1,122 @@
+{
+  "counts": {
+    "beforeL3": 19,
+    "afterL3": 33,
+    "beforeL4": 0,
+    "afterL4": 0,
+    "oldCandidates": 766,
+    "beforeMovementCandidates": 853,
+    "afterMovementCandidates": 824,
+    "verified": 0,
+    "newL3Series": 14,
+    "repairedUsableSides": 17,
+    "sourceRepairs": 173,
+    "ineligibleSourceConflictSeries": 277,
+    "referenceChanges": 684,
+    "regimeTransitions": 0,
+    "bootstrapEstablishments": 47,
+    "recoveredSeries": 896,
+    "recoveredEvents": 1525,
+    "maxUsableDeviation": 0.06939396500718452,
+    "stabilizationDifference": [
+      "europe|T4_MOUNT_HORSE|Lymhurst|1|sell",
+      "europe|T4_MOUNT_HORSE|Brecilien|1|sell"
+    ]
+  },
+  "realPerformance": {
+    "coldMs": 3386.002999998629,
+    "warmMs": 975.9851000010967
+  },
+  "perfBefore": {
+    "series": 2520,
+    "hoursPerSeries": 2160,
+    "elapsedMs": 21195,
+    "warmMs": 90,
+    "heapMb": 148,
+    "verified": 1260,
+    "listed": 500
+  },
+  "perfAfter": {
+    "series": 2520,
+    "hoursPerSeries": 2160,
+    "elapsedMs": 2980,
+    "warmMs": 63,
+    "heapMb": 43,
+    "verified": 1260,
+    "listed": 500
+  },
+  "remaining": [
+    [
+      "europe|T5_MOUNT_RAM_FW_MARTLOCK|Brecilien|1|sell",
+      15,
+      0.6666666666666666,
+      0.5882352941176471
+    ],
+    [
+      "europe|T4_MOUNT_HORSE|Lymhurst|1|sell",
+      11,
+      1,
+      0.9166666666666666
+    ],
+    [
+      "europe|T4_LEATHER|Martlock|1|buy",
+      12,
+      0.16666666666666666,
+      0.16666666666666666
+    ],
+    [
+      "europe|T5_LEATHER|Martlock|1|sell",
+      14,
+      0.7142857142857143,
+      0.7142857142857143
+    ],
+    [
+      "europe|T5_MOUNT_HORSE|Brecilien|1|sell",
+      20,
+      0.6,
+      0.5454545454545454
+    ],
+    [
+      "europe|T3_MOUNT_HORSE|Thetford|1|sell",
+      16,
+      0.625,
+      0.55
+    ],
+    [
+      "europe|T4_PLANKS|Lymhurst|1|buy",
+      14,
+      0.7142857142857143,
+      0.625
+    ],
+    [
+      "europe|T4_PLANKS|Lymhurst|1|sell",
+      20,
+      0.6,
+      0.6190476190476191
+    ],
+    [
+      "europe|T5_MOUNT_COUGAR_KEEPER@1|Brecilien|1|sell",
+      19,
+      0.6842105263157895,
+      0.6842105263157895
+    ],
+    [
+      "europe|T5_PLANKS|Lymhurst|1|sell",
+      8,
+      0.875,
+      0.6666666666666666
+    ],
+    [
+      "europe|T6_MOUNT_HORSE|Brecilien|1|sell",
+      21,
+      0.5238095238095238,
+      0.5
+    ],
+    [
+      "europe|T7_MOUNT_HORSE|Brecilien|1|sell",
+      14,
+      0.7857142857142857,
+      0.7857142857142857
+    ]
+  ]
+}

@@ -2,8 +2,12 @@ import assert from 'node:assert/strict';
 import { OrderPriceHistory } from '../js/core/order-price-history.mjs';
 import { quotedBookPrice } from '../js/core/market-primitives.mjs';
 import { purchaseCostFromRates, saleProceedsFromRates } from '../js/core/market-fees.mjs';
-import { analyzeMarketCell, assessMarketSide, rankMarketOpportunities } from '../js/core/market-opportunities.mjs';
+import { analyzeMarketCell as legacyAnalyze, assessMarketSide as legacyAssess, OPPORTUNITY_POLICY, rankMarketOpportunities } from '../js/core/market-opportunities.mjs';
 import { applyLiveQuote, quoteFreshnessPoints, scanQuoteBooks } from '../js/core/market-opportunity-scan.mjs';
+
+const legacyPolicy = { ...OPPORTUNITY_POLICY, validationMode: 'legacy' };
+const assessMarketSide = options => legacyAssess({ ...options, policy: legacyPolicy });
+const analyzeMarketCell = options => legacyAnalyze({ ...options, policy: legacyPolicy });
 
 const now = Date.parse('2026-10-10T12:00:00Z');
 const fees = { setupFeeRate: 0.025, taxPremiumRate: 0.04, taxFreeRate: 0.08 };
@@ -133,11 +137,11 @@ const moved = applyLiveQuote(repeated, {
 });
 assert.equal(moved[0].price, 100, 'an older source time does not rewrite an earlier hour');
 assert.equal(moved.at(-1).price, 140);
-assert.equal(moved.at(-1).bucketAt, '2026-10-10T12:00:00.000Z');
+assert.equal(moved.at(-1).bucketAt, '2026-10-10T08:00:00.000Z', 'live correction retains actual source time');
 const continued = assessMarketSide({ points: quoteFreshnessPoints(moved), now });
-assert.equal(continued.reference, 100);
-assert.equal(continued.price, 140);
-assert.equal(continued.anomalous, true);
+assert.equal(continued.reference, 140);
+assert.equal(continued.price, 100);
+assert.equal(continued.anomalous, true, 'legacy comparison misclassifies corrected events; validated tests cover quarantine');
 
 const flip = analyzeMarketCell({ ...cell, buy: side(1000, 1000), sell: side(100, 100) });
 const flipFree = analyzeMarketCell({ ...cell, premium: false, buy: side(1000, 1000), sell: side(100, 100) });
@@ -212,7 +216,7 @@ for (const hour of [8, 9, 10]) {
 history.record({ server: 'europe', itemId: 'T5_WOOD', city: 'Lymhurst', quality: 1, side: 'sell', price: 400, seenAt: '2026-10-10T12:00:00Z' }, now);
 history.record({ server: 'europe', itemId: 'T2_JUNK', city: 'Bridgewatch', quality: 1, side: 'buy', price: 15, seenAt: '2026-10-10T12:00:00Z' }, now);
 
-const scan = scanQuoteBooks({ server: 'europe', packetHistory: history, repository: emptyRepo, now, premium: true, fees });
+const scan = scanQuoteBooks({ policy: legacyPolicy, server: 'europe', packetHistory: history, repository: emptyRepo, now, premium: true, fees });
 const found = Object.fromEntries(scan.opportunities.map((row) => [row.itemId, row]));
 assert.equal(found.T4_BAG.anomalies.includes('buy-down'), true);
 assert.equal(found.T4_BAG.review, 'confirmed');

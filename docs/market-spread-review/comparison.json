@@ -1,0 +1,30 @@
+{
+  "asOf": "2026-10-11T00:41:41.000Z",
+  "sequence": 2539,
+  "candidates": 1061,
+  "local": 867,
+  "previous": {
+    "current-orders-only": 807,
+    "extreme-wide-uncertain": 56,
+    "historical-price-supported": 4
+  },
+  "next": {
+    "insufficient": 867
+  },
+  "pairedSamples": {
+    "0": 867
+  },
+  "decisionsUnchanged": true,
+  "oldMs": 4698.372600000352,
+  "coldMs": 5348.284800000489,
+  "warmMs": 5913.823199999519,
+  "heapUsedMb": {
+    "beforeScans": 180.60218811035156,
+    "oldAfter": 702.0177917480469,
+    "baselineRetained": 295.3453826904297,
+    "coldAfter": 762.589729309082,
+    "coldRetained": 370.2907028198242,
+    "warmAfter": 836.0234298706055,
+    "warmRetained": 376.01641845703125
+  }
+}

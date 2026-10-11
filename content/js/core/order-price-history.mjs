@@ -1,8 +1,9 @@
-import { BOOK_PRICE_FIELDS, marketSeriesKey, normalizePriceDate } from './market-primitives.mjs';
+import { normalizeObservation, observationTimestamp } from './market-observation.mjs';
+import { BOOK_PRICE_FIELDS, marketSeriesKey } from './market-primitives.mjs';
 import { ORDER_HISTORY_POLICY } from './market-history-config.mjs';
 
 function stamp(value) {
-    return Date.parse(normalizePriceDate(value));
+    return observationTimestamp(value);
 }
 
 function validatePolicy(policy) {
@@ -18,6 +19,7 @@ export class OrderPriceHistory {
         this.servers = new Set(servers || []);
         this.policy = Object.freeze({ ...policy });
         this.series = new Map();
+        this.revision = 0;
         this.source = source;
     }
 
@@ -25,7 +27,7 @@ export class OrderPriceHistory {
         let added = 0;
         for (const [side, field] of Object.entries(BOOK_PRICE_FIELDS)) {
             added += Number(this.record({ server, itemId: row.item_id, city: row.city,
-                quality: row.quality, side, price: row[field], seenAt: row[`${field}_date`] }, now));
+                quality: row.quality, side, coverage: row.coverage, sourceTimeKnown: row.sourceTimeKnown, rawEvidence: row.rawEvidence, price: row[field], seenAt: row[`${field}_date`] }, now));
         }
         return added;
     }
@@ -51,12 +53,33 @@ export class OrderPriceHistory {
         }
         // Exact retries and subsequent scans cannot add weight to an occupied bucket.
         // Out-of-order input may replace its representative with the earlier observation.
+        const { buckets: ignoredBuckets, priceField: ignoredField, ...rawPoint } = observation;
+        const normalized = normalizeObservation({ ...rawPoint, source: this.source }, { now });
+        // A source event cannot become independent merely by arriving in another hour.
+        if ([...series.buckets.values()].some(point => point.observationId === normalized.observationId)) return false;
         const previous = series.buckets.get(bucketAt);
         if (previous && stamp(previous.seenAt) <= at) return false;
-        series.buckets.set(bucketAt, { bucketAt: new Date(bucketAt).toISOString(),
+        series.revision = ++this.revision;
+        series.buckets.set(bucketAt, { ...normalized, ...(observation.validationStatus ? { validationStatus: observation.validationStatus, reasons: observation.reasons, ...(observation.evidence ? { evidence: observation.evidence } : {}) } : {}), bucketAt: new Date(bucketAt).toISOString(),
             seenAt: new Date(at).toISOString(), price,
             ...(this.source === 'aodp-current' ? { source: this.source,
                 sourceQuoteAt: new Date(sourceAt).toISOString(), fetchedAt: new Date(at).toISOString() } : {}) });
+        return true;
+    }
+
+    /** Preserve independently timestamped AODP events without changing the legacy first-per-hour representative. */
+    recordEvidence(observation, now = Date.now()) {
+        if (this.source !== 'aodp-current') return false;
+        const point = normalizeObservation(observation, { now, source: this.source });
+        if (point.validationStatus === 'rejected' || !point.sourceTimeKnown || point.at < now-this.policy.retentionMs) return false;
+        const series = this.series.get(marketSeriesKey(observation));
+        const bucket = series?.buckets.get(this.bucketStamp(observation.fetchedAt))
+            || [...(series?.buckets.values() || [])].find(p=>p.evidenceId===point.evidenceId || p.evidenceObservations?.some(event=>event.evidenceId===point.evidenceId));
+        if (!bucket) return false;
+        const candidates = [bucket, ...(bucket.evidenceObservations || [])];
+        if (candidates.some(p => p.evidenceId === point.evidenceId && p.price === point.price)) return false;
+        bucket.evidenceObservations = [...(bucket.evidenceObservations || []), point];
+        series.revision = ++this.revision;
         return true;
     }
 
@@ -66,6 +89,7 @@ export class OrderPriceHistory {
             for (const [bucketAt, point] of series.buckets) {
                 if (stamp(point.seenAt) < now - this.policy.retentionMs || stamp(point.seenAt) > now) {
                     series.buckets.delete(bucketAt);
+                    series.revision = ++this.revision;
                     removed++;
                 }
             }
@@ -78,7 +102,7 @@ export class OrderPriceHistory {
         this.prune(now);
         return { kind: 'albion.tools.order-price-history', version: this.policy.version,
             policy: { ...this.policy }, source: this.source,
-            series: [...this.series.values()].map(({ buckets, ...identity }) => ({ ...identity,
+            series: [...this.series.values()].map(({ buckets, revision, ...identity }) => ({ ...identity,
                 buckets: [...buckets.values()].sort((a, b) => stamp(a.bucketAt) - stamp(b.bucketAt)) })) };
     }
 
@@ -87,6 +111,8 @@ export class OrderPriceHistory {
         return [...this.series.values()].map(({ server, itemId, city, quality, side }) => (
             { server, itemId, city, quality, side }));
     }
+
+    seriesRevision(identity) { return this.series.get(marketSeriesKey(identity))?.revision ?? 0; }
 
     seriesFor(identity, now = Date.now()) {
         const series = this.series.get(marketSeriesKey(identity));
@@ -122,6 +148,16 @@ export class OrderPriceHistory {
                     throw new Error('Invalid order history bucket');
                 }
                 this.record({ ...series, ...point }, now);
+                if (point.evidenceObservations !== undefined && !Array.isArray(point.evidenceObservations)) throw new Error('Invalid supplemental evidence');
+                for (const event of point.evidenceObservations || []) {
+                    if (this.source !== 'aodp-current' || event.source !== this.source
+                        || ['server','itemId','city','quality','side'].some(key=>event[key]!==series[key])
+                        || !Number.isFinite(stamp(event.sourceQuoteAt)) || !Number.isFinite(event.price) || event.price<=0
+                        || !Number.isFinite(stamp(event.fetchedAt)) || stamp(event.sourceQuoteAt)>stamp(event.fetchedAt)
+                        || (event.bucketAt && this.bucketStamp(event.fetchedAt)!==stamp(event.bucketAt)))
+                        throw new Error('Invalid supplemental evidence');
+                    this.recordEvidence(event, now);
+                }
             }
         }
         this.prune(now);

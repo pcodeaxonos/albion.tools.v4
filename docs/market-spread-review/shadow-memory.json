@@ -1,0 +1,17 @@
+{
+  "asOf": "2026-10-11T00:41:41.000Z",
+  "sequence": 2539,
+  "cells": 25874,
+  "candidates": 1061,
+  "localMake": 867,
+  "shadowRemoved": 1343,
+  "shadowAdded": 952,
+  "shadowChangedReferences": 3757,
+  "scanMs": 4158.389000000432,
+  "shadowMs": 3656.5126999998465,
+  "heapMb": {
+    "before": 179.70736694335938,
+    "afterValidatedScan": 698.1617736816406,
+    "afterShadowGc": 282.8607406616211
+  }
+}

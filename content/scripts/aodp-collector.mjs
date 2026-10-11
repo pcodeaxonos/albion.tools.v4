@@ -68,7 +68,7 @@ export function createAodpCollector({ host, server, ids, cities, repository,
         running = true; state.status = 'collecting';
         const due = collectionPlan ? collectionPlan.dueIds(now()) : ids;
         const summary = { fetchedAt: new Date(now()).toISOString(), items: due.length, cities: cities.length,
-            batches: 0, requests: 0, buy: 0, sell: 0, observations: 0, duplicates: 0, invalid: 0, stale: 0,
+            batches: 0, requests: 0, buy: 0, sell: 0, observations: 0, supplementalObservations: 0, duplicates: 0, invalid: 0, stale: 0,
             deferred: false, errors: [] };
         if (!due.length) {
             state.status = 'ok'; state.lastRun = summary;
@@ -90,12 +90,17 @@ export function createAodpCollector({ host, server, ids, cities, repository,
                         for (const [side, field] of Object.entries(BOOK_PRICE_FIELDS)) {
                             const sourceQuoteAt = normalizePriceDate(row[`${field}_date`]);
                             const at = Date.parse(sourceQuoteAt), price = Number(row[field]);
-                            if (!(price > 0) || !Number.isFinite(price) || !Number.isFinite(at) || at > now()) { summary.invalid++; continue; }
+                            if (!(price > 0) || !Number.isFinite(price) || !Number.isFinite(at) || at > now()) {
+                                repository.recordRejected?.({ server, itemId: row.item_id, city: row.city, quality: Number(row.quality), side, price, sourceQuoteAt, fetchedAt, source: 'aodp-current', rawEvidence: row }, now());
+                                summary.invalid++; continue;
+                            }
                             if (now() - at > policy.sourceMaxAgeMs) { summary.stale++; continue; }
                             summary[side]++;
+                            const identity = {server,itemId:row.item_id,city:row.city,quality:Number(row.quality),side};
+                            const revision = repository.seriesRevision?.(identity);
                             const added = repository.record({ server, itemId: row.item_id, city: row.city,
-                                quality: Number(row.quality), side, price, sourceQuoteAt, fetchedAt, source: 'aodp-current' }, now());
-                            summary[added ? 'observations' : 'duplicates']++;
+                                quality: Number(row.quality), side, price, sourceQuoteAt, fetchedAt, source: 'aodp-current', coverage: 'reported-top', sourceTimeKnown: true, rawEvidence: row }, now());
+                            summary[added ? 'observations' : revision !== undefined && repository.seriesRevision(identity) !== revision ? 'supplementalObservations' : 'duplicates']++;
                         }
                     }
                     repository.flush(now());

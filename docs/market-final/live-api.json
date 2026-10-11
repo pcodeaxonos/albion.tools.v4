@@ -1,0 +1,28 @@
+{
+  "checkedAt": "2026-10-11T00:08:11.092Z",
+  "startedAt": "2026-10-10T20:28:54.732Z",
+  "engineMode": "validated",
+  "collectorStatus": "ok",
+  "counts": {
+    "evaluated": 24624,
+    "verified": 1093,
+    "monitored": 35,
+    "suspicious": 350,
+    "insufficient": 23146
+  },
+  "serverIsolation": true,
+  "premiumFees": true,
+  "productQuality": 1,
+  "gzipRoundTrip": true,
+  "rawResponseBytes": 14946453,
+  "compressedResponseBytes": 1492100,
+  "firstRequestMs": 8671.8334,
+  "cachedRequestMs": 5336.5115000000005,
+  "scanMs": 4134,
+  "cacheSameSnapshot": false,
+  "classes": {
+    "extreme-wide-uncertain": 58,
+    "current-orders-only": 842,
+    "historical-price-supported": 8
+  }
+}

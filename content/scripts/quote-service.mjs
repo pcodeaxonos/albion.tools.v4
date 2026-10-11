@@ -7,6 +7,9 @@ import { aodpUrl, urlBatches } from '../js/core/market-request.mjs';
 import { BOOK_PRICE_FIELDS } from '../js/core/market-primitives.mjs';
 import { AODP_COLLECTOR_POLICY, MARKET_COLLECTION_POLICY } from '../js/core/market-history-config.mjs';
 import { selectLongTermReference } from '../js/core/long-term-price.mjs';
+import { shadowEvaluate } from '../js/core/market-opportunity-shadow.mjs';
+import { OBSERVATION_POLICY } from '../js/core/market-observation.mjs';
+import { OPPORTUNITY_POLICY } from '../js/core/market-opportunities.mjs';
 import { scanQuoteBooks, seriesForCell } from '../js/core/market-opportunity-scan.mjs';
 import { QuoteHistoryRepository } from './quote-history-repository.mjs';
 import { createAodpCollector } from './aodp-collector.mjs';
@@ -52,14 +55,28 @@ export function startQuoteService({ root, server, packetHistory, collectorOption
     collector.start();
     let opportunityCache = null;
     let fees = null;
+    let shadowCache = null;
     return { repository, collector,
+        invalidateOpportunities() { opportunityCache = null; },
         opportunityScan({ requestedServer, premium = true, now = Date.now() }) {
             if (requestedServer !== server) return { server, opportunities: [], error: 'server-mismatch' };
             const enabled = premium !== false && premium !== '0';
-            const slot = `${requestedServer}|${enabled ? 1 : 0}|${Math.floor(now / 30000)}`;
+            const validated = process.env.OPPORTUNITIES_VALIDATED === '1'
+                || (process.env.OPPORTUNITIES_VALIDATED !== '0' && read('price-hub-config').opportunitiesValidated === true);
+            const slot = `${requestedServer}|${enabled ? 1 : 0}|${validated ? 1 : 0}|${Math.floor(now / 30000)}`;
             if (opportunityCache?.slot === slot) return opportunityCache.payload;
             fees ??= economyRates(root);
-            const payload = scanQuoteBooks({ server, packetHistory, repository, now, premium: enabled, fees });
+            const inputs = { server, packetHistory, repository, now, premium: enabled, fees };
+            // Stage rollout: compare the same inputs first; operator explicitly enables revised output.
+            const refreshShadow = !shadowCache || now - shadowCache.at >= OBSERVATION_POLICY.shadowIntervalMs || shadowCache.premium !== enabled;
+            const payload = scanQuoteBooks({ ...inputs, includeCandidates: true, includeEvaluation: validated && refreshShadow, policy: { ...OPPORTUNITY_POLICY, validationMode: validated ? 'validated' : 'legacy' } });
+            if (refreshShadow) {
+                const { validated: ignoredOutput, ...summary } = shadowEvaluate({ ...inputs, validatedScan: validated ? payload : undefined });
+                shadowCache = { at: now, premium: enabled, summary };
+            }
+            delete payload.evaluation;
+            payload.engineMode = validated ? 'validated' : 'legacy-shadow';
+            payload.shadow = shadowCache.summary;
             collector.noteOpportunities((payload.opportunities || []).map((row) => row.itemId), now);
             opportunityCache = { slot, payload };
             return payload;

@@ -124,15 +124,16 @@ function mergePreferredPriceRows(primaryRows = [], fallbackRows = []) {
     return [...primary.values()];
 }
 
-async function fetchPricesFromHost(host, ids, locations, qualityParam) {
+async function fetchPricesFromHost(host, ids, locations, qualityParam, { server, signal } = {}) {
     const params = new URLSearchParams({
         locations: locations.join(','),
         qualities: qualityParam || '1'
     });
+    if (server) params.set('server', server);
     const pathIds = ids.map((id) => encodeURIComponent(id)).join(',');
     const url = `${host}/api/v2/stats/prices/${pathIds}?${params}`;
     const response = await fetch(url, {
-        signal: AbortSignal.timeout(PRICE_REQUEST_TIMEOUT_MS)
+        signal: signal ? AbortSignal.any([signal, AbortSignal.timeout(PRICE_REQUEST_TIMEOUT_MS)]) : AbortSignal.timeout(PRICE_REQUEST_TIMEOUT_MS)
     });
     if (!response.ok) {
         throw new Error(`Fiyat alınamadı (${response.status})`);
@@ -141,9 +142,9 @@ async function fetchPricesFromHost(host, ids, locations, qualityParam) {
     return Array.isArray(data) ? data : [];
 }
 
-async function fetchPricesQuiet(host, ids, locations, qualityParam) {
+async function fetchPricesQuiet(host, ids, locations, qualityParam, options) {
     try {
-        return await fetchPricesFromHost(host, ids, locations, qualityParam);
+        return await fetchPricesFromHost(host, ids, locations, qualityParam, options);
     } catch {
         return [];
     }
@@ -153,7 +154,7 @@ async function fetchPricesQuiet(host, ids, locations, qualityParam) {
  * Loads the configured price source, with the other provider as a per-side fallback.
  * A configured packet/API quote is never silently replaced by the other source.
  */
-export async function fetchPrices(itemIds, locations = ['Black Market', 'Caerleon'], { source, qualities = '1' } = {}) {
+export async function fetchPrices(itemIds, locations = ['Black Market', 'Caerleon'], { source, qualities = '1', signal } = {}) {
     const ids = [...new Set(itemIds.filter(Boolean))];
     if (ids.length === 0) {
         return [];
@@ -168,9 +169,10 @@ export async function fetchPrices(itemIds, locations = ['Black Market', 'Caerleo
     const preferred = source ?? getSettings().priceSource;
 
     const [gameRows, apiRows] = await Promise.all([
-        fetchPricesQuiet(gameHost, ids, locations, qualityParam),
-        fetchPricesQuiet(apiHost, ids, locations, qualityParam)
+        fetchPricesQuiet(gameHost, ids, locations, qualityParam, { server: getServer().id, signal }),
+        fetchPricesQuiet(apiHost, ids, locations, qualityParam, { signal })
     ]);
+    signal?.throwIfAborted();
 
     if (gameRows.length === 0 && apiRows.length === 0) {
         if (preferred === 'packets') {

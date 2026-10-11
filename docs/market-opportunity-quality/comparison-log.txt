@@ -1,0 +1,58 @@
+{
+  "unchanged": {
+    "sides": 25210,
+    "evaluatedCells": 19598,
+    "eligibleCells": 1709,
+    "importance": true,
+    "recent": true,
+    "confidencePolicy": true,
+    "eligibility": true
+  },
+  "strategies": {
+    "local-make": 1436,
+    "cross-city-instant": 355,
+    "local-flip": 2
+  },
+  "first100": {
+    "before": {
+      "order": 77,
+      "transport": 23
+    },
+    "after": {
+      "order": 94,
+      "transport": 6
+    }
+  },
+  "calibration": {
+    "sampleStrategies": 1793,
+    "silverScale": 70808.356,
+    "returnScale": 1.785114349211394,
+    "byExecution": {
+      "instant": {
+        "samples": 2,
+        "silverScale": 2.9479999999999995,
+        "returnScale": 0.18971428571428567
+      },
+      "order": {
+        "samples": 1436,
+        "silverScale": 98577.96,
+        "returnScale": 2.142287291746947
+      },
+      "transport": {
+        "samples": 355,
+        "silverScale": 935.5759999999923,
+        "returnScale": 0.6450493506493511
+      }
+    }
+  },
+  "performance": {
+    "before": {
+      "coldMs": 3638.292100004852,
+      "warmMs": 1083.270100004971
+    },
+    "after": {
+      "coldMs": 3891.2104000002146,
+      "warmMs": 1170.227699995041
+    }
+  }
+}

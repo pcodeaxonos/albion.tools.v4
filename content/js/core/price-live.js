@@ -4,7 +4,6 @@ export const PRICES_EVENT = 'albiontools:prices';
 
 let source = null;
 let lastAt = null;
-let reloadTimer = 0;
 
 export function priceUpdateTouches(detail, { items = [], cities = [] } = {}) {
     if (!detail) {
@@ -65,10 +64,12 @@ export function startPriceLive() {
     };
 }
 
-export function bindLivePrices(getWatch, reload) {
+export function bindLivePrices(getWatch, reload, { packetSourceOnly = true, delayMs = 200 } = {}) {
     startPriceLive();
+    let reloadTimer = 0;
+    let latestDetail;
     const handler = (event) => {
-        if (getSettings().priceSource !== 'packets') {
+        if (packetSourceOnly && getSettings().priceSource !== 'packets') {
             return;
         }
         const watch = typeof getWatch === 'function' ? getWatch() : getWatch;
@@ -78,11 +79,17 @@ export function bindLivePrices(getWatch, reload) {
         if (!priceUpdateTouches(event.detail, watch || {})) {
             return;
         }
-        window.clearTimeout(reloadTimer);
+        latestDetail = event.detail;
+        // A fixed batching window keeps continuous packet traffic from delaying updates forever.
+        if (reloadTimer) return;
         reloadTimer = window.setTimeout(() => {
-            reload(event.detail);
-        }, 200);
+            reloadTimer = 0;
+            reload(latestDetail);
+        }, delayMs);
     };
     window.addEventListener(PRICES_EVENT, handler);
-    return () => window.removeEventListener(PRICES_EVENT, handler);
+    return () => {
+        window.clearTimeout(reloadTimer);
+        window.removeEventListener(PRICES_EVENT, handler);
+    };
 }

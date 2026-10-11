@@ -1,0 +1,15 @@
+import assert from 'node:assert/strict';
+import { performance } from 'node:perf_hooks';
+import { scanQuoteBooks } from '../js/core/market-opportunity-scan.mjs';
+const now=Date.parse('2026-10-10T12:00:00Z'), hour=3600000;
+const buckets=Array.from({length:90*24},(_,i)=>({price:i>=90*24-2 ? 1364 : 1000,source:'aodp-current',sourceQuoteAt:new Date(now-(90*24-1-i)*hour).toISOString(),seenAt:new Date(now-(90*24-1-i)*hour).toISOString()}));
+const identities=Array.from({length:2520},(_,i)=>({server:'europe',itemId:`T4_PERF_${Math.floor(i/2)}`,city:'Martlock',quality:1,side:i%2?'buy':'sell'}));
+const repository={seriesRevision:()=>1,identities:()=>identities,seriesFor:()=>({source:'aodp-current',revision:1,buckets}),currentQuote:()=>null};
+const started=performance.now();const scan=scanQuoteBooks({server:'europe',repository,now,fees:{setupFeeRate:.025,taxPremiumRate:.04,taxFreeRate:.08}});
+const elapsedMs=Math.round(performance.now()-started);
+assert.equal(scan.scanned,1260);assert.equal(scan.counts.verified,1260);assert.equal(scan.opportunities.length,500);assert.equal(scan.excluded.overLimit,760);
+const warmStarted=performance.now(); scanQuoteBooks({server:'europe',repository,now:now+30000,fees:{setupFeeRate:.025,taxPremiumRate:.04,taxFreeRate:.08}});
+const warmMs=Math.round(performance.now()-warmStarted);
+assert.ok(warmMs<5000, `Cached scan took ${warmMs}ms`);
+assert.ok(elapsedMs<30000,`Full 2520-series scan took ${elapsedMs}ms`);
+console.log(JSON.stringify({series:2520,hoursPerSeries:2160,elapsedMs,warmMs,heapMb:Math.round(process.memoryUsage().heapUsed/1048576),verified:scan.counts.verified,listed:scan.listed}));

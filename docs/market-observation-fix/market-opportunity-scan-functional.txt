@@ -1,0 +1,217 @@
+import { validateObservationSeries, OBSERVATION_POLICY } from './market-observation.mjs';
+import { mergedQuotePoints } from './long-term-price.mjs';
+import { ORDER_HISTORY_POLICY } from './market-history-config.mjs';
+import { normalizePriceDate, marketSeriesKey } from './market-primitives.mjs';
+import {
+    OPPORTUNITY_POLICY, provisionalReference, analyzeMarketCell, assessMarketSide, quoteDisplayPoints, rankMarketOpportunities
+} from './market-opportunities.mjs';
+
+function cellKey(row) {
+    return `${row.server}|${row.itemId}|${row.city}|${row.quality}`;
+}
+
+/** A corrected AODP quote may update the fetch hour without becoming a new historical vote. Packets still win that hour. */
+export function applyLiveQuote(points, live, { legacy = false } = {}) {
+    if (!(live?.price > 0)) return points || [];
+    const sourceAt = Date.parse(normalizePriceDate(live.sourceQuoteAt ?? live.observedAt));
+    const at = Number.isFinite(sourceAt) ? sourceAt : Date.parse(normalizePriceDate(live.seenAt));
+    if (!Number.isFinite(at)) return points || [];
+    const next = [...(points || [])];
+    if (legacy) {
+        const fetched = Date.parse(normalizePriceDate(live.fetchedAt ?? live.seenAt));
+        const collected = Number.isFinite(fetched) ? fetched : sourceAt;
+        if (!Number.isFinite(collected)) return next;
+        const bucket = Math.floor(collected / ORDER_HISTORY_POLICY.bucketMs) * ORDER_HISTORY_POLICY.bucketMs;
+        const index = next.findIndex(point => Math.floor(Date.parse(normalizePriceDate(point.bucketAt ?? point.seenAt)) / ORDER_HISTORY_POLICY.bucketMs) * ORDER_HISTORY_POLICY.bucketMs === bucket);
+        const patch = { price: live.price, source: live.source || 'aodp-current', sourceQuoteAt: live.sourceQuoteAt };
+        if (index < 0) next.push({ ...patch, seenAt: new Date(collected).toISOString(), bucketAt: new Date(bucket).toISOString() });
+        else if (next[index].source !== 'market-order-packets') next[index] = { ...next[index], ...patch };
+        return next;
+    }
+    if (next.some(point => Date.parse(normalizePriceDate(point.sourceQuoteAt ?? point.observedAt ?? point.seenAt)) === at && point.price === live.price)) return next;
+    // A correction remains evidence of a conflict, never silently rewrites history.
+    next.push({ ...live, source: live.source || 'aodp-current', observedAt: new Date(at).toISOString(),
+        seenAt: new Date(at).toISOString(), bucketAt: new Date(Math.floor(at / ORDER_HISTORY_POLICY.bucketMs) * ORDER_HISTORY_POLICY.bucketMs).toISOString() });
+    return next;
+}
+
+/**
+ * A REST poll is not a new hourly observation. Archive hours stay on bucketAt/seenAt.
+ * quotedAt is only the exchange time used for age, so repeated polls of one quote do not erase the reference.
+ */
+export function quoteFreshnessPoints(points) {
+    return (points || []).map((point) => {
+        if (point.source !== 'aodp-current' || !point.sourceQuoteAt) return point;
+        const sourceAt = Date.parse(normalizePriceDate(point.sourceQuoteAt));
+        const seen = Date.parse(normalizePriceDate(point.seenAt ?? point.bucketAt));
+        if (!Number.isFinite(sourceAt)) return point;
+        const at = Number.isFinite(seen) ? Math.min(sourceAt, seen) : sourceAt;
+        return { ...point, quotedAt: new Date(at).toISOString() };
+    });
+}
+
+const bookCaches = new WeakMap();
+export function readMarketBook(packetHistory, repository, identity, now, policy = OPPORTUNITY_POLICY) {
+    const series = [packetHistory?.seriesFor?.(identity, now), repository?.seriesFor?.(identity, now)].filter(Boolean);
+    const owner = repository || packetHistory;
+    let cache = owner && bookCaches.get(owner);
+    if (owner && !cache) { cache = { entries: new Map(), pointCount: 0 }; bookCaches.set(owner, cache); }
+    const key = marketSeriesKey(identity);
+    const live = repository?.currentQuote?.(identity) || null;
+    const revision = `${policy.validationMode}|${series.map(row => `${row.source}:${row.revision ?? row.buckets.length}`).join('|')}|${live?.sourceQuoteAt}|${live?.price}`;
+    if (cache?.entries.get(key)?.revision === revision) return cache.entries.get(key).book;
+    const points = quoteFreshnessPoints(applyLiveQuote(policy.validationMode === 'legacy' ? mergedQuotePoints(series) : series.flatMap(row => row.buckets.flatMap(point => [point,...(point.evidenceObservations||[])]).filter(point => { const at = Date.parse(point.observedAt ?? point.sourceQuoteAt ?? point.seenAt); return at >= now - OBSERVATION_POLICY.windowMs; }).map(point => ({ ...point, source: point.source ?? row.source }))), live, { legacy: policy.validationMode === 'legacy' }));
+    const book = { points, revision };
+    if (cache && points.length <= OBSERVATION_POLICY.maxCachedPoints) {
+        cache.pointCount -= cache.entries.get(key)?.book.points.length || 0;
+        cache.entries.delete(key);
+        while (cache.entries.size && (cache.entries.size >= OBSERVATION_POLICY.maxCachedSeries || cache.pointCount + points.length > OBSERVATION_POLICY.maxCachedPoints)) {
+            const oldest = cache.entries.keys().next().value;
+            cache.pointCount -= cache.entries.get(oldest).book.points.length; cache.entries.delete(oldest);
+        }
+        cache.entries.set(key, { revision, book }); cache.pointCount += points.length;
+    }
+    return book;
+}
+
+function pricedSides(snapshot) {
+    return [snapshot.buy, snapshot.sell].filter((side) => side?.price > 0);
+}
+
+/** One primary reason per cell that produced no row. The buckets partition cells − shown − overLimit. */
+function exclusionReason(snapshot) {
+    const sides = pricedSides(snapshot);
+    if (!sides.length) return 'noHistory';
+    const referenced = sides.filter((side) => side.reference > 0);
+    if (sides.some(side => side.validationStatus === 'quarantined')) return 'suspicious';
+    if (!referenced.length) return 'singleObservation';
+    if (!sides.some(side => side.referenceLevel >= 3)) return 'insufficient';
+    if (!referenced.some((side) => !side.stale)) return 'stale';
+    return 'belowDeviation';
+}
+
+const assessmentCaches = new WeakMap();
+export function scanQuoteBooks({
+    server, packetHistory, repository, now = Date.now(), premium = true, fees,
+    policy = OPPORTUNITY_POLICY, includeEvaluation = false
+} = {}) {
+    const started = Date.now();
+    const groups = new Map();
+    const add = (row) => {
+        if (!row || row.server !== server || (row.side !== 'buy' && row.side !== 'sell')) return;
+        const key = cellKey(row);
+        if (!groups.has(key)) groups.set(key, { server: row.server, itemId: row.itemId, city: row.city, quality: Number(row.quality) || 1, sides: new Set() });
+        groups.get(key).sides.add(row.side);
+    };
+    for (const row of packetHistory?.identities?.(now) || []) add(row);
+    for (const row of repository?.identities?.(now) || []) add(row);
+
+    const cacheOwner = repository || packetHistory;
+    let assessments = cacheOwner && assessmentCaches.get(cacheOwner);
+    if (cacheOwner && !assessments) { assessments = new Map(); assessmentCaches.set(cacheOwner, assessments); }
+    const snapshots = [];
+    for (const group of groups.values()) {
+        const read = (side) => {
+            if (!group.sides.has(side)) return assessMarketSide({ now, policy });
+            const identity = { ...group, side };
+            const key = `${marketSeriesKey(identity)}|${policy.validationMode}`;
+            let cached = assessments?.get(key);
+            const live = repository?.currentQuote?.(identity);
+            const canVersion = (!packetHistory || packetHistory.seriesRevision) && (!repository || repository.seriesRevision);
+            const rawRevision = canVersion ? `${packetHistory?.seriesRevision(identity) || 0}|${repository?.seriesRevision(identity) || 0}|${live?.sourceQuoteAt}|${live?.price}` : null;
+            if (rawRevision !== null && cached?.rawRevision === rawRevision && now >= cached.at && now < cached.expiresAt) return assessMarketSide({ referenceQuote: cached.summary, now, policy });
+            const book = readMarketBook(packetHistory, repository, identity, now, policy);
+            if (!cached || cached.revision !== book.revision || now < cached.at || now >= cached.expiresAt) {
+                const quote = provisionalReference(book.points, { now, policy });
+                const { observations, ...summary } = quote;
+                summary.quarantinedObservations = observations?.filter(point => point.validationStatus === 'quarantined').length ?? 0;
+                const boundaries = book.points.map(point => Date.parse(point.observedAt ?? point.sourceQuoteAt ?? point.seenAt) + OBSERVATION_POLICY.windowMs).filter(at => at > now);
+                cached = { rawRevision, revision: book.revision, at: now, expiresAt: Math.min(now + 3600000, ...boundaries), summary };
+                if (assessments) { if (assessments.size >= OBSERVATION_POLICY.maxCachedSeries) assessments.clear(); assessments.set(key, cached); }
+            }
+            return assessMarketSide({ referenceQuote: cached.summary, now, policy });
+        };
+        snapshots.push({ ...group, buy: read('buy'), sell: read('sell') });
+    }
+    const byItem = new Map();
+    for (const snapshot of snapshots) {
+        const key = `${snapshot.itemId}|${snapshot.quality}`;
+        if (!byItem.has(key)) byItem.set(key, []);
+        byItem.get(key).push(snapshot);
+    }
+    const analyzed = snapshots.map((snapshot) => analyzeMarketCell({
+        ...snapshot,
+        peers: (byItem.get(`${snapshot.itemId}|${snapshot.quality}`) || []).filter((peer) => peer.city !== snapshot.city),
+        premium, fees, now, policy
+    }));
+    const excluded = { noHistory: 0, singleObservation: 0, stale: 0, belowDeviation: 0, suspicious: 0, insufficient: 0, overLimit: 0 };
+    const candidates = [];
+    snapshots.forEach((snapshot, index) => {
+        if (analyzed[index]) candidates.push(analyzed[index]);
+        if (!analyzed[index] || (policy.validationMode !== 'legacy' && !analyzed[index].eligible)) excluded[exclusionReason(snapshot)] += 1;
+    });
+    const ranked = rankMarketOpportunities(candidates, { mode: 'balanced', policy });
+    const verified = ranked.filter(row => policy.validationMode === 'legacy' || row.eligible);
+    const diagnostics = ranked.filter(row => !row.eligible).slice(0, policy.listLimit);
+    const listed = verified.slice(0, policy.listLimit);
+    excluded.overLimit = verified.length - listed.length;
+    const has = (snapshot, test) => test(snapshot.buy) || test(snapshot.sell);
+    return {
+        server,
+        strategyId: policy.strategyId,
+        scannedAt: new Date(now).toISOString(),
+        elapsedMs: Date.now() - started,
+        scanned: snapshots.length,
+        referenced: snapshots.filter((snapshot) => has(snapshot, (side) => side?.reference > 0)).length,
+        listed: listed.length,
+        truncated: verified.length > listed.length,
+        premium: Boolean(premium),
+        funnel: {
+            cells: snapshots.length,
+            withHistory: snapshots.filter((snapshot) => has(snapshot, (side) => side?.price > 0)).length,
+            referenceable: snapshots.filter((snapshot) => has(snapshot, (side) => side?.reference > 0)).length,
+            fresh: snapshots.filter((snapshot) => has(snapshot, (side) => side?.price > 0 && !side.stale)).length,
+            anomalies: snapshots.filter((snapshot) => has(snapshot, (side) => side?.anomalous)).length,
+            filtered: snapshots.length - listed.length,
+            shown: listed.length
+        },
+        excluded,
+        funnelNotes: {
+            cells: 'Taranan ürün-şehir-kalite hücresi.',
+            withHistory: 'En az bir Buy veya Sell fiyatı olan hücre. Diğer sayılarla örtüşür.',
+            referenceable: 'Hareketten önceki en az bir bağımsız saatlik gözlemle referansı hesaplanan hücre. Örtüşen sayıdır.',
+            fresh: 'Son 6 saatte fiyatı olan hücre. Örtüşen sayıdır; tek gözlem de taze olabilir.',
+            anomalies: 'Sapma eşiğini geçen hücre. Liste sınırına takılanlar gösterilenden fazla olabilir.',
+            filtered: 'Gösterilmeyen hücre. Alt satırdaki sebepler bunu böler ve birbirine eklenince bu sayıya eşittir.',
+            shown: 'Listelenen fırsat.',
+            noHistory: 'Buy ve Sell fiyatı yok.',
+            singleObservation: 'Fiyat var, fakat hareketten önceki bağımsız gözlem yok. Tek fiyat kendi kendisiyle karşılaştırılmaz.',
+            stale: 'Referans var, güncel fiyatın tamamı 6 saatten eski.',
+            belowDeviation: 'Taze referans var, sapma eşiğini geçmedi ve ücret sonrası çevirme de yok.',
+            overLimit: 'Eşiği geçti ama liste sınırından sonra kaldı.'
+        },
+        ...(includeEvaluation ? { evaluation: { rows: ranked, snapshots } } : {}),
+        candidateCount: ranked.filter(row => row.anomalies.length || row.primary).length,
+        diagnostics,
+        counts: { evaluated: snapshots.length, verified: verified.length, monitored: analyzed.filter(row => row && !row.eligible && row.validationStatus !== 'quarantined' && [row.buy, row.sell].some(side => side?.referenceLevel >= 3)).length, suspicious: analyzed.filter(row => row && !row.eligible && row.validationStatus === 'quarantined').length, insufficient: snapshots.filter((snapshot, index) => !analyzed[index]?.eligible && analyzed[index]?.validationStatus !== 'quarantined' && ![snapshot.buy, snapshot.sell].some(side => side?.referenceLevel >= 3)).length },
+        opportunities: listed
+    };
+}
+
+export function seriesForCell(packetHistory, repository, { server, itemId, city, quality, now = Date.now(), policy = OPPORTUNITY_POLICY }) {
+    const base = { server, itemId, city, quality: Number(quality) || 1 };
+    const read = (side) => {
+        const book = readMarketBook(packetHistory, repository, { ...base, side }, now, policy);
+        const assessed = assessMarketSide({ points: book.points, now, policy });
+        return {
+            reference: assessed.reference,
+            provisional: assessed.provisional,
+            referenceSamples: assessed.referenceSamples,
+            audit: policy.validationMode === 'legacy' ? [] : validateObservationSeries(book.points, { now }).observations.filter(point => point.validationStatus !== 'accepted').slice(-OBSERVATION_POLICY.detailAuditLimit),
+            validationStatus: assessed.validationStatus, validationReasons: assessed.validationReasons,
+            referenceConfidence: assessed.referenceConfidence, executionConfidence: assessed.executionConfidence,
+            points: quoteDisplayPoints(book.points, { now, bucketMs: policy.displayBucketMs })
+        };
+    };
+    return { ...base, buy: read('buy'), sell: read('sell') };
+}

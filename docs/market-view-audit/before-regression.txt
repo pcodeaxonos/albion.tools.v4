@@ -1,0 +1,15 @@
+(node:52520) ExperimentalWarning: VM Modules is an experimental feature. This feature could change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+Opportunity browser flow: compact cards, execution labels, route cities, net/return, all-pool filters and shared controls passed.
+node:internal/process/esm_loader:94
+    internalBinding('errors').triggerUncaughtException(
+                              ^
+
+AssertionError [ERR_ASSERTION]: alternative historical strategy remains counted
+    at file:///F:/Web/GitHub/pcodeaxonos/albion.tools.v4/content/scripts/test-opportunity-quality-ui.mjs:149:8 {
+  generatedMessage: false,
+  code: 'ERR_ASSERTION',
+  actual: undefined,
+  expected: 1,
+  operator: 'strictEqual'
+}

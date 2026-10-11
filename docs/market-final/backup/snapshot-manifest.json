@@ -1,0 +1,31 @@
+{
+  "startedAt": "2026-10-10T20:20:26.527Z",
+  "asOf": "2026-10-10T20:20:26.839Z",
+  "files": [
+    {
+      "source": ".aodp-quote-history.json",
+      "sha256": "a9a3e95a0f4bf3ec49a56fbd3822ac7c38a10567542d3111bb59d4e252c30e57",
+      "bytes": 3056050
+    },
+    {
+      "source": ".aodp-quote-history.json.journal",
+      "sha256": "823be018c25bb4a6ceaeb9a700a28ef6d37ca123580a077fd6d73db8755997ef",
+      "bytes": 58055702
+    },
+    {
+      "source": ".price-order-history.json",
+      "sha256": "37a7dc0854e6ebbd7ee0eaf7bfc5c603613e2e7842e8e9739abfc225d5b1a1f4",
+      "bytes": 337476
+    },
+    {
+      "source": "docs/market-observation-shadow.json",
+      "sha256": "20c2006db169cf504b23902e528b753c618e7d5a7d78ea49baceb7eba822e115",
+      "bytes": 13395
+    }
+  ],
+  "checkpointSequence": 24,
+  "lastSequence": 1514,
+  "transactions": 1490,
+  "stableDoubleRead": true,
+  "productionWrites": false
+}

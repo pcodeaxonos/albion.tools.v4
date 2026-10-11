@@ -1,0 +1,70 @@
+import assert from 'node:assert/strict';
+import { OPPORTUNITY_QUALITY_POLICY as P, qualityCalibration, strategyEconomics, strategyQuality, rankOpportunityPresentation as rank } from '../js/core/market-opportunity-quality.mjs';
+import { STRATEGY_SPECS } from '../js/core/market-strategy-policy.mjs';
+import { scanQuoteBooks } from '../js/core/market-opportunity-scan.mjs';
+const fees = { setupFeeRate: .025, taxPremiumRate: .04, taxFreeRate: .08 };
+assert.equal(Object.values(P.weights).reduce((a, b) => a + b), 1);
+assert.equal(P.minNet, null); assert.equal(P.minReturn, null);
+for (const [id, model] of [['place-sell-order', 'order'], ['instant-buy-from-sell', 'instant'], ['instant-sell-to-buy', 'instant'], ['place-buy-order', 'order'], ['local-make', 'order'], ['local-flip', 'instant'], ['cross-city-instant', 'transport']]) assert.equal(STRATEGY_SPECS[id].execution, model);
+const route = strategyEconomics({ id: 'cross-city-instant', netSilver: 600.44, advantageSilver: 600.44 }, { sell: { price: 11917 } }, { fees });
+assert.equal(route.capitalSilver, 11917); assert.equal(route.returnRatio, 600.44 / 11917);
+const posted = strategyEconomics({ id: 'local-make', netSilver: 113.04 }, { buy: { price: 800 }, sell: { price: 1000 } }, { fees });
+assert.ok(Math.abs(posted.capitalSilver - 801 * 1.025) < 1e-9);
+const inventory = strategyEconomics({ id: 'instant-sell-to-buy', netSilver: 192, advantageSilver: 192 }, { buy: { reference: 800 } }, { fees });
+assert.equal(inventory.returnRatio, null, 'inventory acquisition cost is unknown');
+assert.equal(inventory.referenceAdvantageRatio, .25);
+const referenceOnly = { eligible: true, strategies: [{ id: 'instant-sell-to-buy', weight: 1, advantageSilver: 192, economics: inventory }] };
+assert.equal(qualityCalibration([referenceOnly]).returnScale, null, 'reference advantage cannot substitute for ROI');
+const make = (id, net, roi, age, execution = 'order') => {
+    const strategyId = execution === 'instant' ? 'local-flip' : execution === 'transport' ? 'cross-city-instant' : 'local-make';
+    const primary = { id: strategyId, execution, advantageSilver: net, netSilver: net, weight: 1,
+        economics: { netSilver: net, capitalSilver: net / roi, returnRatio: roi },
+        evidence: { eligible: true, inputs: { sell: { ageMs: age, executionConfidence: 1 } } } };
+    return { id, eligible: true, validationMode: 'validated', primary, strategies: [primary], score: .7, rankScore: .6, recency: .8, parts: { reliability: 1 } };
+};
+const cheap = make('cheap', 4.91, .002, 1000), useful = make('useful', 100000, .20, 1000);
+assert.equal(rank([cheap, useful])[0].id, 'useful');
+const giantLowReturn = make('giant', 10000000, .0001, 1000), smallerHighReturn = make('smaller', 50000, 2, 1000);
+assert.equal(rank([giantLowReturn, smallerHighReturn])[0].id, 'smaller', 'silver cannot dominate yield');
+const fresh = make('fresh', 1000, .1, 1000), old = make('old', 1000, .1, 5 * 3600000);
+assert.equal(rank([old, fresh])[0].id, 'fresh');
+const calibration = qualityCalibration([fresh]);
+const quality = strategyQuality(fresh, fresh.primary, calibration);
+assert.deepEqual(quality.unknown, ['orderDepth', 'volume', 'fillProbability']);
+assert.equal(quality.components.evidence, 1);
+assert.ok(!Object.hasOwn(quality.components, 'fillProbability'));
+assert.equal(strategyQuality(make('haul', 1000, .1, 1000, 'transport'), make('haul', 1000, .1, 1000, 'transport').primary, calibration).unknown.includes('travelCost'), true);
+// Near-score diversity is bounded; no group quota can lift substantially worse economics.
+const timePolicy = { ...P, weights: { silver: 0, return: 0, freshness: 1, evidence: 0 } };
+const high = make('high', 100, .1, 3600000, 'order');
+const near = make('near', 100, .1, 3600000 + .01 * 5 * 3600000, 'transport');
+const weak = make('weak', 100, .1, 3600000 + .1 * 5 * 3600000, 'instant');
+const diversity = rank([high, { ...high, id: 'high-2' }, near, weak], { qualityPolicy: timePolicy });
+assert.equal(diversity.at(-1).id, 'weak');
+assert.ok(diversity.slice(0, 2).some(row => row.primary.execution === 'transport'));
+// Filters apply to a view before the limit, and do not mutate validation or references.
+const pool = Array.from({ length: 610 }, (_, index) => make(String(index), index + 1, .1, 1000));
+pool.push(make('tiny-instant', .68, .097, 1000, 'instant'));
+const snapshot = JSON.stringify(pool);
+assert.equal(rank(pool, { limit: 500 }).length, 500);
+assert.equal(rank(pool, { execution: 'instant', limit: 500 })[0].id, 'tiny-instant');
+assert.equal(rank(pool, { minNet: 600, limit: 500 }).length, 11);
+assert.equal(rank(pool, { minReturn: .2 }).length, 0);
+assert.equal(JSON.stringify(pool), snapshot);
+const multi = make('multi', 100000, .2, 1000);
+multi.strategies.push(make('other', 100, .3, 1000, 'transport').primary);
+assert.equal(rank([multi], { execution: 'transport' })[0].primary.id, 'cross-city-instant');
+assert.equal(multi.primary.id, 'local-make');
+assert.deepEqual(rank(pool, { mode: 'importance' }).map(row => row.id), pool.slice().sort((a, b) => a.id.localeCompare(b.id)).map(row => row.id));
+const recent = [make('a', 1000, .1, 1000), make('b', 100, .01, 1000)]; recent[0].recency = .1; recent[1].recency = 1;
+assert.equal(rank(recent, { mode: 'recent' })[0].id, 'b');
+// Full candidate pool is exposed only on request; the traditional 500-row response stays capped.
+const now = Date.parse('2026-10-10T15:24:07.570Z');
+const identities = ['buy', 'sell'].map(side => ({ server: 'europe', itemId: 'TEST', city: 'Lymhurst', quality: 1, side }));
+const repository = { identities: () => identities, seriesFor: identity => ({ source: 'aodp-current', buckets: [{ price: identity.side === 'buy' ? 800 : 1000, source: 'aodp-current', sourceQuoteAt: new Date(now - 1000).toISOString(), fetchedAt: new Date(now).toISOString() }] }) };
+const scan = scanQuoteBooks({ server: 'europe', repository, now, fees, includeCandidates: true });
+assert.equal(scan.eligibleCandidates.length, scan.counts.verified);
+assert.ok(scan.eligibleCandidates.every(row => !Object.hasOwn(row, 'decisions')));
+assert.equal(scan.opportunities[0].opportunityQuality.execution, 'order');
+assert.equal(scan.opportunities[0].quality, 1, 'ranking preserves product identity quality');
+console.log('Opportunity quality: execution, economics, weights, unknown risks, diversity, preserved sort modes, filters, full pool and limit passed.');

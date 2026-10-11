@@ -1,0 +1,125 @@
+import { median, normalizePriceDate, marketSeriesKey } from './market-primitives.mjs';
+import { DAY_MS, PRICE_STALE_MS } from './market-history-config.mjs';
+
+export const OBSERVATION_POLICY = Object.freeze({ version: 2, flatBand: .05, minDelta: 25,
+    suspicion: .5, highSuspicion: 1, extreme: 3, windowMs: 28 * DAY_MS,
+    levels: Object.freeze([[1, 0], [5, 6 * 3600000], [12, DAY_MS], [24, 3 * DAY_MS]]),
+    confirmations: 2, suspiciousConfirmations: 5, highSuspicionConfirmations: 8, extremeConfirmations: 12,
+    regimeSamples: 24, regimeSpanMs: 3 * DAY_MS, auditLimit: 500, maxCachedSeries: 6000, timestampCacheLimit: 16384, maxCachedPoints: 100000, detailAuditLimit: 50, auditRetentionMs: 7 * DAY_MS, shadowLimit: 20, shadowIntervalMs: 3600000 });
+export const OBSERVATION_REASON_TEXT = Object.freeze({
+    'invalid-price': 'Geçersiz fiyat', 'invalid-series': 'Geçersiz fiyat serisi', 'invalid-receipt-time': 'Geçersiz alım zamanı', 'invalid-source-time': 'Geçersiz kaynak zamanı', 'future-receipt': 'Alım zamanı gelecekte',
+    'source-time-unknown': 'Kaynak gözlem zamanı bilinmiyor', 'incomplete-book': 'Emir defteri kapsamı eksik veya bilinmiyor',
+    'conflicting-event': 'Aynı piyasa gözlemi için çelişkili fiyatlar', 'movement-confirmed': 'Hareket bağımsız zamanlarda doğrulandı',
+    'extreme-price': 'Aşırı fiyat için yeterli doğrulama yok', 'suspicious-movement': 'Şüpheli hareket için yeterli doğrulama yok',
+    'awaiting-movement': 'Hareket onay bekliyor'
+});
+const timestamps = new Map();
+function parsedTime(value) {
+    if (timestamps.has(value)) return timestamps.get(value);
+    const at = Date.parse(normalizePriceDate(value));
+    const result = { at, iso: Number.isFinite(at) ? new Date(at).toISOString() : null };
+    if (timestamps.size >= OBSERVATION_POLICY.timestampCacheLimit) timestamps.clear();
+    timestamps.set(value, result); return result;
+}
+
+/** Source time is evidence; packet receipt time explicitly is not an exchange timestamp. */
+export function normalizeObservation(raw, { now = Date.now(), source = raw.source } = {}) {
+    const observedAt = raw.observedAt ?? raw.sourceQuoteAt ?? (source === 'aodp-current' ? null : raw.seenAt ?? raw.at);
+    const receivedValue = raw.receivedAt ?? raw.fetchedAt ?? raw.seenAt ?? raw.at;
+    const observed = parsedTime(observedAt), receipt = parsedTime(receivedValue);
+    const at = observed.at, received = receipt.at;
+    const price = Number(raw.price);
+    const reasons = [];
+    if (!Number.isFinite(price) || price <= 0) reasons.push('invalid-price');
+    if (receivedValue !== undefined && receivedValue !== null && !Number.isFinite(received)) reasons.push('invalid-receipt-time');
+    if (raw.server !== undefined && raw.server !== null && (!raw.server || !raw.itemId || !raw.city || !['buy', 'sell'].includes(raw.side) || !Number.isInteger(raw.quality) || raw.quality < 1 || raw.quality > 5)) reasons.push('invalid-series');
+    if (!Number.isFinite(at) || at > now || (Number.isFinite(received) && at > received)) reasons.push('invalid-source-time');
+    if (Number.isFinite(received) && received > now) reasons.push('future-receipt');
+    const coverage = raw.coverage ?? (source === 'aodp-current' ? 'reported-top' : 'unknown');
+    const independent = source === 'aodp-current' || raw.sourceTimeKnown === true;
+    if (!independent) reasons.push('source-time-unknown');
+    if (!['reported-top', 'complete'].includes(coverage)) reasons.push('incomplete-book');
+    const rejected = reasons.some(reason => reason.startsWith('invalid-') || reason.startsWith('future-'));
+    return { server: raw.server ?? null, itemId: raw.itemId ?? null, city: raw.city ?? null, quality: raw.quality ?? null, side: raw.side ?? null,
+        seenAt: raw.seenAt ?? null, bucketAt: raw.bucketAt ?? null, fetchedAt: raw.fetchedAt ?? null, sourceQuoteAt: raw.sourceQuoteAt ?? null, quotedAt: raw.quotedAt ?? null, evidence: raw.evidence ?? [],
+        observationVersion: OBSERVATION_POLICY.version, source, price,
+        observedAt: independent ? observed.iso : null,
+        receivedAt: receipt.iso,
+        processedAt: raw.processedAt ?? parsedTime(new Date(now).toISOString()).iso, sourceTimeKnown: independent, coverage,
+        observationId: raw.observationId ?? `${marketSeriesKey(raw)}|${source}|${observed.iso ?? observedAt}`,
+        evidenceId: raw.evidenceId ?? `${marketSeriesKey(raw)}|market|${observed.iso ?? observedAt}`,
+        validationStatus: rejected ? 'rejected' : reasons.length ? 'provisional' : 'accepted', reasons,
+        at, rawEvidence: raw.rawEvidence ?? raw };
+}
+
+export function referenceLevel(count, span, stability) {
+    if (!count) return 0;
+    let level = 1;
+    OBSERVATION_POLICY.levels.forEach(([samples, duration], index) => {
+        if (count >= samples && span >= duration && stability >= .8) level = index + 1;
+    });
+    return level;
+}
+
+/** Chronological admission: a departure never participates in its own reference. */
+const referenceCache = new WeakMap();
+let cachedPointCount = 0;
+export function validateObservationSeries(points, { now = Date.now() } = {}) {
+    const cached = referenceCache.get(points);
+    if (cached && now >= cached.at && now < cached.expiresAt) return cached.result;
+    const policy = OBSERVATION_POLICY;
+    const unique = new Map();
+    for (const raw of points || []) {
+        const point = normalizeObservation(raw, { now });
+        if (!Number.isFinite(point.at) || point.at < now - policy.windowMs || point.at > now) continue;
+        // Source names do not make the same underlying market event independent.
+        const key = point.evidenceId;
+        const previous = unique.get(key);
+        if (!previous) unique.set(key, point);
+        else if (previous.price !== point.price) unique.set(key, { ...previous, validationStatus: 'quarantined', reasons: ['conflicting-event'] });
+        else if (previous.validationStatus !== 'accepted' && point.validationStatus === 'accepted') unique.set(key, point);
+    }
+    const observations = [...unique.values()].sort((a, b) => a.at - b.at || a.observationId.localeCompare(b.observationId));
+    let regime = [], prices = [], pending = [], transitions = [];
+    const insertPrice = price => { let low = 0, high = prices.length; while (low < high) { const middle = (low + high) >>> 1; if (prices[middle] < price) low = middle + 1; else high = middle; } prices.splice(low, 0, price); };
+    const center = () => prices.length ? (prices[Math.floor((prices.length - 1) / 2)] + prices[Math.floor(prices.length / 2)]) / 2 : null;
+    let currentReference = null, currentHistory = [], historyCount = 0, currentMove = [];
+    for (const point of observations) {
+        currentHistory = regime; historyCount = regime.length; currentReference = center(); currentMove = [point];
+        if (point.validationStatus !== 'accepted') continue;
+        const deviation = currentReference > 0 ? Math.abs(point.price - currentReference) / currentReference : 0;
+        const departure = deviation > policy.flatBand && Math.abs(point.price - currentReference) >= policy.minDelta;
+        if (!departure) { regime.push(point); insertPrice(point.price); pending = []; continue; }
+        if (pending.length && Math.abs(point.price - median(pending.map(p => p.price))) / point.price > policy.flatBand) pending = [];
+        pending.push(point); currentMove = [...pending];
+        const required = deviation > policy.extreme ? policy.extremeConfirmations : deviation >= policy.highSuspicion ? policy.highSuspicionConfirmations : deviation >= policy.suspicion ? policy.suspiciousConfirmations : policy.confirmations;
+        const span = pending.at(-1).at - pending[0].at;
+        const verified = pending.length >= required && span >= (required - 1) * 3600000;
+        point.validationStatus = verified ? 'accepted' : deviation >= policy.suspicion ? 'quarantined' : 'provisional';
+        point.reasons = verified ? ['movement-confirmed'] : [deviation > policy.extreme ? 'extreme-price' : deviation >= policy.suspicion ? 'suspicious-movement' : 'awaiting-movement'];
+        point.evidence = pending.map(p => p.observationId);
+        if (verified) for (const candidate of pending) {
+            candidate.validationStatus = 'accepted'; candidate.reasons = ['movement-confirmed']; candidate.evidence = point.evidence;
+        }
+        if (verified && pending.length >= policy.regimeSamples && span >= policy.regimeSpanMs) {
+            transitions.push({ at: point.observedAt, from: currentReference, to: median(pending.map(p => p.price)), evidence: point.evidence });
+            // The transition applies to subsequent observations, never retroactively to this point.
+            regime = [...pending]; prices = regime.map(p => p.price).sort((a,b) => a-b); pending = [];
+        }
+    }
+    currentHistory = currentHistory.slice(0, historyCount);
+    const latest = observations.at(-1) ?? null;
+    const spanMs = currentHistory.length > 1 ? currentHistory.at(-1).at - currentHistory[0].at : 0;
+    const stability = currentReference > 0 ? currentHistory.filter(p => Math.abs(p.price - currentReference) / currentReference <= policy.flatBand).length / currentHistory.length : 0;
+    const level = referenceLevel(currentHistory.length, spanMs, stability);
+    const result = { observations, latest, reference: currentReference > 0 ? currentReference : null,
+        samples: currentHistory.length, spanMs, stability, level, confidence: level / 4,
+        provisional: level < 3, move: currentMove, transitions,
+        executionConfidence: latest?.validationStatus === 'accepted' && now - latest.at <= PRICE_STALE_MS ? 1 : 0 };
+    const boundaries = observations.map(point => point.at + policy.windowMs).filter(at => at > now);
+    if (cachedPointCount + observations.length <= policy.maxCachedPoints || cached) {
+        if (!cached) cachedPointCount += observations.length;
+        referenceCache.set(points, { at: now, expiresAt: Math.min(now + 3600000, ...boundaries, latest ? latest.at + PRICE_STALE_MS : Infinity), result });
+    }
+    return result;
+}

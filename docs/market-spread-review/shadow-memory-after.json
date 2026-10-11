@@ -1,0 +1,20 @@
+{
+  "mode": "after",
+  "asOf": "2026-10-11T00:41:41.000Z",
+  "sequence": 2539,
+  "cells": 25874,
+  "candidates": 1061,
+  "localMake": 867,
+  "shadowRemoved": 1343,
+  "shadowAdded": 952,
+  "shadowChangedReferences": 3757,
+  "scanMs": 6162.618299999274,
+  "warmMs": 6523.575799999759,
+  "shadowMs": 4741.676199999638,
+  "heapMb": {
+    "before": 180.65164184570312,
+    "afterValidatedScan": 703.0682907104492,
+    "afterShadowGc": 283.76438903808594,
+    "afterWarmGc": 302.1411361694336
+  }
+}

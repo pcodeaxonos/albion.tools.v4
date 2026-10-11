@@ -9,12 +9,15 @@
 import { execFile } from 'node:child_process';
 import { createServer } from 'node:http';
 import https from 'node:https';
+import { gzip } from 'node:zlib';
 import { readFileSync, writeFileSync, renameSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { promisify } from 'node:util';
 import { normalizePriceDate, marketSeriesKey, BOOK_PRICE_FIELDS } from '../js/core/market-primitives.mjs';
 import { ORDER_HISTORY_POLICY } from '../js/core/market-history-config.mjs';
+import { mergePartialBook, latestBookOrders } from '../js/core/market-book.mjs';
+import { preserveArchive } from './archive-backup.mjs';
 import { OrderPriceHistory } from '../js/core/order-price-history.mjs';
 import { startQuoteService } from './quote-service.mjs';
 import { locationNamesByIndex } from '../js/core/market-catalog.mjs';
@@ -130,6 +133,18 @@ server.listen(PORT, HOST, () => {
     console.log(`AODP client: albiondata-client.exe -i http://${HOST}:${PORT}`);
 });
 
+// Preserve pending local observations and journal transactions during an operator restart.
+function shutdown() {
+    quoteService.collector.stop?.();
+    natsAdapter.stop?.();
+    if (persistTimer) { clearTimeout(persistTimer); persistTimer = null; persistCache(); }
+    try { quoteService.repository?.flush(); } catch (error) { console.error('Shutdown journal flush:', error.message); }
+    server.close(() => process.exit(0));
+    setTimeout(() => process.exit(0), 5000).unref();
+}
+process.once?.('SIGINT', shutdown);
+process.once?.('SIGTERM', shutdown);
+
 function applyCors(res) {
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, OPTIONS');
@@ -173,7 +188,7 @@ async function route(req, res, url, path) {
             sendJson(res, 200, quoteService.opportunitySeries({ requestedServer, itemId, city, quality: url.searchParams.get('quality') || 1 }));
             return;
         }
-        sendJson(res, 200, quoteService.opportunityScan({ requestedServer, premium: url.searchParams.get('premium') !== '0' }));
+        sendJson(res, 200, quoteService.opportunityScan({ requestedServer, premium: url.searchParams.get('premium') !== '0' }), { compress: /\bgzip\b/.test(req.headers?.['accept-encoding'] || '') });
         return;
     }
     if (req.method === 'GET' && path === '/pow') {
@@ -202,6 +217,11 @@ async function route(req, res, url, path) {
 
     const priceMatch = path.match(/^\/api\/v2\/stats\/prices\/(.+?)(?:\.json)?$/);
     if (req.method === 'GET' && priceMatch) {
+        const requestedServer = url.searchParams.get('server');
+        if (requestedServer && requestedServer !== MARKET_SERVER) {
+            sendJson(res, 400, { error: 'Hub server differs from requested server', server: MARKET_SERVER });
+            return;
+        }
         pruneExpired();
         sendJson(res, 200, priceRows(priceMatch[1], url.searchParams));
         return;
@@ -459,6 +479,9 @@ function aggregateRow(itemId, city, quality) {
         item_id: itemId,
         city,
         quality,
+        book_coverage: { sell: offer?.coverage ?? 'unknown', buy: request?.coverage ?? 'unknown' },
+        // Retained IDs are observations; upload protocol cannot prove they remain active.
+        active_orders_verified: false,
         sell_price_min: sell.price,
         sell_price_min_date: sell.date,
         sell_price_max: sellMax.price,
@@ -471,12 +494,13 @@ function aggregateRow(itemId, city, quality) {
 }
 
 function extrema(book, kind) {
-    if (!book || book.orders.size === 0) {
+    const currentOrders = latestBookOrders(book);
+    if (!currentOrders.length) {
         return { price: 0, date: EMPTY_DATE };
     }
 
     let chosen = null;
-    for (const order of book.orders.values()) {
+    for (const order of currentOrders) {
         if (!chosen) {
             chosen = order;
             continue;
@@ -528,12 +552,16 @@ function ingestMarketUpload(payload) {
             side: sample.side,
             orders: new Map(batch.map((order) => [order.id, order]))
         };
-        books.set(key, book);
+        // Upload/NATS protocol supplies no completion or removal proof.
+        books.set(key, mergePartialBook(books.get(key), book));
         // Aggregate only newly observed books. Never seed history from cached books.
         const historySide = sample.side === 'request' ? 'buy' : 'sell';
         const field = BOOK_PRICE_FIELDS[historySide];
-        const row = aggregateRow(sample.itemId, sample.city, sample.quality);
+        // History must describe this incoming partial batch, never extrema of stale merged cached orders.
+        const observedPrice = historySide === 'sell' ? Math.min(...batch.map(order => order.price)) : Math.max(...batch.map(order => order.price));
+        const row = { item_id: sample.itemId, city: sample.city, quality: sample.quality, [field]: observedPrice, [`${field}_date`]: seenAt };
         orderHistory.recordRow(MARKET_SERVER, { item_id: row.item_id, city: row.city, quality: row.quality,
+            coverage: 'partial', sourceTimeKnown: false, rawEvidence: batch,
             [field]: row[field], [`${field}_date`]: row[`${field}_date`] });
     }
 
@@ -547,6 +575,7 @@ function ingestMarketUpload(payload) {
     lastItems = [...new Set([...snapshots.values()].map((batch) => batch[0].itemId))];
     lastCities = [...new Set([...snapshots.values()].map((batch) => batch[0].city))].sort();
     schedulePersist();
+    quoteService.invalidateOpportunities?.();
     broadcastMarket({
         at: seenAt,
         items: lastItems,
@@ -934,11 +963,19 @@ function loadLocalDataFile() {
     }
 }
 
-function sendJson(res, status, body) {
+function sendJson(res, status, body, { compress = false } = {}) {
     if (res.writableEnded || res.headersSent) {
         return;
     }
     const json = JSON.stringify(body);
+    if (compress) {
+        gzip(json, { level: 1 }, (error, bytes) => {
+            if (res.writableEnded || res.headersSent || res.destroyed) return;
+            res.writeHead(status, { 'Content-Type': 'application/json; charset=utf-8', Vary: 'Accept-Encoding', ...(error ? {} : { 'Content-Encoding': 'gzip' }) });
+            res.end(error ? json : bytes);
+        });
+        return;
+    }
     res.writeHead(status, { 'Content-Type': 'application/json; charset=utf-8' });
     res.end(json);
 }
@@ -981,6 +1018,7 @@ function persistCache() {
 
 function persistOrderHistory() {
     try {
+        preserveArchive(HISTORY_PATH);
         writeFileSync(`${HISTORY_PATH}.tmp`, JSON.stringify(orderHistory.snapshot()));
         renameSync(`${HISTORY_PATH}.tmp`, HISTORY_PATH);
     } catch (error) {
@@ -998,7 +1036,6 @@ function loadOrderHistory() {
     }
     // Fail closed on corruption/schema mismatch; do not overwrite the existing archive.
     orderHistory.restore(JSON.parse(raw));
-    persistOrderHistory();
 }
 
 function loadCache() {

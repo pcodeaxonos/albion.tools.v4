@@ -1,4 +1,5 @@
 {
   "server": "europe",
-  "nats": "telemetry"
+  "nats": "telemetry",
+  "opportunitiesValidated": true
 }

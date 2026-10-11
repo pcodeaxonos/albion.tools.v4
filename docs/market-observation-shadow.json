@@ -1,0 +1,524 @@
+{
+  "archiveOnly": true,
+  "journalIncluded": false,
+  "results": [
+    {
+      "server": "europe",
+      "version": 1,
+      "scannedAt": "2026-10-10T15:10:04.835Z",
+      "elapsedMs": 674,
+      "evaluated": 1744,
+      "oldCandidates": 22,
+      "newCandidates": 16,
+      "verified": 0,
+      "quarantinedCells": 10,
+      "changedReferences": 432,
+      "changedReferenceCells": 375,
+      "removed": 22,
+      "added": 0,
+      "types": {
+        "legacy": {
+          "place-sell-order": 5,
+          "place-buy-order": 3,
+          "local-make": 6,
+          "instant-buy-from-sell": 6,
+          "instant-sell-to-buy": 2
+        },
+        "validated": {},
+        "monitored": {
+          "instant-sell-to-buy": 1,
+          "place-buy-order": 8,
+          "place-sell-order": 5,
+          "instant-buy-from-sell": 2
+        }
+      },
+      "top20": {
+        "legacy": [
+          "T8_PUMPKIN|Thetford|1",
+          "T8_MOUNT_RAM_FW_MARTLOCK_ELITE|Brecilien|1",
+          "T5_LEATHER|Brecilien|1",
+          "T6_FARM_SHEEP_GROWN|Brecilien|1",
+          "T7_CORN|Thetford|1",
+          "T8_FARM_COW_BABY|Martlock|1",
+          "T5_MOUNT_RAM_FW_MARTLOCK|Brecilien|1",
+          "T5_MOUNT_RAM_FW_MARTLOCK|Brecilien|2",
+          "T5_MOUNT_RAM_FW_MARTLOCK|Brecilien|4",
+          "T6_MOUNT_DIREWOLF|Brecilien|1",
+          "T5_HEAD_PLATE_ROYAL@2|Fort Sterling|5",
+          "T5_HEAD_PLATE_ROYAL@2|Fort Sterling|4",
+          "QUESTITEM_TOKEN_ROYAL_T5|Thetford|1",
+          "T7_FARM_PIG_GROWN|Brecilien|1",
+          "T6_MEAT|Brecilien|1",
+          "T5_MOUNT_HORSE|Brecilien|1",
+          "T4_MOUNT_HORSE|Brecilien|1",
+          "T3_PLANKS|Brecilien|1",
+          "T4_LEATHER|Martlock|1",
+          "T6_LABOURER_CONTRACT_MAGE|Martlock|1"
+        ],
+        "validated": []
+      },
+      "affected": [
+        {
+          "id": "T8_FARM_COW_BABY|Martlock|1",
+          "before": true,
+          "after": false,
+          "referenceChanges": [
+            {
+              "side": "sell",
+              "from": 34264,
+              "to": 49995,
+              "delta": 15731,
+              "relativeDelta": 0.4591116040158767
+            }
+          ],
+          "reasons": [
+            "provisional",
+            "source-time-unknown",
+            "incomplete-book"
+          ]
+        },
+        {
+          "id": "T3_PLANKS|Brecilien|1",
+          "before": true,
+          "after": false,
+          "referenceChanges": [
+            {
+              "side": "sell",
+              "from": 397,
+              "to": 245,
+              "delta": -152,
+              "relativeDelta": -0.38287153652392947
+            }
+          ],
+          "reasons": [
+            "provisional",
+            "source-time-unknown",
+            "incomplete-book"
+          ]
+        },
+        {
+          "id": "T3_PLANKS|Martlock|1",
+          "before": true,
+          "after": false,
+          "referenceChanges": [
+            {
+              "side": "buy",
+              "from": 191,
+              "to": 179,
+              "delta": -12,
+              "relativeDelta": -0.06282722513089005
+            },
+            {
+              "side": "sell",
+              "from": 342.5,
+              "to": 446,
+              "delta": 103.5,
+              "relativeDelta": 0.3021897810218978
+            }
+          ],
+          "reasons": [
+            "provisional",
+            "source-time-unknown",
+            "incomplete-book"
+          ]
+        },
+        {
+          "id": "T8_MOUNT_RAM_FW_MARTLOCK_ELITE|Brecilien|1",
+          "before": true,
+          "after": false,
+          "referenceChanges": [
+            {
+              "side": "sell",
+              "from": 3100000,
+              "to": 3799999,
+              "delta": 699999,
+              "relativeDelta": 0.22580612903225805
+            }
+          ],
+          "reasons": [
+            "provisional",
+            "source-time-unknown",
+            "incomplete-book"
+          ]
+        },
+        {
+          "id": "T4_MOUNT_HORSE|Brecilien|1",
+          "before": true,
+          "after": false,
+          "referenceChanges": [
+            {
+              "side": "sell",
+              "from": 35319,
+              "to": 37954.5,
+              "delta": 2635.5,
+              "relativeDelta": 0.07461989297545231
+            }
+          ],
+          "reasons": [
+            "provisional",
+            "source-time-unknown",
+            "incomplete-book"
+          ]
+        },
+        {
+          "id": "T4_LEATHER|Martlock|1",
+          "before": true,
+          "after": false,
+          "referenceChanges": [
+            {
+              "side": "buy",
+              "from": 315.5,
+              "to": 316,
+              "delta": 0.5,
+              "relativeDelta": 0.001584786053882726
+            },
+            {
+              "side": "sell",
+              "from": 339,
+              "to": 323,
+              "delta": -16,
+              "relativeDelta": -0.0471976401179941
+            }
+          ],
+          "reasons": [
+            "provisional",
+            "source-time-unknown",
+            "incomplete-book"
+          ]
+        },
+        {
+          "id": "T6_MOUNT_DIREWOLF|Brecilien|1",
+          "before": true,
+          "after": false,
+          "referenceChanges": [
+            {
+              "side": "sell",
+              "from": 450392,
+              "to": 433799,
+              "delta": -16593,
+              "relativeDelta": -0.036841240519369794
+            }
+          ],
+          "reasons": [
+            "provisional",
+            "source-time-unknown",
+            "incomplete-book"
+          ]
+        },
+        {
+          "id": "T5_MOUNT_RAM_FW_MARTLOCK|Brecilien|1",
+          "before": true,
+          "after": false,
+          "referenceChanges": [
+            {
+              "side": "buy",
+              "from": 159271.5,
+              "to": 159300,
+              "delta": 28.5,
+              "relativeDelta": 0.0001789397349808346
+            },
+            {
+              "side": "sell",
+              "from": 309997,
+              "to": 314429,
+              "delta": 4432,
+              "relativeDelta": 0.01429691255076662
+            }
+          ],
+          "reasons": [
+            "provisional",
+            "source-time-unknown",
+            "incomplete-book"
+          ]
+        },
+        {
+          "id": "T5_LEATHER|Brecilien|1",
+          "before": true,
+          "after": false,
+          "referenceChanges": [
+            {
+              "side": "sell",
+              "from": 1530,
+              "to": 1519,
+              "delta": -11,
+              "relativeDelta": -0.00718954248366013
+            }
+          ],
+          "reasons": [
+            "provisional",
+            "source-time-unknown",
+            "incomplete-book"
+          ]
+        },
+        {
+          "id": "QUESTITEM_TOKEN_ROYAL_T5|Thetford|1",
+          "before": true,
+          "after": false,
+          "referenceChanges": [
+            {
+              "side": "buy",
+              "from": 46157,
+              "to": null,
+              "delta": null,
+              "relativeDelta": null
+            },
+            {
+              "side": "sell",
+              "from": 52828,
+              "to": null,
+              "delta": null,
+              "relativeDelta": null
+            }
+          ],
+          "reasons": [
+            "provisional",
+            "source-time-unknown",
+            "incomplete-book"
+          ]
+        },
+        {
+          "id": "T2_JOURNAL_MAGE_EMPTY|Martlock|1",
+          "before": true,
+          "after": false,
+          "referenceChanges": [
+            {
+              "side": "sell",
+              "from": 684,
+              "to": null,
+              "delta": null,
+              "relativeDelta": null
+            }
+          ],
+          "reasons": [
+            "provisional",
+            "source-time-unknown",
+            "incomplete-book"
+          ]
+        },
+        {
+          "id": "T5_HEAD_PLATE_ROYAL@2|Fort Sterling|4",
+          "before": true,
+          "after": false,
+          "referenceChanges": [
+            {
+              "side": "buy",
+              "from": 279007,
+              "to": null,
+              "delta": null,
+              "relativeDelta": null
+            },
+            {
+              "side": "sell",
+              "from": 379994,
+              "to": null,
+              "delta": null,
+              "relativeDelta": null
+            }
+          ],
+          "reasons": [
+            "provisional",
+            "source-time-unknown",
+            "incomplete-book"
+          ]
+        },
+        {
+          "id": "T5_HEAD_PLATE_ROYAL@2|Fort Sterling|5",
+          "before": true,
+          "after": false,
+          "referenceChanges": [
+            {
+              "side": "sell",
+              "from": 380000,
+              "to": null,
+              "delta": null,
+              "relativeDelta": null
+            }
+          ],
+          "reasons": [
+            "provisional",
+            "source-time-unknown",
+            "incomplete-book"
+          ]
+        },
+        {
+          "id": "T5_MOUNT_HORSE|Brecilien|1",
+          "before": true,
+          "after": false,
+          "referenceChanges": [],
+          "reasons": [
+            "provisional",
+            "source-time-unknown",
+            "incomplete-book"
+          ]
+        },
+        {
+          "id": "T5_MOUNT_RAM_FW_MARTLOCK|Brecilien|2",
+          "before": true,
+          "after": false,
+          "referenceChanges": [
+            {
+              "side": "sell",
+              "from": 324996,
+              "to": null,
+              "delta": null,
+              "relativeDelta": null
+            }
+          ],
+          "reasons": [
+            "provisional",
+            "source-time-unknown",
+            "incomplete-book"
+          ]
+        },
+        {
+          "id": "T5_MOUNT_RAM_FW_MARTLOCK|Brecilien|4",
+          "before": true,
+          "after": false,
+          "referenceChanges": [
+            {
+              "side": "sell",
+              "from": 328879,
+              "to": null,
+              "delta": null,
+              "relativeDelta": null
+            }
+          ],
+          "reasons": [
+            "provisional",
+            "source-time-unknown",
+            "incomplete-book"
+          ]
+        },
+        {
+          "id": "T6_FARM_SHEEP_GROWN|Brecilien|1",
+          "before": true,
+          "after": false,
+          "referenceChanges": [],
+          "reasons": [
+            "provisional",
+            "source-time-unknown",
+            "incomplete-book"
+          ]
+        },
+        {
+          "id": "T6_LABOURER_CONTRACT_MAGE|Martlock|1",
+          "before": true,
+          "after": false,
+          "referenceChanges": [
+            {
+              "side": "buy",
+              "from": 245222,
+              "to": null,
+              "delta": null,
+              "relativeDelta": null
+            },
+            {
+              "side": "sell",
+              "from": 429999,
+              "to": null,
+              "delta": null,
+              "relativeDelta": null
+            }
+          ],
+          "reasons": [
+            "provisional",
+            "source-time-unknown",
+            "incomplete-book"
+          ]
+        },
+        {
+          "id": "T6_MEAT|Brecilien|1",
+          "before": true,
+          "after": false,
+          "referenceChanges": [],
+          "reasons": [
+            "provisional",
+            "source-time-unknown",
+            "incomplete-book"
+          ]
+        },
+        {
+          "id": "T7_CORN|Thetford|1",
+          "before": true,
+          "after": false,
+          "referenceChanges": [],
+          "reasons": [
+            "provisional",
+            "source-time-unknown",
+            "incomplete-book"
+          ]
+        }
+      ],
+      "quarantinedObservations": 31,
+      "referenceLevels": {
+        "0": 2555,
+        "1": 835,
+        "2": 95,
+        "3": 3
+      },
+      "truthLabels": false,
+      "falseNegatives": null,
+      "limited": false
+    },
+    {
+      "server": "west",
+      "version": 1,
+      "scannedAt": "2026-10-10T15:10:04.835Z",
+      "elapsedMs": 15,
+      "evaluated": 0,
+      "oldCandidates": 0,
+      "newCandidates": 0,
+      "verified": 0,
+      "quarantinedCells": 0,
+      "changedReferences": 0,
+      "changedReferenceCells": 0,
+      "removed": 0,
+      "added": 0,
+      "types": {
+        "legacy": {},
+        "validated": {},
+        "monitored": {}
+      },
+      "top20": {
+        "legacy": [],
+        "validated": []
+      },
+      "affected": [],
+      "quarantinedObservations": 0,
+      "referenceLevels": {},
+      "truthLabels": false,
+      "falseNegatives": null,
+      "limited": false
+    },
+    {
+      "server": "east",
+      "version": 1,
+      "scannedAt": "2026-10-10T15:10:04.835Z",
+      "elapsedMs": 22,
+      "evaluated": 0,
+      "oldCandidates": 0,
+      "newCandidates": 0,
+      "verified": 0,
+      "quarantinedCells": 0,
+      "changedReferences": 0,
+      "changedReferenceCells": 0,
+      "removed": 0,
+      "added": 0,
+      "types": {
+        "legacy": {},
+        "validated": {},
+        "monitored": {}
+      },
+      "top20": {
+        "legacy": [],
+        "validated": []
+      },
+      "affected": [],
+      "quarantinedObservations": 0,
+      "referenceLevels": {},
+      "truthLabels": false,
+      "falseNegatives": null,
+      "limited": false
+    }
+  ]
+}

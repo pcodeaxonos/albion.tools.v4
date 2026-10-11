@@ -1,0 +1,6 @@
+{
+  "server": "europe", "city": "Brecilien", "item_id": "T7_MEAL_ROAST", "quality": 1,
+  "sell_price_min": 2999383, "sell_price_max": 15323568,
+  "buy_price_max": 4100, "buy_price_min": 2000,
+  "prior_sell_prices": [4377, 4367], "expected_reference": 4372
+}

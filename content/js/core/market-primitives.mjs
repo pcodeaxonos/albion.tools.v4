@@ -35,3 +35,10 @@ export function median(values) {
     const mid = Math.floor(sorted.length / 2);
     return sorted.length % 2 ? sorted[mid] : (sorted[mid - 1] + sorted[mid]) / 2;
 }
+
+export function quantile(values, fraction) {
+    const sorted = values.filter(Number.isFinite).sort((a, b) => a - b);
+    if (!sorted.length) return null;
+    const index = (sorted.length - 1) * fraction, low = Math.floor(index);
+    return sorted[low] + (sorted[Math.ceil(index)] - sorted[low]) * (index - low);
+}

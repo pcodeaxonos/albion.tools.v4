@@ -1,0 +1,7 @@
+{
+  "asOf": "2026-10-10T15:24:07.570Z",
+  "comparedSeries": 25210,
+  "changed": 0,
+  "changedIds": [],
+  "method": "Both implementations replay identical final market-book evidence fields and identities; rawEvidence is not a decision input"
+}

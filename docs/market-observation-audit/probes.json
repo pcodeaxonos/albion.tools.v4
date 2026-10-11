@@ -1,0 +1,12 @@
+{
+  "conflict": {
+    "status": "accepted",
+    "reasons": []
+  },
+  "bootstrap": {
+    "reference": 499,
+    "samples": 1,
+    "level": 1,
+    "accepted": 15
+  }
+}

@@ -1,0 +1,830 @@
+{
+  "snapshot": {
+    "asOf": "2026-10-11T00:41:41Z",
+    "sequence": 2539,
+    "cells": 25874
+  },
+  "counts": {
+    "evaluated": 25874,
+    "verified": 1061,
+    "potential": 970,
+    "monitored": 48,
+    "suspicious": 364,
+    "insufficient": 24401
+  },
+  "priorSpreadReview": {
+    "localMake": 867,
+    "note": "sequence 2539 prior audit; remains outside main opportunities list"
+  },
+  "rejectionReasonTotals": {
+    "reference": 101358,
+    "movement": 190844,
+    "freshness": 151733,
+    "quarantine": 3191,
+    "executionConfidence": 167100,
+    "economics": 4541,
+    "other": 165160
+  },
+  "strategyRejections": {
+    "instant-sell-to-buy": {
+      "evaluated": 25874,
+      "eligible": 0,
+      "rejected": 25874,
+      "reasons": {
+        "buy:stale-price": 6967,
+        "buy:source-time-unknown": 403,
+        "buy:incomplete-book": 403,
+        "buy:observation-unverified": 598,
+        "buy:execution-unverified": 7129,
+        "buy:missing-reference": 5778,
+        "buy:reference-insufficient": 8858,
+        "buy:movement-below-threshold": 8794,
+        "buy:movement-direction": 8663,
+        "buy:movement-unconfirmed": 8853,
+        "buy:extreme-price": 9,
+        "buy:missing-price": 17000,
+        "buy:quarantined": 64
+      }
+    },
+    "place-sell-order": {
+      "evaluated": 25874,
+      "eligible": 2,
+      "rejected": 25872,
+      "reasons": {
+        "sell:missing-price": 1828,
+        "sell:stale-price": 12808,
+        "sell:source-time-unknown": 428,
+        "sell:incomplete-book": 428,
+        "sell:observation-unverified": 2596,
+        "sell:execution-unverified": 14470,
+        "sell:missing-reference": 12058,
+        "sell:reference-insufficient": 23985,
+        "sell:movement-below-threshold": 22846,
+        "sell:movement-direction": 22569,
+        "sell:movement-unconfirmed": 23769,
+        "sell:quarantined": 310,
+        "sell:extreme-price": 45
+      }
+    },
+    "instant-buy-from-sell": {
+      "evaluated": 25874,
+      "eligible": 0,
+      "rejected": 25874,
+      "reasons": {
+        "sell:missing-price": 1828,
+        "sell:stale-price": 12808,
+        "sell:source-time-unknown": 428,
+        "sell:incomplete-book": 428,
+        "sell:observation-unverified": 2596,
+        "sell:execution-unverified": 14470,
+        "sell:missing-reference": 12058,
+        "sell:reference-insufficient": 23985,
+        "sell:movement-below-threshold": 22846,
+        "sell:movement-direction": 22303,
+        "sell:movement-unconfirmed": 23769,
+        "sell:quarantined": 310,
+        "sell:extreme-price": 45
+      }
+    },
+    "place-buy-order": {
+      "evaluated": 25874,
+      "eligible": 0,
+      "rejected": 25874,
+      "reasons": {
+        "buy:stale-price": 6967,
+        "buy:source-time-unknown": 403,
+        "buy:incomplete-book": 403,
+        "buy:observation-unverified": 598,
+        "buy:execution-unverified": 7129,
+        "buy:missing-reference": 5778,
+        "buy:reference-insufficient": 8858,
+        "buy:movement-below-threshold": 8794,
+        "buy:movement-direction": 8677,
+        "buy:movement-unconfirmed": 8853,
+        "buy:extreme-price": 9,
+        "buy:missing-price": 17000,
+        "buy:quarantined": 64
+      }
+    },
+    "local-flip": {
+      "evaluated": 25874,
+      "eligible": 1,
+      "rejected": 25873,
+      "reasons": {
+        "buy:stale-price": 6967,
+        "buy:source-time-unknown": 403,
+        "buy:incomplete-book": 403,
+        "buy:observation-unverified": 598,
+        "buy:execution-unverified": 7129,
+        "sell:missing-price": 1828,
+        "sell:stale-price": 12808,
+        "sell:source-time-unknown": 428,
+        "sell:incomplete-book": 428,
+        "sell:observation-unverified": 2596,
+        "sell:execution-unverified": 14470,
+        "buy:missing-price": 17000,
+        "non-positive-after-fees": 1077,
+        "buy:quarantined": 64,
+        "sell:quarantined": 310
+      }
+    },
+    "local-make": {
+      "evaluated": 25874,
+      "eligible": 867,
+      "rejected": 25007,
+      "reasons": {
+        "buy:stale-price": 6967,
+        "buy:source-time-unknown": 403,
+        "buy:incomplete-book": 403,
+        "buy:observation-unverified": 598,
+        "buy:execution-unverified": 7129,
+        "sell:missing-price": 1828,
+        "sell:stale-price": 12808,
+        "sell:source-time-unknown": 428,
+        "sell:incomplete-book": 428,
+        "sell:observation-unverified": 2596,
+        "sell:execution-unverified": 14470,
+        "buy:missing-price": 17000,
+        "non-positive-after-fees": 211,
+        "buy:quarantined": 64,
+        "sell:quarantined": 310
+      }
+    },
+    "cross-city-instant": {
+      "evaluated": 91534,
+      "eligible": 274,
+      "rejected": 91260,
+      "reasons": {
+        "sell:stale-price": 45823,
+        "sell:source-time-unknown": 483,
+        "sell:incomplete-book": 483,
+        "sell:observation-unverified": 10333,
+        "sell:execution-unverified": 53374,
+        "destination:missing-price": 56692,
+        "destination:stale-price": 26810,
+        "destination:source-time-unknown": 474,
+        "destination:incomplete-book": 474,
+        "destination:observation-unverified": 1485,
+        "destination:execution-unverified": 27330,
+        "non-positive-after-fees": 3253,
+        "destination:quarantined": 291,
+        "sell:quarantined": 1404
+      }
+    }
+  },
+  "potentialStrategyTypes": {
+    "instant-buy-from-sell": 488,
+    "place-sell-order": 425,
+    "place-buy-order": 21,
+    "instant-sell-to-buy": 19,
+    "local-flip": 17
+  },
+  "first20": [
+    {
+      "id": "T6_ARMOR_PLATE_SET2@2|Martlock|1",
+      "itemId": "T6_ARMOR_PLATE_SET2@2",
+      "city": "Martlock",
+      "quality": 1,
+      "strategy": "instant-buy-from-sell",
+      "advantageSilver": 36112,
+      "returnRatio": null,
+      "evidenceReasons": [
+        "sell:reference-insufficient"
+      ],
+      "explanation": "Aşağı yönlü tarihsel hareket gözlendi. Tarihsel referans güveni yetersiz.",
+      "sides": {
+        "sell": {
+          "price": 188888,
+          "at": "2026-10-11T00:40:00.000Z",
+          "ageMs": 101000,
+          "source": "aodp-current",
+          "sourceTimeKnown": true,
+          "coverage": "reported-top",
+          "status": "accepted",
+          "reference": 225000,
+          "referenceLevel": 1,
+          "deviation": -0.16049777777777777,
+          "referenceSamples": 2,
+          "referenceSpanMs": 87900000,
+          "validationReasons": [
+            "movement-confirmed"
+          ]
+        }
+      }
+    },
+    {
+      "id": "T6_CLOTH_LEVEL2@2|Martlock|1",
+      "itemId": "T6_CLOTH_LEVEL2@2",
+      "city": "Martlock",
+      "quality": 1,
+      "strategy": "place-sell-order",
+      "advantageSilver": 3777.399999999998,
+      "returnRatio": null,
+      "evidenceReasons": [
+        "sell:reference-insufficient"
+      ],
+      "explanation": "Yukarı yönlü tarihsel hareket gözlendi. Tarihsel referans güveni yetersiz.",
+      "sides": {
+        "sell": {
+          "price": 24996,
+          "at": "2026-10-11T00:40:00.000Z",
+          "ageMs": 101000,
+          "source": "aodp-current",
+          "sourceTimeKnown": true,
+          "coverage": "reported-top",
+          "status": "accepted",
+          "reference": 20956,
+          "referenceLevel": 1,
+          "deviation": 0.19278488261118534,
+          "referenceSamples": 1,
+          "referenceSpanMs": 0,
+          "validationReasons": [
+            "movement-confirmed"
+          ]
+        }
+      }
+    },
+    {
+      "id": "T6_HEAD_LEATHER_SET1@2|Martlock|1",
+      "itemId": "T6_HEAD_LEATHER_SET1@2",
+      "city": "Martlock",
+      "quality": 1,
+      "strategy": "place-sell-order",
+      "advantageSilver": 51930.83499999999,
+      "returnRatio": null,
+      "evidenceReasons": [
+        "sell:reference-insufficient"
+      ],
+      "explanation": "Yukarı yönlü tarihsel hareket gözlendi. Tarihsel referans güveni yetersiz.",
+      "sides": {
+        "sell": {
+          "price": 175545,
+          "at": "2026-10-11T00:40:00.000Z",
+          "ageMs": 101000,
+          "source": "aodp-current",
+          "sourceTimeKnown": true,
+          "coverage": "reported-top",
+          "status": "accepted",
+          "reference": 120004,
+          "referenceLevel": 1,
+          "deviation": 0.46282623912536247,
+          "referenceSamples": 1,
+          "referenceSpanMs": 0,
+          "validationReasons": [
+            "movement-confirmed"
+          ]
+        }
+      }
+    },
+    {
+      "id": "T6_HEAD_PLATE_SET1@2|Martlock|1",
+      "itemId": "T6_HEAD_PLATE_SET1@2",
+      "city": "Martlock",
+      "quality": 1,
+      "strategy": "place-sell-order",
+      "advantageSilver": 36462.19500000001,
+      "returnRatio": null,
+      "evidenceReasons": [
+        "sell:reference-insufficient"
+      ],
+      "explanation": "Yukarı yönlü tarihsel hareket gözlendi. Tarihsel referans güveni yetersiz.",
+      "sides": {
+        "sell": {
+          "price": 178989,
+          "at": "2026-10-11T00:40:00.000Z",
+          "ageMs": 101000,
+          "source": "aodp-current",
+          "sourceTimeKnown": true,
+          "coverage": "reported-top",
+          "status": "accepted",
+          "reference": 139992,
+          "referenceLevel": 1,
+          "deviation": 0.2785659180524601,
+          "referenceSamples": 1,
+          "referenceSpanMs": 0,
+          "validationReasons": [
+            "movement-confirmed"
+          ]
+        }
+      }
+    },
+    {
+      "id": "T6_MAIN_SPEAR@3|Martlock|1",
+      "itemId": "T6_MAIN_SPEAR@3",
+      "city": "Martlock",
+      "quality": 1,
+      "strategy": "place-sell-order",
+      "advantageSilver": 121547.19500000007,
+      "returnRatio": null,
+      "evidenceReasons": [
+        "sell:reference-insufficient"
+      ],
+      "explanation": "Yukarı yönlü tarihsel hareket gözlendi. Tarihsel referans güveni yetersiz.",
+      "sides": {
+        "sell": {
+          "price": 1179997,
+          "at": "2026-10-11T00:40:00.000Z",
+          "ageMs": 101000,
+          "source": "aodp-current",
+          "sourceTimeKnown": true,
+          "coverage": "reported-top",
+          "status": "accepted",
+          "reference": 1050000,
+          "referenceLevel": 1,
+          "deviation": 0.12380666666666666,
+          "referenceSamples": 1,
+          "referenceSpanMs": 0,
+          "validationReasons": [
+            "movement-confirmed"
+          ]
+        }
+      }
+    },
+    {
+      "id": "T6_RANDOM_DUNGEON_ELITE_DRAGON_TOKEN_D2@2|Martlock|1",
+      "itemId": "T6_RANDOM_DUNGEON_ELITE_DRAGON_TOKEN_D2@2",
+      "city": "Martlock",
+      "quality": 1,
+      "strategy": "instant-buy-from-sell",
+      "advantageSilver": 43333,
+      "returnRatio": null,
+      "evidenceReasons": [
+        "sell:reference-insufficient"
+      ],
+      "explanation": "Aşağı yönlü tarihsel hareket gözlendi. Tarihsel referans güveni yetersiz.",
+      "sides": {
+        "sell": {
+          "price": 177666,
+          "at": "2026-10-11T00:40:00.000Z",
+          "ageMs": 101000,
+          "source": "aodp-current",
+          "sourceTimeKnown": true,
+          "coverage": "reported-top",
+          "status": "accepted",
+          "reference": 220999,
+          "referenceLevel": 1,
+          "deviation": -0.19607781030683397,
+          "referenceSamples": 1,
+          "referenceSpanMs": 0,
+          "validationReasons": [
+            "movement-confirmed"
+          ]
+        }
+      }
+    },
+    {
+      "id": "T6_RANDOM_DUNGEON_TOKEN_D2@2|Martlock|1",
+      "itemId": "T6_RANDOM_DUNGEON_TOKEN_D2@2",
+      "city": "Martlock",
+      "quality": 1,
+      "strategy": "place-sell-order",
+      "advantageSilver": 5595.040000000001,
+      "returnRatio": null,
+      "evidenceReasons": [
+        "sell:reference-insufficient"
+      ],
+      "explanation": "Yukarı yönlü tarihsel hareket gözlendi. Tarihsel referans güveni yetersiz.",
+      "sides": {
+        "sell": {
+          "price": 32980,
+          "at": "2026-10-11T00:40:00.000Z",
+          "ageMs": 101000,
+          "source": "aodp-current",
+          "sourceTimeKnown": true,
+          "coverage": "reported-top",
+          "status": "accepted",
+          "reference": 26996,
+          "referenceLevel": 1,
+          "deviation": 0.2216624685138539,
+          "referenceSamples": 1,
+          "referenceSpanMs": 0,
+          "validationReasons": [
+            "movement-confirmed"
+          ]
+        }
+      }
+    },
+    {
+      "id": "T8_SOUL|Thetford|1",
+      "itemId": "T8_SOUL",
+      "city": "Thetford",
+      "quality": 1,
+      "strategy": "place-sell-order",
+      "advantageSilver": 2153.3050000000003,
+      "returnRatio": null,
+      "evidenceReasons": [
+        "sell:reference-insufficient"
+      ],
+      "explanation": "Yukarı yönlü tarihsel hareket gözlendi. Tarihsel referans güveni yetersiz.",
+      "sides": {
+        "sell": {
+          "price": 11187,
+          "at": "2026-10-11T00:35:00.000Z",
+          "ageMs": 401000,
+          "source": "aodp-current",
+          "sourceTimeKnown": true,
+          "coverage": "reported-top",
+          "status": "accepted",
+          "reference": 8884,
+          "referenceLevel": 1,
+          "deviation": 0.2592300765420982,
+          "referenceSamples": 1,
+          "referenceSpanMs": 0,
+          "validationReasons": [
+            "movement-confirmed"
+          ]
+        }
+      }
+    },
+    {
+      "id": "T6_ARMOR_PLATE_UNDEAD@1|Martlock|1",
+      "itemId": "T6_ARMOR_PLATE_UNDEAD@1",
+      "city": "Martlock",
+      "quality": 1,
+      "strategy": "instant-buy-from-sell",
+      "advantageSilver": 27999,
+      "returnRatio": null,
+      "evidenceReasons": [
+        "sell:reference-insufficient"
+      ],
+      "explanation": "Aşağı yönlü tarihsel hareket gözlendi. Tarihsel referans güveni yetersiz.",
+      "sides": {
+        "sell": {
+          "price": 52000,
+          "at": "2026-10-11T00:35:00.000Z",
+          "ageMs": 401000,
+          "source": "aodp-current",
+          "sourceTimeKnown": true,
+          "coverage": "reported-top",
+          "status": "accepted",
+          "reference": 79999,
+          "referenceLevel": 1,
+          "deviation": -0.34999187489843625,
+          "referenceSamples": 1,
+          "referenceSpanMs": 0,
+          "validationReasons": [
+            "movement-confirmed"
+          ]
+        }
+      }
+    },
+    {
+      "id": "T6_2H_SPEAR|Martlock|1",
+      "itemId": "T6_2H_SPEAR",
+      "city": "Martlock",
+      "quality": 1,
+      "strategy": "place-sell-order",
+      "advantageSilver": 9129.807499999995,
+      "returnRatio": null,
+      "evidenceReasons": [
+        "sell:reference-insufficient"
+      ],
+      "explanation": "Yukarı yönlü tarihsel hareket gözlendi. Tarihsel referans güveni yetersiz.",
+      "sides": {
+        "sell": {
+          "price": 65000,
+          "at": "2026-10-11T00:35:00.000Z",
+          "ageMs": 401000,
+          "source": "aodp-current",
+          "sourceTimeKnown": true,
+          "coverage": "reported-top",
+          "status": "accepted",
+          "reference": 55235.5,
+          "referenceLevel": 1,
+          "deviation": 0.17677942627476895,
+          "referenceSamples": 2,
+          "referenceSpanMs": 82200000,
+          "validationReasons": [
+            "movement-confirmed"
+          ]
+        }
+      }
+    },
+    {
+      "id": "T6_ARMOR_PLATE_UNDEAD|Martlock|1",
+      "itemId": "T6_ARMOR_PLATE_UNDEAD",
+      "city": "Martlock",
+      "quality": 1,
+      "strategy": "place-sell-order",
+      "advantageSilver": 9360.285,
+      "returnRatio": null,
+      "evidenceReasons": [
+        "sell:reference-insufficient"
+      ],
+      "explanation": "Yukarı yönlü tarihsel hareket gözlendi. Tarihsel referans güveni yetersiz.",
+      "sides": {
+        "sell": {
+          "price": 39898,
+          "at": "2026-10-11T00:35:00.000Z",
+          "ageMs": 401000,
+          "source": "aodp-current",
+          "sourceTimeKnown": true,
+          "coverage": "reported-top",
+          "status": "accepted",
+          "reference": 29887,
+          "referenceLevel": 1,
+          "deviation": 0.3349616890286747,
+          "referenceSamples": 1,
+          "referenceSpanMs": 0,
+          "validationReasons": [
+            "movement-confirmed"
+          ]
+        }
+      }
+    },
+    {
+      "id": "T6_ARTEFACT_2H_COMBATSTAFF_MORGANA|Martlock|1",
+      "itemId": "T6_ARTEFACT_2H_COMBATSTAFF_MORGANA",
+      "city": "Martlock",
+      "quality": 1,
+      "strategy": "instant-buy-from-sell",
+      "advantageSilver": 200,
+      "returnRatio": null,
+      "evidenceReasons": [
+        "sell:reference-insufficient"
+      ],
+      "explanation": "Aşağı yönlü tarihsel hareket gözlendi. Tarihsel referans güveni yetersiz.",
+      "sides": {
+        "sell": {
+          "price": 997,
+          "at": "2026-10-11T00:35:00.000Z",
+          "ageMs": 401000,
+          "source": "aodp-current",
+          "sourceTimeKnown": true,
+          "coverage": "reported-top",
+          "status": "accepted",
+          "reference": 1197,
+          "referenceLevel": 1,
+          "deviation": -0.1670843776106934,
+          "referenceSamples": 1,
+          "referenceSpanMs": 0,
+          "validationReasons": [
+            "movement-confirmed"
+          ]
+        }
+      }
+    },
+    {
+      "id": "T6_CAPEITEM_DEMON|Martlock|1",
+      "itemId": "T6_CAPEITEM_DEMON",
+      "city": "Martlock",
+      "quality": 1,
+      "strategy": "place-sell-order",
+      "advantageSilver": 28050.000000000015,
+      "returnRatio": null,
+      "evidenceReasons": [
+        "sell:reference-insufficient"
+      ],
+      "explanation": "Yukarı yönlü tarihsel hareket gözlendi. Tarihsel referans güveni yetersiz.",
+      "sides": {
+        "sell": {
+          "price": 170000,
+          "at": "2026-10-11T00:35:00.000Z",
+          "ageMs": 401000,
+          "source": "aodp-current",
+          "sourceTimeKnown": true,
+          "coverage": "reported-top",
+          "status": "accepted",
+          "reference": 140000,
+          "referenceLevel": 1,
+          "deviation": 0.21428571428571427,
+          "referenceSamples": 1,
+          "referenceSpanMs": 0,
+          "validationReasons": [
+            "movement-confirmed"
+          ]
+        }
+      }
+    },
+    {
+      "id": "T6_OFF_DEMONSKULL_HELL@1|Martlock|1",
+      "itemId": "T6_OFF_DEMONSKULL_HELL@1",
+      "city": "Martlock",
+      "quality": 1,
+      "strategy": "instant-buy-from-sell",
+      "advantageSilver": 16112,
+      "returnRatio": null,
+      "evidenceReasons": [
+        "sell:reference-insufficient"
+      ],
+      "explanation": "Aşağı yönlü tarihsel hareket gözlendi. Tarihsel referans güveni yetersiz.",
+      "sides": {
+        "sell": {
+          "price": 88888,
+          "at": "2026-10-11T00:35:00.000Z",
+          "ageMs": 401000,
+          "source": "aodp-current",
+          "sourceTimeKnown": true,
+          "coverage": "reported-top",
+          "status": "accepted",
+          "reference": 105000,
+          "referenceLevel": 1,
+          "deviation": -0.15344761904761905,
+          "referenceSamples": 1,
+          "referenceSpanMs": 0,
+          "validationReasons": [
+            "movement-confirmed"
+          ]
+        }
+      }
+    },
+    {
+      "id": "T6_SHOES_PLATE_UNDEAD|Martlock|1",
+      "itemId": "T6_SHOES_PLATE_UNDEAD",
+      "city": "Martlock",
+      "quality": 1,
+      "strategy": "place-sell-order",
+      "advantageSilver": 3740.9350000000013,
+      "returnRatio": null,
+      "evidenceReasons": [
+        "sell:reference-insufficient"
+      ],
+      "explanation": "Yukarı yönlü tarihsel hareket gözlendi. Tarihsel referans güveni yetersiz.",
+      "sides": {
+        "sell": {
+          "price": 19998,
+          "at": "2026-10-11T00:35:00.000Z",
+          "ageMs": 401000,
+          "source": "aodp-current",
+          "sourceTimeKnown": true,
+          "coverage": "reported-top",
+          "status": "accepted",
+          "reference": 15997,
+          "referenceLevel": 1,
+          "deviation": 0.25010939551165845,
+          "referenceSamples": 1,
+          "referenceSpanMs": 0,
+          "validationReasons": [
+            "movement-confirmed"
+          ]
+        }
+      }
+    },
+    {
+      "id": "T6_2H_CROSSBOW@1|Martlock|1",
+      "itemId": "T6_2H_CROSSBOW@1",
+      "city": "Martlock",
+      "quality": 1,
+      "strategy": "instant-buy-from-sell",
+      "advantageSilver": 24000,
+      "returnRatio": null,
+      "evidenceReasons": [
+        "sell:reference-insufficient"
+      ],
+      "explanation": "Aşağı yönlü tarihsel hareket gözlendi. Tarihsel referans güveni yetersiz.",
+      "sides": {
+        "sell": {
+          "price": 105999,
+          "at": "2026-10-11T00:35:00.000Z",
+          "ageMs": 401000,
+          "source": "aodp-current",
+          "sourceTimeKnown": true,
+          "coverage": "reported-top",
+          "status": "accepted",
+          "reference": 129999,
+          "referenceLevel": 1,
+          "deviation": -0.1846168047446519,
+          "referenceSamples": 1,
+          "referenceSpanMs": 0,
+          "validationReasons": [
+            "movement-confirmed"
+          ]
+        }
+      }
+    },
+    {
+      "id": "T6_2H_GLAIVE@1|Martlock|1",
+      "itemId": "T6_2H_GLAIVE@1",
+      "city": "Martlock",
+      "quality": 1,
+      "strategy": "place-sell-order",
+      "advantageSilver": 15880.040000000008,
+      "returnRatio": null,
+      "evidenceReasons": [
+        "sell:reference-insufficient"
+      ],
+      "explanation": "Yukarı yönlü tarihsel hareket gözlendi. Tarihsel referans güveni yetersiz.",
+      "sides": {
+        "sell": {
+          "price": 121978,
+          "at": "2026-10-11T00:35:00.000Z",
+          "ageMs": 401000,
+          "source": "aodp-current",
+          "sourceTimeKnown": true,
+          "coverage": "reported-top",
+          "status": "accepted",
+          "reference": 104994,
+          "referenceLevel": 1,
+          "deviation": 0.16176162447377945,
+          "referenceSamples": 1,
+          "referenceSpanMs": 0,
+          "validationReasons": [
+            "movement-confirmed"
+          ]
+        }
+      }
+    },
+    {
+      "id": "T6_2H_IRONCLADEDSTAFF|Martlock|1",
+      "itemId": "T6_2H_IRONCLADEDSTAFF",
+      "city": "Martlock",
+      "quality": 1,
+      "strategy": "place-sell-order",
+      "advantageSilver": 18569.09999999999,
+      "returnRatio": null,
+      "evidenceReasons": [
+        "sell:reference-insufficient"
+      ],
+      "explanation": "Yukarı yönlü tarihsel hareket gözlendi. Tarihsel referans güveni yetersiz.",
+      "sides": {
+        "sell": {
+          "price": 99973,
+          "at": "2026-10-11T00:35:00.000Z",
+          "ageMs": 401000,
+          "source": "aodp-current",
+          "sourceTimeKnown": true,
+          "coverage": "reported-top",
+          "status": "accepted",
+          "reference": 80113,
+          "referenceLevel": 1,
+          "deviation": 0.24789984147391808,
+          "referenceSamples": 1,
+          "referenceSpanMs": 0,
+          "validationReasons": [
+            "movement-confirmed"
+          ]
+        }
+      }
+    },
+    {
+      "id": "T6_2H_ROCKSTAFF_KEEPER@1|Martlock|1",
+      "itemId": "T6_2H_ROCKSTAFF_KEEPER@1",
+      "city": "Martlock",
+      "quality": 1,
+      "strategy": "instant-buy-from-sell",
+      "advantageSilver": 78996,
+      "returnRatio": null,
+      "evidenceReasons": [
+        "sell:reference-insufficient"
+      ],
+      "explanation": "Aşağı yönlü tarihsel hareket gözlendi. Tarihsel referans güveni yetersiz.",
+      "sides": {
+        "sell": {
+          "price": 210998,
+          "at": "2026-10-11T00:35:00.000Z",
+          "ageMs": 401000,
+          "source": "aodp-current",
+          "sourceTimeKnown": true,
+          "coverage": "reported-top",
+          "status": "accepted",
+          "reference": 289994,
+          "referenceLevel": 1,
+          "deviation": -0.2724056359786754,
+          "referenceSamples": 1,
+          "referenceSpanMs": 0,
+          "validationReasons": [
+            "movement-confirmed"
+          ]
+        }
+      }
+    },
+    {
+      "id": "T6_2H_TOOL_AXE|Martlock|1",
+      "itemId": "T6_2H_TOOL_AXE",
+      "city": "Martlock",
+      "quality": 1,
+      "strategy": "place-sell-order",
+      "advantageSilver": 7263.079999999998,
+      "returnRatio": null,
+      "evidenceReasons": [
+        "sell:reference-insufficient"
+      ],
+      "explanation": "Yukarı yönlü tarihsel hareket gözlendi. Tarihsel referans güveni yetersiz.",
+      "sides": {
+        "sell": {
+          "price": 29990,
+          "at": "2026-10-11T00:35:00.000Z",
+          "ageMs": 401000,
+          "source": "aodp-current",
+          "sourceTimeKnown": true,
+          "coverage": "reported-top",
+          "status": "accepted",
+          "reference": 22222,
+          "referenceLevel": 1,
+          "deviation": 0.34956349563495637,
+          "referenceSamples": 3,
+          "referenceSpanMs": 18000000,
+          "validationReasons": [
+            "movement-confirmed"
+          ]
+        }
+      }
+    }
+  ],
+  "performance": {
+    "coldMs": 5689.436900001019,
+    "warmMs": 5428.570799998939,
+    "heapAfterColdMb": 700.6546096801758
+  },
+  "decisionFieldsChangedByClassification": false
+}

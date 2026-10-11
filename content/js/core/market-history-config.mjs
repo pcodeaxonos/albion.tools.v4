@@ -2,6 +2,9 @@ const HOUR_MS = 60 * 60 * 1000;
 export const DAY_MS = 24 * HOUR_MS;
 /** Quotes older than this stay visible elsewhere, but are not current opportunities. */
 export const PRICE_STALE_MS = 6 * HOUR_MS;
+/** Independent evidence required for each historical reference level. */
+export const OBSERVATION_REFERENCE_LEVELS = Object.freeze([[1, 0], [5, 6 * HOUR_MS], [12, DAY_MS], [24, 3 * DAY_MS]].map(Object.freeze));
+export const TRUSTED_REFERENCE_LEVEL = 3;
 
 /** Storage policy, not a claim about estimator confidence. */
 export const ORDER_HISTORY_POLICY = Object.freeze({

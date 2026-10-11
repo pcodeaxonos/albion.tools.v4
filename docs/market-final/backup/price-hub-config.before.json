@@ -1,0 +1,4 @@
+{
+  "server": "europe",
+  "nats": "telemetry"
+}

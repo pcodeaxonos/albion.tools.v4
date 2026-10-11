@@ -1,0 +1,23 @@
+{
+  "sourceCounts": {
+    "market-order-packets": {
+      "events": 1808,
+      "accepted": 0,
+      "provisional": 1808,
+      "quarantined": 0,
+      "rejected": 0
+    },
+    "aodp-current": {
+      "events": 38487,
+      "accepted": 36437,
+      "provisional": 1700,
+      "quarantined": 350,
+      "rejected": 0
+    }
+  },
+  "recoveredStatus": {
+    "accepted": 1389,
+    "provisional": 88,
+    "quarantined": 48
+  }
+}

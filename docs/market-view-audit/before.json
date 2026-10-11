@@ -1,0 +1,76 @@
+{
+  "scannedAt": "2026-10-11T00:30:02.041Z",
+  "engineMode": "validated",
+  "candidates": 1033,
+  "main": 2,
+  "displayed": 2,
+  "totals": {
+    "opportunities": 2,
+    "spreads": 859
+  },
+  "strategies": {
+    "place-sell-order": {
+      "eligible": 1,
+      "primaryInMain": 1,
+      "selectable": 1,
+      "displayed": 1,
+      "excludedFromTool": false,
+      "missing": [],
+      "primaryMake": 0
+    },
+    "place-buy-order": {
+      "eligible": 0,
+      "primaryInMain": 0,
+      "selectable": 0,
+      "displayed": 0,
+      "excludedFromTool": false,
+      "missing": [],
+      "primaryMake": 0
+    },
+    "instant-sell-to-buy": {
+      "eligible": 0,
+      "primaryInMain": 0,
+      "selectable": 0,
+      "displayed": 0,
+      "excludedFromTool": false,
+      "missing": [],
+      "primaryMake": 0
+    },
+    "instant-buy-from-sell": {
+      "eligible": 0,
+      "primaryInMain": 0,
+      "selectable": 0,
+      "displayed": 0,
+      "excludedFromTool": false,
+      "missing": [],
+      "primaryMake": 0
+    },
+    "local-flip": {
+      "eligible": 1,
+      "primaryInMain": 1,
+      "selectable": 1,
+      "displayed": 1,
+      "excludedFromTool": false,
+      "missing": [],
+      "primaryMake": 0
+    },
+    "local-make": {
+      "eligible": 859,
+      "primaryInMain": 0,
+      "selectable": 859,
+      "displayed": 500,
+      "excludedFromTool": false,
+      "missing": [],
+      "primaryMake": 850
+    },
+    "cross-city-instant": {
+      "eligible": 192,
+      "primaryInMain": 0,
+      "selectable": 0,
+      "displayed": 0,
+      "excludedFromTool": true,
+      "missing": [],
+      "primaryMake": 11
+    }
+  }
+}

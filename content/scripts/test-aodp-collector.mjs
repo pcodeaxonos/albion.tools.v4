@@ -83,6 +83,25 @@ try {
         assert.equal(series.find(s => s.side === 'sell').buckets[0].sourceQuoteAt, '2026-10-06T11:00:00.000Z');
         const again = await collector.run(); assert.equal(again.observations, 0); assert.equal(again.duplicates, 2);
     });
+    await test('only minimum sell and maximum buy feed quotes; opposite extrema never substitute', async () => {
+        const repo = new QuoteHistoryRepository({ path: join(dir, 'book-extrema.json'), servers, now, policy });
+        const at = '2026-10-07T11:00:00';
+        const collector = createAodpCollector({ host: 'https://test', server: 'europe', ids: ['X', 'Y'], cities: ['Martlock'], repository: repo, policy,
+            now: () => now, sleep: async () => {}, log() {}, request: async url => url.includes('/history/') ? [] : [
+                { item_id: 'X', city: 'Martlock', quality: 1,
+                    sell_price_min: 3945, sell_price_min_date: at, sell_price_max: 12111111, sell_price_max_date: at,
+                    buy_price_max: 3348, buy_price_max_date: at, buy_price_min: 1, buy_price_min_date: at },
+                { item_id: 'Y', city: 'Martlock', quality: 1,
+                    sell_price_max: 12111111, sell_price_max_date: at, buy_price_min: 1, buy_price_min_date: at }
+            ] });
+        const summary = await collector.run();
+        assert.equal(summary.observations, 2);
+        const series = repo.snapshot(now).series;
+        assert.equal(series.length, 2);
+        assert.ok(series.every(s => s.itemId === 'X'));
+        assert.equal(series.find(s => s.side === 'sell').buckets[0].price, 3945);
+        assert.equal(series.find(s => s.side === 'buy').buckets[0].price, 3348);
+    });
     await test('zero, missing, future, invalid, expired sources are rejected independently', async () => {
         const repo = new QuoteHistoryRepository({ path: join(dir, 'invalid.json'), servers, now, policy });
         const collector = createAodpCollector({ host: 'https://test', server: 'europe', ids: ['X'], cities: ['Martlock'], repository: repo, policy,
@@ -176,7 +195,7 @@ try {
         const read = name => JSON.parse(readFileSync(`data/${name}.json`, 'utf8'));
         // Repository path isolated by a minimal copy of the actual shared catalog.
         const { mkdirSync } = await import('node:fs'); mkdirSync(join(dir, 'data'));
-        for (const name of ['plants', 'animals', 'items', 'recipe-materials', 'price-servers', 'cities']) writeFileSync(join(dir, 'data', `${name}.json`), JSON.stringify(read(name)));
+        for (const name of ['plants', 'animals', 'items', 'recipe-materials', 'price-servers', 'cities', 'price-hub-config', 'economy-constants']) writeFileSync(join(dir, 'data', `${name}.json`), JSON.stringify(read(name)));
         for (let restart = 0; restart < 2; restart++) {
             const callbacks = [], requests = [];
             const service = startQuoteService({ root: dir, server: 'europe', packetHistory: new OrderPriceHistory({ servers }), collectorOptions: {
@@ -197,6 +216,18 @@ try {
             assert.equal(service.repository.snapshot(now).series.every(s => s.buckets.every(p => p.source === 'aodp-current')), true);
             const refs = service.references({ requestedServer: 'europe', items: [service.repository.snapshot(now).series[0].itemId], locations: ['Martlock'], now });
             assert.equal(refs[0].source, 'current-buy-fallback'); assert.deepEqual(service.references({ requestedServer: 'west', items: ['X'], locations: ['Martlock'], now }), []);
+            const previousMode = process.env.OPPORTUNITIES_VALIDATED;
+            try {
+                process.env.OPPORTUNITIES_VALIDATED = '0';
+                const legacy = service.opportunityScan({ requestedServer: 'europe', now });
+                assert.equal(legacy.engineMode, 'legacy-shadow');
+                process.env.OPPORTUNITIES_VALIDATED = '1';
+                const validated = service.opportunityScan({ requestedServer: 'europe', now });
+                assert.equal(validated.engineMode, 'validated', 'mode switch invalidates the same cache slot');
+                assert.equal(validated.evaluation, undefined, 'full assessment history is not sent to clients');
+                assert.ok(validated.eligibleCandidates.every(row => Number.isInteger(row.quality)));
+                assert.equal(service.opportunityScan({ requestedServer: 'europe', now }), validated);
+            } finally { if (previousMode === undefined) delete process.env.OPPORTUNITIES_VALIDATED; else process.env.OPPORTUNITIES_VALIDATED = previousMode; }
             service.collector.stop();
         }
         const archivePath = join(dir, AODP_COLLECTOR_POLICY.fileName);

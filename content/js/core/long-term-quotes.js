@@ -7,14 +7,14 @@ import { urlBatches } from './market-request.mjs';
 export const LONG_TERM_PRICE_MODE = 'long-term';
 export const LONG_TERM_PRICE_LABEL = 'UV';
 
-export async function fetchLongTermIndex(items, locations) {
+export async function fetchLongTermIndex(items, locations, { signal } = {}) {
     const server = getServer().id;
     const query = new URLSearchParams({ server, locations: locations.join(','), qualities: String(AODP_COLLECTOR_POLICY.quality) });
     const index = new Map();
     const endpoint = `${localPriceHost()}/api/v1/market/long-term`;
     const makeUrl = ids => { const params = new URLSearchParams(query); params.set('items', ids.join(',')); return `${endpoint}?${params}`; };
     async function load(ids) {
-        const response = await fetch(makeUrl(ids), { signal: AbortSignal.timeout(AODP_COLLECTOR_POLICY.timeoutMs) });
+        const response = await fetch(makeUrl(ids), { signal: signal ? AbortSignal.any([signal, AbortSignal.timeout(AODP_COLLECTOR_POLICY.timeoutMs)]) : AbortSignal.timeout(AODP_COLLECTOR_POLICY.timeoutMs) });
         if (!response.ok) throw new Error(response.status === 400 ? 'Uzun Vadeli: seçili server hub yapılandırmasıyla uyuşmuyor.' : 'Uzun Vadeli geçmiş hub’dan alınamadı.');
         const payload = await response.json();
         for (const reference of payload.references || []) {

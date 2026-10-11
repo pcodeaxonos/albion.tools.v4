@@ -1,0 +1,1064 @@
+{
+  "original": {
+    "asOf": 1791645004835,
+    "expectedOldCandidates": 22,
+    "reproducedOldCandidates": 22,
+    "verified": 0,
+    "gateCounts": {
+      "inclusive": {
+        "reference": 22,
+        "execution": 22,
+        "freshness": 15
+      },
+      "exclusive": {},
+      "combinations": {
+        "reference+execution+freshness": 15,
+        "reference+execution": 7
+      },
+      "multiple": 22
+    },
+    "bounds": {
+      "total": 2586,
+      "actualLevel3": 3,
+      "necessaryEvidenceUpperBound": 5,
+      "globalStableEvidence": 4,
+      "freshAndAcceptedWithLevel3": 0,
+      "byLevel": {
+        "0": 1678,
+        "1": 801,
+        "2": 104,
+        "3": 3
+      },
+      "countBelow12": 2581,
+      "spanBelow24": 0,
+      "upperBoundButLowLevel": [
+        {
+          "id": "europe|T3_MOUNT_HORSE|Thetford|1|sell",
+          "server": "europe",
+          "itemId": "T3_MOUNT_HORSE",
+          "city": "Thetford",
+          "quality": 1,
+          "side": "sell",
+          "sourceBuckets": {
+            "packet": 0,
+            "aodp": 14
+          },
+          "rawOriginalPacketBuckets": 0,
+          "independentEvents": 14,
+          "knownCoveragePriorEvents": 13,
+          "knownCoverageSpanHours": 48.166666666666664,
+          "structuralMedian": 14965,
+          "structuralStability": 0.6923076923076923,
+          "necessaryEvidenceUpperBound": true,
+          "globalStableEvidence": false,
+          "actual": {
+            "price": 13496,
+            "source": "aodp-current",
+            "at": "2026-10-09T20:35:00.000Z",
+            "ageHours": 18.584676388888887,
+            "reference": 15073.5,
+            "samples": 8,
+            "spanHours": 44.583333333333336,
+            "stability": 1,
+            "referenceLevel": 2,
+            "referenceConfidence": 0.5,
+            "executionConfidence": 0,
+            "validationStatus": "accepted",
+            "reasons": [
+              "movement-confirmed"
+            ],
+            "deviation": -0.10465386273924437,
+            "confirmed": false,
+            "usable": false,
+            "sourceDecisions": [],
+            "referenceEvidence": [
+              "europe|T3_MOUNT_HORSE|Thetford|1|sell|aodp-current|2026-10-07T19:15:00.000Z",
+              "europe|T3_MOUNT_HORSE|Thetford|1|sell|aodp-current|2026-10-08T21:10:00.000Z",
+              "europe|T3_MOUNT_HORSE|Thetford|1|sell|aodp-current|2026-10-08T22:15:00.000Z",
+              "europe|T3_MOUNT_HORSE|Thetford|1|sell|aodp-current|2026-10-08T23:50:00.000Z",
+              "europe|T3_MOUNT_HORSE|Thetford|1|sell|aodp-current|2026-10-09T09:00:00.000Z",
+              "europe|T3_MOUNT_HORSE|Thetford|1|sell|aodp-current|2026-10-09T10:25:00.000Z",
+              "europe|T3_MOUNT_HORSE|Thetford|1|sell|aodp-current|2026-10-09T14:10:00.000Z",
+              "europe|T3_MOUNT_HORSE|Thetford|1|sell|aodp-current|2026-10-09T15:50:00.000Z"
+            ],
+            "transitions": []
+          },
+          "counts": {
+            "unknownScope": 0,
+            "unknownSourceTime": 0,
+            "rejected": 0,
+            "conflicting": 0,
+            "quarantined": 0,
+            "provisional": 4
+          }
+        },
+        {
+          "id": "europe|T7_MEAT|Fort Sterling|1|sell",
+          "server": "europe",
+          "itemId": "T7_MEAT",
+          "city": "Fort Sterling",
+          "quality": 1,
+          "side": "sell",
+          "sourceBuckets": {
+            "packet": 0,
+            "aodp": 13
+          },
+          "rawOriginalPacketBuckets": 0,
+          "independentEvents": 13,
+          "knownCoveragePriorEvents": 12,
+          "knownCoverageSpanHours": 48.666666666666664,
+          "structuralMedian": 476,
+          "structuralStability": 0.8333333333333334,
+          "necessaryEvidenceUpperBound": true,
+          "globalStableEvidence": true,
+          "actual": {
+            "price": 473,
+            "source": "aodp-current",
+            "at": "2026-10-09T20:20:00.000Z",
+            "ageHours": 18.834676388888887,
+            "reference": 476,
+            "samples": 11,
+            "spanHours": 48.666666666666664,
+            "stability": 0.9090909090909091,
+            "referenceLevel": 2,
+            "referenceConfidence": 0.5,
+            "executionConfidence": 0,
+            "validationStatus": "accepted",
+            "reasons": [],
+            "deviation": -0.0063025210084033615,
+            "confirmed": false,
+            "usable": false,
+            "sourceDecisions": [],
+            "referenceEvidence": [
+              "europe|T7_MEAT|Fort Sterling|1|sell|aodp-current|2026-10-07T17:55:00.000Z",
+              "europe|T7_MEAT|Fort Sterling|1|sell|aodp-current|2026-10-08T21:45:00.000Z",
+              "europe|T7_MEAT|Fort Sterling|1|sell|aodp-current|2026-10-09T02:05:00.000Z",
+              "europe|T7_MEAT|Fort Sterling|1|sell|aodp-current|2026-10-09T08:35:00.000Z",
+              "europe|T7_MEAT|Fort Sterling|1|sell|aodp-current|2026-10-09T12:10:00.000Z",
+              "europe|T7_MEAT|Fort Sterling|1|sell|aodp-current|2026-10-09T12:55:00.000Z",
+              "europe|T7_MEAT|Fort Sterling|1|sell|aodp-current|2026-10-09T14:25:00.000Z",
+              "europe|T7_MEAT|Fort Sterling|1|sell|aodp-current|2026-10-09T15:20:00.000Z",
+              "europe|T7_MEAT|Fort Sterling|1|sell|aodp-current|2026-10-09T16:10:00.000Z",
+              "europe|T7_MEAT|Fort Sterling|1|sell|aodp-current|2026-10-09T16:50:00.000Z",
+              "europe|T7_MEAT|Fort Sterling|1|sell|aodp-current|2026-10-09T18:35:00.000Z"
+            ],
+            "transitions": [
+              {
+                "type": "bootstrap",
+                "at": "2026-10-09T20:20:00.000Z",
+                "from": 500,
+                "to": 475,
+                "evidence": [
+                  "europe|T7_MEAT|Fort Sterling|1|sell|aodp-current|2026-10-07T17:55:00.000Z",
+                  "europe|T7_MEAT|Fort Sterling|1|sell|aodp-current|2026-10-08T21:45:00.000Z",
+                  "europe|T7_MEAT|Fort Sterling|1|sell|aodp-current|2026-10-09T02:05:00.000Z",
+                  "europe|T7_MEAT|Fort Sterling|1|sell|aodp-current|2026-10-09T08:35:00.000Z",
+                  "europe|T7_MEAT|Fort Sterling|1|sell|aodp-current|2026-10-09T12:10:00.000Z",
+                  "europe|T7_MEAT|Fort Sterling|1|sell|aodp-current|2026-10-09T12:55:00.000Z",
+                  "europe|T7_MEAT|Fort Sterling|1|sell|aodp-current|2026-10-09T14:25:00.000Z",
+                  "europe|T7_MEAT|Fort Sterling|1|sell|aodp-current|2026-10-09T15:20:00.000Z",
+                  "europe|T7_MEAT|Fort Sterling|1|sell|aodp-current|2026-10-09T16:10:00.000Z",
+                  "europe|T7_MEAT|Fort Sterling|1|sell|aodp-current|2026-10-09T16:50:00.000Z",
+                  "europe|T7_MEAT|Fort Sterling|1|sell|aodp-current|2026-10-09T18:35:00.000Z",
+                  "europe|T7_MEAT|Fort Sterling|1|sell|aodp-current|2026-10-09T20:20:00.000Z"
+                ]
+              }
+            ]
+          },
+          "counts": {
+            "unknownScope": 0,
+            "unknownSourceTime": 0,
+            "rejected": 0,
+            "conflicting": 0,
+            "quarantined": 0,
+            "provisional": 1
+          }
+        }
+      ]
+    }
+  },
+  "journal": {
+    "asOf": 1791645847570,
+    "sequence": 775,
+    "oldCandidates": 766,
+    "newCandidates": 829,
+    "verified": 0,
+    "gateCountsOriginalCandidates": {
+      "inclusive": {
+        "other": 1,
+        "reference": 21,
+        "execution": 11,
+        "quarantine": 3,
+        "freshness": 1
+      },
+      "exclusive": {
+        "other": 1,
+        "reference": 10
+      },
+      "combinations": {
+        "other": 1,
+        "reference": 10,
+        "reference+execution": 7,
+        "reference+execution+quarantine": 3,
+        "reference+execution+freshness": 1
+      },
+      "multiple": 11
+    },
+    "bounds": {
+      "total": 25210,
+      "actualLevel3": 24,
+      "necessaryEvidenceUpperBound": 31,
+      "globalStableEvidence": 24,
+      "freshAndAcceptedWithLevel3": 22,
+      "byLevel": {
+        "0": 17830,
+        "1": 7116,
+        "2": 240,
+        "3": 24
+      },
+      "countBelow12": 25179,
+      "spanBelow24": 0,
+      "upperBoundButLowLevel": [
+        {
+          "id": "europe|T4_MOUNT_HORSE|Lymhurst|1|sell",
+          "server": "europe",
+          "itemId": "T4_MOUNT_HORSE",
+          "city": "Lymhurst",
+          "quality": 1,
+          "side": "sell",
+          "sourceBuckets": {
+            "packet": 1,
+            "aodp": 13
+          },
+          "rawOriginalPacketBuckets": 1,
+          "independentEvents": 14,
+          "knownCoveragePriorEvents": 12,
+          "knownCoverageSpanHours": 63.5,
+          "structuralMedian": 28989.5,
+          "structuralStability": 0.9166666666666666,
+          "necessaryEvidenceUpperBound": true,
+          "globalStableEvidence": true,
+          "actual": {
+            "price": 42000,
+            "source": "aodp-current",
+            "at": "2026-10-10T13:10:00.000Z",
+            "ageHours": 2.235436111111111,
+            "reference": 28989,
+            "samples": 11,
+            "spanHours": 63.5,
+            "stability": 1,
+            "referenceLevel": 2,
+            "referenceConfidence": 0.5,
+            "executionConfidence": 0,
+            "validationStatus": "provisional",
+            "reasons": [
+              "awaiting-movement",
+              "source-conflict"
+            ],
+            "deviation": 0.44882541653730723,
+            "confirmed": false,
+            "usable": false,
+            "sourceDecisions": [
+              {
+                "observationId": "europe|T4_MOUNT_HORSE|Lymhurst|1|sell|market-order-packets|2026-10-08T23:02:07.503Z",
+                "evidenceId": "europe|T4_MOUNT_HORSE|Lymhurst|1|sell|market|2026-10-08T23:02:07.503Z",
+                "source": "market-order-packets",
+                "price": 54815,
+                "at": null,
+                "receivedAt": "2026-10-08T23:02:07.503Z",
+                "selectedObservationId": "europe|T4_MOUNT_HORSE|Lymhurst|1|sell|aodp-current|2026-10-10T13:10:00.000Z",
+                "reasons": [
+                  "source-conflict",
+                  "source-ineligible"
+                ]
+              }
+            ],
+            "referenceEvidence": [
+              "europe|T4_MOUNT_HORSE|Lymhurst|1|sell|aodp-current|2026-10-07T20:20:00.000Z",
+              "europe|T4_MOUNT_HORSE|Lymhurst|1|sell|aodp-current|2026-10-08T20:30:00.000Z",
+              "europe|T4_MOUNT_HORSE|Lymhurst|1|sell|aodp-current|2026-10-08T21:35:00.000Z",
+              "europe|T4_MOUNT_HORSE|Lymhurst|1|sell|aodp-current|2026-10-08T23:00:00.000Z",
+              "europe|T4_MOUNT_HORSE|Lymhurst|1|sell|aodp-current|2026-10-09T09:25:00.000Z",
+              "europe|T4_MOUNT_HORSE|Lymhurst|1|sell|aodp-current|2026-10-09T09:55:00.000Z",
+              "europe|T4_MOUNT_HORSE|Lymhurst|1|sell|aodp-current|2026-10-09T11:00:00.000Z",
+              "europe|T4_MOUNT_HORSE|Lymhurst|1|sell|aodp-current|2026-10-09T15:40:00.000Z",
+              "europe|T4_MOUNT_HORSE|Lymhurst|1|sell|aodp-current|2026-10-09T20:35:00.000Z",
+              "europe|T4_MOUNT_HORSE|Lymhurst|1|sell|aodp-current|2026-10-10T11:45:00.000Z",
+              "europe|T4_MOUNT_HORSE|Lymhurst|1|sell|aodp-current|2026-10-10T11:50:00.000Z"
+            ],
+            "transitions": []
+          },
+          "counts": {
+            "unknownScope": 1,
+            "unknownSourceTime": 1,
+            "rejected": 0,
+            "conflicting": 0,
+            "quarantined": 0,
+            "provisional": 3
+          }
+        },
+        {
+          "id": "europe|T4_LEATHER|Martlock|1|sell",
+          "server": "europe",
+          "itemId": "T4_LEATHER",
+          "city": "Martlock",
+          "quality": 1,
+          "side": "sell",
+          "sourceBuckets": {
+            "packet": 2,
+            "aodp": 13
+          },
+          "rawOriginalPacketBuckets": 2,
+          "independentEvents": 15,
+          "knownCoveragePriorEvents": 12,
+          "knownCoverageSpanHours": 66.25,
+          "structuralMedian": 314,
+          "structuralStability": 0.6666666666666666,
+          "necessaryEvidenceUpperBound": true,
+          "globalStableEvidence": false,
+          "actual": {
+            "price": 308,
+            "source": "aodp-current",
+            "at": "2026-10-10T14:35:00.000Z",
+            "ageHours": 0.8187694444444444,
+            "reference": 317.5,
+            "samples": 10,
+            "spanHours": 66.25,
+            "stability": 0.7,
+            "referenceLevel": 1,
+            "referenceConfidence": 0.25,
+            "executionConfidence": 1,
+            "validationStatus": "accepted",
+            "reasons": [
+              "source-conflict"
+            ],
+            "deviation": -0.029921259842519685,
+            "confirmed": false,
+            "usable": false,
+            "sourceDecisions": [
+              {
+                "observationId": "europe|T4_LEATHER|Martlock|1|sell|market-order-packets|2026-10-10T00:07:30.880Z",
+                "evidenceId": "europe|T4_LEATHER|Martlock|1|sell|market|2026-10-10T00:07:30.880Z",
+                "source": "market-order-packets",
+                "price": 297,
+                "at": null,
+                "receivedAt": "2026-10-10T00:07:30.880Z",
+                "selectedObservationId": "europe|T4_LEATHER|Martlock|1|sell|aodp-current|2026-10-10T14:35:00.000Z",
+                "reasons": [
+                  "source-conflict",
+                  "source-ineligible"
+                ]
+              },
+              {
+                "observationId": "europe|T4_LEATHER|Martlock|1|sell|market-order-packets|2026-10-10T10:58:49.956Z",
+                "evidenceId": "europe|T4_LEATHER|Martlock|1|sell|market|2026-10-10T10:58:49.956Z",
+                "source": "market-order-packets",
+                "price": 309,
+                "at": null,
+                "receivedAt": "2026-10-10T10:58:49.956Z",
+                "selectedObservationId": "europe|T4_LEATHER|Martlock|1|sell|aodp-current|2026-10-10T14:35:00.000Z",
+                "reasons": [
+                  "source-conflict",
+                  "source-ineligible"
+                ]
+              }
+            ],
+            "referenceEvidence": [
+              "europe|T4_LEATHER|Martlock|1|sell|aodp-current|2026-10-07T19:00:00.000Z",
+              "europe|T4_LEATHER|Martlock|1|sell|aodp-current|2026-10-08T20:20:00.000Z",
+              "europe|T4_LEATHER|Martlock|1|sell|aodp-current|2026-10-09T05:15:00.000Z",
+              "europe|T4_LEATHER|Martlock|1|sell|aodp-current|2026-10-09T09:15:00.000Z",
+              "europe|T4_LEATHER|Martlock|1|sell|aodp-current|2026-10-09T11:35:00.000Z",
+              "europe|T4_LEATHER|Martlock|1|sell|aodp-current|2026-10-09T12:40:00.000Z",
+              "europe|T4_LEATHER|Martlock|1|sell|aodp-current|2026-10-10T09:40:00.000Z",
+              "europe|T4_LEATHER|Martlock|1|sell|aodp-current|2026-10-10T10:55:00.000Z",
+              "europe|T4_LEATHER|Martlock|1|sell|aodp-current|2026-10-10T12:10:00.000Z",
+              "europe|T4_LEATHER|Martlock|1|sell|aodp-current|2026-10-10T13:15:00.000Z"
+            ],
+            "transitions": []
+          },
+          "counts": {
+            "unknownScope": 2,
+            "unknownSourceTime": 2,
+            "rejected": 0,
+            "conflicting": 0,
+            "quarantined": 0,
+            "provisional": 4
+          }
+        },
+        {
+          "id": "europe|T5_MOUNT_HORSE|Brecilien|1|sell",
+          "server": "europe",
+          "itemId": "T5_MOUNT_HORSE",
+          "city": "Brecilien",
+          "quality": 1,
+          "side": "sell",
+          "sourceBuckets": {
+            "packet": 2,
+            "aodp": 17
+          },
+          "rawOriginalPacketBuckets": 2,
+          "independentEvents": 19,
+          "knownCoveragePriorEvents": 16,
+          "knownCoverageSpanHours": 66.16666666666667,
+          "structuralMedian": 70436,
+          "structuralStability": 0.5625,
+          "necessaryEvidenceUpperBound": true,
+          "globalStableEvidence": false,
+          "actual": {
+            "price": 74000,
+            "source": "aodp-current",
+            "at": "2026-10-10T15:00:00.000Z",
+            "ageHours": 0.40210277777777775,
+            "reference": 70436,
+            "samples": 14,
+            "spanHours": 66.16666666666667,
+            "stability": 0.6428571428571429,
+            "referenceLevel": 1,
+            "referenceConfidence": 0.25,
+            "executionConfidence": 1,
+            "validationStatus": "accepted",
+            "reasons": [
+              "movement-confirmed"
+            ],
+            "deviation": 0.05059912544721449,
+            "confirmed": false,
+            "usable": false,
+            "sourceDecisions": [],
+            "referenceEvidence": [
+              "europe|T5_MOUNT_HORSE|Brecilien|1|sell|aodp-current|2026-10-07T19:50:00.000Z",
+              "europe|T5_MOUNT_HORSE|Brecilien|1|sell|aodp-current|2026-10-08T20:45:00.000Z",
+              "europe|T5_MOUNT_HORSE|Brecilien|1|sell|aodp-current|2026-10-08T21:50:00.000Z",
+              "europe|T5_MOUNT_HORSE|Brecilien|1|sell|aodp-current|2026-10-08T22:35:00.000Z",
+              "europe|T5_MOUNT_HORSE|Brecilien|1|sell|aodp-current|2026-10-08T23:05:00.000Z",
+              "europe|T5_MOUNT_HORSE|Brecilien|1|sell|aodp-current|2026-10-09T07:05:00.000Z",
+              "europe|T5_MOUNT_HORSE|Brecilien|1|sell|aodp-current|2026-10-09T13:00:00.000Z",
+              "europe|T5_MOUNT_HORSE|Brecilien|1|sell|aodp-current|2026-10-10T07:30:00.000Z",
+              "europe|T5_MOUNT_HORSE|Brecilien|1|sell|aodp-current|2026-10-10T09:05:00.000Z",
+              "europe|T5_MOUNT_HORSE|Brecilien|1|sell|aodp-current|2026-10-10T09:55:00.000Z",
+              "europe|T5_MOUNT_HORSE|Brecilien|1|sell|aodp-current|2026-10-10T11:05:00.000Z",
+              "europe|T5_MOUNT_HORSE|Brecilien|1|sell|aodp-current|2026-10-10T12:20:00.000Z",
+              "europe|T5_MOUNT_HORSE|Brecilien|1|sell|aodp-current|2026-10-10T13:00:00.000Z",
+              "europe|T5_MOUNT_HORSE|Brecilien|1|sell|aodp-current|2026-10-10T14:00:00.000Z"
+            ],
+            "transitions": []
+          },
+          "counts": {
+            "unknownScope": 1,
+            "unknownSourceTime": 1,
+            "rejected": 0,
+            "conflicting": 0,
+            "quarantined": 0,
+            "provisional": 4
+          }
+        },
+        {
+          "id": "europe|T3_MOUNT_HORSE|Thetford|1|sell",
+          "server": "europe",
+          "itemId": "T3_MOUNT_HORSE",
+          "city": "Thetford",
+          "quality": 1,
+          "side": "sell",
+          "sourceBuckets": {
+            "packet": 0,
+            "aodp": 20
+          },
+          "rawOriginalPacketBuckets": 0,
+          "independentEvents": 20,
+          "knownCoveragePriorEvents": 19,
+          "knownCoverageSpanHours": 65.91666666666667,
+          "structuralMedian": 14962,
+          "structuralStability": 0.5263157894736842,
+          "necessaryEvidenceUpperBound": true,
+          "globalStableEvidence": false,
+          "actual": {
+            "price": 12998,
+            "source": "aodp-current",
+            "at": "2026-10-10T14:30:00.000Z",
+            "ageHours": 0.9021027777777778,
+            "reference": 14962,
+            "samples": 15,
+            "spanHours": 65.91666666666667,
+            "stability": 0.6,
+            "referenceLevel": 1,
+            "referenceConfidence": 0.25,
+            "executionConfidence": 0,
+            "validationStatus": "provisional",
+            "reasons": [
+              "awaiting-movement"
+            ],
+            "deviation": -0.13126587354631733,
+            "confirmed": false,
+            "usable": false,
+            "sourceDecisions": [],
+            "referenceEvidence": [
+              "europe|T3_MOUNT_HORSE|Thetford|1|sell|aodp-current|2026-10-07T19:15:00.000Z",
+              "europe|T3_MOUNT_HORSE|Thetford|1|sell|aodp-current|2026-10-08T21:10:00.000Z",
+              "europe|T3_MOUNT_HORSE|Thetford|1|sell|aodp-current|2026-10-08T22:15:00.000Z",
+              "europe|T3_MOUNT_HORSE|Thetford|1|sell|aodp-current|2026-10-08T23:50:00.000Z",
+              "europe|T3_MOUNT_HORSE|Thetford|1|sell|aodp-current|2026-10-09T09:00:00.000Z",
+              "europe|T3_MOUNT_HORSE|Thetford|1|sell|aodp-current|2026-10-09T10:25:00.000Z",
+              "europe|T3_MOUNT_HORSE|Thetford|1|sell|aodp-current|2026-10-09T14:10:00.000Z",
+              "europe|T3_MOUNT_HORSE|Thetford|1|sell|aodp-current|2026-10-09T15:50:00.000Z",
+              "europe|T3_MOUNT_HORSE|Thetford|1|sell|aodp-current|2026-10-09T19:25:00.000Z",
+              "europe|T3_MOUNT_HORSE|Thetford|1|sell|aodp-current|2026-10-09T20:35:00.000Z",
+              "europe|T3_MOUNT_HORSE|Thetford|1|sell|aodp-current|2026-10-09T22:45:00.000Z",
+              "europe|T3_MOUNT_HORSE|Thetford|1|sell|aodp-current|2026-10-10T06:35:00.000Z",
+              "europe|T3_MOUNT_HORSE|Thetford|1|sell|aodp-current|2026-10-10T08:45:00.000Z",
+              "europe|T3_MOUNT_HORSE|Thetford|1|sell|aodp-current|2026-10-10T12:40:00.000Z",
+              "europe|T3_MOUNT_HORSE|Thetford|1|sell|aodp-current|2026-10-10T13:10:00.000Z"
+            ],
+            "transitions": []
+          },
+          "counts": {
+            "unknownScope": 0,
+            "unknownSourceTime": 0,
+            "rejected": 0,
+            "conflicting": 0,
+            "quarantined": 0,
+            "provisional": 5
+          }
+        },
+        {
+          "id": "europe|T4_PLANKS|Lymhurst|1|buy",
+          "server": "europe",
+          "itemId": "T4_PLANKS",
+          "city": "Lymhurst",
+          "quality": 1,
+          "side": "buy",
+          "sourceBuckets": {
+            "packet": 0,
+            "aodp": 15
+          },
+          "rawOriginalPacketBuckets": 0,
+          "independentEvents": 16,
+          "knownCoveragePriorEvents": 15,
+          "knownCoverageSpanHours": 69.91666666666667,
+          "structuralMedian": 316,
+          "structuralStability": 0.6666666666666666,
+          "necessaryEvidenceUpperBound": true,
+          "globalStableEvidence": false,
+          "actual": {
+            "price": 300,
+            "source": "aodp-current",
+            "at": "2026-10-10T12:55:00.000Z",
+            "ageHours": 2.485436111111111,
+            "reference": 321,
+            "samples": 13,
+            "spanHours": 69.91666666666667,
+            "stability": 0.7692307692307693,
+            "referenceLevel": 1,
+            "referenceConfidence": 0.25,
+            "executionConfidence": 1,
+            "validationStatus": "accepted",
+            "reasons": [],
+            "deviation": -0.06542056074766354,
+            "confirmed": false,
+            "usable": false,
+            "sourceDecisions": [],
+            "referenceEvidence": [
+              "europe|T4_PLANKS|Lymhurst|1|buy|aodp-current|2026-10-07T14:00:00.000Z",
+              "europe|T4_PLANKS|Lymhurst|1|buy|aodp-current|2026-10-08T16:50:00.000Z",
+              "europe|T4_PLANKS|Lymhurst|1|buy|aodp-current|2026-10-09T03:50:00.000Z",
+              "europe|T4_PLANKS|Lymhurst|1|buy|aodp-current|2026-10-09T09:10:00.000Z",
+              "europe|T4_PLANKS|Lymhurst|1|buy|aodp-current|2026-10-09T10:20:00.000Z",
+              "europe|T4_PLANKS|Lymhurst|1|buy|aodp-current|2026-10-09T15:05:00.000Z",
+              "europe|T4_PLANKS|Lymhurst|1|buy|aodp-current|2026-10-09T17:15:00.000Z",
+              "europe|T4_PLANKS|Lymhurst|1|buy|aodp-current|2026-10-09T18:25:00.000Z",
+              "europe|T4_PLANKS|Lymhurst|1|buy|aodp-current|2026-10-10T08:15:00.000Z",
+              "europe|T4_PLANKS|Lymhurst|1|buy|aodp-current|2026-10-10T09:35:00.000Z",
+              "europe|T4_PLANKS|Lymhurst|1|buy|aodp-current|2026-10-10T09:55:00.000Z",
+              "europe|T4_PLANKS|Lymhurst|1|buy|aodp-current|2026-10-10T11:00:00.000Z",
+              "europe|T4_PLANKS|Lymhurst|1|buy|aodp-current|2026-10-10T11:55:00.000Z"
+            ],
+            "transitions": [
+              {
+                "type": "bootstrap",
+                "at": "2026-10-10T11:00:00.000Z",
+                "from": 316,
+                "to": 321,
+                "evidence": [
+                  "europe|T4_PLANKS|Lymhurst|1|buy|aodp-current|2026-10-07T14:00:00.000Z",
+                  "europe|T4_PLANKS|Lymhurst|1|buy|aodp-current|2026-10-08T16:50:00.000Z",
+                  "europe|T4_PLANKS|Lymhurst|1|buy|aodp-current|2026-10-09T03:50:00.000Z",
+                  "europe|T4_PLANKS|Lymhurst|1|buy|aodp-current|2026-10-09T09:10:00.000Z",
+                  "europe|T4_PLANKS|Lymhurst|1|buy|aodp-current|2026-10-09T10:20:00.000Z",
+                  "europe|T4_PLANKS|Lymhurst|1|buy|aodp-current|2026-10-09T15:05:00.000Z",
+                  "europe|T4_PLANKS|Lymhurst|1|buy|aodp-current|2026-10-09T17:15:00.000Z",
+                  "europe|T4_PLANKS|Lymhurst|1|buy|aodp-current|2026-10-09T18:25:00.000Z",
+                  "europe|T4_PLANKS|Lymhurst|1|buy|aodp-current|2026-10-10T08:15:00.000Z",
+                  "europe|T4_PLANKS|Lymhurst|1|buy|aodp-current|2026-10-10T09:35:00.000Z",
+                  "europe|T4_PLANKS|Lymhurst|1|buy|aodp-current|2026-10-10T09:55:00.000Z",
+                  "europe|T4_PLANKS|Lymhurst|1|buy|aodp-current|2026-10-10T11:00:00.000Z"
+                ]
+              }
+            ]
+          },
+          "counts": {
+            "unknownScope": 0,
+            "unknownSourceTime": 0,
+            "rejected": 0,
+            "conflicting": 0,
+            "quarantined": 0,
+            "provisional": 2
+          }
+        },
+        {
+          "id": "europe|T4_PLANKS|Lymhurst|1|sell",
+          "server": "europe",
+          "itemId": "T4_PLANKS",
+          "city": "Lymhurst",
+          "quality": 1,
+          "side": "sell",
+          "sourceBuckets": {
+            "packet": 0,
+            "aodp": 19
+          },
+          "rawOriginalPacketBuckets": 0,
+          "independentEvents": 20,
+          "knownCoveragePriorEvents": 19,
+          "knownCoverageSpanHours": 69.25,
+          "structuralMedian": 358,
+          "structuralStability": 0.6842105263157895,
+          "necessaryEvidenceUpperBound": true,
+          "globalStableEvidence": false,
+          "actual": {
+            "price": 357,
+            "source": "aodp-current",
+            "at": "2026-10-10T12:55:00.000Z",
+            "ageHours": 2.485436111111111,
+            "reference": 362,
+            "samples": 18,
+            "spanHours": 69.25,
+            "stability": 0.6666666666666666,
+            "referenceLevel": 1,
+            "referenceConfidence": 0.25,
+            "executionConfidence": 1,
+            "validationStatus": "accepted",
+            "reasons": [],
+            "deviation": -0.013812154696132596,
+            "confirmed": false,
+            "usable": false,
+            "sourceDecisions": [],
+            "referenceEvidence": [
+              "europe|T4_PLANKS|Lymhurst|1|sell|aodp-current|2026-10-07T14:40:00.000Z",
+              "europe|T4_PLANKS|Lymhurst|1|sell|aodp-current|2026-10-08T18:15:00.000Z",
+              "europe|T4_PLANKS|Lymhurst|1|sell|aodp-current|2026-10-09T03:50:00.000Z",
+              "europe|T4_PLANKS|Lymhurst|1|sell|aodp-current|2026-10-09T08:00:00.000Z",
+              "europe|T4_PLANKS|Lymhurst|1|sell|aodp-current|2026-10-09T09:20:00.000Z",
+              "europe|T4_PLANKS|Lymhurst|1|sell|aodp-current|2026-10-09T10:30:00.000Z",
+              "europe|T4_PLANKS|Lymhurst|1|sell|aodp-current|2026-10-09T12:35:00.000Z",
+              "europe|T4_PLANKS|Lymhurst|1|sell|aodp-current|2026-10-09T12:40:00.000Z",
+              "europe|T4_PLANKS|Lymhurst|1|sell|aodp-current|2026-10-09T15:25:00.000Z",
+              "europe|T4_PLANKS|Lymhurst|1|sell|aodp-current|2026-10-09T16:35:00.000Z",
+              "europe|T4_PLANKS|Lymhurst|1|sell|aodp-current|2026-10-09T17:25:00.000Z",
+              "europe|T4_PLANKS|Lymhurst|1|sell|aodp-current|2026-10-09T18:25:00.000Z",
+              "europe|T4_PLANKS|Lymhurst|1|sell|aodp-current|2026-10-09T19:05:00.000Z",
+              "europe|T4_PLANKS|Lymhurst|1|sell|aodp-current|2026-10-09T20:35:00.000Z",
+              "europe|T4_PLANKS|Lymhurst|1|sell|aodp-current|2026-10-10T08:15:00.000Z",
+              "europe|T4_PLANKS|Lymhurst|1|sell|aodp-current|2026-10-10T09:55:00.000Z",
+              "europe|T4_PLANKS|Lymhurst|1|sell|aodp-current|2026-10-10T11:00:00.000Z",
+              "europe|T4_PLANKS|Lymhurst|1|sell|aodp-current|2026-10-10T11:55:00.000Z"
+            ],
+            "transitions": [
+              {
+                "type": "bootstrap",
+                "at": "2026-10-09T18:25:00.000Z",
+                "from": 499,
+                "to": 362.5,
+                "evidence": [
+                  "europe|T4_PLANKS|Lymhurst|1|sell|aodp-current|2026-10-07T14:40:00.000Z",
+                  "europe|T4_PLANKS|Lymhurst|1|sell|aodp-current|2026-10-08T18:15:00.000Z",
+                  "europe|T4_PLANKS|Lymhurst|1|sell|aodp-current|2026-10-09T03:50:00.000Z",
+                  "europe|T4_PLANKS|Lymhurst|1|sell|aodp-current|2026-10-09T08:00:00.000Z",
+                  "europe|T4_PLANKS|Lymhurst|1|sell|aodp-current|2026-10-09T09:20:00.000Z",
+                  "europe|T4_PLANKS|Lymhurst|1|sell|aodp-current|2026-10-09T10:30:00.000Z",
+                  "europe|T4_PLANKS|Lymhurst|1|sell|aodp-current|2026-10-09T12:35:00.000Z",
+                  "europe|T4_PLANKS|Lymhurst|1|sell|aodp-current|2026-10-09T12:40:00.000Z",
+                  "europe|T4_PLANKS|Lymhurst|1|sell|aodp-current|2026-10-09T15:25:00.000Z",
+                  "europe|T4_PLANKS|Lymhurst|1|sell|aodp-current|2026-10-09T16:35:00.000Z",
+                  "europe|T4_PLANKS|Lymhurst|1|sell|aodp-current|2026-10-09T17:25:00.000Z",
+                  "europe|T4_PLANKS|Lymhurst|1|sell|aodp-current|2026-10-09T18:25:00.000Z"
+                ]
+              }
+            ]
+          },
+          "counts": {
+            "unknownScope": 0,
+            "unknownSourceTime": 0,
+            "rejected": 0,
+            "conflicting": 0,
+            "quarantined": 0,
+            "provisional": 1
+          }
+        },
+        {
+          "id": "europe|T6_MOUNT_HORSE|Brecilien|1|sell",
+          "server": "europe",
+          "itemId": "T6_MOUNT_HORSE",
+          "city": "Brecilien",
+          "quality": 1,
+          "side": "sell",
+          "sourceBuckets": {
+            "packet": 0,
+            "aodp": 18
+          },
+          "rawOriginalPacketBuckets": 0,
+          "independentEvents": 18,
+          "knownCoveragePriorEvents": 17,
+          "knownCoverageSpanHours": 67.16666666666667,
+          "structuralMedian": 209996,
+          "structuralStability": 0.6470588235294118,
+          "necessaryEvidenceUpperBound": true,
+          "globalStableEvidence": false,
+          "actual": {
+            "price": 225000,
+            "source": "aodp-current",
+            "at": "2026-10-10T13:55:00.000Z",
+            "ageHours": 1.4854361111111112,
+            "reference": 213997,
+            "samples": 16,
+            "spanHours": 67.16666666666667,
+            "stability": 0.625,
+            "referenceLevel": 1,
+            "referenceConfidence": 0.25,
+            "executionConfidence": 1,
+            "validationStatus": "accepted",
+            "reasons": [
+              "movement-confirmed"
+            ],
+            "deviation": 0.05141660864404641,
+            "confirmed": false,
+            "usable": false,
+            "sourceDecisions": [],
+            "referenceEvidence": [
+              "europe|T6_MOUNT_HORSE|Brecilien|1|sell|aodp-current|2026-10-07T17:50:00.000Z",
+              "europe|T6_MOUNT_HORSE|Brecilien|1|sell|aodp-current|2026-10-09T01:35:00.000Z",
+              "europe|T6_MOUNT_HORSE|Brecilien|1|sell|aodp-current|2026-10-09T06:40:00.000Z",
+              "europe|T6_MOUNT_HORSE|Brecilien|1|sell|aodp-current|2026-10-09T12:05:00.000Z",
+              "europe|T6_MOUNT_HORSE|Brecilien|1|sell|aodp-current|2026-10-09T13:35:00.000Z",
+              "europe|T6_MOUNT_HORSE|Brecilien|1|sell|aodp-current|2026-10-09T15:20:00.000Z",
+              "europe|T6_MOUNT_HORSE|Brecilien|1|sell|aodp-current|2026-10-09T16:10:00.000Z",
+              "europe|T6_MOUNT_HORSE|Brecilien|1|sell|aodp-current|2026-10-09T18:55:00.000Z",
+              "europe|T6_MOUNT_HORSE|Brecilien|1|sell|aodp-current|2026-10-09T20:05:00.000Z",
+              "europe|T6_MOUNT_HORSE|Brecilien|1|sell|aodp-current|2026-10-09T21:05:00.000Z",
+              "europe|T6_MOUNT_HORSE|Brecilien|1|sell|aodp-current|2026-10-10T07:30:00.000Z",
+              "europe|T6_MOUNT_HORSE|Brecilien|1|sell|aodp-current|2026-10-10T09:05:00.000Z",
+              "europe|T6_MOUNT_HORSE|Brecilien|1|sell|aodp-current|2026-10-10T09:45:00.000Z",
+              "europe|T6_MOUNT_HORSE|Brecilien|1|sell|aodp-current|2026-10-10T11:05:00.000Z",
+              "europe|T6_MOUNT_HORSE|Brecilien|1|sell|aodp-current|2026-10-10T12:20:00.000Z",
+              "europe|T6_MOUNT_HORSE|Brecilien|1|sell|aodp-current|2026-10-10T13:00:00.000Z"
+            ],
+            "transitions": [
+              {
+                "type": "bootstrap",
+                "at": "2026-10-10T09:05:00.000Z",
+                "from": 219999,
+                "to": 209990,
+                "evidence": [
+                  "europe|T6_MOUNT_HORSE|Brecilien|1|sell|aodp-current|2026-10-07T17:50:00.000Z",
+                  "europe|T6_MOUNT_HORSE|Brecilien|1|sell|aodp-current|2026-10-09T01:35:00.000Z",
+                  "europe|T6_MOUNT_HORSE|Brecilien|1|sell|aodp-current|2026-10-09T06:40:00.000Z",
+                  "europe|T6_MOUNT_HORSE|Brecilien|1|sell|aodp-current|2026-10-09T12:05:00.000Z",
+                  "europe|T6_MOUNT_HORSE|Brecilien|1|sell|aodp-current|2026-10-09T13:35:00.000Z",
+                  "europe|T6_MOUNT_HORSE|Brecilien|1|sell|aodp-current|2026-10-09T15:20:00.000Z",
+                  "europe|T6_MOUNT_HORSE|Brecilien|1|sell|aodp-current|2026-10-09T16:10:00.000Z",
+                  "europe|T6_MOUNT_HORSE|Brecilien|1|sell|aodp-current|2026-10-09T18:55:00.000Z",
+                  "europe|T6_MOUNT_HORSE|Brecilien|1|sell|aodp-current|2026-10-09T20:05:00.000Z",
+                  "europe|T6_MOUNT_HORSE|Brecilien|1|sell|aodp-current|2026-10-09T21:05:00.000Z",
+                  "europe|T6_MOUNT_HORSE|Brecilien|1|sell|aodp-current|2026-10-10T07:30:00.000Z",
+                  "europe|T6_MOUNT_HORSE|Brecilien|1|sell|aodp-current|2026-10-10T09:05:00.000Z"
+                ]
+              }
+            ]
+          },
+          "counts": {
+            "unknownScope": 0,
+            "unknownSourceTime": 0,
+            "rejected": 0,
+            "conflicting": 0,
+            "quarantined": 0,
+            "provisional": 1
+          }
+        }
+      ]
+    },
+    "elapsedMs": 7918.725299999118,
+    "validatedColdMs": 3827.6375000029802,
+    "validatedWarmMs": 943.0954999998212
+  },
+  "candidates": [
+    {
+      "id": "T8_PUMPKIN|Thetford|1",
+      "strategy": "place-sell-order",
+      "originalGates": [
+        "reference",
+        "execution",
+        "freshness"
+      ],
+      "journalGates": [
+        "other"
+      ]
+    },
+    {
+      "id": "T8_MOUNT_RAM_FW_MARTLOCK_ELITE|Brecilien|1",
+      "strategy": "place-sell-order",
+      "originalGates": [
+        "reference",
+        "execution",
+        "freshness"
+      ],
+      "journalGates": [
+        "reference"
+      ]
+    },
+    {
+      "id": "T5_LEATHER|Brecilien|1",
+      "strategy": "place-buy-order",
+      "originalGates": [
+        "reference",
+        "execution",
+        "freshness"
+      ],
+      "journalGates": [
+        "reference",
+        "execution"
+      ]
+    },
+    {
+      "id": "T6_FARM_SHEEP_GROWN|Brecilien|1",
+      "strategy": "local-make",
+      "originalGates": [
+        "reference",
+        "execution",
+        "freshness"
+      ],
+      "journalGates": [
+        "reference"
+      ]
+    },
+    {
+      "id": "T7_CORN|Thetford|1",
+      "strategy": "place-sell-order",
+      "originalGates": [
+        "reference",
+        "execution",
+        "freshness"
+      ],
+      "journalGates": [
+        "reference"
+      ]
+    },
+    {
+      "id": "T8_FARM_COW_BABY|Martlock|1",
+      "strategy": "place-sell-order",
+      "originalGates": [
+        "reference",
+        "execution",
+        "freshness"
+      ],
+      "journalGates": [
+        "reference"
+      ]
+    },
+    {
+      "id": "T5_MOUNT_RAM_FW_MARTLOCK|Brecilien|1",
+      "strategy": "instant-buy-from-sell",
+      "originalGates": [
+        "reference",
+        "execution",
+        "freshness"
+      ],
+      "journalGates": [
+        "reference"
+      ]
+    },
+    {
+      "id": "T5_MOUNT_RAM_FW_MARTLOCK|Brecilien|2",
+      "strategy": "instant-buy-from-sell",
+      "originalGates": [
+        "reference",
+        "execution"
+      ],
+      "journalGates": [
+        "reference",
+        "execution"
+      ]
+    },
+    {
+      "id": "T5_MOUNT_RAM_FW_MARTLOCK|Brecilien|4",
+      "strategy": "instant-buy-from-sell",
+      "originalGates": [
+        "reference",
+        "execution"
+      ],
+      "journalGates": [
+        "reference",
+        "execution"
+      ]
+    },
+    {
+      "id": "T6_MOUNT_DIREWOLF|Brecilien|1",
+      "strategy": "local-make",
+      "originalGates": [
+        "reference",
+        "execution",
+        "freshness"
+      ],
+      "journalGates": [
+        "reference"
+      ]
+    },
+    {
+      "id": "T5_HEAD_PLATE_ROYAL@2|Fort Sterling|5",
+      "strategy": "place-sell-order",
+      "originalGates": [
+        "reference",
+        "execution"
+      ],
+      "journalGates": [
+        "reference",
+        "execution"
+      ]
+    },
+    {
+      "id": "T5_HEAD_PLATE_ROYAL@2|Fort Sterling|4",
+      "strategy": "local-make",
+      "originalGates": [
+        "reference",
+        "execution"
+      ],
+      "journalGates": [
+        "reference",
+        "execution"
+      ]
+    },
+    {
+      "id": "QUESTITEM_TOKEN_ROYAL_T5|Thetford|1",
+      "strategy": "instant-sell-to-buy",
+      "originalGates": [
+        "reference",
+        "execution"
+      ],
+      "journalGates": [
+        "reference",
+        "execution"
+      ]
+    },
+    {
+      "id": "T7_FARM_PIG_GROWN|Brecilien|1",
+      "strategy": "place-buy-order",
+      "originalGates": [
+        "reference",
+        "execution",
+        "freshness"
+      ],
+      "journalGates": [
+        "reference",
+        "execution",
+        "quarantine"
+      ]
+    },
+    {
+      "id": "T6_MEAT|Brecilien|1",
+      "strategy": "local-make",
+      "originalGates": [
+        "reference",
+        "execution",
+        "freshness"
+      ],
+      "journalGates": [
+        "reference",
+        "execution",
+        "quarantine"
+      ]
+    },
+    {
+      "id": "T5_MOUNT_HORSE|Brecilien|1",
+      "strategy": "local-make",
+      "originalGates": [
+        "reference",
+        "execution",
+        "freshness"
+      ],
+      "journalGates": [
+        "reference"
+      ]
+    },
+    {
+      "id": "T4_MOUNT_HORSE|Brecilien|1",
+      "strategy": "local-make",
+      "originalGates": [
+        "reference",
+        "execution",
+        "freshness"
+      ],
+      "journalGates": [
+        "reference"
+      ]
+    },
+    {
+      "id": "T3_PLANKS|Brecilien|1",
+      "strategy": "instant-sell-to-buy",
+      "originalGates": [
+        "reference",
+        "execution",
+        "freshness"
+      ],
+      "journalGates": [
+        "reference",
+        "execution",
+        "quarantine"
+      ]
+    },
+    {
+      "id": "T4_LEATHER|Martlock|1",
+      "strategy": "place-buy-order",
+      "originalGates": [
+        "reference",
+        "execution",
+        "freshness"
+      ],
+      "journalGates": [
+        "reference"
+      ]
+    },
+    {
+      "id": "T6_LABOURER_CONTRACT_MAGE|Martlock|1",
+      "strategy": "instant-buy-from-sell",
+      "originalGates": [
+        "reference",
+        "execution"
+      ],
+      "journalGates": [
+        "reference",
+        "execution",
+        "freshness"
+      ]
+    },
+    {
+      "id": "T2_JOURNAL_MAGE_EMPTY|Martlock|1",
+      "strategy": "instant-buy-from-sell",
+      "originalGates": [
+        "reference",
+        "execution"
+      ],
+      "journalGates": [
+        "reference",
+        "execution"
+      ]
+    },
+    {
+      "id": "T3_PLANKS|Martlock|1",
+      "strategy": "instant-buy-from-sell",
+      "originalGates": [
+        "reference",
+        "execution",
+        "freshness"
+      ],
+      "journalGates": [
+        "reference"
+      ]
+    }
+  ]
+}

@@ -1,3 +1,4 @@
+import { mergePartialBook, latestBookOrders } from '../js/core/market-book.mjs';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import vm from 'node:vm';
@@ -7,6 +8,12 @@ import { aodpLongTermReference, orderLongTermReference } from '../js/core/long-t
 import { normalizePriceDate, marketSeriesKey, BOOK_PRICE_FIELDS, priceIndexKey } from '../js/core/market-primitives.mjs';
 
 const now = Date.parse('2026-10-05T12:00:00Z');
+const oldQuote = {id:'old',price:6943,seenAt:'2026-10-05T07:05:12Z'};
+const newQuote = {id:'new',price:9000,seenAt:'2026-10-11T15:37:14Z'};
+const latestBatch = mergePartialBook({orders:new Map([['old',oldQuote]])},{orders:new Map([['new',newQuote]])});
+assert.equal(latestBatch.orders.size,2,'historical identity retained');
+assert.deepEqual(latestBookOrders(latestBatch),[newQuote],'obsolete minimum is excluded from current quote');
+assert.deepEqual(latestBookOrders({orders:new Map([['bad',{price:1,seenAt:'bad'}]])}),[]);
 const servers = ['europe', 'west', 'east'];
 const history = new OrderPriceHistory({ servers });
 const base = { server: 'europe', itemId: 'T1_CARROT', city: 'Martlock', quality: 1,
@@ -100,7 +107,7 @@ class PacketHistory extends OrderPriceHistory {
     restore(payload, at = packetNow) { return super.restore(payload, at); }
     prune(at = packetNow) { return super.prune(at); }
 }
-const context = vm.createContext({ console, URL, URLSearchParams, Map, Set, Buffer,
+const context = vm.createContext({ mergePartialBook, latestBookOrders, preserveArchive: () => {}, console, URL, URLSearchParams, Map, Set, Buffer,
     startQuoteService: () => ({ repository: { flush() {} }, collector: { state: {}, noteDiscovery() {} } }),
     locationNamesByIndex: () => new Map(),
     createNatsMarketAdapter: () => ({ start() {}, snapshot: () => ({ status: 'off' }) }),
@@ -147,6 +154,13 @@ assert.equal(vm.runInContext("orderHistory.snapshot(Date.now()).series.find(s =>
 // An expired packet must not add an observation.
 context.expiredOrders = [{ ...context.orders[0], ItemTypeId: 'EXPIRED', Expires: '2020-01-01T00:00:00Z' }];
 assert.equal(vm.runInContext('ingestMarketUpload(expiredOrders)', context), 0);
+context.partialOffer = [{ ...context.orders[2], Id: 5, Price: 700 }];
+vm.runInContext('orderHistory.series.clear(); ingestMarketUpload(partialOffer)',context);
+assert.equal(vm.runInContext('orderHistory.snapshot().series[0].buckets[0].price',context),700,'Incoming partial history cannot inherit cached cheaper orders');
+assert.equal(vm.runInContext('orderHistory.snapshot().series[0].buckets[0].coverage',context),'partial');
+assert.equal(vm.runInContext("extrema(books.get(bookKey('T1_CARROT','Martlock',1,'offer')), 'min').price",context),700,'Current endpoint cannot retain the obsolete 550 minimum');
+vm.runInContext('orderHistory.series.clear(); ingestMarketUpload(orders)',context);
+
 context.response = { setHeader() {}, writeHead(code) { this.code = code; }, end(body) { this.body = body; } };
 await vm.runInContext("route({ method: 'GET' }, response, new URL('http://localhost/api/v1/market/order-history?server=west'), '/api/v1/market/order-history')", context);
 assert.equal(JSON.parse(context.response.body).series.length, 0);

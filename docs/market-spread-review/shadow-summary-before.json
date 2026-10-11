@@ -1,0 +1,481 @@
+{
+  "version": 1,
+  "scannedAt": "2026-10-11T00:41:41.000Z",
+  "elapsedMs": 9970,
+  "evaluated": 25874,
+  "oldCandidates": 1452,
+  "newCandidates": 2271,
+  "verified": 1061,
+  "quarantinedCells": 364,
+  "changedReferences": 3757,
+  "changedReferenceCells": 3391,
+  "removed": 1343,
+  "added": 952,
+  "types": {
+    "legacy": {
+      "local-make": 75,
+      "place-sell-order": 625,
+      "instant-buy-from-sell": 671,
+      "place-buy-order": 33,
+      "instant-sell-to-buy": 29,
+      "local-flip": 4,
+      "cross-city-instant": 15
+    },
+    "validated": {
+      "local-make": 856,
+      "cross-city-instant": 202,
+      "local-flip": 1,
+      "place-sell-order": 2
+    },
+    "monitored": {
+      "instant-sell-to-buy": 35,
+      "place-sell-order": 582,
+      "instant-buy-from-sell": 558,
+      "place-buy-order": 35
+    }
+  },
+  "top20": {
+    "legacy": [
+      "T3_MOUNT_HORSE|Fort Sterling|1",
+      "T6_MOUNT_DIREWOLF|Brecilien|1",
+      "T4_MOUNT_HORSE|Fort Sterling|1",
+      "T7_MEAL_PIE|Brecilien|1",
+      "T6_FARM_DIREWOLF_BABY|Brecilien|1",
+      "T5_MOUNT_COUGAR_KEEPER@1|Martlock|1",
+      "T8_MEAL_STEW@2|Brecilien|1",
+      "T6_RANDOM_DUNGEON_SOLO_TOKEN_D3@3|Martlock|1",
+      "T6_WOOD_LEVEL1@1|Fort Sterling|1",
+      "T7_POTION_STONESKIN|Thetford|1",
+      "T6_HEAD_PLATE_ROYAL@3|Martlock|1",
+      "T6_ARMOR_LEATHER_HELL@1|Martlock|1",
+      "T7_MEAT|Fort Sterling|1",
+      "T6_HEAD_LEATHER_HELL|Brecilien|1",
+      "T6_CAPEITEM_FW_THETFORD@2|Martlock|1",
+      "T7_WOOD_LEVEL3@3|Lymhurst|1",
+      "T7_MEAL_PIE_FISH|Thetford|1",
+      "T6_MOUNT_HORSE|Brecilien|1",
+      "T6_MOUNT_GIANTSTAG_MOOSE|Bridgewatch|1",
+      "T7_HEAD_LEATHER_SET3|Thetford|1"
+    ],
+    "validated": [
+      "T6_HEAD_LEATHER_ROYAL|Caerleon|1",
+      "T6_2H_ARCANE_RINGPAIR_AVALON|Lymhurst|1",
+      "T6_2H_AXE@4|Brecilien|1",
+      "T6_2H_ICEGAUNTLETS_HELL|Fort Sterling|1",
+      "T4_ARMOR_CLOTH_ROYAL@3|Brecilien|1",
+      "T7_2H_HOLYSTAFF_UNDEAD|Martlock|1",
+      "T5_ARMOR_LEATHER_FEY@1|Caerleon|1",
+      "T8_SHOES_LEATHER_SET1@2|Brecilien|1",
+      "T5_SHOES_LEATHER_SET1@2|Caerleon|1",
+      "T7_ARTEFACT_MAIN_FROSTSTAFF_AVALON|Martlock|1",
+      "T4_HEAD_CLOTH_FEY@3|Martlock|1",
+      "T8_OFF_SHIELD@2|Lymhurst|1",
+      "T6_ARTEFACT_HEAD_LEATHER_MORGANA|Bridgewatch|1",
+      "T4_2H_HOLYSTAFF_UNDEAD@3|Caerleon|1",
+      "T4_BACKPACK_GATHERER_WOOD|Martlock|1",
+      "T4_SHOES_PLATE_FEY|Fort Sterling|1",
+      "T6_HEAD_LEATHER_UNDEAD@2|Brecilien|1",
+      "T7_ARTEFACT_HEAD_CLOTH_MORGANA|Fort Sterling|1",
+      "T6_MEAL_STEW@1|Thetford|1",
+      "T5_ARTEFACT_2H_CROSSBOWLARGE_MORGANA|Fort Sterling|1"
+    ]
+  },
+  "affected": [
+    {
+      "id": "T7_MEAL_OMELETTE|Caerleon|1",
+      "before": true,
+      "after": false,
+      "referenceChanges": [
+        {
+          "side": "buy",
+          "from": 1234,
+          "to": 3556.5,
+          "delta": 2322.5,
+          "relativeDelta": 1.8820907617504052
+        },
+        {
+          "side": "sell",
+          "from": 4269.5,
+          "to": 15554568,
+          "delta": 15550298.5,
+          "relativeDelta": 3642.1825740719055
+        }
+      ],
+      "reasons": [
+        "quarantined",
+        "source-conflict",
+        "suspicious-movement"
+      ]
+    },
+    {
+      "id": "T8_POTION_COOLDOWN|Caerleon|1",
+      "before": true,
+      "after": false,
+      "referenceChanges": [
+        {
+          "side": "sell",
+          "from": 16012.5,
+          "to": 21001111,
+          "delta": 20985098.5,
+          "relativeDelta": 1310.544793130367
+        }
+      ],
+      "reasons": [
+        "quarantined",
+        "suspicious-movement"
+      ]
+    },
+    {
+      "id": "T8_POTION_CLEANSE|Caerleon|1",
+      "before": true,
+      "after": false,
+      "referenceChanges": [
+        {
+          "side": "buy",
+          "from": 11051.5,
+          "to": 11056,
+          "delta": 4.5,
+          "relativeDelta": 0.0004071845450843777
+        },
+        {
+          "side": "sell",
+          "from": 16422.5,
+          "to": 13000127,
+          "delta": 12983704.5,
+          "relativeDelta": 790.6046277972295
+        }
+      ],
+      "reasons": [
+        "quarantined",
+        "suspicious-movement"
+      ]
+    },
+    {
+      "id": "T8_MEAL_STEW@1|Caerleon|1",
+      "before": true,
+      "after": false,
+      "referenceChanges": [
+        {
+          "side": "sell",
+          "from": 39395.5,
+          "to": 23911011,
+          "delta": 23871615.5,
+          "relativeDelta": 605.94777322283
+        }
+      ],
+      "reasons": [
+        "quarantined",
+        "suspicious-movement"
+      ]
+    },
+    {
+      "id": "T7_2H_TOOL_SICKLE|Caerleon|1",
+      "before": true,
+      "after": false,
+      "referenceChanges": [
+        {
+          "side": "sell",
+          "from": 63981,
+          "to": 10000000,
+          "delta": 9936019,
+          "relativeDelta": 155.2964004938966
+        }
+      ],
+      "reasons": [
+        "provisional"
+      ]
+    },
+    {
+      "id": "T6_POTION_HEAL@1|Caerleon|1",
+      "before": true,
+      "after": false,
+      "referenceChanges": [
+        {
+          "side": "sell",
+          "from": 30989,
+          "to": 3575858,
+          "delta": 3544869,
+          "relativeDelta": 114.39120333021394
+        }
+      ],
+      "reasons": [
+        "provisional"
+      ]
+    },
+    {
+      "id": "T6_POTION_HEAL|Martlock|1",
+      "before": true,
+      "after": false,
+      "referenceChanges": [
+        {
+          "side": "sell",
+          "from": 1060111.5,
+          "to": 18974502,
+          "delta": 17914390.5,
+          "relativeDelta": 16.89859085577319
+        }
+      ],
+      "reasons": [
+        "quarantined",
+        "suspicious-movement"
+      ]
+    },
+    {
+      "id": "T7_POTION_STONESKIN|Martlock|1",
+      "before": true,
+      "after": false,
+      "referenceChanges": [
+        {
+          "side": "sell",
+          "from": 1123515.5,
+          "to": 8000000,
+          "delta": 6876484.5,
+          "relativeDelta": 6.120507015702053
+        }
+      ],
+      "reasons": [
+        "quarantined",
+        "suspicious-movement"
+      ]
+    },
+    {
+      "id": "T6_ROCK|Thetford|1",
+      "before": true,
+      "after": false,
+      "referenceChanges": [
+        {
+          "side": "sell",
+          "from": 480,
+          "to": 2147,
+          "delta": 1667,
+          "relativeDelta": 3.472916666666667
+        }
+      ],
+      "reasons": [
+        "quarantined",
+        "suspicious-movement"
+      ]
+    },
+    {
+      "id": "T6_OFF_SHIELD|Lymhurst|1",
+      "before": true,
+      "after": false,
+      "referenceChanges": [
+        {
+          "side": "sell",
+          "from": 9000,
+          "to": 18967,
+          "delta": 9967,
+          "relativeDelta": 1.1074444444444445
+        }
+      ],
+      "reasons": [
+        "provisional",
+        "awaiting-movement"
+      ]
+    },
+    {
+      "id": "T4_POTION_COOLDOWN|Fort Sterling|1",
+      "before": true,
+      "after": false,
+      "referenceChanges": [
+        {
+          "side": "sell",
+          "from": 6566670.5,
+          "to": 1027.5,
+          "delta": -6565643,
+          "relativeDelta": -0.9998435280101232
+        }
+      ],
+      "reasons": [
+        "provisional"
+      ]
+    },
+    {
+      "id": "T5_MEAL_SOUP|Fort Sterling|1",
+      "before": true,
+      "after": false,
+      "referenceChanges": [
+        {
+          "side": "buy",
+          "from": 4823,
+          "to": 4830,
+          "delta": 7,
+          "relativeDelta": 0.001451378809869376
+        },
+        {
+          "side": "sell",
+          "from": 15557844.5,
+          "to": 5584,
+          "delta": -15552260.5,
+          "relativeDelta": -0.999641081385021
+        }
+      ],
+      "reasons": [
+        "provisional",
+        "source-conflict"
+      ]
+    },
+    {
+      "id": "T5_MEAL_SOUP|Lymhurst|1",
+      "before": true,
+      "after": false,
+      "referenceChanges": [
+        {
+          "side": "sell",
+          "from": 10558227.5,
+          "to": 5443,
+          "delta": -10552784.5,
+          "relativeDelta": -0.9994844778633535
+        }
+      ],
+      "reasons": [
+        "provisional"
+      ]
+    },
+    {
+      "id": "T8_POTION_COOLDOWN|Martlock|1",
+      "before": true,
+      "after": false,
+      "referenceChanges": [
+        {
+          "side": "sell",
+          "from": 23111111,
+          "to": 14992,
+          "delta": -23096119,
+          "relativeDelta": -0.999351307689189
+        }
+      ],
+      "reasons": [
+        "provisional",
+        "movement-confirmed"
+      ]
+    },
+    {
+      "id": "T7_MEAL_PIE|Martlock|1",
+      "before": true,
+      "after": false,
+      "referenceChanges": [
+        {
+          "side": "buy",
+          "from": 5803.5,
+          "to": 5804,
+          "delta": 0.5,
+          "relativeDelta": 0.00008615490652192643
+        },
+        {
+          "side": "sell",
+          "from": 9000000,
+          "to": 6147.5,
+          "delta": -8993852.5,
+          "relativeDelta": -0.9993169444444444
+        }
+      ],
+      "reasons": [
+        "provisional",
+        "source-conflict"
+      ]
+    },
+    {
+      "id": "T8_MEAL_STEW@1|Fort Sterling|1",
+      "before": true,
+      "after": false,
+      "referenceChanges": [
+        {
+          "side": "sell",
+          "from": 17512090,
+          "to": 41177,
+          "delta": -17470913,
+          "relativeDelta": -0.9976486530162876
+        }
+      ],
+      "reasons": [
+        "provisional",
+        "awaiting-movement",
+        "movement-confirmed"
+      ]
+    },
+    {
+      "id": "T8_MEAL_SANDWICH@2|Caerleon|1",
+      "before": true,
+      "after": false,
+      "referenceChanges": [
+        {
+          "side": "sell",
+          "from": 44074748.5,
+          "to": 87999512,
+          "delta": 43924763.5,
+          "relativeDelta": 0.9965970310641704
+        }
+      ],
+      "reasons": [
+        "quarantined",
+        "suspicious-movement"
+      ]
+    },
+    {
+      "id": "T4_WOOD_LEVEL1@1|Fort Sterling|1",
+      "before": true,
+      "after": false,
+      "referenceChanges": [
+        {
+          "side": "sell",
+          "from": 50098.5,
+          "to": 99998,
+          "delta": 49899.5,
+          "relativeDelta": 0.9960278251843867
+        }
+      ],
+      "reasons": [
+        "quarantined",
+        "suspicious-movement"
+      ]
+    },
+    {
+      "id": "T6_POTION_COOLDOWN|Martlock|1",
+      "before": true,
+      "after": false,
+      "referenceChanges": [
+        {
+          "side": "sell",
+          "from": 609227,
+          "to": 6454,
+          "delta": -602773,
+          "relativeDelta": -0.9894062475891581
+        }
+      ],
+      "reasons": [
+        "provisional"
+      ]
+    },
+    {
+      "id": "T7_MEAL_OMELETTE_AVALON@2|Fort Sterling|1",
+      "before": true,
+      "after": false,
+      "referenceChanges": [
+        {
+          "side": "sell",
+          "from": 10643279.5,
+          "to": 175495.5,
+          "delta": -10467784,
+          "relativeDelta": -0.9835111442859318
+        }
+      ],
+      "reasons": [
+        "provisional",
+        "awaiting-movement"
+      ]
+    }
+  ],
+  "quarantinedObservations": 944,
+  "referenceLevels": {
+    "0": 36664,
+    "1": 14097,
+    "2": 910,
+    "3": 71,
+    "4": 6
+  },
+  "truthLabels": false,
+  "falseNegatives": null,
+  "limited": true
+}

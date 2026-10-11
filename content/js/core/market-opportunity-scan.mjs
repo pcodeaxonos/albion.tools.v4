@@ -1,36 +1,40 @@
+import { qualityCalibration } from './market-opportunity-quality.mjs';
+import { assessSpreadRealism, assessHistoricalSpread, spreadCalibration } from './market-spread-realism.mjs';
+import { validateObservationSeries, OBSERVATION_POLICY, observationTime, currentObservationRevision, observationExpiry } from './market-observation.mjs';
 import { mergedQuotePoints } from './long-term-price.mjs';
 import { ORDER_HISTORY_POLICY } from './market-history-config.mjs';
-import { normalizePriceDate } from './market-primitives.mjs';
+import { normalizePriceDate, marketSeriesKey } from './market-primitives.mjs';
 import {
-    OPPORTUNITY_POLICY, analyzeMarketCell, assessMarketSide, quoteDisplayPoints, rankMarketOpportunities
+    OPPORTUNITY_POLICY, provisionalReference, analyzeMarketCell, assessMarketSide, quoteDisplayPoints, rankMarketOpportunities
 } from './market-opportunities.mjs';
+import { potentialReasonCounts } from './market-opportunity-review.mjs';
 
 function cellKey(row) {
     return `${row.server}|${row.itemId}|${row.city}|${row.quality}`;
 }
 
 /** A corrected AODP quote may update the fetch hour without becoming a new historical vote. Packets still win that hour. */
-export function applyLiveQuote(points, live) {
+export function applyLiveQuote(points, live, { legacy = false } = {}) {
     if (!(live?.price > 0)) return points || [];
-    const seen = Date.parse(normalizePriceDate(live.fetchedAt ?? live.seenAt));
-    const sourceAt = Date.parse(normalizePriceDate(live.sourceQuoteAt));
-    const at = Number.isFinite(seen) ? seen : sourceAt;
+    const sourceAt = Date.parse(normalizePriceDate(live.sourceQuoteAt ?? live.observedAt));
+    const at = Number.isFinite(sourceAt) ? sourceAt : Date.parse(normalizePriceDate(live.seenAt));
     if (!Number.isFinite(at)) return points || [];
-    const bucket = Math.floor(at / ORDER_HISTORY_POLICY.bucketMs) * ORDER_HISTORY_POLICY.bucketMs;
     const next = [...(points || [])];
-    const hourOf = (point) => {
-        const stampAt = Date.parse(normalizePriceDate(point.bucketAt ?? point.seenAt));
-        return Number.isFinite(stampAt) ? Math.floor(stampAt / ORDER_HISTORY_POLICY.bucketMs) * ORDER_HISTORY_POLICY.bucketMs : NaN;
-    };
-    const index = next.findIndex((point) => hourOf(point) === bucket);
-    const source = live.source || 'aodp-current';
-    const patch = { price: live.price, source, ...(live.sourceQuoteAt ? { sourceQuoteAt: live.sourceQuoteAt } : {}) };
-    if (index === -1) {
-        next.push({ ...patch, seenAt: new Date(at).toISOString(), bucketAt: new Date(bucket).toISOString() });
+    if (legacy) {
+        const fetched = Date.parse(normalizePriceDate(live.fetchedAt ?? live.seenAt));
+        const collected = Number.isFinite(fetched) ? fetched : sourceAt;
+        if (!Number.isFinite(collected)) return next;
+        const bucket = Math.floor(collected / ORDER_HISTORY_POLICY.bucketMs) * ORDER_HISTORY_POLICY.bucketMs;
+        const index = next.findIndex(point => Math.floor(Date.parse(normalizePriceDate(point.bucketAt ?? point.seenAt)) / ORDER_HISTORY_POLICY.bucketMs) * ORDER_HISTORY_POLICY.bucketMs === bucket);
+        const patch = { price: live.price, source: live.source || 'aodp-current', sourceQuoteAt: live.sourceQuoteAt };
+        if (index < 0) next.push({ ...patch, seenAt: new Date(collected).toISOString(), bucketAt: new Date(bucket).toISOString() });
+        else if (next[index].source !== 'market-order-packets') next[index] = { ...next[index], ...patch };
         return next;
     }
-    if (next[index].source === 'market-order-packets') return next;
-    next[index] = { ...next[index], ...patch };
+    if (next.some(point => Date.parse(normalizePriceDate(point.sourceQuoteAt ?? point.observedAt ?? point.seenAt)) === at && point.price === live.price && point.source === (live.source || 'aodp-current') && (point.coverage ?? 'reported-top') === (live.coverage ?? 'reported-top') && point.sourceTimeKnown === live.sourceTimeKnown)) return next;
+    // A correction remains evidence of a conflict, never silently rewrites history.
+    next.push({ ...live, source: live.source || 'aodp-current', observedAt: new Date(at).toISOString(),
+        seenAt: new Date(at).toISOString(), bucketAt: new Date(Math.floor(at / ORDER_HISTORY_POLICY.bucketMs) * ORDER_HISTORY_POLICY.bucketMs).toISOString() });
     return next;
 }
 
@@ -49,10 +53,41 @@ export function quoteFreshnessPoints(points) {
     });
 }
 
-export function readMarketBook(packetHistory, repository, identity, now) {
+const bookCaches = new WeakMap();
+export function readMarketBook(packetHistory, repository, identity, now, policy = OPPORTUNITY_POLICY) {
     const series = [packetHistory?.seriesFor?.(identity, now), repository?.seriesFor?.(identity, now)].filter(Boolean);
-    const points = quoteFreshnessPoints(applyLiveQuote(mergedQuotePoints(series), repository?.currentQuote?.(identity) || null));
-    return { points };
+    const owner = repository || packetHistory;
+    let cache = owner && bookCaches.get(owner);
+    if (owner && !cache) { cache = { entries: new Map(), pointCount: 0 }; bookCaches.set(owner, cache); }
+    const key = `${marketSeriesKey(identity)}|${policy.validationMode}`;
+    const live = repository?.currentQuote?.(identity) || null;
+    const revision = `${policy.validationMode}|${series.map(row => `${row.source}:${row.revision ?? row.buckets.length}`).join('|')}|${currentObservationRevision(live)}`;
+    if (cache?.entries.get(key)?.revision === revision && now >= cache.entries.get(key).at) return cache.entries.get(key).book;
+    let points;
+    if(policy.validationMode==='legacy') points=quoteFreshnessPoints(applyLiveQuote(mergedQuotePoints(series),live,{legacy:true}));
+    else {
+        points=[];
+        const append= (point, source) => {
+            const at=observationTime(point);
+            if(at>=now-OBSERVATION_POLICY.windowMs)points.push(point.source?point:{...point,source});
+        };
+        for(const row of series)for(const point of row.buckets) {
+            append(point,row.source);
+            for(const event of point.evidenceObservations||[])append(event,row.source);
+        }
+        points=applyLiveQuote(points,live);
+    }
+    const book = { points, revision };
+    if (cache && points.length <= OBSERVATION_POLICY.maxCachedPoints) {
+        cache.pointCount -= cache.entries.get(key)?.book.points.length || 0;
+        cache.entries.delete(key);
+        while (cache.entries.size && (cache.entries.size >= OBSERVATION_POLICY.maxCachedSeries || cache.pointCount + points.length > OBSERVATION_POLICY.maxCachedPoints)) {
+            const oldest = cache.entries.keys().next().value;
+            cache.pointCount -= cache.entries.get(oldest).book.points.length; cache.entries.delete(oldest);
+        }
+        cache.entries.set(key, { revision, at:now, book }); cache.pointCount += points.length;
+    }
+    return book;
 }
 
 function pricedSides(snapshot) {
@@ -64,14 +99,18 @@ function exclusionReason(snapshot) {
     const sides = pricedSides(snapshot);
     if (!sides.length) return 'noHistory';
     const referenced = sides.filter((side) => side.reference > 0);
+    if (sides.some(side => side.validationStatus === 'quarantined')) return 'suspicious';
     if (!referenced.length) return 'singleObservation';
+    if (!sides.some(side => side.referenceLevel >= 3)) return 'insufficient';
     if (!referenced.some((side) => !side.stale)) return 'stale';
     return 'belowDeviation';
 }
 
+const assessmentCaches = new WeakMap();
+const spreadReviewCaches = new WeakMap();
 export function scanQuoteBooks({
     server, packetHistory, repository, now = Date.now(), premium = true, fees,
-    policy = OPPORTUNITY_POLICY
+    policy = OPPORTUNITY_POLICY, includeEvaluation = false, includeCandidates = false
 } = {}) {
     const started = Date.now();
     const groups = new Map();
@@ -84,12 +123,30 @@ export function scanQuoteBooks({
     for (const row of packetHistory?.identities?.(now) || []) add(row);
     for (const row of repository?.identities?.(now) || []) add(row);
 
+    const cacheOwner = repository || packetHistory;
+    let assessments = cacheOwner && assessmentCaches.get(cacheOwner);
+    if (cacheOwner && !assessments) { assessments = new Map(); assessmentCaches.set(cacheOwner, assessments); }
     const snapshots = [];
     for (const group of groups.values()) {
         const read = (side) => {
             if (!group.sides.has(side)) return assessMarketSide({ now, policy });
-            const book = readMarketBook(packetHistory, repository, { ...group, side }, now);
-            return assessMarketSide({ points: book.points, now, policy });
+            const identity = { ...group, side };
+            const key = `${marketSeriesKey(identity)}|${policy.validationMode}`;
+            let cached = assessments?.get(key);
+            const live = repository?.currentQuote?.(identity);
+            const canVersion = (!packetHistory || packetHistory.seriesRevision) && (!repository || repository.seriesRevision);
+            const rawRevision = canVersion ? `${packetHistory?.seriesRevision(identity) || 0}|${repository?.seriesRevision(identity) || 0}|${currentObservationRevision(live)}` : null;
+            if (rawRevision !== null && cached?.rawRevision === rawRevision && now >= cached.at && now < cached.expiresAt) return assessMarketSide({ referenceQuote: cached.summary, now, policy });
+            const book = readMarketBook(packetHistory, repository, identity, now, policy);
+            if (!cached || cached.revision !== book.revision || now < cached.at || now >= cached.expiresAt) {
+                const quote = provisionalReference(book.points, { now, policy });
+                const { observations, ...summary } = quote;
+                summary.quarantinedObservations = observations?.filter(point => point.validationStatus === 'quarantined').length ?? 0;
+                const expiresAt = observationExpiry(book.points,now);
+                cached = { rawRevision, revision: book.revision, at: now, expiresAt: expiresAt, summary };
+                if (assessments) { if (assessments.size >= OBSERVATION_POLICY.maxCachedSummaries) assessments.delete(assessments.keys().next().value); assessments.set(key, cached); }
+            }
+            return assessMarketSide({ referenceQuote: cached.summary, now, policy });
         };
         snapshots.push({ ...group, buy: read('buy'), sell: read('sell') });
     }
@@ -104,16 +161,65 @@ export function scanQuoteBooks({
         peers: (byItem.get(`${snapshot.itemId}|${snapshot.quality}`) || []).filter((peer) => peer.city !== snapshot.city),
         premium, fees, now, policy
     }));
-    const excluded = { noHistory: 0, singleObservation: 0, stale: 0, belowDeviation: 0, overLimit: 0 };
+    const excluded = { noHistory: 0, singleObservation: 0, stale: 0, belowDeviation: 0, suspicious: 0, insufficient: 0, overLimit: 0 };
     const candidates = [];
     snapshots.forEach((snapshot, index) => {
         if (analyzed[index]) candidates.push(analyzed[index]);
-        else excluded[exclusionReason(snapshot)] += 1;
+        if (!analyzed[index] || (policy.validationMode !== 'legacy' && !analyzed[index].eligible)) excluded[exclusionReason(snapshot)] += 1;
     });
+    const spreadContext = spreadCalibration(candidates.filter(row => row.eligible && row.strategies.some(strategy => strategy.id === 'local-make')));
+    let spreadReviews = cacheOwner && spreadReviewCaches.get(cacheOwner);
+    if (cacheOwner && !spreadReviews) { spreadReviews = new Map(); spreadReviewCaches.set(cacheOwner, spreadReviews); }
+    for (const row of candidates) if (row.strategies.some(strategy => strategy.id === 'local-make')) {
+        const identity = { server: row.server, itemId: row.itemId, city: row.city, quality: row.quality };
+        row.spreadRealism = assessSpreadRealism({ row, buyIdentity: identity, sellIdentity: identity, premium, fees, calibration: spreadContext });
+        let history = { buy: [], sell: [] };
+        let cachedReview = null;
+        const reviewKey = cellKey(identity);
+        // levels[2][0] is the required sample count, not the numeric evidence level.
+        if (row.buy.referenceSamples >= OBSERVATION_POLICY.levels[2][0] && row.sell.referenceSamples >= OBSERVATION_POLICY.levels[2][0]) {
+            const books = ['buy', 'sell'].map(side => readMarketBook(packetHistory, repository, { ...identity, side }, now, policy));
+            const revision = books.map(book => book.revision).join('|');
+            cachedReview = spreadReviews?.get(reviewKey);
+            if (!cachedReview || cachedReview.revision !== revision || now < cachedReview.at || now >= cachedReview.expiresAt) {
+                history = books.map(book => validateObservationSeries(book.points, { now }).observations);
+                cachedReview = { revision, at: now, expiresAt: Math.min(...books.map(book => observationExpiry(book.points, now))),
+                    result: assessHistoricalSpread(row, ...history) };
+                if (spreadReviews) {
+                    if (spreadReviews.size >= OBSERVATION_POLICY.maxCachedSeries) spreadReviews.delete(spreadReviews.keys().next().value);
+                    spreadReviews.set(reviewKey, cachedReview);
+                }
+            }
+        }
+        row.spreadReview = cachedReview?.result || assessHistoricalSpread(row, history.buy, history.sell);
+        if (row.spreadRealism.reasons.length) row.spreadReview = { ...row.spreadReview, classification: 'insufficient', reason: 'current-evidence-inconsistent' };
+    }
     const ranked = rankMarketOpportunities(candidates, { mode: 'balanced', policy });
-    const listed = ranked.slice(0, policy.listLimit);
-    excluded.overLimit = ranked.length - listed.length;
+    const verified = ranked.filter(row => policy.validationMode === 'legacy' || row.eligible);
+    const potentialRows = policy.validationMode === 'legacy' ? [] : ranked
+        .filter(row => !row.eligible && row.validationStatus !== 'quarantined' && row.potentialStrategies?.length)
+        .map(row => {
+            const potentialStrategies = row.potentialStrategies.slice().sort((a, b) =>
+                (b.advantageSilver * b.weight) - (a.advantageSilver * a.weight) || b.advantageSilver - a.advantageSilver);
+            return { ...row, potential: true, stage: 'potential', primary: potentialStrategies[0], strategies: potentialStrategies };
+        })
+        .sort((a, b) => {
+            const missingGates = row => row.primary.evidence?.reasons?.length ?? 0;
+            const confidence = row => Math.min(...Object.values(row.primary.evidence?.inputs || {}).filter(Boolean)
+                .map(side => Math.min(side.referenceConfidence ?? 0, side.executionConfidence ?? 0)));
+            const age = row => Math.max(...Object.values(row.primary.evidence?.inputs || {}).filter(Boolean)
+                .map(side => Number.isFinite(side.ageMs) ? side.ageMs : Number.MAX_SAFE_INTEGER));
+            return missingGates(a) - missingGates(b) || confidence(b) - confidence(a) || age(a) - age(b)
+                || (b.recency || 0) - (a.recency || 0) || (b.rankScore || 0) - (a.rankScore || 0)
+                || a.id.localeCompare(b.id);
+        });
+    const potential = potentialRows;
+    const diagnostics = ranked.filter(row => !row.eligible).slice(0, policy.listLimit);
+    const listed = verified.slice(0, policy.listLimit);
+    excluded.overLimit = verified.length - listed.length;
     const has = (snapshot, test) => test(snapshot.buy) || test(snapshot.sell);
+    // Full decision traces stay in explicit audit output; cards read sides and strategy evidence.
+    const publicRow = ({ decisions, ...row }) => row;
     return {
         server,
         strategyId: policy.strategyId,
@@ -122,7 +228,7 @@ export function scanQuoteBooks({
         scanned: snapshots.length,
         referenced: snapshots.filter((snapshot) => has(snapshot, (side) => side?.reference > 0)).length,
         listed: listed.length,
-        truncated: ranked.length > listed.length,
+        truncated: verified.length > listed.length,
         premium: Boolean(premium),
         funnel: {
             cells: snapshots.length,
@@ -148,19 +254,46 @@ export function scanQuoteBooks({
             belowDeviation: 'Taze referans var, sapma eşiğini geçmedi ve ücret sonrası çevirme de yok.',
             overLimit: 'Eşiği geçti ama liste sınırından sonra kaldı.'
         },
-        opportunities: listed
+        ...(includeEvaluation ? { evaluation: { rows: ranked, snapshots } } : {}),
+        candidateCount: ranked.filter(row => row.anomalies.length || row.primary).length,
+        diagnostics: diagnostics.map(publicRow),
+        counts: { evaluated: snapshots.length, verified: verified.length, potential: potential.length,
+            monitored: analyzed.filter(row => row && !row.eligible && row.validationStatus !== 'quarantined' && [row.buy, row.sell].some(side => side?.referenceLevel >= 3)).length,
+            suspicious: analyzed.filter(row => row && !row.eligible && row.validationStatus === 'quarantined').length,
+            insufficient: snapshots.filter((snapshot, index) => !analyzed[index]?.eligible && analyzed[index]?.validationStatus !== 'quarantined' && ![snapshot.buy, snapshot.sell].some(side => side?.referenceLevel >= 3)).length },
+        decisionAudit: candidates.reduce((audit, row) => {
+            for (const decision of row.decisions || []) {
+                const entry = audit[decision.id] || (audit[decision.id] = { evaluated: 0, eligible: 0, rejected: 0, reasons: {} });
+                entry.evaluated += 1;
+                if (decision.eligible) entry.eligible += 1;
+                else {
+                    entry.rejected += 1;
+                    for (const reason of decision.reasons || []) entry.reasons[reason] = (entry.reasons[reason] || 0) + 1;
+                }
+            }
+            return audit;
+        }, {}),
+        rejectionReasons: potentialReasonCounts(candidates),
+        listLimit: policy.listLimit,
+        qualityCalibration: qualityCalibration(candidates),
+        spreadCalibration: spreadContext,
+        ...(includeCandidates ? { eligibleCandidates: verified.map(publicRow), potentialCandidates: potential.map(publicRow), suspiciousCandidates: ranked.filter(row => row.validationStatus === 'quarantined').map(publicRow) } : {}),
+        opportunities: listed.map(publicRow)
     };
 }
 
 export function seriesForCell(packetHistory, repository, { server, itemId, city, quality, now = Date.now(), policy = OPPORTUNITY_POLICY }) {
     const base = { server, itemId, city, quality: Number(quality) || 1 };
     const read = (side) => {
-        const book = readMarketBook(packetHistory, repository, { ...base, side }, now);
+        const book = readMarketBook(packetHistory, repository, { ...base, side }, now, policy);
         const assessed = assessMarketSide({ points: book.points, now, policy });
         return {
             reference: assessed.reference,
             provisional: assessed.provisional,
             referenceSamples: assessed.referenceSamples,
+            audit: policy.validationMode === 'legacy' ? [] : validateObservationSeries(book.points, { now }).observations.filter(point => point.validationStatus !== 'accepted').slice(-OBSERVATION_POLICY.detailAuditLimit),
+            validationStatus: assessed.validationStatus, validationReasons: assessed.validationReasons,
+            referenceConfidence: assessed.referenceConfidence, executionConfidence: assessed.executionConfidence,
             points: quoteDisplayPoints(book.points, { now, bucketMs: policy.displayBucketMs })
         };
     };

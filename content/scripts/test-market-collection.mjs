@@ -145,6 +145,7 @@ adapter.stop();
 const discovery = [];
 const telemetry = createNatsMarketAdapter({
     mode: 'telemetry', locationNames: new Map([[3004, 'Martlock']]), cities: ['Martlock'],
+    now: () => now,
     onDiscovery: (found) => discovery.push(...found)
 });
 telemetry.ingest(JSON.stringify({ Orders: [

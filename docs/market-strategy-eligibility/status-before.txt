@@ -1,0 +1,218 @@
+import { OBSERVATION_POLICY } from './market-observation.mjs';
+import { PRICE_STALE_MS } from './market-history-config.mjs';
+
+/**
+ * One primary status per opportunity card. The resolver reads normalized facts only, so the
+ * same facts give the same status, tone and trade permission for every opportunity type.
+ */
+export const PRIMARY_STATUS = Object.freeze({
+    BLOCKED: 'BLOCKED',
+    ANOMALY: 'ANOMALY',
+    INSUFFICIENT: 'INSUFFICIENT',
+    STALE: 'STALE',
+    UNPROFITABLE: 'UNPROFITABLE',
+    ACTIONABLE: 'ACTIONABLE',
+    STRATEGY: 'STRATEGY',
+    NEUTRAL: 'NEUTRAL'
+});
+
+/**
+ * `reason` takes the tone of the opportunity type. Only ACTIONABLE allows a trade outright.
+ * `group` is the summary bucket: open (worth acting on), risk (do not trade), waiting (needs data or confirmation).
+ */
+export const STATUS_PRESENTATION = Object.freeze({
+    BLOCKED: { label: 'Engelli', tone: 'loss', trade: 'blocked', group: 'risk' },
+    ANOMALY: { label: 'Anomali', tone: 'warn', trade: 'blocked', group: 'risk' },
+    INSUFFICIENT: { label: 'Yetersiz veri', tone: 'muted', trade: 'blocked', group: 'waiting' },
+    STALE: { label: 'Eski veri', tone: 'muted', trade: 'blocked', group: 'waiting' },
+    UNPROFITABLE: { label: 'Kârsız', tone: 'loss', trade: 'blocked', group: 'risk' },
+    ACTIONABLE: { label: 'Uygulanabilir', tone: 'reason', trade: 'allowed', group: 'open' },
+    STRATEGY: { label: 'Strateji', tone: 'reason', trade: 'evaluate', group: 'open' },
+    NEUTRAL: { label: 'Nötr', tone: 'muted', trade: 'blocked', group: 'waiting' }
+});
+
+/** A side this far from its reference (×4 price) is treated as a likely mistyped order. */
+export const EXTREME_DEVIATION = OBSERVATION_POLICY.extreme;
+
+/**
+ * Inputs each engine strategy reads in market-opportunities.mjs, and whether its decision is a
+ * post-fee result. Savings strategies carry `netSilver: null` by design. The engine treats depth
+ * as a caveat, so no current strategy requires a feasibility check.
+ */
+export const STRATEGY_SPECS = Object.freeze({
+    'place-sell-order': { inputs: ['sell'], net: true, feasibility: false, tone: 'gain' },
+    'instant-buy-from-sell': { inputs: ['sell'], net: false, feasibility: false, tone: 'gain' },
+    'instant-sell-to-buy': { inputs: ['buy'], net: true, feasibility: false, tone: 'amber' },
+    'place-buy-order': { inputs: ['buy'], net: false, feasibility: false, tone: 'info' },
+    'local-make': { inputs: ['buy', 'sell'], net: true, feasibility: false, tone: 'info' },
+    'local-flip': { inputs: ['buy', 'sell'], net: true, feasibility: false, tone: 'info' },
+    'cross-city-instant': { inputs: ['sell', 'destination'], net: true, feasibility: false, tone: 'info' }
+});
+
+/** The strategy the engine evaluates for each anomaly direction. */
+export const ANOMALY_STRATEGY = Object.freeze({
+    'sell-up': 'place-sell-order',
+    'sell-down': 'instant-buy-from-sell',
+    'buy-up': 'instant-sell-to-buy',
+    'buy-down': 'place-buy-order'
+});
+
+const S = PRIMARY_STATUS;
+
+/**
+ * @param {object} facts
+ * @param {boolean} facts.invalid            A critical value is present but definitively invalid, or trading is blocked.
+ * @param {boolean} facts.anomaly            Extreme deviation measured on valid, referenced data.
+ * @param {'present'|'missing'} facts.prices Required prices and references of the opportunity type.
+ * @param {'fresh'|'stale'|'unknown'} facts.freshness
+ * @param {'verified'|'sufficient'|'insufficient'|'unknown'} facts.confidence  Engine gate; `verified` = confirmed.
+ * @param {boolean} facts.netRequired        The decision is a post-fee result.
+ * @param {number|null} facts.net            Post-fee result. null is unknown, never zero.
+ * @param {'verified'|'unknown'} facts.feasibility
+ * @param {boolean} facts.feasibilityRequired
+ * @param {{ verified: boolean, sufficientData: boolean }|null} facts.strategy  Independent strategy that needs neither net nor feasibility.
+ * @returns {{ status: string, causes: string[] }}
+ */
+export function resolvePrimaryStatus(facts) {
+    if (facts.invalid) return { status: S.BLOCKED, causes: ['invalid'] };
+    if (facts.anomaly) return { status: S.ANOMALY, causes: ['anomaly'] };
+
+    const netKnown = Number.isFinite(facts.net);
+    const fallback = Boolean(facts.strategy?.verified && facts.strategy?.sufficientData);
+    const missing = [];
+    if (facts.prices !== 'present') missing.push('prices');
+    if (facts.freshness !== 'fresh' && facts.freshness !== 'stale') missing.push('freshness');
+    if (facts.confidence !== 'verified' && facts.confidence !== 'sufficient') missing.push('confidence');
+    if (facts.netRequired && !netKnown && !fallback) missing.push('net');
+    if (facts.feasibilityRequired && facts.feasibility !== 'verified' && !fallback) missing.push('feasibility');
+    if (missing.length) return { status: S.INSUFFICIENT, causes: missing };
+
+    if (facts.freshness === 'stale') return { status: S.STALE, causes: ['stale'] };
+    if (netKnown && facts.net <= 0) return { status: S.UNPROFITABLE, causes: ['net'] };
+    if (netKnown && facts.net > 0 && facts.confidence === 'verified' && facts.feasibility === 'verified') {
+        return { status: S.ACTIONABLE, causes: [] };
+    }
+    if (fallback) return { status: S.STRATEGY, causes: [] };
+    return { status: S.NEUTRAL, causes: [] };
+}
+
+const present = (value) => value !== null && value !== undefined;
+const validPrice = (value) => Number.isFinite(value) && value > 0;
+
+function leadAnomaly(row) {
+    return (row.anomalies || [])
+        .map((id) => ({ id, side: row[id.startsWith('buy') ? 'buy' : 'sell'] }))
+        .sort((a, b) => Math.abs(b.side?.deviation || 0) - Math.abs(a.side?.deviation || 0))[0] || null;
+}
+
+/** The decision a card is about: the engine's primary, else the strategy evaluated for the lead anomaly. */
+export function opportunityDecision(row) {
+    if (row.primary) return { id: row.primary.id, strategy: row.primary, declined: false };
+    const lead = leadAnomaly(row);
+    if (!lead) return null;
+    const id = ANOMALY_STRATEGY[lead.id];
+    const declined = (row.declined || []).find((strategy) => strategy.id === id) || null;
+    return { id, strategy: declined, declined: Boolean(declined) };
+}
+
+function decisionInputs(row, decision) {
+    return (STRATEGY_SPECS[decision?.id]?.inputs || []).map((key) => {
+        if (key !== 'destination') return { key, side: row[key], needsReference: true };
+        const strategy = decision.strategy;
+        const ageMs = strategy?.destAgeMs;
+        return {
+            key,
+            side: strategy ? { price: strategy.sellPrice, ageMs, stale: Number.isFinite(ageMs) ? ageMs > PRICE_STALE_MS : undefined } : null,
+            needsReference: false
+        };
+    });
+}
+
+function inputValues(input) {
+    return input.needsReference ? [input.side?.price, input.side?.reference] : [input.side?.price];
+}
+
+function extremeSide(row) {
+    const inputs = row.primary ? decisionInputs(row, opportunityDecision(row)).map(input => input.side) : [row.buy, row.sell];
+    return inputs.find((side) => side?.anomalous && Math.abs(side.deviation || 0) >= EXTREME_DEVIATION) || null;
+}
+
+function confidenceOf(row) {
+    const reliability = row.parts?.reliability;
+    if (!Number.isFinite(reliability)) return 'unknown';
+    if (row.eligible === false || !(reliability > 0)) return 'insufficient';
+    if (row.validationMode === 'validated' && row.eligible && row.referenceConfidence >= .75 && row.executionConfidence > 0) return 'verified';
+    return row.review === 'confirmed' ? 'verified' : 'sufficient';
+}
+
+function feasibilityOf(row) {
+    const value = row.parts?.feasibility;
+    if (!Number.isFinite(value)) return 'unknown';
+    return value > 0 ? 'verified' : 'blocked';
+}
+
+/** Normalizes an engine row into resolver facts. Optional metadata (trust bars, peers, notes) is not read. */
+export function opportunityFacts(row) {
+    const decision = opportunityDecision(row);
+    const spec = STRATEGY_SPECS[decision?.id] || null;
+    const inputs = decisionInputs(row, decision);
+    const extreme = extremeSide(row);
+    const critical = [...inputs.flatMap(inputValues), ...(extreme ? [extreme.price, extreme.reference] : [])];
+    const feasibility = feasibilityOf(row);
+    const pricesPresent = inputs.length > 0 && inputs.every((input) => inputValues(input).every(present));
+    const sides = inputs.map((input) => input.side).filter(Boolean);
+    let freshness = 'fresh';
+    if (!sides.length || sides.some((side) => !Number.isFinite(side.ageMs) || typeof side.stale !== 'boolean')) freshness = 'unknown';
+    else if (sides.some((side) => side.stale)) freshness = 'stale';
+    const net = decision?.strategy && Number.isFinite(decision.strategy.netSilver) ? decision.strategy.netSilver : null;
+    const confidence = confidenceOf(row);
+    return {
+        type: decision?.id || null,
+        invalid: critical.some((value) => present(value) && !validPrice(value)) || feasibility === 'blocked',
+        anomaly: Boolean(extreme) || row.validationStatus === 'quarantined',
+        prices: pricesPresent ? 'present' : 'missing',
+        freshness,
+        confidence,
+        netRequired: Boolean(spec?.net),
+        net,
+        feasibility: feasibility === 'verified' ? 'verified' : 'unknown',
+        feasibilityRequired: Boolean(spec?.feasibility),
+        strategy: decision?.strategy && !decision.declined
+            ? { verified: confidence === 'verified', sufficientData: pricesPresent && (!spec?.net || net !== null) }
+            : null
+    };
+}
+
+/** Status, tone and trade permission for one engine row. */
+export function resolveOpportunityCard(row) {
+    const facts = opportunityFacts(row);
+    const { status, causes } = resolvePrimaryStatus(facts);
+    const presentation = STATUS_PRESENTATION[status];
+    const reasonTone = STRATEGY_SPECS[facts.type]?.tone || 'muted';
+    return {
+        status,
+        causes,
+        facts,
+        decision: opportunityDecision(row),
+        label: presentation.label,
+        group: presentation.group,
+        tone: presentation.tone === 'reason' ? reasonTone : presentation.tone,
+        trade: presentation.trade
+    };
+}
+
+/** Strategy filters include every primary status; status filters overlap those strategies. */
+export const OPPORTUNITY_STATUS_FILTERS = Object.freeze(Object.entries(STATUS_PRESENTATION).map(([status, presentation]) => Object.freeze({
+    id: `status:${status}`, status,
+    label: status === PRIMARY_STATUS.ANOMALY ? 'Aşırı fiyat' : presentation.label,
+    tone: presentation.tone === 'reason' ? 'info' : presentation.tone
+})));
+
+export function isOpportunityFilter(id) {
+    return Object.hasOwn(STRATEGY_SPECS, id) || OPPORTUNITY_STATUS_FILTERS.some(filter => filter.id === id);
+}
+
+export function matchesOpportunityFilter(row, id) {
+    const filter = OPPORTUNITY_STATUS_FILTERS.find(filter => filter.id === id);
+    return filter ? resolveOpportunityCard(row).status === filter.status : opportunityDecision(row)?.id === id;
+}

@@ -1,0 +1,31 @@
+{
+  "asOf": "2026-10-10T20:20:26.839Z",
+  "sequence": 1514,
+  "backupHashesVerified": true,
+  "rollbackBytesVerified": true,
+  "migrationIdempotent": true,
+  "migratedSnapshotPlusJournalEquivalent": true,
+  "productionMigration": false,
+  "historicalSidesUnchanged": 25210,
+  "historicalEligibilityAndRankingUnchanged": true,
+  "engineModeSwitchAndCachePassed": true,
+  "actualServicePassed": true,
+  "counters": {
+    "evaluated": 22229,
+    "verified": 1350,
+    "monitored": 22,
+    "suspicious": 229,
+    "insufficient": 20628
+  },
+  "opportunitySeriesQuality": 1,
+  "responseBytes": 27523832,
+  "currentColdMs": 3985.0636999979615,
+  "currentWarmMs": 1288.7142999991775,
+  "historicalColdMs": 4341.307099997997,
+  "historicalWarmMs": 1707.9875999987125,
+  "spreadClasses": {
+    "extreme-wide-uncertain": 80,
+    "current-orders-only": 1057,
+    "historical-price-supported": 9
+  }
+}
