@@ -2033,22 +2033,34 @@ $city-accent-overrides: (
     "black-market": #b8b6c2
 );
 
+/* Text color for content placed on the solid city color. */
+$city-on-dark: #111;
+$city-on-light: #fff;
+$city-on-colors: (
+    "bridgewatch": $city-on-dark,
+    "fort-sterling": $city-on-dark,
+    "brecilien": $city-on-dark
+);
+
 :root {
     @each $city, $color in $city-colors {
         --color-city-#{$city}: #{$color};
         --color-city-accent-#{$city}: #{if(map-has-key($city-accent-overrides, $city), map-get($city-accent-overrides, $city), $color)};
+        --color-on-city-#{$city}: #{if(map-has-key($city-on-colors, $city), map-get($city-on-colors, $city), $city-on-light)};
     }
 }
 
 [data-city] {
     --color-city: var(--color-primary);
     --color-city-accent: var(--color-primary);
+    --color-on-city: #{$city-on-light};
 }
 @each $city, $color in $city-colors {
     [data-city="#{$city}"],
     .city-selected--#{if($city == "fort-sterling", "fortsterling", $city)} {
         --color-city: var(--color-city-#{$city});
         --color-city-accent: var(--color-city-accent-#{$city});
+        --color-on-city: var(--color-on-city-#{$city});
     }
 }
 
@@ -2549,6 +2561,27 @@ $city-accent-overrides: (
     object-fit: cover;
     filter: brightness(var(--city-crest-tone, 1)) brightness(var(--city-crest-brightness, 1));
     transition: filter var(--transition-fast);
+    > svg { display: block; width: 100%; height: 100%; }
+}
+
+// Inline city fields share the floating form's label and height tokens.
+.city-field--crests.city-field--inline {
+    position: relative;
+    height: var(--input-height);
+    .city-field-label {
+        position: absolute;
+        top: calc(var(--floating-label-float-size) * -.6);
+        left: var(--floating-label-inset);
+        padding-inline: var(--floating-label-pad);
+        z-index: 2;
+        font-size: var(--floating-label-float-size);
+        line-height: 1;
+        background: var(--color-surface);
+    }
+    .city-map--horizontal {
+        height: 100%;
+        grid-template-columns: repeat(var(--city-picker-count), minmax(0, var(--input-height)));
+    }
 }
 
 .city-field .city-map-node:disabled {
@@ -2835,4 +2868,87 @@ $city-accent-overrides: (
     font-weight: var(--font-weight-bold);
     color: var(--color-text-muted);
     pointer-events: none;
+}
+.form-range-field {
+    display: grid;
+    gap: var(--spacing-sm);
+
+    > label {
+        display: flex;
+        justify-content: space-between;
+        gap: var(--spacing-sm);
+        font-size: var(--font-size-sm);
+        color: var(--color-text-muted);
+    }
+
+    output { color: var(--color-text); }
+}
+
+.form-range {
+    width: 100%;
+    min-width: 0;
+    margin: 0;
+    accent-color: var(--color-primary);
+    cursor: pointer;
+
+    &:focus-visible {
+        outline: var(--focus-outline-width) solid var(--color-focus-ring);
+        outline-offset: var(--focus-outline-offset);
+    }
+
+    &:disabled { opacity: .5; cursor: default; }
+}
+
+// Item labels remain visually inline while exposing a shared copy action.
+.item-name-copy {
+    cursor: copy;
+    border-radius: .15rem;
+    &:hover { text-decoration: underline dotted; text-underline-offset: .2em; }
+    &:focus-visible { outline: 2px solid currentColor; outline-offset: 2px; }
+}
+.item-name-copy-buffer {
+    position: fixed;
+    inset: 0 auto auto 0;
+    width: 1px;
+    height: 1px;
+    opacity: 0;
+    pointer-events: none;
+}
+
+// Reusable numeric field with an adjacent compact value; inputs retain shared styling.
+.form-value-row {
+    min-width: 0;
+    width: 100%;
+    > .form-floating { position: relative; width: 100%; }
+    .form-control { padding-right: 4.5rem; }
+    .form-value-hint { position: absolute; right: .75rem; top: 50%; transform: translateY(-50%); pointer-events: none; user-select: none; }
+}
+.form-value-hint { color: var(--color-text-muted); font-size: var(--font-size-sm); white-space: nowrap; }
+
+.city-field:has(> .city-all-button) { position: relative; }
+.city-all-button { display: block; width: 100%; min-height: 1.75rem; margin: 0 0 .3rem; padding: .2rem 0; font-size: var(--font-size-xs); font-weight: var(--font-weight-semibold); }
+.city-field--standard > .city-all-button { margin: .35rem 0 0; }
+
+// Shared selection state for tier badges and city all buttons.
+.filter-selection-button,
+.opp-filter-badge {
+    border: 1px solid var(--color-border);
+    background: var(--color-surface);
+    color: var(--color-text-muted);
+    cursor: pointer;
+    opacity: .65;
+
+    &:hover { opacity: 1; }
+
+    &.is-active,
+    &[aria-pressed='true'] {
+        opacity: 1;
+        border-color: var(--color-primary);
+        color: var(--color-text);
+    }
+
+    &:focus-visible {
+        outline: var(--focus-outline-width) solid var(--color-focus-ring);
+        outline-offset: var(--focus-outline-offset);
+    }
 }

@@ -1,3 +1,4 @@
+import { itemNameHtml } from '../components/item-name.js';
 import { toolPageHtml } from '../components/tool-page.js';
 import { escapeHtml } from '../utils/utils.js';
 import { initNav } from '../core/nav.js';
@@ -398,7 +399,7 @@ function renderTable() {
                     <span class="farming-item">
                         ${itemIconHtml(row.item.plantId)}
                         <span>
-                            <span class="farming-item-name">T${row.item.tier} ${escapeHtml(itemLabel(row.item.plantId, row.item.label))}</span>
+                            <span class="farming-item-name">T${row.item.tier} ${itemNameHtml(itemLabel(row.item.plantId, row.item.label))}</span>
                             <span class="farming-item-meta">${itemIconHtml(row.item.seedId, { className: 'item-icon farming-seed-icon' })} tohum${bonus}${yieldTag}</span>
                         </span>
                     </span>

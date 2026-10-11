@@ -8,13 +8,14 @@ const HUB_TIMEOUT_MS = 1500;
 const API_TIMEOUT_MS = 3500;
 const LIVE_MS = 15 * 60 * 1000;
 const OPEN_KEY = 'albiontools.v4.statusOpen';
-const FRESH_MS = 8000;
+const FRESH_MS = 15000;
 const ZONE_FIX = 'Oyunda bir zone geç (şehir kapısı veya teleport). ADC konum almadan market paketi göndermez; sonra Trading Post’u aç.';
 const INGEST_FIX = 'ADC’nin -i http://127.0.0.1:3001 ile çalıştığını doğrula. Gerekirse ADC’yi kapatıp start.bat ile yeniden başlat.';
 
-const ICON_STACK = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3.5" width="18" height="4" rx="2" fill="currentColor"/><rect x="3" y="10" width="18" height="4" rx="2" fill="currentColor"/><rect x="3" y="16.5" width="18" height="4" rx="2" fill="currentColor"/></svg>`;
-const ICON_CLIENT = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M4.2 10.2a8.2 8.2 0 0 1 15.6 0" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/><path d="M7.3 13.6a4.4 4.4 0 0 1 9.4 0" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/><circle cx="12" cy="17.4" r="1.6" fill="currentColor"/></svg>`;
-const ICON_TOOLS = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5.2h6.6V19H6.4A2.4 2.4 0 0 1 4 16.6V5.2Z" fill="currentColor"/><path d="M13.4 5.2H20v11.4a2.4 2.4 0 0 1-2.4 2.4h-4.2V5.2Z" fill="currentColor"/></svg>`;
+const ICON_SOURCE = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><ellipse cx="12" cy="7" rx="5.5" ry="2.5"/><path d="M6.5 7v7c0 1.4 2.5 2.5 5.5 2.5s5.5-1.1 5.5-2.5V7"/><path d="M6.5 10.5c0 1.4 2.5 2.5 5.5 2.5s5.5-1.1 5.5-2.5"/></svg>`;
+const ICON_HUB = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="7" y="7" width="10" height="10" rx="2"/><circle cx="12" cy="12" r="2"/><path d="M12 4.5v2M12 17.5v2M4.5 12h2M17.5 12h2"/></svg>`;
+const ICON_CLIENT = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8.5 12.5a5 5 0 0 1 7 0"/><path d="M5.5 9.5a9 9 0 0 1 13 0"/><circle cx="12" cy="16.5" r="1.5" fill="currentColor" stroke="none"/></svg>`;
+const ICON_TOOLS = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 7.5c-1.9-1.1-4.3-1.4-6.5-.9v9.8c2-.5 4.4-.2 6.5.9"/><path d="M12 7.5c1.9-1.1 4.3-1.4 6.5-.9v9.8c-2-.5-4.4-.2-6.5.9"/><path d="M12 7.5v10.8"/></svg>`;
 const ICON_CHEVRON = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6.5 9.2 12 14.8l5.5-5.6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
 
 let pollTimer = 0;
@@ -549,8 +550,8 @@ function mount(content) {
                 <span class="app-status-live" aria-hidden="true"></span>
                 <span class="app-status-hint">Hub, ADC, kaynak ve API</span>
                 <span class="app-status-marks" aria-hidden="true">
-                    <span class="app-status-mark" data-step="source" data-state="pending">${ICON_STACK}</span>
-                    <span class="app-status-mark" data-step="hub" data-state="pending">${ICON_STACK}</span>
+                    <span class="app-status-mark" data-step="source" data-state="pending">${ICON_SOURCE}</span>
+                    <span class="app-status-mark" data-step="hub" data-state="pending">${ICON_HUB}</span>
                     <span class="app-status-mark" data-step="adc" data-state="pending">${ICON_CLIENT}</span>
                     <span class="app-status-mark" data-step="tools" data-state="pending">${ICON_TOOLS}</span>
                 </span>

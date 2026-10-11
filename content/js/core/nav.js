@@ -1,5 +1,7 @@
 import { initDialogBackdropClose } from '../components/dialog.js';
 import { initTooltips } from '../components/tooltip.js';
+import { initItemNameCopy } from '../components/item-name.js';
+import { initPageInfo } from '../components/page-info.js';
 import { escapeHtml } from '../utils/utils.js';
 import { currentPageId, isCurrentRoute, pageById, routeHref } from './routes.js';
 import { PAGES, getToolGroups, isNewTool } from './tools.js';
@@ -43,7 +45,7 @@ const BODY_OPEN_CLASS = 'app-sidebar-open';
 const MQ_DESKTOP = '(min-width: 768px)';
 
 function arrangePageHead(head) {
-    if (head.querySelector(':scope > .page-head-content')) return;
+    if (head.querySelector(':scope > .page-head-content')) { initPageInfo(head); return; }
 
     const content = document.createElement('div');
     content.className = 'page-head-content';
@@ -57,15 +59,18 @@ function arrangePageHead(head) {
         content.append(othersSlot);
     }
     head.prepend(content);
+    initPageInfo(head);
 
 }
 
 const pageLayoutObserver = new MutationObserver(() => {
     document.querySelectorAll('.page-head').forEach(arrangePageHead);
+    document.querySelectorAll('[data-page-info-head]').forEach(initPageInfo);
 });
 
 pageLayoutObserver.observe(document.documentElement, { childList: true, subtree: true });
 document.querySelectorAll('.page-head').forEach(arrangePageHead);
+document.querySelectorAll('[data-page-info-head]').forEach(initPageInfo);
 
 function renderPageLink(page) {
     const active = isCurrentRoute(page.id);
@@ -166,6 +171,7 @@ function ensureBackdrop() {
 
 export function initNav() {
     initTooltips();
+    initItemNameCopy();
     initDialogBackdropClose();
     recordCurrentToolVisit();
 

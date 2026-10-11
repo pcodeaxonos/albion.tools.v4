@@ -24,6 +24,9 @@ _tmp_xlsm_report/
 .aodp-quote-history.json.tmp
 .aodp-quote-history.json.journal
 .aodp-quote-history.json.journal.tmp
+# Local archive safety copies produced by the observation migration
+/.aodp-quote-history.json*.bak
+/.price-order-history.json*.bak
 .albion-tools-data.json
 # Item icons: local only — run `npm run data:icons`
 content/icons/*
@@ -40,3 +43,11 @@ content/icons/*
 !content/icons/daily-bonus/families/*.png
 !content/icons/royal-wizard/
 !content/icons/royal-wizard/*.svg
+!content/icons/decision-engine/
+!content/icons/decision-engine/*.svg
+
+!content/icons/flipper/
+!content/icons/flipper/*.svg
+
+# Local browser checks and temporary screenshots
+/.tmp/

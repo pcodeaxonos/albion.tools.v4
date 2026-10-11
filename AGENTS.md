@@ -42,6 +42,15 @@ Pages with filters/forms plus a result or table use `.tool-split`:
 - The shared CSS draws its X with pseudo-elements; do not add an X glyph, SVG, or text.
 - The close button sits outside the dialog on the right. Keep the dialog `overflow: visible`, scroll the inner sheet, and reserve room in the dialog max-width.
 
+## Copyable item names (mandatory)
+
+- Every displayed item or material name in new or modified UI must be copyable. This applies to tables, lists, cards, result summaries, dialogs, and dynamically rendered content. Never omit this behavior when adding or changing an item-name display.
+- Use `itemNameHtml(name, copyName = name)` from `content/js/components/item-name.js`; reuse the shared copy behavior and styling instead of adding page-specific clipboard handlers or rendering item names as plain text.
+- In calculation detail panels, pass the full item name as `copyName` to `explainPanelHtml`, `explainStep`, or `explainSaleSteps` when their title/label displays an item or material name.
+- Copy the full item name only, without surrounding tier/enchantment badges, quantities, prices, bonuses, or other metadata. When the visible name is shortened, pass the full name as `copyName`.
+- Preserve mouse-click and keyboard (Enter/Space) activation, accessible labeling, copy feedback, and isolation from parent row/card actions. Extend the shared component if a new UI context needs support.
+- Before completing any UI work involving item names, check every added or modified item-name render path for this rule, including alternate states and dynamic updates. Verify copying when the shared component or its integration changes.
+
 ## Item visuals
 
 Item and material images that sit in a row, cell, card, or other slot with spare space use `.item-visual`.

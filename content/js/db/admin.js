@@ -1,3 +1,4 @@
+import { itemNameHtml } from '../components/item-name.js';
 import { escapeHtml } from '../utils/utils.js';
 import {
     getTable,
@@ -932,15 +933,14 @@ function renderMaterialsCell(ids) {
         .map((key) => {
             const row = getAll('materialKeys').find((entry) => entry.key === key);
             return row?.label || key;
-        })
-        .join(', ');
+        });
 
     const icons = renderMatsHtml(keys);
     if (icons) {
-        return `<span class="db-cell-mats" data-app-tooltip="${escapeHtml(labels)}">${icons}</span>`;
+        return `<span class="db-cell-mats" data-app-tooltip="${escapeHtml(labels.join(', '))}">${icons}</span>`;
     }
 
-    return escapeHtml(labels);
+    return labels.map(name => itemNameHtml(name)).join(', ');
 }
 
 function renderDataRow(table, columns, row) {
@@ -980,11 +980,19 @@ function formatCellValue(value, column, parentId = null, row = null) {
             const ref = getAll(column.refTable).find((entry) => Number(entry.id) === Number(id));
             return ref ? (column.refLabel ? ref[column.refLabel] : `#${ref.id}`) : `#${id}`;
         });
-        return escapeHtml(labels.join(', '));
+        return column.refTable === 'items' ? labels.map(name => itemNameHtml(name)).join(', ') : escapeHtml(labels.join(', '));
     }
 
     if (value == null || value === '') {
         return '<span class="text-muted">—</span>';
+    }
+
+    if (state.tableName === 'items' && column.name === 'localizedName') {
+        return itemNameHtml(String(value));
+    }
+
+    if (state.tableName === 'materialKeys' && column.name === 'label') {
+        return itemNameHtml(String(value));
     }
 
     if (column.type === 'boolean') {
@@ -1005,7 +1013,7 @@ function formatCellValue(value, column, parentId = null, row = null) {
             if (icon) {
                 return `<span class="db-cell-mats" data-app-tooltip="${escapeHtml(text)}">${icon}</span>`;
             }
-            return escapeHtml(text);
+            return itemNameHtml(text);
         }
     }
 
@@ -1020,10 +1028,10 @@ function formatCellValue(value, column, parentId = null, row = null) {
                 const uniqueName = refRow.uniqueName || getItemUniqueName(refRow.id);
                 const icon = itemIconHtml(uniqueName, { size: 56, className: 'item-icon db-cell-item-icon' });
                 if (icon) {
-                    return `<span class="db-cell-item-row" data-app-tooltip="${escapeHtml(text)}">${icon}<span class="db-cell-item-name">${escapeHtml(text)}</span></span>`;
+                    return `<span class="db-cell-item-row" data-app-tooltip="${escapeHtml(text)}">${icon}<span class="db-cell-item-name">${itemNameHtml(text)}</span></span>`;
                 }
             }
-            return escapeHtml(text);
+            return column.refTable === 'items' ? itemNameHtml(text) : escapeHtml(text);
         }
     }
 

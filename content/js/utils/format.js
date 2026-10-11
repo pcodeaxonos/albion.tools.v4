@@ -1,5 +1,15 @@
 const DEFAULT_LOCALE = 'tr-TR';
 
+export function formatAge(ms) {
+    if (!Number.isFinite(ms) || ms < 0) return 'Zaman bilinmiyor';
+    const minutes = Math.floor(ms / 60000);
+    if (!minutes) return '<1 dk';
+    const hours = Math.floor(minutes / 60), days = Math.floor(hours / 24);
+    if (days) return `${days} gün${hours % 24 ? ` ${hours % 24} saat` : ''}`;
+    if (hours) return `${hours} saat${minutes % 60 ? ` ${minutes % 60} dk` : ''}`;
+    return `${minutes} dk`;
+}
+
 export function formatSilver(value, {
     unsigned = false,
     digits = 0,

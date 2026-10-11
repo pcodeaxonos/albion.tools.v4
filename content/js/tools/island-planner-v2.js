@@ -1,3 +1,4 @@
+import { itemNameHtml } from '../components/item-name.js';
 import { focusRequirement, focusSourceLabel, focusSourceSummary } from '../core/island/focus.js';
 import { allocateInternalFeed } from '../core/island/placement-model.js';
 import { optimizePlacement } from './island-planner-v2/optimizer.js';
@@ -377,7 +378,7 @@ function dependencyRow(value, { price = false } = {}) {
     const timestamp = date && Number.isFinite(date.getTime()) ? `${date.toLocaleDateString('tr-TR', { day: '2-digit', month: '2-digit', year: '2-digit' })} ${date.toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })}${value.age ? ` (${value.age})` : ''}` : '';
     const meta = [itemId, value.blocked, timestamp, !price && (value.slotIds?.join(', ') || value.slotId), !price && value.reason].filter(Boolean).join(' · ');
     const hint = [dependencyTypeLabel(value.type), value.sourceDetail, value.blocked && `Etkilenen: ${value.blocked}`, timestamp && `Son fiyat: ${timestamp}`].filter(Boolean).join('\n');
-    return `<li class="island-v2-warning-row" data-v2-warning-type="${escapeHtml(value.type)}">${icon}<div class="island-v2-warning-content"><div class="island-v2-warning-head"><span class="island-v2-warning-name" data-app-tooltip="${escapeHtml(value.item)}">${escapeHtml(value.item)}</span>${value.side ? `<span class="island-v2-warning-source">${escapeHtml([value.city && cityName(value.city), value.priceSource || value.side].filter(Boolean).join(' · '))}</span>` : ''}<em>${escapeHtml(dependencyTypeLabel(value.type))}</em></div><small data-app-tooltip="${escapeHtml(hint)}">${escapeHtml(meta)}</small></div></li>`;
+    return `<li class="island-v2-warning-row" data-v2-warning-type="${escapeHtml(value.type)}">${icon}<div class="island-v2-warning-content"><div class="island-v2-warning-head"><span class="island-v2-warning-name" data-app-tooltip="${escapeHtml(value.item)}">${itemNameHtml(value.item)}</span>${value.side ? `<span class="island-v2-warning-source">${escapeHtml([value.city && cityName(value.city), value.priceSource || value.side].filter(Boolean).join(' · '))}</span>` : ''}<em>${escapeHtml(dependencyTypeLabel(value.type))}</em></div><small data-app-tooltip="${escapeHtml(hint)}">${escapeHtml(meta)}</small></div></li>`;
 }
 function dependencyList(values) {
     const unique = uniqueDependencies(values);
@@ -502,9 +503,9 @@ function productionSourceTitle(values) {
         ? 'Ada Çıktı kaydı yok; standart üretim değerleri kullanıldı.'
         : dependencyTitle([...(values.dependencies?.output ?? []), ...(values.dependencies?.rr ?? [])]);
 }
-export function purchaseExpenseLines(label, quantity, quote, total) {
+export function purchaseExpenseLines(label, quantity, quote, total, copyName) {
     const base = quantity === 0 ? 0 : quote && Number.isFinite(quantity) ? quote.price * quantity : null;
-    const lines = [{ kind: 'purchase', label, quantity, unitPrice: quote?.price ?? null, cost: base, total }];
+    const lines = [{ kind: 'purchase', label, copyName, quantity, unitPrice: quote?.price ?? null, cost: base, total }];
     if (quote?.setup) lines.push({ kind: 'setup', label: `${label} emir ücreti`, cost: Number.isFinite(total) && Number.isFinite(base) ? total - base : null });
     return lines;
 }
@@ -579,8 +580,8 @@ export function calculateIslandPlan({ entries = state.draft.slots, update = true
         const feedCost = candidate.market > 0 ? (Number.isFinite(effectiveFeed) ? effectiveFeed * candidate.market : null) : 0;
         const expenseLines = [
             ...purchaseExpenseLines(item.plantId ? 'Tohum' : 'Yavru', production.requiresInput ? candidate.inputQuantity : 0, purchaseQuote, seedOrBabyCost),
-            ...(production.requiresFeed ? purchaseExpenseLines(`Yem: ${getItemLocalizedName(candidate.feedId, candidate.feedId)}`, candidate.market, feedQuote, feedCost) : []),
-            ...mountMaterials.flatMap(line => purchaseExpenseLines(line.short, line.dailyQuantity, line.quote, line.dailyCost))
+            ...(production.requiresFeed ? purchaseExpenseLines(`Yem: ${getItemLocalizedName(candidate.feedId, candidate.feedId)}`, candidate.market, feedQuote, feedCost, getItemLocalizedName(candidate.feedId, candidate.feedId)) : []),
+            ...mountMaterials.flatMap(line => purchaseExpenseLines(line.short, line.dailyQuantity, line.quote, line.dailyCost, getItemLocalizedName(line.itemId || line.uniqueName, line.short)))
         ];
         const feedRuleReady = !production.requiresFeed || (candidate.feedIds.length > 0 && Number.isFinite(candidate.feedQuantity));
         const expense = Number.isFinite(seedOrBabyCost) && Number.isFinite(feedCost) && Number.isFinite(mountCost) && feedRuleReady ? seedOrBabyCost + feedCost + mountCost : null;
@@ -894,7 +895,7 @@ function renderCards() {
         if (!Number.isFinite(values.contribution)) {
             const label = !isEconomicItem(item) ? 'Hesap yok' : values.priceState === 'missing' ? 'Fiyat eksik' : 'Veri eksik';
             const hint = `${itemName(item)} · ${label}${!isEconomicItem(item) ? ': Bu ürün için ekonomi hesabı desteklenmiyor.' : `: ${diagnosticsTitle(values.diagnostics ?? []) || 'Üretim veya fiyat verisi bulunamadı.'}`}`;
-            return `<button type="button" draggable="true" class="island-v2-card is-filled is-uncalculated${stateClasses}" data-tier="${item.tier}" data-v2-slot="${entry.id}" data-app-tooltip="${escapeHtml(hint)}" aria-label="${escapeHtml(hint)}"><span class="island-v2-card-head"><span class="island-v2-slot-number">${number}</span>${renderSlotLock(entry)}<span class="island-v2-card-tier-stack"><span class="badge island-v2-tier" data-tier="${item.tier}">T${item.tier}</span></span></span><span class="island-v2-card-item">${itemIconHtml(itemUniqueName(item), { size: 42, className: 'island-v2-card-icon' })}<span>${escapeHtml(itemName(item))}</span></span><span class="island-v2-card-price-unavailable">${cardWarningIcon(label)}<span>${label}</span></span></button>`;
+            return `<button type="button" draggable="true" class="island-v2-card is-filled is-uncalculated${stateClasses}" data-tier="${item.tier}" data-v2-slot="${entry.id}" data-app-tooltip="${escapeHtml(hint)}" aria-label="${escapeHtml(hint)}"><span class="island-v2-card-head"><span class="island-v2-slot-number">${number}</span>${renderSlotLock(entry)}<span class="island-v2-card-tier-stack"><span class="badge island-v2-tier" data-tier="${item.tier}">T${item.tier}</span></span></span><span class="island-v2-card-item">${itemIconHtml(itemUniqueName(item), { size: 42, className: 'island-v2-card-icon' })}<span>${itemNameHtml(itemName(item))}</span></span><span class="island-v2-card-price-unavailable">${cardWarningIcon(label)}<span>${label}</span></span></button>`;
         }
         const profitPercent = values.profitPercent;
         const netTone = valueTone(values.contribution);
@@ -909,7 +910,7 @@ function renderCards() {
         const focusSelected = Boolean(entry.focus && usesFocus);
         const focusTitle = !usesFocus ? 'Bu üretim modu Focus kullanmaz.' : focusSelected && !values.effectiveFocus ? 'Bu slotta Focus seçili; hesap için global Focus master kapalı.' : focusSelected ? 'Focus etkin.' : 'Focus kapalı.';
         const financialContent = `<span class="island-v2-finance">${renderFinancialOrder({ income: `<span class="island-v2-income" data-app-tooltip="Gelir: ${displayValue(values.income)}"><b aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><path d="M5 12h14M12 5v14" fill="none" stroke="currentColor" stroke-width="2.5"/></svg></b><span>${cardValue(values.income)}</span></span>`, expense: `<span class="island-v2-expense" data-app-tooltip="Gider: ${displayValue(values.expense)}"><span>${cardValue(values.expense)}</span><b aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><path d="M5 12h14" fill="none" stroke="currentColor" stroke-width="2.5"/></svg></b></span>` }, `<em class="${valueTone(profitPercent)}">${cardValue(profitPercent, value => `${Math.round(value)}%`)}</em>`)}</span><strong class="island-v2-net">${cardValue(values.contribution, displayValue)}</strong>`;
-        return `<button type="button" draggable="true" class="island-v2-card is-filled ${netTone}${stateClasses}${warningClass}" data-tier="${item.tier}" data-v2-slot="${entry.id}"${priceTitle}><span class="island-v2-card-head"><span class="island-v2-slot-number">${number}</span>${renderSlotLock(entry)}<i class="island-v2-focus-dot ${focusSelected ? 'is-on' : ''}${focusSelected && !values.effectiveFocus ? ' is-awaiting-master' : ''}" data-app-tooltip="${escapeHtml(focusTitle)}" aria-label="${escapeHtml(focusTitle)}"></i><span class="island-v2-card-tier-stack"><span class="badge island-v2-tier" data-tier="${item.tier}">T${item.tier}</span>${bonus}</span></span><span class="island-v2-card-item">${icon}<span>${escapeHtml(itemName(item))}</span></span>${financialContent}${values.effectiveFocus ? `<span class="island-v2-focus-source is-${values.focusSource}">${focusSourceLabel(values.focusSource)}</span>` : ''}</button>`;
+        return `<button type="button" draggable="true" class="island-v2-card is-filled ${netTone}${stateClasses}${warningClass}" data-tier="${item.tier}" data-v2-slot="${entry.id}"${priceTitle}><span class="island-v2-card-head"><span class="island-v2-slot-number">${number}</span>${renderSlotLock(entry)}<i class="island-v2-focus-dot ${focusSelected ? 'is-on' : ''}${focusSelected && !values.effectiveFocus ? ' is-awaiting-master' : ''}" data-app-tooltip="${escapeHtml(focusTitle)}" aria-label="${escapeHtml(focusTitle)}"></i><span class="island-v2-card-tier-stack"><span class="badge island-v2-tier" data-tier="${item.tier}">T${item.tier}</span>${bonus}</span></span><span class="island-v2-card-item">${icon}<span>${itemNameHtml(itemName(item))}</span></span>${financialContent}${values.effectiveFocus ? `<span class="island-v2-focus-source is-${values.focusSource}">${focusSourceLabel(values.focusSource)}</span>` : ''}</button>`;
     }).join('')}</section>`;
 }
 function detailRow(label, value = '—', title = '', tone = '') { const hint = title ? ` data-app-tooltip="${escapeHtml(title)}" aria-label="${escapeHtml(title)}"` : ''; return `<span${hint}${tone ? ` data-tone="${tone}"` : ''}><small>${label}</small><b>${value}</b></span>`; }
@@ -924,12 +925,12 @@ function renderDetail() {
     const modeOptions = item?.babyId ? animalProductionModes(item) : [];
     const modes = modeOptions.map(({ value, label }) => `<button type="button" data-v2-production-mode="${value}" class="${entry.productionMode === value ? 'is-active' : ''}"${disabled}>${escapeHtml(label)}</button>`).join('');
     const availableMounts = entry.productionMode === 'mount' ? mountRecipes(item) : [];
-    const mountOptions = availableMounts.length > 1 ? availableMounts.map(recipe => `<button type="button" data-v2-mount-item="${escapeHtml(recipe.uniqueName)}" class="${mountRecipeFor(item, entry.mountItem)?.uniqueName === recipe.uniqueName ? 'is-active' : ''}"${disabled}>${escapeHtml(recipe.label)}</button>`).join('') : '';
+    const mountOptions = availableMounts.length > 1 ? availableMounts.map(recipe => `<button type="button" data-v2-mount-item="${escapeHtml(recipe.uniqueName)}" class="${mountRecipeFor(item, entry.mountItem)?.uniqueName === recipe.uniqueName ? 'is-active' : ''}"${disabled}>${itemNameHtml(recipe.label)}</button>`).join('') : '';
     const modeControl = modes ? `<span class="island-v2-control-label">Üretim Modu</span><span class="island-v2-production-mode">${modes}</span>${mountOptions ? `<span class="island-v2-control-label">Binek</span><span class="island-v2-production-mode">${mountOptions}</span>` : ''}` : '';
     const focusControl = item && productionModeUsesFocus(item, entry.productionMode)
         ? `<span class="island-v2-control-label">Focus</span><button type="button" data-v2-slot-focus class="island-v2-focus-toggle ${entry.focus ? 'is-active' : ''}${entry.focus && !state.draft.focus ? ' is-awaiting-master' : ''}" role="switch" aria-checked="${entry.focus ? 'true' : 'false'}" aria-label="${entry.focus && !state.draft.focus ? 'Focus seçili; global Focus kapalı olduğu için uygulanmıyor.' : 'Focus'}" data-app-tooltip="${entry.focus && !state.draft.focus ? 'Focus seçili; global Focus kapalı olduğu için uygulanmıyor.' : ''}"${disabled}><i></i></button>`
         : '';
-    const identity = item ? `${itemIconHtml(itemUniqueName(item), { size: 40, className: 'island-v2-detail-icon' })}<div class="island-v2-detail-identity"><h2>${escapeHtml(itemName(item))}</h2><span class="island-v2-detail-tier" data-tier="${item.tier}">T${item.tier}</span>${item.kind === 'faction-mount' ? '' : `<span class="island-v2-detail-category">${escapeHtml(itemCategory(item))}</span>`}${bonus}</div>` : '<div class="island-v2-detail-identity"><h2>Plot seçilmedi</h2><span class="island-v2-detail-category">Toolbar ile atama yapın.</span></div>';
+    const identity = item ? `${itemIconHtml(itemUniqueName(item), { size: 40, className: 'island-v2-detail-icon' })}<div class="island-v2-detail-identity"><h2>${itemNameHtml(itemName(item))}</h2><span class="island-v2-detail-tier" data-tier="${item.tier}">T${item.tier}</span>${item.kind === 'faction-mount' ? '' : `<span class="island-v2-detail-category">${escapeHtml(itemCategory(item))}</span>`}${bonus}</div>` : '<div class="island-v2-detail-identity"><h2>Plot seçilmedi</h2><span class="island-v2-detail-category">Toolbar ile atama yapın.</span></div>';
     const priceDiagnostic = values.priceState === 'stale'
         ? dependencyTitle(values.staleDiagnostics ?? [])
         : values.priceState === 'fixed'
@@ -967,10 +968,10 @@ function renderDetail() {
             <div class="island-v2-production-ledger"><div class="island-v2-ledger-heading"><h3>Günlük alış · satış</h3><div class="island-v2-production-foot"><span data-app-tooltip="${escapeHtml(productionSourceTitle(values))}">Kaynak: ${productionSourceLabel(values)}</span><span data-app-tooltip="${escapeHtml(priceDiagnostic)}">${priceStatus}</span></div></div>
                 <table aria-label="Günlük alış ve satış hesabı"><thead><tr><th>Kalem</th><th>Adet</th><th>Birim fiyat</th><th>Emir ücreti</th><th>Vergi</th><th>Tutar</th></tr></thead>
                 <tbody class="island-v2-sale-rows" aria-label="Satış">
-                    <tr><th scope="row">${escapeHtml(saleLabel)}</th><td>${displayValue(values.netOutput)}</td><td data-app-tooltip="${escapeHtml(longTermMetadata(values.saleQuote))}">${displayValue(values.saleQuote?.price)}</td><td class="is-negative">${deduction(values.saleSetup)}</td><td class="is-negative">${deduction(values.saleTax)}</td><td class="is-positive">${displayValue(values.income)}</td></tr>
+                    <tr><th scope="row">${values.saleItemId ? itemNameHtml(saleLabel) : escapeHtml(saleLabel)}</th><td>${displayValue(values.netOutput)}</td><td data-app-tooltip="${escapeHtml(longTermMetadata(values.saleQuote))}">${displayValue(values.saleQuote?.price)}</td><td class="is-negative">${deduction(values.saleSetup)}</td><td class="is-negative">${deduction(values.saleTax)}</td><td class="is-positive">${displayValue(values.income)}</td></tr>
                     <tr class="island-v2-gross-sale"><td colspan="6">Brüt satış: <b>${displayValue(values.grossIncome)}</b></td></tr>
                 </tbody><tbody class="island-v2-buy-rows" aria-label="Alış / üretim">
-                    ${expenses.map(line => `<tr><th scope="row">${line.placeholder ? `<span class="island-v2-field-placeholder" aria-hidden="true">${escapeHtml(line.label)}</span>` : escapeHtml(line.label)}</th><td>${displayValue(line.quantity)}</td><td>${displayValue(line.unitPrice)}</td><td>${displayValue(line.setup)}</td><td>—</td><td class="is-negative">${displayValue(line.total)}</td></tr>`).join('')}
+                    ${expenses.map(line => `<tr><th scope="row">${line.placeholder ? `<span class="island-v2-field-placeholder" aria-hidden="true">${escapeHtml(line.label)}</span>` : line.copyName ? itemNameHtml(line.label, line.copyName) : escapeHtml(line.label)}</th><td>${displayValue(line.quantity)}</td><td>${displayValue(line.unitPrice)}</td><td>${displayValue(line.setup)}</td><td>—</td><td class="is-negative">${displayValue(line.total)}</td></tr>`).join('')}
                 </tbody></table>
             </div>
         </div>
@@ -1029,7 +1030,7 @@ function renderSummaryBreakdown(key) {
         }
     }
     if (!rows.size) return '<p>Bu grupta hesaplanmış ürün miktarı yok.</p>';
-    return `<ul>${[...rows.values()].map(row => `<li>${itemIconHtml(row.itemId, { size: 28 })}<span><span>${escapeHtml(getItemLocalizedName(row.itemId, row.itemId))}</span><small>${row.category}</small></span><b>${row.quantity.toLocaleString('tr-TR', { maximumFractionDigits: 2 })} <small>adet/gün</small></b></li>`).join('')}</ul>${key === 'market' ? '<p>Özet çubuğundaki toplam yalnız marketten alınan yem adedidir.</p>' : ''}`;
+    return `<ul>${[...rows.values()].map(row => `<li>${itemIconHtml(row.itemId, { size: 28 })}<span><span>${itemNameHtml(getItemLocalizedName(row.itemId, row.itemId))}</span><small>${row.category}</small></span><b>${row.quantity.toLocaleString('tr-TR', { maximumFractionDigits: 2 })} <small>adet/gün</small></b></li>`).join('')}</ul>${key === 'market' ? '<p>Özet çubuğundaki toplam yalnız marketten alınan yem adedidir.</p>' : ''}`;
 }
 function uniqueDependencies(values) {
     const groups = new Map();

@@ -1,3 +1,4 @@
+import { itemNameHtml } from '../components/item-name.js';
 import { toolPageHtml } from '../components/tool-page.js';
 import { escapeHtml } from '../utils/utils.js';
 import { initNav } from '../core/nav.js';
@@ -307,7 +308,7 @@ function renderEnergyCard() {
             <li class="ava-mat" data-mat-card="${escapeHtml(mat.key)}">
                 ${itemIconHtml(mat.uniqueName)}
                 <span class="ava-mat-text">
-                    <span class="ava-mat-label">${escapeHtml(itemLabel(mat.uniqueName, 'Avalonian Energy'))}</span>
+                    <span class="ava-mat-label">${itemNameHtml(itemLabel(mat.uniqueName, 'Avalonian Energy'))}</span>
                     ${priceFieldHtml({
                         id: 'matPrice-energy',
                         label: 'Alış',
@@ -404,6 +405,7 @@ function renderAvaExplain(key, { hovered } = {}) {
         explainStep({
             icon: plankIcon,
             label: `T${row.item.tier} Plank`,
+            copyName: itemLabel(mats().find(mat => mat.key === `plank-${row.item.tier}`)?.uniqueName),
             note: 'Tarifteki plank adedi × birim alış',
             formula: [
                 explainNum(row.item.recipe.plank, { kind: 'qty', cap: 'adet' }),
@@ -417,6 +419,7 @@ function renderAvaExplain(key, { hovered } = {}) {
         explainStep({
             icon: barIcon,
             label: `T${row.item.tier} Bar`,
+            copyName: itemLabel(mats().find(mat => mat.key === `bar-${row.item.tier}`)?.uniqueName),
             note: 'Tarifteki bar adedi × birim alış',
             formula: [
                 explainNum(row.item.recipe.bar, { kind: 'qty', cap: 'adet' }),
@@ -454,6 +457,7 @@ function renderAvaExplain(key, { hovered } = {}) {
         explainStep({
             icon: energyIcon,
             label: 'Avalonian Energy',
+            copyName: itemLabel(ENERGY_ID, 'Avalonian Energy'),
             note: 'Enerji token’ı return rate almaz',
             formula: [
                 explainNum(row.item.recipe.energy, { kind: 'qty', cap: 'adet' }),
@@ -501,6 +505,7 @@ function renderAvaExplain(key, { hovered } = {}) {
     return explainPanelHtml({
         icon: toolIcon,
         title: `T${row.item.tier} ${row.item.label}`,
+        copyName: row.item.label,
         hint: explainHint(hovered),
         flow: explainFlow([
             { icon: toolIcon, label: 'Maliyet', value: row.cost, tone: 'cost' },
@@ -579,7 +584,7 @@ function renderTable() {
                     <span class="ava-item">
                         ${itemIconHtml(row.item.uniqueName)}
                         <span>
-                            <span class="ava-item-name">T${row.item.tier} ${escapeHtml(row.item.label)}${bonusMark}</span>
+                            <span class="ava-item-name">T${row.item.tier} ${itemNameHtml(row.item.label)}${bonusMark}</span>
                             <span class="ava-item-meta">RR ${formatPct(row.rr)}</span>
                         </span>
                     </span>

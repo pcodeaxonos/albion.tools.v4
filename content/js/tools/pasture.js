@@ -1,3 +1,4 @@
+import { itemNameHtml } from '../components/item-name.js';
 import { toolPageHtml } from '../components/tool-page.js';
 import { escapeHtml } from '../utils/utils.js';
 import { initNav } from '../core/nav.js';
@@ -325,6 +326,7 @@ function feedExplainLines(row) {
         lines.push(explainStep({
             icon: explainIcon(item.feedPlantId),
             label: itemLabel(item.feedPlantId, item.feedLabel),
+            copyName: itemLabel(item.feedPlantId, item.feedLabel),
             note: 'Piyasadan yem alış (buy +1 ve varsa setup)',
             formula: feed?.setup
                 ? [
@@ -351,6 +353,7 @@ function feedExplainLines(row) {
     lines.push(explainStep({
         icon: explainIcon(item.feedSeedId),
         label: `${itemLabel(item.feedSeedId, 'Tohum')} · iade sonrası`,
+        copyName: itemLabel(item.feedSeedId, 'Tohum'),
         note: state.water
             ? `Sulama açık: tohum geri dönüşü ${formatPct(usedReturn)}`
             : `Sulama yok: tohum geri dönüşü ${formatPct(usedReturn)}`,
@@ -473,6 +476,7 @@ function renderPastureExplain(key, { hovered } = {}) {
         explainStep({
             icon: explainIcon(item.babyId),
             label: itemLabel(item.babyId, 'Yavru'),
+            copyName: itemLabel(item.babyId, 'Yavru'),
             note: 'Yavru alış; emir koyunca setup eklenir',
             formula: baby?.setup
                 ? [
@@ -542,6 +546,7 @@ function renderPastureExplain(key, { hovered } = {}) {
         setup: row.grown?.setup ?? placesOrder('sell', state.grownSide),
         sell: grownNetSale,
         label: itemLabel(item.grownId, item.label),
+        copyName: itemLabel(item.grownId, item.label),
         icon: grownIcon
     });
     growSale.push(explainStep({
@@ -591,6 +596,7 @@ function renderPastureExplain(key, { hovered } = {}) {
         setup: row.meat?.setup ?? placesOrder('sell', state.meatSide),
         sell: meatNetSale,
         label: itemLabel(item.meatId, 'Et'),
+        copyName: itemLabel(item.meatId, 'Et'),
         icon: explainIcon(item.meatId)
     });
     butcherSale.push(explainStep({
@@ -664,6 +670,7 @@ function renderPastureExplain(key, { hovered } = {}) {
             setup: row.product?.setup ?? placesOrder('sell', state.productSide),
             sell: productNetSale,
             label: itemLabel(item.productId, 'Ürün'),
+            copyName: itemLabel(item.productId, 'Ürün'),
             icon: explainIcon(item.productId)
         });
         feedSale.push(explainStep({
@@ -738,6 +745,7 @@ function renderPastureExplain(key, { hovered } = {}) {
     return explainPanelHtml({
         icon: grownIcon,
         title: `T${item.tier} ${itemLabel(item.grownId, item.label)}`,
+        copyName: itemLabel(item.grownId, item.label),
         hint: explainHint(hovered),
         flow: explainFlow([
             { icon: grownIcon, label: 'Maliyet', value: bestCost, tone: 'cost' },
@@ -925,7 +933,7 @@ function renderTable() {
                     <span class="farming-item">
                         ${itemIconHtml(row.item.grownId)}
                         <span>
-                            <span class="farming-item-name">T${row.item.tier} ${escapeHtml(itemLabel(row.item.grownId, row.item.label))}</span>
+                            <span class="farming-item-name">T${row.item.tier} ${itemNameHtml(itemLabel(row.item.grownId, row.item.label))}</span>
                             <span class="farming-item-meta pasture-animal-meta">${itemIconHtml(row.item.babyId, { className: 'item-icon farming-seed-icon' })} yavru · ${chanceNote}</span>
                         </span>
                     </span>

@@ -8,6 +8,7 @@ import {
 } from './catalog.js';
 
 const STORAGE_KEY = 'albiontools.v4.settings';
+export const SETTINGS_STORAGE_KEY = STORAGE_KEY;
 
 const FALLBACK_SERVERS = [
     { id: 'europe', label: 'Europe', host: 'https://europe.albion-online-data.com' },

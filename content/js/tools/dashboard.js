@@ -8,7 +8,7 @@ import { showAreaLoader, hideAreaLoader, yieldToMain } from '../components/loade
 
 export async function renderDashboard(container) {
     container.innerHTML = `
-        <section class="dashboard-hero">
+        <section class="dashboard-hero" data-page-info-head>
             <h1>Albion Tools</h1>
             <p>Albion Online oyuncuları için market, craft ve karlılık araçları.</p>
         </section>

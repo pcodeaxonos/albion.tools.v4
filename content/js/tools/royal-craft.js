@@ -1,3 +1,5 @@
+import { toggleAllFilter } from '../components/filter-selection.js';
+import { itemNameHtml } from '../components/item-name.js';
 import { bindCalcExplain } from '../utils/calc-explain.js';
 import { toolPageHtml } from '../components/tool-page.js';
 import { escapeHtml } from '../utils/utils.js';
@@ -949,7 +951,7 @@ function renderTable(list) {
                                     <span class="royal-item">
                                         ${itemIconHtml(row.sellId, { className: 'item-icon royal-item-icon', size: 56 })}
                                         <span class="royal-item-text" data-app-tooltip="${escapeHtml(row.recipe.label)} · ${escapeHtml(setName)}">
-                                            <span class="royal-item-name">${escapeHtml(shortItemName(row.recipe.label))}</span>
+                                            <span class="royal-item-name">${itemNameHtml(shortItemName(row.recipe.label), row.recipe.label)}</span>
                                             <span class="royal-item-meta">
                                                 <span class="royal-item-set">${escapeHtml(setName)}</span>
                                                 ${setIcons}
@@ -1012,7 +1014,7 @@ function renderSummary(list) {
             Kapsam: solda <strong>${state.scope === 'all' ? 'Tüm T.E' : 'Standart T.E'}</strong>
             ${state.scope !== 'all' && combos ? ` (${escapeHtml(combos)})` : ''} —
             <a href="${routeHref('settings')}">standart listesini ayarlardan değiştir</a>.
-            ${best ? ` En kârlı: ${escapeHtml(shortItemName(best.recipe.label))} ${escapeHtml(best.tierEnchant)} ${escapeHtml(best.quality.short)} · ${formatSilver(best.profit, { signed: true })} · ${formatPercent(best.pct, { digits: 0, rounding: 'math' })}.` : ''}
+            ${best ? ` En kârlı: ${itemNameHtml(shortItemName(best.recipe.label), best.recipe.label)} ${escapeHtml(best.tierEnchant)} ${escapeHtml(best.quality.short)} · ${formatSilver(best.profit, { signed: true })} · ${formatPercent(best.pct, { digits: 0, rounding: 'math' })}.` : ''}
         </p>
     `;
 }
@@ -1323,7 +1325,7 @@ function renderWizardRoyalCard(item) {
     const label = { complete: 'Tam · Ex + MP', proxy: 'Proxy · 1 kalite bulundu', missing: 'Eksik · fiyat bulunamadı' }[status];
     return `<article class="royal-wizard-recent-card is-${status}">
         ${itemIconHtml(item.id, { className: 'item-icon royal-wizard-recent-icon', size: 64 })}
-        <span>${escapeHtml(item.tier)}</span><small>${escapeHtml(item.label)}</small>
+        <span>${escapeHtml(item.tier)}</span><small>${itemNameHtml(item.label)}</small>
         <b data-app-tooltip="${label}" aria-label="${label}">${status === 'complete' ? '✓' : status === 'proxy' ? '◐' : '!'}</b>
     </article>`;
 }
@@ -1922,6 +1924,7 @@ function renderRoyalExplain(key, { hovered } = {}) {
     return explainPanelHtml({
         icon: itemIcon,
         title,
+        copyName: row.recipe.label,
         hint: explainHint(hovered),
         flow: explainFlow([
             { icon: itemIcon, label: 'Maliyet', value: row.cost, tone: 'cost' },
@@ -2257,10 +2260,11 @@ function bindPage(container) {
     container.querySelector('[data-royal-wizard]')?.addEventListener('click', () => openRoyalWizard(container));
     container.querySelectorAll('[data-scope]').forEach((button) => {
         button.addEventListener('click', () => {
-            if (state.scope === button.dataset.scope) {
+            const next = toggleAllFilter(state.scope, button.dataset.scope);
+            if (state.scope === next) {
                 return;
             }
-            state.scope = button.dataset.scope;
+            state.scope = next;
             savePrefs();
             applyControls(container);
             loadPrices(container, { showLoader: false });
@@ -2268,10 +2272,11 @@ function bindPage(container) {
     });
     container.querySelectorAll('[data-type]').forEach((button) => {
         button.addEventListener('click', () => {
-            if (state.type === button.dataset.type) {
+            const next = toggleAllFilter(state.type, button.dataset.type);
+            if (state.type === next) {
                 return;
             }
-            state.type = button.dataset.type;
+            state.type = next;
             savePrefs();
             applyControls(container);
             loadPrices(container, { showLoader: false });
@@ -2279,10 +2284,11 @@ function bindPage(container) {
     });
     container.querySelectorAll('[data-slot]').forEach((button) => {
         button.addEventListener('click', () => {
-            if (state.slot === button.dataset.slot) {
+            const next = toggleAllFilter(state.slot, button.dataset.slot);
+            if (state.slot === next) {
                 return;
             }
-            state.slot = button.dataset.slot;
+            state.slot = next;
             savePrefs();
             applyControls(container);
             loadPrices(container, { showLoader: false });
@@ -2290,7 +2296,7 @@ function bindPage(container) {
     });
     container.querySelectorAll('[data-tier-filter]').forEach((button) => {
         button.addEventListener('click', () => {
-            const next = normalizeTierFilter(button.dataset.tierFilter);
+            const next = toggleAllFilter(state.tier, normalizeTierFilter(button.dataset.tierFilter));
             if (String(state.tier) === String(next)) {
                 return;
             }

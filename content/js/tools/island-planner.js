@@ -1,3 +1,4 @@
+import { itemNameHtml } from '../components/item-name.js';
 import { toolPageHtml } from '../components/tool-page.js';
 import { escapeHtml } from '../utils/utils.js';
 import { initNav } from '../core/nav.js';
@@ -321,7 +322,7 @@ function renderSummary() {
                 <p class="farming-note" data-page-info>İnce pazar eşiği ${escapeHtml(String(state.minVolume))}/gün: hacmi düşük (veya geçmişi olmayan) satırlar işaretlenir; sıralama ve öneri değişmez.</p>
             ` : ''}
             ${faction ? `
-                <p class="farming-note" data-page-info>Faction kilit: ${faction.plots}× kennel T${faction.tier} ${escapeHtml(faction.label)} (kennel plotun olmalı).</p>
+                <p class="farming-note" data-page-info>Faction kilit: ${faction.plots}× kennel T${faction.tier} ${itemNameHtml(faction.label)} (kennel plotun olmalı).</p>
             ` : ''}
             ${uniform ? `
                 <p class="farming-note" data-page-info>Bu planda tüm plotlar aynı aktiviteye verildi — karışık bir dağılım ham gümüş/günü artırmıyor.</p>
@@ -471,7 +472,7 @@ function renderProductCell(slot) {
             ${slot.iconId ? itemIconHtml(slot.iconId, { className: 'item-icon' }) : ''}
             <span>
                 <span class="farming-item-name">
-                    ${escapeHtml(slot.label)}
+                    ${itemNameHtml(slot.label)}
                     ${renderBonusTags(bonuses)}
                 </span>
                 ${notes.length
@@ -497,7 +498,7 @@ function renderAllocationChips(groups) {
                         <strong>${group.count}×</strong>
                         <span class="island-planner-chip-type">${escapeHtml(type)}</span>
                         ${slot.iconId ? itemIconHtml(slot.iconId, { className: 'item-icon island-planner-chip-icon' }) : ''}
-                        <span>${escapeHtml(slot.label)}</span>
+                        <span>${itemNameHtml(slot.label)}</span>
                         <span class="island-planner-chip-path">${escapeHtml(slot.pathLabel || '')}</span>
                         ${renderBonusTags(bonuses)}
                     </li>
@@ -667,7 +668,7 @@ function renderLedger() {
                     <span class="farming-item">
                         ${row.iconId ? itemIconHtml(row.iconId, { className: 'item-icon' }) : ''}
                         <span>
-                            <span class="farming-item-name">${escapeHtml(row.name)}</span>
+                            <span class="farming-item-name">${itemNameHtml(row.name)}</span>
                             ${row.feedLabel ? `<span class="farming-item-meta">${escapeHtml(row.feedLabel)}</span>` : ''}
                         </span>
                     </span>
@@ -702,7 +703,7 @@ function renderLedger() {
         </div>
         <p class="farming-note island-planner-note" data-page-info>
             Ham gümüş/gün sıralaması önericiyle aynı metriktir; ada yemi satırı “en yüksek pasture” olabilir diye zinciri kazanmaz.
-            Cow + ada yemi vs burdock karşılaştırması: burdock satırına ve ineğin pazar / ada yemi path’lerine bakın.
+            ${itemNameHtml('Cow')} + ada yemi vs ${itemNameHtml('Burdock')} karşılaştırması: ${itemNameHtml('Burdock')} satırına ve ineğin pazar / ada yemi path’lerine bakın.
         </p>
     `;
 }
@@ -1110,6 +1111,7 @@ function renderPlannerExplain(key, { hovered } = {}) {
     return explainPanelHtml({
         icon: explainIcon(ex.iconId || slot.iconId),
         title: ex.title || `${slot.label} · ${slot.pathLabel || ''}`.trim(),
+        copyName: slot.label,
         hint: explainHint(hovered),
         flow: explainFlow([
             { icon: explainIcon(ex.iconId || slot.iconId), label: 'Maliyet', value: ex.cycle?.cost, tone: 'cost' },

@@ -1,3 +1,5 @@
+import { toggleAllFilter } from '../components/filter-selection.js';
+import { itemNameHtml } from '../components/item-name.js';
 import { toolPageHtml } from '../components/tool-page.js';
 import { escapeHtml } from '../utils/utils.js';
 import { initNav } from '../core/nav.js';
@@ -387,11 +389,11 @@ function renderSummary(list) {
     if (!best) {
         return '<p class="ava-note" id="furnitureSummary"><strong>Bu senaryoda kâr hesaplanamadı.</strong> Eksik fiyatları doldur.</p>';
     }
-    const name = `T${best.item.tier} ${best.item.label}`;
+    const name = `T${best.item.tier} ${itemNameHtml(best.item.label)}`;
     if (best.profit < 0) {
-        return `<p class="ava-note" id="furnitureSummary"><strong>Bu senaryoda zarar.</strong> En az zarar ${escapeHtml(name)} · ${formatSilver(best.profit, { signed: true })} · ${formatPct(best.pct)}.</p>`;
+        return `<p class="ava-note" id="furnitureSummary"><strong>Bu senaryoda zarar.</strong> En az zarar ${name} · ${formatSilver(best.profit, { signed: true })} · ${formatPct(best.pct)}.</p>`;
     }
-    return `<p class="ava-note" id="furnitureSummary"><strong>En kârlı ${escapeHtml(name)}</strong> · ${formatSilver(best.profit, { signed: true })} · ${formatPct(best.pct)}.</p>`;
+    return `<p class="ava-note" id="furnitureSummary"><strong>En kârlı ${name}</strong> · ${formatSilver(best.profit, { signed: true })} · ${formatPct(best.pct)}.</p>`;
 }
 
 function renderExplain(key, { hovered } = {}) {
@@ -421,6 +423,7 @@ function renderExplain(key, { hovered } = {}) {
         matLines.push(explainStep({
             icon: itemIconHtml(mat?.uniqueName, { className: 'item-icon calc-explain-icon' }),
             label: mat?.short || `T${row.item.tier} ${kind}`,
+            copyName: mat ? itemLabel(mat.uniqueName, mat.short) : undefined,
             note: 'Tarifteki adet × birim alış fiyatı',
             formula: [
                 explainNum(qty, { kind: 'qty', cap: 'adet' }),
@@ -475,6 +478,7 @@ function renderExplain(key, { hovered } = {}) {
     return explainPanelHtml({
         icon: itemIcon,
         title: `T${row.item.tier} ${row.item.label}`,
+        copyName: row.item.label,
         hint: explainHint(hovered),
         flow: explainFlow([
             { icon: itemIcon, label: 'Maliyet', value: row.cost, tone: 'cost' },
@@ -556,8 +560,8 @@ function renderTable() {
                     <span class="ava-item">
                         ${itemIconHtml(row.item.uniqueName)}
                         <span>
-                            <span class="ava-item-name">T${row.item.tier} ${escapeHtml(row.item.label)}${bonusMark}</span>
-                            <span class="ava-item-meta">${escapeHtml(itemLabel(row.item.uniqueName, row.item.label))} · RR ${formatPct(row.rr)}</span>
+                            <span class="ava-item-name">T${row.item.tier} ${itemNameHtml(row.item.label)}${bonusMark}</span>
+                            <span class="ava-item-meta">${itemNameHtml(itemLabel(row.item.uniqueName, row.item.label))} · RR ${formatPct(row.rr)}</span>
                         </span>
                     </span>
                 </td>
@@ -821,7 +825,7 @@ function bindPage(container) {
             if (!kinds().some((kind) => kind.id === button.dataset.kind)) {
                 return;
             }
-            state.kind = button.dataset.kind;
+            state.kind = toggleAllFilter(state.kind, button.dataset.kind);
             savePrefs();
             renderPage(container);
         });

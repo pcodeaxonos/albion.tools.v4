@@ -1,4 +1,5 @@
 import { toolPageHtml } from '../components/tool-page.js';
+import { itemNameHtml } from '../components/item-name.js';
 import { escapeHtml } from '../utils/utils.js';
 import { initNav } from '../core/nav.js';
 import { routeHref } from '../core/routes.js';
@@ -218,7 +219,7 @@ function renderMatStrip() {
                 <div class="enchant-mat-corner" aria-hidden="true"></div>
                 ${TIERS.map((tier) => `<div class="enchant-mat-tier-head">T${tier}</div>`).join('')}
                 ${steps().map((step) => `
-                    <div class="enchant-mat-kind">${escapeHtml(step.label)}</div>
+                    <div class="enchant-mat-kind">${itemNameHtml(step.label)}</div>
                     ${TIERS.map((tier) => {
                         const key = matKey(step.kind, tier);
                         const fetched = fetchedMatQuote(key);
@@ -321,7 +322,7 @@ function renderOutput() {
             ${renderMatStrip()}
             ${renderTable()}
             <section data-page-info>
-            <p class="enchant-note">${slot.qty} rune / soul / relic · ${escapeHtml(cityLabel(state.city))} ${escapeHtml(hint)}${stamp ? ` · ${stamp}` : ''}. Elle yazılan malzeme fiyatı API’nin yerine geçer. Kırmızı fiyat API’de yok; mavi 6 saatten eski.</p>
+            <p class="enchant-note">${slot.qty} ${itemNameHtml('Rune')} / ${itemNameHtml('Soul')} / ${itemNameHtml('Relic')} · ${escapeHtml(cityLabel(state.city))} ${escapeHtml(hint)}${stamp ? ` · ${stamp}` : ''}. Elle yazılan malzeme fiyatı API’nin yerine geçer. Kırmızı fiyat API’de yok; mavi 6 saatten eski.</p>
             <p class="enchant-standard-note">Vurgu: ${escapeHtml(standardHighlightNote())}. 0 → hedef yolları daha koyu. <a href="${routeHref('settings')}">Ayarlardan değiştir</a></p>
             </section>
         </div>

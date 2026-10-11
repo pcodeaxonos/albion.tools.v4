@@ -1,3 +1,4 @@
+import { itemNameHtml } from '../components/item-name.js';
 import { escapeHtml } from '../utils/utils.js';
 import { routeHref } from './routes.js';
 import { initStore } from '../db/store.js';
@@ -58,7 +59,7 @@ export function renderRecipesHtml(variants, { labels = true, className = 'bonus-
             ? `${recipe.label}: ${recipe.materials.join(' + ')}`
             : recipe.materials.join(' + ');
         const label = labels && recipe.label
-            ? `<span class="bonus-mat-recipe-label">${escapeHtml(recipe.label)}</span>`
+            ? `<span class="bonus-mat-recipe-label">${itemNameHtml(recipe.label)}</span>`
             : '';
         return `<span class="bonus-mat-recipe" data-app-tooltip="${escapeHtml(title)}">${label}${renderMatsHtml(recipe.materials, className, size)}</span>`;
     }).join('')}</span>`;

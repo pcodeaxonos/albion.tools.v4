@@ -1,6 +1,23 @@
 /* Layout transcribed from t9-wheat-card.html. Only the T9 palette is replaced by the item tier. */
 .yield-avg-legend { display:none; }
 
+.yield-log-badges {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: .25rem;
+
+  .badge { white-space: nowrap; }
+
+  .yield-log-premium { --yield-badge-color: var(--color-warning); }
+  .yield-log-focus { --yield-badge-color: var(--color-info); }
+
+  .yield-log-premium, .yield-log-focus {
+    color: var(--yield-badge-color);
+    background-color: color-mix(in srgb, var(--yield-badge-color) 20%, var(--color-surface));
+  }
+}
+
 // Each icon represents a slot; muted icons are missing, outlined icons are extra.
 .app-entry-summary.yield-entry-summary {
   --yield-icon-size: 2.15rem;

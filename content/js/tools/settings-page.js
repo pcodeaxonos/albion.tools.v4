@@ -163,7 +163,7 @@ function renderPage(container, cities) {
     const packets = settings.priceSource === 'packets';
 
     container.innerHTML = `
-        <section class="settings-hero">
+        <section class="settings-hero" data-page-info-head>
             <h1>Ayarlar</h1>
             <p>Tool’lar bunları varsayılan alır; sayfa içinde geçici seçim yapılabilir.</p>
         </section>

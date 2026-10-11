@@ -152,3 +152,7 @@
 [data-page-info] {
     display: none;
 }
+
+// Segmented choices with long labels remain side by side in narrow form columns.
+.price-side-field--stacked { grid-template-columns: minmax(0, 1fr); > .price-side-label { justify-content: flex-start; } }
+.price-side--wrap-labels { flex-wrap: nowrap; > .price-side-btn { overflow-wrap: anywhere; line-height: 1.25; } }

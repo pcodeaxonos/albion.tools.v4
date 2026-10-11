@@ -146,6 +146,17 @@ const {chromium}=require('playwright');
  if(style==='crests') assert.equal(await target.locator('[data-city-value="Black Market"] svg').count(),1);
  console.log('PASS Flipper settings city picker '+style);
  }
+ await page.unroute('**/api/v1/market/long-term?**');
+ await page.route('**/api/v1/market/long-term?**',route=>route.fulfill({json:{references:[{server:'europe',itemId:'T4_MAIN_SWORD',city:'Black Market',quality:1,side:'buy',source:'quote-history',price:100}]}}));
+ await page.locator('[data-choice-filter="quality"][data-choice-value="1"]').click();
+ await page.locator('[data-scan]').click();
+ const spikeBadge=page.locator('[data-select*="T4_MAIN_SWORD"] .flipper-spike-badge');
+ await spikeBadge.waitFor({timeout:120000});
+ assert.equal(await spikeBadge.innerText(),'Fiyat sıçraması');
+ assert.match(await spikeBadge.getAttribute('data-app-tooltip'),/Black Market Buy Max/);
+ await page.locator('[data-select*="T4_MAIN_SWORD"] .flipper-row-prices').click();
+ assert.equal(await page.locator('[data-detail] .flipper-spike-badge').count(),1);
+ assert.ok(await page.locator('[data-confirm]').isDisabled(),'spike cannot become a verified basket candidate');
  await page.unroute('**/api/v2/stats/prices/**');await page.route('**/api/v2/stats/prices/**',route=>route.abort());
  await page.locator('[data-scan]').click();await page.locator('[data-status][data-monitor-phase="error"]').waitFor({timeout:120000});
  assert.equal(await page.locator('[data-monitor-label]').innerText(),'Tarama hatası');

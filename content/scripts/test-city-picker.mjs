@@ -17,7 +17,7 @@ await module.link((specifier) => {
     }, { context });
 });
 await module.evaluate();
-const { bindCityField, setCityFieldValue } = module.namespace;
+const { bindCityField, setCityFieldValue, cityFieldHtml } = module.namespace;
 
 function classes(initial = []) {
     const values = new Set(initial);
@@ -30,7 +30,7 @@ function classes(initial = []) {
 }
 function field(id, style, values = ['Martlock', 'Lymhurst']) {
     const listeners = {};
-    const input = { value: 'Martlock', tagName: style === 'standard' ? 'SELECT' : 'INPUT', options: values.map((value) => ({ value })), addEventListener: (name, handler) => { listeners[name] = handler; } };
+    const input = { dataset: {}, value: 'Martlock', tagName: style === 'standard' ? 'SELECT' : 'INPUT', options: values.map((value) => ({ value })), addEventListener: (name, handler) => { listeners[name] = handler; } };
     const nodes = values.map((value) => ({ dataset: { cityValue: value }, classList: classes(), setAttribute() {}, closest() { return this; } }));
     return {
         dataset: { cityField: id }, classList: classes([`city-field--${style}`]), input, nodes,
@@ -68,6 +68,32 @@ for (const style of ['standard', 'horizontal', 'diagonal']) {
 }
 
 // A primary callback can replace the DOM (island planner) before other callbacks run.
+for (const style of ['horizontal', 'diagonal']) {
+    const root = container([field('filter', style), field('required', style)]);
+    root.fields[0].input.dataset.cityAllowAll = 'true';
+    const changes = [];
+    root.fields.forEach((entry) => bindCityField(root, entry.dataset.cityField, (value) => changes.push([entry.dataset.cityField, value])));
+    root.fields[0].change('Martlock');
+    assert.equal(root.fields[0].input.value, '');
+    assert.equal(root.fields[1].input.value, 'Martlock', 'required city fields must not clear');
+    assert.equal(root.classList.contains('city-selected'), false);
+    assert.deepEqual(changes, [['filter', '']]);
+    root.fields[0].change('Lymhurst');
+    assert.equal(root.fields[0].input.value, 'Lymhurst');
+    root.fields[0].change('Lymhurst');
+    assert.equal(root.fields[0].input.value, '');
+    root.fields[1].change('Lymhurst');
+    assert.equal(root.fields[1].input.value, 'Lymhurst', 'required city selection remains selected on repeated clicks');
+}
+assert.match(cityFieldHtml({ id: 'filter', label: 'Şehir', selected: '', allowAll: true }), /<option value="" selected>Tüm şehirler<\/option>/);
+assert.doesNotMatch(cityFieldHtml({ id: 'required', label: 'Şehir', selected: '' }), /Tüm şehirler/);
+// A tool can request real crests without changing the user's global preference.
+const crestHtml = cityFieldHtml({ id: 'crest-test', label: 'Şehir', selected: 'Martlock', style: 'crests', cities: [{ name: 'Martlock', displayName: 'Martlock', marketApiName: 'Martlock' }] });
+assert.match(crestHtml, /city-field--crests/);
+assert.match(crestHtml, /assets\/cities\/martlock\.png/);
+assert.match(crestHtml, /aria-pressed="true"/);
+assert.match(cityFieldHtml({ id: 'unchanged', label: 'Şehir', selected: '' }), /city-field--standard/);
+
 const root = container(['first', 'second'].map((id) => field(id, 'standard')));
 const state = {};
 bindCityField(root, 'first', (value) => {
@@ -86,3 +112,18 @@ restricted.fields.forEach((entry) => bindCityField(restricted, entry.dataset.cit
 restricted.fields[0].change('Lymhurst');
 assert.deepEqual(notified, ['first']);
 console.log('City picker synchronization tests passed.');
+
+const market={name:'Black Market',displayName:'Black Market',marketApiName:'Black Market',mapPosition:{x:46,y:68},iconHtml:'<svg viewBox="0 0 24 24"></svg>'};
+assert.match(cityFieldHtml({id:'target',label:'Nereye',selected:'Black Market',cities:[market],style:'crests'}),/<span class="city-crest"[^>]*><svg/);
+assert.match(cityFieldHtml({id:'target',label:'Nereye',selected:'Black Market',cities:[market],style:'diagonal'}),/--x:46%;--y:68%/);
+
+for (const style of ['standard','horizontal','diagonal']) {
+    const independent=container([field('source',style),field('target',style)]);
+    const events=[];
+    independent.fields.forEach(entry=>bindCityField(independent,entry.dataset.cityField,value=>events.push([entry.dataset.cityField,value]),{syncPeers:false}));
+    independent.fields[0].change('Lymhurst');
+    assert.equal(independent.fields[0].input.value,'Lymhurst');
+    assert.equal(independent.fields[1].input.value,'Martlock');
+    assert.deepEqual(events,[['source','Lymhurst']]);
+}
+console.log('Independent route endpoints and custom destination icons/positions passed.');

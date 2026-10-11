@@ -2,7 +2,6 @@
 // and floating controls to extend beyond their layout bounds. Only inner tables
 // and dedicated panels own scrollports; app-content handles page overflow.
 main.tool-page {
-    --page-head-content-height: clamp(5rem, 5vw, 7rem);
     flex: 1 1 0;
     display: flex;
     flex-direction: column;
@@ -10,7 +9,6 @@ main.tool-page {
     min-height: 0;
     padding: 0;
 
-    > .page-head { flex: 0 0 var(--page-head-content-height); }
     > .page-body {
         display: flex;
         flex-direction: column;
@@ -139,7 +137,7 @@ main.tool-page {
 
 @media (max-width: 991px) {
     .tool-page-bottom-result { flex: 0 0 auto; overflow: visible; }
-    main.tool-page { flex: 1 0 auto; --page-head-content-height: 8rem; }
+    main.tool-page { flex: 1 0 auto; }
     main.tool-page > .page-body { flex: 1 0 auto; }
     .page-body > .tool-split {
         height: auto;
@@ -159,7 +157,4 @@ main.tool-page {
     }
     .tool-page .result :where(div, section):has(.calc-table-wrap) { flex: 1 0 auto; }
     .tool-page .trades-root { min-height: 40rem; }
-    .tool-page .page-head-content { gap: .5rem; flex-wrap: wrap; align-content: center; }
-    .tool-page .page-head-content h1 { font-size: var(--h4-size); }
-    .tool-page .page-head-content p { font-size: var(--font-size-sm); }
 }

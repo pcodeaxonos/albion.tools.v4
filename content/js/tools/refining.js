@@ -1,3 +1,5 @@
+import { toggleAllFilter } from '../components/filter-selection.js';
+import { itemNameHtml } from '../components/item-name.js';
 import { bindCalcExplain } from '../utils/calc-explain.js';
 import { toolPageHtml } from '../components/tool-page.js';
 import { escapeHtml } from '../utils/utils.js';
@@ -429,6 +431,7 @@ function explainChainLines(row) {
             lines.push(explainStep({
                 icon: explainIcon(id),
                 label: `Alt ${itemDisplayName(id, node.enchant)}`,
+                copyName: itemLabel(id),
                 note: 'Bu kademeyi piyasadan alıyorsun; burada işlemiyorsun',
                 formula: quote?.setup
                     ? [
@@ -469,6 +472,7 @@ function explainChainLines(row) {
         lines.push(explainStep({
             icon: explainIcon(rawId),
             label: `T${node.tier} ${family.hamWord}`,
+            copyName: itemLabel(rawId),
             note: 'Tarifteki ham madde adedi × birim alış',
             formula: [
                 explainNum(rawQty, { kind: 'qty', cap: 'adet' }),
@@ -512,6 +516,7 @@ function explainChainLines(row) {
             lines.push(explainStep({
                 icon: explainIcon(outId),
                 label: itemDisplayName(outId, node.enchant),
+                copyName: itemLabel(outId),
                 note: 'Ödenen ham + alt kademe maliyeti',
                 formula: [
                     explainNum(hamPart, { tone: 'cost', cap: 'ödenen ham' }),
@@ -528,6 +533,7 @@ function explainChainLines(row) {
             lines.push(explainStep({
                 icon: explainIcon(outId),
                 label: itemDisplayName(outId, node.enchant),
+                copyName: itemLabel(outId),
                 note: 'Alt kademe yok; maliyet yalnız ham madde',
                 result: cost,
                 resultKind: 'cost',
@@ -586,6 +592,7 @@ function renderRefiningExplain(key, { hovered } = {}) {
     return explainPanelHtml({
         icon: outIcon,
         title: itemDisplayName(row.outId, row.enchant),
+        copyName: itemLabel(row.outId),
         hint: explainHint(hovered),
         flow: explainFlow([
             { icon: outIcon, label: 'Maliyet', value: row.cost, tone: 'cost' },
@@ -707,9 +714,9 @@ function renderSummary(list) {
         return '<p class="farming-note" id="refiningSummary"><strong>Bu senaryoda kâr hesaplanamadı.</strong> Eksik fiyatları doldur.</p>';
     }
     if (best.profit <= 0) {
-        return `<p class="farming-note" id="refiningSummary"><strong>Bu senaryoda zarar.</strong> En az zarar ${escapeHtml(itemDisplayName(best.outId, best.enchant))} · ${formatSilver(best.profit, { signed: true })} · ${formatPct(best.pct)}.</p>`;
+        return `<p class="farming-note" id="refiningSummary"><strong>Bu senaryoda zarar.</strong> En az zarar ${itemNameHtml(itemDisplayName(best.outId, best.enchant), itemLabel(best.outId))} · ${formatSilver(best.profit, { signed: true })} · ${formatPct(best.pct)}.</p>`;
     }
-    return `<p class="farming-note" id="refiningSummary"><strong>En kârlı ${escapeHtml(itemDisplayName(best.outId, best.enchant))}</strong> · ${formatSilver(best.profit, { signed: true })} · ${formatPct(best.pct)}.</p>`;
+    return `<p class="farming-note" id="refiningSummary"><strong>En kârlı ${itemNameHtml(itemDisplayName(best.outId, best.enchant), itemLabel(best.outId))}</strong> · ${formatSilver(best.profit, { signed: true })} · ${formatPct(best.pct)}.</p>`;
 }
 
 function renderScenario() {
@@ -753,7 +760,7 @@ function renderTable(list) {
                     <span class="farming-item">
                         ${itemIconHtml(row.outId)}
                         <span>
-                            <span class="farming-item-name">${escapeHtml(itemDisplayName(row.outId, row.enchant))}${bonus}</span>
+                            <span class="farming-item-name">${itemNameHtml(itemDisplayName(row.outId, row.enchant), itemLabel(row.outId))}${bonus}</span>
                             <span class="farming-item-meta">${itemIconHtml(row.rawId, { className: 'item-icon farming-seed-icon' })} ${row.rawQty} ${escapeHtml(family.hamWord)}${row.lowerQty ? ` + ${row.lowerQty} alt` : ''}${row.lowerGap ? ' · alt fiyat yok' : ''}</span>
                         </span>
                     </span>
@@ -1132,9 +1139,10 @@ function bindPage(container) {
 
     container.querySelectorAll('[data-enchant]').forEach((button) => {
         button.addEventListener('click', () => {
-            const enchant = button.dataset.enchant === 'all'
+            const selected = button.dataset.enchant === 'all'
                 ? 'all'
                 : Number(button.dataset.enchant) || 0;
+            const enchant = toggleAllFilter(state.enchant, selected);
             if (enchant === state.enchant) {
                 return;
             }

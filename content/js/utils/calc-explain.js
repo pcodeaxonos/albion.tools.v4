@@ -1,5 +1,6 @@
 import { escapeHtml } from './utils.js';
 import { SETUP_FEE } from '../core/market-fees.js';
+import { itemNameHtml } from '../components/item-name.js';
 
 const sessions = new WeakMap();
 const tableBindings = new WeakMap();
@@ -83,7 +84,7 @@ function formatKindOf(resultKind) {
     return 'silver';
 }
 
-export function explainStep({ icon, label, note, formula, result, resultKind = 'silver', resultCap, signed = false }) {
+export function explainStep({ icon, label, copyName, note, formula, result, resultKind = 'silver', resultCap, signed = false }) {
     const formulaHtml = Array.isArray(formula) ? explainBits(formula) : (formula ?? '');
     const cap = resultCap ?? TOKEN_CAPS[resultKind] ?? TOKEN_CAPS.silver;
     const out = result === undefined
@@ -100,7 +101,7 @@ export function explainStep({ icon, label, note, formula, result, resultKind = '
             <div class="calc-explain-who">
                 ${icon ?? ''}
                 <div class="calc-explain-who-text">
-                    <span class="calc-explain-label">${escapeHtml(label)}</span>
+                    <span class="calc-explain-label">${copyName ? itemNameHtml(label, copyName) : escapeHtml(label)}</span>
                     ${note ? `<p class="calc-explain-note">${escapeHtml(note)}</p>` : ''}
                 </div>
             </div>
@@ -147,13 +148,14 @@ export function explainFlow(nodes) {
     `).join('')}</ol>`;
 }
 
-export function explainSaleSteps({ price, tax, setup, sell, label, icon }) {
+export function explainSaleSteps({ price, tax, setup, sell, label, copyName, icon }) {
     const cut = tax + (setup ? SETUP_FEE : 0);
     const keep = 1 - cut;
     return [
         explainStep({
             icon,
             label: label || 'Satış fiyatı',
+            copyName,
             note: 'Piyasada görünen fiyat; henüz vergi düşülmedi',
             result: price,
             resultKind: 'price',
@@ -233,7 +235,7 @@ function explainLegendHtml() {
     `).join('')}</ul>`;
 }
 
-export function explainPanelHtml({ icon, title, hint, flow, groups, footer }) {
+export function explainPanelHtml({ icon, title, copyName, hint, flow, groups, footer }) {
     const body = (groups ?? []).map((group) => `
         <li class="calc-explain-group${group.tone ? ` is-${escapeHtml(group.tone)}` : ''}">
             <h4 class="calc-explain-group-title">${escapeHtml(group.title)}</h4>
@@ -246,7 +248,7 @@ export function explainPanelHtml({ icon, title, hint, flow, groups, footer }) {
         <div class="calc-explain-head">
             ${icon ?? ''}
             <div>
-                <h3 class="calc-explain-title">${escapeHtml(title)}</h3>
+                <h3 class="calc-explain-title">${copyName ? itemNameHtml(title, copyName) : escapeHtml(title)}</h3>
                 ${hint ? `<p class="calc-explain-hint">${escapeHtml(hint)}</p>` : ''}
             </div>
         </div>

@@ -1,0 +1,76 @@
+.page-info-button {
+    position: absolute;
+    top: .65rem;
+    right: .75rem;
+    z-index: 3;
+    display: grid;
+    place-items: center;
+    width: 44px;
+    height: auto;
+    aspect-ratio: 48 / 56;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    cursor: pointer;
+    svg { display: block; width: 100%; height: auto; pointer-events: none; transition: filter .15s ease, transform .15s ease; }
+    &:hover svg { filter: brightness(1.18); transform: translateY(-1px); }
+    &:focus-visible { outline: 2px solid var(--color-primary); outline-offset: 3px; }
+}
+.page-head:has(.page-info-button) .page-head-content { padding-right: 4rem; }
+[data-page-info-head] { position: relative; padding-right: 4rem; }
+.page-info-dialog {
+    width: 36rem;
+    transform: translateX(calc(var(--app-dialog-close-clearance) / -2));
+    padding: 0;
+    border: 1px solid var(--color-border-strong);
+    border-radius: .75rem;
+    background: var(--color-surface);
+    box-shadow: var(--shadow-md);
+}
+.page-info-sheet {
+    max-height: calc(100dvh - 3rem);
+    min-height: 0;
+    overflow: auto;
+    padding: clamp(1rem, 3vw, 1.5rem);
+    header { margin-bottom: 1rem; }
+    h2 { margin: .35rem 0 0; font-size: 1.4rem; }
+    .page-info-eyebrow { color: var(--color-text-muted); font-size: .7rem; letter-spacing: .12em; }
+    [data-page-info-content] { display: grid; gap: .75rem; }
+}
+.page-info-card {
+    --info-tone: var(--color-text-muted);
+    padding: .9rem 1rem;
+    border: 1px solid var(--color-border);
+    border-left: 2px solid var(--info-tone);
+    border-right: 0;
+    border-radius: .4rem;
+    background: color-mix(in srgb, var(--info-tone) 6%, var(--color-surface));
+    &[data-tone="buy"] { --info-tone: #78baff; }
+    &[data-tone="sale"] { --info-tone: #4fe0ae; }
+    &[data-tone="warning"] { --info-tone: #e8b65c; }
+    h3 { margin: 0 0 .4rem; font-size: .8rem; color: var(--info-tone); }
+    strong { display: block; font-size: 1.05rem; }
+    ul {
+        position: relative;
+        margin: .5rem 0 0;
+        padding: 0 0 0 .9rem;
+        border: 0;
+        list-style: none;
+        font-size: .9rem;
+        line-height: 1.6;
+    }
+    li {
+        position: relative;
+        &::before {
+            content: '';
+            position: absolute;
+            top: .75em;
+            right: calc(100% + .9rem);
+            width: 1rem;
+            border-top: 2px solid var(--info-tone);
+        }
+    }
+    li + li { margin-top: .25rem; }
+    li p { margin: 0; color: inherit; font-size: inherit; }
+    li strong { display: inline; font-size: inherit; }
+}

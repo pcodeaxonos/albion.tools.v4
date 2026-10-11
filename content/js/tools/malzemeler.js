@@ -1,3 +1,4 @@
+import { itemNameHtml } from '../components/item-name.js';
 import { toolPageHtml } from '../components/tool-page.js';
 import { escapeHtml } from '../utils/utils.js';
 import { initNav } from '../core/nav.js';
@@ -306,7 +307,7 @@ function renderTable(list) {
                     <span class="farming-item">
                         ${itemIconHtml(row.itemId)}
                         <span>
-                            <span class="farming-item-name">${escapeHtml(itemDisplayName(row.itemId, row.enchant))}</span>
+                            <span class="farming-item-name">${itemNameHtml(itemDisplayName(row.itemId, row.enchant))}</span>
                             <span class="farming-item-meta">T${row.tier}${row.enchant ? ` .${row.enchant}` : ''}</span>
                         </span>
                     </span>

@@ -1,33 +1,25 @@
 .page-head {
     position: relative;
-    min-height: var(--page-head-content-height, 5vw);
+    min-height: calc(var(--page-head-content-height, 4.75rem) + var(--app-status-offset, 0px));
+    flex: 0 0 calc(var(--page-head-content-height, 4.75rem) + var(--app-status-offset, 0px));
     margin: 0;
     overflow: visible;
     background-color: transparent;
     box-shadow: none;
 
-    &::before {
-        position: absolute;
-        z-index: 1;
-        inset: 0;
-        content: '';
-        background: linear-gradient(to bottom, rgba(5, 11, 16, 0.18), transparent);
-        pointer-events: none;
-    }
 }
 
 .page-head-content {
     display: flex;
     position: absolute;
     z-index: 2;
-    top: 0;
+    top: var(--app-status-offset, 0px);
     right: 0;
     left: 0;
-    height: var(--page-head-content-height, 5vw);
+    height: var(--page-head-content-height, 4.75rem);
     align-items: center;
     gap: clamp(0.75rem, 2vw, 1.75rem);
     padding-inline: clamp(1rem, 3vw, 2rem);
-    padding-top: var(--app-status-offset, 0px);
 
     h1,
     p {
@@ -39,6 +31,7 @@
         flex: 0 0 auto;
         color: var(--color-text);
         white-space: nowrap;
+        .badge { margin-left: .45rem; vertical-align: middle; color: var(--color-text-muted); font-size: var(--font-size-xs); }
     }
 
     p {
@@ -61,8 +54,10 @@
 }
 
 main:has(.page-head) {
-    --page-head-content-height: 5vw;
-    --page-head-fade-height: max(8rem, calc(var(--page-head-content-height) * 2));
+    // Keep title spacing independent of the shared 2048×160 backdrop.
+    container-type: inline-size;
+    --page-head-content-height: 4.75rem;
+    --page-head-image-height: max(5rem, calc(100cqw / 12.8));
     position: relative;
     isolation: isolate;
     display: flex;
@@ -70,28 +65,38 @@ main:has(.page-head) {
     flex-direction: column;
     min-height: 0;
     padding-top: 0;
+
     &::before {
-        content: '';
         position: absolute;
         z-index: -1;
         inset: 0 0 auto;
-        height: var(--page-head-fade-height);
-        pointer-events: none;
+        height: var(--page-head-image-height);
+        content: '';
+        // Main owns the backdrop so it extends behind both the head and page content.
         background-image:
-        linear-gradient(
-            to bottom,
-            transparent 0,
-            color-mix(in srgb, var(--color-bg) 12%, transparent) calc(var(--page-head-fade-height) * 0.2),
-            color-mix(in srgb, var(--color-bg) 40%, transparent) calc(var(--page-head-fade-height) * 0.4),
-            color-mix(in srgb, var(--color-bg) 72%, transparent) calc(var(--page-head-fade-height) * 0.6),
-            color-mix(in srgb, var(--color-bg) 92%, transparent) calc(var(--page-head-fade-height) * 0.8),
-            var(--color-bg) var(--page-head-fade-height)
-        ),
-        var(--page-head-image);
-        background-position: top, 56% top;
+            linear-gradient(to bottom,
+                rgba(5, 11, 16, .18) 0%,
+                color-mix(in srgb, var(--color-bg) 30%, transparent) 25%,
+                color-mix(in srgb, var(--color-bg) 65%, transparent) 55%,
+                color-mix(in srgb, var(--color-bg) 90%, transparent) 80%,
+                var(--color-bg) 100%),
+            var(--page-head-image, none);
+        background-position: top, center top;
         background-repeat: no-repeat;
-        background-size: 100% 100%, cover;
+        background-size: 100% 100%, 100% auto;
+        pointer-events: none;
     }
+}
+
+@media (max-width: 991px) {
+    main:has(.page-head) {
+        --page-head-content-height: 5.5rem;
+        --page-head-image-height: 8rem;
+    }
+    main:has(.page-head)::before { background-size: 100% 100%, cover; }
+    .page-head-content { gap: .5rem; flex-wrap: wrap; align-content: center; }
+    .page-head-content h1 { font-size: var(--h4-size); }
+    .page-head-content p { font-size: var(--font-size-sm); }
 }
 
 .tool-page {
@@ -140,7 +145,10 @@ $page-head-images: (
     "royal-crafting": "14-royal-crafting",
     "enchanting": "15-enchanting",
     "trades": (desktop: "trade-dashboard-header.png"),
-    "laborer-contract": (desktop: "laborer-contract-header.png")
+    "laborer-contract": (desktop: "laborer-contract-header.png"),
+    "opportunities": (desktop: "gunun-firsatlari-header.png"),
+    "decision-engine": (desktop: "karar-motoru-header.png"),
+    "flipper": (desktop: "flipper-head-2000x200.png")
 );
 
 // Explicit assets can reuse the desktop image when no mobile variant is supplied.

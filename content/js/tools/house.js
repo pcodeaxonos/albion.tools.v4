@@ -1,3 +1,4 @@
+import { itemNameHtml } from '../components/item-name.js';
 import { toolPageHtml } from '../components/tool-page.js';
 import { escapeHtml } from '../utils/utils.js';
 import { initNav } from '../core/nav.js';
@@ -172,7 +173,7 @@ function renderMatCard(item) {
             ${itemIconHtml(item.uniqueName)}
             <span class="house-mat-text">
                 <span class="house-mat-value">${formatCount(item.value)}</span>
-                <span class="house-mat-label">${escapeHtml(item.label)}</span>
+                <span class="house-mat-label">${itemNameHtml(item.label)}</span>
                 <span class="house-mat-meta">${escapeHtml(item.meta)}</span>
             </span>
         </li>

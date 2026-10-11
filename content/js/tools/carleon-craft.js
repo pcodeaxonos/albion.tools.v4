@@ -1,3 +1,4 @@
+import { itemNameHtml } from '../components/item-name.js';
 import { toolPageHtml } from '../components/tool-page.js';
 import { escapeHtml } from '../utils/utils.js';
 import { initNav } from '../core/nav.js';
@@ -253,7 +254,7 @@ function renderMatStrip() {
                     <li class="carleon-mat" data-mat-card="${escapeHtml(mat.key)}">
                         ${itemIconHtml(mat.uniqueName)}
                         <span class="carleon-mat-text">
-                            <span class="carleon-mat-label">${escapeHtml(itemLabel(mat.uniqueName, mat.short))}</span>
+                            <span class="carleon-mat-label">${itemNameHtml(itemLabel(mat.uniqueName, mat.short))}</span>
                             <span class="carleon-mat-meta">${escapeHtml(matMetaText(mat))}</span>
                             ${priceFieldHtml({
                                 id: `matPrice-${mat.key}`,
@@ -303,6 +304,7 @@ function renderCarleonExplain(key, { hovered } = {}) {
         matLines.push(explainStep({
             icon: itemIconHtml(mat.uniqueName, { className: 'item-icon calc-explain-icon' }),
             label: mat.short,
+            copyName: itemLabel(mat.uniqueName, mat.short),
             note: 'Tarifteki adet × birim alış fiyatı',
             formula: [
                 explainNum(qty, { kind: 'qty', cap: 'adet' }),
@@ -357,6 +359,7 @@ function renderCarleonExplain(key, { hovered } = {}) {
     return explainPanelHtml({
         icon: itemIcon,
         title: row.item.label,
+        copyName: row.item.label,
         hint: explainHint(hovered),
         flow: explainFlow([
             { icon: itemIcon, label: 'Maliyet', value: row.cost, tone: 'cost' },
@@ -435,7 +438,7 @@ function renderTable() {
                     <span class="carleon-item">
                         ${itemIconHtml(row.item.uniqueName)}
                         <span>
-                            <span class="carleon-item-name">${escapeHtml(row.item.label)}${bonusMark}</span>
+                            <span class="carleon-item-name">${itemNameHtml(row.item.label)}${bonusMark}</span>
                             <span class="carleon-item-meta">RR ${formatPct(row.rr)}</span>
                         </span>
                     </span>

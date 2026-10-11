@@ -36,8 +36,9 @@ function colorRows() {
     return getAll('cityColors');
 }
 
+// Optional record metadata supports non-city market destinations without changing the city catalog.
 function mapPos(city) {
-    return CITY_MAP_POS[cityKey(city)] || { x: 50, y: 50 };
+    return city?.mapPosition || CITY_MAP_POS[cityKey(city)] || { x: 50, y: 50 };
 }
 
 export function cityColorHex(city) {
@@ -66,8 +67,9 @@ function optionMeta(city, decorate) {
     return { muted, hint, attrs };
 }
 
-function renderStandardOptions(cities, selected, decorate) {
-    return cities.map((city) => {
+function renderStandardOptions(cities, selected, decorate, allowAll = false) {
+    const allOption = allowAll ? `<option value=""${!selected ? ' selected' : ''}>Tüm şehirler</option>` : '';
+    return allOption + cities.map((city) => {
         const current = city.marketApiName === selected ? ' selected' : '';
         const { hint, attrs } = optionMeta(city, decorate);
         const suffix = hint ? ` · ${hint}` : '';
@@ -94,7 +96,7 @@ function renderHorizontalNodes(cities, selected, decorate, crests = false) {
                 aria-pressed="${pressed ? 'true' : 'false'}"
                 aria-label="${escapeHtml(title)}"
                 data-app-tooltip="${escapeHtml(title)}">
-                ${crests ? `<img class="city-crest" src="assets/cities/${escapeHtml(cityKey(city))}.png" alt="" aria-hidden="true">` : ''}
+                ${crests && city.iconHtml ? `<span class="city-crest" aria-hidden="true">${city.iconHtml}</span>` : crests ? `<img class="city-crest" src="assets/cities/${escapeHtml(cityKey(city))}.png" alt="" aria-hidden="true">` : ''}
                 <span class="city-map-tip" aria-hidden="true">${escapeHtml(city.displayName)}</span>
             </button>
         `;
@@ -150,20 +152,23 @@ export function cityFieldHtml(opts) {
         className = 'farming-city-field',
         decorate,
         order,
-        disabled = false
+        disabled = false,
+        allowAll = false,
+        showAllButton = false,
+        style = getCityPickerStyle()
     } = opts;
 
-    const style = getCityPickerStyle();
+    const allButton = allowAll && showAllButton ? `<button type="button" class="filter-selection-button city-all-button" data-city-all aria-pressed="${!selected}" aria-label="${escapeHtml(label)}: tümü">Tümü</button>` : '';
     const list = orderedCities(Array.isArray(cities) ? cities : loadActiveCities(), order);
 
     if (style === 'buttons' || style === 'crests') {
         return `
             <div class="city-field city-field--horizontal${style === 'crests' ? ' city-field--crests' : ''} ${escapeHtml(className)}" data-city-field="${escapeHtml(id)}" data-city-disabled="${disabled}">
                 <span class="city-field-label" id="${escapeHtml(id)}-label">${escapeHtml(label)}</span>
-                <div class="city-map city-map--horizontal" role="group" aria-labelledby="${escapeHtml(id)}-label" style="--city-picker-count:${list.length}">
+                ${allButton}<div class="city-map city-map--horizontal" role="group" aria-labelledby="${escapeHtml(id)}-label" style="--city-picker-count:${list.length}">
                     ${renderHorizontalNodes(list, selected, decorate, style === 'crests')}
                 </div>
-                <input type="hidden" value="${escapeHtml(selected ?? '')}" data-city-input>
+                <input type="hidden" value="${escapeHtml(selected ?? '')}" data-city-input data-city-allow-all="${allowAll}">
             </div>
         `;
     }
@@ -175,17 +180,17 @@ export function cityFieldHtml(opts) {
                 <div class="city-map" role="group" aria-labelledby="${escapeHtml(id)}-label">
                     ${renderDiagonalNodes(list, selected, decorate)}
                 </div>
-                <input type="hidden" value="${escapeHtml(selected ?? '')}" data-city-input>
+                ${allButton}<input type="hidden" value="${escapeHtml(selected ?? '')}" data-city-input data-city-allow-all="${allowAll}">
             </div>
         `;
     }
 
     return `
         <div class="form-floating city-field city-field--standard ${escapeHtml(className)}" data-city-field="${escapeHtml(id)}">
-            <select class="form-select is-filled" id="${escapeHtml(id)}" data-city-input${disabled ? ' disabled' : ''}>
-                ${renderStandardOptions(list, selected, decorate)}
+            <select class="form-select is-filled" id="${escapeHtml(id)}" data-city-input data-city-allow-all="${allowAll}"${disabled ? ' disabled' : ''}>
+                ${renderStandardOptions(list, selected, decorate, allowAll)}
             </select>
-            <label for="${escapeHtml(id)}">${escapeHtml(label)}</label>
+            <label for="${escapeHtml(id)}">${escapeHtml(label)}</label>${allButton}
         </div>
     `;
 }
@@ -214,6 +219,8 @@ export function setCityFieldValue(container, id, value) {
         input.value = value ?? '';
     }
     syncCityBackground(container);
+    const allButton = field?.querySelector('[data-city-all]');
+    allButton?.setAttribute?.('aria-pressed', String(!value));
     if (!field?.classList.contains('city-field--horizontal') && !field?.classList.contains('city-field--diagonal')) {
         return;
     }
@@ -271,7 +278,7 @@ export function syncCityField(container, id, opts) {
 
     const select = field.querySelector('select');
     if (select) {
-        select.innerHTML = renderStandardOptions(list, selected, decorate);
+        select.innerHTML = renderStandardOptions(list, selected, decorate, select.dataset.cityAllowAll === 'true');
         select.value = selected ?? '';
         select.classList.toggle('is-filled', Boolean(selected));
     }
@@ -282,9 +289,10 @@ const cityChangeHandlers = new WeakMap();
 function changeCityField(container, field, value) {
     const fields = [...container.querySelectorAll('[data-city-field]')];
     // Snapshot bindings before callbacks: a tool may render new fields on change.
-    const targets = (fields[0] === field ? fields : [field]).filter((target) => {
+    const targets = (fields[0] === field && field.dataset.citySyncPeers !== 'false' ? fields : [field]).filter((target) => {
         const input = target.querySelector('[data-city-input]');
         if (!input || input.disabled || target.dataset.cityDisabled === 'true') return false;
+        if (value === '') return input.dataset.cityAllowAll === 'true';
         return input.tagName === 'SELECT'
             ? [...input.options].some((option) => option.value === value && !option.disabled)
             : [...target.querySelectorAll('[data-city-value]')].some((node) => node.dataset.cityValue === value && !node.disabled);
@@ -295,14 +303,23 @@ function changeCityField(container, field, value) {
     }
 }
 
-export function bindCityField(container, id, onChange) {
+function clickedCityValue(field, node) {
+    const input = field.querySelector('[data-city-input]');
+    const value = node.dataset.cityValue || '';
+    return input?.dataset.cityAllowAll === 'true' && input.value === value ? '' : value;
+}
+
+/** syncPeers=false keeps route endpoints independent while preserving default operating-city synchronization. */
+export function bindCityField(container, id, onChange, { syncPeers = true } = {}) {
     const field = container.querySelector(`[data-city-field="${CSS.escape(id)}"]`);
     syncCityBackground(container);
     if (!field || field.dataset.cityBound === 'on') {
         return;
     }
+    field.dataset.citySyncPeers = String(syncPeers);
     cityChangeHandlers.set(field, onChange);
     field.dataset.cityBound = 'on';
+    field.querySelector('[data-city-all]')?.addEventListener('click', () => changeCityField(container, field, ''));
     field.querySelectorAll('button').forEach((node) => { node.disabled = field.dataset.cityDisabled === 'true'; });
 
     if (field.classList.contains('city-field--horizontal')) {
@@ -311,7 +328,7 @@ export function bindCityField(container, id, onChange) {
             if (!node || node.disabled || !field.contains(node)) {
                 return;
             }
-            const value = node.dataset.cityValue || '';
+            const value = clickedCityValue(field, node);
             changeCityField(container, field, value);
         });
         return;
@@ -323,7 +340,7 @@ export function bindCityField(container, id, onChange) {
             if (!node || node.disabled || !field.contains(node)) {
                 return;
             }
-            const value = node.dataset.cityValue || '';
+            const value = clickedCityValue(field, node);
             changeCityField(container, field, value);
         });
         return;

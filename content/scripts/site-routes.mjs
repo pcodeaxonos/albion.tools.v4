@@ -5,6 +5,8 @@ const admin = (id, source, path, title, nav) => ({ id, kind: 'admin', source, pa
 const tool = (id, source, path, title, description, icon, addedAt, nav, frequent = false) => ({ id, kind: 'tool', source, path, title, description, icon, addedAt, nav, frequent });
 
 export const SITE_ROUTES = [
+    tool('flipper', 'tools/flipper/index.html', 'tools/flipper', 'Flipper', 'Şehirler arası ve Black Market arbitrajı; net kâr ve taşıma sepeti.', '⚖️', '2026-10-11', { label: 'Flipper', group: 'Piyasa', order: 46, visible: true }),
+    tool('decision-engine', 'pages/tools/decision-engine/index.html', 'pages/tools/decision-engine', 'Karar Motoru', 'Gerçek teklifler ve tariflerle alış, satış ve craft yollarını karşılaştırır.', '⚖️', '2026-10-10', { label: 'Karar Motoru', group: 'Piyasa', order: 43, visible: true }),
     tool('laborer-contract', 'pages/tools/laborer-contract/index.html', 'pages/tools/laborer-contract', 'Laborer Contract', 'Contract net satış değeri ve doğrulanmış mekaniklerle tier karşılaştırması.', '📜', '2026-10-01', { label: 'Laborer Contract', group: 'Üretim', order: 85, visible: true }),
     page('home', 'index.html', '', 'Home', { label: 'Home', group: 'pages', order: 10, visible: true }),
     admin('db', 'pages/admin/db/index.html', 'pages/admin/db', 'Veritabanı', { label: 'Veritabanı', group: 'pages', order: 20, visible: true }),

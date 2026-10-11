@@ -1,3 +1,4 @@
+import { itemNameHtml } from '../components/item-name.js';
 import { initForms } from '../components/forms.js';
 import { showToast } from '../components/toast.js';
 import { toolPageHtml } from '../components/tool-page.js';
@@ -165,7 +166,7 @@ function priceField(item, intent) {
             <input id="${fieldId}" class="form-control" type="number" min="1" step="1" data-price-item="${esc(item)}" data-price-intent="${intent}" value="${esc(String(value))}" placeholder=" " aria-label="${esc(itemLabel(item))} manuel ${intent === 'buy' ? 'alış' : 'satış'} fiyatı">
             <label for="${fieldId}">Manuel ${intent === 'buy' ? 'alış' : 'satış'} fiyatı</label>
         </div>
-        <small class="laborer-price-meta">${esc(itemLabel(item))} · ${esc(price.city)} · ${intent === 'buy' ? price.side === 'buy' ? 'Buy Order' : 'Buy' : price.side === 'sell' ? 'Sell Order' : 'Sell'} · ${manual ? 'Manuel fiyat' : status ? 'Canlı fiyat: Yok' : 'Canlı'} · ${esc(formatDateTime(price.date, { empty: 'Tarih yok' }))}${status ? ` · ${esc(status)}` : ''}</small>
+        <small class="laborer-price-meta">${itemNameHtml(itemLabel(item))} · ${esc(price.city)} · ${intent === 'buy' ? price.side === 'buy' ? 'Buy Order' : 'Buy' : price.side === 'sell' ? 'Sell Order' : 'Sell'} · ${manual ? 'Manuel fiyat' : status ? 'Canlı fiyat: Yok' : 'Canlı'} · ${esc(formatDateTime(price.date, { empty: 'Tarih yok' }))}${status ? ` · ${esc(status)}` : ''}</small>
         ${manual ? `<button type="button" class="btn btn-sm btn-secondary" data-price-reset="${esc(item)}" data-price-intent="${intent}">Canlı fiyata dön</button>` : ''}
     </div>`;
 }
@@ -230,7 +231,7 @@ function renderPriceManager(entries) {
 function selectedSummary(row) {
     const e = row.economics;
     const unknownProfit = !Number.isFinite(e.profit);
-    return `<div class="laborer-detail-identity">${itemIconHtml(row.item, { size: 64 })}<div><strong>T${row.tier}</strong><p>${esc(itemLabel(row.item))}</p></div><span class="laborer-price-status" data-economic-price-status="${row.priceState.status}">${esc(economicPriceStatus(row))}</span></div>
+    return `<div class="laborer-detail-identity">${itemIconHtml(row.item, { size: 64 })}<div><strong>T${row.tier}</strong><p>${itemNameHtml(itemLabel(row.item))}</p></div><span class="laborer-price-status" data-economic-price-status="${row.priceState.status}">${esc(economicPriceStatus(row))}</span></div>
         ${metricList([
             ['Net kâr', formatSilver(e.profit)],
             ['Net satış', formatSilver(netSale(row.sale, quantity(), state.premium))],
@@ -271,7 +272,7 @@ function detail(row, rows) {
             ['Cycle / journal', Number.isFinite(e.cycles) ? `${e.cycles} / ${e.journals}` : '—'],
             ['Planlama günü', formatQuantity(e.days)],
             ['Gerçek job süresi (saat)', formatQuantity(e.actualHours)]
-        ]) + (p.status === 'ok' ? `<ol class="laborer-plan-sequence">${p.sequence.map((cycle) => `<li>T${cycle.from.tier} → T${cycle.to.tier}: ${esc(itemLabel(cycle.journal))} · expected fame ${formatQuantity(cycle.fame)} · threshold ${formatQuantity(cycle.threshold ?? mechanics().stages[cycle.from.tier].requiredFame)} · carry-over ${formatQuantity(cycle.to.progress)} · brüt ${formatSilver(cycle.economics?.gross)} · reward ${formatSilver(cycle.economics?.rewardNet)} · net ${formatSilver(cycle.economics?.net)}</li>`).join('')}</ol>` : '<p class="calc-note">Journal sırası üretilemedi.</p>'))}
+        ]) + (p.status === 'ok' ? `<ol class="laborer-plan-sequence">${p.sequence.map((cycle) => `<li>T${cycle.from.tier} → T${cycle.to.tier}: ${itemNameHtml(itemLabel(cycle.journal))} · expected fame ${formatQuantity(cycle.fame)} · threshold ${formatQuantity(cycle.threshold ?? mechanics().stages[cycle.from.tier].requiredFame)} · carry-over ${formatQuantity(cycle.to.progress)} · brüt ${formatSilver(cycle.economics?.gross)} · reward ${formatSilver(cycle.economics?.rewardNet)} · net ${formatSilver(cycle.economics?.net)}</li>`).join('')}</ol>` : '<p class="calc-note">Journal sırası üretilemedi.</p>'))}
         ${disclosure('reward', 'Reward', metricList([['Toplam reward net', formatSilver(e.rewardNet)], ['Reward yield üst sınırı', esc(String(data.maxRewardYield))]]) + renderJournalEconomics())}
         ${disclosure('fees', 'Vergi', `<p class="calc-note">${esc(feeMetaText(state.premium))}</p><p class="calc-note">${state.sellSide === 'sell' ? 'Satış emri: sell −1 ve setup.' : 'Anında satış: buy, setup yok.'}</p>`)}
         ${disclosure('continue', 'Sonraki tiera devam', c?.status === 'ok' ? `<p class="calc-note">Bu bölüm ek kârdır. Toplam net kâr ve kâr/slot/gün ile aynı sonuç değildir.</p>${metricList([
@@ -393,9 +394,9 @@ function renderJournalEconomics() {
     const validCount = Number.isSafeInteger(count) && count > 0;
     const firstCapital = cycle.status === 'ok' && validCount && Number.isFinite(acquisition()) && Number.isFinite(setup) ? (acquisition() + cycle.gross) * count + setup : null;
     return `<section class="laborer-journal-content">
-        <p class="calc-note">${esc(itemLabel(journal.filled || journal.item))} · ${resolution.source === 'observed-manual' ? 'Gözlenen cycle' : `Beklenen cycle · return yield ${state.returnYield}%`} · laborer fame ${formatQuantity(resolution.expectedLabourerFame)}. Gerçek ölçüm için tüm adetleri gir; dönmeyen asset için 0 kullan.</p>
+        <p class="calc-note">${itemNameHtml(itemLabel(journal.filled || journal.item))} · ${resolution.source === 'observed-manual' ? 'Gözlenen cycle' : `Beklenen cycle · return yield ${state.returnYield}%`} · laborer fame ${formatQuantity(resolution.expectedLabourerFame)}. Gerçek ölçüm için tüm adetleri gir; dönmeyen asset için 0 kullan.</p>
 
-        ${journal.filled ? `<p class="calc-note">${esc(itemLabel(journal.filled))} alış fiyatı: ${esc(priceStatus(quote(journal.filled, 'buy')))} · ${formatSilver(quote(journal.filled, 'buy').price)}. Düzenleme fiyat listesindedir.</p>` : '<p class="calc-note">Filled journal item kimliği doğrulanamadı.</p>'}
+        ${journal.filled ? `<p class="calc-note">${itemNameHtml(itemLabel(journal.filled))} alış fiyatı: ${esc(priceStatus(quote(journal.filled, 'buy')))} · ${formatSilver(quote(journal.filled, 'buy').price)}. Düzenleme fiyat listesindedir.</p>` : '<p class="calc-note">Filled journal item kimliği doğrulanamadı.</p>'}
         <div class="table-responsive calc-table-wrap"><table class="table table-striped calc-table"><thead><tr><th>Dönen asset</th><th>Gerçek adet / cycle / laborer</th><th>Birim fiyat / net değer</th></tr></thead><tbody>
         ${rewardAssets(journal).map((item) => {
             const amount = state.rewardQuantities[journal.item]?.[item] ?? '';
@@ -403,12 +404,12 @@ function renderJournalEconomics() {
             const valid = amount !== '' && Number.isFinite(Number(amount)) && Number(amount) >= 0;
             const value = valid ? Number(amount) === 0 ? 0 : item === 'SILVER' ? Number(amount) : priceIssue(q) ? null : saleProceeds(q.price, saleOptions()) * Number(amount) : null;
             const priceText = item === 'SILVER' ? 'Gümüş doğrudan' : `${esc(priceStatus(q))} · ${formatSilver(q.price)}`;
-            return `<tr><td>${item === 'SILVER' ? 'Silver (fee yok)' : esc(itemLabel(item))}${item === journal.empty ? ' · Yalnız gerçekten döndüyse' : ''}</td><td><input class="form-control" type="number" min="0" step="any" data-reward-quantity="${esc(item)}" value="${esc(String(amount))}" placeholder="Dönmediyse 0" aria-label="${esc(itemLabel(item))} gerçek dönüş adedi"></td><td>${priceText}<p class="calc-note">Net / laborer: ${formatSilver(value)}</p></td></tr>`;
+            return `<tr><td>${item === 'SILVER' ? 'Silver (fee yok)' : itemNameHtml(itemLabel(item))}${item === journal.empty ? ' · Yalnız gerçekten döndüyse' : ''}</td><td><input class="form-control" type="number" min="0" step="any" data-reward-quantity="${esc(item)}" value="${esc(String(amount))}" placeholder="Dönmediyse 0" aria-label="${esc(itemLabel(item))} gerçek dönüş adedi"></td><td>${priceText}<p class="calc-note">Net / laborer: ${formatSilver(value)}</p></td></tr>`;
         }).join('')}</tbody></table></div>
         <button type="button" class="btn btn-sm btn-secondary" data-rewards-zero>Dönmeyen asset alanlarını 0 yap</button>
         <p class="calc-note">${cycle.status === 'ok' ? `Laborer başına: journal brüt ${formatSilver(cycle.gross)} − reward net ${formatSilver(cycle.rewardNet)} = net cycle maliyeti ${formatSilver(cycle.net)}; cycle net getirisi ${formatSilver(-cycle.net)}. ${validCount ? `${formatQuantity(count)} laborer: ${formatSilver(cycle.net * count)} net maliyet; ilk journal sermayesi ${formatSilver(cycle.gross * count)}.` : 'Geçerli laborer adedi gerekli.'}` : esc((cycle.issues || []).join(' '))}</p>
         <p class="calc-note">İlk cycle başlangıç sermayesi (edinim + journal + setup): ${formatSilver(firstCapital)}. Bu panel tek cycle ölçümüdür; planlama yield senaryosu seçili tier detaylarında gösterilir.</p>
-        <details data-laborer-disclosure="journal-reference"><summary>Journal referans verisi ve varsayımlar</summary><p class="calc-note">Fame Capacity ${formatQuantity(journal.fillFame)} · Dump base loot ${formatQuantity(journal.baseLootAmount)}. Bunlar tier progression eşikleri değildir. Expected loot: base loot × return yield × normalize weight × item amount. Kabul edilen journal ID’leri doğrudan buildings.xml listesinden gelir. Happiness için ayrı XP çarpanı kullanılmaz.</p><ul>${journal.loot.map((loot) => `<li>${esc(itemLabel(loot.item))}: ${formatQuantity(loot.amount)} miktar / ${formatQuantity(loot.weight)} weight</li>`).join('')}</ul></details>
+        <details data-laborer-disclosure="journal-reference"><summary>Journal referans verisi ve varsayımlar</summary><p class="calc-note">Fame Capacity ${formatQuantity(journal.fillFame)} · Dump base loot ${formatQuantity(journal.baseLootAmount)}. Bunlar tier progression eşikleri değildir. Expected loot: base loot × return yield × normalize weight × item amount. Kabul edilen journal ID’leri doğrudan buildings.xml listesinden gelir. Happiness için ayrı XP çarpanı kullanılmaz.</p><ul>${journal.loot.map((loot) => `<li>${itemNameHtml(itemLabel(loot.item))}: ${formatQuantity(loot.amount)} miktar / ${formatQuantity(loot.weight)} weight</li>`).join('')}</ul></details>
         <p class="calc-note">Setup ayrı: ${formatSilver(setup)}. ${setup == null ? 'Yeni setup toplam bedeli gerekli.' : ''} Gözlenen cycle değerlemesi gelecekteki rastgele reward’ları garanti etmez; cycle süresi, progression ve günlük kâr bu panelden türetilmez.</p></section>`;
 }
 

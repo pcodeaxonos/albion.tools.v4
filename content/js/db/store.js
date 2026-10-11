@@ -6,7 +6,7 @@ const SEED_REVISION_KEY = STORAGE_PREFIX + 'seedRevision';
 // Page registry now owns stable ids, paths, and navigation metadata.
 // Re-seed navigation metadata so existing browsers receive canonical
 // /tools/* and /admin/* routes instead of their previously cached paths.
-const SEED_REVISION = 38;
+const SEED_REVISION = 40;
 const FIXED_PRICE_MIGRATION_REVISION = 35;
 const FIXED_PRICE_LEGACY_CATALOG_CUTOFF = Date.parse('2026-09-24T21:45:13+03:00');
 const FIXED_PRICE_LEGACY_ITEM_NAMES = Object.freeze({
@@ -104,7 +104,8 @@ function persistRows(tableName, rows, { allowMemory = true } = {}) {
 function applySeedRevision() {
     const current = Number(localStorage.getItem(SEED_REVISION_KEY) || '1');
     if (current < SEED_REVISION) {
-        for (const tableName of RESEED_TABLES) {
+            // Revisions 39–40 add tool routes; only refresh navigation catalogs.
+            for (const tableName of current >= 38 ? ['siteTools', 'sitePages'] : RESEED_TABLES) {
             localStorage.removeItem(storageKey(tableName));
             memoryStore.delete(tableName);
         }

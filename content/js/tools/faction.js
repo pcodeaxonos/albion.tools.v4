@@ -1,3 +1,4 @@
+import { itemNameHtml } from '../components/item-name.js';
 import { toolPageHtml } from '../components/tool-page.js';
 import { escapeHtml } from '../utils/utils.js';
 import { initNav } from '../core/nav.js';
@@ -373,6 +374,7 @@ function renderVendorExplain(key, { hovered } = {}) {
     return explainPanelHtml({
         icon: itemIcon,
         title: itemLabel(row.item.uniqueName, row.item.label),
+        copyName: itemLabel(row.item.uniqueName, row.item.label),
         hint: explainHint(hovered),
         flow: explainFlow([
             { icon: itemIcon, label: 'Satış / puan', value: row.sellPoint, tone: 'sell' },
@@ -452,6 +454,7 @@ function renderCapeExplain(key, { hovered } = {}) {
         explainStep({
             icon: capeIcon,
             label: 'Düz cape',
+            copyName: itemLabel(row.item.capeMat),
             note: 'Crest takılmadan önceki cape alış fiyatı',
             result: row.capeQuote?.price,
             resultKind: 'price',
@@ -472,6 +475,7 @@ function renderCapeExplain(key, { hovered } = {}) {
         explainStep({
             icon: crestIcon,
             label: 'Crest',
+            copyName: itemLabel(row.item.crest),
             note: 'Crest return rate almaz',
             result: row.crestQuote?.price,
             resultKind: 'price',
@@ -514,6 +518,7 @@ function renderCapeExplain(key, { hovered } = {}) {
     return explainPanelHtml({
         icon: outIcon,
         title: row.item.label,
+        copyName: row.item.label,
         hint: explainHint(hovered),
         flow: explainFlow([
             { icon: outIcon, label: 'Maliyet', value: row.cost, tone: 'cost' },
@@ -656,7 +661,7 @@ function renderVendorTable() {
                 <span class="ava-item">
                     ${itemIconHtml(row.item.uniqueName)}
                     <span>
-                        <span class="ava-item-name">${escapeHtml(itemLabel(row.item.uniqueName, row.item.label))}</span>
+                        <span class="ava-item-name">${itemNameHtml(itemLabel(row.item.uniqueName, row.item.label))}</span>
                         <span class="ava-item-meta">${row.item.points.toLocaleString('tr-TR')} puan</span>
                     </span>
                 </span>
@@ -725,7 +730,7 @@ function renderCapeTable() {
                     <span class="ava-item">
                         ${itemIconHtml(row.item.uniqueName)}
                         <span>
-                            <span class="ava-item-name">${escapeHtml(row.item.label)}${bonusMark}</span>
+                            <span class="ava-item-name">${itemNameHtml(row.item.label)}${bonusMark}</span>
                             <span class="ava-item-meta">${row.item.points.toLocaleString('tr-TR')} puan · RR ${formatPct(row.rr)}</span>
                         </span>
                     </span>

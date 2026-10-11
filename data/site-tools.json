@@ -1,5 +1,31 @@
 [
   {
+    "id": "flipper",
+    "title": "Flipper",
+    "description": "Şehirler arası ve Black Market arbitrajı; net kâr ve taşıma sepeti.",
+    "icon": "⚖️",
+    "addedAt": "2026-10-11",
+    "frequent": false,
+    "path": "tools/flipper",
+    "navLabel": "Flipper",
+    "navGroup": "Piyasa",
+    "navOrder": 46,
+    "navVisible": true
+  },
+  {
+    "id": "decision-engine",
+    "title": "Karar Motoru",
+    "description": "Gerçek teklifler ve tariflerle alış, satış ve craft yollarını karşılaştırır.",
+    "icon": "⚖️",
+    "addedAt": "2026-10-10",
+    "frequent": false,
+    "path": "pages/tools/decision-engine",
+    "navLabel": "Karar Motoru",
+    "navGroup": "Piyasa",
+    "navOrder": 43,
+    "navVisible": true
+  },
+  {
     "id": "laborer-contract",
     "title": "Laborer Contract",
     "description": "Contract net satış değeri ve doğrulanmış mekaniklerle tier karşılaştırması.",

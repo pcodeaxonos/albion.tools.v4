@@ -1,3 +1,4 @@
+import { itemNameHtml } from './item-name.js';
 import { escapeHtml } from '../utils/utils.js';
 
 const PRICE_KINDS = new Set(['mail_sell', 'instant_sell']);
@@ -16,7 +17,7 @@ export function tradeHistorySeries(trades, resolveCity) {
 
 export function tradeHistoryChartHtml(series, { itemName, formatPrice, formatDate }) {
     if (!itemName) return '<p class="trades-empty">Grafik için fiyat önerilerinden bir item seçin.</p>';
-    const heading = `<h3>${escapeHtml(itemName)} · Fiyat geçmişi</h3>`;
+    const heading = `<h3>${itemNameHtml(itemName)} · Fiyat geçmişi</h3>`;
     if (!series.length) return `${heading}<p class="trades-empty">Seçili filtrelerde fiyat grafiği için işlem yok.</p>`;
     let first = Infinity, last = -Infinity, low = Infinity, high = -Infinity;
     for (const city of series) for (const point of city.points) {

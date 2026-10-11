@@ -1,3 +1,4 @@
+import { itemNameHtml } from '../components/item-name.js';
 import { toolPageHtml } from '../components/tool-page.js';
 import { escapeHtml } from '../utils/utils.js';
 import { initNav } from '../core/nav.js';
@@ -172,7 +173,7 @@ function renderAnalysisCard(row, rank, { reorderable = false, isFirst = false, i
                 <span class="bonus-analysis-rank is-rank-${rank}" aria-label="Birim getiriye göre sıra ${rank}"><svg viewBox="0 0 40 34" aria-hidden="true"><path fill="currentColor" d="M4 10l8 7 8-12 8 12 8-7-4 17H8zM8 29h24v3H8z"/><g fill="currentColor"><circle cx="4" cy="8" r="2.5"/><circle cx="12" cy="14" r="2"/><circle cx="20" cy="4" r="2.5"/><circle cx="28" cy="14" r="2"/><circle cx="36" cy="8" r="2.5"/></g></svg><b>${rank}</b></span>
                 <div class="bonus-analysis-icon">${itemIconHtml(recipe.uniqueName, { size: 96, className: 'item-icon' })}</div>
                 <div class="bonus-analysis-card-details">
-                    <div class="bonus-analysis-item-copy"><h3>${escapeHtml(recipe.label)}</h3><p>${escapeHtml(getBonusFamilyLabel(recipe.familyKey))}</p><span class="bonus-analysis-profit ${profitTone}"><small>Kâr / Adet</small><b>${profitLabel}${percent !== null ? ` <em>(%${percent})</em>` : ''}</b></span></div>
+                    <div class="bonus-analysis-item-copy"><h3>${itemNameHtml(recipe.label)}</h3><p>${escapeHtml(getBonusFamilyLabel(recipe.familyKey))}</p><span class="bonus-analysis-profit ${profitTone}"><small>Kâr / Adet</small><b>${profitLabel}${percent !== null ? ` <em>(%${percent})</em>` : ''}</b></span></div>
                     <dl class="bonus-analysis-prices">
                         <div class="${missingMarketPrice ? 'is-missing-market-price' : ''}"><dt>BM Fiyatı${missingMarketPrice ? '<span class="bonus-analysis-price-warning" role="img" aria-label="BM fiyatı yok" data-app-tooltip="BM fiyatı yok">!</span>' : ''}</dt><dd>${market > 0 ? number(market) : '—'}</dd></div>
                         <div><dt>Birim Getiri</dt><dd>${materialYield > 0 ? number(materialYield) : '—'}</dd></div>
