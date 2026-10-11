@@ -1,0 +1,304 @@
+import { initNav } from '../core/nav.js';
+import { initStore, getAll } from '../db/store.js';
+import { cityFieldHtml, bindCityField, getCityFieldValue, setCityFieldValue } from '../components/city-picker.js';
+import { loadActiveCities } from '../core/cities.js';
+import { decisionFees } from '../core/decision-data.js';
+import { isMarketCatalogItem } from '../core/market-catalog.mjs';
+import { BLACK_MARKET, optimizeLoad, FLIPPER_SORTS, sortFlips } from '../core/flipper.mjs';
+import { scanFlips } from '../core/flipper-data.js';
+import { itemNameHtml } from '../components/item-name.js';
+import { itemIconHtml, itemLabel } from '../components/item-icon.js';
+import { toolPageHtml } from '../components/tool-page.js';
+import { pageInfoCardsHtml } from '../components/page-info.js';
+import { groupedIntegerFieldHtml, bindGroupedIntegerFields, numericInputValue } from '../components/numeric-field.js';
+import { initFloatingLabels } from '../components/forms.js';
+import { initTooltips } from '../components/tooltip.js';
+import { bindCalcSticky } from '../utils/calc-sticky.js';
+import { escapeHtml as esc } from '../utils/utils.js';
+import { formatAge } from '../utils/format.js';
+import { bindLivePrices } from '../core/price-live.js';
+import { recordCurrentToolVisit } from '../core/usage.js';
+const root = document.querySelector('[data-flipper]');
+const money = n => Number.isFinite(n) ? n.toLocaleString('tr-TR', { maximumFractionDigits: 0 }) : '—';
+const pct = n => Number.isFinite(n) ? `%${(n*100).toLocaleString('tr-TR', { maximumFractionDigits: 1 })}` : '—';
+const spikeBadgeHtml = row => row.spikes?.length ? `<span class="badge flipper-spike-badge" data-app-tooltip="${esc(row.spikes.map(spike => `${spike.city} ${spike.side}: ${money(spike.reference)} referansa karşı ${money(spike.price)} (+%${Math.round((spike.ratio - 1)*100)}). Aynı teklif yönünün tarihsel referansından en az %35 yüksek; gerçekleşmiş satış ortalaması değildir.`).join('\n'))}">Fiyat sıçraması</span>` : '';
+const roiBadgeHtml = row => {
+    const level = row.roi < 0 ? 'loss' : row.roi < .1 ? 'low' : row.roi < .3 ? 'medium' : 'high';
+    return `<span class="badge flipper-roi-badge is-${level}${row.safe ? '' : ' is-uncertain'}" data-app-tooltip="${esc(`Net kâr / toplam alış maliyeti. ${row.safe ? 'Görünen fiyatlara göre hesaplanır; gerçekleşen kazanç değildir.' : 'Riskli fiyat: bu oran doğrulanmış kazanç değildir.'}`)}">%${Math.round(row.roi * 100).toLocaleString('tr-TR')}</span>`;
+};
+const state = { rows: [], limits: {}, selected: '', sort: 'balanced', busy: false, scan: null, controller: null, basket: null };
+let items, cities, icons = {};
+let liveController = null, liveQueue = new Set();
+const icon = name => `<span class="flipper-icon" aria-hidden="true">${icons[name] || ''}</span>`;
+const SORT_ICONS = { balanced: 'compare', net: 'profit', roi: 'flip', recent: 'clock', cost: 'coins', confidence: 'confidence' };
+const input = (key,label,value,extra='') => `<div class="form-floating"><input class="form-control" data-filter="${key}" type="number" min="0" value="${value}" placeholder="${label}" aria-label="${label}" ${extra}><label>${label}</label></div>`;
+const DATA_AGES = [[30, '30 dk'], [60, '1 saat'], [360, '6 saat'], [0, 'Tümü']];
+const QUALITIES = [[1, 'Normal', 'No'], [2, 'Good', 'Go'], [3, 'Outstanding', 'Ou'], [4, 'Excellent', 'Ex'], [5, 'Masterpiece', 'Mp'], [0, 'Tümü']];
+const choiceFieldHtml = (key, label, options, stacked = false) => `<div class="price-side-field${stacked ? ' price-side-field--stacked' : ''}"><span class="price-side-label">${label}</span><div class="price-side${stacked ? ' price-side--wrap-labels' : ''}" role="group" aria-label="${label}">${options.map(([value, text, shortText = text], index) => `<button type="button" class="price-side-btn${index === 0 ? ' is-active' : ''}" data-choice-filter="${key}" data-choice-value="${value}" aria-pressed="${index === 0}" title="${text}" aria-label="${text}">${shortText}</button>`).join('')}</div><input type="hidden" data-filter="${key}" value="${options[0][0]}"></div>`;
+
+const CITY_FIELDS = { source: 'flipper-source', target: 'flipper-target' };
+const cityValue = key => getCityFieldValue(root, CITY_FIELDS[key]);
+const field = key => root.querySelector(`[data-filter="${key}"]`);
+const num = key => numericInputValue(field(key));
+const PREFERENCES_KEY = 'albiontools.v4.flipper.preferences';
+function savePreferences() {
+    const filters = Object.fromEntries([...root.querySelectorAll('[data-filter]')].map(input => [input.dataset.filter, numericInputValue(input)]));
+    try { localStorage.setItem(PREFERENCES_KEY, JSON.stringify({ filters, source: cityValue('source'), target: cityValue('target'), sort: state.sort })); } catch { /* Storage may be unavailable; controls remain usable. */ }
+}
+function restorePreferences() {
+    try {
+        const saved = JSON.parse(localStorage.getItem(PREFERENCES_KEY));
+        if (!saved || typeof saved !== 'object') return;
+        for (const [key, value] of Object.entries(saved.filters || {})) {
+            const input = field(key);
+            if (!input || !Number.isFinite(value) || value < 0) continue;
+            const choices = key === 'age' ? DATA_AGES : key === 'quality' ? QUALITIES : null;
+            if (choices && !choices.some(([id]) => id === value)) continue;
+            if (key === 'budget' && !Number.isSafeInteger(value)) continue;
+            input.value = value;
+            root.querySelectorAll(`[data-choice-filter="${key}"]`).forEach(button => {
+                const active = Number(button.dataset.choiceValue) === value;
+                button.classList.toggle('is-active', active); button.setAttribute('aria-pressed', String(active));
+            });
+        }
+        for (const key of Object.keys(CITY_FIELDS)) {
+            const allowed = ['', ...cities.map(city => city.marketApiName), ...(key === 'target' ? [BLACK_MARKET] : [])];
+            if (allowed.includes(saved[key])) setCityFieldValue(root, CITY_FIELDS[key], saved[key]);
+        }
+        if (FLIPPER_SORTS.some(option => option.id === saved.sort)) state.sort = saved.sort;
+    } catch { /* Ignore damaged or inaccessible preferences. */ }
+}
+function monitorHtml() {
+    return `<section class="flipper-monitor" data-status data-monitor-phase="idle" aria-label="Tarama izleme">
+        <div class="flipper-monitor-state" tabindex="0" data-monitor-state data-app-tooltip="Güncel teklifleri almak için Tara düğmesini kullanın. Örnek ve tarihsel fiyatlar anlık teklif yerine kullanılmaz."><span class="flipper-monitor-dot" aria-hidden="true"></span><strong data-monitor-label role="status">Hazır</strong><span data-monitor-progress>—</span></div>
+        <progress data-monitor-bar max="1" value="0" aria-label="Tarama ilerlemesi"></progress>
+        <dl><div tabindex="0" data-app-tooltip="Seçilen şehirler arasında aynı eşya kimliği, enchant ve kalitede eşleşen fiyat çiftleri. Pozitif veya güvenilir fırsat sayısı değildir."><dt>Eşleşme</dt><dd data-monitor-count>—</dd></div><div tabindex="0" data-app-tooltip="Son tamamlanan taramanın zamanı. Her teklifin kendi gözlem yaşı ayrıca değerlendirilir."><dt>Son tarama</dt><dd data-monitor-time>—</dd></div><div tabindex="0" data-app-tooltip="API gerçek emir derinliğini sağlamaz. Uygulanabilir adedi oyunda doğrulayın; kesin toplam kâr hesaplanmaz."><dt>Emir adedi</dt><dd>—</dd></div></dl>
+    </section>`;
+}
+function updateMonitor(phase, { done = 0, total = 0, message = '' } = {}) {
+    const monitor = root.querySelector('[data-status]');
+    monitor.dataset.monitorPhase = phase;
+    const labels = { idle: 'Hazır', scanning: 'Taranıyor', checking: 'Kontrol ediliyor', complete: 'Tamamlandı', partial: 'Eksik tarama', changed: 'Yeniden tara', error: 'Tarama hatası' };
+    const tips = { idle: 'Güncel teklifleri almak için Tara düğmesini kullanın. Örnek ve tarihsel fiyatlar anlık teklif yerine kullanılmaz.', scanning: 'Anlık alış ve satış teklifleri alınıyor.', checking: 'Fiyatlar alındı; tarihsel referans ve uç fiyat kontrolü sürüyor.', complete: 'Tarama tamamlandı. Fiyatlar emir miktarını veya satışın gerçekleşeceğini garanti etmez.', partial: 'Bazı fiyatlar veya tarihsel kontrol eksik. Liste tam piyasa kapsamı sağlamayabilir.', changed: 'Seçim veya canlı fiyat değişti. Yeniden tarayın ve emir limitlerini doğrulayın.', error: 'Fiyatlar alınamadı. Yeniden taramayı deneyin.' };
+    root.querySelector('[data-monitor-label]').textContent = labels[phase];
+    root.querySelector('[data-monitor-state]').dataset.appTooltip = message || tips[phase];
+    root.querySelector('[data-monitor-progress]').textContent = total ? `${done}/${total}` : ['complete','partial'].includes(phase) ? '100%' : '—';
+    root.querySelector('[data-monitor-bar]').value = ['complete','partial','checking'].includes(phase) ? 1 : total ? done / total : 0;
+    root.querySelector('[data-monitor-count]').textContent = state.scan ? money(state.rows.length) : '—';
+    const time = root.querySelector('[data-monitor-time]');
+    time.textContent = state.scan ? new Date(state.scan.fetchedAt).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' }) : '—';
+    time.parentElement.dataset.appTooltip = state.scan ? `Son tamamlanan tarama: ${new Date(state.scan.fetchedAt).toLocaleString('tr-TR')}. Tekliflerin gözlem yaşı ayrıca değerlendirilir.` : 'Henüz tamamlanan tarama yok.';
+}
+function layout() {
+    const targets = [...cities, { name: BLACK_MARKET, displayName: BLACK_MARKET, marketApiName: BLACK_MARKET, mapPosition: { x: 46, y: 68 }, iconHtml: icons['black-market'] }];
+    root.innerHTML = toolPageHtml({ key: 'flipper', head: `<section class="page-head" data-page-head="flipper"><h1>${icon('flipper')} Flipper</h1><p>Şehirler Arası Arbitraj</p></section>`, controls: `<section class="form-section"><div class="flipper-controls">
+    ${cityFieldHtml({ id: CITY_FIELDS.source, label: 'Nereden', selected: '', cities, allowAll: true, showAllButton: true, className: '' })}${cityFieldHtml({ id: CITY_FIELDS.target, label: 'Nereye', selected: BLACK_MARKET, cities: targets, allowAll: true, showAllButton: true, className: '' })}
+    ${groupedIntegerFieldHtml({ key: 'budget', label: 'Bütçe (gümüş)', value: 20000000 })}${input('capacity','Taşıma (kg)',950,'step="0.1"')}${input('roi','Min ROI (%)',10)}${choiceFieldHtml('age', 'Veri yaşı', DATA_AGES, true)}${choiceFieldHtml('quality', 'Kalite', QUALITIES, true)}
+    ${input('transport','Ek gider / adet',0,'step="0.01"')}<div class="form-actions"><button class="btn btn-primary" data-scan>${icon('scan')} Tara</button><button class="btn btn-secondary" data-fill>${icon('cart')} Yükümü Doldur</button></div>
+    </div></section>`, summary: monitorHtml(), resultClass: 'flipper-results result--sections', result: `<div class="flipper-metrics" data-metrics></div><div class="flipper-columns"><section class="flipper-list-panel"><div class="flipper-list-head"><h2>Fırsatlar <small data-count></small></h2><div class="price-side flipper-sort" role="group" aria-label="Sıralama">${FLIPPER_SORTS.map(option => `<button type="button" class="price-side-btn${option.id === state.sort ? ' is-active' : ''}" data-flipper-sort="${option.id}" aria-pressed="${option.id === state.sort}" aria-label="${option.label}" data-app-tooltip="${option.label}">${icon(SORT_ICONS[option.id])}</button>`).join('')}</div></div><div class="flipper-list" data-list></div></section><section class="flipper-detail" data-detail></section></div>
+    <section class="flipper-basket"><h2>${icon('cart')} Yükümü Doldur</h2><div data-basket>Detay panelinde oyunda gördüğünüz adet sınırı ve birim ağırlığı doğrulayın. Bilinmeyen ağırlık veya emir derinliği ile sepet oluşturulmaz.</div></section>
+    <section data-info data-flipper-info></section>` });
+    restorePreferences();
+    initNav(); initFloatingLabels(root); initTooltips(); bindGroupedIntegerFields(root);
+    for (const key of Object.keys(CITY_FIELDS)) bindCityField(root, CITY_FIELDS[key], () => filtersChanged(key), { syncPeers: false });
+    render();
+}
+function filtersChanged(key) {
+    liveController?.abort(); liveQueue.clear();
+    savePreferences();
+    if (['source','target','quality','age','transport'].includes(key)) { state.controller?.abort(); state.rows=[]; state.scan=null; state.limits={}; updateMonitor('changed'); }
+    state.basket=null; root.querySelector('[data-basket]').textContent='Filtreler değişti; sepeti yeniden hesaplayın.'; render();
+}
+function visibleRows() { return sortFlips(state.rows.filter(row => row.net > 0 && row.roi * 100 >= num('roi') && row.cost <= num('budget') && (!row.weight || row.weight <= num('capacity'))), state.sort); }
+function render(changed = null) {
+    root.querySelectorAll('[data-flipper-sort]').forEach(button => {
+        const active = button.dataset.flipperSort === state.sort;
+        button.classList.toggle('is-active', active);
+        button.setAttribute('aria-pressed', String(active));
+    });
+    const rows = visibleRows(), safe = rows.filter(row => row.safe);
+    const selected = rows.find(row => row.id === state.selected) || (changed && state.rows.find(row => row.id === state.selected)) || rows[0];
+    state.selected = selected?.id || '';
+    root.querySelector('[data-count]').textContent = `(${rows.length})`;
+    root.querySelector('[data-metrics]').innerHTML = [
+        ['profit','En iyi net / adet',safe.length ? money(Math.max(...safe.map(row => row.net))) : '—'],
+        ['order-book','Pozitif aday',String(rows.length)],['confidence','Güncel fiyat çifti',String(safe.length)],['risk','Riskli / eski kayıt',String(state.rows.filter(row => !row.safe).length)]
+    ].map(([symbol,label,value]) => `<div>${icon(symbol)}<span>${label}<strong>${value}</strong></span></div>`).join('');
+    const listHtml = rows.length ? rows.map(row => `<article class="flipper-opportunity ${row.id === selected?.id ? 'is-selected' : ''} ${row.safe ? '' : 'is-risk'}" data-select="${esc(row.id)}" tabindex="0" role="button" aria-label="${esc(itemLabel(row.itemId))} detayını aç" aria-pressed="${row.id === selected?.id}">
+    ${itemIconHtml(row.itemId,{ visual:true })}<div class="flipper-item"><h3>${itemNameHtml(itemLabel(row.itemId))}</h3><p>${esc(row.source)} → ${esc(row.target)}</p><div class="flipper-item-meta"><span class="badge bg-secondary" data-app-tooltip="Kalite ${row.quality}: kaynak ve hedef aynı kalitede eşleşir.">${QUALITIES.find(([value]) => value === row.quality)?.[1] || `Kalite ${row.quality}`}</span><small data-app-tooltip="Fiyat çiftindeki en eski teklifin gözlem yaşı. Emir derinliği bilinmiyor.">${esc(formatAge(row.ageMs))}</small>${row.safe || row.spikes?.length ? '' : `<span class="badge flipper-risk-badge" data-app-tooltip="${esc(row.reasons.join(' · ') || 'Eski veya aykırı fiyat; sepet hesabına alınmaz.')}">Riskli fiyat</span>`}${spikeBadgeHtml(row)}</div></div>
+    <div class="flipper-row-prices"><div class="flipper-price-cell"><small>Alış</small><strong>${money(row.buy)}</strong></div><div class="flipper-price-cell"><small>Satış</small><strong>${money(row.sell)}</strong></div><div class="flipper-price-cell ${row.safe ? 'flipper-profit' : 'flipper-warning'}"><small>Net / adet</small><strong>+${money(row.net)}</strong></div><div class="flipper-price-cell"><small>ROI</small>${roiBadgeHtml(row)}</div></div></article>`).join('') : '<p class="flipper-empty">Filtrelere uygun pozitif fırsat yok. Kaynak, hedef veya ROI filtresini değiştirin.</p>';
+    const list = root.querySelector('[data-list]');
+    if (!changed) list.innerHTML = listHtml;
+    else {
+        const scroll = list.scrollTop;
+        const template = document.createElement('template'); template.innerHTML = listHtml;
+        const old = new Map([...list.querySelectorAll('[data-select]')].map(node => [node.dataset.select, node]));
+        const nodes = [...template.content.children].map(node => {
+            const existing = old.get(node.dataset.select);
+            const row = rows.find(row => row.id === node.dataset.select);
+            return existing && !changed.has(row?.itemId) ? existing : node;
+        });
+        list.replaceChildren(...nodes); list.scrollTop = scroll;
+    }
+    list.style.setProperty('--flipper-scrollbar-width', `${list.offsetWidth - list.clientWidth}px`);
+    if (!changed || changed.has(selected?.itemId)) {
+        const detail = root.querySelector('[data-detail]');
+        const drafts = changed ? [...detail.querySelectorAll('[data-limit]')].map(input => [input.dataset.limit, input.value]) : [];
+        const focusedLimit = changed && detail.contains(document.activeElement) ? document.activeElement.dataset.limit : null;
+        const scroll = detail.scrollTop;
+        renderDetail(selected);
+        drafts.forEach(([key, value]) => { const input = detail.querySelector(`[data-limit="${key}"]`); if (input) input.value = value; });
+        if (focusedLimit) detail.querySelector(`[data-limit="${focusedLimit}"]`)?.focus({preventScroll:true});
+        if (changed) detail.scrollTop = scroll;
+    }
+    const fees = decisionFees();
+    root.querySelector('[data-flipper-info]').innerHTML = pageInfoCardsHtml([
+        { title: '1 · Anında alış', value: 'Kaynak şehir → Sell Min', tone: 'buy', lines: ['Kaynak pazardaki en düşük satış teklifinden alırsınız.'] },
+        { title: '2 · Anında satış', value: 'Hedef şehir → Buy Max', tone: 'sale', lines: ['Hedef pazardaki en yüksek alış teklifine satarsınız.'] },
+        { title: 'Masraflar', value: `Satış vergisi ${pct(fees.taxRate)}`, lines: ['Yeni emir açılmadığı için kurulum ücreti yok.', 'Ek gider, alış bütçesine dahil edilir ve net kârdan düşülür.'] },
+        { title: 'Riskleri kontrol edin', tone: 'warning', lines: ['Nakliye sırasında ürün kaybı yaşanabilir.', 'Fiyatlar taşıma sırasında değişebilir; görünen kâr garanti değildir.', 'Alış ve satış emirlerinin adetlerini oyunda doğrulayın.'] },
+        { title: 'Tarama durumu', value: state.scan ? new Date(state.scan.fetchedAt).toLocaleString('tr-TR') : 'Henüz tarama yapılmadı', tone: state.scan?.failed || state.scan?.historyError ? 'warning' : 'neutral', lines: [state.scan ? 'Son tarama zamanı' : 'Güncel fiyatları almak için Tara düğmesini kullanın.', state.scan?.historyError, state.scan?.failed ? `${state.scan.failed} istek grubu başarısız; tarama eksik.` : ''].filter(Boolean) }
+    ]);
+}
+function renderDetail(row) {
+    const target = root.querySelector('[data-detail]');
+    if (!row) { target.innerHTML = '<h2>Ürün detayı</h2><p>Bir fırsat seçin; alış, satış ve giderler burada gösterilir.</p>'; return; }
+    const limit = state.limits[row.id] || {};
+    const breakdown = [
+        { label: 'Alış', badge: 'Sell Min', value: row.buy, tone: 'buy', tip: 'Kaynak pazardaki en düşük satış teklifinden anında alış.' },
+        { label: 'Satış', badge: 'Buy Max', value: row.sell, tone: 'sale', tip: 'Hedef pazardaki en yüksek alış teklifine anında satış.' },
+        { label: 'Satış vergisi', badge: pct(row.tax / row.sell), value: -row.tax, tone: row.tax ? 'expense' : 'neutral', tip: 'Satış tutarından kesilen vergi. Yeni emir açılmadığı için kurulum ücreti yok.' },
+        { label: 'Ek gider / adet', value: -row.transport, tone: row.transport ? 'expense' : 'neutral' }
+    ];
+    target.innerHTML = `<div class="flipper-detail-title">${itemIconHtml(row.itemId,{visual:true})}<div><h2>${itemNameHtml(itemLabel(row.itemId))}</h2><p>${esc(row.source)} → ${esc(row.target)}</p><small>${esc(row.itemId)} · kalite ${row.quality} (aynı kimlik ve enchant)</small></div></div>
+    <strong class="flipper-lead ${row.safe ? 'flipper-profit' : 'flipper-warning'}">+${money(row.net)} <small>/ adet</small> ${roiBadgeHtml(row)}</strong>
+    <dl class="flipper-breakdown">${breakdown.map(({label,badge,value,tone,tip})=>`<div class="flipper-breakdown-${tone}"><dt>${label}${badge ? `<span class="badge" data-app-tooltip="${esc(tip)}">${badge}</span>` : ''}</dt><dd${tip && !badge ? ` data-app-tooltip="${esc(tip)}"` : ''}>${value > 0 && label === 'Net kâr / adet' ? '+' : ''}${money(value === 0 ? 0 : value)}</dd></div>`).join('')}</dl>
+    <section class="flipper-detail-notice">
+        <strong>${row.safe ? 'Emir miktarı doğrulanmalı' : 'Sepete uygun değil'}</strong>${spikeBadgeHtml(row)}
+        ${row.reasons.length ? `<ul>${row.reasons.map(reason=>`<li>${esc(reason.replace(/^sell:/, 'Kaynak:').replace(/^buy:/, 'Hedef:'))}</li>`).join('')}</ul>` : '<p>Güncel fiyatlar, satışın gerçekleşeceğini garanti etmez.</p>'}
+        ${row.target === BLACK_MARKET ? '<small tabindex="0" data-app-tooltip="Black Market kabulünü oyunda doğrulayın. Kaynak ve hedef aynı kaliteyle eşleşir; farklı kaliteye otomatik eşleştirme yapılmaz.">Black Market kabulünü oyunda kontrol edin.</small>' : ''}
+    </section>
+    <section class="flipper-verification">
+        <h3>Sepet için doğrula <span class="badge bg-secondary" tabindex="0" data-app-tooltip="Aynı fiyattaki kaynak ve hedef emirlerinin küçük adet sınırını girin. Aynı ürün farklı kaynaklardan seçildiğinde hedef emir limiti paylaşılır; sepet için yalnızca bir kaynak doğrulayın. Gerçek birim ağırlığı kullanın; bu değerlerle hesaplanan sepet bir senaryodur, kesin kazanç değildir." aria-label="Sepet doğrulama açıklaması">?</span></h3>
+        <p class="flipper-verification-help">Oyundaki adet sınırını ve birim ağırlığı girin.</p>
+        <div class="flipper-limit-fields"><div class="form-floating"><input class="form-control" type="number" min="1" step="1" data-limit="quantity" value="${limit.quantity || ''}" aria-label="Doğrulanan adet"><label>Doğrulanan adet</label></div><div class="form-floating"><input class="form-control" type="number" min="0.001" step="0.001" data-limit="weight" value="${limit.weight || row.weight || ''}" aria-label="Ağırlık kg/adet"><label>Ağırlık kg/adet</label></div></div><button class="btn btn-secondary" data-confirm ${row.safe ? '' : 'disabled'}>${icon('quality')} Adet ve ağırlığı doğrula</button><p data-limit-status role="status">${limit.quantity ? 'Sepet adayı doğrulandı.' : row.safe ? 'Doğrulamadan sepete eklenmez.' : 'Güncel ve güvenilir fiyat için yeniden tarayın.'}</p>
+    </section>`;
+    initFloatingLabels(target);
+}
+async function scan() {
+    liveController?.abort(); liveQueue.clear();
+    state.controller?.abort(); const controller = new AbortController(); state.controller = controller;
+    state.busy = true; state.rows = []; state.scan = null; state.limits = {}; state.basket = null;
+    root.querySelector('[data-basket]').textContent = 'Yeni tarama için adet ve ağırlıkları yeniden doğrulayın.';
+    render(); updateMonitor('scanning'); root.querySelector('[data-scan]').disabled = true;
+    try {
+        const target = cityValue('target');
+        const destinations = target ? [target] : [...cities.map(city => city.marketApiName), BLACK_MARKET];
+        const sources = (cityValue('source') ? [cityValue('source')] : cities.map(city=>city.marketApiName)).filter(city => destinations.some(destination => destination !== city));
+        if (!sources.length) throw new Error('Kaynak ve hedef farklı şehirler olmalı');
+        const catalog = target === BLACK_MARKET ? items.filter(item=>item.isEquipable) : items;
+        state.scan = await scanFlips({items:catalog,sources,targets:destinations,quality:num('quality') === 0 ? QUALITIES.filter(([value]) => value).map(([value]) => value).join(',') : field('quality').value,fees:decisionFees(),transport:num('transport'),maxAgeMs:num('age') === 0 ? undefined : num('age')*60000,signal:controller.signal,onProgress:(done,total)=>{ updateMonitor(done === total ? 'checking' : 'scanning', {done,total}); }});
+        state.rows = state.scan.rows;
+        updateMonitor(state.scan.failed || state.scan.historyError ? 'partial' : 'complete', { message: [state.scan.failed ? `${state.scan.failed} istek grubu başarısız; tarama eksik.` : '', state.scan.historyError].filter(Boolean).join(' ') }); render();
+    } catch(error) { if (!controller.signal.aborted) updateMonitor('error', {message:error.message}); }
+    finally { if (state.controller === controller) { state.busy=false;root.querySelector('[data-scan]').disabled=false; } }
+}
+function fill() {
+    const target = root.querySelector('[data-basket]');
+    try {
+        if (state.busy) throw new Error('Taramanın tamamlanmasını bekleyin');
+        const basket=optimizeLoad(visibleRows(),{budget:num('budget'),capacity:num('capacity'),limits:state.limits}); state.basket=basket;
+        if (!basket.lines.length) throw new Error('Uygun doğrulanmış sepet adayı yok. Detayda adet ve ağırlık girin.');
+        renderBasket(basket);
+    } catch(error) { target.textContent=error.message; }
+}
+function renderBasket(basket) {
+    const target = root.querySelector('[data-basket]');
+        const sale=basket.lines.reduce((sum,{row,qty})=>sum+row.sell*qty,0);
+        const expenses=basket.lines.reduce((sum,{row,qty})=>sum+(row.tax+row.transport)*qty,0);
+        target.innerHTML=`<p class="flipper-warning">Senaryo • Doğrulanan limitler ve görünen fiyatlar sabit kalırsa. Kesin kazanç değildir. ${basket.excluded} doğrulanmamış / riskli aday hariç.</p><div class="calc-table-wrap table-responsive"><table class="table calc-table"><thead><tr><th>Ürün / rota</th><th>Adet</th><th>Alış</th><th>Brüt satış</th><th>Gider</th><th>kg</th><th>Net</th></tr></thead><tbody>${basket.lines.map(({row,qty,weight})=>`<tr><td>${itemNameHtml(itemLabel(row.itemId))}<small>${esc(row.source)} → ${esc(row.target)}</small></td><td>${qty}</td><td>${money(row.buy*qty)}</td><td>${money(row.sell*qty)}</td><td>${money((row.tax+row.transport)*qty)}</td><td>${money(weight*qty)}</td><td class="flipper-profit">${money(row.net*qty)}</td></tr>`).join('')}</tbody></table></div><p>Alış ${money(basket.cost-basket.lines.reduce((s,{row,qty})=>s+row.transport*qty,0))} · Brüt satış ${money(sale)} · Gider ${money(expenses)} · Ağırlık ${money(basket.weight)} kg · <strong class="flipper-profit">Net ${money(basket.net)} · ${pct(basket.roi)} ROI</strong></p>`;
+        bindCalcSticky(target);
+}
+async function refreshLivePrices(detail) {
+    const touched = detail?.items?.length ? detail.items : state.rows.map(row => row.itemId);
+    touched.forEach(id => liveQueue.add(id));
+    if (liveController || !state.scan || state.busy) return;
+    const controller = new AbortController(); liveController = controller;
+    try {
+        while (liveQueue.size && !controller.signal.aborted) {
+            const changed = new Set(liveQueue); liveQueue.clear();
+            const existing = state.rows.filter(row => changed.has(row.itemId));
+            if (!existing.length) continue;
+            const result = await scanFlips({ items:items.filter(item => changed.has(item.uniqueName)), sources:[...new Set(existing.map(row => row.source))], targets:[...new Set(existing.map(row => row.target))], quality:[...new Set(existing.map(row => row.quality))].join(','), fees:decisionFees(), transport:num('transport'), maxAgeMs:num('age') ? num('age')*60000 : undefined, signal:controller.signal });
+            controller.signal.throwIfAborted();
+            if (result.failed) throw new Error('Canlı fiyat güncellemesi eksik; önceki fiyatlar korundu.');
+            const updates = new Map(result.rows.map(row => [row.id, row]));
+            const missing = existing.filter(row => !updates.has(row.id));
+            missing.forEach(row => updates.set(row.id, {...row, safe:false, score:0, confidence:.1, expiresAt:0, reasons:[...row.reasons, 'Canlı güncellemede eşleşen teklif bulunamadı; önceki fiyat gösteriliyor.']}));
+            state.rows = state.rows.map(row => updates.get(row.id) || row);
+            render(changed);
+            if (state.basket?.lines.some(line => changed.has(line.row.itemId))) {
+                const basket = state.basket;
+                basket.lines = basket.lines.map(line => ({...line, row: updates.get(line.row.id) || line.row}));
+                basket.cost = basket.lines.reduce((sum,{row,qty}) => sum + row.cost*qty, 0);
+                basket.net = basket.lines.reduce((sum,{row,qty}) => sum + row.net*qty, 0);
+                basket.roi = basket.net / basket.cost;
+                renderBasket(basket);
+                const note = root.querySelector('[data-basket] > p');
+                note.textContent = `Senaryo • Fiyatlar güncellendi; ürünler ve adetler korundu. Emir limitlerini oyunda yeniden doğrulayın.${basket.cost > num('budget') ? ' Güncel maliyet bütçeyi aşıyor.' : ''}${basket.lines.some(({row})=>!row.safe) ? ' Sepette riskli fiyat var.' : ''}`;
+            }
+            updateMonitor(result.historyError || missing.length ? 'partial' : 'complete', {message:result.historyError || (missing.length ? 'Bazı tekliflerin güncel eşleşmesi yok; önceki fiyatlar riskli olarak korundu.' : 'Canlı fiyatlar güncellendi. Liste ve sepet korundu; emir limitlerini oyunda doğrulayın.')});
+        }
+    } catch (error) {
+        if (!controller.signal.aborted) updateMonitor('partial', {message:error.message});
+    } finally { liveController = null; if (liveQueue.size && state.scan && !state.busy) void refreshLivePrices({items:[...liveQueue]}); }
+}
+async function main() {
+    await initStore();
+    cities=loadActiveCities().filter(city=>city.marketApiName !== BLACK_MARKET);
+    items=getAll('items').filter(isMarketCatalogItem);
+    await Promise.all([...new Set(['black-market','flipper','scan','cart','profit','order-book','confidence','risk','quality', ...Object.values(SORT_ICONS)])].map(async name=>{
+        const response=await fetch(`content/icons/flipper/${name}.svg`); if(response.ok) icons[name]=await response.text();
+    }));
+    layout(); recordCurrentToolVisit();
+    root.addEventListener('keydown', event => {
+        if (event.target.matches('[data-select]') && ['Enter', ' '].includes(event.key)) {
+            event.preventDefault();
+            const id = event.target.dataset.select;
+            state.selected = id; render();
+            root.querySelectorAll('[data-select]').forEach(row => { if (row.dataset.select === id) row.focus(); });
+        }
+    });
+    root.addEventListener('click',event=>{
+        const sort = event.target.closest('[data-flipper-sort]');
+        if (sort) { state.sort = sort.dataset.flipperSort; savePreferences(); render(); return; }
+        const choice = event.target.closest('[data-choice-filter]');
+        if (choice && field(choice.dataset.choiceFilter).value !== choice.dataset.choiceValue) {
+            const key = choice.dataset.choiceFilter;
+            field(key).value = choice.dataset.choiceValue;
+            root.querySelectorAll(`[data-choice-filter="${key}"]`).forEach(button => {
+                const active = button === choice;
+                button.classList.toggle('is-active', active);
+                button.setAttribute('aria-pressed', String(active));
+            });
+            filtersChanged(key);
+        }
+        if(event.target.closest('[data-scan]')) scan();
+        if(event.target.closest('[data-fill]')) fill();
+        const chosen=event.target.closest('[data-select]'); if(chosen) {state.selected=chosen.dataset.select;render();}
+        if(event.target.closest('[data-confirm]')) {
+            const row=state.rows.find(row=>row.id===state.selected);
+            const quantity=Number(root.querySelector('[data-limit="quantity"]').value),weight=Number(root.querySelector('[data-limit="weight"]').value);
+            if(!Number.isSafeInteger(quantity)||quantity<=0||!Number.isFinite(weight)||weight<=0) {root.querySelector('[data-limit-status]').textContent='Pozitif tam adet ve gerçek ağırlık girin.';return;}
+            for(const other of state.rows) if(other.itemId===row.itemId && (other.target===row.target || other.source===row.source) && other.quality===row.quality) delete state.limits[other.id];
+            state.limits[row.id]={quantity,weight};state.basket=null;root.querySelector('[data-basket]').textContent='Adaylar değişti; Yükümü Doldur ile yeniden hesaplayın.';renderDetail(row);
+        }
+    });
+    root.addEventListener('input', event => { if (event.target.matches('[data-filter]')) savePreferences(); });
+    root.addEventListener('change',event=>{
+        const key=event.target.dataset.filter; if(!key)return;
+        filtersChanged(key);
+    });
+    bindLivePrices(()=>({items:state.rows.map(row=>row.itemId),cities:[...new Set(state.rows.flatMap(row=>[row.source,row.target]))],pause:state.busy || !state.scan}),refreshLivePrices);
+}
+main().catch(error=>{root.textContent=`Flipper açılamadı: ${error.message}`;});

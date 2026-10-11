@@ -1,0 +1,54 @@
+import assert from 'node:assert/strict';
+import { evaluateFlip, optimizeLoad, sortFlips } from '../js/core/flipper.mjs';
+const now=Date.now(), date=new Date(now-60000).toISOString();
+const item={uniqueName:'T4_MAIN_SWORD@1',isEquipable:true};
+const source={item_id:item.uniqueName,city:'Caerleon',quality:1,sell_price_min:100,sell_price_min_date:date,buy_price_max:999};
+const target={item_id:item.uniqueName,city:'Black Market',quality:1,buy_price_max:150,buy_price_max_date:date,sell_price_min:999};
+const params={item,source,target,taxRate:.04,now,maxAgeMs:1800000};
+const row=evaluateFlip(params);
+assert.equal(row.net,44);assert.equal(row.roi,.44);assert.equal(row.quantityLimit,null);assert.equal(row.weight,null);assert.equal(row.safe,true);
+assert.equal(evaluateFlip({...params,taxRate:.08}).net,38);
+assert.equal(evaluateFlip({...params,transport:10}).net,34);
+assert.equal(evaluateFlip({...params,target:{...target,quality:2}}),null);
+assert.equal(evaluateFlip({...params,target:{...target,item_id:'T4_MAIN_SWORD'}}),null);
+assert.equal(evaluateFlip({...params,item:{...item,isEquipable:false}}),null);
+assert.equal(evaluateFlip({...params,taxRate:NaN}),null);
+assert.equal(evaluateFlip({...params,target:{...target,buy_price_max:0}}),null);
+assert.equal(evaluateFlip({...params,source:{...source,sell_price_min_date:null}}).safe,false);
+assert.equal(evaluateFlip({...params,source:{...source,sell_price_min_date:new Date(now+60000).toISOString()}}).safe,false);
+assert.equal(evaluateFlip({...params,source:{...source,sell_price_min_date:new Date(now-3600000).toISOString()}}).safe,false);
+assert.equal(evaluateFlip({...params,target:{...target,buy_price_max:1000}}).safe,false);
+assert.equal(evaluateFlip({...params,sourceReference:{source:'quote-history',price:1000}}).safe,false);
+const spike=evaluateFlip({...params,targetReference:{source:'quote-history',price:100}});
+assert.equal(spike.spikes.length,1);
+assert.equal(spike.spikes[0].city,'Black Market');
+assert.equal(spike.spikes[0].side,'Buy Max');
+assert.equal(spike.safe,false);
+assert.equal(spike.score,0);
+assert.equal(evaluateFlip({...params,targetReference:{source:'aodp-sales-history',price:100}}).spikes.length,0,'sales averages must not be mixed with order quotes');
+assert.equal(evaluateFlip({...params,targetReference:{source:'quote-history',price:120}}).spikes.length,0);
+assert.equal(evaluateFlip({...params,sourceReference:{source:'quote-history',price:70}}).spikes[0].side,'Sell Min');
+assert.equal(evaluateFlip({...params,target:{...target,buy_price_max:90}}).net,-13.600000000000009);
+assert.equal(optimizeLoad([{...row,expiresAt:now-1}],{budget:1000,capacity:100,limits:{[row.id]:{quantity:1,weight:1}},now}).lines.length,0);
+const a={...row,id:'a',cost:6,net:9},b={...row,id:'b',itemId:'other',cost:5,net:8};
+const limits={a:{quantity:2,weight:3},b:{quantity:2,weight:2}};
+const basket=optimizeLoad([a,b],{budget:10,capacity:4,limits});
+assert.equal(basket.net,16);assert.equal(basket.cost,10);assert.equal(basket.weight,4);assert.equal(basket.scenario,true);
+assert.equal(optimizeLoad([row],{budget:1000,capacity:100,limits:{}}).lines.length,0);
+assert.equal(optimizeLoad([{...a,safe:false}],{budget:100,capacity:100,limits}).lines.length,0);
+assert.equal(optimizeLoad([a,b],{budget:100,capacity:1,limits}).net,0);
+assert.throws(()=>optimizeLoad([a],{budget:0,capacity:100,limits}));
+assert.throws(()=>optimizeLoad([a,b],{budget:100,capacity:100,limits,maxStates:2}));
+// Compare the exact integer search against exhaustive feasible combinations.
+for(let budget=1;budget<30;budget++) for(let capacity=1;capacity<15;capacity++) {
+    let best=0;for(let x=0;x<=2;x++)for(let y=0;y<=2;y++)if(6*x+5*y<=budget&&3*x+2*y<=capacity)best=Math.max(best,9*x+8*y);
+    assert.equal(optimizeLoad([a,b],{budget,capacity,limits}).net,best);
+}
+assert.throws(()=>optimizeLoad([a,{...a,id:'c'}],{budget:100,capacity:100,limits:{...limits,c:{quantity:2,weight:1}}}),/hedef emir/);
+console.log('PASS Flipper: direction, taxes, quality/enchant, missing/stale/extreme quotes, limits and 406 exhaustive optimizer cases');
+
+const sortedFixtures=[{id:'a',score:2,net:10,roi:.5,ageMs:10,cost:100,confidence:.55},{id:'b',score:1,net:20,roi:.2,ageMs:5,cost:50,confidence:.85},{id:'c',score:0,net:30,roi:.9,ageMs:NaN,cost:200,confidence:.1}];
+for(const [sort,expected] of [['balanced','abc'],['net','cba'],['roi','cab'],['recent','bac'],['cost','bac'],['confidence','bac']])assert.equal(sortFlips(sortedFixtures,sort).map(row=>row.id).join(''),expected);
+assert.equal(sortedFixtures.map(row=>row.id).join(''),'abc');
+assert.equal(sortFlips([{id:'b',score:0,net:10,ageMs:5},{id:'a',score:0,net:20,ageMs:5}])[0].id,'a');
+console.log('PASS six sort options, unknown values last, deterministic ties and immutable input');

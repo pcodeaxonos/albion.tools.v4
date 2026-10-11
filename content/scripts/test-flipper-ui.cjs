@@ -1,0 +1,155 @@
+const assert=require('node:assert/strict');
+const {chromium}=require('playwright');
+(async()=>{
+ const browser=await chromium.launch({headless:true,channel:process.env.FLIPPER_BROWSER || 'chrome'});
+ try {
+ const context=await browser.newContext();
+ await context.addInitScript(()=>{localStorage.setItem('albiontools.v4.dailyBonusRedirectAt',String(Date.now()));localStorage.setItem('albiontools.v4.settings',JSON.stringify({cityPickerStyle:sessionStorage.getItem('flipper-test-style') || 'standard',dataSync:false,server:'europe',premium:true,priceSource:'api'}));window.__copied=[];Object.defineProperty(navigator,'clipboard',{value:{writeText:async text=>window.__copied.push(text)}});});
+ const page=await context.newPage();const errors=[];page.on('pageerror',e=>errors.push(e.message));
+ let swordSell=150,failLive=false;const priceRequests=[];
+ await page.route('**/api/v2/stats/prices/**',async route=>{
+  if(failLive) return route.abort();
+  const url=new URL(route.request().url());const date=new Date(Date.now()-60000).toISOString();const ids=decodeURIComponent(url.pathname.split('/').at(-1)).split(',');const rows=[];
+  priceRequests.push(ids);
+  for(const [item_id,buy,sell] of [['T4_MAIN_SWORD',100,swordSell],['T4_MAIN_AXE',200,270]]) if(ids.includes(item_id)) rows.push({item_id,city:'Caerleon',quality:1,sell_price_min:buy,sell_price_min_date:date},{item_id,city:'Black Market',quality:1,buy_price_max:sell,buy_price_max_date:date});
+  await route.fulfill({json:rows.length?rows:[{item_id:ids[0],city:'Caerleon',quality:1,sell_price_min:0,buy_price_max:0}]});
+ });
+ await page.route('**/api/v1/market/long-term?**',route=>route.fulfill({json:{references:[]}}));
+ await page.route('**/api/v2/stats/price-updates',route=>route.abort());
+ await page.goto('http://localhost:3000/tools/flipper/',{waitUntil:'domcontentloaded'});
+ await page.locator('[data-scan]').waitFor();assert.equal(await page.locator('[data-filter="mode"]').count(),0);assert.equal(await page.locator('[data-city-field]').count(),2);
+ assert.equal(await page.locator('.tool-split > .left > .summary [data-status]').count(),1);
+ assert.equal(await page.locator('.tool-split-result [data-status]').count(),0);
+ assert.equal(await page.locator('[data-status]').getAttribute('data-monitor-phase'),'idle');
+ await page.locator('.flipper-monitor dl > div').last().focus();
+ await page.getByRole('tooltip').waitFor({state:'visible'});
+ assert.match(await page.getByRole('tooltip').innerText(),/emir derinliğini sağlamaz/);
+ await page.keyboard.press('Escape');
+ assert.equal(await page.locator('select[data-filter="age"]').count(),0);
+ await page.locator('[data-choice-filter="age"][data-choice-value="60"]').click();assert.equal(await page.locator('[data-filter="age"]').inputValue(),'60');
+ await page.locator('[data-choice-filter="age"][data-choice-value="360"]').press('Enter');assert.equal(await page.locator('[data-filter="age"]').inputValue(),'360');
+ await page.locator('[data-choice-filter="age"][data-choice-value="30"]').click();assert.equal(await page.locator('[data-choice-filter="age"][aria-pressed="true"]').count(),1);
+ assert.equal(await page.locator('select[data-filter="quality"]').count(),0);
+ assert.deepEqual(await page.locator('[data-choice-filter="quality"]').allTextContents(),['No','Go','Ou','Ex','Mp','Tümü']);
+ await page.locator('[data-choice-filter="quality"][data-choice-value="5"]').press('Enter');assert.equal(await page.locator('[data-filter="quality"]').inputValue(),'5');
+ await page.locator('[data-choice-filter="quality"][data-choice-value="1"]').click();
+ const budget=page.locator('[data-filter="budget"]');
+ assert.equal(await budget.inputValue(),'20.000.000');assert.equal(await page.locator('[data-compact-amount]').innerText(),'20m');
+ await budget.fill('200000');assert.equal(await budget.inputValue(),'200.000');assert.equal(await page.locator('[data-compact-amount]').innerText(),'200k');
+ await budget.fill('20000000');await budget.blur();
+ const panelRects=()=>page.evaluate(()=>Object.fromEntries(['[data-status]','[data-metrics]','.flipper-list-panel','[data-detail]','.flipper-basket'].map(selector=>{const r=document.querySelector(selector).getBoundingClientRect();return [selector,{x:r.x,y:r.y,width:r.width,height:r.height}];})));
+ const beforeScan=await panelRects();
+ const sourceField=page.locator('[data-city-field="flipper-source"]');
+ await sourceField.locator('.autocomplete-input').click();
+ await page.getByRole('option',{name:'Caerleon',exact:true}).click();
+ await page.locator('[data-scan]').click();
+ await page.locator('[data-select]').first().waitFor({timeout:120000});
+ assert.match(await page.locator('[data-detail]').innerText(),/44/);
+ assert.equal(await page.locator('[data-status]').getAttribute('data-monitor-phase'),'complete');
+ assert.equal(await page.locator('[data-monitor-count]').innerText(),'2');
+ assert.equal(await page.locator('[data-monitor-progress]').innerText(),'100%');
+ assert.deepEqual(await panelRects(),beforeScan,'scan does not move or resize panels');
+ assert.equal(await page.locator('[data-list] button').count(),0,'no buy/sell buttons');
+ await page.locator('[data-select*="T4_MAIN_AXE"] [data-copy-item-name]').click();
+ assert.ok((await page.locator('[data-select][aria-pressed="true"]').getAttribute('data-select')).includes('T4_MAIN_SWORD'),'copying a row name does not select it');
+ await page.evaluate(()=>window.__copied=[]);
+ await page.locator('[data-select*="T4_MAIN_AXE"] > div').last().click();
+ assert.match(await page.locator('[data-detail]').innerText(),/Battleaxe/,'row click opens detail');
+ await page.locator('[data-select*="T4_MAIN_SWORD"]').press('Enter');
+ await page.locator('[data-select*="T4_MAIN_AXE"]').press(' ');
+ assert.match(await page.locator('[data-detail]').innerText(),/Battleaxe/,'Space opens row detail');
+ await page.locator('[data-select*="T4_MAIN_SWORD"]').press('Enter');
+ await page.locator('[data-detail] [data-copy-item-name]').click();
+ await page.locator('[data-detail] [data-copy-item-name]').press('Enter');
+ assert.equal((await page.evaluate(()=>window.__copied)).length,2);
+ await page.locator('[data-limit="quantity"]').fill('5');await page.locator('[data-limit="weight"]').fill('2');await page.locator('[data-confirm]').click();await page.locator('[data-fill]').click();
+ assert.deepEqual(await panelRects(),beforeScan,'basket does not move or resize panels');
+ assert.match(await page.locator('[data-basket]').innerText(),/Senaryo/);assert.equal(await page.locator('[data-basket] tbody tr').count(),1);
+ const basketBeforeSort=await page.locator('[data-basket]').innerText(),statusBeforeSort=await page.locator('[data-status]').innerText();
+ assert.equal(await page.locator('button[data-flipper-sort]').count(),6);
+ for(const [label,item] of [['Net kâr / adet ↓','T4_MAIN_AXE'],['ROI ↓','T4_MAIN_SWORD']]) {
+ await page.getByRole('button',{name:label,exact:true}).click();
+ assert.equal(await page.locator('[data-flipper-sort][aria-pressed="true"]').count(),1);
+ assert.ok((await page.locator('[data-select]').first().getAttribute('data-select')).includes(item),'sort changes list order');
+ assert.match(await page.locator('[data-detail]').innerText(),/44/,'sort preserves selected sword');
+ assert.equal(await page.locator('[data-basket]').innerText(),basketBeforeSort,'sort preserves basket');
+ assert.equal(await page.locator('[data-status]').innerText(),statusBeforeSort,'sort does not rescan');
+ assert.deepEqual(await panelRects(),beforeScan,'sort keeps panels fixed');
+ }
+ const image=await page.evaluate(async()=>{const image=new Image();image.src='content/images/page-heads/desktop/flipper-head-2000x200.png';await image.decode();return [image.naturalWidth,image.naturalHeight];});assert.deepEqual(image,[2000,200]);
+ await page.evaluate(()=>{const settings=JSON.parse(localStorage.getItem('albiontools.v4.settings'));settings.priceSource='packets';localStorage.setItem('albiontools.v4.settings',JSON.stringify(settings));window.__unaffectedRow=document.querySelector('[data-select*="T4_MAIN_AXE"]');});
+ await page.locator('[data-limit="quantity"]').fill('7');
+ swordSell=170;priceRequests.length=0;
+ await page.evaluate(()=>window.dispatchEvent(new CustomEvent('albiontools:prices',{detail:{at:Date.now(),items:['T4_MAIN_SWORD'],cities:['Black Market']}})));
+ await page.waitForFunction(()=>document.querySelector('[data-detail] .flipper-lead').textContent.includes('+63'));
+ assert.equal(await page.locator('[data-list] [data-select]').count(),2,'live update keeps opportunities');
+ assert.equal(await page.locator('[data-limit="quantity"]').inputValue(),'7','live update preserves unconfirmed input');
+ assert.equal(await page.locator('[data-basket] tbody tr').count(),1,'live update keeps basket');
+ assert.equal(await page.locator('[data-basket] tbody tr td').nth(1).innerText(),'5','live update keeps basket quantity');
+ assert.match(await page.locator('[data-basket]').innerText(),/316/,'basket net recalculated');
+ assert.ok(priceRequests.length && priceRequests.every(ids=>ids.length===1 && ids[0]==='T4_MAIN_SWORD'),'only changed item fetched');
+ assert.ok(await page.evaluate(()=>window.__unaffectedRow===document.querySelector('[data-select*="T4_MAIN_AXE"]')),'unaffected row DOM is retained');
+ assert.deepEqual(await panelRects(),beforeScan,'live update keeps panel geometry');
+ const beforeFailedLive=await page.locator('[data-basket]').innerText();failLive=true;
+ await page.evaluate(()=>window.dispatchEvent(new CustomEvent('albiontools:prices',{detail:{at:Date.now(),items:['T4_MAIN_SWORD'],cities:['Black Market']}})));
+ await page.locator('[data-status][data-monitor-phase="partial"]').waitFor();
+ assert.equal(await page.locator('[data-basket]').innerText(),beforeFailedLive,'failed refresh preserves basket');
+ assert.equal(await page.locator('[data-list] [data-select]').count(),2,'failed refresh preserves list');
+ failLive=false;
+ for(const width of [1920,1280,768,390]) {
+ await page.setViewportSize({width,height:1080});
+ const m=await page.evaluate(()=>{const r=el=>el.getBoundingClientRect();const columns=document.querySelector('.flipper-columns');const basket=r(document.querySelector('.flipper-basket'));const list=r(columns.children[0]),detail=r(columns.children[1]),control=r(document.querySelector('.flipper-controls')),left=r(document.querySelector('.tool-split > .left')),right=r(document.querySelector('.tool-split > .right')),head=r(document.querySelector('.page-head'));return {left:{x:left.x,y:left.y,right:left.right,bottom:left.bottom},right:{x:right.x,y:right.y},sticky:getComputedStyle(document.querySelector('.tool-split > .left')).position,selects:[...document.querySelectorAll('[data-filter]')].filter(el=>el.tagName==='SELECT').every(el=>el.classList.contains('autocomplete-native')),list:{x:list.x,y:list.y,right:list.right,bottom:list.bottom},detail:{x:detail.x,y:detail.y},basketTop:basket.top,detailBottom:detail.bottom,controlTop:control.top,headBottom:head.bottom,width:document.querySelector('main').clientWidth,scroll:document.querySelector('main').scrollWidth};});
+ assert.ok(await page.locator('[data-list]').evaluate(el=>el.scrollWidth<=el.clientWidth+1),'opportunity list must not overflow horizontally');
+ assert.ok(m.basketTop>=m.detailBottom-1,`basket overlaps detail at ${width}`);assert.ok(m.scroll<=m.width+1,`horizontal overflow at ${width}`);assert.ok(m.controlTop>=m.headBottom-1);
+ const ageRects=await page.locator('[data-choice-filter="age"]').evaluateAll(buttons=>buttons.map(button=>button.getBoundingClientRect().top));assert.ok(ageRects.every(top=>Math.abs(top-ageRects[0])<1),'age choices are side by side');
+ const qualityRects=await page.locator('[data-choice-filter="quality"]').evaluateAll(buttons=>buttons.map(button=>button.getBoundingClientRect().top));assert.ok(qualityRects.every(top=>Math.abs(top-qualityRects[0])<1),'quality choices are side by side');
+ assert.ok(m.selects,'filters use shared autocomplete select');
+ if(width>=992) {assert.ok(m.right.x>=m.left.right,'controls left / result right');assert.ok(Math.abs(m.left.y-m.right.y)<2,'split columns aligned');assert.equal(m.sticky,'sticky');assert.ok(await page.locator('.app-content').evaluate(el=>el.scrollHeight<=el.clientHeight+1),'no outer page scroll on desktop');assert.ok(m.detail.x>=m.list.right);assert.ok(await page.locator('[data-status]').evaluate(el=>Math.abs(el.getBoundingClientRect().bottom-el.closest('.left').getBoundingClientRect().bottom)<2),'monitor anchored to bottom of left column');}
+ else {assert.ok(m.right.y>=m.left.bottom-1,'controls above results');assert.equal(m.sticky,'static');assert.ok(m.detail.y>=m.list.bottom);}
+ await page.keyboard.press("Escape");await page.evaluate(()=>document.querySelector(".app-content").scrollTop=0);await page.screenshot({path:`.tmp/flipper-${width}.png`,fullPage:true,animations:"disabled"});console.log(`PASS Flipper responsive ${width}px`);
+ }
+ for(const [width,height] of [[1440,900],[1280,720],[992,600]]) {
+ await page.setViewportSize({width,height});
+ assert.ok(await page.locator('.app-content').evaluate(el=>el.scrollHeight<=el.clientHeight+1),'no outer scroll at '+width+'x'+height);
+ assert.ok(await page.locator('.flipper-basket').evaluate(el=>el.getBoundingClientRect().bottom<=innerHeight+1),'basket fits viewport');
+ const beforeMany=await panelRects();
+ await page.locator('[data-list]').evaluate(el=>{const row=el.firstElementChild;for(let n=0;n<100;n++)el.appendChild(row.cloneNode(true));});
+ assert.deepEqual(await panelRects(),beforeMany,'large list leaves all panel positions fixed');
+ assert.ok(await page.locator('.app-content').evaluate(el=>el.scrollHeight<=el.clientHeight+1),'large list scrolls internally');
+ await page.locator('[data-list]').evaluate(el=>{while(el.children.length>1)el.lastElementChild.remove();});
+ console.log('PASS bounded desktop panels '+width+'x'+height);
+ }
+ await page.locator('[data-choice-filter="age"][data-choice-value="0"]').click();
+ await page.locator('[data-choice-filter="quality"][data-choice-value="0"]').click();
+ await budget.fill('123456');
+ for(const style of ['buttons','crests','diagonal']) {
+ await page.evaluate(style=>sessionStorage.setItem('flipper-test-style',style),style);
+ await page.reload({waitUntil:'domcontentloaded'});await page.locator('[data-scan]').waitFor();
+ const source=page.locator('[data-city-field="flipper-source"]'),target=page.locator('[data-city-field="flipper-target"]');
+ assert.equal(await budget.inputValue(),'123.456','budget survives reload');
+ assert.equal(await page.locator('[data-filter="age"]').inputValue(),'0','age survives reload');
+ assert.equal(await page.locator('[data-filter="quality"]').inputValue(),'0','quality survives reload');
+ assert.equal(await page.locator('[data-flipper-sort="roi"]').getAttribute('aria-pressed'),'true','sort survives reload');
+ if(style==='buttons') assert.equal(await source.locator('[data-city-input]').inputValue(),'Caerleon','source survives reload');
+ await source.locator('[data-city-all]').click();
+ assert.equal(await page.locator('[data-filter="mode"]').count(),0);
+ assert.equal(await target.locator('[data-city-value="Black Market"]').getAttribute('aria-pressed'),'true');
+ await target.locator('[data-city-value="Martlock"]').click();
+ assert.equal(await target.locator('[data-city-input]').inputValue(),'Martlock');
+ assert.equal(await page.locator('[data-status]').getAttribute('data-monitor-phase'),'changed');
+ await target.locator('[data-city-value="Black Market"]').click();
+ assert.equal(await target.locator('[data-city-input]').inputValue(),'Black Market');
+ await target.locator('[data-city-all]').click();assert.equal(await target.locator('[data-city-input]').inputValue(),'');assert.equal(await target.locator('[data-city-all]').getAttribute('aria-pressed'),'true');
+ await target.locator('[data-city-value="Black Market"]').click();
+ await source.locator('[data-city-value="Caerleon"]').click();assert.equal(await source.locator('[data-city-input]').inputValue(),'Caerleon');
+ await source.locator('[data-city-all]').click();assert.equal(await source.locator('[data-city-input]').inputValue(),'');assert.equal(await target.locator('[data-city-input]').inputValue(),'Black Market');
+ if(style==='crests') assert.equal(await target.locator('[data-city-value="Black Market"] svg').count(),1);
+ console.log('PASS Flipper settings city picker '+style);
+ }
+ await page.unroute('**/api/v2/stats/prices/**');await page.route('**/api/v2/stats/prices/**',route=>route.abort());
+ await page.locator('[data-scan]').click();await page.locator('[data-status][data-monitor-phase="error"]').waitFor({timeout:120000});
+ assert.equal(await page.locator('[data-monitor-label]').innerText(),'Tarama hatası');
+ assert.match(await page.locator('[data-monitor-state]').getAttribute('data-app-tooltip'),/Fiyat kaynağına ulaşılamadı/);
+ assert.deepEqual(errors,[]);console.log('PASS Flipper UI: real route, monitoring states/tooltips/bottom alignment, scan, detail, clipboard, scenario basket, 2000×200 PNG');
+ }finally{await browser.close();}
+})().catch(e=>{console.error(e);process.exitCode=1;});
