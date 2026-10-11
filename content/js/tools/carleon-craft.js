@@ -190,8 +190,8 @@ function recipeChips(recipe) {
     return mats()
         .filter((mat) => recipe[mat.key])
         .map((mat) => `
-            <span class="carleon-chip">
-                ${itemIconHtml(mat.uniqueName, { className: 'item-icon carleon-chip-icon' })}
+            <span class="recipe-chip">
+                ${itemIconHtml(mat.uniqueName, { className: 'item-icon recipe-chip-icon' })}
                 <span>${recipe[mat.key]} ${escapeHtml(mat.short)}</span>
             </span>
         `)
@@ -207,7 +207,7 @@ function renderPremiumToggle() {
     return options.map((option) => {
         const pressed = option.id === state.premium;
         return `
-            <button type="button" class="carleon-type-btn${pressed ? ' is-active' : ''}"
+            <button type="button" class="segmented-choice-button${pressed ? ' is-active' : ''}"
                 data-premium="${option.id ? '1' : '0'}"
                 aria-pressed="${pressed ? 'true' : 'false'}">
                 ${escapeHtml(option.label)}
@@ -229,7 +229,7 @@ function renderBonusNote() {
             `${escapeHtml(getBonusFamilyLabel(bonus.key))} +${bonus.rate}%`
         ).join(' · ');
 
-    return `<p class="carleon-note">RR ${formatPct(returnRate())}${extra}.
+    return `<p class="tool-result-note">RR ${formatPct(returnRate())}${extra}.
         Bugün (${escapeHtml(bonusWindowLabel(bonusDayIso()))}): ${today}
         <a href="${routeHref('daily-bonus')}">Günlük bonus</a></p>`;
 }
@@ -246,16 +246,16 @@ function matMetaText(mat) {
 
 function renderMatStrip() {
     return `
-        <ul class="carleon-mats">
+        <ul class="material-price-list">
             ${mats().map((mat) => {
                 const fetched = fetchedMatQuote(mat.key);
                 const value = priceInputValue(state.manualMats[mat.key], fetched?.price);
                 return `
-                    <li class="carleon-mat" data-mat-card="${escapeHtml(mat.key)}">
+                    <li class="material-price-card" data-mat-card="${escapeHtml(mat.key)}">
                         ${itemIconHtml(mat.uniqueName)}
-                        <span class="carleon-mat-text">
-                            <span class="carleon-mat-label">${itemNameHtml(itemLabel(mat.uniqueName, mat.short))}</span>
-                            <span class="carleon-mat-meta">${escapeHtml(matMetaText(mat))}</span>
+                        <span class="material-price-card-text">
+                            <span class="material-price-card-label">${itemNameHtml(itemLabel(mat.uniqueName, mat.short))}</span>
+                            <span class="material-price-card-meta">${escapeHtml(matMetaText(mat))}</span>
                             ${priceFieldHtml({
                                 id: `matPrice-${mat.key}`,
                                 label: 'Alış',
@@ -264,7 +264,7 @@ function renderMatStrip() {
                                 missing: !fetched,
                                 date: fetched?.date,
                                 dataAttr: `data-mat-price="${escapeHtml(mat.key)}"`,
-                                fieldClass: 'carleon-price-field'
+                                fieldClass: 'market-price-field'
                             })}
                         </span>
                     </li>
@@ -418,7 +418,7 @@ function bindExplain(container) {
     bindCalcExplain({
         root: container,
         key: 'carleonExplain',
-        table: container.querySelector('.carleon-table'),
+        table: container.querySelector('[data-market-table]'),
         rowKey: (tr) => tr.dataset.itemId,
         keys: () => rows().map((row) => row.item.id),
         render: (key, meta) => renderCarleonExplain(key, meta)
@@ -428,24 +428,24 @@ function bindExplain(container) {
 function renderTable() {
     const body = rows().map((row) => {
         const bonusMark = state.bonusRate
-            ? `<span class="carleon-bonus">+${state.bonusRate}%</span>`
+            ? `<span class="market-bonus">+${state.bonusRate}%</span>`
             : '';
         const fetched = fetchedItemQuote(row.item.id);
         const sellValue = priceInputValue(state.manualItems[row.item.id], fetched?.price);
         return `
             <tr data-item-id="${escapeHtml(row.item.id)}">
                 <td>
-                    <span class="carleon-item">
+                    <span class="market-item">
                         ${itemIconHtml(row.item.uniqueName)}
                         <span>
-                            <span class="carleon-item-name">${itemNameHtml(row.item.label)}${bonusMark}</span>
-                            <span class="carleon-item-meta">RR ${formatPct(row.rr)}</span>
+                            <span class="market-item-name">${itemNameHtml(row.item.label)}${bonusMark}</span>
+                            <span class="market-item-meta">RR ${formatPct(row.rr)}</span>
                         </span>
                     </span>
                 </td>
-                <td class="carleon-recipe">${recipeChips(row.item.recipe)}</td>
-                <td class="num carleon-num${incompleteClass(row.cost)}" data-sort-value="${row.cost ?? ''}">${formatSilver(row.cost)}</td>
-                <td class="num carleon-num carleon-price-cell" data-sort-value="${row.quote?.price ?? ''}">
+                <td class="recipe-list">${recipeChips(row.item.recipe)}</td>
+                <td class="num market-number${incompleteClass(row.cost)}" data-sort-value="${row.cost ?? ''}">${formatSilver(row.cost)}</td>
+                <td class="num market-number market-price-cell" data-sort-value="${row.quote?.price ?? ''}">
                     ${priceFieldHtml({
                         id: `itemPrice-${row.item.id}`,
                         label: 'Satış',
@@ -454,13 +454,13 @@ function renderTable() {
                         missing: !fetched,
                         date: fetched?.date,
                         dataAttr: `data-item-price="${escapeHtml(row.item.id)}"`,
-                        fieldClass: 'carleon-price-field',
+                        fieldClass: 'market-price-field',
                         iconId: row.item.uniqueName
                     })}
                 </td>
-                <td class="num carleon-num${incompleteClass(row.sell)}" data-sort-value="${row.sell ?? ''}">${formatSilver(row.sell)}</td>
-                <td class="num carleon-num${profitClass(row.profit)}${incompleteClass(row.profit)}" data-sort-value="${row.profit ?? ''}">${formatSilver(row.profit, { unsigned: true })}</td>
-                <td class="num carleon-num${profitClass(row.profit)}${incompleteClass(row.pct)}" data-sort-value="${row.pct ?? ''}">${formatPct(row.pct, { unsigned: true })}</td>
+                <td class="num market-number${incompleteClass(row.sell)}" data-sort-value="${row.sell ?? ''}">${formatSilver(row.sell)}</td>
+                <td class="num market-number${profitClass(row.profit)}${incompleteClass(row.profit)}" data-sort-value="${row.profit ?? ''}">${formatSilver(row.profit, { unsigned: true })}</td>
+                <td class="num market-number${profitClass(row.profit)}${incompleteClass(row.pct)}" data-sort-value="${row.pct ?? ''}">${formatPct(row.pct, { unsigned: true })}</td>
             </tr>
         `;
     }).join('');
@@ -469,16 +469,16 @@ function renderTable() {
 
     return `
         <div class="table-responsive calc-table-wrap">
-            <table class="table table-striped carleon-table calc-table">
+            <table class="table table-striped market-table calc-table" data-market-table>
                 <thead>
                     <tr>
                         ${sortHeaderHtml('Eşya', { key: 'item', type: 'text', direction: sort.key === 'item' ? sort.direction : null, title: 'Üretilen Caerleon eşyası' })}
                         ${sortHeaderHtml('Tarif', { key: 'recipe', type: 'text', direction: sort.key === 'recipe' ? sort.direction : null, title: 'Craft için gereken malzemeler' })}
-                        ${sortHeaderHtml('Maliyet', { key: 'cost', type: 'number', className: 'num carleon-num', direction: sort.key === 'cost' ? sort.direction : null, title: 'Malzeme iadesi sonrası maliyet' })}
-                        ${sortHeaderHtml('BM', { key: 'bm', type: 'number', className: 'num carleon-num', direction: sort.key === 'bm' ? sort.direction : null, title: 'Black Market satış fiyatı' })}
-                        ${sortHeaderHtml('Satış', { key: 'sell', type: 'number', className: 'num carleon-num', direction: sort.key === 'sell' ? sort.direction : null, title: 'Vergi sonrası net satış' })}
-                        ${sortHeaderHtml('Kâr', { key: 'profit', type: 'number', className: 'num carleon-num', direction: sort.key === 'profit' ? sort.direction : null, title: 'Net satış eksi maliyet' })}
-                        ${sortHeaderHtml('%', { key: 'pct', type: 'number', className: 'num carleon-num', direction: sort.key === 'pct' ? sort.direction : null, title: 'Kârın maliyete oranı' })}
+                        ${sortHeaderHtml('Maliyet', { key: 'cost', type: 'number', className: 'num market-number', direction: sort.key === 'cost' ? sort.direction : null, title: 'Malzeme iadesi sonrası maliyet' })}
+                        ${sortHeaderHtml('BM', { key: 'bm', type: 'number', className: 'num market-number', direction: sort.key === 'bm' ? sort.direction : null, title: 'Black Market satış fiyatı' })}
+                        ${sortHeaderHtml('Satış', { key: 'sell', type: 'number', className: 'num market-number', direction: sort.key === 'sell' ? sort.direction : null, title: 'Vergi sonrası net satış' })}
+                        ${sortHeaderHtml('Kâr', { key: 'profit', type: 'number', className: 'num market-number', direction: sort.key === 'profit' ? sort.direction : null, title: 'Net satış eksi maliyet' })}
+                        ${sortHeaderHtml('%', { key: 'pct', type: 'number', className: 'num market-number', direction: sort.key === 'pct' ? sort.direction : null, title: 'Kârın maliyete oranı' })}
                     </tr>
                 </thead>
                 <tbody>${body}</tbody>
@@ -507,14 +507,14 @@ function renderOutput() {
             ${renderTable()}
             <section data-page-info>
             ${renderBonusNote()}
-            <p class="carleon-note">Malzeme ${escapeHtml(matNote)} · satış ${escapeHtml(itemNote)}. Elle yazılan alış/satış API’nin yerine geçer; kırmızı fiyat API’de yok, mavi 6 saatten eski.</p>
+            <p class="tool-result-note">Malzeme ${escapeHtml(matNote)} · satış ${escapeHtml(itemNote)}. Elle yazılan alış/satış API’nin yerine geçer; kırmızı fiyat API’de yok, mavi 6 saatten eski.</p>
             </section>
         </div>
     `;
 }
 
 function bindCarleonSort(container) {
-    const table = container.querySelector('.carleon-table');
+    const table = container.querySelector('[data-market-table]');
     if (!table) {
         return;
     }
@@ -536,11 +536,11 @@ function patchRowCells(tr, row) {
 
     costCell.dataset.sortValue = row.cost ?? '';
     costCell.textContent = formatSilver(row.cost);
-    costCell.className = `num carleon-num${incompleteClass(row.cost)}`;
+    costCell.className = `num market-number${incompleteClass(row.cost)}`;
 
     bmCell.dataset.sortValue = row.quote?.price ?? '';
     const itemFetched = fetchedItemQuote(row.item.id);
-    applyPriceFieldState(bmCell.querySelector('.carleon-price-field'), {
+    applyPriceFieldState(bmCell.querySelector('[data-market-price-field]'), {
         manual: Boolean(row.quote?.manual),
         missing: !itemFetched,
         date: itemFetched?.date,
@@ -549,19 +549,19 @@ function patchRowCells(tr, row) {
 
     sellCell.dataset.sortValue = row.sell ?? '';
     sellCell.textContent = formatSilver(row.sell);
-    sellCell.className = `num carleon-num${incompleteClass(row.sell)}`;
+    sellCell.className = `num market-number${incompleteClass(row.sell)}`;
 
     profitCell.dataset.sortValue = row.profit ?? '';
     profitCell.textContent = formatSilver(row.profit, { unsigned: true });
-    profitCell.className = `num carleon-num${profitClass(row.profit)}${incompleteClass(row.profit)}`;
+    profitCell.className = `num market-number${profitClass(row.profit)}${incompleteClass(row.profit)}`;
 
     pctCell.dataset.sortValue = row.pct ?? '';
     pctCell.textContent = formatPct(row.pct, { unsigned: true });
-    pctCell.className = `num carleon-num${profitClass(row.profit)}${incompleteClass(row.pct)}`;
+    pctCell.className = `num market-number${profitClass(row.profit)}${incompleteClass(row.pct)}`;
 }
 
 function refreshCalc(container) {
-    const table = container.querySelector('.carleon-table');
+    const table = container.querySelector('[data-market-table]');
     if (table) {
         for (const row of rows()) {
             const tr = table.querySelector(`tr[data-item-id="${row.item.id}"]`);
@@ -578,12 +578,12 @@ function refreshCalc(container) {
         if (!card) {
             return;
         }
-        const meta = card.querySelector('.carleon-mat-meta');
+        const meta = card.querySelector('.material-price-card-meta');
         if (meta) {
             meta.textContent = matMetaText(mat);
         }
         const fetched = fetchedMatQuote(mat.key);
-        applyPriceFieldState(card.querySelector('.carleon-price-field'), {
+        applyPriceFieldState(card.querySelector('[data-market-price-field]'), {
             manual: isManualPrice(state.manualMats[mat.key]),
             missing: !fetched,
             date: fetched?.date,
@@ -634,25 +634,25 @@ function renderPage(container) {
             <p>T2 set1 craft. Malzeme Caerleon, satış Black Market. Alışta buy +1 / sell aynı fiyat. Satışta sell −1 / buy aynı fiyat. Emirde setup fee, satışta vergi. Alış/satış alanına yazınca o fiyat kullanılır.</p>
         </section>`,
         controls: `
-                <div class="carleon-toolbar">
-                    <div class="carleon-type" role="radiogroup" aria-label="Premium">
+                <div class="tool-form-toolbar">
+                    <div class="segmented-choice" role="radiogroup" aria-label="Premium">
                         ${renderPremiumToggle()}
                     </div>
-                    <div class="carleon-side-field">
-                        <span class="carleon-side-label" id="carleonBonusLabel">Bonus</span>
-                        <div class="price-side" role="radiogroup" aria-labelledby="carleonBonusLabel">
+                    <div class="form-side-field">
+                        <span class="form-side-label" id="carleonBonusLabel">Bonus</span>
+                        <div class="segmented-choice" role="radiogroup" aria-labelledby="carleonBonusLabel">
                             ${renderBonusToggle()}
                         </div>
                     </div>
-                    <div class="carleon-side-field">
-                        <span class="carleon-side-label" id="carleonMatSideLabel">Malzeme</span>
-                        <div class="price-side" role="radiogroup" aria-labelledby="carleonMatSideLabel">
+                    <div class="form-side-field">
+                        <span class="form-side-label" id="carleonMatSideLabel">Malzeme</span>
+                        <div class="segmented-choice" role="radiogroup" aria-labelledby="carleonMatSideLabel">
                             ${priceSideToggleHtml('mat', state.matSide)}
                         </div>
                     </div>
-                    <div class="carleon-side-field">
-                        <span class="carleon-side-label" id="carleonItemSideLabel">Satış</span>
-                        <div class="price-side" role="radiogroup" aria-labelledby="carleonItemSideLabel">
+                    <div class="form-side-field">
+                        <span class="form-side-label" id="carleonItemSideLabel">Satış</span>
+                        <div class="segmented-choice" role="radiogroup" aria-labelledby="carleonItemSideLabel">
                             ${priceSideToggleHtml('item', state.itemSide)}
                         </div>
                     </div>

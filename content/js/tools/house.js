@@ -109,7 +109,7 @@ function renderTypeToggle() {
     return Object.values(buildingsMap()).map((building) => {
         const pressed = building.id === state.building;
         return `
-            <button type="button" class="house-type-btn${pressed ? ' is-active' : ''}"
+            <button type="button" class="segmented-choice-button${pressed ? ' is-active' : ''}"
                 data-building="${building.id}"
                 aria-pressed="${pressed ? 'true' : 'false'}">
                 ${escapeHtml(building.label)}
@@ -275,7 +275,7 @@ function renderPage(container) {
         </section>`,
         controls: `
                 <form class="house-calc" id="houseCalc" action="#">
-                    <div class="house-type" role="radiogroup" aria-label="Bina">
+                    <div class="segmented-choice" role="radiogroup" aria-label="Bina">
                         ${renderTypeToggle()}
                     </div>
                     <div class="house-fields">

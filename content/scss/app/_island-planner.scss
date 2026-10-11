@@ -89,24 +89,24 @@
         padding: 0.65rem 0.85rem;
     }
 
-    .farming-item {
+    .market-item {
         gap: 0.65rem;
         flex-wrap: nowrap;
     }
 
-    .farming-item .item-icon {
+    .market-item .item-icon {
         width: 2.25rem;
         height: 2.25rem;
     }
 
-    .farming-item-name {
+    .market-item-name--wrap {
         flex-wrap: wrap;
         white-space: normal;
         align-items: center;
         gap: 0.4rem;
     }
 
-    .farming-item-meta {
+    .market-item-meta--inline {
         white-space: nowrap;
     }
 }

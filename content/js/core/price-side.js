@@ -376,7 +376,7 @@ export function incompleteClass(value) {
  * foot under the field only when metadata is provided.
  *
  * @param {object} opts
- * @param {string} [opts.fieldClass='farming-price-field']
+ * @param {string} [opts.fieldClass='market-price-field market-price-field--fluid']
  * @param {string|null} [opts.iconId] item uniqueName — shown left of the input
  * @param {string} [opts.mark] HTML for top-right float-cut badge (e.g. NPC)
  * @param {string} [opts.meta] plain text under the field (e.g. birim …)
@@ -390,7 +390,7 @@ export function priceFieldHtml({
     stale = false,
     date = null,
     dataAttr = '',
-    fieldClass = 'farming-price-field',
+    fieldClass = 'market-price-field market-price-field--fluid',
     iconId = null,
     mark = '',
     meta = ''
@@ -408,7 +408,7 @@ export function priceFieldHtml({
         <div class="price-field-stack${iconId ? ' has-aside' : ''}">
             <div class="price-field-row">
                 ${aside}
-                <div class="form-floating ${escapeHtml(fieldClass)}${priceFieldClass({ manual, missing, stale: isStale })}"${title ? ` data-app-tooltip="${escapeHtml(title)}"` : ''}>
+                <div data-market-price-field class="form-floating ${escapeHtml(fieldClass)}${priceFieldClass({ manual, missing, stale: isStale })}"${title ? ` data-app-tooltip="${escapeHtml(title)}"` : ''}>
                     <input type="text" class="form-control${filled}" id="${escapeHtml(id)}"
                         ${dataAttr} value="${escapeHtml(value)}" placeholder=" "
                         inputmode="decimal" autocomplete="off" spellcheck="false">
@@ -449,7 +449,7 @@ export function priceSideToggleHtml(name, selected, labels = {}) {
     return PRICE_SIDES.map((side) => {
         const pressed = side === selected;
         return `
-            <button type="button" class="price-side-btn${pressed ? ' is-active' : ''}"
+            <button type="button" class="segmented-choice-button segmented-choice-button--short${pressed ? ' is-active' : ''}"
                 data-price-for="${escapeHtml(name)}" data-price-side="${side}"
                 aria-pressed="${pressed ? 'true' : 'false'}">
                 ${escapeHtml(labels[side] ?? (side === 'buy' ? 'Buy' : 'Sell'))}

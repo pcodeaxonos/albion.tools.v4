@@ -203,7 +203,7 @@ function renderSlotToggle() {
     return slots().map((slot) => {
         const pressed = slot.id === state.slot;
         return `
-            <button type="button" class="enchant-type-btn${pressed ? ' is-active' : ''}"
+            <button type="button" class="segmented-choice-button segmented-choice-button--compact${pressed ? ' is-active' : ''}"
                 data-slot="${escapeHtml(slot.id)}" aria-pressed="${pressed ? 'true' : 'false'}">
                 ${escapeHtml(slot.short)}
             </button>
@@ -214,17 +214,17 @@ function renderSlotToggle() {
 function renderMatStrip() {
     return `
         <div class="enchant-mats" id="enchantMats">
-            <p class="enchant-mats-meta">${escapeHtml(priceSideHint(state.matSide, 'buy'))} · ${escapeHtml(cityLabel(state.city))}</p>
+            <p class="material-price-matrix-note">${escapeHtml(priceSideHint(state.matSide, 'buy'))} · ${escapeHtml(cityLabel(state.city))}</p>
             <div class="enchant-mats-grid" style="--enchant-mat-cols: ${TIERS.length}">
-                <div class="enchant-mat-corner" aria-hidden="true"></div>
-                ${TIERS.map((tier) => `<div class="enchant-mat-tier-head">T${tier}</div>`).join('')}
+                <div class="material-price-matrix-corner" aria-hidden="true"></div>
+                ${TIERS.map((tier) => `<div class="material-price-matrix-heading">T${tier}</div>`).join('')}
                 ${steps().map((step) => `
                     <div class="enchant-mat-kind">${itemNameHtml(step.label)}</div>
                     ${TIERS.map((tier) => {
                         const key = matKey(step.kind, tier);
                         const fetched = fetchedMatQuote(key);
                         return `
-                            <div class="enchant-mat" data-mat-card="${escapeHtml(key)}">
+                            <div class="material-price-matrix-cell" data-mat-card="${escapeHtml(key)}">
                                 ${priceFieldHtml({
                                     id: `matPrice-${key}`,
                                     label: 'Fiyat',
@@ -233,7 +233,7 @@ function renderMatStrip() {
                                     missing: !fetched,
                                     date: fetched?.date,
                                     dataAttr: `data-mat-price="${escapeHtml(key)}"`,
-                                    fieldClass: 'enchant-price-field royal-price-field',
+                                    fieldClass: 'market-price-field market-price-field--dense market-price-field--unlabelled',
                                     iconId: `T${tier}_${step.itemType}`
                                 })}
                             </div>
@@ -252,10 +252,10 @@ function renderTable() {
         <tr data-path="${row.index}" class="enchant-path enchant-path--${escapeHtml(row.path.tone)}">
             <td data-sort-value="${row.index}">
                 <span class="enchant-way">${escapeHtml(row.label)}</span>
-                <span class="enchant-item-meta">${escapeHtml(slot.label)} · ${slot.qty}</span>
+                <span class="market-item-meta">${escapeHtml(slot.label)} · ${slot.qty}</span>
             </td>
             ${TIERS.map((tier) => `
-                <td class="num enchant-num${standardCellClass(tier, row.path)}${incompleteClass(row.costs[tier])}" data-sort-value="${row.costs[tier] ?? ''}">${formatSilver(row.costs[tier])}</td>
+                <td class="num market-number${standardCellClass(tier, row.path)}${incompleteClass(row.costs[tier])}" data-sort-value="${row.costs[tier] ?? ''}">${formatSilver(row.costs[tier])}</td>
             `).join('')}
         </tr>
     `).join('');
@@ -265,7 +265,7 @@ function renderTable() {
 
     return `
         <div class="table-responsive calc-table-wrap">
-            <table class="table enchant-table calc-table">
+            <table class="market-table table market-table--enchant calc-table" data-market-table>
                 <thead>
                     <tr>
                         ${sortHeaderHtml('Yol', { key: 'way', type: 'number', direction: dir('way'), title: 'Enchant adımı (başlangıç → hedef)' })}
@@ -278,7 +278,7 @@ function renderTable() {
                             return sortHeaderHtml(heading, {
                                 key: `t${tier}`,
                                 type: 'number',
-                                className: `num enchant-num${marked ? ' is-standard-col' : ''}`,
+                                className: `num market-number${marked ? ' is-standard-col' : ''}`,
                                 direction: dir(`t${tier}`),
                                 title: marked
                                     ? `Standart hedef: ${heading}`
@@ -322,15 +322,15 @@ function renderOutput() {
             ${renderMatStrip()}
             ${renderTable()}
             <section data-page-info>
-            <p class="enchant-note">${slot.qty} ${itemNameHtml('Rune')} / ${itemNameHtml('Soul')} / ${itemNameHtml('Relic')} · ${escapeHtml(cityLabel(state.city))} ${escapeHtml(hint)}${stamp ? ` · ${stamp}` : ''}. Elle yazılan malzeme fiyatı API’nin yerine geçer. Kırmızı fiyat API’de yok; mavi 6 saatten eski.</p>
-            <p class="enchant-standard-note">Vurgu: ${escapeHtml(standardHighlightNote())}. 0 → hedef yolları daha koyu. <a href="${routeHref('settings')}">Ayarlardan değiştir</a></p>
+            <p class="tool-result-note">${slot.qty} ${itemNameHtml('Rune')} / ${itemNameHtml('Soul')} / ${itemNameHtml('Relic')} · ${escapeHtml(cityLabel(state.city))} ${escapeHtml(hint)}${stamp ? ` · ${stamp}` : ''}. Elle yazılan malzeme fiyatı API’nin yerine geçer. Kırmızı fiyat API’de yok; mavi 6 saatten eski.</p>
+            <p class="tool-result-note tool-result-note--linked">Vurgu: ${escapeHtml(standardHighlightNote())}. 0 → hedef yolları daha koyu. <a href="${routeHref('settings')}">Ayarlardan değiştir</a></p>
             </section>
         </div>
     `;
 }
 
 function bindEnchantSort(container) {
-    const table = container.querySelector('.enchant-table');
+    const table = container.querySelector('[data-market-table]');
     if (!table) {
         return;
     }
@@ -348,13 +348,13 @@ function patchRowCells(tr, row) {
     TIERS.forEach((tier, index) => {
         const cell = tr.cells[index + 1];
         cell.dataset.sortValue = row.costs[tier] ?? '';
-        cell.className = `num enchant-num${standardCellClass(tier, row.path)}${incompleteClass(row.costs[tier])}`;
+        cell.className = `num market-number${standardCellClass(tier, row.path)}${incompleteClass(row.costs[tier])}`;
         cell.textContent = formatSilver(row.costs[tier]);
     });
 }
 
 function refreshCalc(container) {
-    const table = container.querySelector('.enchant-table');
+    const table = container.querySelector('[data-market-table]');
     if (table) {
         for (const row of pathRows()) {
             const tr = table.querySelector(`tr[data-path="${row.index}"]`);
@@ -367,7 +367,7 @@ function refreshCalc(container) {
     mats().forEach((mat) => {
         const card = container.querySelector(`[data-mat-card="${mat.key}"]`);
         const fetched = fetchedMatQuote(mat.key);
-        applyPriceFieldState(card?.querySelector('.enchant-price-field'), {
+        applyPriceFieldState(card?.querySelector('[data-market-price-field]'), {
             manual: isManualPrice(state.manualMats[mat.key]),
             missing: !fetched,
             date: fetched?.date,
@@ -409,13 +409,13 @@ function renderPage(container) {
             <p>Seçilen slot’u kaçtan kaça çıkarmanın gümüş maliyeti. Excel tablosu: yol × T4–T8. Standart ayar (4.3 / 5.2 / 6.1 gibi) vurgulanır; sıra Ayarlar’dan değişir ve Royal Crafting’de de kullanılır. Fiyatlar şehirden; boşsa elle yazın.</p>
         </section>`,
         controls: `
-                <div class="enchant-toolbar">
-                    <div class="enchant-type enchant-slots" role="radiogroup" aria-label="Slot">
+                <div class="tool-form-toolbar">
+                    <div class="segmented-choice enchant-slots" role="radiogroup" aria-label="Slot">
                         ${renderSlotToggle()}
                     </div>
-                    <div class="enchant-side-field">
-                        <span class="enchant-side-label" id="enchantMatSideLabel">Malzeme</span>
-                        <div class="price-side" role="radiogroup" aria-labelledby="enchantMatSideLabel">
+                    <div class="form-side-field">
+                        <span class="form-side-label" id="enchantMatSideLabel">Malzeme</span>
+                        <div class="segmented-choice" role="radiogroup" aria-labelledby="enchantMatSideLabel">
                             ${priceSideToggleHtml('mat', state.matSide)}
                         </div>
                     </div>

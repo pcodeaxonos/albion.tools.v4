@@ -237,7 +237,7 @@ function renderPlanStationBox(station, rows, tiers) {
     return `
         <section class="royal-plan-station" data-plan-station="${escapeHtml(station.id)}">
             <header class="royal-plan-station-head">
-                <span class="royal-plan-station-label">${escapeHtml(station.label)}</span>
+                <span class="result-section-title">${escapeHtml(station.label)}</span>
             </header>
             <div class="royal-plan-station-list">${body}</div>
         </section>
@@ -265,7 +265,7 @@ export function renderPlanDialogBody(plan) {
         ? `
             <section class="royal-plan-missing">
                 <header class="royal-plan-missing-head">
-                    <span class="royal-plan-missing-label">Satış yok</span>
+                    <span class="result-section-title">Satış yok</span>
                 </header>
                 <div class="royal-plan-missing-list">
                     ${plan.missingSell.map(renderPlanMissingItem).join('')}

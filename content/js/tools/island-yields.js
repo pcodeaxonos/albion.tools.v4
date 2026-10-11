@@ -550,14 +550,14 @@ const YIELD_TOGGLE_ICONS = {
 
 function renderToggle(groupLabel, options, dataAttr, current) {
     return `
-        <div class="farming-type" role="group" aria-label="${escapeHtml(groupLabel)}">
+        <div class="segmented-choice" role="group" aria-label="${escapeHtml(groupLabel)}">
             ${options.map((option) => {
                 const pressed = option.id === current;
                 return `
-                    <button type="button" class="farming-type-btn${pressed ? ' is-active' : ''}"
+                    <button type="button" class="segmented-choice-button segmented-choice-button--icon${pressed ? ' is-active' : ''}"
                         data-${dataAttr}="${option.value}" aria-pressed="${pressed ? 'true' : 'false'}"
                         aria-label="${escapeHtml(option.label)}" data-app-tooltip="${escapeHtml(option.label)}">
-                        <svg class="farming-type-btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">${YIELD_TOGGLE_ICONS[option.icon]}</svg>
+                        <svg class="segmented-choice-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">${YIELD_TOGGLE_ICONS[option.icon]}</svg>
                     </button>
                 `;
             }).join('')}
@@ -709,7 +709,7 @@ function yieldItemFieldHtml(selected = '') {
         id: 'plantKey',
         selected,
         selectedOutputMode: state.animalOutputMode,
-        className: 'farming-city-field'
+        className: 'tool-form-field'
     });
 }
 
@@ -733,6 +733,10 @@ function syncAnimalProductField(container) {
     const showProduct = state.animalOutputMode === 'product' && Boolean(animal?.productId);
     field.hidden = !showProduct;
     if (offspringField) offspringField.hidden = showProduct;
+}
+
+function focusYieldOutput(container) {
+    container.querySelector('.yield-harvest-pair .form-floating:not([hidden]) input')?.focus();
 }
 
 function productLogFormData(source, quantity, linkedLogId) {
@@ -917,7 +921,7 @@ function renderLogTable(month) {
                 <td class="text-nowrap"${row.date === today ? ' data-app-tooltip="Bugünün kaydı"' : ''}>${escapeHtml(formatDate(row.date))}</td>
                 <td>${escapeHtml(cityLabel(row.islandCity))}</td>
                 <td>
-                    <button type="button" class="farming-item yield-history-trigger" data-yield-history="${escapeHtml(row.id)}" aria-label="${escapeHtml(itemLabel(key, type))} ortalama geçmişi">
+                    <button type="button" class="market-item yield-history-trigger" data-yield-history="${escapeHtml(row.id)}" aria-label="${escapeHtml(itemLabel(key, type))} ortalama geçmişi">
                         ${iconId ? itemIconHtml(iconId, { className: 'item-icon' }) : ''}
                         <span class="yield-log-item-name">${itemNameHtml(itemLabel(key, type))}</span>
                     </button>
@@ -939,7 +943,7 @@ function renderLogTable(month) {
 
     return `
         <div class="table-responsive calc-table-wrap" data-calc-table>
-            <table class="table table-striped farming-table log-table calc-table">
+            <table class="market-table table table-striped market-table--fixed log-table calc-table" data-market-table>
                 <thead>
                     <tr>
                         <th>Gün</th>
@@ -1337,7 +1341,7 @@ function renderTierMatrix(group, islandCity) {
 function renderAverages() {
     const islandCity = state.islandCity;
     if (!islandCity) {
-        return `<p class="farming-note">Ortalamalar için ada şehri seç.</p>`;
+        return `<p class="tool-result-note">Ortalamalar için ada şehri seç.</p>`;
     }
 
     const plants = itemsForKind();
@@ -1488,7 +1492,7 @@ function refreshResult(container) {
                 ${state.filteredPlantKey ? '<button type="button" class="btn btn-sm btn-outline-secondary" data-clear-yield-filter>Filtreyi kaldır</button>' : ''}
             </div>
             <div id="yieldLog">${renderLogTable(state.month)}</div>
-            <p class="farming-note" data-page-info>Veri yoksa araçlar standart oyun değerini kullanır. Kullanıcı ortalaması bulunduğunda aynı bonus ikinci kez uygulanmaz.</p>
+            <p class="tool-result-note" data-page-info>Veri yoksa araçlar standart oyun değerini kullanır. Kullanıcı ortalaması bulunduğunda aynı bonus ikinci kez uygulanmaz.</p>
         </div>
     `;
     bindResult(container);
@@ -1801,7 +1805,7 @@ function renderPage(container) {
             <p>Tarla, pasture ve kennel için gerçek dönüş / çıktı değerlerini kaydet. Ortalamalar hesaplama araçlarında kullanılır.</p>
         </section>`,
         controls: `
-                    <form id="yieldForm" class="farming-toolbar island-planner-toolbar">
+                    <form id="yieldForm" class="tool-form-toolbar island-planner-toolbar">
                     <div class="yield-mode-toggles">
                     ${renderToggle('Premium', [
                         { id: true, value: '1', label: 'Premium', icon: 'premium' },
@@ -1819,14 +1823,14 @@ function renderPage(container) {
                         cities: state.cities,
                         decorate: cityIslandDecorate
                     })}
-                    <div class="form-floating farming-city-field">
+                    <div class="form-floating tool-form-field">
                         <input class="form-control is-filled" type="date" id="yieldDate" name="date" required>
                         <label for="yieldDate">Tarih</label>
                     </div>
                     ${yieldItemFieldHtml(state.filteredPlantKey || '')}
                     <div class="yield-planted-pair" data-app-tooltip="1 plot = ${unitsPerPlot()} ${escapeHtml(copy.input.toLocaleLowerCase('tr-TR'))}">
                         ${renderPlotPicker(state.plotsSelected ?? 1)}
-                        <div class="form-floating farming-city-field yield-seeds-field">
+                        <div class="form-floating tool-form-field yield-seeds-field">
                             <input class="form-control is-filled" type="number" min="1" step="1" id="seedsPlanted" name="seedsPlanted" value="${unitsPerPlot()}" required>
                             <label for="seedsPlanted">${escapeHtml(copy.input)}</label>
                         </div>
@@ -1835,23 +1839,23 @@ function renderPage(container) {
                         </button>
                     </div>
                     <div class="yield-harvest-pair">
-                        <div class="form-floating farming-city-field" data-animal-offspring-field>
+                        <div class="form-floating tool-form-field" data-animal-offspring-field>
                             <input class="form-control" type="text" inputmode="decimal" autocomplete="off" id="seedsReturned" name="seedsReturned" placeholder="10-8" ${state.yieldKind === 'pasture' ? '' : 'required'}>
                             <label for="seedsReturned">${escapeHtml(copy.returned)}</label>
                         </div>
                         ${state.yieldKind === 'plant' ? `
-                            <div class="form-floating farming-city-field">
+                            <div class="form-floating tool-form-field">
                                 <input class="form-control" type="text" inputmode="decimal" autocomplete="off" id="plantsHarvested" name="plantsHarvested" placeholder="10-8" required>
                                 <label for="plantsHarvested">${escapeHtml(copy.output)}</label>
                             </div>
                         ` : ''}
                         ${state.yieldKind === 'pasture' ? `
-                            <div class="form-floating farming-city-field" data-animal-product-field hidden>
+                            <div class="form-floating tool-form-field" data-animal-product-field hidden>
                                 <input class="form-control" type="text" inputmode="decimal" autocomplete="off" data-products-harvested placeholder="18">
                                 <label>Üretilen ürün</label>
                             </div>
                         ` : ''}
-                        <div class="form-floating farming-city-field" data-yield-focus-field${state.water ? '' : ' hidden'} data-app-tooltip="Tek sulama / nurture maliyeti. İsteğe bağlı; çok günlük hayvanda son toplamada bir kez girin.">
+                        <div class="form-floating tool-form-field" data-yield-focus-field${state.water ? '' : ' hidden'} data-app-tooltip="Tek sulama / nurture maliyeti. İsteğe bağlı; çok günlük hayvanda son toplamada bir kez girin.">
                             <input class="form-control" type="number" min="0" step="1" id="yieldFocusPerUse" placeholder="0" data-yield-focus-per-use>
                             <label for="yieldFocusPerUse">Focus / kullanım</label>
                         </div>
@@ -1970,11 +1974,13 @@ function bindPage(container) {
             setSelectedItem(container, value);
             syncAnimalProductField(container);
             syncAutomaticPlots(container);
+            focusYieldOutput(container);
             return;
         }
         syncAnimalProductField(container);
         syncAutomaticPlots(container);
         refreshResultFromControls(container);
+        focusYieldOutput(container);
     });
     container.querySelectorAll('[data-plots]').forEach((button) => {
         button.addEventListener('click', () => {
@@ -2045,7 +2051,7 @@ async function init() {
         renderPage(container);
     } catch (error) {
         console.error(error);
-        container.innerHTML = `<p class="farming-note is-error">${escapeHtml(error.message || 'Yüklenemedi.')}</p>`;
+        container.innerHTML = `<p class="tool-result-note is-error">${escapeHtml(error.message || 'Yüklenemedi.')}</p>`;
     } finally {
         hidePageLoader();
     }

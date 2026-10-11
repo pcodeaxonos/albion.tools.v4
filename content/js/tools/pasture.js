@@ -771,7 +771,7 @@ function bindExplain(container) {
     bindCalcExplain({
         root: container,
         key: 'pastureExplain',
-        table: container.querySelector('.pasture-table'),
+        table: container.querySelector('[data-market-table]'),
         rowKey: (tr) => tr.dataset.itemId,
         keys: () => rows().map((row) => row.item.id),
         render: (key, meta) => renderPastureExplain(key, meta)
@@ -793,10 +793,10 @@ function bestProfitId(list) {
 
 function profitCellHtml(pct, silver, isBest) {
     if (!Number.isFinite(pct) && !Number.isFinite(silver)) {
-        return `<td class="num farming-num pasture-profit-cell${incompleteClass(null)}" data-sort-value="">—</td>`;
+        return `<td class="num market-number pasture-profit-cell${incompleteClass(null)}" data-sort-value="">—</td>`;
     }
     return `
-        <td class="num farming-num pasture-profit-cell${profitClass(pct ?? silver)}${incompleteClass(pct)}${isBest ? ' is-path-best' : ''}" data-sort-value="${pct ?? ''}">
+        <td class="num market-number pasture-profit-cell${profitClass(pct ?? silver)}${incompleteClass(pct)}${isBest ? ' is-path-best' : ''}" data-sort-value="${pct ?? ''}">
             <span class="pasture-profit-pct">${formatPct(pct)}</span>
             <span class="pasture-profit-silver">${formatSilver(silver, { signed: true })}</span>
         </td>
@@ -825,7 +825,7 @@ function renderFeedModeToggle() {
     ].map((option) => {
         const pressed = option.id === state.feedMode;
         return `
-            <button type="button" class="farming-type-btn${pressed ? ' is-active' : ''}"
+            <button type="button" class="segmented-choice-button segmented-choice-button--icon${pressed ? ' is-active' : ''}"
                 data-feed-mode="${option.id}" aria-pressed="${pressed ? 'true' : 'false'}">
                 ${escapeHtml(option.label)}
             </button>
@@ -840,7 +840,7 @@ function renderPremiumToggle() {
     ].map((option) => {
         const pressed = option.id === state.premium;
         return `
-            <button type="button" class="farming-type-btn${pressed ? ' is-active' : ''}"
+            <button type="button" class="segmented-choice-button segmented-choice-button--icon${pressed ? ' is-active' : ''}"
                 data-premium="${option.id ? '1' : '0'}"
                 aria-pressed="${pressed ? 'true' : 'false'}">
                 ${escapeHtml(option.label)}
@@ -856,7 +856,7 @@ function renderFocusToggle() {
     ].map((option) => {
         const pressed = option.id === state.focus;
         return `
-            <button type="button" class="farming-type-btn${pressed ? ' is-active' : ''}"
+            <button type="button" class="segmented-choice-button segmented-choice-button--icon${pressed ? ' is-active' : ''}"
                 data-focus="${option.id ? '1' : '0'}"
                 aria-pressed="${pressed ? 'true' : 'false'}">
                 ${escapeHtml(option.label)}
@@ -930,15 +930,15 @@ function renderTable() {
         return `
             <tr data-item-id="${escapeHtml(row.item.id)}" class="${best.trim()}">
                 <td data-sort-value="${row.item.tier}">
-                    <span class="farming-item">
+                    <span class="market-item">
                         ${itemIconHtml(row.item.grownId)}
                         <span>
-                            <span class="farming-item-name">T${row.item.tier} ${itemNameHtml(itemLabel(row.item.grownId, row.item.label))}</span>
-                            <span class="farming-item-meta pasture-animal-meta">${itemIconHtml(row.item.babyId, { className: 'item-icon farming-seed-icon' })} yavru · ${chanceNote}</span>
+                            <span class="market-item-name market-item-name--wrap">T${row.item.tier} ${itemNameHtml(itemLabel(row.item.grownId, row.item.label))}</span>
+                            <span class="market-item-meta market-item-meta--inline pasture-animal-meta">${itemIconHtml(row.item.babyId, { className: 'item-icon farming-seed-icon' })} yavru · ${chanceNote}</span>
                         </span>
                     </span>
                 </td>
-                <td class="num farming-num farming-price-cell" data-sort-value="${row.baby?.price ?? ''}">
+                <td class="market-price-cell num market-number market-price-cell--fluid" data-sort-value="${row.baby?.price ?? ''}">
                     ${priceFieldHtml({
                         id: `babyPrice-${row.item.id}`,
                         label: 'Yavru',
@@ -951,7 +951,7 @@ function renderTable() {
                         mark
                     })}
                 </td>
-                <td class="num farming-num farming-price-cell" data-sort-value="${row.unit ?? ''}">
+                <td class="market-price-cell num market-number market-price-cell--fluid" data-sort-value="${row.unit ?? ''}">
                     ${priceFieldHtml({
                         id: `feedPrice-${row.item.id}`,
                         label: feedLabel,
@@ -964,7 +964,7 @@ function renderTable() {
                         meta: feedMeta
                     })}
                 </td>
-                <td class="num farming-num farming-price-cell" data-sort-value="${row.grown?.price ?? ''}">
+                <td class="market-price-cell num market-number market-price-cell--fluid" data-sort-value="${row.grown?.price ?? ''}">
                     ${priceFieldHtml({
                         id: `grownPrice-${row.item.id}`,
                         label: 'Büyümüş',
@@ -976,7 +976,7 @@ function renderTable() {
                         iconId: row.item.grownId
                     })}
                 </td>
-                <td class="num farming-num farming-price-cell" data-sort-value="${row.meat?.price ?? ''}">
+                <td class="market-price-cell num market-number market-price-cell--fluid" data-sort-value="${row.meat?.price ?? ''}">
                     ${priceFieldHtml({
                         id: `meatPrice-${row.item.id}`,
                         label: 'Et',
@@ -988,23 +988,23 @@ function renderTable() {
                         iconId: row.item.meatId
                     })}
                 </td>
-                <td class="num farming-num farming-price-cell" data-sort-value="${row.product?.price ?? ''}">
+                <td class="market-price-cell num market-number market-price-cell--fluid" data-sort-value="${row.product?.price ?? ''}">
                     ${productCell}
                 </td>
                 ${profitCellHtml(row.pctGrow, row.profitGrow, row.best?.id === 'grow')}
                 ${profitCellHtml(row.pctButcher, row.profitButcher, row.best?.id === 'butcher')}
                 ${row.item.productId
                     ? profitCellHtml(row.pctFeed, row.profitFeed, row.best?.id === 'feed')
-                    : '<td class="num farming-num pasture-profit-cell" data-sort-value="">—</td>'}
-                <td class="farming-verdict${row.best ? ' is-profit' : ''}${incompleteClass(row.best)}" data-sort-value="${row.best?.pct ?? ''}">${pathLabel(row.best)}</td>
-                <td class="num farming-num${state.focus ? incompleteClass(row.perFocus) : ''}" data-sort-value="${row.perFocus ?? ''}">${formatSilver(row.perFocus, { digits: 1 })}</td>
+                    : '<td class="num market-number pasture-profit-cell" data-sort-value="">—</td>'}
+                <td class="market-verdict${row.best ? ' is-profit' : ''}${incompleteClass(row.best)}" data-sort-value="${row.best?.pct ?? ''}">${pathLabel(row.best)}</td>
+                <td class="num market-number${state.focus ? incompleteClass(row.perFocus) : ''}" data-sort-value="${row.perFocus ?? ''}">${formatSilver(row.perFocus, { digits: 1 })}</td>
             </tr>
         `;
     }).join('');
 
     return `
         <div class="table-responsive calc-table-wrap">
-            <table class="table table-striped farming-table pasture-table calc-table">
+            <table class="market-table table table-striped market-table--fixed calc-table" data-market-table>
                 <colgroup>
                     <col class="farming-col-item">
                     <col class="farming-col-price">
@@ -1021,16 +1021,16 @@ function renderTable() {
                 <thead>
                     <tr>
                         ${sortHeaderHtml('Hayvan', { key: 'item', type: 'number', direction: dir('item'), title: 'Pasture hayvanı' })}
-                        ${sortHeaderHtml('Yavru', { key: 'baby', type: 'number', className: 'num farming-num', direction: dir('baby'), title: 'Yavru alış fiyatı' })}
-                        ${sortHeaderHtml('Yem', { key: 'feed', type: 'number', className: 'num farming-num', direction: dir('feed'), title: state.feedMode === 'grow' ? 'Yem tohumu / birim maliyet' : 'Yem piyasa alış' })}
-                        ${sortHeaderHtml('Büyümüş', { key: 'grown', type: 'number', className: 'num farming-num', direction: dir('grown'), title: 'Büyümüş satış fiyatı' })}
-                        ${sortHeaderHtml('Et', { key: 'meat', type: 'number', className: 'num farming-num', direction: dir('meat'), title: 'Et satış fiyatı' })}
-                        ${sortHeaderHtml('Ürün', { key: 'product', type: 'number', className: 'num farming-num', direction: dir('product'), title: 'Süt veya yumurta satış fiyatı' })}
-                        ${sortHeaderHtml('Büyüt', { key: 'grow', type: 'number', className: 'num farming-num', direction: dir('grow'), title: 'Büyütüp satma: kâr % (üst) ve gümüş (alt)' })}
-                        ${sortHeaderHtml('Kes', { key: 'butcher', type: 'number', className: 'num farming-num', direction: dir('butcher'), title: 'Kesme: kâr % (üst) ve gümüş (alt)' })}
-                        ${sortHeaderHtml('Besle', { key: 'milk', type: 'number', className: 'num farming-num', direction: dir('milk'), title: 'Süt / yumurta: kâr % (üst) ve gümüş (alt)' })}
+                        ${sortHeaderHtml('Yavru', { key: 'baby', type: 'number', className: 'num market-number', direction: dir('baby'), title: 'Yavru alış fiyatı' })}
+                        ${sortHeaderHtml('Yem', { key: 'feed', type: 'number', className: 'num market-number', direction: dir('feed'), title: state.feedMode === 'grow' ? 'Yem tohumu / birim maliyet' : 'Yem piyasa alış' })}
+                        ${sortHeaderHtml('Büyümüş', { key: 'grown', type: 'number', className: 'num market-number', direction: dir('grown'), title: 'Büyümüş satış fiyatı' })}
+                        ${sortHeaderHtml('Et', { key: 'meat', type: 'number', className: 'num market-number', direction: dir('meat'), title: 'Et satış fiyatı' })}
+                        ${sortHeaderHtml('Ürün', { key: 'product', type: 'number', className: 'num market-number', direction: dir('product'), title: 'Süt veya yumurta satış fiyatı' })}
+                        ${sortHeaderHtml('Büyüt', { key: 'grow', type: 'number', className: 'num market-number', direction: dir('grow'), title: 'Büyütüp satma: kâr % (üst) ve gümüş (alt)' })}
+                        ${sortHeaderHtml('Kes', { key: 'butcher', type: 'number', className: 'num market-number', direction: dir('butcher'), title: 'Kesme: kâr % (üst) ve gümüş (alt)' })}
+                        ${sortHeaderHtml('Besle', { key: 'milk', type: 'number', className: 'num market-number', direction: dir('milk'), title: 'Süt / yumurta: kâr % (üst) ve gümüş (alt)' })}
                         ${sortHeaderHtml('En iyi', { key: 'best', type: 'number', direction: dir('best'), title: 'En yüksek kâr % yolu' })}
-                        ${sortHeaderHtml('gümüş/focus', { key: 'focus', type: 'number', className: 'num farming-num', direction: dir('focus'), title: 'Focus başına ek gümüş' })}
+                        ${sortHeaderHtml('gümüş/focus', { key: 'focus', type: 'number', className: 'num market-number', direction: dir('focus'), title: 'Focus başına ek gümüş' })}
                     </tr>
                 </thead>
                 <tbody>${body}</tbody>
@@ -1079,7 +1079,7 @@ function renderOutput() {
         <div id="pastureResult">
             ${renderTable()}
             <section data-page-info>
-            <p class="farming-note">
+            <p class="tool-result-note">
                 ${escapeHtml(cityLabel(state.city))} · yavru ${escapeHtml(priceSideHint(state.babySide, 'buy'))}${babySetup ? ` · setup ${formatPct(SETUP_FEE)}` : ''}.
                 ${escapeHtml(feedModeNote)}.
                 Satış: büyümüş ${escapeHtml(priceSideHint(state.grownSide, 'sell'))}${grownSetup ? ` · setup ${formatPct(SETUP_FEE)}` : ''},
@@ -1096,7 +1096,7 @@ function renderOutput() {
 }
 
 function bindPastureSort(container) {
-    const table = container.querySelector('.pasture-table');
+    const table = container.querySelector('[data-market-table]');
     if (!table) {
         return;
     }
@@ -1115,7 +1115,7 @@ function patchRowCells(tr, row, bestId) {
 
     const setPriceCell = (cell, manualRaw, fetched, quotePrice) => {
         cell.dataset.sortValue = quotePrice ?? '';
-        applyPriceFieldState(cell.querySelector('.farming-price-field'), {
+        applyPriceFieldState(cell.querySelector('[data-market-price-field]'), {
             manual: isManualPrice(manualRaw),
             missing: !fetched,
             date: fetched?.date,
@@ -1124,7 +1124,7 @@ function patchRowCells(tr, row, bestId) {
     };
 
     setPriceCell(tr.cells[1], state.manualBabies[row.item.id], fetchedQuote(row.item.babyId, state.babySide, 'buy'), row.baby?.price);
-    const babyField = tr.cells[1].querySelector('.farming-price-field');
+    const babyField = tr.cells[1].querySelector('[data-market-price-field]');
     let mark = babyField?.querySelector('.price-field-mark, .farming-seed-mark');
     if (row.mark) {
         if (!mark && babyField) {
@@ -1141,7 +1141,7 @@ function patchRowCells(tr, row, bestId) {
 
     const feedCell = tr.cells[2];
     feedCell.dataset.sortValue = row.unit ?? '';
-    const feedField = feedCell.querySelector('.farming-price-field');
+    const feedField = feedCell.querySelector('[data-market-price-field]');
     applyPriceFieldState(feedField, {
         manual: isManualPrice(state.manualFeeds[row.item.id]),
         missing: !fetchedFeedQuote(row.item),
@@ -1156,7 +1156,7 @@ function patchRowCells(tr, row, bestId) {
     const productCell = tr.cells[5];
     if (row.item.productId) {
         productCell.dataset.sortValue = row.product?.price ?? '';
-        const field = productCell.querySelector('.farming-price-field');
+        const field = productCell.querySelector('[data-market-price-field]');
         if (field) {
             applyPriceFieldState(field, {
                 manual: isManualPrice(state.manualProducts[row.item.id]),
@@ -1175,7 +1175,7 @@ function patchRowCells(tr, row, bestId) {
 
     const patchProfit = (cell, pct, silver, isBest) => {
         cell.dataset.sortValue = pct ?? '';
-        cell.className = `num farming-num pasture-profit-cell${profitClass(pct ?? silver)}${incompleteClass(pct)}${isBest ? ' is-path-best' : ''}`;
+        cell.className = `num market-number pasture-profit-cell${profitClass(pct ?? silver)}${incompleteClass(pct)}${isBest ? ' is-path-best' : ''}`;
         if (!Number.isFinite(pct) && !Number.isFinite(silver)) {
             cell.textContent = '—';
             return;
@@ -1193,16 +1193,16 @@ function patchRowCells(tr, row, bestId) {
     } else {
         tr.cells[8].dataset.sortValue = '';
         tr.cells[8].textContent = '—';
-        tr.cells[8].className = 'num farming-num pasture-profit-cell';
+        tr.cells[8].className = 'num market-number pasture-profit-cell';
     }
 
     tr.cells[9].dataset.sortValue = row.best?.pct ?? '';
     tr.cells[9].textContent = pathLabel(row.best);
-    tr.cells[9].className = `farming-verdict${row.best ? ' is-profit' : ''}${incompleteClass(row.best)}`;
+    tr.cells[9].className = `market-verdict${row.best ? ' is-profit' : ''}${incompleteClass(row.best)}`;
 
     tr.cells[10].dataset.sortValue = row.perFocus ?? '';
     tr.cells[10].textContent = formatSilver(row.perFocus, { digits: 1 });
-    tr.cells[10].className = `num farming-num${state.focus ? incompleteClass(row.perFocus) : ''}`;
+    tr.cells[10].className = `num market-number${state.focus ? incompleteClass(row.perFocus) : ''}`;
 
     const chanceMeta = tr.querySelector('.pasture-animal-meta');
     if (chanceMeta) {
@@ -1211,7 +1211,7 @@ function patchRowCells(tr, row, bestId) {
 }
 
 function refreshCalc(container) {
-    const table = container.querySelector('.pasture-table');
+    const table = container.querySelector('[data-market-table]');
     if (!table) {
         return;
     }
@@ -1257,33 +1257,33 @@ function refreshOutput(container) {
 function sideFieldsHtml() {
     const feedLabel = state.feedMode === 'grow' ? 'Yem tohum' : 'Yem';
     return `
-        <div class="farming-side-field">
-            <span class="farming-side-label" id="pastureBabySideLabel">Yavru</span>
-            <div class="price-side" role="radiogroup" aria-labelledby="pastureBabySideLabel">
+        <div class="form-side-field">
+            <span class="form-side-label" id="pastureBabySideLabel">Yavru</span>
+            <div class="segmented-choice" role="radiogroup" aria-labelledby="pastureBabySideLabel">
                 ${priceSideToggleHtml('baby', state.babySide)}
             </div>
         </div>
-        <div class="farming-side-field">
-            <span class="farming-side-label" id="pastureFeedSideLabel">${escapeHtml(feedLabel)}</span>
-            <div class="price-side" role="radiogroup" aria-labelledby="pastureFeedSideLabel">
+        <div class="form-side-field">
+            <span class="form-side-label" id="pastureFeedSideLabel">${escapeHtml(feedLabel)}</span>
+            <div class="segmented-choice" role="radiogroup" aria-labelledby="pastureFeedSideLabel">
                 ${priceSideToggleHtml('feed', state.feedSide)}
             </div>
         </div>
-        <div class="farming-side-field">
-            <span class="farming-side-label" id="pastureGrownSideLabel">Büyümüş</span>
-            <div class="price-side" role="radiogroup" aria-labelledby="pastureGrownSideLabel">
+        <div class="form-side-field">
+            <span class="form-side-label" id="pastureGrownSideLabel">Büyümüş</span>
+            <div class="segmented-choice" role="radiogroup" aria-labelledby="pastureGrownSideLabel">
                 ${priceSideToggleHtml('grown', state.grownSide)}
             </div>
         </div>
-        <div class="farming-side-field">
-            <span class="farming-side-label" id="pastureMeatSideLabel">Et</span>
-            <div class="price-side" role="radiogroup" aria-labelledby="pastureMeatSideLabel">
+        <div class="form-side-field">
+            <span class="form-side-label" id="pastureMeatSideLabel">Et</span>
+            <div class="segmented-choice" role="radiogroup" aria-labelledby="pastureMeatSideLabel">
                 ${priceSideToggleHtml('meat', state.meatSide)}
             </div>
         </div>
-        <div class="farming-side-field">
-            <span class="farming-side-label" id="pastureProductSideLabel">Ürün</span>
-            <div class="price-side" role="radiogroup" aria-labelledby="pastureProductSideLabel">
+        <div class="form-side-field">
+            <span class="form-side-label" id="pastureProductSideLabel">Ürün</span>
+            <div class="segmented-choice" role="radiogroup" aria-labelledby="pastureProductSideLabel">
                 ${priceSideToggleHtml('product', state.productSide)}
             </div>
         </div>
@@ -1298,14 +1298,14 @@ function renderPage(container) {
             <p>Seçilen şehirde hayvan büyütme, kesme ve süt/yumurta kârı. Yemi ada birim maliyetiyle veya piyasa buy+1 ile hesapla; en iyi yolu işaretler.</p>
         </section>`,
         controls: `
-                <div class="farming-toolbar pasture-toolbar">
-                    <div class="farming-type" role="radiogroup" aria-label="Yem kaynağı">
+                <div class="tool-form-toolbar tool-form-toolbar">
+                    <div class="segmented-choice" role="radiogroup" aria-label="Yem kaynağı">
                         ${renderFeedModeToggle()}
                     </div>
-                    <div class="farming-type" role="radiogroup" aria-label="Premium">
+                    <div class="segmented-choice" role="radiogroup" aria-label="Premium">
                         ${renderPremiumToggle()}
                     </div>
-                    <div class="farming-type" role="radiogroup" aria-label="Focus">
+                    <div class="segmented-choice" role="radiogroup" aria-label="Focus">
                         ${renderFocusToggle()}
                     </div>
                     ${sideFieldsHtml()}

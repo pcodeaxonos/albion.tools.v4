@@ -1671,7 +1671,7 @@ function renderFixedPriceRoleField(column, value) {
     const options = column.options.map((option) => {
         const active = option === role;
         return `
-            <button type="button" class="price-side-btn${active ? ' is-active' : ''}"
+            <button type="button" class="segmented-choice-button segmented-choice-button--short${active ? ' is-active' : ''}"
                 data-fixed-price-role="${escapeHtml(option)}" aria-pressed="${active ? 'true' : 'false'}">
                 ${escapeHtml(option === 'input' ? 'Buy' : 'Sell')}
             </button>
@@ -1679,10 +1679,10 @@ function renderFixedPriceRoleField(column, value) {
     }).join('');
 
     return `
-        <div class="price-side-field">
-            <span class="price-side-label">${escapeHtml(label)}</span>
+        <div class="form-side-field">
+            <span class="form-side-label">${escapeHtml(label)}</span>
             <input type="hidden" name="${escapeHtml(column.name)}" value="${escapeHtml(role)}" data-fixed-price-role-input>
-            <div class="price-side" role="radiogroup" aria-label="${escapeHtml(label)}">${options}</div>
+            <div class="segmented-choice" role="radiogroup" aria-label="${escapeHtml(label)}">${options}</div>
         </div>
     `;
 }

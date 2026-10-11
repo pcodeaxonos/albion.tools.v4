@@ -1,0 +1,40 @@
+{
+  "tool-controls": {
+    "city-field-label": "choice-field-label", "plant-field-label": "choice-field-label",
+    "ava-city-field": "tool-form-field", "farming-city-field": "tool-form-field",
+    "royal-plan-station-label": "result-section-title", "royal-plan-missing-label": "result-section-title",
+    "carleon-toolbar": "tool-form-toolbar", "ava-toolbar": "tool-form-toolbar", "enchant-toolbar": "tool-form-toolbar", "farming-toolbar": "tool-form-toolbar", "pasture-toolbar": "tool-form-toolbar", "royal-toolbar": "tool-form-toolbar",
+    "carleon-side-field": "form-side-field", "ava-side-field": "form-side-field", "enchant-side-field": "form-side-field", "farming-side-field": "form-side-field", "price-side-field": "form-side-field",
+    "price-side-field--stacked": "form-side-field--stacked",
+    "carleon-side-label": "form-side-label", "ava-side-label": "form-side-label", "enchant-side-label": "form-side-label", "farming-side-label": "form-side-label", "price-side-label": "form-side-label",
+    "carleon-note": "tool-result-note", "ava-note": "tool-result-note", "enchant-note": "tool-result-note", "farming-note": "tool-result-note", "faction-note": "tool-result-note", "enchant-standard-note": "tool-result-note--linked"
+  },
+  "segmented-choice": {
+    "house-type": "segmented-choice", "carleon-type": "segmented-choice", "ava-type": "segmented-choice", "enchant-type": "segmented-choice", "farming-type": "segmented-choice", "price-side": "segmented-choice",
+    "house-type-btn": "segmented-choice-button", "carleon-type-btn": "segmented-choice-button", "ava-type-btn": "segmented-choice-button", "enchant-type-btn": "segmented-choice-button--compact", "farming-type-btn": "segmented-choice-button--icon", "price-side-btn": "segmented-choice-button--short",
+    "price-side--wrap-labels": "segmented-choice--wrap-labels", "farming-type-btn-icon": "segmented-choice-icon", "farming-type-btn-label": "segmented-choice-label"
+  },
+  "market-resources": {
+    "carleon-mats": "material-price-list", "ava-mats": "material-price-list", "ava-mats--energy": "material-price-list--single", "ava-mats--tiers": "material-price-list--tiers", "ava-mats--furniture": "material-price-list--auto",
+    "carleon-mat": "material-price-card", "ava-mat": "material-price-card", "ava-mat--tier": "material-price-card", "ava-tier-row": "material-price-row", "pasture-table": "market-table--fixed",
+    "carleon-mat-text": "material-price-card-text", "ava-mat-text": "material-price-card-text", "carleon-mat-label": "material-price-card-label", "ava-mat-label": "material-price-card-label", "carleon-mat-meta": "material-price-card-meta", "carleon-mat-value": null,
+    "carleon-price-field": "market-price-field", "ava-price-field": "market-price-field", "enchant-price-field": "market-price-field--dense", "farming-price-field": "market-price-field--fluid", "royal-price-field": "market-price-field--unlabelled",
+    "carleon-price-cell": "market-price-cell", "ava-price-cell": "market-price-cell", "enchant-price-cell": "market-price-cell--dense", "farming-price-cell": "market-price-cell--fluid",
+    "carleon-table": "market-table", "ava-table": "market-table--highlight-best", "enchant-table": "market-table--enchant", "farming-table": "market-table--fixed",
+    "carleon-item": "market-item", "ava-item": "market-item", "enchant-item": "market-item", "farming-item": "market-item",
+    "carleon-item-name": "market-item-name", "ava-item-name": "market-item-name", "enchant-item-name": "market-item-name", "farming-item-name": "market-item-name--wrap",
+    "carleon-item-meta": "market-item-meta", "ava-item-meta": "market-item-meta", "enchant-item-meta": "market-item-meta", "farming-item-meta": "market-item-meta--inline",
+    "carleon-bonus": "market-bonus", "ava-bonus": "market-bonus", "farming-bonus": "market-bonus",
+    "carleon-recipe": "recipe-list", "ava-recipe": "recipe-list", "carleon-chip": "recipe-chip", "ava-chip": "recipe-chip", "carleon-chip-icon": "recipe-chip-icon", "ava-chip-icon": "recipe-chip-icon--large",
+    "carleon-num": "market-number", "ava-num": "market-number", "enchant-num": "market-number", "farming-num": "market-number", "farming-verdict": "market-verdict"
+  },
+  "removed-unused": {
+    "enchant-chip": null, "enchant-verdict": null, "trades-panel-head": null, "trades-table-head": null, "yield-controls-column": null
+  },
+  "material-price-matrix": {
+    "enchant-mat": "material-price-matrix-cell", "royal-mat": "material-price-matrix-cell",
+    "enchant-mat-corner": "material-price-matrix-corner", "royal-mat-corner": "material-price-matrix-corner",
+    "enchant-mat-tier-head": "material-price-matrix-heading", "royal-mat-tier-head": "material-price-matrix-heading",
+    "enchant-mats-meta": "material-price-matrix-note", "royal-mats-meta": "material-price-matrix-note"
+  }
+}

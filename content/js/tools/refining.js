@@ -651,7 +651,7 @@ function bindExplain(container) {
     bindCalcExplain({
         root: container,
         key: 'refining',
-        table: container.querySelector('.farming-table'),
+        table: container.querySelector('[data-market-table]'),
         rowKey: (row) => row.dataset.itemId,
         render: renderRefiningExplain
     });
@@ -661,14 +661,14 @@ function renderToggleGroup(name, options, selected, attr) {
     return options.map((option) => {
         const pressed = option.id === selected;
         const icon = option.iconId
-            ? itemIconHtml(option.iconId, { size: 28, className: 'item-icon farming-type-btn-icon' })
+            ? itemIconHtml(option.iconId, { size: 28, className: 'item-icon segmented-choice-icon' })
             : '';
         return `
-            <button type="button" class="farming-type-btn${pressed ? ' is-active' : ''}${icon ? ' has-icon' : ''}${option.className ? ` ${option.className}` : ''}"
+            <button type="button" class="segmented-choice-button segmented-choice-button--icon${pressed ? ' is-active' : ''}${icon ? ' has-icon' : ''}${option.className ? ` ${option.className}` : ''}"
                 data-${attr}="${escapeHtml(String(option.id))}"
                 ${option.ariaLabel ? `aria-label="${escapeHtml(option.ariaLabel)}"` : ''}
                 aria-pressed="${pressed ? 'true' : 'false'}">
-                ${icon}${option.hideLabel ? '' : `<span class="farming-type-btn-label">${escapeHtml(option.label)}</span>`}
+                ${icon}${option.hideLabel ? '' : `<span class="segmented-choice-label">${escapeHtml(option.label)}</span>`}
             </button>
         `;
     }).join('');
@@ -704,19 +704,19 @@ function renderBonusNote() {
             `${escapeHtml(getBonusFamilyLabel(bonus.key))} +${bonus.rate}%`
         ).join(' · ');
 
-    return `<p class="farming-note">Bugün (${escapeHtml(bonusWindowLabel(bonusDayIso()))}): ${today}
+    return `<p class="tool-result-note">Bugün (${escapeHtml(bonusWindowLabel(bonusDayIso()))}): ${today}
         <a href="${routeHref('daily-bonus')}">Günlük bonus</a>. ${escapeHtml(feeMetaText(state.premium))}.</p>`;
 }
 
 function renderSummary(list) {
     const best = bestRow(list);
     if (!best || best.profit == null) {
-        return '<p class="farming-note" id="refiningSummary"><strong>Bu senaryoda kâr hesaplanamadı.</strong> Eksik fiyatları doldur.</p>';
+        return '<p class="tool-result-note" id="refiningSummary"><strong>Bu senaryoda kâr hesaplanamadı.</strong> Eksik fiyatları doldur.</p>';
     }
     if (best.profit <= 0) {
-        return `<p class="farming-note" id="refiningSummary"><strong>Bu senaryoda zarar.</strong> En az zarar ${itemNameHtml(itemDisplayName(best.outId, best.enchant), itemLabel(best.outId))} · ${formatSilver(best.profit, { signed: true })} · ${formatPct(best.pct)}.</p>`;
+        return `<p class="tool-result-note" id="refiningSummary"><strong>Bu senaryoda zarar.</strong> En az zarar ${itemNameHtml(itemDisplayName(best.outId, best.enchant), itemLabel(best.outId))} · ${formatSilver(best.profit, { signed: true })} · ${formatPct(best.pct)}.</p>`;
     }
-    return `<p class="farming-note" id="refiningSummary"><strong>En kârlı ${itemNameHtml(itemDisplayName(best.outId, best.enchant), itemLabel(best.outId))}</strong> · ${formatSilver(best.profit, { signed: true })} · ${formatPct(best.pct)}.</p>`;
+    return `<p class="tool-result-note" id="refiningSummary"><strong>En kârlı ${itemNameHtml(itemDisplayName(best.outId, best.enchant), itemLabel(best.outId))}</strong> · ${formatSilver(best.profit, { signed: true })} · ${formatPct(best.pct)}.</p>`;
 }
 
 function renderScenario() {
@@ -726,7 +726,7 @@ function renderScenario() {
         ? 'Tam zincir T2’den'
         : 'Alt kademe alış şehrinden (buy yoksa sell kitaptan anında)';
 
-    return `<p class="farming-note">Alış ${escapeHtml(cityLabel(state.buyCity))} · işle ${escapeHtml(cityLabel(state.refineCity))} (${escapeHtml(rrDetails())}) · satış ${escapeHtml(cityLabel(state.sellCity))}.
+    return `<p class="tool-result-note">Alış ${escapeHtml(cityLabel(state.buyCity))} · işle ${escapeHtml(cityLabel(state.refineCity))} (${escapeHtml(rrDetails())}) · satış ${escapeHtml(cityLabel(state.sellCity))}.
         Ham ${escapeHtml(rawNote)}. Ürün ${escapeHtml(outNote)}. ${escapeHtml(chainNote)}. Elle yazılan fiyat API’nin yerine geçer.</p>`;
 }
 
@@ -751,21 +751,21 @@ function renderTable(list) {
         const outValue = priceInputValue(state.manualOut[row.outId], outFetched?.price);
         const bestClass = best && row.id === best.id ? ' is-best' : '';
         const bonus = state.bonusRate && row.enchant === state.enchant
-            ? `<span class="farming-bonus">+${state.bonusRate}%</span>`
+            ? `<span class="market-bonus">+${state.bonusRate}%</span>`
             : '';
 
         return `
             <tr data-item-id="${escapeHtml(row.id)}" class="${bestClass.trim()}">
                 <td data-sort-value="${row.tier * 10 + row.enchant}">
-                    <span class="farming-item">
+                    <span class="market-item">
                         ${itemIconHtml(row.outId)}
                         <span>
-                            <span class="farming-item-name">${itemNameHtml(itemDisplayName(row.outId, row.enchant), itemLabel(row.outId))}${bonus}</span>
-                            <span class="farming-item-meta">${itemIconHtml(row.rawId, { className: 'item-icon farming-seed-icon' })} ${row.rawQty} ${escapeHtml(family.hamWord)}${row.lowerQty ? ` + ${row.lowerQty} alt` : ''}${row.lowerGap ? ' · alt fiyat yok' : ''}</span>
+                            <span class="market-item-name market-item-name--wrap">${itemNameHtml(itemDisplayName(row.outId, row.enchant), itemLabel(row.outId))}${bonus}</span>
+                            <span class="market-item-meta market-item-meta--inline">${itemIconHtml(row.rawId, { className: 'item-icon farming-seed-icon' })} ${row.rawQty} ${escapeHtml(family.hamWord)}${row.lowerQty ? ` + ${row.lowerQty} alt` : ''}${row.lowerGap ? ' · alt fiyat yok' : ''}</span>
                         </span>
                     </span>
                 </td>
-                <td class="num farming-num farming-price-cell" data-sort-value="${row.rawQuote?.price ?? ''}">
+                <td class="market-price-cell num market-number market-price-cell--fluid" data-sort-value="${row.rawQuote?.price ?? ''}">
                     ${priceFieldHtml({
                         id: `rawPrice-${row.id}`,
                         label: 'Ham',
@@ -777,7 +777,7 @@ function renderTable(list) {
                         iconId: row.rawId
                     })}
                 </td>
-                <td class="num farming-num farming-price-cell" data-sort-value="${row.outQuote?.price ?? ''}">
+                <td class="market-price-cell num market-number market-price-cell--fluid" data-sort-value="${row.outQuote?.price ?? ''}">
                     ${priceFieldHtml({
                         id: `outPrice-${row.id}`,
                         label: family.outWord,
@@ -789,17 +789,17 @@ function renderTable(list) {
                         iconId: row.outId
                     })}
                 </td>
-                <td class="num farming-num${incompleteClass(row.cost)}" data-sort-value="${row.cost ?? ''}">${formatSilver(row.cost)}</td>
-                <td class="num farming-num${incompleteClass(row.sell)}" data-sort-value="${row.sell ?? ''}">${formatSilver(row.sell)}</td>
-                <td class="num farming-num${profitClass(row.profit)}${incompleteClass(row.profit)}" data-sort-value="${row.profit ?? ''}">${formatSilver(row.profit, { signed: true })}</td>
-                <td class="num farming-num${profitClass(row.profit)}${incompleteClass(row.pct)}" data-sort-value="${row.pct ?? ''}">${formatPct(row.pct)}</td>
+                <td class="num market-number${incompleteClass(row.cost)}" data-sort-value="${row.cost ?? ''}">${formatSilver(row.cost)}</td>
+                <td class="num market-number${incompleteClass(row.sell)}" data-sort-value="${row.sell ?? ''}">${formatSilver(row.sell)}</td>
+                <td class="num market-number${profitClass(row.profit)}${incompleteClass(row.profit)}" data-sort-value="${row.profit ?? ''}">${formatSilver(row.profit, { signed: true })}</td>
+                <td class="num market-number${profitClass(row.profit)}${incompleteClass(row.pct)}" data-sort-value="${row.pct ?? ''}">${formatPct(row.pct)}</td>
             </tr>
         `;
     }).join('');
 
     return `
         <div class="table-responsive calc-table-wrap">
-            <table class="table table-striped farming-table refining-table calc-table">
+            <table class="market-table table table-striped market-table--fixed refining-table calc-table" data-market-table>
                 <colgroup>
                     <col class="farming-col-item">
                     <col class="farming-col-price">
@@ -812,12 +812,12 @@ function renderTable(list) {
                 <thead>
                     <tr>
                         ${sortHeaderHtml('Ürün', { key: 'item', type: 'number', direction: dir('item'), title: 'İşlenen kademe' })}
-                        ${sortHeaderHtml('Ham', { key: 'raw', type: 'number', className: 'num farming-num', direction: dir('raw'), title: 'Hammadde alış fiyatı' })}
-                        ${sortHeaderHtml(family.outWord, { key: 'out', type: 'number', className: 'num farming-num', direction: dir('out'), title: 'Ürün satış fiyatı' })}
-                        ${sortHeaderHtml('Maliyet', { key: 'cost', type: 'number', className: 'num farming-num', direction: dir('cost'), title: 'Malzeme iadesi ve istasyon ücreti dahil maliyet' })}
-                        ${sortHeaderHtml('Satış net', { key: 'sell', type: 'number', className: 'num farming-num', direction: dir('sell'), title: 'Vergi sonrası net satış' })}
-                        ${sortHeaderHtml('Kâr', { key: 'profit', type: 'number', className: 'num farming-num', direction: dir('profit'), title: 'Net satış eksi maliyet' })}
-                        ${sortHeaderHtml('Kâr%', { key: 'pct', type: 'number', className: 'num farming-num', direction: dir('pct'), title: 'Kârın maliyete oranı' })}
+                        ${sortHeaderHtml('Ham', { key: 'raw', type: 'number', className: 'num market-number', direction: dir('raw'), title: 'Hammadde alış fiyatı' })}
+                        ${sortHeaderHtml(family.outWord, { key: 'out', type: 'number', className: 'num market-number', direction: dir('out'), title: 'Ürün satış fiyatı' })}
+                        ${sortHeaderHtml('Maliyet', { key: 'cost', type: 'number', className: 'num market-number', direction: dir('cost'), title: 'Malzeme iadesi ve istasyon ücreti dahil maliyet' })}
+                        ${sortHeaderHtml('Satış net', { key: 'sell', type: 'number', className: 'num market-number', direction: dir('sell'), title: 'Vergi sonrası net satış' })}
+                        ${sortHeaderHtml('Kâr', { key: 'profit', type: 'number', className: 'num market-number', direction: dir('profit'), title: 'Net satış eksi maliyet' })}
+                        ${sortHeaderHtml('Kâr%', { key: 'pct', type: 'number', className: 'num market-number', direction: dir('pct'), title: 'Kârın maliyete oranı' })}
                     </tr>
                 </thead>
                 <tbody>${body}</tbody>
@@ -845,7 +845,7 @@ function renderOutput() {
             ${renderSummary(list)}
             ${renderScenario()}
             ${renderBonusNote()}
-            ${stamp ? `<p class="farming-note">${escapeHtml(stamp)}</p>` : ''}
+            ${stamp ? `<p class="tool-result-note">${escapeHtml(stamp)}</p>` : ''}
             </section>
         </div>
     `;
@@ -859,8 +859,8 @@ function renderPage(container) {
             <p>Seçilen hammaddede hangi kademeyi işlemenin kâr bıraktığı. Ham alış, refine ve satış şehirleri ayrı; focus ve günlük bonus RR’yi değiştirir.</p>
         </section>`,
         controls: `
-                <div class="farming-toolbar">
-                    <div class="farming-type" role="radiogroup" aria-label="Aile">
+                <div class="tool-form-toolbar">
+                    <div class="segmented-choice" role="radiogroup" aria-label="Aile">
                         ${renderToggleGroup('family', families().map((family) => ({
                             id: family.id,
                             label: family.label,
@@ -870,7 +870,7 @@ function renderPage(container) {
                             hideLabel: true
                         })), state.family, 'family')}
                     </div>
-                    <div class="farming-type" role="radiogroup" aria-label="Enchant">
+                    <div class="segmented-choice" role="radiogroup" aria-label="Enchant">
                         ${renderToggleGroup('enchant', [
                             { id: 'all', label: 'Tümü' },
                             { id: 0, label: '0' },
@@ -879,39 +879,39 @@ function renderPage(container) {
                             { id: 3, label: '.3' }
                         ], state.enchant, 'enchant')}
                     </div>
-                    <div class="farming-type" role="radiogroup" aria-label="Zincir">
+                    <div class="segmented-choice" role="radiogroup" aria-label="Zincir">
                         ${renderToggleGroup('chain', [
                             { id: 'market', label: 'Piyasa' },
                             { id: 'full', label: 'Tam zincir' }
                         ], state.chain, 'chain')}
                     </div>
-                    <div class="farming-type" role="radiogroup" aria-label="Focus">
+                    <div class="segmented-choice" role="radiogroup" aria-label="Focus">
                         ${renderToggleGroup('focus', [
                             { id: '1', label: 'Focus' },
                             { id: '0', label: 'Focus yok' }
                         ], state.focus ? '1' : '0', 'focus')}
                     </div>
-                    <div class="farming-type" role="radiogroup" aria-label="Premium">
+                    <div class="segmented-choice" role="radiogroup" aria-label="Premium">
                         ${renderToggleGroup('premium', [
                             { id: '1', label: 'Premium' },
                             { id: '0', label: 'Premium yok' }
                         ], state.premium ? '1' : '0', 'premium')}
                     </div>
-                    <div class="farming-side-field">
-                        <span class="farming-side-label" id="refiningBonusLabel">Bonus</span>
-                        <div class="price-side" role="radiogroup" aria-labelledby="refiningBonusLabel">
+                    <div class="form-side-field">
+                        <span class="form-side-label" id="refiningBonusLabel">Bonus</span>
+                        <div class="segmented-choice" role="radiogroup" aria-labelledby="refiningBonusLabel">
                             ${craftBonusToggleHtml(state.bonusRate)}
                         </div>
                     </div>
-                    <div class="farming-side-field">
-                        <span class="farming-side-label" id="refiningRawSideLabel">Ham</span>
-                        <div class="price-side" role="radiogroup" aria-labelledby="refiningRawSideLabel">
+                    <div class="form-side-field">
+                        <span class="form-side-label" id="refiningRawSideLabel">Ham</span>
+                        <div class="segmented-choice" role="radiogroup" aria-labelledby="refiningRawSideLabel">
                             ${priceSideToggleHtml('raw', state.rawSide)}
                         </div>
                     </div>
-                    <div class="farming-side-field">
-                        <span class="farming-side-label" id="refiningItemSideLabel">Ürün</span>
-                        <div class="price-side" role="radiogroup" aria-labelledby="refiningItemSideLabel">
+                    <div class="form-side-field">
+                        <span class="form-side-label" id="refiningItemSideLabel">Ürün</span>
+                        <div class="segmented-choice" role="radiogroup" aria-labelledby="refiningItemSideLabel">
                             ${priceSideToggleHtml('item', state.itemSide)}
                         </div>
                     </div>
@@ -953,7 +953,7 @@ function renderPage(container) {
 }
 
 function bindRefiningSort(container) {
-    const table = container.querySelector('.farming-table');
+    const table = container.querySelector('[data-market-table]');
     if (!table) {
         return;
     }
@@ -980,7 +980,7 @@ function patchRowCells(tr, row, bestId) {
 
     rawCell.dataset.sortValue = row.rawQuote?.price ?? '';
     const rawFetched = fetchedQuote(row.rawId, state.buyCity, state.rawSide, 'buy');
-    applyPriceFieldState(rawCell.querySelector('.farming-price-field'), {
+    applyPriceFieldState(rawCell.querySelector('[data-market-price-field]'), {
         manual: isManualPrice(state.manualRaw[row.rawId]),
         missing: !rawFetched,
         date: rawFetched?.date,
@@ -989,7 +989,7 @@ function patchRowCells(tr, row, bestId) {
 
     outCell.dataset.sortValue = row.outQuote?.price ?? '';
     const outFetched = fetchedQuote(row.outId, state.sellCity, state.itemSide, 'sell');
-    applyPriceFieldState(outCell.querySelector('.farming-price-field'), {
+    applyPriceFieldState(outCell.querySelector('[data-market-price-field]'), {
         manual: isManualPrice(state.manualOut[row.outId]),
         missing: !outFetched,
         date: outFetched?.date,
@@ -998,23 +998,23 @@ function patchRowCells(tr, row, bestId) {
 
     costCell.dataset.sortValue = row.cost ?? '';
     costCell.textContent = formatSilver(row.cost);
-    costCell.className = `num farming-num${incompleteClass(row.cost)}`;
+    costCell.className = `num market-number${incompleteClass(row.cost)}`;
 
     sellCell.dataset.sortValue = row.sell ?? '';
     sellCell.textContent = formatSilver(row.sell);
-    sellCell.className = `num farming-num${incompleteClass(row.sell)}`;
+    sellCell.className = `num market-number${incompleteClass(row.sell)}`;
 
     profitCell.dataset.sortValue = row.profit ?? '';
     profitCell.textContent = formatSilver(row.profit, { signed: true });
-    profitCell.className = `num farming-num${profitClass(row.profit)}${incompleteClass(row.profit)}`;
+    profitCell.className = `num market-number${profitClass(row.profit)}${incompleteClass(row.profit)}`;
 
     pctCell.dataset.sortValue = row.pct ?? '';
     pctCell.textContent = formatPct(row.pct);
-    pctCell.className = `num farming-num${profitClass(row.profit)}${incompleteClass(row.pct)}`;
+    pctCell.className = `num market-number${profitClass(row.profit)}${incompleteClass(row.pct)}`;
 }
 
 function refreshCalc(container) {
-    const table = container.querySelector('.farming-table');
+    const table = container.querySelector('[data-market-table]');
     if (!table) {
         return;
     }

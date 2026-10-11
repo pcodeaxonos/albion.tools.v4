@@ -1,0 +1,133 @@
+// Canonical market input styles, followed by dense, unlabelled and fluid variants.
+.market-price-field {
+    --input-height: var(--input-height-sm);
+    --floating-label-inset: 0.5rem;
+    --floating-label-pad: 0.25rem;
+    --floating-label-scale: calc(var(--floating-label-float-size) / var(--font-size-sm));
+    width: 100%;
+    min-width: 6.5rem;
+    max-width: none;
+    margin-top: 0.25rem;
+
+    > .form-control {
+        font-family: var(--font-family-mono);
+        font-size: var(--font-size-sm);
+        font-weight: var(--font-weight-semibold);
+        letter-spacing: -0.03em;
+    }
+
+    > label {
+        font-size: var(--font-size-sm);
+    }
+}
+
+.market-price-cell {
+    width: 8.5rem;
+
+    .market-price-field {
+        margin-top: 0;
+        margin-left: auto;
+        max-width: 8rem;
+    }
+}
+
+.market-price-field--dense {
+    --floating-label-inset: 0.45rem;
+    --floating-label-pad: 0.2rem;
+    margin-top: 0;
+    min-width: 0;
+
+    > .form-control {
+        font-size: 0.8125rem;
+    }
+}
+
+.market-price-cell--dense {
+    width: 7.25rem;
+
+    .market-price-field--dense {
+        margin-top: 0;
+        margin-left: auto;
+        max-width: 7rem;
+    }
+}
+
+.market-price-field--unlabelled {
+    --floating-label-inset: 0.45rem;
+    --floating-label-pad: 0.2rem;
+    margin-top: 0;
+
+    > .form-control {
+        font-size: 0.8125rem;
+    }
+
+    // Tier already in column head — hide float tag so icon + value stay centered.
+    > label {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        white-space: nowrap;
+        border: 0;
+        transform: none !important;
+        background: none;
+        font-size: 0;
+        max-width: none;
+    }
+}
+
+.market-price-field--fluid {
+    // Reset dense geometry when combined with the unlabelled variant.
+    --floating-label-inset: 0.5rem;
+    --floating-label-pad: 0.25rem;
+    min-width: 0;
+    max-width: 100%;
+    margin-top: 0;
+    overflow: visible;
+
+    > .form-control {
+        min-width: 0;
+        width: 100%;
+        max-width: 100%;
+        font-size: var(--font-size-sm);
+    }
+
+    > label {
+        // Clip only the floating label, never its field or table scrollport.
+        font-size: var(--font-size-sm);
+        max-width: calc(100% - 0.25rem);
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+}
+
+.market-price-cell--fluid {
+    width: auto;
+    overflow: hidden;
+    padding-top: 0.7rem;
+    padding-bottom: 0.7rem;
+    padding-inline: 0.5rem;
+    vertical-align: top;
+
+    .market-price-field--fluid {
+        margin-left: 0;
+        max-width: 100%;
+    }
+}
+
+.market-price-field.is-missing {
+    > .form-control {
+        color: var(--color-danger);
+        background-color: color-mix(in srgb, var(--color-danger) 12%, var(--field-bg));
+    }
+}
+
+.market-price-field.is-stale {
+    > .form-control {
+        color: var(--color-stale);
+        background-color: color-mix(in srgb, var(--color-stale) 12%, var(--field-bg));
+    }
+}

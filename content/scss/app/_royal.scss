@@ -6,12 +6,6 @@
     min-width: 0;
 }
 
-.royal-mats-meta {
-    margin: 0;
-    font-size: 0.75rem;
-    color: var(--color-text-muted);
-}
-
 .royal-sealed-control {
     width: 100%;
     min-width: 0;
@@ -39,7 +33,7 @@
         width: 100%;
     }
 
-    .farming-price-field {
+    .market-price-field--fluid {
         flex: 1 1 auto;
         min-width: 0;
         width: 100%;
@@ -54,20 +48,6 @@
     align-items: center;
     min-width: 0;
     width: 100%;
-}
-
-.royal-mat-corner {
-    min-height: 1.25rem;
-}
-
-.royal-mat-tier-head {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-family: var(--font-mono);
-    font-weight: var(--font-weight-semibold);
-    font-size: 0.75rem;
-    color: var(--color-text-muted);
 }
 
 .royal-mat-kind {
@@ -89,64 +69,6 @@
     width: 2rem;
     height: 2rem;
     flex: 0 0 auto;
-}
-
-.royal-mat {
-    min-width: 0;
-    padding: 0;
-    border: 0;
-    background: transparent;
-
-    .price-field-stack {
-        gap: 0;
-    }
-
-    .price-field-aside {
-        width: 2rem;
-        height: 2rem;
-    }
-
-    .price-field-aside-icon {
-        width: 1.75rem;
-        height: 1.75rem;
-    }
-
-    .price-field-row {
-        align-items: center;
-        gap: 0.4rem;
-    }
-}
-
-.royal-price-field {
-    --input-height: var(--input-height-sm);
-    --floating-label-inset: 0.45rem;
-    --floating-label-pad: 0.2rem;
-    --floating-label-scale: calc(var(--floating-label-float-size) / var(--font-size-sm));
-    margin-top: 0;
-
-    > .form-control {
-        font-family: var(--font-family-mono);
-        font-size: 0.8125rem;
-        font-weight: var(--font-weight-semibold);
-        letter-spacing: -0.03em;
-    }
-
-    // Tier already in column head — hide float tag so icon + value stay centered.
-    > label {
-        position: absolute;
-        width: 1px;
-        height: 1px;
-        padding: 0;
-        margin: -1px;
-        overflow: hidden;
-        clip: rect(0, 0, 0, 0);
-        white-space: nowrap;
-        border: 0;
-        transform: none !important;
-        background: none;
-        font-size: 0;
-        max-width: none;
-    }
 }
 
 .royal-item-cell {
@@ -528,13 +450,7 @@
     padding: 0 0 0.35rem;
 }
 
-.royal-plan-station-label {
-    font-size: 1.15rem;
-    font-weight: var(--font-weight-bold);
-    letter-spacing: 0.02em;
-    line-height: 1.2;
-    color: var(--color-text);
-}
+
 
 .royal-plan-station-list {
     display: flex;
@@ -708,13 +624,7 @@
     padding: 0 0 0.35rem;
 }
 
-.royal-plan-missing-label {
-    font-size: 1.15rem;
-    font-weight: var(--font-weight-bold);
-    letter-spacing: 0.02em;
-    line-height: 1.2;
-    color: var(--color-text);
-}
+
 
 .royal-plan-missing-list {
     display: flex;

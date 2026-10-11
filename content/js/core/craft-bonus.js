@@ -48,7 +48,7 @@ export function defaultCraftBonusRate(familyKeys) {
 }
 
 export function craftBonusToggleHtml(selected, { buttonClass } = {}) {
-    const cls = buttonClass || 'price-side-btn';
+    const cls = buttonClass || 'segmented-choice-button segmented-choice-button--short';
     const current = normalizeCraftBonusRate(selected);
 
     return CRAFT_BONUS_RATES.map((rate) => {

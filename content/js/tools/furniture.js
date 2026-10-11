@@ -272,8 +272,8 @@ function recipeChips(item) {
     return Object.entries(item.recipe).map(([kind, qty]) => {
         const mat = mats().find((entry) => entry.kind === kind && entry.tier === item.tier);
         return `
-        <span class="ava-chip">
-            ${itemIconHtml(mat?.uniqueName, { className: 'item-icon ava-chip-icon' })}
+        <span class="recipe-chip">
+            ${itemIconHtml(mat?.uniqueName, { className: 'recipe-chip-icon item-icon recipe-chip-icon--large' })}
             <span>${qty}</span>
         </span>
     `;
@@ -284,7 +284,7 @@ function renderKindToggle() {
     return kinds().map((kind) => {
         const pressed = kind.id === state.kind;
         return `
-            <button type="button" class="ava-type-btn${pressed ? ' is-active' : ''}"
+            <button type="button" class="segmented-choice-button${pressed ? ' is-active' : ''}"
                 data-kind="${escapeHtml(kind.id)}"
                 aria-pressed="${pressed ? 'true' : 'false'}">
                 ${escapeHtml(kind.label)}
@@ -302,7 +302,7 @@ function renderPremiumToggle() {
     return options.map((option) => {
         const pressed = option.id === state.premium;
         return `
-            <button type="button" class="ava-type-btn${pressed ? ' is-active' : ''}"
+            <button type="button" class="segmented-choice-button${pressed ? ' is-active' : ''}"
                 data-premium="${option.id ? '1' : '0'}"
                 aria-pressed="${pressed ? 'true' : 'false'}">
                 ${escapeHtml(option.label)}
@@ -320,7 +320,7 @@ function renderBonusNote() {
             `${escapeHtml(getBonusFamilyLabel(bonus.key))} +${bonus.rate}%`
         ).join(' · ');
 
-    return `<p class="ava-note">RR ${formatPct(returnRate())}${extra}. Carpenter şehir tabanı ${cityProduction()}%.
+    return `<p class="tool-result-note">RR ${formatPct(returnRate())}${extra}. Carpenter şehir tabanı ${cityProduction()}%.
         Bugün (${escapeHtml(bonusWindowLabel(bonusDayIso()))}): ${today}
         <a href="${routeHref('daily-bonus')}">Günlük bonus</a></p>`;
 }
@@ -328,17 +328,17 @@ function renderBonusNote() {
 function renderTierMats() {
     const tiers = visibleTiers();
     return `
-        <ul class="ava-mats ava-mats--furniture">
+        <ul class="material-price-list material-price-list--auto">
             ${tiers.map((tier) => {
                 const mats = visibleMats().filter((mat) => mat.tier === tier);
                 return `
-                    <li class="ava-mat ava-mat--tier">
-                        <span class="ava-mat-text">
-                            <span class="ava-mat-label">T${tier}</span>
+                    <li class="material-price-card">
+                        <span class="material-price-card-text">
+                            <span class="material-price-card-label">T${tier}</span>
                             ${mats.map((mat) => {
                                 const fetched = fetchedMatQuote(mat.key);
                                 return `
-                                    <span class="ava-tier-row" data-mat-card="${escapeHtml(mat.key)}">
+                                    <span class="material-price-row" data-mat-card="${escapeHtml(mat.key)}">
                                         ${priceFieldHtml({
                                             id: `matPrice-${mat.key}`,
                                             label: mat.short.replace(/^T\d+\s+/, '') || mat.kind,
@@ -347,7 +347,7 @@ function renderTierMats() {
                                             missing: !fetched,
                                             date: fetched?.date,
                                             dataAttr: `data-mat-price="${escapeHtml(mat.key)}"`,
-                                            fieldClass: 'ava-price-field'
+                                            fieldClass: 'market-price-field'
                                         })}
                                     </span>
                                 `;
@@ -387,13 +387,13 @@ function latestQuoteDate(list) {
 function renderSummary(list) {
     const best = bestRow(list);
     if (!best) {
-        return '<p class="ava-note" id="furnitureSummary"><strong>Bu senaryoda kâr hesaplanamadı.</strong> Eksik fiyatları doldur.</p>';
+        return '<p class="tool-result-note" id="furnitureSummary"><strong>Bu senaryoda kâr hesaplanamadı.</strong> Eksik fiyatları doldur.</p>';
     }
     const name = `T${best.item.tier} ${itemNameHtml(best.item.label)}`;
     if (best.profit < 0) {
-        return `<p class="ava-note" id="furnitureSummary"><strong>Bu senaryoda zarar.</strong> En az zarar ${name} · ${formatSilver(best.profit, { signed: true })} · ${formatPct(best.pct)}.</p>`;
+        return `<p class="tool-result-note" id="furnitureSummary"><strong>Bu senaryoda zarar.</strong> En az zarar ${name} · ${formatSilver(best.profit, { signed: true })} · ${formatPct(best.pct)}.</p>`;
     }
-    return `<p class="ava-note" id="furnitureSummary"><strong>En kârlı ${name}</strong> · ${formatSilver(best.profit, { signed: true })} · ${formatPct(best.pct)}.</p>`;
+    return `<p class="tool-result-note" id="furnitureSummary"><strong>En kârlı ${name}</strong> · ${formatSilver(best.profit, { signed: true })} · ${formatPct(best.pct)}.</p>`;
 }
 
 function renderExplain(key, { hovered } = {}) {
@@ -537,7 +537,7 @@ function bindExplain(container) {
     bindCalcExplain({
         root: container,
         key: 'furnitureExplain',
-        table: container.querySelector('.ava-table'),
+        table: container.querySelector('[data-market-table]'),
         rowKey: (tr) => tr.dataset.itemId,
         keys: () => rows().map((row) => row.item.id),
         render: (key, meta) => renderExplain(key, meta)
@@ -549,7 +549,7 @@ function renderTable() {
     const best = bestRow(list);
     const body = list.map((row) => {
         const bonusMark = state.bonusRate
-            ? `<span class="ava-bonus">+${state.bonusRate}%</span>`
+            ? `<span class="market-bonus">+${state.bonusRate}%</span>`
             : '';
         const fetched = fetchedItemQuote(row.item.id);
         const sellValue = priceInputValue(state.manualItems[row.item.id], fetched?.price);
@@ -557,17 +557,17 @@ function renderTable() {
         return `
             <tr data-item-id="${escapeHtml(row.item.id)}" class="${bestClass.trim()}">
                 <td>
-                    <span class="ava-item">
+                    <span class="market-item">
                         ${itemIconHtml(row.item.uniqueName)}
                         <span>
-                            <span class="ava-item-name">T${row.item.tier} ${itemNameHtml(row.item.label)}${bonusMark}</span>
-                            <span class="ava-item-meta">${itemNameHtml(itemLabel(row.item.uniqueName, row.item.label))} · RR ${formatPct(row.rr)}</span>
+                            <span class="market-item-name">T${row.item.tier} ${itemNameHtml(row.item.label)}${bonusMark}</span>
+                            <span class="market-item-meta">${itemNameHtml(itemLabel(row.item.uniqueName, row.item.label))} · RR ${formatPct(row.rr)}</span>
                         </span>
                     </span>
                 </td>
-                <td class="ava-recipe">${recipeChips(row.item)}</td>
-                <td class="num ava-num${incompleteClass(row.cost)}" data-sort-value="${row.cost ?? ''}">${formatSilver(row.cost)}</td>
-                <td class="num ava-num ava-price-cell" data-sort-value="${row.quote?.price ?? ''}">
+                <td class="recipe-list">${recipeChips(row.item)}</td>
+                <td class="num market-number${incompleteClass(row.cost)}" data-sort-value="${row.cost ?? ''}">${formatSilver(row.cost)}</td>
+                <td class="num market-number market-price-cell" data-sort-value="${row.quote?.price ?? ''}">
                     ${priceFieldHtml({
                         id: `itemPrice-${row.item.id}`,
                         label: 'Satış',
@@ -576,12 +576,12 @@ function renderTable() {
                         missing: !fetched,
                         date: fetched?.date,
                         dataAttr: `data-item-price="${escapeHtml(row.item.id)}"`,
-                        fieldClass: 'ava-price-field'
+                        fieldClass: 'market-price-field'
                     })}
                 </td>
-                <td class="num ava-num${incompleteClass(row.sell)}" data-sort-value="${row.sell ?? ''}">${formatSilver(row.sell)}</td>
-                <td class="num ava-num${profitClass(row.profit)}${incompleteClass(row.profit)}" data-sort-value="${row.profit ?? ''}">${formatSilver(row.profit, { signed: true })}</td>
-                <td class="num ava-num${profitClass(row.profit)}${incompleteClass(row.pct)}" data-sort-value="${row.pct ?? ''}">${formatPct(row.pct)}</td>
+                <td class="num market-number${incompleteClass(row.sell)}" data-sort-value="${row.sell ?? ''}">${formatSilver(row.sell)}</td>
+                <td class="num market-number${profitClass(row.profit)}${incompleteClass(row.profit)}" data-sort-value="${row.profit ?? ''}">${formatSilver(row.profit, { signed: true })}</td>
+                <td class="num market-number${profitClass(row.profit)}${incompleteClass(row.pct)}" data-sort-value="${row.pct ?? ''}">${formatPct(row.pct)}</td>
             </tr>
         `;
     }).join('');
@@ -590,16 +590,16 @@ function renderTable() {
 
     return `
         <div class="table-responsive calc-table-wrap">
-            <table class="table table-striped ava-table calc-table">
+            <table class="market-table table table-striped market-table--highlight-best calc-table" data-market-table>
                 <thead>
                     <tr>
                         ${sortHeaderHtml('Eşya', { key: 'item', type: 'text', direction: sort.key === 'item' ? sort.direction : null, title: 'Üretilen dekorasyon' })}
                         ${sortHeaderHtml('Tarif', { key: 'recipe', type: 'text', direction: sort.key === 'recipe' ? sort.direction : null, title: 'Craft için gereken malzemeler' })}
-                        ${sortHeaderHtml('Maliyet', { key: 'cost', type: 'number', className: 'num ava-num', direction: sort.key === 'cost' ? sort.direction : null, title: 'Malzeme iadesi sonrası maliyet' })}
-                        ${sortHeaderHtml('Fiyat', { key: 'price', type: 'number', className: 'num ava-num', direction: sort.key === 'price' ? sort.direction : null, title: 'Piyasa satış fiyatı' })}
-                        ${sortHeaderHtml('Net', { key: 'sell', type: 'number', className: 'num ava-num', direction: sort.key === 'sell' ? sort.direction : null, title: 'Vergi sonrası net satış' })}
-                        ${sortHeaderHtml('Kâr', { key: 'profit', type: 'number', className: 'num ava-num', direction: sort.key === 'profit' ? sort.direction : null, title: 'Net satış eksi maliyet' })}
-                        ${sortHeaderHtml('%', { key: 'pct', type: 'number', className: 'num ava-num', direction: sort.key === 'pct' ? sort.direction : null, title: 'Kârın maliyete oranı' })}
+                        ${sortHeaderHtml('Maliyet', { key: 'cost', type: 'number', className: 'num market-number', direction: sort.key === 'cost' ? sort.direction : null, title: 'Malzeme iadesi sonrası maliyet' })}
+                        ${sortHeaderHtml('Fiyat', { key: 'price', type: 'number', className: 'num market-number', direction: sort.key === 'price' ? sort.direction : null, title: 'Piyasa satış fiyatı' })}
+                        ${sortHeaderHtml('Net', { key: 'sell', type: 'number', className: 'num market-number', direction: sort.key === 'sell' ? sort.direction : null, title: 'Vergi sonrası net satış' })}
+                        ${sortHeaderHtml('Kâr', { key: 'profit', type: 'number', className: 'num market-number', direction: sort.key === 'profit' ? sort.direction : null, title: 'Net satış eksi maliyet' })}
+                        ${sortHeaderHtml('%', { key: 'pct', type: 'number', className: 'num market-number', direction: sort.key === 'pct' ? sort.direction : null, title: 'Kârın maliyete oranı' })}
                     </tr>
                 </thead>
                 <tbody>${body}</tbody>
@@ -631,14 +631,14 @@ function renderOutput() {
             <section data-page-info>
             ${renderSummary(list)}
             ${renderBonusNote()}
-            <p class="ava-note">Malzeme ve satış ${escapeHtml(cityLabel(state.city))} · ${escapeHtml(matNote)}. Satış ${escapeHtml(itemNote)}. Elle yazılan alış/satış API’nin yerine geçer. Kırmızı fiyat API’de yok; mavi 6 saatten eski.${stamp ? ` ${escapeHtml(stamp)}.` : ''}</p>
+            <p class="tool-result-note">Malzeme ve satış ${escapeHtml(cityLabel(state.city))} · ${escapeHtml(matNote)}. Satış ${escapeHtml(itemNote)}. Elle yazılan alış/satış API’nin yerine geçer. Kırmızı fiyat API’de yok; mavi 6 saatten eski.${stamp ? ` ${escapeHtml(stamp)}.` : ''}</p>
             </section>
         </div>
     `;
 }
 
 function bindTableSort(container) {
-    const table = container.querySelector('.ava-table');
+    const table = container.querySelector('[data-market-table]');
     if (!table) {
         return;
     }
@@ -662,11 +662,11 @@ function patchRowCells(tr, row, bestId) {
 
     costCell.dataset.sortValue = row.cost ?? '';
     costCell.textContent = formatSilver(row.cost);
-    costCell.className = `num ava-num${incompleteClass(row.cost)}`;
+    costCell.className = `num market-number${incompleteClass(row.cost)}`;
 
     priceCell.dataset.sortValue = row.quote?.price ?? '';
     const itemFetched = fetchedItemQuote(row.item.id);
-    applyPriceFieldState(priceCell.querySelector('.ava-price-field'), {
+    applyPriceFieldState(priceCell.querySelector('[data-market-price-field]'), {
         manual: Boolean(row.quote?.manual),
         missing: !itemFetched,
         date: itemFetched?.date,
@@ -675,19 +675,19 @@ function patchRowCells(tr, row, bestId) {
 
     sellCell.dataset.sortValue = row.sell ?? '';
     sellCell.textContent = formatSilver(row.sell);
-    sellCell.className = `num ava-num${incompleteClass(row.sell)}`;
+    sellCell.className = `num market-number${incompleteClass(row.sell)}`;
 
     profitCell.dataset.sortValue = row.profit ?? '';
     profitCell.textContent = formatSilver(row.profit, { signed: true });
-    profitCell.className = `num ava-num${profitClass(row.profit)}${incompleteClass(row.profit)}`;
+    profitCell.className = `num market-number${profitClass(row.profit)}${incompleteClass(row.profit)}`;
 
     pctCell.dataset.sortValue = row.pct ?? '';
     pctCell.textContent = formatPct(row.pct);
-    pctCell.className = `num ava-num${profitClass(row.profit)}${incompleteClass(row.pct)}`;
+    pctCell.className = `num market-number${profitClass(row.profit)}${incompleteClass(row.pct)}`;
 }
 
 function refreshCalc(container) {
-    const table = container.querySelector('.ava-table');
+    const table = container.querySelector('[data-market-table]');
     const list = rows();
     const best = bestRow(list);
     if (table) {
@@ -716,7 +716,7 @@ function refreshCalc(container) {
         if (!card) {
             return;
         }
-        const field = card.querySelector('.ava-price-field');
+        const field = card.querySelector('[data-market-price-field]');
         if (field) {
             const fetched = fetchedMatQuote(mat.key);
             applyPriceFieldState(field, {
@@ -771,28 +771,28 @@ function renderPage(container) {
             <p>Ada evine konan dekorasyon: sandık, yatak ve masa. Malzeme ve satış aynı şehir; carpenter RR şehir tabanı + bonus.</p>
         </section>`,
         controls: `
-                <div class="ava-toolbar">
-                    <div class="ava-type" role="radiogroup" aria-label="Eşya">
+                <div class="tool-form-toolbar">
+                    <div class="segmented-choice" role="radiogroup" aria-label="Eşya">
                         ${renderKindToggle()}
                     </div>
-                    <div class="ava-type" role="radiogroup" aria-label="Premium">
+                    <div class="segmented-choice" role="radiogroup" aria-label="Premium">
                         ${renderPremiumToggle()}
                     </div>
-                    <div class="ava-side-field">
-                        <span class="ava-side-label" id="furnitureBonusLabel">Bonus</span>
-                        <div class="price-side" role="radiogroup" aria-labelledby="furnitureBonusLabel">
+                    <div class="form-side-field">
+                        <span class="form-side-label" id="furnitureBonusLabel">Bonus</span>
+                        <div class="segmented-choice" role="radiogroup" aria-labelledby="furnitureBonusLabel">
                             ${craftBonusToggleHtml(state.bonusRate)}
                         </div>
                     </div>
-                    <div class="ava-side-field">
-                        <span class="ava-side-label" id="furnitureMatSideLabel">Malzeme</span>
-                        <div class="price-side" role="radiogroup" aria-labelledby="furnitureMatSideLabel">
+                    <div class="form-side-field">
+                        <span class="form-side-label" id="furnitureMatSideLabel">Malzeme</span>
+                        <div class="segmented-choice" role="radiogroup" aria-labelledby="furnitureMatSideLabel">
                             ${priceSideToggleHtml('mat', state.matSide)}
                         </div>
                     </div>
-                    <div class="ava-side-field">
-                        <span class="ava-side-label" id="furnitureItemSideLabel">Satış</span>
-                        <div class="price-side" role="radiogroup" aria-labelledby="furnitureItemSideLabel">
+                    <div class="form-side-field">
+                        <span class="form-side-label" id="furnitureItemSideLabel">Satış</span>
+                        <div class="segmented-choice" role="radiogroup" aria-labelledby="furnitureItemSideLabel">
                             ${priceSideToggleHtml('item', state.itemSide)}
                         </div>
                     </div>
@@ -801,7 +801,7 @@ function renderPage(container) {
                         label: 'Şehir',
                         selected: state.city,
                         cities: state.cities,
-                        className: 'ava-city-field'
+                        className: 'tool-form-field'
                     })}
                     ${priceRefreshActionsHtml()}
                 </div>

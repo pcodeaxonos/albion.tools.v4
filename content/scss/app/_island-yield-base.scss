@@ -5,20 +5,7 @@
     gap: 0.375rem;
 }
 
-.yield-controls-column {
-    display: flex;
-    flex-direction: column;
-    align-self: stretch;
-    min-width: 0;
 
-    > [data-yield-entry-summary] {
-        display: flex;
-        flex-direction: column;
-        flex: 1 0 auto;
-        justify-content: flex-end;
-        margin: 0;
-    }
-}
 
 .yield-planted-pair,
 .yield-harvest-pair {

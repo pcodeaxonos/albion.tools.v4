@@ -7,7 +7,8 @@
         "node": ">=22"
     },
     "scripts": {
-        "test": "npm run decision:test && npm run city:test && npm run tooltip:test && npm run item-name:test && npm run prices:live:test && npm run prices:history:test && npm run prices:collector:test && npm run prices:collection:test && npm run opportunities:test && npm run island:test && npm run island:stability:test && npm run island:forecast:test && npm run laborer:test && npm run routes:test && npm run flipper:test",
+        "test": "npm run css:check && npm run decision:test && npm run city:test && npm run tooltip:test && npm run item-name:test && npm run prices:live:test && npm run prices:history:test && npm run prices:collector:test && npm run prices:collection:test && npm run opportunities:test && npm run island:test && npm run island:stability:test && npm run island:forecast:test && npm run laborer:test && npm run routes:test && npm run flipper:test",
+        "css:ui:test": "node content/scripts/test-css-components-ui.cjs",
         "item-name:test": "node --experimental-vm-modules content/scripts/test-item-name.mjs",
         "prices:live:test": "node --experimental-vm-modules content/scripts/test-price-live.mjs",
         "ui:test": "node content/scripts/test-decision-ui.cjs && node content/scripts/test-page-heads.cjs",
@@ -17,6 +18,7 @@
         "tooltip:test": "node --experimental-vm-modules content/scripts/test-tooltips.mjs && node --experimental-vm-modules content/scripts/test-tooltip-metadata.mjs",
         "laborer:test": "node --experimental-vm-modules content/scripts/test-laborer-contract.mjs",
         "css:build": "node node_modules/sass/sass.js content/scss/main.scss output/css/site.css --no-source-map",
+        "css:check": "node content/scripts/test-css-architecture.mjs && node content/scripts/check-css-architecture.mjs",
         "css:watch": "node node_modules/sass/sass.js --watch content/scss/main.scss output/css/site.css --no-source-map",
         "data:fetch": "node content/scripts/fetch-game-data.mjs",
         "island:test": "node --experimental-vm-modules content/scripts/test-island-economy.mjs",

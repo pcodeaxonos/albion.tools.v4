@@ -1,7 +1,7 @@
 .page-info-button {
     position: absolute;
-    top: .65rem;
-    right: .75rem;
+    top: calc(var(--app-status-offset, 0px) + .25rem);
+    right: .25rem;
     z-index: 3;
     display: grid;
     place-items: center;
@@ -11,6 +11,8 @@
     padding: 0;
     border: 0;
     background: transparent;
+    // Neutral translucent metal picks up each banner's own hues without a page palette.
+    color: #fff3dc;
     cursor: pointer;
     svg { display: block; width: 100%; height: auto; pointer-events: none; transition: filter .15s ease, transform .15s ease; }
     &:hover svg { filter: brightness(1.18); transform: translateY(-1px); }

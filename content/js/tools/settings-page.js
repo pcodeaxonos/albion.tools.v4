@@ -264,15 +264,15 @@ function renderPage(container, cities) {
                             </div>
                         </div>
                         <div class="settings-sides">
-                            <div class="price-side-field">
-                                <span class="price-side-label" id="settingBuySideLabel">Alım</span>
-                                <div class="price-side" role="radiogroup" aria-labelledby="settingBuySideLabel">
+                            <div class="form-side-field">
+                                <span class="form-side-label" id="settingBuySideLabel">Alım</span>
+                                <div class="segmented-choice" role="radiogroup" aria-labelledby="settingBuySideLabel">
                                     ${priceSideToggleHtml('buy', settings.buyPriceSide)}
                                 </div>
                             </div>
-                            <div class="price-side-field">
-                                <span class="price-side-label" id="settingSellSideLabel">Satış</span>
-                                <div class="price-side" role="radiogroup" aria-labelledby="settingSellSideLabel">
+                            <div class="form-side-field">
+                                <span class="form-side-label" id="settingSellSideLabel">Satış</span>
+                                <div class="segmented-choice" role="radiogroup" aria-labelledby="settingSellSideLabel">
                                     ${priceSideToggleHtml('sell', settings.sellPriceSide)}
                                 </div>
                             </div>

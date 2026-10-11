@@ -24,6 +24,10 @@ Pages with filters/forms plus a result or table use `.tool-split`:
 
 ## Standard form inputs
 
+- The same semantic UI component uses one shared class across tools/pages. Reuse the existing component first; express necessary differences with a base class plus modifier/state, never a new tool-prefixed copy.
+- Shared segmented choices live in `content/scss/app/_segmented-choice.scss`, form controls in `_tool-controls.scss`, market price inputs in `_market-fields.scss`, and market rows/cards in `_market-resources.scss`. Tool styles contain only domain-specific differences. Keep JavaScript hooks on scoped `data-*` attributes.
+- Run `npm run css:check` after UI changes. Retired class names are errors; duplicate/near-duplicate blocks and possible unused selectors are advisory and need semantic review (`--all` prints the full list).
+
 - New inputs must follow the existing shared form standard, including field structure, labels, dimensions, spacing, and interaction states.
 - Reuse shared form components and classes (such as `.form-floating` and `.form-control`) instead of introducing a custom appearance for an individual input.
 - Do not add input-specific CSS to bypass the shared standard. Extend the shared form primitive when a reusable capability is needed.

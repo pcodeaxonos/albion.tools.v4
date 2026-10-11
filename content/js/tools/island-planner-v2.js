@@ -830,7 +830,7 @@ function scheduleEconomicUpdate() {
     state.calculationTimer = setTimeout(() => { void loadV2Prices(); }, 125);
 }
 
-function renderSegment(label, values, current, attr, extra = '') { return `<div><p class="city-field-label island-v2-group-label">${label}</p><div class="island-v2-segment">${values.map(([value, text]) => `<button type="button" data-v2-${attr}="${value}" class="${String(value) === String(current) ? 'is-active' : ''}">${text}</button>`).join('')}${extra}</div></div>`; }
+function renderSegment(label, values, current, attr, extra = '') { return `<div><p class="choice-field-label island-v2-group-label">${label}</p><div class="island-v2-segment">${values.map(([value, text]) => `<button type="button" data-v2-${attr}="${value}" class="${String(value) === String(current) ? 'is-active' : ''}">${text}</button>`).join('')}${extra}</div></div>`; }
 function renderPriceSegment(label, side, fixed, attr) {
     const toggle = `<button type="button" data-v2-${attr}-fixed="1" aria-pressed="${Boolean(fixed)}" class="${fixed ? "is-active" : ""}" data-app-tooltip="Tanımlı sabit fiyatı kullan. Yoksa seçili fiyat yöntemi uygulanır.">Sabit</button>`;
     return renderSegment(label, [["buy", "Buy"], ["sell", "Sell"], ["average", "4H"], [LONG_TERM_PRICE_MODE, LONG_TERM_PRICE_LABEL]], side, attr, toggle);
@@ -852,7 +852,7 @@ function renderOptimizationPriceStatus() {
 }
 function renderSalesVolume() {
     const value = state.draft.minSalesVolume;
-    return `<div class="island-v2-volume"><p class="city-field-label island-v2-group-label">Minimum satış hacmi</p><div class="island-v2-volume-inputs"><input type="range" min="${SALES_VOLUME.min}" max="${SALES_VOLUME.max}" step="${SALES_VOLUME.step}" value="${value}" data-v2-volume-range aria-label="Minimum günlük satış hacmi"><input type="number" min="${SALES_VOLUME.min}" max="${SALES_VOLUME.max}" step="1" value="${value}" data-v2-volume-number aria-label="Minimum günlük satış adedi"></div><small>adet/gün · Son ${SALES_VOLUME.days} gün ortalaması · 0: filtre kapalı</small></div>`;
+    return `<div class="island-v2-volume"><p class="choice-field-label island-v2-group-label">Minimum satış hacmi</p><div class="island-v2-volume-inputs"><input type="range" min="${SALES_VOLUME.min}" max="${SALES_VOLUME.max}" step="${SALES_VOLUME.step}" value="${value}" data-v2-volume-range aria-label="Minimum günlük satış hacmi"><input type="number" min="${SALES_VOLUME.min}" max="${SALES_VOLUME.max}" step="1" value="${value}" data-v2-volume-number aria-label="Minimum günlük satış adedi"></div><small>adet/gün · Son ${SALES_VOLUME.days} gün ortalaması · 0: filtre kapalı</small></div>`;
 }
 function renderFocusBudget() {
     const budget = getSettings().islandFocusBudget;

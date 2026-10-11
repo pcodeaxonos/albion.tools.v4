@@ -1,0 +1,83 @@
+// Shared segmented choices; width/icon differences are semantic modifiers.
+.segmented-choice {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0;
+    border: var(--border-width) solid var(--color-border);
+    width: fit-content;
+    max-width: 100%;
+}
+
+.segmented-choice-button {
+    min-width: 8.5rem;
+    min-height: 2.625rem;
+    padding: 0.5rem 1rem;
+    border: none;
+    border-right: var(--border-width) solid var(--color-border);
+    background: var(--color-surface);
+    color: var(--color-text-muted);
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-semibold);
+    letter-spacing: 0.03em;
+    cursor: pointer;
+
+    &:last-child {
+        border-right: none;
+    }
+
+    &:hover {
+        color: var(--color-text);
+        background-color: var(--color-surface-hover);
+    }
+
+    &.is-active {
+        color: var(--color-on-accent);
+        background-color: var(--color-primary);
+    }
+
+    &:focus-visible {
+        outline: var(--focus-outline-width) solid var(--color-focus-ring);
+        outline-offset: var(--focus-outline-offset);
+        z-index: 1;
+    }
+}
+
+.segmented-choice-button--short {
+    min-width: 4.25rem;
+}
+
+.segmented-choice-button--compact {
+    min-width: 0;
+    padding-inline: 0.5rem;
+}
+
+.segmented-choice-button--icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.35rem;
+    min-width: 0;
+    padding-inline: 0.75rem;
+
+    &.has-icon {
+        padding-inline: 0.55rem 0.75rem;
+    }
+}
+
+.segmented-choice-icon {
+    width: 1.25rem;
+    height: 1.25rem;
+    flex-shrink: 0;
+}
+
+.segmented-choice-label {
+    min-width: 0;
+}
+
+.segmented-choice--wrap-labels {
+    flex-wrap: nowrap;
+    > .segmented-choice-button--short {
+        overflow-wrap: anywhere;
+        line-height: 1.25;
+    }
+}

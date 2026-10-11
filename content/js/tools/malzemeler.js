@@ -227,7 +227,7 @@ function renderToggleGroup(options, selected, attr) {
     return options.map((option) => {
         const pressed = option.id === selected;
         return `
-            <button type="button" class="farming-type-btn${pressed ? ' is-active' : ''}"
+            <button type="button" class="segmented-choice-button segmented-choice-button--icon${pressed ? ' is-active' : ''}"
                 data-${attr}="${escapeHtml(String(option.id))}"
                 aria-pressed="${pressed ? 'true' : 'false'}">
                 ${escapeHtml(option.label)}
@@ -262,13 +262,13 @@ function renderGroupOptions(selected) {
 function renderSummary(list) {
     const best = bestRow(list);
     if (!best || best.profit == null) {
-        return '<p class="farming-note" id="malzemelerSummary"><strong>Bu senaryoda kâr hesaplanamadı.</strong> Eksik fiyatları doldur.</p>';
+        return '<p class="tool-result-note" id="malzemelerSummary"><strong>Bu senaryoda kâr hesaplanamadı.</strong> Eksik fiyatları doldur.</p>';
     }
     const name = itemDisplayName(best.itemId, best.enchant);
     if (best.profit <= 0) {
-        return `<p class="farming-note" id="malzemelerSummary"><strong>Bu senaryoda zarar.</strong> En az zarar ${escapeHtml(name)} · ${formatSilver(best.profit, { signed: true })} · ${formatPct(best.pct)}.</p>`;
+        return `<p class="tool-result-note" id="malzemelerSummary"><strong>Bu senaryoda zarar.</strong> En az zarar ${escapeHtml(name)} · ${formatSilver(best.profit, { signed: true })} · ${formatPct(best.pct)}.</p>`;
     }
-    return `<p class="farming-note" id="malzemelerSummary"><strong>En kârlı ${escapeHtml(name)}</strong> · ${formatSilver(best.profit, { signed: true })} · ${formatPct(best.pct)}.</p>`;
+    return `<p class="tool-result-note" id="malzemelerSummary"><strong>En kârlı ${escapeHtml(name)}</strong> · ${formatSilver(best.profit, { signed: true })} · ${formatPct(best.pct)}.</p>`;
 }
 
 function renderScenario() {
@@ -278,7 +278,7 @@ function renderScenario() {
         ? `${cityLabel(state.buyCity)}’ta flip`
         : `${cityLabel(state.buyCity)}’tan al → ${cityLabel(state.sellCity)}’da sat`;
 
-    return `<p class="farming-note">${escapeHtml(route)}. Alış ${escapeHtml(buyNote)}. Satış ${escapeHtml(sellNote)}. ${escapeHtml(feeMetaText(state.premium))}. Elle yazılan fiyat API’nin yerine geçer.</p>`;
+    return `<p class="tool-result-note">${escapeHtml(route)}. Alış ${escapeHtml(buyNote)}. Satış ${escapeHtml(sellNote)}. ${escapeHtml(feeMetaText(state.premium))}. Elle yazılan fiyat API’nin yerine geçer.</p>`;
 }
 
 function latestQuoteDate(list) {
@@ -304,15 +304,15 @@ function renderTable(list) {
         return `
             <tr data-item-id="${escapeHtml(row.id)}" class="${bestClass.trim()}">
                 <td data-sort-value="${row.tier}">
-                    <span class="farming-item">
+                    <span class="market-item">
                         ${itemIconHtml(row.itemId)}
                         <span>
-                            <span class="farming-item-name">${itemNameHtml(itemDisplayName(row.itemId, row.enchant))}</span>
-                            <span class="farming-item-meta">T${row.tier}${row.enchant ? ` .${row.enchant}` : ''}</span>
+                            <span class="market-item-name market-item-name--wrap">${itemNameHtml(itemDisplayName(row.itemId, row.enchant))}</span>
+                            <span class="market-item-meta market-item-meta--inline">T${row.tier}${row.enchant ? ` .${row.enchant}` : ''}</span>
                         </span>
                     </span>
                 </td>
-                <td class="num farming-num farming-price-cell" data-sort-value="${row.buyQuote?.price ?? ''}">
+                <td class="market-price-cell num market-number market-price-cell--fluid" data-sort-value="${row.buyQuote?.price ?? ''}">
                     ${priceFieldHtml({
                         id: `buyPrice-${row.id}`,
                         label: 'Alış',
@@ -324,7 +324,7 @@ function renderTable(list) {
                         iconId: row.itemId
                     })}
                 </td>
-                <td class="num farming-num farming-price-cell" data-sort-value="${row.sellQuote?.price ?? ''}">
+                <td class="market-price-cell num market-number market-price-cell--fluid" data-sort-value="${row.sellQuote?.price ?? ''}">
                     ${priceFieldHtml({
                         id: `sellPrice-${row.id}`,
                         label: 'Satış',
@@ -336,17 +336,17 @@ function renderTable(list) {
                         iconId: row.itemId
                     })}
                 </td>
-                <td class="num farming-num${profitClass(row.spread)}${incompleteClass(row.spread)}" data-sort-value="${row.spread ?? ''}">${formatPct(row.spread)}</td>
-                <td class="num farming-num${incompleteClass(row.spend)}" data-sort-value="${row.spend ?? ''}">${formatSilver(row.spend)}</td>
-                <td class="num farming-num${profitClass(row.profit)}${incompleteClass(row.profit)}" data-sort-value="${row.profit ?? ''}">${formatSilver(row.profit, { signed: true })}</td>
-                <td class="num farming-num${profitClass(row.profit)}${incompleteClass(row.pct)}" data-sort-value="${row.pct ?? ''}">${formatPct(row.pct)}</td>
+                <td class="num market-number${profitClass(row.spread)}${incompleteClass(row.spread)}" data-sort-value="${row.spread ?? ''}">${formatPct(row.spread)}</td>
+                <td class="num market-number${incompleteClass(row.spend)}" data-sort-value="${row.spend ?? ''}">${formatSilver(row.spend)}</td>
+                <td class="num market-number${profitClass(row.profit)}${incompleteClass(row.profit)}" data-sort-value="${row.profit ?? ''}">${formatSilver(row.profit, { signed: true })}</td>
+                <td class="num market-number${profitClass(row.profit)}${incompleteClass(row.pct)}" data-sort-value="${row.pct ?? ''}">${formatPct(row.pct)}</td>
             </tr>
         `;
     }).join('');
 
     return `
         <div class="table-responsive calc-table-wrap">
-            <table class="table table-striped farming-table calc-table">
+            <table class="market-table table table-striped market-table--fixed calc-table" data-market-table>
                 <colgroup>
                     <col class="farming-col-item">
                     <col class="farming-col-price">
@@ -359,12 +359,12 @@ function renderTable(list) {
                 <thead>
                     <tr>
                         ${sortHeaderHtml('Eşya', { key: 'item', type: 'number', direction: dir('item'), title: 'Kademe' })}
-                        ${sortHeaderHtml('Alış', { key: 'buy', type: 'number', className: 'num farming-num', direction: dir('buy'), title: 'Alış şehri fiyatı' })}
-                        ${sortHeaderHtml('Satış', { key: 'sell', type: 'number', className: 'num farming-num', direction: dir('sell'), title: 'Satış şehri fiyatı' })}
-                        ${sortHeaderHtml('Makas', { key: 'spread', type: 'number', className: 'num farming-num', direction: dir('spread'), title: '(satış − alış) / alış' })}
-                        ${sortHeaderHtml('Harcama', { key: 'spend', type: 'number', className: 'num farming-num', direction: dir('spend'), title: 'Setup ve satış vergisi' })}
-                        ${sortHeaderHtml('Net kâr', { key: 'profit', type: 'number', className: 'num farming-num', direction: dir('profit'), title: 'Net satış eksi net alış' })}
-                        ${sortHeaderHtml('Net %', { key: 'pct', type: 'number', className: 'num farming-num', direction: dir('pct'), title: 'Kârın net alışa oranı' })}
+                        ${sortHeaderHtml('Alış', { key: 'buy', type: 'number', className: 'num market-number', direction: dir('buy'), title: 'Alış şehri fiyatı' })}
+                        ${sortHeaderHtml('Satış', { key: 'sell', type: 'number', className: 'num market-number', direction: dir('sell'), title: 'Satış şehri fiyatı' })}
+                        ${sortHeaderHtml('Makas', { key: 'spread', type: 'number', className: 'num market-number', direction: dir('spread'), title: '(satış − alış) / alış' })}
+                        ${sortHeaderHtml('Harcama', { key: 'spend', type: 'number', className: 'num market-number', direction: dir('spend'), title: 'Setup ve satış vergisi' })}
+                        ${sortHeaderHtml('Net kâr', { key: 'profit', type: 'number', className: 'num market-number', direction: dir('profit'), title: 'Net satış eksi net alış' })}
+                        ${sortHeaderHtml('Net %', { key: 'pct', type: 'number', className: 'num market-number', direction: dir('pct'), title: 'Kârın net alışa oranı' })}
                     </tr>
                 </thead>
                 <tbody>${body}</tbody>
@@ -391,7 +391,7 @@ function renderOutput() {
             <section data-page-info>
             ${renderSummary(list)}
             ${renderScenario()}
-            ${stamp ? `<p class="farming-note">${escapeHtml(stamp)}</p>` : ''}
+            ${stamp ? `<p class="tool-result-note">${escapeHtml(stamp)}</p>` : ''}
             </section>
         </div>
     `;
@@ -406,14 +406,14 @@ function renderPage(container) {
             <p>Bir şehirden alıp diğerinde sat: plank, bar, leather, cloth ve binek. Vergi ve setup diğer araçlarla aynı.</p>
         </section>`,
         controls: `
-                <div class="farming-toolbar">
-                    <div class="form-floating farming-city-field">
+                <div class="tool-form-toolbar">
+                    <div class="form-floating tool-form-field">
                         <select class="form-select is-filled" id="malzemelerGroup">
                             ${renderGroupOptions(state.group)}
                         </select>
                         <label for="malzemelerGroup">Grup</label>
                     </div>
-                    <div class="farming-type" role="radiogroup" aria-label="Enchant" data-enchant-wrap${group.hasEnchant ? '' : ' style="display: none"'}>
+                    <div class="segmented-choice" role="radiogroup" aria-label="Enchant" data-enchant-wrap${group.hasEnchant ? '' : ' style="display: none"'}>
                         ${renderToggleGroup([
                             { id: 0, label: '0' },
                             { id: 1, label: '.1' },
@@ -421,21 +421,21 @@ function renderPage(container) {
                             { id: 3, label: '.3' }
                         ], state.enchant, 'enchant')}
                     </div>
-                    <div class="farming-type" role="radiogroup" aria-label="Premium">
+                    <div class="segmented-choice" role="radiogroup" aria-label="Premium">
                         ${renderToggleGroup([
                             { id: '1', label: 'Premium' },
                             { id: '0', label: 'Premium yok' }
                         ], state.premium ? '1' : '0', 'premium')}
                     </div>
-                    <div class="farming-side-field">
-                        <span class="farming-side-label" id="malzemelerBuySideLabel">Alış</span>
-                        <div class="price-side" role="radiogroup" aria-labelledby="malzemelerBuySideLabel">
+                    <div class="form-side-field">
+                        <span class="form-side-label" id="malzemelerBuySideLabel">Alış</span>
+                        <div class="segmented-choice" role="radiogroup" aria-labelledby="malzemelerBuySideLabel">
                             ${priceSideToggleHtml('buy', state.buySide)}
                         </div>
                     </div>
-                    <div class="farming-side-field">
-                        <span class="farming-side-label" id="malzemelerSellSideLabel">Satış</span>
-                        <div class="price-side" role="radiogroup" aria-labelledby="malzemelerSellSideLabel">
+                    <div class="form-side-field">
+                        <span class="form-side-label" id="malzemelerSellSideLabel">Satış</span>
+                        <div class="segmented-choice" role="radiogroup" aria-labelledby="malzemelerSellSideLabel">
                             ${priceSideToggleHtml('sell', state.sellSide)}
                         </div>
                     </div>
@@ -467,7 +467,7 @@ function renderPage(container) {
 }
 
 function bindTableSort(container) {
-    const table = container.querySelector('.farming-table');
+    const table = container.querySelector('[data-market-table]');
     if (!table) {
         return;
     }
@@ -494,7 +494,7 @@ function patchRowCells(tr, row, bestId) {
 
     buyCell.dataset.sortValue = row.buyQuote?.price ?? '';
     const buyFetched = fetchedQuote(row.itemId, state.buyCity, state.buySide, 'buy');
-    applyPriceFieldState(buyCell.querySelector('.farming-price-field'), {
+    applyPriceFieldState(buyCell.querySelector('[data-market-price-field]'), {
         manual: isManualPrice(state.manualBuy[row.itemId]),
         missing: !buyFetched,
         date: buyFetched?.date,
@@ -503,7 +503,7 @@ function patchRowCells(tr, row, bestId) {
 
     sellCell.dataset.sortValue = row.sellQuote?.price ?? '';
     const sellFetched = fetchedQuote(row.itemId, state.sellCity, state.sellSide, 'sell');
-    applyPriceFieldState(sellCell.querySelector('.farming-price-field'), {
+    applyPriceFieldState(sellCell.querySelector('[data-market-price-field]'), {
         manual: isManualPrice(state.manualSell[row.itemId]),
         missing: !sellFetched,
         date: sellFetched?.date,
@@ -512,23 +512,23 @@ function patchRowCells(tr, row, bestId) {
 
     spreadCell.dataset.sortValue = row.spread ?? '';
     spreadCell.textContent = formatPct(row.spread);
-    spreadCell.className = `num farming-num${profitClass(row.spread)}${incompleteClass(row.spread)}`;
+    spreadCell.className = `num market-number${profitClass(row.spread)}${incompleteClass(row.spread)}`;
 
     spendCell.dataset.sortValue = row.spend ?? '';
     spendCell.textContent = formatSilver(row.spend);
-    spendCell.className = `num farming-num${incompleteClass(row.spend)}`;
+    spendCell.className = `num market-number${incompleteClass(row.spend)}`;
 
     profitCell.dataset.sortValue = row.profit ?? '';
     profitCell.textContent = formatSilver(row.profit, { signed: true });
-    profitCell.className = `num farming-num${profitClass(row.profit)}${incompleteClass(row.profit)}`;
+    profitCell.className = `num market-number${profitClass(row.profit)}${incompleteClass(row.profit)}`;
 
     pctCell.dataset.sortValue = row.pct ?? '';
     pctCell.textContent = formatPct(row.pct);
-    pctCell.className = `num farming-num${profitClass(row.profit)}${incompleteClass(row.pct)}`;
+    pctCell.className = `num market-number${profitClass(row.profit)}${incompleteClass(row.pct)}`;
 }
 
 function refreshCalc(container) {
-    const table = container.querySelector('.farming-table');
+    const table = container.querySelector('[data-market-table]');
     if (!table) {
         return;
     }

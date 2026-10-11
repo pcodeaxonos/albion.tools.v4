@@ -230,7 +230,7 @@
 
     .laborer-controls { display: grid; gap: var(--spacing-md); }
     .laborer-control-pair { display: grid; grid-template-columns: 4.5rem minmax(0, 1fr); gap: var(--spacing-sm); }
-    .laborer-tiers .price-side-btn {
+    .laborer-tiers .segmented-choice-button--short {
         flex: 1 1 0;
         min-width: 0;
         padding-inline: 0;
@@ -249,9 +249,9 @@
         min-width: 0;
         > * { grid-column: 1 / -1; min-width: 0; }
         > .city-field--diagonal { grid-column: auto; }
-        > .price-side {
+        > .segmented-choice {
             width: 100%;
-            > .price-side-btn { flex: 1 1 0; min-width: 0; }
+            > .segmented-choice-button--short { flex: 1 1 0; min-width: 0; }
         }
         h2 {
             display: flex;

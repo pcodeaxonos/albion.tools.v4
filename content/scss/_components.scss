@@ -995,10 +995,7 @@ input[type="month"].form-control {
 
     th.num .table-sort-btn,
     th.text-end .table-sort-btn,
-    th.carleon-num .table-sort-btn,
-    th.farming-num .table-sort-btn,
-    th.ava-num .table-sort-btn,
-    th.enchant-num .table-sort-btn {
+    th.market-number .table-sort-btn {
         text-align: right;
     }
 
@@ -1746,7 +1743,9 @@ input[type="month"].form-control {
     color: var(--color-text-muted);
 }
 
-.db-refs-grid {
+.db-refs-grid--craft,
+.db-refs-grid--refine,
+.db-refs-grid--other {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(11rem, 1fr));
     gap: 0.65rem;
@@ -1777,9 +1776,7 @@ input[type="month"].form-control {
     color: var(--color-text-muted);
 }
 
-.db-refs-grid--craft,
-.db-refs-grid--refine,
-.db-refs-grid--other {
+.db-refs-grid {
     grid-template-columns: 1fr;
     gap: 0.45rem;
 }
@@ -2367,14 +2364,6 @@ $city-on-colors: (
     }
 }
 
-.city-field-label {
-    font-size: 0.65rem;
-    font-weight: var(--font-weight-semibold);
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-    color: var(--color-text-muted);
-    line-height: 1.2;
-}
 
 .city-map {
     container-type: inline-size;
@@ -2568,7 +2557,7 @@ $city-on-colors: (
 .city-field--crests.city-field--inline {
     position: relative;
     height: var(--input-height);
-    .city-field-label {
+    .choice-field-label {
         position: absolute;
         top: calc(var(--floating-label-float-size) * -.6);
         left: var(--floating-label-inset);
@@ -2599,14 +2588,6 @@ $city-on-colors: (
     width: 100%;
 }
 
-.plant-field-label {
-    font-size: 0.65rem;
-    font-weight: var(--font-weight-semibold);
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-    color: var(--color-text-muted);
-    line-height: 1.2;
-}
 
 .plant-field--island-yield {
     gap: 0;

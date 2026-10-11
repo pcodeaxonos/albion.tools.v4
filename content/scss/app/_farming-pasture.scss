@@ -1,22 +1,3 @@
-.farming-type-btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.35rem;
-    min-width: 0;
-    padding-inline: 0.75rem;
-
-    &.has-icon {
-        padding-inline: 0.55rem 0.75rem;
-    }
-}
-
-.farming-type-btn-icon {
-    width: 1.25rem;
-    height: 1.25rem;
-    flex-shrink: 0;
-}
-
 // Refining's material selector is intentionally icon-only: the item artwork
 // identifies each resource more quickly than a repeated text label.
 .refining-family-btn {
@@ -28,20 +9,16 @@
         padding: 0.5rem;
     }
 
-    .farming-type-btn-icon {
+    .segmented-choice-icon {
         width: 2.5rem;
         height: 2.5rem;
     }
 }
 
-.farming-type-btn-label {
-    min-width: 0;
-}
-
 .refining-table {
     $icon-scale: 2;
 
-    .farming-item .item-icon {
+    .market-item .item-icon {
         width: 2rem * $icon-scale;
         height: 2rem * $icon-scale;
     }
@@ -65,7 +42,7 @@
     min-width: 0;
 }
 
-.farming-table {
+.market-table--fixed {
     table-layout: fixed;
     width: 100%;
 
@@ -111,7 +88,7 @@
 }
 
 // 7 columns (refining): give leftover to numbers, not only the item name.
-.farming-table:not(:has(.farming-col-verdict)) {
+.market-table--fixed:not(:has(.farming-col-verdict)) {
     .farming-col-item {
         width: 24%;
     }
@@ -129,48 +106,6 @@
     }
 }
 
-.farming-price-field {
-    --input-height: var(--input-height-sm);
-    --floating-label-inset: 0.5rem;
-    --floating-label-pad: 0.25rem;
-    --floating-label-scale: calc(var(--floating-label-float-size) / var(--font-size-sm));
-    width: 100%;
-    min-width: 0;
-    max-width: 100%;
-    margin-top: 0;
-    overflow: visible;
-
-    > .form-control {
-        min-width: 0;
-        width: 100%;
-        max-width: 100%;
-        font-family: var(--font-family-mono);
-        font-size: var(--font-size-sm);
-        font-weight: var(--font-weight-semibold);
-        letter-spacing: -0.03em;
-    }
-
-    > label {
-        font-size: var(--font-size-sm);
-        max-width: calc(100% - 0.25rem);
-        overflow: hidden;
-        text-overflow: ellipsis;
-    }
-}
-
-.farming-price-cell {
-    overflow: hidden;
-    padding-top: 0.7rem;
-    padding-bottom: 0.7rem;
-    padding-inline: 0.5rem;
-    vertical-align: top;
-
-    .farming-price-field {
-        margin-left: 0;
-        max-width: 100%;
-    }
-}
-
 .farming-seed-mark {
     font-size: 0.5rem;
     text-transform: uppercase;
@@ -181,7 +116,7 @@
     }
 
     &.is-dear {
-        background-color: #ffb4b5;
+        background-color: var(--color-market-loss);
         color: var(--color-on-accent);
     }
 }
@@ -192,33 +127,11 @@
     vertical-align: -0.1rem;
 }
 
-.farming-item-name {
-    flex-wrap: wrap;
-    white-space: normal;
-}
 
-.farming-item-meta {
-    display: flex;
-    align-items: center;
-    gap: 0.25rem;
-    min-width: 0;
-    white-space: nowrap;
-}
 
-.farming-verdict {
-    font-size: var(--font-size-sm);
-    font-weight: var(--font-weight-semibold);
-    letter-spacing: 0.04em;
-    text-transform: uppercase;
-}
 
-.farming-table tbody tr.is-best td,
-.pasture-table tbody tr.is-best td,
-.ava-table tbody tr.is-best td {
-    background-color: color-mix(in srgb, var(--color-success) 12%, var(--color-surface));
-}
 
-.farming-num.is-path-best .pasture-profit-pct,
+.market-number.is-path-best .pasture-profit-pct,
 .pasture-profit-cell.is-path-best .pasture-profit-pct {
     font-weight: var(--font-weight-bold);
     text-decoration: underline;

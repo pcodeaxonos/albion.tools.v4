@@ -5,63 +5,6 @@
     margin-bottom: var(--spacing-xl);
 }
 
-.house-type,
-.carleon-type,
-.ava-type,
-.enchant-type,
-.farming-type,
-.price-side {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0;
-    border: var(--border-width) solid var(--color-border);
-    width: fit-content;
-    max-width: 100%;
-}
-
-.house-type-btn,
-.carleon-type-btn,
-.ava-type-btn,
-.enchant-type-btn,
-.farming-type-btn,
-.price-side-btn {
-    min-width: 8.5rem;
-    min-height: 2.625rem;
-    padding: 0.5rem 1rem;
-    border: none;
-    border-right: var(--border-width) solid var(--color-border);
-    background: var(--color-surface);
-    color: var(--color-text-muted);
-    font-size: var(--font-size-sm);
-    font-weight: var(--font-weight-semibold);
-    letter-spacing: 0.03em;
-    cursor: pointer;
-
-    &:last-child {
-        border-right: none;
-    }
-
-    &:hover {
-        color: var(--color-text);
-        background-color: var(--color-surface-hover);
-    }
-
-    &.is-active {
-        color: var(--color-on-accent);
-        background-color: var(--color-primary);
-    }
-
-    &:focus-visible {
-        outline: var(--focus-outline-width) solid var(--color-focus-ring);
-        outline-offset: var(--focus-outline-offset);
-        z-index: 1;
-    }
-}
-
-.price-side-btn {
-    min-width: 4.25rem;
-}
-
 .house-fields {
     display: grid;
     grid-template-columns: 1fr;

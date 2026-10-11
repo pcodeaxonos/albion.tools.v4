@@ -257,7 +257,7 @@
 .island-v2-detail-tier { border-color: var(--color-item-tier); color: var(--color-item-tier); background: color-mix(in srgb, var(--color-item-tier) 11%, transparent); }
 .island-v2-detail-controls { align-items: center; gap: .2rem; flex-wrap: nowrap; min-width: 0; }
 .island-v2-detail-controls .island-v2-control-label { display: none; }
-.island-v2-detail > .farming-note { grid-column: 1 / -1; }
+.island-v2-detail > .tool-result-note { grid-column: 1 / -1; }
 .island-v2-control-label { color: #9bb4c7; font-size: .64rem; white-space: nowrap; }
 .island-v2-focus-toggle {
   position: relative;

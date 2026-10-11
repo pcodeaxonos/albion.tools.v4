@@ -1,3 +1,4 @@
+import { fieldLabel, fieldAllButtonHtml, fieldHeadingHtml } from '../components/form-field.js';
 import { initNav } from '../core/nav.js';
 import { initStore, getAll } from '../db/store.js';
 import { cityFieldHtml, bindCityField, getCityFieldValue, setCityFieldValue } from '../components/city-picker.js';
@@ -26,15 +27,19 @@ const roiBadgeHtml = row => {
     const level = row.roi < 0 ? 'loss' : row.roi < .1 ? 'low' : row.roi < .3 ? 'medium' : 'high';
     return `<span class="badge flipper-roi-badge is-${level}${row.safe ? '' : ' is-uncertain'}" data-app-tooltip="${esc(`Net kâr / toplam alış maliyeti. ${row.safe ? 'Görünen fiyatlara göre hesaplanır; gerçekleşen kazanç değildir.' : 'Riskli fiyat: bu oran doğrulanmış kazanç değildir.'}`)}">%${Math.round(row.roi * 100).toLocaleString('tr-TR')}</span>`;
 };
-const state = { rows: [], limits: {}, selected: '', sort: 'balanced', busy: false, scan: null, controller: null, basket: null };
+const state = { rows: [], limits: {}, selected: '', sort: 'balanced', phase: 'idle', busy: false, scan: null, controller: null, basket: null };
 let items, cities, icons = {};
 let liveController = null, liveQueue = new Set();
 const icon = name => `<span class="flipper-icon" aria-hidden="true">${icons[name] || ''}</span>`;
 const SORT_ICONS = { balanced: 'compare', net: 'profit', roi: 'flip', recent: 'clock', cost: 'coins', confidence: 'confidence' };
-const input = (key,label,value,extra='') => `<div class="form-floating"><input class="form-control" data-filter="${key}" type="number" min="0" value="${value}" placeholder="${label}" aria-label="${label}" ${extra}><label>${label}</label></div>`;
+const input = (key,label,value,extra='') => `<div class="form-floating"><input class="form-control" data-filter="${key}" type="number" min="0" value="${value}" placeholder="${label}" aria-label="${label}" ${extra}><label>${fieldLabel(label)}</label></div>`;
 const DATA_AGES = [[30, '30 dk'], [60, '1 saat'], [360, '6 saat'], [0, 'Tümü']];
 const QUALITIES = [[1, 'Normal', 'No'], [2, 'Good', 'Go'], [3, 'Outstanding', 'Ou'], [4, 'Excellent', 'Ex'], [5, 'Masterpiece', 'Mp'], [0, 'Tümü']];
-const choiceFieldHtml = (key, label, options, stacked = false) => `<div class="price-side-field${stacked ? ' price-side-field--stacked' : ''}"><span class="price-side-label">${label}</span><div class="price-side${stacked ? ' price-side--wrap-labels' : ''}" role="group" aria-label="${label}">${options.map(([value, text, shortText = text], index) => `<button type="button" class="price-side-btn${index === 0 ? ' is-active' : ''}" data-choice-filter="${key}" data-choice-value="${value}" aria-pressed="${index === 0}" title="${text}" aria-label="${text}">${shortText}</button>`).join('')}</div><input type="hidden" data-filter="${key}" value="${options[0][0]}"></div>`;
+const choiceFieldHtml = (key, label, options) => {
+    const all = options.find(([value]) => value === 0);
+    const action = all ? fieldAllButtonHtml({ label, attributes: `data-choice-filter="${key}" data-choice-value="0"`, active: options[0][0] === 0 }) : '';
+    return `<div class="form-side-field form-side-field--stacked form-field">${fieldHeadingHtml(label, action)}<div class="segmented-choice" role="group" aria-label="${esc(label)}">${options.filter(([value]) => value !== 0).map(([value, text, shortText = text]) => `<button type="button" class="segmented-choice-button segmented-choice-button--short${value === options[0][0] ? ' is-active' : ''}" data-choice-filter="${key}" data-choice-value="${value}" aria-pressed="${value === options[0][0]}" title="${esc(text)}" aria-label="${esc(text)}">${esc(shortText)}</button>`).join('')}</div><input type="hidden" data-filter="${key}" value="${options[0][0]}"></div>`;
+};
 
 const CITY_FIELDS = { source: 'flipper-source', target: 'flipper-target' };
 const cityValue = key => getCityFieldValue(root, CITY_FIELDS[key]);
@@ -76,6 +81,7 @@ function monitorHtml() {
     </section>`;
 }
 function updateMonitor(phase, { done = 0, total = 0, message = '' } = {}) {
+    state.phase = phase;
     const monitor = root.querySelector('[data-status]');
     monitor.dataset.monitorPhase = phase;
     const labels = { idle: 'Hazır', scanning: 'Taranıyor', checking: 'Kontrol ediliyor', complete: 'Tamamlandı', partial: 'Eksik tarama', changed: 'Yeniden tara', error: 'Tarama hatası' };
@@ -92,10 +98,10 @@ function updateMonitor(phase, { done = 0, total = 0, message = '' } = {}) {
 function layout() {
     const targets = [...cities, { name: BLACK_MARKET, displayName: BLACK_MARKET, marketApiName: BLACK_MARKET, mapPosition: { x: 46, y: 68 }, iconHtml: icons['black-market'] }];
     root.innerHTML = toolPageHtml({ key: 'flipper', head: `<section class="page-head" data-page-head="flipper"><h1>${icon('flipper')} Flipper</h1><p>Şehirler Arası Arbitraj</p></section>`, controls: `<section class="form-section"><div class="flipper-controls">
-    ${cityFieldHtml({ id: CITY_FIELDS.source, label: 'Nereden', selected: '', cities, allowAll: true, showAllButton: true, className: '' })}${cityFieldHtml({ id: CITY_FIELDS.target, label: 'Nereye', selected: BLACK_MARKET, cities: targets, allowAll: true, showAllButton: true, className: '' })}
-    ${groupedIntegerFieldHtml({ key: 'budget', label: 'Bütçe (gümüş)', value: 20000000 })}${input('capacity','Taşıma (kg)',950,'step="0.1"')}${input('roi','Min ROI (%)',10)}${choiceFieldHtml('age', 'Veri yaşı', DATA_AGES, true)}${choiceFieldHtml('quality', 'Kalite', QUALITIES, true)}
+    ${cityFieldHtml({ id: CITY_FIELDS.source, label: 'Nereden', selected: '', cities, allowAll: true, showAllButton: true, headingAction: true, className: '' })}${cityFieldHtml({ id: CITY_FIELDS.target, label: 'Nereye', selected: BLACK_MARKET, cities: targets, allowAll: true, showAllButton: true, headingAction: true, className: '' })}
+    ${groupedIntegerFieldHtml({ key: 'budget', label: 'BÜTÇE (GÜMÜŞ)', value: 20000000 })}${input('capacity','Taşıma (kg)',950,'step="0.1"')}${input('roi','Min ROI (%)',10)}${choiceFieldHtml('age', 'Veri yaşı', DATA_AGES, true)}${choiceFieldHtml('quality', 'Kalite', QUALITIES, true)}
     ${input('transport','Ek gider / adet',0,'step="0.01"')}<div class="form-actions"><button class="btn btn-primary" data-scan>${icon('scan')} Tara</button><button class="btn btn-secondary" data-fill>${icon('cart')} Yükümü Doldur</button></div>
-    </div></section>`, summary: monitorHtml(), resultClass: 'flipper-results result--sections', result: `<div class="flipper-metrics" data-metrics></div><div class="flipper-columns"><section class="flipper-list-panel"><div class="flipper-list-head"><h2>Fırsatlar <small data-count></small></h2><div class="price-side flipper-sort" role="group" aria-label="Sıralama">${FLIPPER_SORTS.map(option => `<button type="button" class="price-side-btn${option.id === state.sort ? ' is-active' : ''}" data-flipper-sort="${option.id}" aria-pressed="${option.id === state.sort}" aria-label="${option.label}" data-app-tooltip="${option.label}">${icon(SORT_ICONS[option.id])}</button>`).join('')}</div></div><div class="flipper-list" data-list></div></section><section class="flipper-detail" data-detail></section></div>
+    </div></section>`, summary: monitorHtml(), resultClass: 'flipper-results result--sections', result: `<div class="flipper-metrics" data-metrics></div><div class="flipper-columns"><section class="flipper-list-panel"><div class="flipper-list-head"><h2>Fırsatlar <small data-count></small></h2><div class="segmented-choice flipper-sort" role="group" aria-label="Sıralama">${FLIPPER_SORTS.map(option => `<button type="button" class="segmented-choice-button segmented-choice-button--short${option.id === state.sort ? ' is-active' : ''}" data-flipper-sort="${option.id}" aria-pressed="${option.id === state.sort}" aria-label="${option.label}" data-app-tooltip="${option.label}">${icon(SORT_ICONS[option.id])}</button>`).join('')}</div></div><div class="flipper-list" data-list></div></section><section class="flipper-detail" data-detail></section></div>
     <section class="flipper-basket"><h2>${icon('cart')} Yükümü Doldur</h2><div data-basket>Detay panelinde oyunda gördüğünüz adet sınırı ve birim ağırlığı doğrulayın. Bilinmeyen ağırlık veya emir derinliği ile sepet oluşturulmaz.</div></section>
     <section data-info data-flipper-info></section>` });
     restorePreferences();
@@ -110,6 +116,17 @@ function filtersChanged(key) {
     state.basket=null; root.querySelector('[data-basket]').textContent='Filtreler değişti; sepeti yeniden hesaplayın.'; render();
 }
 function visibleRows() { return sortFlips(state.rows.filter(row => row.net > 0 && row.roi * 100 >= num('roi') && row.cost <= num('budget') && (!row.weight || row.weight <= num('capacity'))), state.sort); }
+const isLoading = () => ['scanning','checking'].includes(state.phase);
+function emptyMessage() {
+    if (state.phase === 'scanning') return 'Fiyatlar taranıyor… Sonuçlar henüz hazır değil.';
+    if (state.phase === 'checking') return 'Fiyatlar alındı. Tarihsel referanslar kontrol ediliyor…';
+    if (state.phase === 'error') return 'Tarama tamamlanamadı. Yeniden deneyin; hata ayrıntısı tarama durumunda.';
+    if (state.phase === 'changed' || !state.scan && state.phase !== 'idle') return 'Seçim değişti. Güncel sonuçlar için yeniden tarayın.';
+    if (!state.scan) return 'Henüz tarama yapılmadı. Fırsatları görmek için Tara düğmesini kullanın.';
+    if (state.scan.failed) return 'Tarama eksik. Alınabilen verilerde filtrelere uygun fırsat bulunamadı; yeniden deneyin.';
+    return 'Tarama tamamlandı. Filtrelere uygun pozitif fırsat bulunamadı.';
+}
+const emptyHtml = () => `<div class="flipper-empty" role="status">${isLoading() ? '<span class="flipper-loading-spinner" aria-hidden="true"></span>' : ''}<p>${emptyMessage()}</p></div>`;
 function render(changed = null) {
     root.querySelectorAll('[data-flipper-sort]').forEach(button => {
         const active = button.dataset.flipperSort === state.sort;
@@ -119,14 +136,16 @@ function render(changed = null) {
     const rows = visibleRows(), safe = rows.filter(row => row.safe);
     const selected = rows.find(row => row.id === state.selected) || (changed && state.rows.find(row => row.id === state.selected)) || rows[0];
     state.selected = selected?.id || '';
-    root.querySelector('[data-count]').textContent = `(${rows.length})`;
+    const known = Boolean(state.scan) && !isLoading();
+    root.querySelector('[data-count]').textContent = known ? `(${rows.length})` : '(—)';
+    root.querySelector('[data-metrics]').setAttribute('aria-busy', String(isLoading()));
     root.querySelector('[data-metrics]').innerHTML = [
         ['profit','En iyi net / adet',safe.length ? money(Math.max(...safe.map(row => row.net))) : '—'],
-        ['order-book','Pozitif aday',String(rows.length)],['confidence','Güncel fiyat çifti',String(safe.length)],['risk','Riskli / eski kayıt',String(state.rows.filter(row => !row.safe).length)]
-    ].map(([symbol,label,value]) => `<div>${icon(symbol)}<span>${label}<strong>${value}</strong></span></div>`).join('');
+        ['order-book','Pozitif aday',known ? String(rows.length) : '—'],['confidence','Güncel fiyat çifti',known ? String(safe.length) : '—'],['risk','Riskli / eski kayıt',known ? String(state.rows.filter(row => !row.safe).length) : '—']
+    ].map(([symbol,label,value]) => `<div>${icon(symbol)}<span>${label}<strong>${isLoading() ? '<span class="flipper-loading-spinner" role="img" aria-label="Yükleniyor"></span>' : value}</strong></span></div>`).join('');
     const listHtml = rows.length ? rows.map(row => `<article class="flipper-opportunity ${row.id === selected?.id ? 'is-selected' : ''} ${row.safe ? '' : 'is-risk'}" data-select="${esc(row.id)}" tabindex="0" role="button" aria-label="${esc(itemLabel(row.itemId))} detayını aç" aria-pressed="${row.id === selected?.id}">
     ${itemIconHtml(row.itemId,{ visual:true })}<div class="flipper-item"><h3>${itemNameHtml(itemLabel(row.itemId))}</h3><p>${esc(row.source)} → ${esc(row.target)}</p><div class="flipper-item-meta"><span class="badge bg-secondary" data-app-tooltip="Kalite ${row.quality}: kaynak ve hedef aynı kalitede eşleşir.">${QUALITIES.find(([value]) => value === row.quality)?.[1] || `Kalite ${row.quality}`}</span><small data-app-tooltip="Fiyat çiftindeki en eski teklifin gözlem yaşı. Emir derinliği bilinmiyor.">${esc(formatAge(row.ageMs))}</small>${row.safe || row.spikes?.length ? '' : `<span class="badge flipper-risk-badge" data-app-tooltip="${esc(row.reasons.join(' · ') || 'Eski veya aykırı fiyat; sepet hesabına alınmaz.')}">Riskli fiyat</span>`}${spikeBadgeHtml(row)}</div></div>
-    <div class="flipper-row-prices"><div class="flipper-price-cell"><small>Alış</small><strong>${money(row.buy)}</strong></div><div class="flipper-price-cell"><small>Satış</small><strong>${money(row.sell)}</strong></div><div class="flipper-price-cell ${row.safe ? 'flipper-profit' : 'flipper-warning'}"><small>Net / adet</small><strong>+${money(row.net)}</strong></div><div class="flipper-price-cell"><small>ROI</small>${roiBadgeHtml(row)}</div></div></article>`).join('') : '<p class="flipper-empty">Filtrelere uygun pozitif fırsat yok. Kaynak, hedef veya ROI filtresini değiştirin.</p>';
+    <div class="flipper-row-prices"><div class="flipper-price-cell"><small>Alış</small><strong>${money(row.buy)}</strong></div><div class="flipper-price-cell"><small>Satış</small><strong>${money(row.sell)}</strong></div><div class="flipper-price-cell ${row.safe ? 'flipper-profit' : 'flipper-warning'}"><small>Net / adet</small><strong>+${money(row.net)}</strong></div><div class="flipper-price-cell"><small>ROI</small>${roiBadgeHtml(row)}</div></div></article>`).join('') : emptyHtml();
     const list = root.querySelector('[data-list]');
     if (!changed) list.innerHTML = listHtml;
     else {
@@ -162,7 +181,8 @@ function render(changed = null) {
 }
 function renderDetail(row) {
     const target = root.querySelector('[data-detail]');
-    if (!row) { target.innerHTML = '<h2>Ürün detayı</h2><p>Bir fırsat seçin; alış, satış ve giderler burada gösterilir.</p>'; return; }
+    if (!row) { target.setAttribute('aria-busy', String(isLoading())); target.innerHTML = '<h2>Ürün detayı</h2>' + (state.scan && !isLoading() ? '<p>Bir fırsat seçin; alış, satış ve giderler burada gösterilir.</p>' : emptyHtml()); return; }
+    target.setAttribute('aria-busy', 'false');
     const limit = state.limits[row.id] || {};
     const breakdown = [
         { label: 'Alış', badge: 'Sell Min', value: row.buy, tone: 'buy', tip: 'Kaynak pazardaki en düşük satış teklifinden anında alış.' },
@@ -181,7 +201,7 @@ function renderDetail(row) {
     <section class="flipper-verification">
         <h3>Sepet için doğrula <span class="badge bg-secondary" tabindex="0" data-app-tooltip="Aynı fiyattaki kaynak ve hedef emirlerinin küçük adet sınırını girin. Aynı ürün farklı kaynaklardan seçildiğinde hedef emir limiti paylaşılır; sepet için yalnızca bir kaynak doğrulayın. Gerçek birim ağırlığı kullanın; bu değerlerle hesaplanan sepet bir senaryodur, kesin kazanç değildir." aria-label="Sepet doğrulama açıklaması">?</span></h3>
         <p class="flipper-verification-help">Oyundaki adet sınırını ve birim ağırlığı girin.</p>
-        <div class="flipper-limit-fields"><div class="form-floating"><input class="form-control" type="number" min="1" step="1" data-limit="quantity" value="${limit.quantity || ''}" aria-label="Doğrulanan adet"><label>Doğrulanan adet</label></div><div class="form-floating"><input class="form-control" type="number" min="0.001" step="0.001" data-limit="weight" value="${limit.weight || row.weight || ''}" aria-label="Ağırlık kg/adet"><label>Ağırlık kg/adet</label></div></div><button class="btn btn-secondary" data-confirm ${row.safe ? '' : 'disabled'}>${icon('quality')} Adet ve ağırlığı doğrula</button><p data-limit-status role="status">${limit.quantity ? 'Sepet adayı doğrulandı.' : row.safe ? 'Doğrulamadan sepete eklenmez.' : 'Güncel ve güvenilir fiyat için yeniden tarayın.'}</p>
+        <div class="flipper-limit-fields"><div class="form-floating"><input class="form-control" type="number" min="1" step="1" data-limit="quantity" value="${limit.quantity || ''}" aria-label="Doğrulanan adet"><label>DOĞRULANAN ADET</label></div><div class="form-floating"><input class="form-control" type="number" min="0.001" step="0.001" data-limit="weight" value="${limit.weight || row.weight || ''}" aria-label="Ağırlık kg/adet"><label>AĞIRLIK KG/ADET</label></div></div><button class="btn btn-secondary" data-confirm ${row.safe ? '' : 'disabled'}>${icon('quality')} Adet ve ağırlığı doğrula</button><p data-limit-status role="status">${limit.quantity ? 'Sepet adayı doğrulandı.' : row.safe ? 'Doğrulamadan sepete eklenmez.' : 'Güncel ve güvenilir fiyat için yeniden tarayın.'}</p>
     </section>`;
     initFloatingLabels(target);
 }
@@ -189,19 +209,28 @@ async function scan() {
     liveController?.abort(); liveQueue.clear();
     state.controller?.abort(); const controller = new AbortController(); state.controller = controller;
     state.busy = true; state.rows = []; state.scan = null; state.limits = {}; state.basket = null;
-    root.querySelector('[data-basket]').textContent = 'Yeni tarama için adet ve ağırlıkları yeniden doğrulayın.';
-    render(); updateMonitor('scanning'); root.querySelector('[data-scan]').disabled = true;
+    const basketPanel = root.querySelector('[data-basket]');
+    basketPanel.setAttribute('aria-busy', 'true');
+    basketPanel.innerHTML = '<div class="flipper-empty" role="status"><span class="flipper-loading-spinner" aria-hidden="true"></span><p>Tarama sürüyor. Sepet adayları hazırlanıyor…</p></div>';
+    updateMonitor('scanning'); render(); root.querySelector('[data-scan]').disabled = true;
     try {
         const target = cityValue('target');
         const destinations = target ? [target] : [...cities.map(city => city.marketApiName), BLACK_MARKET];
         const sources = (cityValue('source') ? [cityValue('source')] : cities.map(city=>city.marketApiName)).filter(city => destinations.some(destination => destination !== city));
         if (!sources.length) throw new Error('Kaynak ve hedef farklı şehirler olmalı');
         const catalog = target === BLACK_MARKET ? items.filter(item=>item.isEquipable) : items;
-        state.scan = await scanFlips({items:catalog,sources,targets:destinations,quality:num('quality') === 0 ? QUALITIES.filter(([value]) => value).map(([value]) => value).join(',') : field('quality').value,fees:decisionFees(),transport:num('transport'),maxAgeMs:num('age') === 0 ? undefined : num('age')*60000,signal:controller.signal,onProgress:(done,total)=>{ updateMonitor(done === total ? 'checking' : 'scanning', {done,total}); }});
+        state.scan = await scanFlips({items:catalog,sources,targets:destinations,quality:num('quality') === 0 ? QUALITIES.filter(([value]) => value).map(([value]) => value).join(',') : field('quality').value,fees:decisionFees(),transport:num('transport'),maxAgeMs:num('age') === 0 ? undefined : num('age')*60000,signal:controller.signal,onProgress:(done,total)=>{ updateMonitor(done === total ? 'checking' : 'scanning', {done,total}); if (done === total) render(); }});
         state.rows = state.scan.rows;
         updateMonitor(state.scan.failed || state.scan.historyError ? 'partial' : 'complete', { message: [state.scan.failed ? `${state.scan.failed} istek grubu başarısız; tarama eksik.` : '', state.scan.historyError].filter(Boolean).join(' ') }); render();
     } catch(error) { if (!controller.signal.aborted) updateMonitor('error', {message:error.message}); }
-    finally { if (state.controller === controller) { state.busy=false;root.querySelector('[data-scan]').disabled=false; } }
+    finally {
+        if (state.controller === controller) {
+            state.busy=false; root.querySelector('[data-scan]').disabled=false;
+            root.querySelector('[data-basket]').setAttribute('aria-busy', 'false');
+            root.querySelector('[data-basket]').textContent = state.scan ? 'Tarama tamamlandı. Sepet için ürün detayında adet ve ağırlığı doğrulayın.' : state.phase === 'error' ? 'Tarama tamamlanamadığı için yeni sepet hesaplanamaz.' : 'Yeni tarama için adet ve ağırlıkları yeniden doğrulayın.';
+            render();
+        }
+    }
 }
 function fill() {
     const target = root.querySelector('[data-basket]');

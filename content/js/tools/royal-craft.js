@@ -723,7 +723,7 @@ function renderToggle(options, selected, dataAttr) {
         const id = String(option.id);
         const pressed = id === String(selected);
         return `
-            <button type="button" class="farming-type-btn${pressed ? ' is-active' : ''}"
+            <button type="button" class="segmented-choice-button segmented-choice-button--icon${pressed ? ' is-active' : ''}"
                 data-${dataAttr}="${escapeHtml(id)}" aria-pressed="${pressed ? 'true' : 'false'}">
                 ${escapeHtml(option.label)}
             </button>
@@ -789,7 +789,7 @@ function renderSealedMatField() {
                 missing: !fetched,
                 date: fetched?.date,
                 dataAttr: `data-mat-price="${escapeHtml(mat.key)}"`,
-                fieldClass: 'farming-price-field royal-price-field',
+                fieldClass: 'market-price-field market-price-field--fluid market-price-field--unlabelled',
                 iconId: mat.uniqueName
             })}
         </div>
@@ -800,10 +800,10 @@ function renderMatStrip() {
     const kinds = stripMatKinds();
     return `
         <div class="royal-mats" id="royalMats">
-            <p class="royal-mats-meta" id="royalMatsMeta">${escapeHtml(priceSideHint(state.matSide, 'buy'))} · ${escapeHtml(cityLabel(state.buyCity))}${state.sealedSigil ? ' · sealed tüm tier’lar' : ''}</p>
+            <p class="material-price-matrix-note" id="royalMatsMeta">${escapeHtml(priceSideHint(state.matSide, 'buy'))} · ${escapeHtml(cityLabel(state.buyCity))}${state.sealedSigil ? ' · sealed tüm tier’lar' : ''}</p>
             <div class="royal-mats-grid" style="--royal-mat-cols: ${TIERS.length}">
-                <div class="royal-mat-corner" aria-hidden="true"></div>
-                ${TIERS.map((tier) => `<div class="royal-mat-tier-head">T${tier}</div>`).join('')}
+                <div class="material-price-matrix-corner" aria-hidden="true"></div>
+                ${TIERS.map((tier) => `<div class="material-price-matrix-heading">T${tier}</div>`).join('')}
                 ${kinds.map((kind) => `
                     <div class="royal-mat-kind">
                         ${itemIconHtml(kind.cells[0].uniqueName, { className: 'item-icon royal-mat-kind-icon', size: 32 })}
@@ -812,7 +812,7 @@ function renderMatStrip() {
                     ${kind.cells.map((mat) => {
                         const fetched = matQuote(mat.key, mat.uniqueName, mat.quality);
                         return `
-                            <div class="royal-mat" data-mat-card="${escapeHtml(mat.key)}">
+                            <div class="material-price-matrix-cell" data-mat-card="${escapeHtml(mat.key)}">
                                 ${priceFieldHtml({
                                     id: `royalMat-${mat.key}`,
                                     label: 'Fiyat',
@@ -821,7 +821,7 @@ function renderMatStrip() {
                                     missing: !fetched,
                                     date: fetched?.date,
                                     dataAttr: `data-mat-price="${escapeHtml(mat.key)}"`,
-                                    fieldClass: 'farming-price-field royal-price-field'
+                                    fieldClass: 'market-price-field market-price-field--fluid market-price-field--unlabelled'
                                 })}
                             </div>
                         `;
@@ -847,7 +847,7 @@ function patchMatStrip(container) {
             continue;
         }
         const fetched = matQuote(mat.key, mat.uniqueName, mat.quality);
-        applyPriceFieldState(card.querySelector('.farming-price-field'), {
+        applyPriceFieldState(card.querySelector('[data-market-price-field]'), {
             manual: isManualPrice(state.manualMats[mat.key]),
             missing: !fetched,
             date: fetched?.date,
@@ -1003,14 +1003,14 @@ function renderSummary(list) {
             ? 'SET Ex buy'
             : 'min(SET craft, SET Ex buy)';
     return `
-        <p class="farming-note">
+        <p class="tool-result-note">
             Alış ${escapeHtml(cityLabel(state.buyCity))} · satış ${escapeHtml(cityLabel(state.sellCity))} ·
             RR ${escapeHtml(rrPct)}% yalnız set üretiminde (şehir ${cityProductionBonus()}%) ·
             royal craft RR yok · ${escapeHtml(sigilNote)} ·
             maliyet = ${escapeHtml(setPathLabel)} + sigil + enchant ·
             ${escapeHtml(feeMetaText(state.premium))}
         </p>
-        <p class="farming-note royal-standard-note">
+        <p class="tool-result-note royal-standard-note">
             Kapsam: solda <strong>${state.scope === 'all' ? 'Tüm T.E' : 'Standart T.E'}</strong>
             ${state.scope !== 'all' && combos ? ` (${escapeHtml(combos)})` : ''} —
             <a href="${routeHref('settings')}">standart listesini ayarlardan değiştir</a>.
@@ -2010,7 +2010,7 @@ function renderCalc() {
             ${renderTable(list)}
             <section data-page-info>
             ${renderSummary(list)}
-            ${stamp ? `<p class="farming-note">${escapeHtml(stamp)}</p>` : ''}
+            ${stamp ? `<p class="tool-result-note">${escapeHtml(stamp)}</p>` : ''}
             </section>
         </div>
     `;
@@ -2068,17 +2068,17 @@ function renderPage(container) {
             </div>
         </section>`,
         controls: `
-                <div class="farming-toolbar royal-toolbar">
-                    <div class="farming-type" role="radiogroup" aria-label="T.E kapsamı">
+                <div class="tool-form-toolbar tool-form-toolbar">
+                    <div class="segmented-choice" role="radiogroup" aria-label="T.E kapsamı">
                         ${renderToggle([
                             { id: 'standard', label: 'Standart T.E' },
                             { id: 'all', label: 'Tüm T.E' }
                         ], state.scope, 'scope')}
                     </div>
-                    <div class="farming-type" role="radiogroup" aria-label="Tier">
+                    <div class="segmented-choice" role="radiogroup" aria-label="Tier">
                         ${renderToggle(standardTierOptions(), String(state.tier), 'tier-filter')}
                     </div>
-                    <div class="farming-type" role="radiogroup" aria-label="Tip">
+                    <div class="segmented-choice" role="radiogroup" aria-label="Tip">
                         ${renderToggle([
                             { id: 'all', label: 'Hepsi' },
                             { id: 'plate', label: 'Plate' },
@@ -2086,7 +2086,7 @@ function renderPage(container) {
                             { id: 'cloth', label: 'Cloth' }
                         ], state.type, 'type')}
                     </div>
-                    <div class="farming-type" role="radiogroup" aria-label="Slot">
+                    <div class="segmented-choice" role="radiogroup" aria-label="Slot">
                         ${renderToggle([
                             { id: 'all', label: 'Hepsi' },
                             { id: 'head', label: 'Kafa' },
@@ -2094,14 +2094,14 @@ function renderPage(container) {
                             { id: 'shoes', label: 'Ayak' }
                         ], state.slot, 'slot')}
                     </div>
-                    <div class="farming-type" role="radiogroup" aria-label="Ana ürün maliyeti">
+                    <div class="segmented-choice" role="radiogroup" aria-label="Ana ürün maliyeti">
                         ${renderToggle([
                             { id: 'min', label: 'Min' },
                             { id: 'craft', label: 'Craft' },
                             { id: 'buy', label: 'Buy' }
                         ], state.setPath, 'set-path')}
                     </div>
-                    <div class="farming-type" role="radiogroup" aria-label="Sigil">
+                    <div class="segmented-choice" role="radiogroup" aria-label="Sigil">
                         ${renderToggle([
                             { id: '0', label: 'Sigil' },
                             { id: '1', label: 'Sealed sigil' }
@@ -2110,28 +2110,28 @@ function renderPage(container) {
                     <div id="royalSealedPrice" class="royal-sealed-control">
                         ${renderSealedMatField()}
                     </div>
-                    <div class="farming-type" role="radiogroup" aria-label="Kalite">
+                    <div class="segmented-choice" role="radiogroup" aria-label="Kalite">
                         ${renderToggle([
                             { id: 'both', label: 'Ex+MP' },
                             { id: '4', label: 'Ex' },
                             { id: '5', label: 'MP' }
                         ], state.quality, 'quality')}
                     </div>
-                    <div class="farming-type" role="radiogroup" aria-label="Premium">
+                    <div class="segmented-choice" role="radiogroup" aria-label="Premium">
                         ${renderToggle([
                             { id: '1', label: 'Premium' },
                             { id: '0', label: 'Premium yok' }
                         ], state.premium ? '1' : '0', 'premium')}
                     </div>
-                    <div class="farming-side-field">
-                        <span class="farming-side-label" id="royalMatSideLabel">Alış</span>
-                        <div class="price-side" role="radiogroup" aria-labelledby="royalMatSideLabel">
+                    <div class="form-side-field">
+                        <span class="form-side-label" id="royalMatSideLabel">Alış</span>
+                        <div class="segmented-choice" role="radiogroup" aria-labelledby="royalMatSideLabel">
                             ${priceSideToggleHtml('mat', state.matSide)}
                         </div>
                     </div>
-                    <div class="farming-side-field">
-                        <span class="farming-side-label" id="royalItemSideLabel">Satış</span>
-                        <div class="price-side" role="radiogroup" aria-labelledby="royalItemSideLabel">
+                    <div class="form-side-field">
+                        <span class="form-side-label" id="royalItemSideLabel">Satış</span>
+                        <div class="segmented-choice" role="radiogroup" aria-labelledby="royalItemSideLabel">
                             ${priceSideToggleHtml('item', state.itemSide)}
                         </div>
                     </div>

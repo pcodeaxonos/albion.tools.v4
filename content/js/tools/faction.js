@@ -282,7 +282,7 @@ function renderPremiumToggle() {
     ].map((option) => {
         const pressed = option.id === state.premium;
         return `
-            <button type="button" class="ava-type-btn${pressed ? ' is-active' : ''}"
+            <button type="button" class="segmented-choice-button${pressed ? ' is-active' : ''}"
                 data-premium="${option.id ? '1' : '0'}"
                 aria-pressed="${pressed ? 'true' : 'false'}">
                 ${escapeHtml(option.label)}
@@ -300,7 +300,7 @@ function renderBonusNote() {
             `${escapeHtml(getBonusFamilyLabel(bonus.key))} +${bonus.rate}%`
         ).join(' · ');
 
-    return `<p class="faction-note">Cape RR ${formatPct(returnRate())}${extra} (yalnız düz cape). Crest artefact, RR yok.
+    return `<p class="tool-result-note">Cape RR ${formatPct(returnRate())}${extra} (yalnız düz cape). Crest artefact, RR yok.
         Bugün (${escapeHtml(bonusWindowLabel(bonusDayIso()))}): ${today}
         <a href="${routeHref('daily-bonus')}">Günlük bonus</a></p>`;
 }
@@ -623,15 +623,15 @@ function bindExplain(container) {
 
 function renderCapeMats() {
     return `
-        <ul class="ava-mats ava-mats--tiers">
+        <ul class="material-price-list material-price-list--tiers">
             ${TIERS.map((tier) => {
                 const uniqueName = capeId(tier);
                 const fetched = fetchedQuote(uniqueName, state.matSide, 'buy');
                 return `
-                    <li class="ava-mat ava-mat--tier" data-price-card="${escapeHtml(uniqueName)}">
-                        <span class="ava-mat-text">
-                            <span class="ava-mat-label">T${tier} Cape</span>
-                            <span class="ava-tier-row">
+                    <li class="material-price-card" data-price-card="${escapeHtml(uniqueName)}">
+                        <span class="material-price-card-text">
+                            <span class="material-price-card-label">T${tier} Cape</span>
+                            <span class="material-price-row">
                                 ${itemIconHtml(uniqueName)}
                                 ${priceFieldHtml({
                                     id: `matPrice-${uniqueName}`,
@@ -641,7 +641,7 @@ function renderCapeMats() {
                                     missing: !fetched,
                                     date: fetched?.date,
                                     dataAttr: `data-price-id="${escapeHtml(uniqueName)}"`,
-                                    fieldClass: 'ava-price-field',
+                                    fieldClass: 'market-price-field',
                                     iconId: uniqueName
                                 })}
                             </span>
@@ -658,16 +658,16 @@ function renderVendorTable() {
     const body = vendorRows().map((row) => `
         <tr data-vendor-id="${escapeHtml(row.item.id)}">
             <td>
-                <span class="ava-item">
+                <span class="market-item">
                     ${itemIconHtml(row.item.uniqueName)}
                     <span>
-                        <span class="ava-item-name">${itemNameHtml(itemLabel(row.item.uniqueName, row.item.label))}</span>
-                        <span class="ava-item-meta">${row.item.points.toLocaleString('tr-TR')} puan</span>
+                        <span class="market-item-name">${itemNameHtml(itemLabel(row.item.uniqueName, row.item.label))}</span>
+                        <span class="market-item-meta">${row.item.points.toLocaleString('tr-TR')} puan</span>
                     </span>
                 </span>
             </td>
-            <td class="num ava-num" data-sort-value="${row.item.points}">${row.item.points.toLocaleString('tr-TR')}</td>
-            <td class="num ava-num ava-price-cell" data-sort-value="${row.sellQuote?.price ?? ''}">
+            <td class="num market-number" data-sort-value="${row.item.points}">${row.item.points.toLocaleString('tr-TR')}</td>
+            <td class="num market-number market-price-cell" data-sort-value="${row.sellQuote?.price ?? ''}">
                 ${priceFieldHtml({
                     id: `vendorSell-${row.item.id}`,
                     label: 'Satış',
@@ -676,27 +676,27 @@ function renderVendorTable() {
                     missing: !fetchedQuote(row.item.uniqueName, state.itemSide, 'sell'),
                     date: fetchedQuote(row.item.uniqueName, state.itemSide, 'sell')?.date,
                     dataAttr: `data-price-id="${escapeHtml(row.item.uniqueName)}"`,
-                    fieldClass: 'ava-price-field',
+                    fieldClass: 'market-price-field',
                     iconId: row.item.uniqueName
                 })}
             </td>
-            <td class="num ava-num${incompleteClass(row.buyQuote?.price)}" data-sort-value="${row.buyQuote?.price ?? ''}">${formatSilver(row.buyQuote?.price)}</td>
-            <td class="num ava-num${incompleteClass(row.sellPoint)}" data-sort-value="${row.sellPoint ?? ''}">${formatSilver(row.sellPoint)}</td>
-            <td class="num ava-num${incompleteClass(row.buyPoint)}" data-sort-value="${row.buyPoint ?? ''}">${formatSilver(row.buyPoint)}</td>
+            <td class="num market-number${incompleteClass(row.buyQuote?.price)}" data-sort-value="${row.buyQuote?.price ?? ''}">${formatSilver(row.buyQuote?.price)}</td>
+            <td class="num market-number${incompleteClass(row.sellPoint)}" data-sort-value="${row.sellPoint ?? ''}">${formatSilver(row.sellPoint)}</td>
+            <td class="num market-number${incompleteClass(row.buyPoint)}" data-sort-value="${row.buyPoint ?? ''}">${formatSilver(row.buyPoint)}</td>
         </tr>
     `).join('');
 
     return `
         <div class="table-responsive calc-table-wrap">
-            <table class="table table-striped ava-table calc-table" data-faction-table="vendor">
+            <table class="market-table table table-striped market-table--highlight-best calc-table" data-market-table data-faction-table="vendor">
                 <thead>
                     <tr>
                         ${sortHeaderHtml('Item', { key: 'item', type: 'text', direction: sort.key === 'item' ? sort.direction : null, title: 'Faction vendor eşyası' })}
-                        ${sortHeaderHtml('Puan', { key: 'points', type: 'number', className: 'num ava-num', direction: sort.key === 'points' ? sort.direction : null, title: 'Faction puan maliyeti' })}
-                        ${sortHeaderHtml('Satış', { key: 'sell', type: 'number', className: 'num ava-num', direction: sort.key === 'sell' ? sort.direction : null, title: 'Piyasa satış fiyatı' })}
-                        ${sortHeaderHtml('Alış', { key: 'buy', type: 'number', className: 'num ava-num', direction: sort.key === 'buy' ? sort.direction : null, title: 'Piyasa alış fiyatı' })}
-                        ${sortHeaderHtml('Satış/puan', { key: 'sellPoint', type: 'number', className: 'num ava-num', direction: sort.key === 'sellPoint' ? sort.direction : null, title: 'Net satışın puan başına gümüşü' })}
-                        ${sortHeaderHtml('Alış/puan', { key: 'buyPoint', type: 'number', className: 'num ava-num', direction: sort.key === 'buyPoint' ? sort.direction : null, title: 'Alışın puan başına gümüşü' })}
+                        ${sortHeaderHtml('Puan', { key: 'points', type: 'number', className: 'num market-number', direction: sort.key === 'points' ? sort.direction : null, title: 'Faction puan maliyeti' })}
+                        ${sortHeaderHtml('Satış', { key: 'sell', type: 'number', className: 'num market-number', direction: sort.key === 'sell' ? sort.direction : null, title: 'Piyasa satış fiyatı' })}
+                        ${sortHeaderHtml('Alış', { key: 'buy', type: 'number', className: 'num market-number', direction: sort.key === 'buy' ? sort.direction : null, title: 'Piyasa alış fiyatı' })}
+                        ${sortHeaderHtml('Satış/puan', { key: 'sellPoint', type: 'number', className: 'num market-number', direction: sort.key === 'sellPoint' ? sort.direction : null, title: 'Net satışın puan başına gümüşü' })}
+                        ${sortHeaderHtml('Alış/puan', { key: 'buyPoint', type: 'number', className: 'num market-number', direction: sort.key === 'buyPoint' ? sort.direction : null, title: 'Alışın puan başına gümüşü' })}
                     </tr>
                 </thead>
                 <tbody>${body}</tbody>
@@ -707,12 +707,12 @@ function renderVendorTable() {
 
 function recipeChips(item) {
     return `
-        <span class="ava-chip">
-            ${itemIconHtml(item.capeMat, { className: 'item-icon ava-chip-icon' })}
+        <span class="recipe-chip">
+            ${itemIconHtml(item.capeMat, { className: 'recipe-chip-icon item-icon recipe-chip-icon--large' })}
             <span>1</span>
         </span>
-        <span class="ava-chip">
-            ${itemIconHtml(item.crest, { className: 'item-icon ava-chip-icon' })}
+        <span class="recipe-chip">
+            ${itemIconHtml(item.crest, { className: 'recipe-chip-icon item-icon recipe-chip-icon--large' })}
             <span>1</span>
         </span>
     `;
@@ -722,22 +722,22 @@ function renderCapeTable() {
     const sort = state.capeSort;
     const body = capeRows().map((row) => {
         const bonusMark = state.bonusRate
-            ? `<span class="ava-bonus">+${state.bonusRate}%</span>`
+            ? `<span class="market-bonus">+${state.bonusRate}%</span>`
             : '';
         return `
             <tr data-cape-id="${escapeHtml(row.item.id)}">
                 <td>
-                    <span class="ava-item">
+                    <span class="market-item">
                         ${itemIconHtml(row.item.uniqueName)}
                         <span>
-                            <span class="ava-item-name">${itemNameHtml(row.item.label)}${bonusMark}</span>
-                            <span class="ava-item-meta">${row.item.points.toLocaleString('tr-TR')} puan · RR ${formatPct(row.rr)}</span>
+                            <span class="market-item-name">${itemNameHtml(row.item.label)}${bonusMark}</span>
+                            <span class="market-item-meta">${row.item.points.toLocaleString('tr-TR')} puan · RR ${formatPct(row.rr)}</span>
                         </span>
                     </span>
                 </td>
-                <td class="ava-recipe">${recipeChips(row.item)}</td>
-                <td class="num ava-num${incompleteClass(row.cost)}" data-sort-value="${row.cost ?? ''}">${formatSilver(row.cost)}</td>
-                <td class="num ava-num ava-price-cell" data-sort-value="${row.outQuote?.price ?? ''}">
+                <td class="recipe-list">${recipeChips(row.item)}</td>
+                <td class="num market-number${incompleteClass(row.cost)}" data-sort-value="${row.cost ?? ''}">${formatSilver(row.cost)}</td>
+                <td class="num market-number market-price-cell" data-sort-value="${row.outQuote?.price ?? ''}">
                     ${priceFieldHtml({
                         id: `capeSell-${row.item.id}`,
                         label: 'Satış',
@@ -746,31 +746,31 @@ function renderCapeTable() {
                         missing: !fetchedQuote(row.item.uniqueName, state.itemSide, 'sell'),
                         date: fetchedQuote(row.item.uniqueName, state.itemSide, 'sell')?.date,
                         dataAttr: `data-price-id="${escapeHtml(row.item.uniqueName)}"`,
-                        fieldClass: 'ava-price-field',
+                        fieldClass: 'market-price-field',
                         iconId: row.item.uniqueName
                     })}
                 </td>
-                <td class="num ava-num${incompleteClass(row.sell)}" data-sort-value="${row.sell ?? ''}">${formatSilver(row.sell)}</td>
-                <td class="num ava-num${profitClass(row.profit)}${incompleteClass(row.profit)}" data-sort-value="${row.profit ?? ''}">${formatSilver(row.profit, { unsigned: true })}</td>
-                <td class="num ava-num${profitClass(row.profit)}${incompleteClass(row.pct)}" data-sort-value="${row.pct ?? ''}">${formatPct(row.pct, { unsigned: true })}</td>
-                <td class="num ava-num${incompleteClass(row.pointValue)}" data-sort-value="${row.pointValue ?? ''}">${formatSilver(row.pointValue)}</td>
+                <td class="num market-number${incompleteClass(row.sell)}" data-sort-value="${row.sell ?? ''}">${formatSilver(row.sell)}</td>
+                <td class="num market-number${profitClass(row.profit)}${incompleteClass(row.profit)}" data-sort-value="${row.profit ?? ''}">${formatSilver(row.profit, { unsigned: true })}</td>
+                <td class="num market-number${profitClass(row.profit)}${incompleteClass(row.pct)}" data-sort-value="${row.pct ?? ''}">${formatPct(row.pct, { unsigned: true })}</td>
+                <td class="num market-number${incompleteClass(row.pointValue)}" data-sort-value="${row.pointValue ?? ''}">${formatSilver(row.pointValue)}</td>
             </tr>
         `;
     }).join('');
 
     return `
         <div class="table-responsive calc-table-wrap">
-            <table class="table table-striped ava-table calc-table" data-faction-table="cape">
+            <table class="market-table table table-striped market-table--highlight-best calc-table" data-market-table data-faction-table="cape">
                 <thead>
                     <tr>
                         ${sortHeaderHtml('Cape', { key: 'item', type: 'text', direction: sort.key === 'item' ? sort.direction : null, title: 'Üretilen faction cape' })}
                         ${sortHeaderHtml('Tarif', { key: 'recipe', type: 'text', direction: sort.key === 'recipe' ? sort.direction : null, title: 'Düz cape + crest' })}
-                        ${sortHeaderHtml('Maliyet', { key: 'cost', type: 'number', className: 'num ava-num', direction: sort.key === 'cost' ? sort.direction : null, title: 'Malzeme iadesi sonrası üretim maliyeti' })}
-                        ${sortHeaderHtml('Fiyat', { key: 'price', type: 'number', className: 'num ava-num', direction: sort.key === 'price' ? sort.direction : null, title: 'Piyasa satış fiyatı' })}
-                        ${sortHeaderHtml('Net', { key: 'sell', type: 'number', className: 'num ava-num', direction: sort.key === 'sell' ? sort.direction : null, title: 'Vergi sonrası net satış' })}
-                        ${sortHeaderHtml('Kâr', { key: 'profit', type: 'number', className: 'num ava-num', direction: sort.key === 'profit' ? sort.direction : null, title: 'Net satış eksi maliyet' })}
-                        ${sortHeaderHtml('%', { key: 'pct', type: 'number', className: 'num ava-num', direction: sort.key === 'pct' ? sort.direction : null, title: 'Kârın maliyete oranı' })}
-                        ${sortHeaderHtml('gümüş/puan', { key: 'pointValue', type: 'number', className: 'num ava-num', direction: sort.key === 'pointValue' ? sort.direction : null, title: 'Crest puanı başına net değer' })}
+                        ${sortHeaderHtml('Maliyet', { key: 'cost', type: 'number', className: 'num market-number', direction: sort.key === 'cost' ? sort.direction : null, title: 'Malzeme iadesi sonrası üretim maliyeti' })}
+                        ${sortHeaderHtml('Fiyat', { key: 'price', type: 'number', className: 'num market-number', direction: sort.key === 'price' ? sort.direction : null, title: 'Piyasa satış fiyatı' })}
+                        ${sortHeaderHtml('Net', { key: 'sell', type: 'number', className: 'num market-number', direction: sort.key === 'sell' ? sort.direction : null, title: 'Vergi sonrası net satış' })}
+                        ${sortHeaderHtml('Kâr', { key: 'profit', type: 'number', className: 'num market-number', direction: sort.key === 'profit' ? sort.direction : null, title: 'Net satış eksi maliyet' })}
+                        ${sortHeaderHtml('%', { key: 'pct', type: 'number', className: 'num market-number', direction: sort.key === 'pct' ? sort.direction : null, title: 'Kârın maliyete oranı' })}
+                        ${sortHeaderHtml('gümüş/puan', { key: 'pointValue', type: 'number', className: 'num market-number', direction: sort.key === 'pointValue' ? sort.direction : null, title: 'Crest puanı başına net değer' })}
                     </tr>
                 </thead>
                 <tbody>${body}</tbody>
@@ -811,7 +811,7 @@ function renderOutput() {
 
             <section data-page-info>
             ${renderBonusNote()}
-            <p class="faction-note">${escapeHtml(cityLabel(state.city))} · malzeme ${escapeHtml(matNote)} · satış ${escapeHtml(itemNote)}.
+            <p class="tool-result-note">${escapeHtml(cityLabel(state.city))} · malzeme ${escapeHtml(matNote)} · satış ${escapeHtml(itemNote)}.
                 Satış/puan net (vergi sonrası). Cape gümüş/puan = (net satış − düz cape maliyeti) / crest puanı.
                 Elle yazılan fiyat API’nin yerine geçer. Kırmızı fiyat API’de yok; mavi 6 saatten eski.${stamp ? ` · ${stamp}` : ''}</p>
             </section>
@@ -845,7 +845,7 @@ function bindFactionSort(container) {
 function patchVendorRow(tr, row) {
     tr.cells[2].dataset.sortValue = row.sellQuote?.price ?? '';
     const sellFetched = fetchedQuote(row.item.uniqueName, state.itemSide, 'sell');
-    applyPriceFieldState(tr.cells[2].querySelector('.ava-price-field'), {
+    applyPriceFieldState(tr.cells[2].querySelector('[data-market-price-field]'), {
         manual: Boolean(row.sellQuote?.manual),
         missing: !sellFetched,
         date: sellFetched?.date,
@@ -853,22 +853,22 @@ function patchVendorRow(tr, row) {
     });
     tr.cells[3].dataset.sortValue = row.buyQuote?.price ?? '';
     tr.cells[3].textContent = formatSilver(row.buyQuote?.price);
-    tr.cells[3].className = `num ava-num${incompleteClass(row.buyQuote?.price)}`;
+    tr.cells[3].className = `num market-number${incompleteClass(row.buyQuote?.price)}`;
     tr.cells[4].dataset.sortValue = row.sellPoint ?? '';
     tr.cells[4].textContent = formatSilver(row.sellPoint);
-    tr.cells[4].className = `num ava-num${incompleteClass(row.sellPoint)}`;
+    tr.cells[4].className = `num market-number${incompleteClass(row.sellPoint)}`;
     tr.cells[5].dataset.sortValue = row.buyPoint ?? '';
     tr.cells[5].textContent = formatSilver(row.buyPoint);
-    tr.cells[5].className = `num ava-num${incompleteClass(row.buyPoint)}`;
+    tr.cells[5].className = `num market-number${incompleteClass(row.buyPoint)}`;
 }
 
 function patchCapeRow(tr, row) {
     tr.cells[2].dataset.sortValue = row.cost ?? '';
     tr.cells[2].textContent = formatSilver(row.cost);
-    tr.cells[2].className = `num ava-num${incompleteClass(row.cost)}`;
+    tr.cells[2].className = `num market-number${incompleteClass(row.cost)}`;
     tr.cells[3].dataset.sortValue = row.outQuote?.price ?? '';
     const outFetched = fetchedQuote(row.item.uniqueName, state.itemSide, 'sell');
-    applyPriceFieldState(tr.cells[3].querySelector('.ava-price-field'), {
+    applyPriceFieldState(tr.cells[3].querySelector('[data-market-price-field]'), {
         manual: Boolean(row.outQuote?.manual),
         missing: !outFetched,
         date: outFetched?.date,
@@ -876,16 +876,16 @@ function patchCapeRow(tr, row) {
     });
     tr.cells[4].dataset.sortValue = row.sell ?? '';
     tr.cells[4].textContent = formatSilver(row.sell);
-    tr.cells[4].className = `num ava-num${incompleteClass(row.sell)}`;
+    tr.cells[4].className = `num market-number${incompleteClass(row.sell)}`;
     tr.cells[5].dataset.sortValue = row.profit ?? '';
     tr.cells[5].textContent = formatSilver(row.profit, { unsigned: true });
-    tr.cells[5].className = `num ava-num${profitClass(row.profit)}${incompleteClass(row.profit)}`;
+    tr.cells[5].className = `num market-number${profitClass(row.profit)}${incompleteClass(row.profit)}`;
     tr.cells[6].dataset.sortValue = row.pct ?? '';
     tr.cells[6].textContent = formatPct(row.pct, { unsigned: true });
-    tr.cells[6].className = `num ava-num${profitClass(row.profit)}${incompleteClass(row.pct)}`;
+    tr.cells[6].className = `num market-number${profitClass(row.profit)}${incompleteClass(row.pct)}`;
     tr.cells[7].dataset.sortValue = row.pointValue ?? '';
     tr.cells[7].textContent = formatSilver(row.pointValue);
-    tr.cells[7].className = `num ava-num${incompleteClass(row.pointValue)}`;
+    tr.cells[7].className = `num market-number${incompleteClass(row.pointValue)}`;
 }
 
 function refreshCalc(container) {
@@ -910,7 +910,7 @@ function refreshCalc(container) {
     }
 
     container.querySelectorAll('[data-price-card]').forEach((card) => {
-        const field = card.querySelector('.ava-price-field');
+        const field = card.querySelector('[data-market-price-field]');
         if (field) {
             const fetched = fetchedQuote(card.dataset.priceCard, state.matSide, 'buy');
             applyPriceFieldState(field, {
@@ -961,25 +961,25 @@ function renderPage(container) {
             <p>Vendor eşyalarının gümüş / puan değeri ve faction cape craft kârı. Crest artefact (RR yok); düz cape RR alır.</p>
         </section>`,
         controls: `
-                <div class="ava-toolbar">
-                    <div class="ava-type" role="radiogroup" aria-label="Premium">
+                <div class="tool-form-toolbar">
+                    <div class="segmented-choice" role="radiogroup" aria-label="Premium">
                         ${renderPremiumToggle()}
                     </div>
-                    <div class="ava-side-field">
-                        <span class="ava-side-label" id="factionBonusLabel">Bonus</span>
-                        <div class="price-side" role="radiogroup" aria-labelledby="factionBonusLabel">
+                    <div class="form-side-field">
+                        <span class="form-side-label" id="factionBonusLabel">Bonus</span>
+                        <div class="segmented-choice" role="radiogroup" aria-labelledby="factionBonusLabel">
                             ${craftBonusToggleHtml(state.bonusRate)}
                         </div>
                     </div>
-                    <div class="ava-side-field">
-                        <span class="ava-side-label" id="factionMatSideLabel">Malzeme</span>
-                        <div class="price-side" role="radiogroup" aria-labelledby="factionMatSideLabel">
+                    <div class="form-side-field">
+                        <span class="form-side-label" id="factionMatSideLabel">Malzeme</span>
+                        <div class="segmented-choice" role="radiogroup" aria-labelledby="factionMatSideLabel">
                             ${priceSideToggleHtml('mat', state.matSide)}
                         </div>
                     </div>
-                    <div class="ava-side-field">
-                        <span class="ava-side-label" id="factionItemSideLabel">Satış</span>
-                        <div class="price-side" role="radiogroup" aria-labelledby="factionItemSideLabel">
+                    <div class="form-side-field">
+                        <span class="form-side-label" id="factionItemSideLabel">Satış</span>
+                        <div class="segmented-choice" role="radiogroup" aria-labelledby="factionItemSideLabel">
                             ${priceSideToggleHtml('item', state.itemSide)}
                         </div>
                     </div>
@@ -988,7 +988,7 @@ function renderPage(container) {
                         label: 'Şehir',
                         selected: state.city,
                         cities: state.cities,
-                        className: 'ava-city-field'
+                        className: 'tool-form-field'
                     })}
                     ${priceRefreshActionsHtml()}
                 </div>

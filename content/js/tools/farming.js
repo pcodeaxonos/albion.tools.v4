@@ -289,7 +289,7 @@ function renderKindToggle() {
     ].map((option) => {
         const pressed = option.id === state.kind;
         return `
-            <button type="button" class="farming-type-btn${pressed ? ' is-active' : ''}"
+            <button type="button" class="segmented-choice-button segmented-choice-button--icon${pressed ? ' is-active' : ''}"
                 data-kind="${option.id}" aria-pressed="${pressed ? 'true' : 'false'}">
                 ${escapeHtml(option.label)}
             </button>
@@ -304,7 +304,7 @@ function renderPremiumToggle() {
     ].map((option) => {
         const pressed = option.id === state.premium;
         return `
-            <button type="button" class="farming-type-btn${pressed ? ' is-active' : ''}"
+            <button type="button" class="segmented-choice-button segmented-choice-button--icon${pressed ? ' is-active' : ''}"
                 data-premium="${option.id ? '1' : '0'}"
                 aria-pressed="${pressed ? 'true' : 'false'}">
                 ${escapeHtml(option.label)}
@@ -387,24 +387,24 @@ function renderTable() {
         const seedValue = priceInputValue(state.manualSeeds[row.item.id], seedFetched?.price);
         const plantValue = priceInputValue(state.manualPlants[row.item.id], plantFetched?.price);
         const mark = priceMarkHtml(row.mark);
-        const bonus = row.bonus ? '<span class="farming-bonus">+10%</span>' : '';
+        const bonus = row.bonus ? '<span class="market-bonus">+10%</span>' : '';
         const yieldTag = row.yieldSource === 'user'
-            ? `<span class="farming-bonus">ada n=${row.yieldN}</span>`
+            ? `<span class="market-bonus">ada n=${row.yieldN}</span>`
             : '';
         const best = row.item.id === bestId ? ' is-best' : '';
 
         return `
             <tr data-item-id="${escapeHtml(row.item.id)}" class="${best.trim()}">
                 <td data-sort-value="${row.item.tier}">
-                    <span class="farming-item">
+                    <span class="market-item">
                         ${itemIconHtml(row.item.plantId)}
                         <span>
-                            <span class="farming-item-name">T${row.item.tier} ${itemNameHtml(itemLabel(row.item.plantId, row.item.label))}</span>
-                            <span class="farming-item-meta">${itemIconHtml(row.item.seedId, { className: 'item-icon farming-seed-icon' })} tohum${bonus}${yieldTag}</span>
+                            <span class="market-item-name market-item-name--wrap">T${row.item.tier} ${itemNameHtml(itemLabel(row.item.plantId, row.item.label))}</span>
+                            <span class="market-item-meta market-item-meta--inline">${itemIconHtml(row.item.seedId, { className: 'item-icon farming-seed-icon' })} tohum${bonus}${yieldTag}</span>
                         </span>
                     </span>
                 </td>
-                <td class="num farming-num farming-price-cell" data-sort-value="${row.seed?.price ?? ''}">
+                <td class="market-price-cell num market-number market-price-cell--fluid" data-sort-value="${row.seed?.price ?? ''}">
                     ${priceFieldHtml({
                         id: `seedPrice-${row.item.id}`,
                         label: 'Tohum',
@@ -417,8 +417,8 @@ function renderTable() {
                         mark
                     })}
                 </td>
-                <td class="num farming-num" data-sort-value="${row.item.vendor ?? ''}">${formatSilver(row.item.vendor)}</td>
-                <td class="num farming-num farming-price-cell" data-sort-value="${row.plant?.price ?? ''}">
+                <td class="num market-number" data-sort-value="${row.item.vendor ?? ''}">${formatSilver(row.item.vendor)}</td>
+                <td class="market-price-cell num market-number market-price-cell--fluid" data-sort-value="${row.plant?.price ?? ''}">
                     ${priceFieldHtml({
                         id: `plantPrice-${row.item.id}`,
                         label: 'Hasat',
@@ -430,19 +430,19 @@ function renderTable() {
                         iconId: row.item.plantId
                     })}
                 </td>
-                <td class="num farming-num" data-sort-value="${row.qty}">${formatQty(row.qty)}</td>
-                <td class="num farming-num" data-sort-value="${row.usedReturn}">${formatPct(row.usedReturn)}</td>
-                <td class="num farming-num${incompleteClass(row.unit)}" data-sort-value="${row.unit ?? ''}">${formatSilver(row.unit, { digits: 1 })}</td>
-                <td class="num farming-num${deltaClass(row.delta)}${incompleteClass(row.delta)}" data-sort-value="${row.delta ?? ''}">${formatSilver(row.delta, { digits: 1 })}</td>
-                <td class="farming-verdict${decisionClass(row.decision)}${incompleteClass(row.decision)}" data-sort-value="${row.decision ?? ''}">${decisionLabel(row.decision)}</td>
-                <td class="num farming-num${state.water ? incompleteClass(row.perFocus) : ''}" data-sort-value="${row.perFocus ?? ''}">${formatSilver(row.perFocus, { digits: 1 })}</td>
+                <td class="num market-number" data-sort-value="${row.qty}">${formatQty(row.qty)}</td>
+                <td class="num market-number" data-sort-value="${row.usedReturn}">${formatPct(row.usedReturn)}</td>
+                <td class="num market-number${incompleteClass(row.unit)}" data-sort-value="${row.unit ?? ''}">${formatSilver(row.unit, { digits: 1 })}</td>
+                <td class="num market-number${deltaClass(row.delta)}${incompleteClass(row.delta)}" data-sort-value="${row.delta ?? ''}">${formatSilver(row.delta, { digits: 1 })}</td>
+                <td class="market-verdict${decisionClass(row.decision)}${incompleteClass(row.decision)}" data-sort-value="${row.decision ?? ''}">${decisionLabel(row.decision)}</td>
+                <td class="num market-number${state.water ? incompleteClass(row.perFocus) : ''}" data-sort-value="${row.perFocus ?? ''}">${formatSilver(row.perFocus, { digits: 1 })}</td>
             </tr>
         `;
     }).join('');
 
     return `
         <div class="table-responsive calc-table-wrap">
-            <table class="table table-striped farming-table calc-table">
+            <table class="market-table table table-striped market-table--fixed calc-table" data-market-table>
                 <colgroup>
                     <col class="farming-col-item">
                     <col class="farming-col-price">
@@ -458,15 +458,15 @@ function renderTable() {
                 <thead>
                     <tr>
                         ${sortHeaderHtml('Ürün', { key: 'item', type: 'number', direction: dir('item'), title: 'Ekin veya ot' })}
-                        ${sortHeaderHtml('Tohum', { key: 'seed', type: 'number', className: 'num farming-num', direction: dir('seed'), title: 'Tohum alış fiyatı' })}
-                        ${sortHeaderHtml('NPC', { key: 'npc', type: 'number', className: 'num farming-num', direction: dir('npc'), title: 'Tohumun sabit NPC satış fiyatı' })}
-                        ${sortHeaderHtml('Hasat alış', { key: 'plant', type: 'number', className: 'num farming-num', direction: dir('plant'), title: 'Hasat ürününün piyasa alış fiyatı' })}
-                        ${sortHeaderHtml('Verim', { key: 'qty', type: 'number', className: 'num farming-num', direction: dir('qty'), title: 'Hasat miktarı' })}
-                        ${sortHeaderHtml('Tohum %', { key: 'seedPct', type: 'number', className: 'num farming-num', direction: dir('seedPct'), title: 'Tohumun geri dönme oranı' })}
-                        ${sortHeaderHtml('Birim', { key: 'unit', type: 'number', className: 'num farming-num', direction: dir('unit'), title: 'Bir hasat biriminin üretim maliyeti' })}
-                        ${sortHeaderHtml('Fark', { key: 'delta', type: 'number', className: 'num farming-num', direction: dir('delta'), title: 'Üretim maliyeti eksi piyasa fiyatı' })}
+                        ${sortHeaderHtml('Tohum', { key: 'seed', type: 'number', className: 'num market-number', direction: dir('seed'), title: 'Tohum alış fiyatı' })}
+                        ${sortHeaderHtml('NPC', { key: 'npc', type: 'number', className: 'num market-number', direction: dir('npc'), title: 'Tohumun sabit NPC satış fiyatı' })}
+                        ${sortHeaderHtml('Hasat alış', { key: 'plant', type: 'number', className: 'num market-number', direction: dir('plant'), title: 'Hasat ürününün piyasa alış fiyatı' })}
+                        ${sortHeaderHtml('Verim', { key: 'qty', type: 'number', className: 'num market-number', direction: dir('qty'), title: 'Hasat miktarı' })}
+                        ${sortHeaderHtml('Tohum %', { key: 'seedPct', type: 'number', className: 'num market-number', direction: dir('seedPct'), title: 'Tohumun geri dönme oranı' })}
+                        ${sortHeaderHtml('Birim', { key: 'unit', type: 'number', className: 'num market-number', direction: dir('unit'), title: 'Bir hasat biriminin üretim maliyeti' })}
+                        ${sortHeaderHtml('Fark', { key: 'delta', type: 'number', className: 'num market-number', direction: dir('delta'), title: 'Üretim maliyeti eksi piyasa fiyatı' })}
                         ${sortHeaderHtml('Karar', { key: 'decision', type: 'text', direction: dir('decision'), title: 'Üret veya piyasadan al' })}
-                        ${sortHeaderHtml('gümüş/focus', { key: 'focus', type: 'number', className: 'num farming-num', direction: dir('focus'), title: 'Sulamada focus başına kazanılan gümüş' })}
+                        ${sortHeaderHtml('gümüş/focus', { key: 'focus', type: 'number', className: 'num market-number', direction: dir('focus'), title: 'Sulamada focus başına kazanılan gümüş' })}
                     </tr>
                 </thead>
                 <tbody>${body}</tbody>
@@ -505,7 +505,7 @@ function renderOutput() {
         <div id="farmingResult">
             ${renderTable()}
             <section data-page-info>
-            <p class="farming-note">
+            <p class="tool-result-note">
                 ${escapeHtml(cityLabel(state.city))} · tohum ${escapeHtml(seedNote)} · hasat ${escapeHtml(plantNote)}.
                 Birim = net tohum / verim. Fark = birim − hasat alış; negatifse üret, değilse al.
                 NPC sütunu tohumun sabit satış fiyatıdır; fiyat güncellemesinden etkilenmez. Tohum işareti NPC fiyatına göre.${focusNote}
@@ -517,7 +517,7 @@ function renderOutput() {
 }
 
 function bindFarmingSort(container) {
-    const table = container.querySelector('.farming-table');
+    const table = container.querySelector('[data-market-table]');
     if (!table) {
         return;
     }
@@ -547,13 +547,13 @@ function patchRowCells(tr, row, bestId) {
     seedCell.dataset.sortValue = row.seed?.price ?? '';
     const seedFetched = fetchedSeedQuote(row.item);
     const seedManual = state.manualSeeds[row.item.id];
-    applyPriceFieldState(seedCell.querySelector('.farming-price-field'), {
+    applyPriceFieldState(seedCell.querySelector('[data-market-price-field]'), {
         manual: isManualPrice(seedManual),
         missing: !seedFetched,
         date: seedFetched?.date,
         displayValue: priceInputValue(seedManual, seedFetched?.price)
     });
-    const seedField = seedCell.querySelector('.farming-price-field');
+    const seedField = seedCell.querySelector('[data-market-price-field]');
     let mark = seedField?.querySelector('.price-field-mark, .farming-seed-mark');
     if (row.mark) {
         if (!mark && seedField) {
@@ -571,7 +571,7 @@ function patchRowCells(tr, row, bestId) {
     plantCell.dataset.sortValue = row.plant?.price ?? '';
     const plantFetched = fetchedPlantQuote(row.item);
     const plantManual = state.manualPlants[row.item.id];
-    applyPriceFieldState(plantCell.querySelector('.farming-price-field'), {
+    applyPriceFieldState(plantCell.querySelector('[data-market-price-field]'), {
         manual: isManualPrice(plantManual),
         missing: !plantFetched,
         date: plantFetched?.date,
@@ -586,33 +586,33 @@ function patchRowCells(tr, row, bestId) {
 
     unitCell.dataset.sortValue = row.unit ?? '';
     unitCell.textContent = formatSilver(row.unit, { digits: 1 });
-    unitCell.className = `num farming-num${incompleteClass(row.unit)}`;
+    unitCell.className = `num market-number${incompleteClass(row.unit)}`;
 
     deltaCell.dataset.sortValue = row.delta ?? '';
     deltaCell.textContent = formatSilver(row.delta, { digits: 1 });
-    deltaCell.className = `num farming-num${deltaClass(row.delta)}${incompleteClass(row.delta)}`;
+    deltaCell.className = `num market-number${deltaClass(row.delta)}${incompleteClass(row.delta)}`;
 
     verdictCell.dataset.sortValue = row.decision ?? '';
     verdictCell.textContent = decisionLabel(row.decision);
-    verdictCell.className = `farming-verdict${decisionClass(row.decision)}${incompleteClass(row.decision)}`;
+    verdictCell.className = `market-verdict${decisionClass(row.decision)}${incompleteClass(row.decision)}`;
 
     if (focusCell) {
         focusCell.dataset.sortValue = row.perFocus ?? '';
         focusCell.textContent = formatSilver(row.perFocus, { digits: 1 });
-        focusCell.className = `num farming-num${state.water ? incompleteClass(row.perFocus) : ''}`;
+        focusCell.className = `num market-number${state.water ? incompleteClass(row.perFocus) : ''}`;
     }
 
-    const bonus = tr.querySelector('.farming-bonus');
+    const bonus = tr.querySelector('.market-bonus');
     if (row.bonus && !bonus) {
-        const meta = tr.querySelector('.farming-item-meta');
-        meta?.insertAdjacentHTML('beforeend', '<span class="farming-bonus">+10%</span>');
+        const meta = tr.querySelector('.market-item-meta--inline');
+        meta?.insertAdjacentHTML('beforeend', '<span class="market-bonus">+10%</span>');
     } else if (!row.bonus && bonus) {
         bonus.remove();
     }
 }
 
 function refreshCalc(container) {
-    const table = container.querySelector('.farming-table');
+    const table = container.querySelector('[data-market-table]');
     if (!table) {
         return;
     }
@@ -674,22 +674,22 @@ function renderPage(container) {
             <p>Seçilen şehirde ekin / ot birim maliyeti. Tohum NPC’ye göre ucuz veya pahalı işaretlenir. Birim hasat alışından düşükse üret; değilse al, plotu daha ucuz ürüne ver.</p>
         </section>`,
         controls: `
-                <div class="farming-toolbar">
-                    <div class="farming-type" role="radiogroup" aria-label="Tür">
+                <div class="tool-form-toolbar">
+                    <div class="segmented-choice" role="radiogroup" aria-label="Tür">
                         ${renderKindToggle()}
                     </div>
-                    <div class="farming-type" role="radiogroup" aria-label="Premium">
+                    <div class="segmented-choice" role="radiogroup" aria-label="Premium">
                         ${renderPremiumToggle()}
                     </div>
-                    <div class="farming-side-field">
-                        <span class="farming-side-label" id="farmingSeedSideLabel">Tohum</span>
-                        <div class="price-side" role="radiogroup" aria-labelledby="farmingSeedSideLabel">
+                    <div class="form-side-field">
+                        <span class="form-side-label" id="farmingSeedSideLabel">Tohum</span>
+                        <div class="segmented-choice" role="radiogroup" aria-labelledby="farmingSeedSideLabel">
                             ${priceSideToggleHtml('seed', state.seedSide)}
                         </div>
                     </div>
-                    <div class="farming-side-field">
-                        <span class="farming-side-label" id="farmingPlantSideLabel">Hasat</span>
-                        <div class="price-side" role="radiogroup" aria-labelledby="farmingPlantSideLabel">
+                    <div class="form-side-field">
+                        <span class="form-side-label" id="farmingPlantSideLabel">Hasat</span>
+                        <div class="segmented-choice" role="radiogroup" aria-labelledby="farmingPlantSideLabel">
                             ${priceSideToggleHtml('plant', state.plantSide)}
                         </div>
                     </div>

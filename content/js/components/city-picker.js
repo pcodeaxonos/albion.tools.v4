@@ -1,3 +1,4 @@
+import { fieldLabel, fieldAllButtonHtml, fieldHeadingHtml } from './form-field.js';
 import { escapeHtml } from '../utils/utils.js';
 import { getAll } from '../db/store.js';
 import { loadActiveCities, orderCities } from '../core/cities.js';
@@ -149,23 +150,25 @@ export function cityFieldHtml(opts) {
         label,
         selected,
         cities = loadActiveCities(),
-        className = 'farming-city-field',
+        className = 'tool-form-field',
         decorate,
         order,
         disabled = false,
         allowAll = false,
         showAllButton = false,
+        headingAction = false,
         style = getCityPickerStyle()
     } = opts;
 
-    const allButton = allowAll && showAllButton ? `<button type="button" class="filter-selection-button city-all-button" data-city-all aria-pressed="${!selected}" aria-label="${escapeHtml(label)}: tümü">Tümü</button>` : '';
+    const allButton = allowAll && showAllButton && headingAction ? fieldAllButtonHtml({ label, attributes: `data-city-all${disabled ? ' disabled' : ''}`, active: !selected }) : allowAll && showAllButton ? `<button type="button" class="filter-selection-button city-all-button" data-city-all aria-pressed="${!selected}" aria-label="${escapeHtml(label)}: tümü">Tümü</button>` : '';
+    const heading = headingAction ? fieldHeadingHtml(label, allButton, `id="${escapeHtml(id)}-label"`) : `<span class="choice-field-label" id="${escapeHtml(id)}-label">${escapeHtml(label)}</span>`;
     const list = orderedCities(Array.isArray(cities) ? cities : loadActiveCities(), order);
 
     if (style === 'buttons' || style === 'crests') {
         return `
-            <div class="city-field city-field--horizontal${style === 'crests' ? ' city-field--crests' : ''} ${escapeHtml(className)}" data-city-field="${escapeHtml(id)}" data-city-disabled="${disabled}">
-                <span class="city-field-label" id="${escapeHtml(id)}-label">${escapeHtml(label)}</span>
-                ${allButton}<div class="city-map city-map--horizontal" role="group" aria-labelledby="${escapeHtml(id)}-label" style="--city-picker-count:${list.length}">
+            <div class="city-field city-field--horizontal${style === 'crests' ? ' city-field--crests' : ''} ${escapeHtml(className)}${headingAction ? ' form-field' : ''}" data-city-field="${escapeHtml(id)}" data-city-disabled="${disabled}">
+                ${heading}
+                ${headingAction ? '' : allButton}<div class="city-map city-map--horizontal" role="group" aria-labelledby="${escapeHtml(id)}-label" style="--city-picker-count:${list.length}">
                     ${renderHorizontalNodes(list, selected, decorate, style === 'crests')}
                 </div>
                 <input type="hidden" value="${escapeHtml(selected ?? '')}" data-city-input data-city-allow-all="${allowAll}">
@@ -175,22 +178,22 @@ export function cityFieldHtml(opts) {
 
     if (style === 'diagonal') {
         return `
-            <div class="city-field city-field--diagonal ${escapeHtml(className)}" data-city-field="${escapeHtml(id)}" data-city-disabled="${disabled}">
-                <span class="city-field-label" id="${escapeHtml(id)}-label">${escapeHtml(label)}</span>
+            <div class="city-field city-field--diagonal ${escapeHtml(className)}${headingAction ? ' form-field' : ''}" data-city-field="${escapeHtml(id)}" data-city-disabled="${disabled}">
+                ${heading}
                 <div class="city-map" role="group" aria-labelledby="${escapeHtml(id)}-label">
                     ${renderDiagonalNodes(list, selected, decorate)}
                 </div>
-                ${allButton}<input type="hidden" value="${escapeHtml(selected ?? '')}" data-city-input data-city-allow-all="${allowAll}">
+                ${headingAction ? '' : allButton}<input type="hidden" value="${escapeHtml(selected ?? '')}" data-city-input data-city-allow-all="${allowAll}">
             </div>
         `;
     }
 
     return `
-        <div class="form-floating city-field city-field--standard ${escapeHtml(className)}" data-city-field="${escapeHtml(id)}">
+        <div class="form-floating city-field city-field--standard ${escapeHtml(className)}${headingAction ? ' form-field' : ''}" data-city-field="${escapeHtml(id)}">
             <select class="form-select is-filled" id="${escapeHtml(id)}" data-city-input data-city-allow-all="${allowAll}"${disabled ? ' disabled' : ''}>
                 ${renderStandardOptions(list, selected, decorate, allowAll)}
             </select>
-            <label for="${escapeHtml(id)}">${escapeHtml(label)}</label>${allButton}
+            <label for="${escapeHtml(id)}">${headingAction ? fieldLabel(label) : escapeHtml(label)}</label>${allButton}
         </div>
     `;
 }
@@ -242,6 +245,7 @@ export function syncCityField(container, id, opts) {
     if (!field) {
         return;
     }
+    const heading = headingAction ? fieldHeadingHtml(label, allButton, `id="${escapeHtml(id)}-label"`) : `<span class="choice-field-label" id="${escapeHtml(id)}-label">${escapeHtml(label)}</span>`;
     const list = orderedCities(Array.isArray(opts.cities) ? opts.cities : loadActiveCities(), opts.order);
     const selected = opts.selected;
     const decorate = opts.decorate;

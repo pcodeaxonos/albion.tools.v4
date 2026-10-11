@@ -105,12 +105,7 @@
 
     .bonus-toolbar,
     .house-calc,
-    .carleon-toolbar,
-    .ava-toolbar,
-    .enchant-toolbar,
-    .farming-toolbar,
-    .pasture-toolbar,
-    .royal-toolbar {
+    .tool-form-toolbar {
         margin-bottom: 0;
     }
 
@@ -141,20 +136,11 @@
         grid-template-columns: 1fr;
     }
 
-    .house-type,
-    .carleon-type,
-    .ava-type,
-    .enchant-type,
-    .farming-type {
+    .segmented-choice {
         width: 100%;
     }
 
-    .house-type-btn,
-    .carleon-type-btn,
-    .ava-type-btn,
-    .enchant-type-btn,
-    .farming-type-btn,
-    .price-side-btn {
+    .segmented-choice-button {
         flex: 1 1 0;
         min-width: 0;
         min-height: 2rem;
@@ -168,12 +154,7 @@
         font-size: var(--font-size-sm);
     }
 
-    .carleon-toolbar,
-    .ava-toolbar,
-    .enchant-toolbar,
-    .farming-toolbar,
-    .pasture-toolbar,
-    .royal-toolbar {
+    .tool-form-toolbar {
         display: grid;
         grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
         align-items: start;
@@ -188,17 +169,10 @@
             margin-left: 0;
         }
 
-        .carleon-type,
-        .ava-type,
-        .enchant-type,
-        .farming-type,
-        .ava-city-field:not(.city-field--diagonal),
-        .farming-city-field:not(.city-field--diagonal),
+        .segmented-choice,
+        .tool-form-field:not(.city-field--diagonal),
         .farming-spec,
-        .carleon-side-field,
-        .ava-side-field,
-        .enchant-side-field,
-        .farming-side-field,
+        .form-side-field,
         > .btn {
             width: 100%;
             margin-left: 0;
@@ -218,14 +192,6 @@
             margin-left: 0;
         }
 
-        .price-side {
-            width: 100%;
-        }
-
-        .price-side-btn {
-            flex: 1 1 0;
-            min-width: 0;
-        }
     }
 }
 

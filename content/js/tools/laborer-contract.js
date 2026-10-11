@@ -162,7 +162,7 @@ function priceField(item, intent) {
     const fieldId = `laborer-price-${++priceFieldSequence}`;
     const status = priceIssue(price);
     return `<div class="laborer-price">
-        <div class="form-floating ava-price-field${manual ? ' is-manual' : ''}${status ? ' is-missing' : ''}">
+        <div class="form-floating market-price-field${manual ? ' is-manual' : ''}${status ? ' is-missing' : ''}">
             <input id="${fieldId}" class="form-control" type="number" min="1" step="1" data-price-item="${esc(item)}" data-price-intent="${intent}" value="${esc(String(value))}" placeholder=" " aria-label="${esc(itemLabel(item))} manuel ${intent === 'buy' ? 'alış' : 'satış'} fiyatı">
             <label for="${fieldId}">Manuel ${intent === 'buy' ? 'alış' : 'satış'} fiyatı</label>
         </div>
@@ -457,16 +457,16 @@ function render() {
         head: '<section class="page-head" data-page-head="laborer-contract"><h1>Laborer Contract Calculator</h1><p>Contract tier’larını karşılaştır; bugünkü net satış değerini ve doğrulanmış verilerle devam etmenin maliyetini gör.</p></section>',
         controls: `<div class="laborer-controls"><section class="laborer-control-group"><h2><span>1</span> Laborer</h2>
             ${field('Laborer', 'type', types.map((type) => [type.type, type.contracts[0].label.replace(/^\S+\s/, '').replace(/\sContract$/, '')]))}
-            <div class="price-side-field"><span class="price-side-label">Başlangıç tier</span><div class="price-side laborer-tiers" role="group" aria-label="Başlangıç tier">${selected().contracts.map(({ tier }) => `<button type="button" class="price-side-btn${startTier() === tier ? ' is-active' : ''}" data-tier="${tier}" data-laborer-tier="${tier}"${state.acquisitionMode === 'new' ? ' disabled' : ''} aria-pressed="${startTier() === tier}">T${tier}</button>`).join('')}</div></div>
+            <div class="form-side-field"><span class="form-side-label">Başlangıç tier</span><div class="segmented-choice laborer-tiers" role="group" aria-label="Başlangıç tier">${selected().contracts.map(({ tier }) => `<button type="button" class="segmented-choice-button segmented-choice-button--short${startTier() === tier ? ' is-active' : ''}" data-tier="${tier}" data-laborer-tier="${tier}"${state.acquisitionMode === 'new' ? ' disabled' : ''} aria-pressed="${startTier() === tier}">T${tier}</button>`).join('')}</div></div>
             <div class="laborer-control-pair">
             <div class="form-floating"><input id="laborer-count" class="form-control" data-laborer-field="count" type="number" min="1" step="1" value="${esc(String(state.count))}" placeholder="Adet"><label for="laborer-count">Adet</label></div>
             ${field('Edinim', 'acquisitionMode', [['owned', 'Elimde mevcut'], ['market', 'Marketten başlangıç contract’ı al'], ['new', 'Sıfırdan laborer edin']])}
             </div>
             </section><section class="laborer-control-group"><h2><span>2</span> Piyasa</h2>
-            ${cityFieldHtml({ id: 'laborer-buy-city', label: 'Alış şehri', selected: state.buyCity, cities, className: 'ava-city-field' })}
-            ${cityFieldHtml({ id: 'laborer-sell-city', label: 'Satış şehri', selected: state.sellCity, cities, className: 'ava-city-field' })}
-            ${[['buySide', 'Alış', { buy: 'Buy Order', sell: 'Buy' }], ['sellSide', 'Satış', { buy: 'Sell', sell: 'Sell Order' }]].map(([key, label, labels]) => `<div class="price-side" role="group" aria-label="${label} yöntemi">${priceSideToggleHtml(key, state[key], labels)}</div>`).join('')}
-            <div class="ava-type" role="group" aria-label="Premium">${[[true, 'Premium'], [false, 'Premium yok']].map(([value, label]) => `<button type="button" class="ava-type-btn${state.premium === value ? ' is-active' : ''}" data-laborer-premium="${value}" aria-pressed="${state.premium === value}">${label}</button>`).join('')}</div>
+            ${cityFieldHtml({ id: 'laborer-buy-city', label: 'Alış şehri', selected: state.buyCity, cities, className: 'tool-form-field' })}
+            ${cityFieldHtml({ id: 'laborer-sell-city', label: 'Satış şehri', selected: state.sellCity, cities, className: 'tool-form-field' })}
+            ${[['buySide', 'Alış', { buy: 'Buy Order', sell: 'Buy' }], ['sellSide', 'Satış', { buy: 'Sell', sell: 'Sell Order' }]].map(([key, label, labels]) => `<div class="segmented-choice" role="group" aria-label="${label} yöntemi">${priceSideToggleHtml(key, state[key], labels)}</div>`).join('')}
+            <div class="segmented-choice" role="group" aria-label="Premium">${[[true, 'Premium'], [false, 'Premium yok']].map(([value, label]) => `<button type="button" class="segmented-choice-button${state.premium === value ? ' is-active' : ''}" data-laborer-premium="${value}" aria-pressed="${state.premium === value}">${label}</button>`).join('')}</div>
             </section><details class="laborer-advanced" data-laborer-disclosure="scenario-advanced"><summary><span>3</span> Journal, verim ve altyapı${state.strategy !== 'auto' || Number(state.returnYield) !== 100 || state.setupMode !== 'existing' ? ' · özel' : ''}</summary><section class="laborer-control-group">${field('Journal stratejisi', 'strategy', [['auto', 'Otomatik — ekonomik yol'], ['manual', 'Manuel — aşama bazında']], unavailable)}
             <div class="form-floating"><input id="laborer-return-yield" class="form-control" type="number" min="50" max="150" step="5" data-laborer-field="returnYield" value="${esc(String(state.returnYield))}" placeholder="Return yield"><label for="laborer-return-yield">Return yield (%)</label></div>
             ${field('Journal cycle değerlemesi', 'journalItem', journalOptions().map((journal) => [journal.item, itemLabel(journal.filled || journal.item)]), false, currentJournal().filled || currentJournal().item)}

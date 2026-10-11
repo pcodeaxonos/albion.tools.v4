@@ -10,6 +10,7 @@
   --color-secondary: #9a9aa4;
   --color-success: #6dce86;
   --color-danger: #ee6f70;
+  --color-market-loss: #ffb4b5;
   --color-info: #6eb8e8;
   --color-warning: #f0b84a;
   /* Live price-update field chrome (not profit/loss, not delta chip direction). */
@@ -1355,10 +1356,7 @@ input[type=month].form-control {
 }
 .table th.num .table-sort-btn,
 .table th.text-end .table-sort-btn,
-.table th.carleon-num .table-sort-btn,
-.table th.farming-num .table-sort-btn,
-.table th.ava-num .table-sort-btn,
-.table th.enchant-num .table-sort-btn {
+.table th.market-number .table-sort-btn {
   text-align: right;
 }
 .table tbody tr:last-child td {
@@ -2019,7 +2017,9 @@ input[type=month].form-control {
   color: var(--color-text-muted);
 }
 
-.db-refs-grid {
+.db-refs-grid--craft,
+.db-refs-grid--refine,
+.db-refs-grid--other {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(11rem, 1fr));
   gap: 0.65rem;
@@ -2050,9 +2050,7 @@ input[type=month].form-control {
   color: var(--color-text-muted);
 }
 
-.db-refs-grid--craft,
-.db-refs-grid--refine,
-.db-refs-grid--other {
+.db-refs-grid {
   grid-template-columns: 1fr;
   gap: 0.45rem;
 }
@@ -2733,15 +2731,6 @@ input[type=month].form-control {
   color: var(--color-success);
 }
 
-.city-field-label {
-  font-size: 0.65rem;
-  font-weight: var(--font-weight-semibold);
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--color-text-muted);
-  line-height: 1.2;
-}
-
 .city-map {
   container-type: inline-size;
   position: relative;
@@ -2925,7 +2914,7 @@ input[type=month].form-control {
   position: relative;
   height: var(--input-height);
 }
-.city-field--crests.city-field--inline .city-field-label {
+.city-field--crests.city-field--inline .choice-field-label {
   position: absolute;
   top: calc(var(--floating-label-float-size) * -0.6);
   left: var(--floating-label-inset);
@@ -2953,15 +2942,6 @@ input[type=month].form-control {
   gap: 0.25rem;
   min-width: 0;
   width: 100%;
-}
-
-.plant-field-label {
-  font-size: 0.65rem;
-  font-weight: var(--font-weight-semibold);
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--color-text-muted);
-  line-height: 1.2;
 }
 
 .plant-field--island-yield {
@@ -4750,12 +4730,7 @@ a.tool-card:hover {
 }
 .tool-split-controls .bonus-toolbar,
 .tool-split-controls .house-calc,
-.tool-split-controls .carleon-toolbar,
-.tool-split-controls .ava-toolbar,
-.tool-split-controls .enchant-toolbar,
-.tool-split-controls .farming-toolbar,
-.tool-split-controls .pasture-toolbar,
-.tool-split-controls .royal-toolbar {
+.tool-split-controls .tool-form-toolbar {
   margin-bottom: 0;
 }
 .tool-split-controls .bonus-toolbar {
@@ -4779,19 +4754,10 @@ a.tool-card:hover {
   max-width: none;
   grid-template-columns: 1fr;
 }
-.tool-split-controls .house-type,
-.tool-split-controls .carleon-type,
-.tool-split-controls .ava-type,
-.tool-split-controls .enchant-type,
-.tool-split-controls .farming-type {
+.tool-split-controls .segmented-choice {
   width: 100%;
 }
-.tool-split-controls .house-type-btn,
-.tool-split-controls .carleon-type-btn,
-.tool-split-controls .ava-type-btn,
-.tool-split-controls .enchant-type-btn,
-.tool-split-controls .farming-type-btn,
-.tool-split-controls .price-side-btn {
+.tool-split-controls .segmented-choice-button {
   flex: 1 1 0;
   min-width: 0;
   min-height: 2rem;
@@ -4803,12 +4769,7 @@ a.tool-card:hover {
   padding: 0.375rem 0.75rem;
   font-size: var(--font-size-sm);
 }
-.tool-split-controls .carleon-toolbar,
-.tool-split-controls .ava-toolbar,
-.tool-split-controls .enchant-toolbar,
-.tool-split-controls .farming-toolbar,
-.tool-split-controls .pasture-toolbar,
-.tool-split-controls .royal-toolbar {
+.tool-split-controls .tool-form-toolbar {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   align-items: start;
@@ -4816,130 +4777,31 @@ a.tool-card:hover {
   max-width: 100%;
   gap: 0.375rem;
 }
-.tool-split-controls .carleon-toolbar > *:not(.city-field--diagonal),
-.tool-split-controls .ava-toolbar > *:not(.city-field--diagonal),
-.tool-split-controls .enchant-toolbar > *:not(.city-field--diagonal),
-.tool-split-controls .farming-toolbar > *:not(.city-field--diagonal),
-.tool-split-controls .pasture-toolbar > *:not(.city-field--diagonal),
-.tool-split-controls .royal-toolbar > *:not(.city-field--diagonal) {
+.tool-split-controls .tool-form-toolbar > *:not(.city-field--diagonal) {
   grid-column: 1/-1;
   width: 100%;
   min-width: 0;
   margin-left: 0;
 }
-.tool-split-controls .carleon-toolbar .carleon-type,
-.tool-split-controls .carleon-toolbar .ava-type,
-.tool-split-controls .carleon-toolbar .enchant-type,
-.tool-split-controls .carleon-toolbar .farming-type,
-.tool-split-controls .carleon-toolbar .ava-city-field:not(.city-field--diagonal),
-.tool-split-controls .carleon-toolbar .farming-city-field:not(.city-field--diagonal),
-.tool-split-controls .carleon-toolbar .farming-spec,
-.tool-split-controls .carleon-toolbar .carleon-side-field,
-.tool-split-controls .carleon-toolbar .ava-side-field,
-.tool-split-controls .carleon-toolbar .enchant-side-field,
-.tool-split-controls .carleon-toolbar .farming-side-field,
-.tool-split-controls .carleon-toolbar > .btn,
-.tool-split-controls .ava-toolbar .carleon-type,
-.tool-split-controls .ava-toolbar .ava-type,
-.tool-split-controls .ava-toolbar .enchant-type,
-.tool-split-controls .ava-toolbar .farming-type,
-.tool-split-controls .ava-toolbar .ava-city-field:not(.city-field--diagonal),
-.tool-split-controls .ava-toolbar .farming-city-field:not(.city-field--diagonal),
-.tool-split-controls .ava-toolbar .farming-spec,
-.tool-split-controls .ava-toolbar .carleon-side-field,
-.tool-split-controls .ava-toolbar .ava-side-field,
-.tool-split-controls .ava-toolbar .enchant-side-field,
-.tool-split-controls .ava-toolbar .farming-side-field,
-.tool-split-controls .ava-toolbar > .btn,
-.tool-split-controls .enchant-toolbar .carleon-type,
-.tool-split-controls .enchant-toolbar .ava-type,
-.tool-split-controls .enchant-toolbar .enchant-type,
-.tool-split-controls .enchant-toolbar .farming-type,
-.tool-split-controls .enchant-toolbar .ava-city-field:not(.city-field--diagonal),
-.tool-split-controls .enchant-toolbar .farming-city-field:not(.city-field--diagonal),
-.tool-split-controls .enchant-toolbar .farming-spec,
-.tool-split-controls .enchant-toolbar .carleon-side-field,
-.tool-split-controls .enchant-toolbar .ava-side-field,
-.tool-split-controls .enchant-toolbar .enchant-side-field,
-.tool-split-controls .enchant-toolbar .farming-side-field,
-.tool-split-controls .enchant-toolbar > .btn,
-.tool-split-controls .farming-toolbar .carleon-type,
-.tool-split-controls .farming-toolbar .ava-type,
-.tool-split-controls .farming-toolbar .enchant-type,
-.tool-split-controls .farming-toolbar .farming-type,
-.tool-split-controls .farming-toolbar .ava-city-field:not(.city-field--diagonal),
-.tool-split-controls .farming-toolbar .farming-city-field:not(.city-field--diagonal),
-.tool-split-controls .farming-toolbar .farming-spec,
-.tool-split-controls .farming-toolbar .carleon-side-field,
-.tool-split-controls .farming-toolbar .ava-side-field,
-.tool-split-controls .farming-toolbar .enchant-side-field,
-.tool-split-controls .farming-toolbar .farming-side-field,
-.tool-split-controls .farming-toolbar > .btn,
-.tool-split-controls .pasture-toolbar .carleon-type,
-.tool-split-controls .pasture-toolbar .ava-type,
-.tool-split-controls .pasture-toolbar .enchant-type,
-.tool-split-controls .pasture-toolbar .farming-type,
-.tool-split-controls .pasture-toolbar .ava-city-field:not(.city-field--diagonal),
-.tool-split-controls .pasture-toolbar .farming-city-field:not(.city-field--diagonal),
-.tool-split-controls .pasture-toolbar .farming-spec,
-.tool-split-controls .pasture-toolbar .carleon-side-field,
-.tool-split-controls .pasture-toolbar .ava-side-field,
-.tool-split-controls .pasture-toolbar .enchant-side-field,
-.tool-split-controls .pasture-toolbar .farming-side-field,
-.tool-split-controls .pasture-toolbar > .btn,
-.tool-split-controls .royal-toolbar .carleon-type,
-.tool-split-controls .royal-toolbar .ava-type,
-.tool-split-controls .royal-toolbar .enchant-type,
-.tool-split-controls .royal-toolbar .farming-type,
-.tool-split-controls .royal-toolbar .ava-city-field:not(.city-field--diagonal),
-.tool-split-controls .royal-toolbar .farming-city-field:not(.city-field--diagonal),
-.tool-split-controls .royal-toolbar .farming-spec,
-.tool-split-controls .royal-toolbar .carleon-side-field,
-.tool-split-controls .royal-toolbar .ava-side-field,
-.tool-split-controls .royal-toolbar .enchant-side-field,
-.tool-split-controls .royal-toolbar .farming-side-field,
-.tool-split-controls .royal-toolbar > .btn {
+.tool-split-controls .tool-form-toolbar .segmented-choice,
+.tool-split-controls .tool-form-toolbar .tool-form-field:not(.city-field--diagonal),
+.tool-split-controls .tool-form-toolbar .farming-spec,
+.tool-split-controls .tool-form-toolbar .form-side-field,
+.tool-split-controls .tool-form-toolbar > .btn {
   width: 100%;
   margin-left: 0;
 }
-.tool-split-controls .carleon-toolbar .city-field--diagonal,
-.tool-split-controls .ava-toolbar .city-field--diagonal,
-.tool-split-controls .enchant-toolbar .city-field--diagonal,
-.tool-split-controls .farming-toolbar .city-field--diagonal,
-.tool-split-controls .pasture-toolbar .city-field--diagonal,
-.tool-split-controls .royal-toolbar .city-field--diagonal {
+.tool-split-controls .tool-form-toolbar .city-field--diagonal {
   width: auto;
   min-width: 0;
   max-width: 100%;
   margin-left: 0;
 }
-.tool-split-controls .carleon-toolbar .plant-field--icons,
-.tool-split-controls .ava-toolbar .plant-field--icons,
-.tool-split-controls .enchant-toolbar .plant-field--icons,
-.tool-split-controls .farming-toolbar .plant-field--icons,
-.tool-split-controls .pasture-toolbar .plant-field--icons,
-.tool-split-controls .royal-toolbar .plant-field--icons {
+.tool-split-controls .tool-form-toolbar .plant-field--icons {
   width: 100%;
   min-width: 0;
   max-width: 100%;
   margin-left: 0;
-}
-.tool-split-controls .carleon-toolbar .price-side,
-.tool-split-controls .ava-toolbar .price-side,
-.tool-split-controls .enchant-toolbar .price-side,
-.tool-split-controls .farming-toolbar .price-side,
-.tool-split-controls .pasture-toolbar .price-side,
-.tool-split-controls .royal-toolbar .price-side {
-  width: 100%;
-}
-.tool-split-controls .carleon-toolbar .price-side-btn,
-.tool-split-controls .ava-toolbar .price-side-btn,
-.tool-split-controls .enchant-toolbar .price-side-btn,
-.tool-split-controls .farming-toolbar .price-side-btn,
-.tool-split-controls .pasture-toolbar .price-side-btn,
-.tool-split-controls .royal-toolbar .price-side-btn {
-  flex: 1 1 0;
-  min-width: 0;
 }
 
 .tool-split-result {
@@ -6085,19 +5947,7 @@ main:has(.page-head[data-page-head=flipper]) {
   color: var(--color-text-muted);
 }
 
-.house-calc {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-md);
-  margin-bottom: var(--spacing-xl);
-}
-
-.house-type,
-.carleon-type,
-.ava-type,
-.enchant-type,
-.farming-type,
-.price-side {
+.segmented-choice {
   display: flex;
   flex-wrap: wrap;
   gap: 0;
@@ -6106,12 +5956,7 @@ main:has(.page-head[data-page-head=flipper]) {
   max-width: 100%;
 }
 
-.house-type-btn,
-.carleon-type-btn,
-.ava-type-btn,
-.enchant-type-btn,
-.farming-type-btn,
-.price-side-btn {
+.segmented-choice-button {
   min-width: 8.5rem;
   min-height: 2.625rem;
   padding: 0.5rem 1rem;
@@ -6124,45 +5969,67 @@ main:has(.page-head[data-page-head=flipper]) {
   letter-spacing: 0.03em;
   cursor: pointer;
 }
-.house-type-btn:last-child,
-.carleon-type-btn:last-child,
-.ava-type-btn:last-child,
-.enchant-type-btn:last-child,
-.farming-type-btn:last-child,
-.price-side-btn:last-child {
+.segmented-choice-button:last-child {
   border-right: none;
 }
-.house-type-btn:hover,
-.carleon-type-btn:hover,
-.ava-type-btn:hover,
-.enchant-type-btn:hover,
-.farming-type-btn:hover,
-.price-side-btn:hover {
+.segmented-choice-button:hover {
   color: var(--color-text);
   background-color: var(--color-surface-hover);
 }
-.house-type-btn.is-active,
-.carleon-type-btn.is-active,
-.ava-type-btn.is-active,
-.enchant-type-btn.is-active,
-.farming-type-btn.is-active,
-.price-side-btn.is-active {
+.segmented-choice-button.is-active {
   color: var(--color-on-accent);
   background-color: var(--color-primary);
 }
-.house-type-btn:focus-visible,
-.carleon-type-btn:focus-visible,
-.ava-type-btn:focus-visible,
-.enchant-type-btn:focus-visible,
-.farming-type-btn:focus-visible,
-.price-side-btn:focus-visible {
+.segmented-choice-button:focus-visible {
   outline: var(--focus-outline-width) solid var(--color-focus-ring);
   outline-offset: var(--focus-outline-offset);
   z-index: 1;
 }
 
-.price-side-btn {
+.segmented-choice-button--short {
   min-width: 4.25rem;
+}
+
+.segmented-choice-button--compact {
+  min-width: 0;
+  padding-inline: 0.5rem;
+}
+
+.segmented-choice-button--icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  min-width: 0;
+  padding-inline: 0.75rem;
+}
+.segmented-choice-button--icon.has-icon {
+  padding-inline: 0.55rem 0.75rem;
+}
+
+.segmented-choice-icon {
+  width: 1.25rem;
+  height: 1.25rem;
+  flex-shrink: 0;
+}
+
+.segmented-choice-label {
+  min-width: 0;
+}
+
+.segmented-choice--wrap-labels {
+  flex-wrap: nowrap;
+}
+.segmented-choice--wrap-labels > .segmented-choice-button--short {
+  overflow-wrap: anywhere;
+  line-height: 1.25;
+}
+
+.house-calc {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+  margin-bottom: var(--spacing-xl);
 }
 
 .house-fields {
@@ -6671,30 +6538,15 @@ main:has(.page-head[data-page-head=flipper]) {
   line-height: 1.35;
 }
 
-.carleon-toolbar,
-.ava-toolbar,
-.enchant-toolbar,
-.farming-toolbar,
-.pasture-toolbar,
-.royal-toolbar {
+.tool-form-toolbar {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: var(--spacing-md) var(--spacing-xl);
   margin-bottom: var(--spacing-lg);
 }
-.carleon-toolbar > .btn,
-.carleon-toolbar > .tool-price-actions,
-.ava-toolbar > .btn,
-.ava-toolbar > .tool-price-actions,
-.enchant-toolbar > .btn,
-.enchant-toolbar > .tool-price-actions,
-.farming-toolbar > .btn,
-.farming-toolbar > .tool-price-actions,
-.pasture-toolbar > .btn,
-.pasture-toolbar > .tool-price-actions,
-.royal-toolbar > .btn,
-.royal-toolbar > .tool-price-actions {
+.tool-form-toolbar > .btn,
+.tool-form-toolbar > .tool-price-actions {
   margin-left: auto;
 }
 
@@ -6710,39 +6562,23 @@ main:has(.page-head[data-page-head=flipper]) {
   margin-left: 0;
 }
 
-.carleon-side-field,
-.ava-side-field,
-.enchant-side-field,
-.farming-side-field,
-.price-side-field {
+.form-side-field {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr);
   align-items: stretch;
-  gap: 0.35rem;
+  gap: 0.2rem;
   min-width: 0;
 }
-.carleon-side-field .price-side,
-.ava-side-field .price-side,
-.enchant-side-field .price-side,
-.farming-side-field .price-side,
-.price-side-field .price-side {
+.form-side-field .segmented-choice {
   width: 100%;
   min-width: 0;
 }
-.carleon-side-field .price-side-btn,
-.ava-side-field .price-side-btn,
-.enchant-side-field .price-side-btn,
-.farming-side-field .price-side-btn,
-.price-side-field .price-side-btn {
+.form-side-field .segmented-choice-button--short {
   flex: 1 1 0;
   min-width: 0;
 }
 
-.carleon-side-label,
-.ava-side-label,
-.enchant-side-label,
-.farming-side-label,
-.price-side-label {
+.form-side-label {
   display: inline-flex;
   align-items: center;
   justify-content: flex-end;
@@ -6820,22 +6656,12 @@ main:has(.page-head[data-page-head=flipper]) {
   letter-spacing: -0.02em;
 }
 
-.carleon-note,
-.ava-note,
-.enchant-note,
-.enchant-standard-note,
-.faction-note,
-.farming-note {
+.tool-result-note {
   margin: var(--spacing-md) 0 0;
   color: var(--color-text-muted);
   font-size: var(--font-size-sm);
 }
-.carleon-note a,
-.ava-note a,
-.enchant-note a,
-.enchant-standard-note a,
-.faction-note a,
-.farming-note a {
+.tool-result-note a {
   color: var(--color-primary);
 }
 
@@ -6843,19 +6669,103 @@ main:has(.page-head[data-page-head=flipper]) {
   display: none;
 }
 
-.price-side-field--stacked {
+.form-side-field--stacked {
   grid-template-columns: minmax(0, 1fr);
 }
-.price-side-field--stacked > .price-side-label {
+.form-side-field--stacked > .form-side-label {
   justify-content: flex-start;
 }
 
-.price-side--wrap-labels {
-  flex-wrap: nowrap;
+.form-field {
+  position: relative;
+  min-width: 0;
 }
-.price-side--wrap-labels > .price-side-btn {
-  overflow-wrap: anywhere;
-  line-height: 1.25;
+
+.form-field-heading {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  min-width: 0;
+  height: 1.25rem;
+  margin-bottom: 0;
+}
+
+.form-field-label {
+  flex: 1 1 0;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: var(--font-size-xs);
+  line-height: 1;
+  color: var(--color-text-muted);
+}
+
+.form-field-all {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  gap: 0.25rem;
+  height: 1.25rem;
+  min-height: 0;
+  padding: 0 0.375rem;
+  margin: 0;
+  border-radius: 0.2rem;
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  line-height: 1;
+  white-space: nowrap;
+  opacity: 1;
+}
+.form-field-all svg {
+  flex: 0 0 auto;
+  width: 0.875rem;
+  height: 0.875rem;
+}
+.form-field-all[aria-pressed=true] {
+  background: var(--color-primary);
+  color: var(--color-bg);
+}
+
+.form-floating.form-field > .form-field-all {
+  position: absolute;
+  z-index: 3;
+  top: -0.625rem;
+  right: 0.625rem;
+}
+.form-floating.form-field > label {
+  max-width: calc(100% - 5.25rem);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.tool-result-note--linked a {
+  color: var(--color-primary);
+  font-weight: var(--font-weight-semibold);
+  text-decoration: none;
+}
+.tool-result-note--linked a:hover {
+  color: var(--color-primary-light);
+  text-decoration: underline;
+}
+
+.choice-field-label {
+  font-size: 0.65rem;
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+  line-height: 1.2;
+}
+
+.result-section-title {
+  font-size: 1.15rem;
+  font-weight: var(--font-weight-bold);
+  letter-spacing: 0.02em;
+  line-height: 1.2;
+  color: var(--color-text);
 }
 
 .island-planner-summary {
@@ -6944,21 +6854,21 @@ main:has(.page-head[data-page-head=flipper]) {
   vertical-align: middle;
   padding: 0.65rem 0.85rem;
 }
-.island-planner-table .farming-item {
+.island-planner-table .market-item {
   gap: 0.65rem;
   flex-wrap: nowrap;
 }
-.island-planner-table .farming-item .item-icon {
+.island-planner-table .market-item .item-icon {
   width: 2.25rem;
   height: 2.25rem;
 }
-.island-planner-table .farming-item-name {
+.island-planner-table .market-item-name--wrap {
   flex-wrap: wrap;
   white-space: normal;
   align-items: center;
   gap: 0.4rem;
 }
-.island-planner-table .farming-item-meta {
+.island-planner-table .market-item-meta--inline {
   white-space: nowrap;
 }
 
@@ -7095,8 +7005,7 @@ main:has(.page-head[data-page-head=flipper]) {
   white-space: normal;
 }
 
-.carleon-mats,
-.ava-mats {
+.material-price-list {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: var(--spacing-sm);
@@ -7105,31 +7014,29 @@ main:has(.page-head[data-page-head=flipper]) {
   list-style: none;
 }
 @media (min-width: 768px) {
-  .carleon-mats,
-  .ava-mats {
+  .material-price-list {
     grid-template-columns: repeat(4, minmax(0, 1fr));
   }
 }
 
-.ava-mats--energy {
+.material-price-list--single {
   grid-template-columns: minmax(0, 22rem);
   margin-bottom: var(--spacing-sm);
 }
 
 @media (min-width: 768px) {
-  .ava-mats--tiers {
+  .material-price-list--tiers {
     grid-template-columns: repeat(5, minmax(0, 1fr));
   }
 }
 
 @media (min-width: 768px) {
-  .ava-mats--furniture {
+  .material-price-list--auto {
     grid-template-columns: repeat(auto-fill, minmax(9.75rem, 1fr));
   }
 }
 
-.carleon-mat,
-.ava-mat {
+.material-price-card {
   display: flex;
   flex-direction: row;
   align-items: flex-start;
@@ -7139,15 +7046,13 @@ main:has(.page-head[data-page-head=flipper]) {
   border: var(--border-width) solid var(--color-border);
 }
 
-.carleon-mat .item-icon,
-.ava-mat .item-icon {
+.material-price-card .item-icon {
   width: 2rem;
   height: 2rem;
   margin-top: 0.125rem;
 }
 
-.carleon-mat-text,
-.ava-mat-text {
+.material-price-card-text {
   display: flex;
   flex-direction: column;
   flex: 1 1 auto;
@@ -7155,16 +7060,189 @@ main:has(.page-head[data-page-head=flipper]) {
   gap: 0.125rem;
 }
 
-.carleon-mat-value {
-  font-family: var(--font-family-mono);
-  font-size: 1rem;
-  font-weight: var(--font-weight-bold);
-  letter-spacing: -0.03em;
+.material-price-card-label {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  line-height: 1.25;
+}
+
+.material-price-card-meta {
+  font-size: 0.6875rem;
+  color: var(--color-text-muted);
   line-height: 1.2;
 }
 
-.carleon-price-field,
-.ava-price-field {
+.material-price-row {
+  display: block;
+  min-width: 0;
+}
+.material-price-row .price-field-stack {
+  width: 100%;
+  gap: 0;
+}
+.material-price-row .market-price-field {
+  margin-top: 0;
+  min-width: 0;
+}
+
+.market-table th,
+.market-table td {
+  padding: 0.25rem 0.375rem;
+  font-size: var(--font-size-sm);
+}
+
+.market-item {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  min-width: 0;
+}
+.market-item .item-icon {
+  width: 2rem;
+  height: 2rem;
+  flex: 0 0 auto;
+}
+.market-item > span {
+  min-width: 0;
+}
+
+[data-tool=furniture] .market-item .item-icon {
+  width: 4rem;
+  height: 4rem;
+}
+
+.market-item-name {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.375rem;
+  font-weight: var(--font-weight-medium);
+}
+
+.market-item-meta {
+  display: block;
+  font-size: 0.6875rem;
+  color: var(--color-text-muted);
+}
+
+.market-bonus {
+  font-size: 0.625rem;
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--color-primary);
+}
+
+.recipe-list {
+  white-space: nowrap;
+}
+
+.recipe-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  margin-right: 0.5rem;
+  color: var(--color-text-muted);
+  font-size: 0.75rem;
+}
+
+.recipe-chip-icon {
+  width: 1.125rem;
+  height: 1.125rem;
+}
+
+.recipe-chip-icon--large {
+  width: 2.25rem;
+  height: 2.25rem;
+}
+
+.market-number {
+  font-family: var(--font-family-mono);
+}
+
+.market-number.is-profit,
+.market-verdict.is-profit {
+  color: var(--color-success);
+}
+
+.market-number.is-loss,
+.market-verdict.is-loss {
+  color: var(--color-market-loss);
+}
+
+.market-number.is-missing,
+.market-verdict.is-missing {
+  color: var(--color-danger);
+}
+
+.material-price-matrix-note {
+  margin: 0;
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+}
+
+.material-price-matrix-corner {
+  min-height: 1.25rem;
+}
+
+.material-price-matrix-heading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-mono);
+  font-weight: var(--font-weight-semibold);
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+}
+
+.material-price-matrix-cell {
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+.material-price-matrix-cell .price-field-stack {
+  gap: 0;
+}
+.material-price-matrix-cell .price-field-aside {
+  width: 2rem;
+  height: 2rem;
+}
+.material-price-matrix-cell .price-field-aside-icon {
+  width: 1.75rem;
+  height: 1.75rem;
+}
+.material-price-matrix-cell .price-field-row {
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.market-item-name--wrap {
+  flex-wrap: wrap;
+  white-space: normal;
+}
+
+.market-item-meta--inline {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  min-width: 0;
+  white-space: nowrap;
+}
+
+.market-table--fixed tbody tr.is-best td,
+.market-table--highlight-best tbody tr.is-best td {
+  background-color: color-mix(in srgb, var(--color-success) 12%, var(--color-surface));
+}
+
+.market-verdict {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.market-price-field {
   --input-height: var(--input-height-sm);
   --floating-label-inset: 0.5rem;
   --floating-label-pad: 0.25rem;
@@ -7174,207 +7252,110 @@ main:has(.page-head[data-page-head=flipper]) {
   max-width: none;
   margin-top: 0.25rem;
 }
-.carleon-price-field > .form-control,
-.ava-price-field > .form-control {
+.market-price-field > .form-control {
   font-family: var(--font-family-mono);
   font-size: var(--font-size-sm);
   font-weight: var(--font-weight-semibold);
   letter-spacing: -0.03em;
 }
-.carleon-price-field > label,
-.ava-price-field > label {
+.market-price-field > label {
   font-size: var(--font-size-sm);
 }
 
-.carleon-price-cell,
-.ava-price-cell {
+.market-price-cell {
   width: 8.5rem;
 }
-.carleon-price-cell .carleon-price-field,
-.carleon-price-cell .ava-price-field,
-.ava-price-cell .carleon-price-field,
-.ava-price-cell .ava-price-field {
+.market-price-cell .market-price-field {
   margin-top: 0;
   margin-left: auto;
   max-width: 8rem;
 }
 
-.carleon-mat-label,
-.ava-mat-label {
-  font-size: var(--font-size-sm);
-  font-weight: var(--font-weight-medium);
-  line-height: 1.25;
-}
-
-.carleon-mat-meta {
-  font-size: 0.6875rem;
-  color: var(--color-text-muted);
-  line-height: 1.2;
-}
-
-.ava-tier-row {
-  display: block;
-  min-width: 0;
-}
-.ava-tier-row .price-field-stack {
-  width: 100%;
-  gap: 0;
-}
-.ava-tier-row .ava-price-field {
+.market-price-field--dense {
+  --floating-label-inset: 0.45rem;
+  --floating-label-pad: 0.2rem;
   margin-top: 0;
   min-width: 0;
 }
+.market-price-field--dense > .form-control {
+  font-size: 0.8125rem;
+}
 
-.carleon-table th,
-.carleon-table td,
-.ava-table th,
-.ava-table td,
-.enchant-table th,
-.enchant-table td,
-.farming-table th,
-.farming-table td {
-  padding: 0.25rem 0.375rem;
+.market-price-cell--dense {
+  width: 7.25rem;
+}
+.market-price-cell--dense .market-price-field--dense {
+  margin-top: 0;
+  margin-left: auto;
+  max-width: 7rem;
+}
+
+.market-price-field--unlabelled {
+  --floating-label-inset: 0.45rem;
+  --floating-label-pad: 0.2rem;
+  margin-top: 0;
+}
+.market-price-field--unlabelled > .form-control {
+  font-size: 0.8125rem;
+}
+.market-price-field--unlabelled > label {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+  transform: none !important;
+  background: none;
+  font-size: 0;
+  max-width: none;
+}
+
+.market-price-field--fluid {
+  --floating-label-inset: 0.5rem;
+  --floating-label-pad: 0.25rem;
+  min-width: 0;
+  max-width: 100%;
+  margin-top: 0;
+  overflow: visible;
+}
+.market-price-field--fluid > .form-control {
+  min-width: 0;
+  width: 100%;
+  max-width: 100%;
   font-size: var(--font-size-sm);
 }
-
-.carleon-item,
-.ava-item,
-.enchant-item,
-.farming-item {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-sm);
-  min-width: 0;
-}
-.carleon-item .item-icon,
-.ava-item .item-icon,
-.enchant-item .item-icon,
-.farming-item .item-icon {
-  width: 2rem;
-  height: 2rem;
-  flex: 0 0 auto;
-}
-.carleon-item > span,
-.ava-item > span,
-.enchant-item > span,
-.farming-item > span {
-  min-width: 0;
+.market-price-field--fluid > label {
+  font-size: var(--font-size-sm);
+  max-width: calc(100% - 0.25rem);
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-[data-tool=furniture] .ava-item .item-icon {
-  width: 4rem;
-  height: 4rem;
+.market-price-cell--fluid {
+  width: auto;
+  overflow: hidden;
+  padding-top: 0.7rem;
+  padding-bottom: 0.7rem;
+  padding-inline: 0.5rem;
+  vertical-align: top;
+}
+.market-price-cell--fluid .market-price-field--fluid {
+  margin-left: 0;
+  max-width: 100%;
 }
 
-.carleon-item-name,
-.ava-item-name,
-.enchant-item-name,
-.farming-item-name {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 0.375rem;
-  font-weight: var(--font-weight-medium);
-}
-
-.carleon-item-meta,
-.ava-item-meta,
-.enchant-item-meta,
-.farming-item-meta {
-  display: block;
-  font-size: 0.6875rem;
-  color: var(--color-text-muted);
-}
-
-.carleon-bonus,
-.ava-bonus,
-.farming-bonus {
-  font-size: 0.625rem;
-  font-weight: var(--font-weight-semibold);
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  color: var(--color-primary);
-}
-
-.carleon-recipe,
-.ava-recipe {
-  white-space: nowrap;
-}
-
-.carleon-chip,
-.ava-chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.25rem;
-  margin-right: 0.5rem;
-  color: var(--color-text-muted);
-  font-size: 0.75rem;
-}
-
-.carleon-chip-icon {
-  width: 1.125rem;
-  height: 1.125rem;
-}
-
-.ava-chip-icon {
-  width: 2.25rem;
-  height: 2.25rem;
-}
-
-.carleon-num,
-.ava-num,
-.enchant-num,
-.farming-num {
-  font-family: var(--font-family-mono);
-}
-
-.carleon-num.is-profit,
-.ava-num.is-profit,
-.enchant-num.is-profit,
-.enchant-chip.is-profit,
-.enchant-verdict.is-profit,
-.farming-num.is-profit,
-.farming-verdict.is-profit {
-  color: var(--color-success);
-}
-
-.carleon-num.is-loss,
-.ava-num.is-loss,
-.enchant-num.is-loss,
-.enchant-chip.is-loss,
-.enchant-verdict.is-loss,
-.farming-num.is-loss,
-.farming-verdict.is-loss {
-  color: #ffb4b5;
-}
-
-.carleon-price-field.is-missing > .form-control,
-.ava-price-field.is-missing > .form-control,
-.enchant-price-field.is-missing > .form-control,
-.farming-price-field.is-missing > .form-control {
+.market-price-field.is-missing > .form-control {
   color: var(--color-danger);
   background-color: color-mix(in srgb, var(--color-danger) 12%, var(--field-bg));
 }
 
-.carleon-price-field.is-stale > .form-control,
-.ava-price-field.is-stale > .form-control,
-.enchant-price-field.is-stale > .form-control,
-.farming-price-field.is-stale > .form-control {
+.market-price-field.is-stale > .form-control {
   color: var(--color-stale);
   background-color: color-mix(in srgb, var(--color-stale) 12%, var(--field-bg));
-}
-
-.carleon-num.is-missing,
-.ava-num.is-missing,
-.enchant-num.is-missing,
-.farming-num.is-missing,
-.farming-verdict.is-missing {
-  color: var(--color-danger);
-}
-
-.enchant-type-btn {
-  min-width: 0;
-  padding-inline: 0.5rem;
 }
 
 .enchant-mats {
@@ -7383,12 +7364,6 @@ main:has(.page-head[data-page-head=flipper]) {
   gap: 0.35rem;
   margin: 0 0 var(--spacing-sm);
   overflow-x: auto;
-}
-
-.enchant-mats-meta {
-  margin: 0;
-  font-size: 0.75rem;
-  color: var(--color-text-muted);
 }
 
 .enchant-mats-grid {
@@ -7400,20 +7375,6 @@ main:has(.page-head[data-page-head=flipper]) {
   min-width: min(100%, 40rem);
 }
 
-.enchant-mat-corner {
-  min-height: 1.25rem;
-}
-
-.enchant-mat-tier-head {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-family: var(--font-mono);
-  font-weight: var(--font-weight-semibold);
-  font-size: 0.75rem;
-  color: var(--color-text-muted);
-}
-
 .enchant-mat-kind {
   display: flex;
   align-items: center;
@@ -7421,54 +7382,6 @@ main:has(.page-head[data-page-head=flipper]) {
   font-weight: var(--font-weight-semibold);
   color: var(--color-text-muted);
   line-height: 1.2;
-}
-
-.enchant-mat {
-  min-width: 0;
-  padding: 0;
-  border: 0;
-  background: transparent;
-}
-.enchant-mat .price-field-stack {
-  gap: 0;
-}
-.enchant-mat .price-field-aside {
-  width: 2rem;
-  height: 2rem;
-}
-.enchant-mat .price-field-aside-icon {
-  width: 1.75rem;
-  height: 1.75rem;
-}
-.enchant-mat .price-field-row {
-  align-items: center;
-  gap: 0.4rem;
-}
-
-.enchant-price-field {
-  --input-height: var(--input-height-sm);
-  --floating-label-inset: 0.45rem;
-  --floating-label-pad: 0.2rem;
-  --floating-label-scale: calc(var(--floating-label-float-size) / var(--font-size-sm));
-  margin-top: 0;
-  width: 100%;
-  min-width: 0;
-  max-width: none;
-}
-.enchant-price-field > .form-control {
-  font-family: var(--font-family-mono);
-  font-size: 0.8125rem;
-  font-weight: var(--font-weight-semibold);
-  letter-spacing: -0.03em;
-}
-
-.enchant-price-cell {
-  width: 7.25rem;
-}
-.enchant-price-cell .enchant-price-field {
-  margin-top: 0;
-  margin-left: auto;
-  max-width: 7rem;
 }
 
 .enchant-result-head {
@@ -7499,15 +7412,15 @@ main:has(.page-head[data-page-head=flipper]) {
   grid-template-columns: 1fr 1fr;
   width: 100%;
 }
-.enchant-slots .enchant-type-btn {
+.enchant-slots .segmented-choice-button--compact {
   min-width: 0;
   border-right: var(--border-width) solid var(--color-border);
   border-bottom: var(--border-width) solid var(--color-border);
 }
-.enchant-slots .enchant-type-btn:nth-child(2n) {
+.enchant-slots .segmented-choice-button--compact:nth-child(2n) {
   border-right: none;
 }
-.enchant-slots .enchant-type-btn:nth-last-child(-n+2) {
+.enchant-slots .segmented-choice-button--compact:nth-last-child(-n+2) {
   border-bottom: none;
 }
 
@@ -7533,32 +7446,22 @@ main:has(.page-head[data-page-head=flipper]) {
   background-color: color-mix(in srgb, #e7c36a 16%, var(--color-surface));
 }
 
-.enchant-table tbody td.enchant-num {
+.market-table--enchant tbody td.market-number {
   font-size: var(--font-size-sm);
   font-weight: var(--font-weight-semibold);
   letter-spacing: -0.03em;
 }
 
-.enchant-standard-note a {
-  color: var(--color-primary);
-  font-weight: var(--font-weight-semibold);
-  text-decoration: none;
-}
-.enchant-standard-note a:hover {
-  color: var(--color-primary-light);
-  text-decoration: underline;
-}
-
-.enchant-table thead th.is-standard-col {
+.market-table--enchant thead th.is-standard-col {
   color: var(--color-primary);
   background-color: color-mix(in srgb, var(--color-primary) 14%, var(--color-surface-raised));
 }
-.enchant-table tbody td.enchant-num.is-standard {
+.market-table--enchant tbody td.market-number.is-standard {
   background-color: color-mix(in srgb, var(--color-primary) 28%, var(--color-surface));
   box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--color-primary) 45%, transparent);
   color: var(--color-primary-light);
 }
-.enchant-table tbody td.enchant-num.is-standard.is-main {
+.market-table--enchant tbody td.market-number.is-standard.is-main {
   background-color: color-mix(in srgb, var(--color-primary) 82%, var(--color-surface));
   box-shadow: inset 0 0 0 1px var(--color-primary);
   color: var(--color-on-accent);
@@ -7571,12 +7474,6 @@ main:has(.page-head[data-page-head=flipper]) {
   gap: 0.35rem;
   margin: 0;
   min-width: 0;
-}
-
-.royal-mats-meta {
-  margin: 0;
-  font-size: 0.75rem;
-  color: var(--color-text-muted);
 }
 
 .royal-sealed-control {
@@ -7604,7 +7501,7 @@ main:has(.page-head[data-page-head=flipper]) {
   min-width: 0;
   width: 100%;
 }
-.royal-sealed-field .farming-price-field {
+.royal-sealed-field .market-price-field--fluid {
   flex: 1 1 auto;
   min-width: 0;
   width: 100%;
@@ -7618,20 +7515,6 @@ main:has(.page-head[data-page-head=flipper]) {
   align-items: center;
   min-width: 0;
   width: 100%;
-}
-
-.royal-mat-corner {
-  min-height: 1.25rem;
-}
-
-.royal-mat-tier-head {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-family: var(--font-mono);
-  font-weight: var(--font-weight-semibold);
-  font-size: 0.75rem;
-  color: var(--color-text-muted);
 }
 
 .royal-mat-kind {
@@ -7652,57 +7535,6 @@ main:has(.page-head[data-page-head=flipper]) {
   width: 2rem;
   height: 2rem;
   flex: 0 0 auto;
-}
-
-.royal-mat {
-  min-width: 0;
-  padding: 0;
-  border: 0;
-  background: transparent;
-}
-.royal-mat .price-field-stack {
-  gap: 0;
-}
-.royal-mat .price-field-aside {
-  width: 2rem;
-  height: 2rem;
-}
-.royal-mat .price-field-aside-icon {
-  width: 1.75rem;
-  height: 1.75rem;
-}
-.royal-mat .price-field-row {
-  align-items: center;
-  gap: 0.4rem;
-}
-
-.royal-price-field {
-  --input-height: var(--input-height-sm);
-  --floating-label-inset: 0.45rem;
-  --floating-label-pad: 0.2rem;
-  --floating-label-scale: calc(var(--floating-label-float-size) / var(--font-size-sm));
-  margin-top: 0;
-}
-.royal-price-field > .form-control {
-  font-family: var(--font-family-mono);
-  font-size: 0.8125rem;
-  font-weight: var(--font-weight-semibold);
-  letter-spacing: -0.03em;
-}
-.royal-price-field > label {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  padding: 0;
-  margin: -1px;
-  overflow: hidden;
-  clip: rect(0, 0, 0, 0);
-  white-space: nowrap;
-  border: 0;
-  transform: none !important;
-  background: none;
-  font-size: 0;
-  max-width: none;
 }
 
 .royal-item-cell {
@@ -8253,14 +8085,6 @@ main:has(.page-head[data-page-head=flipper]) {
   padding: 0 0 0.35rem;
 }
 
-.royal-plan-station-label {
-  font-size: 1.15rem;
-  font-weight: var(--font-weight-bold);
-  letter-spacing: 0.02em;
-  line-height: 1.2;
-  color: var(--color-text);
-}
-
 .royal-plan-station-list {
   display: flex;
   flex-direction: column;
@@ -8426,14 +8250,6 @@ main:has(.page-head[data-page-head=flipper]) {
 
 .royal-plan-missing-head {
   padding: 0 0 0.35rem;
-}
-
-.royal-plan-missing-label {
-  font-size: 1.15rem;
-  font-weight: var(--font-weight-bold);
-  letter-spacing: 0.02em;
-  line-height: 1.2;
-  color: var(--color-text);
 }
 
 .royal-plan-missing-list {
@@ -8617,24 +8433,6 @@ main:has(.page-head[data-page-head=flipper]) {
     grid-template-columns: minmax(2.5rem, auto) repeat(var(--enchant-mat-cols), minmax(5.25rem, 1fr));
   }
 }
-.farming-type-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.35rem;
-  min-width: 0;
-  padding-inline: 0.75rem;
-}
-.farming-type-btn.has-icon {
-  padding-inline: 0.55rem 0.75rem;
-}
-
-.farming-type-btn-icon {
-  width: 1.25rem;
-  height: 1.25rem;
-  flex-shrink: 0;
-}
-
 .refining-family-btn {
   min-width: 3.75rem;
   min-height: 3.75rem;
@@ -8643,16 +8441,12 @@ main:has(.page-head[data-page-head=flipper]) {
 .refining-family-btn.has-icon {
   padding: 0.5rem;
 }
-.refining-family-btn .farming-type-btn-icon {
+.refining-family-btn .segmented-choice-icon {
   width: 2.5rem;
   height: 2.5rem;
 }
 
-.farming-type-btn-label {
-  min-width: 0;
-}
-
-.refining-table .farming-item .item-icon {
+.refining-table .market-item .item-icon {
   width: 4rem;
   height: 4rem;
 }
@@ -8673,18 +8467,18 @@ main:has(.page-head[data-page-head=flipper]) {
   min-width: 0;
 }
 
-.farming-table {
+.market-table--fixed {
   table-layout: fixed;
   width: 100%;
 }
-.farming-table th,
-.farming-table td {
+.market-table--fixed th,
+.market-table--fixed td {
   min-width: 0;
   overflow: hidden;
   vertical-align: middle;
 }
-.farming-table th,
-.farming-table th .table-sort-btn {
+.market-table--fixed th,
+.market-table--fixed th .table-sort-btn {
   white-space: normal;
   line-height: 1.2;
   flex-wrap: wrap;
@@ -8714,56 +8508,17 @@ main:has(.page-head[data-page-head=flipper]) {
   width: 8%;
 }
 
-.farming-table:not(:has(.farming-col-verdict)) .farming-col-item {
+.market-table--fixed:not(:has(.farming-col-verdict)) .farming-col-item {
   width: 24%;
 }
-.farming-table:not(:has(.farming-col-verdict)) .farming-col-price {
+.market-table--fixed:not(:has(.farming-col-verdict)) .farming-col-price {
   width: 15%;
 }
-.farming-table:not(:has(.farming-col-verdict)) .farming-col-num {
+.market-table--fixed:not(:has(.farming-col-verdict)) .farming-col-num {
   width: 12%;
 }
-.farming-table:not(:has(.farming-col-verdict)) .farming-col-pct {
+.market-table--fixed:not(:has(.farming-col-verdict)) .farming-col-pct {
   width: 10%;
-}
-
-.farming-price-field {
-  --input-height: var(--input-height-sm);
-  --floating-label-inset: 0.5rem;
-  --floating-label-pad: 0.25rem;
-  --floating-label-scale: calc(var(--floating-label-float-size) / var(--font-size-sm));
-  width: 100%;
-  min-width: 0;
-  max-width: 100%;
-  margin-top: 0;
-  overflow: visible;
-}
-.farming-price-field > .form-control {
-  min-width: 0;
-  width: 100%;
-  max-width: 100%;
-  font-family: var(--font-family-mono);
-  font-size: var(--font-size-sm);
-  font-weight: var(--font-weight-semibold);
-  letter-spacing: -0.03em;
-}
-.farming-price-field > label {
-  font-size: var(--font-size-sm);
-  max-width: calc(100% - 0.25rem);
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.farming-price-cell {
-  overflow: hidden;
-  padding-top: 0.7rem;
-  padding-bottom: 0.7rem;
-  padding-inline: 0.5rem;
-  vertical-align: top;
-}
-.farming-price-cell .farming-price-field {
-  margin-left: 0;
-  max-width: 100%;
 }
 
 .farming-seed-mark {
@@ -8775,7 +8530,7 @@ main:has(.page-head[data-page-head=flipper]) {
   color: var(--color-on-accent);
 }
 .farming-seed-mark.is-dear {
-  background-color: #ffb4b5;
+  background-color: var(--color-market-loss);
   color: var(--color-on-accent);
 }
 
@@ -8785,33 +8540,7 @@ main:has(.page-head[data-page-head=flipper]) {
   vertical-align: -0.1rem;
 }
 
-.farming-item-name {
-  flex-wrap: wrap;
-  white-space: normal;
-}
-
-.farming-item-meta {
-  display: flex;
-  align-items: center;
-  gap: 0.25rem;
-  min-width: 0;
-  white-space: nowrap;
-}
-
-.farming-verdict {
-  font-size: var(--font-size-sm);
-  font-weight: var(--font-weight-semibold);
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-}
-
-.farming-table tbody tr.is-best td,
-.pasture-table tbody tr.is-best td,
-.ava-table tbody tr.is-best td {
-  background-color: color-mix(in srgb, var(--color-success) 12%, var(--color-surface));
-}
-
-.farming-num.is-path-best .pasture-profit-pct,
+.market-number.is-path-best .pasture-profit-pct,
 .pasture-profit-cell.is-path-best .pasture-profit-pct {
   font-weight: var(--font-weight-bold);
   text-decoration: underline;
@@ -8849,20 +8578,6 @@ main:has(.page-head[data-page-head=flipper]) {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 0.375rem;
-}
-
-.yield-controls-column {
-  display: flex;
-  flex-direction: column;
-  align-self: stretch;
-  min-width: 0;
-}
-.yield-controls-column > [data-yield-entry-summary] {
-  display: flex;
-  flex-direction: column;
-  flex: 1 0 auto;
-  justify-content: flex-end;
-  margin: 0;
 }
 
 .yield-planted-pair,
@@ -10873,7 +10588,6 @@ main:has(.page-head[data-page-head=flipper]) {
   padding: 0.55rem 0.7rem;
 }
 
-.bonus-analysis-icon img,
 .bonus-analysis-icon img {
   width: 4.25rem;
   height: 4.25rem;
@@ -12642,19 +12356,6 @@ main:has(.page-head[data-page-head=flipper]) {
   background: var(--color-surface);
 }
 
-.trades-panel-head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.5rem;
-  padding: 0.35rem 0.55rem;
-  border-bottom: 1px solid var(--color-border);
-  font-size: 0.68rem;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-  color: var(--color-text-muted);
-}
-
 .trades-panel-body {
   flex: 1;
   min-height: 0;
@@ -12823,19 +12524,6 @@ main:has(.page-head[data-page-head=flipper]) {
   flex-direction: column;
   border: 1px solid var(--color-border);
   background: var(--color-surface);
-}
-
-.trades-table-head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.5rem;
-  padding: 0.35rem 0.55rem;
-  border-bottom: 1px solid var(--color-border);
-  font-size: 0.68rem;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-  color: var(--color-text-muted);
 }
 
 .trades-virt {
@@ -17347,7 +17035,7 @@ main:has(.page-head[data-page-head=flipper]) {
   display: none;
 }
 
-.island-v2-detail > .farming-note {
+.island-v2-detail > .tool-result-note {
   grid-column: 1/-1;
 }
 
@@ -19371,14 +19059,14 @@ main.tool-page > .page-body {
   grid-template-columns: 4.5rem minmax(0, 1fr);
   gap: var(--spacing-sm);
 }
-[data-tool=laborer-contract] .laborer-tiers .price-side-btn {
+[data-tool=laborer-contract] .laborer-tiers .segmented-choice-button--short {
   flex: 1 1 0;
   min-width: 0;
   padding-inline: 0;
   border-color: var(--color-item-tier);
   color: var(--color-item-tier);
 }
-[data-tool=laborer-contract] .laborer-tiers .price-side-btn.is-active {
+[data-tool=laborer-contract] .laborer-tiers .segmented-choice-button--short.is-active {
   background: var(--color-item-tier);
   color: var(--color-on-item-tier, #fff);
 }
@@ -19395,10 +19083,10 @@ main.tool-page > .page-body {
 [data-tool=laborer-contract] .laborer-control-group > .city-field--diagonal {
   grid-column: auto;
 }
-[data-tool=laborer-contract] .laborer-control-group > .price-side {
+[data-tool=laborer-contract] .laborer-control-group > .segmented-choice {
   width: 100%;
 }
-[data-tool=laborer-contract] .laborer-control-group > .price-side > .price-side-btn {
+[data-tool=laborer-contract] .laborer-control-group > .segmented-choice > .segmented-choice-button--short {
   flex: 1 1 0;
   min-width: 0;
 }
@@ -21687,7 +21375,9 @@ main.tool-page > .page-body {
   gap: 1rem;
   min-height: 0;
 }
-.flipper-page .flipper-list-panel, .flipper-page .flipper-detail, .flipper-page .flipper-basket {
+.flipper-page .flipper-list-panel,
+.flipper-page .flipper-detail,
+.flipper-page .flipper-basket {
   min-width: 0;
   padding: 0.85rem;
   border: 1px solid var(--color-border);
@@ -21717,7 +21407,8 @@ main.tool-page > .page-body {
 .flipper-page .flipper-opportunity > .item-visual {
   max-block-size: 75px;
 }
-.flipper-page .flipper-opportunity strong, .flipper-page .flipper-opportunity small {
+.flipper-page .flipper-opportunity strong,
+.flipper-page .flipper-opportunity small {
   display: block;
 }
 .flipper-page .flipper-opportunity.is-selected {
@@ -21763,7 +21454,9 @@ main.tool-page > .page-body {
   align-content: start;
   font-variant-numeric: tabular-nums;
 }
-.flipper-page .flipper-price-cell > small, .flipper-page .flipper-price-cell > strong, .flipper-page .flipper-price-cell > span {
+.flipper-page .flipper-price-cell > small,
+.flipper-page .flipper-price-cell > strong,
+.flipper-page .flipper-price-cell > span {
   line-height: 1.4;
 }
 .flipper-page .flipper-item-meta {
@@ -21803,7 +21496,8 @@ main.tool-page > .page-body {
   justify-content: center;
   gap: 0.25rem;
 }
-.flipper-page .flipper-detail-title > div > h2, .flipper-page .flipper-detail-title > div > p {
+.flipper-page .flipper-detail-title > div > h2,
+.flipper-page .flipper-detail-title > div > p {
   margin: 0;
 }
 .flipper-page .flipper-detail dl {
@@ -21855,11 +21549,13 @@ main.tool-page > .page-body {
 .flipper-page .flipper-breakdown > .flipper-breakdown-uncertain {
   --breakdown-color:#e8b65c;
 }
-.flipper-page .flipper-breakdown > .flipper-breakdown-profit, .flipper-page .flipper-breakdown > .flipper-breakdown-uncertain {
+.flipper-page .flipper-breakdown > .flipper-breakdown-profit,
+.flipper-page .flipper-breakdown > .flipper-breakdown-uncertain {
   background: color-mix(in srgb, var(--breakdown-color) 8%, transparent);
   padding: 0.5rem 0.35rem;
 }
-.flipper-page .flipper-breakdown > .flipper-breakdown-profit dt, .flipper-page .flipper-breakdown > .flipper-breakdown-uncertain dt {
+.flipper-page .flipper-breakdown > .flipper-breakdown-profit dt,
+.flipper-page .flipper-breakdown > .flipper-breakdown-uncertain dt {
   font-weight: var(--font-weight-semibold);
 }
 .flipper-page .flipper-breakdown [data-app-tooltip] {
@@ -21898,7 +21594,8 @@ main.tool-page > .page-body {
 .flipper-page .flipper-detail-notice ul li + li {
   margin-top: 0.2rem;
 }
-.flipper-page .flipper-detail-notice p, .flipper-page .flipper-detail-notice small {
+.flipper-page .flipper-detail-notice p,
+.flipper-page .flipper-detail-notice small {
   font-size: 0.8rem;
 }
 .flipper-page .flipper-detail-notice [data-app-tooltip] {
@@ -21916,7 +21613,8 @@ main.tool-page > .page-body {
 .flipper-page .flipper-verification .badge {
   cursor: help;
 }
-.flipper-page .flipper-verification .flipper-verification-help, .flipper-page .flipper-verification [data-limit-status] {
+.flipper-page .flipper-verification .flipper-verification-help,
+.flipper-page .flipper-verification [data-limit-status] {
   color: var(--color-text-muted);
   font-size: 0.8rem;
   margin: 0.4rem 0;
@@ -21947,8 +21645,33 @@ main.tool-page > .page-body {
 }
 .flipper-page .flipper-empty {
   padding: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  color: var(--color-text-muted);
+}
+.flipper-page .flipper-loading-spinner {
+  display: inline-block;
+  vertical-align: middle;
+  flex: 0 0 auto;
+  width: 1rem;
+  height: 1rem;
+  border: 2px solid var(--color-border);
+  border-top-color: #e8b65c;
+  border-radius: 50%;
+  animation: flipper-loading 0.8s linear infinite;
 }
 
+@keyframes flipper-loading {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .flipper-page .flipper-loading-spinner {
+    animation: none;
+  }
+}
 .flipper-icon {
   display: inline-flex;
   width: 1.5rem;
@@ -22133,8 +21856,8 @@ main.tool-page > .page-body {
 
 .page-info-button {
   position: absolute;
-  top: 0.65rem;
-  right: 0.75rem;
+  top: calc(var(--app-status-offset, 0px) + 0.25rem);
+  right: 0.25rem;
   z-index: 3;
   display: grid;
   place-items: center;
@@ -22144,6 +21867,7 @@ main.tool-page > .page-body {
   padding: 0;
   border: 0;
   background: transparent;
+  color: #fff3dc;
   cursor: pointer;
 }
 .page-info-button svg {

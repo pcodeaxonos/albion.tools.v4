@@ -255,11 +255,11 @@ function runPlan() {
 
 function renderToggle(groupLabel, options, dataAttr, current) {
     return `
-        <div class="farming-type" role="radiogroup" aria-label="${escapeHtml(groupLabel)}">
+        <div class="segmented-choice" role="radiogroup" aria-label="${escapeHtml(groupLabel)}">
             ${options.map((option) => {
                 const pressed = option.id === current;
                 return `
-                    <button type="button" class="farming-type-btn${pressed ? ' is-active' : ''}"
+                    <button type="button" class="segmented-choice-button segmented-choice-button--icon${pressed ? ' is-active' : ''}"
                         data-${dataAttr}="${option.value}" aria-pressed="${pressed ? 'true' : 'false'}">
                         ${escapeHtml(option.label)}
                     </button>
@@ -297,7 +297,7 @@ function latestPriceDate() {
 function renderSummary() {
     const plan = state.plan;
     if (!plan || !plan.slots?.length) {
-        return `<p class="farming-note">Plan için fiyat ve plot gerekir.</p>`;
+        return `<p class="tool-result-note">Plan için fiyat ve plot gerekir.</p>`;
     }
     const cmp = plan.comparison;
     const groups = groupSlots(plan.slots);
@@ -316,25 +316,25 @@ function renderSummary() {
             <p class="island-planner-objective" data-page-info>Hedef: ham gümüş/gün = Σ (plot kârı ÷ döngü saati × 24). İstikrar sıralamaz, elemez veya “önerilen”i değiştirmez.</p>
             <p class="island-planner-feed">${escapeHtml(plan.feedNote || '—')}</p>
             ${Number.isFinite(stable) ? `
-                <p class="farming-note" data-page-info>İstikrar (bilgi): ${formatSilver(stable)} gümüş/gün · likidite × volatilite cezası. İnce pazar satırları durur; yalnızca uyarıdır.</p>
+                <p class="tool-result-note" data-page-info>İstikrar (bilgi): ${formatSilver(stable)} gümüş/gün · likidite × volatilite cezası. İnce pazar satırları durur; yalnızca uyarıdır.</p>
             ` : ''}
             ${state.minVolume > 0 ? `
-                <p class="farming-note" data-page-info>İnce pazar eşiği ${escapeHtml(String(state.minVolume))}/gün: hacmi düşük (veya geçmişi olmayan) satırlar işaretlenir; sıralama ve öneri değişmez.</p>
+                <p class="tool-result-note" data-page-info>İnce pazar eşiği ${escapeHtml(String(state.minVolume))}/gün: hacmi düşük (veya geçmişi olmayan) satırlar işaretlenir; sıralama ve öneri değişmez.</p>
             ` : ''}
             ${faction ? `
-                <p class="farming-note" data-page-info>Faction kilit: ${faction.plots}× kennel T${faction.tier} ${itemNameHtml(faction.label)} (kennel plotun olmalı).</p>
+                <p class="tool-result-note" data-page-info>Faction kilit: ${faction.plots}× kennel T${faction.tier} ${itemNameHtml(faction.label)} (kennel plotun olmalı).</p>
             ` : ''}
             ${uniform ? `
-                <p class="farming-note" data-page-info>Bu planda tüm plotlar aynı aktiviteye verildi — karışık bir dağılım ham gümüş/günü artırmıyor.</p>
+                <p class="tool-result-note" data-page-info>Bu planda tüm plotlar aynı aktiviteye verildi — karışık bir dağılım ham gümüş/günü artırmıyor.</p>
             ` : ''}
             ${alt ? `
-                <p class="island-planner-compare farming-note" data-page-info>
+                <p class="island-planner-compare tool-result-note" data-page-info>
                     Alternatif ${escapeHtml(alt.label)}: ${formatSilver(alt.totalDay)} ham gümüş/gün
                     · fark ${formatSilver((alt.totalDay || 0) - (plan.totalDay || 0), { signed: true })}
                 </p>
             ` : ''}
             ${cmp ? `
-                <p class="island-planner-compare farming-note" data-page-info>
+                <p class="island-planner-compare tool-result-note" data-page-info>
                     Sade pazar: ${formatSilver(cmp.marketDay)} · seçilen ${formatSilver(cmp.chosenDay)}
                     · fark ${formatSilver(cmp.delta, { signed: true })}
                     ${cmp.choseIslandFeed ? ' · ada yemi / karışık' : ''}
@@ -355,7 +355,7 @@ function renderCityCompare() {
             <td>
                 ${row.iconId ? itemIconHtml(row.iconId, { className: 'item-icon' }) : ''}
                 ${escapeHtml(row.label)}
-                ${row.pathLabel ? `<span class="farming-item-meta">${escapeHtml(row.pathLabel)}</span>` : ''}
+                ${row.pathLabel ? `<span class="market-item-meta market-item-meta--inline">${escapeHtml(row.pathLabel)}</span>` : ''}
             </td>
             <td class="num">${formatSilver(row.totalDay)}</td>
             <td>${escapeHtml(recommendedLabel(row))}</td>
@@ -363,9 +363,9 @@ function renderCityCompare() {
     `).join('');
     return `
         <h2 class="island-planner-subhead">Şehir karşılaştırması</h2>
-        <p class="farming-note" data-page-info>Her ada şehri için ham gümüş/gün (aynı plot / premium / satış şehri ayarları).</p>
+        <p class="tool-result-note" data-page-info>Her ada şehri için ham gümüş/gün (aynı plot / premium / satış şehri ayarları).</p>
         <div class="table-responsive calc-table-wrap">
-            <table class="table table-striped farming-table island-planner-table calc-table">
+            <table class="market-table table table-striped market-table--fixed island-planner-table calc-table" data-market-table>
                 <thead>
                     <tr>
                         <th>Ada</th>
@@ -445,7 +445,7 @@ function renderBonusTags(bonuses) {
         return '';
     }
     return bonuses.map((label) => (
-        `<span class="farming-bonus island-planner-tag">${escapeHtml(label)}</span>`
+        `<span class="market-bonus island-planner-tag">${escapeHtml(label)}</span>`
     )).join('');
 }
 
@@ -468,15 +468,15 @@ function renderProductCell(slot) {
         bonuses.unshift('ince pazar');
     }
     return `
-        <span class="farming-item">
+        <span class="market-item">
             ${slot.iconId ? itemIconHtml(slot.iconId, { className: 'item-icon' }) : ''}
             <span>
-                <span class="farming-item-name">
+                <span class="market-item-name market-item-name--wrap">
                     ${itemNameHtml(slot.label)}
                     ${renderBonusTags(bonuses)}
                 </span>
                 ${notes.length
-                    ? `<span class="farming-item-meta">${escapeHtml(notes.join(' · '))}</span>`
+                    ? `<span class="market-item-meta market-item-meta--inline">${escapeHtml(notes.join(' · '))}</span>`
                     : ''}
             </span>
         </span>
@@ -530,7 +530,7 @@ function renderSlotsTable() {
     if (!plan?.slots?.length) {
         return `
             <div class="table-responsive calc-table-wrap">
-                <table class="table table-striped farming-table island-planner-table calc-table">
+                <table class="market-table table table-striped market-table--fixed island-planner-table calc-table" data-market-table>
                     ${head}
                     <tbody>
                         <tr><td colspan="10">Henüz plan yok.</td></tr>
@@ -559,8 +559,8 @@ function renderSlotsTable() {
                 <td>${renderProductCell(slot)}</td>
                 <td class="island-planner-col-path">${escapeHtml(slot.pathLabel || '—')}</td>
                 <td class="num">${formatSilver(slot.cost)}</td>
-                <td class="num farming-num${profitClass}">${formatSilver(slot.profit, { signed: true })}</td>
-                <td class="num farming-num${profitClass}">${formatPct(slot.profitPct)}</td>
+                <td class="num market-number${profitClass}">${formatSilver(slot.profit, { signed: true })}</td>
+                <td class="num market-number${profitClass}">${formatPct(slot.profitPct)}</td>
                 <td class="num island-planner-col-day">
                     <span class="island-planner-day">${formatSilver(slot.perDay)}</span>
                     ${group.count > 1 && dayTotal != null
@@ -579,7 +579,7 @@ function renderSlotsTable() {
     return `
         ${renderAllocationChips(groups)}
         <div class="table-responsive calc-table-wrap" data-calc-table>
-            <table class="table table-striped farming-table island-planner-table calc-table" data-island-explain-table="plan">
+            <table class="market-table table table-striped market-table--fixed island-planner-table calc-table" data-market-table data-island-explain-table="plan">
                 ${head}
                 <tbody>${rows}</tbody>
             </table>
@@ -592,7 +592,7 @@ function renderMissingFlags(missing) {
         return '<span class="island-ledger-ok">fiyat tam</span>';
     }
     return missing.map((label) => (
-        `<span class="farming-bonus island-planner-tag island-ledger-missing">${escapeHtml(label)}</span>`
+        `<span class="market-bonus island-planner-tag island-ledger-missing">${escapeHtml(label)}</span>`
     )).join('');
 }
 
@@ -602,7 +602,7 @@ function renderLedgerDayCell(row) {
         ? (row.perDay > 0 ? ' is-profit' : row.perDay < 0 ? ' is-loss' : '')
         : ' is-missing';
     return `
-        <span class="island-planner-day farming-num${dayClass}">${formatSilver(row.perDay, { signed: true })}</span>
+        <span class="island-planner-day market-number${dayClass}">${formatSilver(row.perDay, { signed: true })}</span>
         ${row.feedMode === 'island' ? `
             <span class="island-planner-day-stable">tohum · pasture</span>
             ${Number.isFinite(opp?.chainAvgPerDay) ? `
@@ -640,9 +640,9 @@ function renderLedger() {
     if (!list?.length) {
         return `
             <h2 class="island-planner-subhead">Aday defteri</h2>
-            <p class="farming-note">Plan hesaplanınca tüm ekin / ot / hayvan path’leri burada görünür.</p>
+            <p class="tool-result-note">Plan hesaplanınca tüm ekin / ot / hayvan path’leri burada görünür.</p>
             <div class="table-responsive calc-table-wrap">
-                <table class="table table-striped farming-table island-planner-table island-ledger-table calc-table">
+                <table class="market-table table table-striped market-table--fixed island-planner-table island-ledger-table calc-table" data-market-table>
                     ${head}
                     <tbody>
                         <tr><td colspan="10">Henüz aday yok.</td></tr>
@@ -662,14 +662,14 @@ function renderLedger() {
             <tr data-explain-key="${escapeHtml(ledgerExplainKey(row))}"${inPlan ? ' class="is-in-plan"' : ''}${row.missing?.length ? ' data-missing="1"' : ''}>
                 <td>
                     <span class="island-planner-type island-planner-type--${escapeHtml(row.plotType)}">${escapeHtml(row.groupLabel || ledgerGroupLabel(row.group))}</span>
-                    ${inPlan ? '<span class="farming-bonus island-planner-tag">planda</span>' : ''}
+                    ${inPlan ? '<span class="market-bonus island-planner-tag">planda</span>' : ''}
                 </td>
                 <td>
-                    <span class="farming-item">
+                    <span class="market-item">
                         ${row.iconId ? itemIconHtml(row.iconId, { className: 'item-icon' }) : ''}
                         <span>
-                            <span class="farming-item-name">${itemNameHtml(row.name)}</span>
-                            ${row.feedLabel ? `<span class="farming-item-meta">${escapeHtml(row.feedLabel)}</span>` : ''}
+                            <span class="market-item-name market-item-name--wrap">${itemNameHtml(row.name)}</span>
+                            ${row.feedLabel ? `<span class="market-item-meta market-item-meta--inline">${escapeHtml(row.feedLabel)}</span>` : ''}
                         </span>
                     </span>
                 </td>
@@ -677,9 +677,9 @@ function renderLedger() {
                 <td class="island-planner-col-type">
                     <span class="island-planner-type island-planner-type--${escapeHtml(row.plotType)}">${escapeHtml(typeLabel)}</span>
                 </td>
-                <td class="num farming-num${row.missing?.length && !Number.isFinite(row.cost) ? ' is-missing' : ''}">${formatSilver(row.cost)}</td>
-                <td class="num farming-num">${formatSilver(row.revenue)}</td>
-                <td class="num farming-num${profitClass}">${formatSilver(row.profit, { signed: true })}</td>
+                <td class="num market-number${row.missing?.length && !Number.isFinite(row.cost) ? ' is-missing' : ''}">${formatSilver(row.cost)}</td>
+                <td class="num market-number">${formatSilver(row.revenue)}</td>
+                <td class="num market-number${profitClass}">${formatSilver(row.profit, { signed: true })}</td>
                 <td class="num island-planner-col-day">${renderLedgerDayCell(row)}</td>
                 <td>${renderMissingFlags(row.missing)}</td>
                 <td class="island-ledger-why">${escapeHtml(row.why || '—')}</td>
@@ -689,19 +689,19 @@ function renderLedger() {
 
     return `
         <h2 class="island-planner-subhead">Aday defteri</h2>
-        <p class="farming-note" data-page-info>
+        <p class="tool-result-note" data-page-info>
             Tüm ada çıktıları (ekin/ot satışı; hayvan büyüt / kes / besle; pazar ve ada yemi).
             Sıra ham gümüş/gün (plot başına, önericinin skoru). Zarar ve eksik fiyat gizlenmez.
             Ada yemi satırında büyük rakam tohum maliyetli pasture-only’dir; zincir/fırsat yem plotunun satılmadığını gösterir.
             Satıra tıklayınca formül açılır.
         </p>
         <div class="table-responsive calc-table-wrap">
-            <table class="table table-striped farming-table island-planner-table island-ledger-table calc-table" data-island-explain-table="ledger">
+            <table class="market-table table table-striped market-table--fixed island-planner-table island-ledger-table calc-table" data-market-table data-island-explain-table="ledger">
                 ${head}
                 <tbody>${rows}</tbody>
             </table>
         </div>
-        <p class="farming-note island-planner-note" data-page-info>
+        <p class="tool-result-note island-planner-note" data-page-info>
             Ham gümüş/gün sıralaması önericiyle aynı metriktir; ada yemi satırı “en yüksek pasture” olabilir diye zinciri kazanmaz.
             ${itemNameHtml('Cow')} + ada yemi vs ${itemNameHtml('Burdock')} karşılaştırması: ${itemNameHtml('Burdock')} satırına ve ineğin pazar / ada yemi path’lerine bakın.
         </p>
@@ -726,8 +726,8 @@ function renderRunnersUp() {
                 <td>${renderProductCell(row)}</td>
                 <td>${escapeHtml(row.pathLabel || '—')}</td>
                 <td class="num">${formatSilver(row.cost)}</td>
-                <td class="num farming-num${profitClass}">${formatSilver(row.profit, { signed: true })}</td>
-                <td class="num farming-num${profitClass}">${formatPct(row.profitPct)}</td>
+                <td class="num market-number${profitClass}">${formatSilver(row.profit, { signed: true })}</td>
+                <td class="num market-number${profitClass}">${formatPct(row.profitPct)}</td>
                 <td class="num">
                     ${formatSilver(row.perDay)}
                     ${Number.isFinite(row.stablePerDay)
@@ -742,9 +742,9 @@ function renderRunnersUp() {
 
     return `
         <h2 class="island-planner-subhead">Alternatifler (plot başına)</h2>
-        <p class="farming-note" data-page-info>Ham gümüş/gün sırasıyla seçilmeyen adaylar. İnce pazar elenmez. “Bugün” kolonu spot fiyattır — spike olabilir. Satıra tıklayınca formül açılır.</p>
+        <p class="tool-result-note" data-page-info>Ham gümüş/gün sırasıyla seçilmeyen adaylar. İnce pazar elenmez. “Bugün” kolonu spot fiyattır — spike olabilir. Satıra tıklayınca formül açılır.</p>
         <div class="table-responsive calc-table-wrap">
-            <table class="table table-striped farming-table island-planner-table calc-table" data-island-explain-table="runners">
+            <table class="market-table table table-striped market-table--fixed island-planner-table calc-table" data-market-table data-island-explain-table="runners">
                 <thead>
                     <tr>
                         <th class="num">#</th>
@@ -1138,7 +1138,7 @@ function renderPlannerExplain(key, { hovered } = {}) {
                 pct: ex.cycle?.profitPct
             })}
             ${found.count > 1 && dayTotal != null ? `
-                <p class="farming-note">${found.count} plot × ${formatSilver(slot.perDay)} = ${formatSilver(dayTotal)} ham gümüş/gün.</p>
+                <p class="tool-result-note">${found.count} plot × ${formatSilver(slot.perDay)} = ${formatSilver(dayTotal)} ham gümüş/gün.</p>
             ` : ''}
         `
     });
@@ -1161,10 +1161,10 @@ function bindPlannerExplain(container) {
 
 function renderOutput() {
     if (state.error) {
-        return `<p class="farming-note is-error">${escapeHtml(state.error)}</p>`;
+        return `<p class="tool-result-note is-error">${escapeHtml(state.error)}</p>`;
     }
     if (!state.loaded) {
-        return `<p class="farming-note">Fiyatlar yükleniyor…</p>`;
+        return `<p class="tool-result-note">Fiyatlar yükleniyor…</p>`;
     }
 
     const stamp = formatDateTime(latestPriceDate());
@@ -1175,7 +1175,7 @@ function renderOutput() {
             ${renderLedger()}
             ${renderCityCompare()}
             ${renderRunnersUp()}
-            <p class="farming-note" data-page-info>
+            <p class="tool-result-note" data-page-info>
                 ${escapeHtml(feeMetaText(state.premium))}
                 · hedef ham gümüş/gün = plot kârı ÷ döngü × 24s
                 · alış max(spot, ~${getEconomyConstant('farm_history_days', 14)}g medyan) · satış medyan (Farming/Pasture spot kullanır)
@@ -1273,7 +1273,7 @@ function renderPage(container) {
             <p>Ada plotlarını <strong>ham gümüş/gün</strong> (zaman-normalize kâr) için planlar. Aday defteri her path’in maliyet / gelir / kârını ve ada yemi fırsat maliyetini canlı gösterir. Likidite ve volatilite yalnızca uyarıdır; ince pazar elenmez.</p>
         </section>`,
         controls: `
-                <div class="farming-toolbar island-planner-toolbar">
+                <div class="tool-form-toolbar island-planner-toolbar">
                     ${renderToggle('Premium', [
                         { id: true, value: '1', label: 'Premium' },
                         { id: false, value: '0', label: 'Free' }
@@ -1297,37 +1297,37 @@ function renderPage(container) {
                         cities: state.cities,
                         decorate: cityIslandDecorate
                     })}
-                    <div class="form-floating farming-city-field">
+                    <div class="form-floating tool-form-field">
                         <select class="form-select is-filled" id="islandLevel">
                             ${renderLevelOptions()}
                         </select>
                         <label for="islandLevel">Ada seviyesi</label>
                     </div>
-                    <div class="form-floating farming-city-field">
+                    <div class="form-floating tool-form-field">
                         <input class="form-control${overrideVal ? ' is-filled' : ''}" type="number" min="1" max="16"
                             id="plotsOverride" value="${escapeHtml(overrideVal)}" placeholder=" ">
                         <label for="plotsOverride">Plot override (1–16)</label>
                     </div>
-                    <div class="form-floating farming-city-field">
+                    <div class="form-floating tool-form-field">
                         <input class="form-control${state.factionPlots ? ' is-filled' : ''}" type="number" min="0" max="16"
                             id="factionPlots" value="${state.factionPlots || ''}" placeholder=" ">
                         <label for="factionPlots">Faction kennel plot</label>
                     </div>
-                    <div class="form-floating farming-city-field">
+                    <div class="form-floating tool-form-field">
                         <select class="form-select is-filled" id="factionTier">
                             <option value="5"${state.factionTier === 5 ? ' selected' : ''}>T5 faction</option>
                             <option value="8"${state.factionTier === 8 ? ' selected' : ''}>T8 faction</option>
                         </select>
                         <label for="factionTier">Faction tier</label>
                     </div>
-                    <div class="form-floating farming-city-field">
+                    <div class="form-floating tool-form-field">
                         <input class="form-control${state.minVolume ? ' is-filled' : ''}" type="number" min="0" step="1"
                             id="minVolume" value="${state.minVolume || ''}" placeholder=" ">
                         <label for="minVolume">İnce pazar eşiği (uyarı)</label>
                     </div>
                     ${factionAvail
-                        ? `<p class="farming-note">${escapeHtml(factionAvail.label)} bu şehirde kilitlenebilir.</p>`
-                        : `<p class="farming-note">Bu şehirde faction bineği yok / bilinmiyor.</p>`}
+                        ? `<p class="tool-result-note">${escapeHtml(factionAvail.label)} bu şehirde kilitlenebilir.</p>`
+                        : `<p class="tool-result-note">Bu şehirde faction bineği yok / bilinmiyor.</p>`}
                     ${priceRefreshActionsHtml()}
                 </div>
             `,

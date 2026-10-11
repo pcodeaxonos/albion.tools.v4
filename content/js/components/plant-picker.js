@@ -126,11 +126,11 @@ function renderAnimalProductRow(items, selected, tierSlots = false, selectedOutp
     `;
 }
 
-function pickerFieldHtml({ items, groups, iconIdFor, id, label, selected = '', selectedOutputMode = 'offspring', className = 'farming-city-field', name = id, includeAnimalProducts = false, outputGroupKind = null }) {
+function pickerFieldHtml({ items, groups, iconIdFor, id, label, selected = '', selectedOutputMode = 'offspring', className = 'tool-form-field', name = id, includeAnimalProducts = false, outputGroupKind = null }) {
     if (getPlantPickerStyle() === 'icons') {
         return `
             <div class="plant-field plant-field--icons ${escapeHtml(className)}" data-plant-field="${escapeHtml(id)}">
-                <span class="plant-field-label" id="${escapeHtml(id)}-label">${escapeHtml(label)}</span>
+                <span class="choice-field-label" id="${escapeHtml(id)}-label">${escapeHtml(label)}</span>
                 <div class="plant-icon-picker" role="radiogroup" aria-labelledby="${escapeHtml(id)}-label">
                     ${renderIconRows(items, groups, selected, iconIdFor, includeAnimalProducts, selectedOutputMode, outputGroupKind)}
                 </div>
@@ -236,7 +236,7 @@ export function islandYieldFieldHtml(opts = {}) {
     const name = opts.name ?? id;
     const selected = opts.selected ?? '';
     const selectedOutputMode = opts.selectedOutputMode ?? 'offspring';
-    const className = opts.className ?? 'farming-city-field';
+    const className = opts.className ?? 'tool-form-field';
     if (getPlantPickerStyle() === 'icons') {
         return `
             <div class="plant-field plant-field--icons plant-field--island-yield ${escapeHtml(className)}" data-plant-field="${escapeHtml(id)}">

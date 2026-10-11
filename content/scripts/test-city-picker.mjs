@@ -4,18 +4,22 @@ import vm from 'node:vm';
 
 const context = vm.createContext({ CSS: { escape: (value) => value } });
 const module = new vm.SourceTextModule(fs.readFileSync('content/js/components/city-picker.js', 'utf8'), { context });
+const formFieldModule = new vm.SourceTextModule(fs.readFileSync('content/js/components/form-field.js', 'utf8'), { context });
 const dependencies = {
     '../utils/utils.js': { escapeHtml: (value) => value },
     '../db/store.js': { getAll: () => [] },
     '../core/cities.js': { loadActiveCities: () => [], orderCities: (cities) => cities },
     '../core/settings.js': { getCityPickerStyle: () => 'standard', cityHasIsland: () => true }
 };
-await module.link((specifier) => {
+const linkDependency = (specifier) => {
+    if (specifier === './form-field.js') return formFieldModule;
     const exports = dependencies[specifier];
     return new vm.SyntheticModule(Object.keys(exports), function () {
         for (const [key, value] of Object.entries(exports)) this.setExport(key, value);
     }, { context });
-});
+};
+await formFieldModule.link(linkDependency);
+await module.link(linkDependency);
 await module.evaluate();
 const { bindCityField, setCityFieldValue, cityFieldHtml } = module.namespace;
 
