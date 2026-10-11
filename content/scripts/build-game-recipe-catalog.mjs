@@ -5,8 +5,10 @@
  */
 import fs from 'node:fs';
 import https from 'node:https';
+import { collectRecipeMechanics } from '../js/core/recipe-mechanics.mjs';
 
 const DATA = new URL('../../data/', import.meta.url);
+const GAME_ITEMS_SOURCE = 'https://raw.githubusercontent.com/ao-data/ao-bin-dumps/master/items.json';
 const read = (name) => JSON.parse(fs.readFileSync(new URL(name, DATA), 'utf8'));
 const write = (name, value) => fs.writeFileSync(new URL(name, DATA), `${JSON.stringify(value, null, 2)}\n`, 'utf8');
 
@@ -54,7 +56,7 @@ function collectRecipes(node, output) {
 }
 
 const [itemsXml, items, recipeMaterials] = await Promise.all([
-    fetchJson('https://raw.githubusercontent.com/ao-data/ao-bin-dumps/master/items.json'),
+    fetchJson(GAME_ITEMS_SOURCE),
     read('items.json'), read('recipe-materials.json')
 ]);
 const itemId = new Map(items.map((item) => [item.uniqueName, Number(item.id)]));
@@ -81,5 +83,11 @@ for (const [uniqueName, inputMaterials] of gameRecipes) {
     imported += 1;
 }
 
-write('recipe-materials.json', recipeMaterials);
-console.log(`Imported ${imported} game recipes; skipped ${skipped}.`);
+if (!process.argv.includes('--mechanics-only')) write('recipe-materials.json', recipeMaterials);
+const mechanics = collectRecipeMechanics(itemsXml.items);
+write('recipe-mechanics.json', {
+    source: GAME_ITEMS_SOURCE,
+    fetchedAt: new Date().toISOString(),
+    recipes: [...mechanics.values()].filter(recipe => itemId.has(recipe.uniqueName))
+});
+console.log(process.argv.includes('--mechanics-only') ? 'Generated recipe mechanics; existing recipe materials preserved.' : `Imported ${imported} game recipes; skipped ${skipped}.`);
