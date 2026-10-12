@@ -5,6 +5,10 @@ import { fileURLToPath } from 'node:url';
 import { analyzeMarketCell, assessMarketSide } from '../js/core/market-opportunities.mjs';
 import { qualityCalibration } from '../js/core/market-opportunity-quality.mjs';
 import { assessSpreadRealism } from '../js/core/market-spread-realism.mjs';
+import { reviewOpportunityResults } from '../js/core/market-opportunity-review.mjs';
+import { OPPORTUNITY_POLICY } from '../js/core/market-opportunities.mjs';
+import { salesOpportunityReference } from '../js/core/market-sales-reference.mjs';
+import { DAY_MS } from '../js/core/market-history-config.mjs';
 
 const file = new URL('../js/tools/opportunities.js', import.meta.url);
 const source = readFileSync(process.env.OPPORTUNITY_UI_SOURCE || file, 'utf8');
@@ -14,8 +18,10 @@ let savedFilters = null;
 const stubs = { readStorage: () => null, readJsonStorage: () => savedFilters, itemLabel: value => value,
     escapeHtml: htmlEscape, itemNameHtml: htmlEscape, itemIconHtml: () => '<span class="item-visual"></span>',
     formatSilver: value => `${Number(value).toFixed(2)} silver`, formatPct: value => `${(value * 100).toFixed(1)}%`,
+    formatQuantity: value => String(value), setupFeeRate: () => fees.setupFeeRate,
+    taxPremiumRate: () => fees.taxPremiumRate, taxFreeRate: () => fees.taxFreeRate,
     loadActiveCities: () => [], cityFieldHtml: () => '', getServer: () => ({ id: 'europe' }), getSettings: () => ({ premium: true }) };
-const browser = new vm.SourceTextModule(source + '\nexport { state, visibleRows, rankedVisibleRows, listCounts, cardHtml, renderFilters, readFilters, actionTags, defaultFilters, viewCounts }; export function setRoot(value) { root = value; }', { context, identifier: fileURLToPath(file) });
+const browser = new vm.SourceTextModule(source + '\nexport { state, visibleRows, rankedVisibleRows, listCounts, cardHtml, renderFilters, readFilters, actionTags, defaultFilters, viewCounts, scenarioHtml, scenarioResultHtml, bindScenario }; export function setRoot(value) { root = value; }', { context, identifier: fileURLToPath(file) });
 await browser.link(async specifier => {
     if (specifier.endsWith('.mjs')) {
         const module = await import(new URL(specifier, file));
@@ -44,11 +50,11 @@ if (process.env.OPPORTUNITY_AUDIT_SNAPSHOT) {
         state.filters.viewMode = id === 'local-make' ? 'spreads' : 'opportunities';
         state.filters.views = [id];
         const selected = rankedVisibleRows();
-        const selectedIds = new Set(selected.map(row => row.id));
+        const selectedIds = new Set(selected.flatMap(row => (row.routeOptions || [row]).map(option => option.id)));
         audit.strategies[id] = { eligible: expected.length, primaryInMain: main.filter(row => row.primary.id === id).length,
             selectable: selected.length, displayed: visibleRows().length,
-            excludedFromTool: id === 'cross-city-instant',
-            missing: id === 'cross-city-instant' ? [] : expected.filter(row => !selectedIds.has(row.id)).map(row => row.id),
+            excludedFromTool: false,
+            missing: expected.filter(row => !selectedIds.has(row.id)).map(row => row.id),
             primaryMake: expected.filter(row => row.primary.id === 'local-make').length };
     }
     assert.equal(JSON.stringify(scan), unchanged, 'presentation must not mutate live observations or decisions');
@@ -76,7 +82,7 @@ assert.ok(cardHtml(quarantined).includes('Karantinada'), 'quarantine without an 
 for (const [row, model, action] of [[transport, 'Taşıma', 'Şehirler arası taşı'], [local, 'Emir kurma', 'İzle'], [instant, 'Anlık işlem', 'Şimdi al']]) {
     const html = cardHtml(row);
     assert.ok(html.includes('class="opp-card '));
-    assert.ok(html.includes(model)); assert.ok(html.includes(action));
+    assert.ok(html.includes(model)); assert.ok(html.includes('Detayı aç'));
     assert.ok(html.includes('teorik fark / adet'));
     assert.ok(html.includes('Gerçekleşmiş kâr değildir'));
     assert.ok(!html.includes('Dolma olasılığı'));
@@ -100,11 +106,17 @@ const potentialRow = { ...instant, id: 'potential-instant', eligible: false, val
 state.scan = { ...state.scan, eligibleCandidates: [], opportunities: [], diagnostics: [], potentialCandidates: [potentialRow],
     counts: { verified: 0, potential: 1, suspicious: 3, insufficient: 0 }, listLimit: 500 };
 state.filters = browser.namespace.defaultFilters();
-assert.equal(listCounts().opportunities, 1); assert.equal(listCounts().verified, 0);
+assert.equal(listCounts().opportunities, 0); assert.equal(listCounts().verified, 0);
+assert.equal(listCounts().watch, 1);
 assert.equal(listCounts().potential, 1); assert.equal(listCounts().suspicious, 3); assert.equal(listCounts().spreads, 0);
+assert.equal(rankedVisibleRows().length, 0, 'unvalidated signals do not fill the main list');
+state.filters.viewMode = 'watch';
 assert.equal(rankedVisibleRows().length, 1);
 const potentialHtml = cardHtml(visibleRows()[0]);
 assert.ok(potentialHtml.includes('Potansiyel'));
+assert.ok(!potentialHtml.includes('undefined'), 'potential status and action render defined icons');
+assert.match(potentialHtml, /class="opp-mark [^"]*"[^>]*><svg/, 'potential status displays an SVG icon');
+assert.match(potentialHtml, /class="opp-card-go"[^>]*><svg/, 'potential action displays an SVG icon');
 assert.ok(potentialHtml.includes('İzle'));
 assert.ok(!potentialHtml.includes('Al ve hemen sat'), 'potential card does not recommend trading');
 state.scan.potentialCandidates = Array.from({ length: 501 }, (_, index) => ({ ...potentialRow, id: `potential-${index}`, itemId: `T4_${index}` }));
@@ -128,8 +140,11 @@ state.scan = { opportunities: pool.slice(0, 500), eligibleCandidates: pool, diag
     counts: { verified: 601, monitored: 0, suspicious: 4, insufficient: 7 } };
 state.filters = browser.namespace.defaultFilters();
 pool.push({ ...transport, id: 'mixed-transport-local', strategies: [...transport.strategies, ...instant.strategies] });
-assert.equal(listCounts().opportunities, 3, 'a local opportunity survives on a row that also supports transport');
-assert.ok(visibleRows().find(row => row.id === 'mixed-transport-local').presentationStrategies.some(strategy => strategy.id === 'local-flip'));
+assert.equal(listCounts().opportunities, 2, 'the shared target quote is one group');
+assert.ok(visibleRows().flatMap(row => row.routeOptions || [row]).find(row => row.id === 'mixed-transport-local').presentationStrategies.some(strategy => strategy.id === 'local-flip'), 'local alternatives survive route grouping');
+state.filters.views = ['local-flip'];
+assert.ok(visibleRows().some(row => row.id === 'mixed-transport-local'), 'strategy filter runs before grouping and recovers the local alternative');
+state.filters.views = [];
 pool.pop();
 state.filters.viewMode = 'spreads';
 assert.equal(visibleRows().length, 500);
@@ -195,7 +210,7 @@ for (const [id, title, action, price] of [['place-sell-order', 'Yüksek Sell', '
     assert.equal(selected.opportunityQuality.economics, selected.primary.economics);
     const html = cardHtml(selected);
     assert.ok(html.includes(title)); assert.ok(html.includes(action));
-    assert.ok(html.includes(price.toFixed(2) + ' silver / Ref'));
+    assert.ok(!html.includes('silver / Ref'), 'reference detail stays outside the compact card');
     assert.ok(!html.includes('Çift emir kur'));
 }
 state.filters.views = []; state.filters.excludedViews = ['place-sell-order'];
@@ -240,3 +255,63 @@ for (const key of ['unusual', 'normal', 'insufficient']) {
     assert.ok(html.includes('İzle'), 'a classification label alone cannot authorize orders');
 }
 console.log('Spread review: class counters, filters and non-directive actions passed.');
+const priceSupported = { ...instant, outcome: 'price-supported', primary: { ...instant.primary,
+    referenceRequired: false, missingExecutionEvidence: ['depth-unknown'],
+    economics: { capitalSilver: 1000, returnRatio: .056, referenceAdvantageRatio: null } } };
+const decisionHtml = cardHtml(priceSupported);
+assert.ok(decisionHtml.includes('Net teorik fark / adet'));
+assert.ok(decisionHtml.includes('ROI'));
+assert.ok(decisionHtml.includes('kontrol et'));
+assert.ok(!decisionHtml.includes('opp-reference'), 'long quantity warnings belong to detail');
+assert.ok(!decisionHtml.includes('Şimdi al'));
+assert.ok(decisionHtml.includes('Bu stratejide tarihsel referans gerekmez.'));
+console.log('V4 decision card: unit advantage, capital, honest action and relevant evidence passed.');
+state.scan.premium = true;
+assert.ok(browser.namespace.scenarioHtml(instant).includes('Toplamları hesaplamak için miktar girin.'));
+const output = { innerHTML: '' }, events = {};
+const inputs = ['quantity', 'fixedCost', 'sellSetup'].map(key => ({ dataset: { scenarioField: key }, value: '',
+    addEventListener(type, callback) { events[key] = callback; } }));
+const scenarioHost = { querySelectorAll: () => inputs, querySelector: () => output };
+browser.namespace.bindScenario({ querySelector: () => scenarioHost, querySelectorAll: () => [] }, instant, instant.id);
+inputs[0].value = '10'; events.quantity();
+assert.ok(output.innerHTML.includes('560.00 silver'));
+inputs[1].value = '1000'; events.fixedCost();
+assert.ok(output.innerHTML.includes('-440.00 silver'));
+assert.ok(output.innerHTML.includes('Başabaş miktarı: 18'));
+const restoredScenario = browser.namespace.scenarioHtml(instant);
+assert.ok(restoredScenario.includes('value="10"'));
+assert.ok(restoredScenario.includes('value="1000"'), 'chart rerender preserves user scenario');
+assert.ok(restoredScenario.includes('class="form-control"'));
+assert.ok(restoredScenario.includes('class="tool-split-controls"'));
+assert.ok(restoredScenario.includes('class="tool-split-result"'));
+assert.ok(restoredScenario.includes('Sonuç gerçekleşmiş kâr değildir.'));
+inputs[2].value = '1'; events.sellSetup();
+assert.ok(output.innerHTML.includes('-715.00 silver'), 'resale order mode charges its setup fee');
+const lowActivityRow = { ...instant, primary: { ...instant.primary, salesActivity: { units: 1, reportedDays: 1, days: 28 } } };
+assert.ok(browser.namespace.scenarioResultHtml(lowActivityRow).includes('adedi aşıyor'), 'entered quantity is compared with reported units without assuming available depth');
+state.filters = browser.namespace.defaultFilters(); state.filters.viewMode = 'quantity';
+state.scan.eligibleCandidates = [priceSupported];
+assert.equal(visibleRows().length, 1);
+console.log('V5 panel: blank quantity, input updates, negative scenario, break-even, persisted inputs, shared forms and quantity view passed.');
+
+const salesBuy = side('Lymhurst', 'buy', 112);
+salesBuy.salesReference = salesOpportunityReference({ data: Array.from({ length: 14 }, (_, i) => ({
+    timestamp: new Date(Math.floor(now / DAY_MS) * DAY_MS - (i + 1) * DAY_MS).toISOString(),
+    avg_price: 576, item_count: 1000 })) }, { now });
+const salesRow = reviewOpportunityResults(analyzeMarketCell({ server: 'europe', itemId: 'T6_FOXGLOVE',
+    city: 'Lymhurst', quality: 1, buy: salesBuy, now, fees }), OPPORTUNITY_POLICY, { premium: true, fees });
+state.filters = browser.namespace.defaultFilters();
+state.scan.eligibleCandidates = [salesRow];
+state.scan.qualityCalibration = qualityCalibration([salesRow]);
+assert.equal(visibleRows().length, 1, 'sales valuation belongs in the default opportunities view');
+state.filters.views = ['place-buy-order-sales'];
+const salesVisible = visibleRows();
+assert.equal(salesVisible.length, 1, 'sales valuation is selectable without Buy movement');
+const salesHtml = cardHtml(salesVisible[0]);
+assert.ok(salesHtml.includes('Düşük Buy · Satış geçmişi'));
+assert.ok(salesHtml.includes('Satış medyanı 576.00 silver'));
+assert.ok(salesHtml.includes('14 gün'));
+state.filters.minDeviation = '90';
+assert.equal(visibleRows().length, 0, 'valuation filter uses fee-adjusted sales discount');
+assert.equal(salesRow.buy.reference, null, 'rendering preserves Buy reference');
+console.log('Sales valuation UI: default list, strategy filter, source label and fee-adjusted discount passed.');

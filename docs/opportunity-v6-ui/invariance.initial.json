@@ -1,0 +1,38 @@
+{
+  "verifiedAt": "2026-10-12T06:26:58.849Z",
+  "protectedFiles": [
+    "content/js/core/market-opportunity-scan.mjs",
+    "content/js/core/market-opportunity-review.mjs",
+    "content/js/core/market-opportunities.mjs",
+    "content/js/core/market-opportunity-quality.mjs",
+    "content/js/core/market-strategy-policy.mjs",
+    "content/js/core/market-observation.mjs",
+    "content/js/core/opportunity-assistant.mjs",
+    "content/js/core/opportunity-status.mjs",
+    "content/js/core/market-sales-activity.mjs",
+    "content/js/core/market-opportunity-commerce.mjs",
+    "content/js/core/market-trade-scenario.mjs",
+    "content/js/core/opportunity-evidence.mjs",
+    "content/js/core/market-fees.mjs",
+    "content/js/core/market-fees.js",
+    "content/scripts/opportunity-evidence-repository.mjs",
+    "content/scripts/price-hub.mjs",
+    "content/scripts/aodp-collector.mjs",
+    "content/scripts/quote-service.mjs",
+    "content/scripts/quote-history-repository.mjs"
+  ],
+  "unchangedUiDataFunctions": [
+    "defaultFilters",
+    "readFilters",
+    "rows",
+    "eligibleListRows",
+    "listCounts",
+    "visibleRows",
+    "rankedVisibleRows",
+    "scenarioFor",
+    "bindScenario",
+    "scenarioResultHtml"
+  ],
+  "unchangedTradeCommands": true,
+  "unchangedHead": true
+}

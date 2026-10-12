@@ -4,6 +4,16 @@ const page = (id, source, path, title, nav) => ({ id, kind: 'page', source, path
 const admin = (id, source, path, title, nav) => ({ id, kind: 'admin', source, path, title, nav });
 const tool = (id, source, path, title, description, icon, addedAt, nav, frequent = false) => ({ id, kind: 'tool', source, path, title, description, icon, addedAt, nav, frequent });
 
+// Shared by the generated catalog and the menu before local data is ready.
+export const runtimeRoute = ({ source, kind, nav, path, ...entry }) => ({
+    ...entry,
+    path,
+    navLabel: nav.label,
+    navGroup: nav.group,
+    navOrder: nav.order,
+    navVisible: nav.visible
+});
+
 export const SITE_ROUTES = [
     tool('flipper', 'tools/flipper/index.html', 'tools/flipper', 'Flipper', 'Şehirler arası ve Black Market arbitrajı; net kâr ve taşıma sepeti.', '⚖️', '2026-10-11', { label: 'Flipper', group: 'Piyasa', order: 46, visible: true }),
     tool('decision-engine', 'pages/tools/decision-engine/index.html', 'pages/tools/decision-engine', 'Karar Motoru', 'Gerçek teklifler ve tariflerle alış, satış ve craft yollarını karşılaştırır.', '⚖️', '2026-10-10', { label: 'Karar Motoru', group: 'Piyasa', order: 43, visible: true }),

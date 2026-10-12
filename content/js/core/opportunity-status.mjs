@@ -110,7 +110,12 @@ export function opportunityDecision(row) {
 
 function decisionInputs(row, decision) {
     return (STRATEGY_SPECS[decision?.id]?.inputs || []).map((key) => {
-        if (key !== 'destination') return { key, side: row[key], needsReference: STRATEGY_SPECS[decision?.id]?.group === 'historical' };
+        if (key !== 'destination') {
+            const valuation = STRATEGY_SPECS[decision?.id]?.group === 'valuation';
+            const side = valuation ? decision?.strategy?.evidence?.inputs?.[key] || row[key] : row[key];
+            return { key, side: valuation ? { ...side, reference: side?.salesReference?.price } : side,
+                needsReference: valuation || STRATEGY_SPECS[decision?.id]?.group === 'historical' };
+        }
         const strategy = decision.strategy;
         const ageMs = strategy?.destAgeMs;
         return {
@@ -142,6 +147,7 @@ function confidenceOf(row) {
 }
 
 function feasibilityOf(row) {
+    if (row.outcome && row.outcome !== 'execution-confirmed') return 'unknown';
     const value = row.parts?.feasibility;
     if (!Number.isFinite(value)) return 'unknown';
     return value > 0 ? 'verified' : 'blocked';

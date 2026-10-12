@@ -11,7 +11,6 @@ import {
     tables
 } from './schema.js';
 import {
-    initStore,
     getAll,
     getRowCount,
     searchRows,
@@ -28,7 +27,6 @@ import {
     tableHasLocalChanges,
     getJunctionChildIds
 } from './store.js';
-import { initNav } from '../core/nav.js';
 import { routeHref } from '../core/routes.js';
 import { initFloatingLabels } from '../components/forms.js';
 import {
@@ -39,7 +37,7 @@ import {
     yieldToMain
 } from '../components/loader.js';
 import { initTableSort, sortHeaderHtml } from '../utils/table-sort.js';
-import { renderMatsHtml, renderRecipesHtml } from '../core/today-bonus.js';
+import { renderMatsHtml, renderRecipesHtml } from '../core/app-runtime.js';
 import { parseFamilyVariants, bonusMaterialItemId } from '../core/bonus-cities.js';
 import { itemIconHtml } from '../components/item-icon.js';
 import { getItemUniqueName } from './relations.js';
@@ -70,17 +68,8 @@ function debounce(fn, ms) {
 }
 
 async function boot() {
-    initNav();
     showPageLoader();
 
-    try {
-        await initStore();
-    } catch (error) {
-        hidePageLoader();
-        document.getElementById('dbContent').innerHTML =
-            `<div class="alert alert-info">${escapeHtml(error.message)}</div>`;
-        return;
-    }
 
     renderSidebar();
     bindResetButton();
@@ -1679,8 +1668,8 @@ function renderFixedPriceRoleField(column, value) {
     }).join('');
 
     return `
-        <div class="form-side-field">
-            <span class="form-side-label">${escapeHtml(label)}</span>
+        <div class="choice-field form-field">
+            <div class="form-field-heading"><div class="form-field-label">${escapeHtml(label)}</div></div>
             <input type="hidden" name="${escapeHtml(column.name)}" value="${escapeHtml(role)}" data-fixed-price-role-input>
             <div class="segmented-choice" role="radiogroup" aria-label="${escapeHtml(label)}">${options}</div>
         </div>

@@ -1,9 +1,7 @@
 import { itemNameHtml } from '../components/item-name.js';
 import { initForms } from '../components/forms.js';
 import { showToast } from '../components/toast.js';
-import { toolPageHtml } from '../components/tool-page.js';
-import { initNav } from '../core/nav.js';
-import { initStore } from '../db/store.js';
+import { toolPageHtml } from '../core/app-runtime.js';
 import { getSettings, getDefaultCity } from '../core/settings.js';
 import { priceSideToggleHtml } from '../core/price-side.js';
 import { loadActiveCities } from '../core/cities.js';
@@ -457,7 +455,7 @@ function render() {
         head: '<section class="page-head" data-page-head="laborer-contract"><h1>Laborer Contract Calculator</h1><p>Contract tier’larını karşılaştır; bugünkü net satış değerini ve doğrulanmış verilerle devam etmenin maliyetini gör.</p></section>',
         controls: `<div class="laborer-controls"><section class="laborer-control-group"><h2><span>1</span> Laborer</h2>
             ${field('Laborer', 'type', types.map((type) => [type.type, type.contracts[0].label.replace(/^\S+\s/, '').replace(/\sContract$/, '')]))}
-            <div class="form-side-field"><span class="form-side-label">Başlangıç tier</span><div class="segmented-choice laborer-tiers" role="group" aria-label="Başlangıç tier">${selected().contracts.map(({ tier }) => `<button type="button" class="segmented-choice-button segmented-choice-button--short${startTier() === tier ? ' is-active' : ''}" data-tier="${tier}" data-laborer-tier="${tier}"${state.acquisitionMode === 'new' ? ' disabled' : ''} aria-pressed="${startTier() === tier}">T${tier}</button>`).join('')}</div></div>
+            <div class="choice-field form-field"><div class="form-field-heading"><div class="form-field-label">Başlangıç tier</div></div><div class="segmented-choice laborer-tiers" role="group" aria-label="Başlangıç tier">${selected().contracts.map(({ tier }) => `<button type="button" class="segmented-choice-button segmented-choice-button--short${startTier() === tier ? ' is-active' : ''}" data-tier="${tier}" data-laborer-tier="${tier}"${state.acquisitionMode === 'new' ? ' disabled' : ''} aria-pressed="${startTier() === tier}">T${tier}</button>`).join('')}</div></div>
             <div class="laborer-control-pair">
             <div class="form-floating"><input id="laborer-count" class="form-control" data-laborer-field="count" type="number" min="1" step="1" value="${esc(String(state.count))}" placeholder="Adet"><label for="laborer-count">Adet</label></div>
             ${field('Edinim', 'acquisitionMode', [['owned', 'Elimde mevcut'], ['market', 'Marketten başlangıç contract’ı al'], ['new', 'Sıfırdan laborer edin']])}
@@ -505,7 +503,6 @@ function render() {
 
 async function init() {
     try {
-        await initStore();
         if (!Number.isFinite(Number(state.returnYield)) || Number(state.returnYield) < 50 || Number(state.returnYield) > 150) state.returnYield = 100;
         const settings = getSettings();
         state.buySide = settings.buyPriceSide;
@@ -520,8 +517,7 @@ async function init() {
         state.manual = state.manual && typeof state.manual === 'object' ? state.manual : {};
         state.rewardQuantities = state.rewardQuantities && typeof state.rewardQuantities === 'object' ? state.rewardQuantities : {};
         if (!journalOptions().some((journal) => journal.item === state.journalItem)) state.journalItem = journalOptions()[0].item;
-        render(); initNav('laborer-contract');
-        bindLivePrices(() => ({ items: marketItems(), cities: [state.buyCity, state.sellCity] }), () => { void refresh(true); });
+        render(); bindLivePrices(() => ({ items: marketItems(), cities: [state.buyCity, state.sellCity] }), () => { void refresh(true); });
         await refresh();
     } catch (cause) { root.innerHTML = `<p role="alert">${esc(cause.message)}</p>`; }
 }

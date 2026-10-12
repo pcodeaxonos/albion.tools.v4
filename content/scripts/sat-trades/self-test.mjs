@@ -117,7 +117,7 @@ async function main() {
             fillQtyOk += 1;
         }
         assert(
-            norm.orderAmount === raw.AuctionEntry?.Amount,
+            norm.orderAmount === (raw.AuctionEntry?.Amount == null ? null : Number(raw.AuctionEntry.Amount)),
             `orderAmount should mirror AuctionEntry.Amount for Id=${raw.Id}`
         );
     }

@@ -1,5 +1,7 @@
+import { SALE_HORIZONS } from '../../core/potential-sale-horizon.mjs';
 import { itemForSlot, productionModeFor } from './items.js';
 import { normalizeSalesVolume, SALES_VOLUME } from './volume.js';
+import { POTENTIAL_PRICE_POLICY } from '../../core/trade-potential-evidence.mjs';
 
 const SLOT_COUNT = 16;
 
@@ -55,6 +57,7 @@ export function normalizeDraft(value, islandCity, baseDraft) {
         ...baseDraft,
         ...source,
         islandCity,
+        potentialDays: SALE_HORIZONS.some(period => period.days === Number(source.potentialDays)) ? Number(source.potentialDays) : POTENTIAL_PRICE_POLICY.defaultDays,
         minSalesVolume: normalizeSalesVolume(source.minSalesVolume ?? baseDraft.minSalesVolume ?? SALES_VOLUME.default),
         minSalesVolume: normalizeSalesVolume(source.minSalesVolume ?? baseDraft.minSalesVolume ?? SALES_VOLUME.default),
         seedSide: source.seedSide === 'fixed' ? baseDraft.seedSide : (source.seedSide ?? baseDraft.seedSide),

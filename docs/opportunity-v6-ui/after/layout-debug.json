@@ -1,0 +1,66 @@
+[
+  {
+    "class": "opp-cards",
+    "width": 342,
+    "client": 342,
+    "scroll": 342,
+    "display": "grid",
+    "grid": "342px"
+  },
+  {
+    "class": "opp-card is-status-strategy is-tone-info",
+    "width": 342,
+    "client": 340,
+    "scroll": 340,
+    "display": "flex",
+    "grid": "none"
+  },
+  {
+    "class": "opp-card-head",
+    "width": 319.21875,
+    "client": 319,
+    "scroll": 319,
+    "display": "grid",
+    "grid": "56px 253.625px"
+  },
+  {
+    "class": "opp-card-city",
+    "width": 319.21875,
+    "client": 319,
+    "scroll": 319,
+    "display": "block",
+    "grid": "none"
+  },
+  {
+    "class": "opp-focus-why",
+    "width": 319.21875,
+    "client": 319,
+    "scroll": 319,
+    "display": "flex",
+    "grid": "none"
+  },
+  {
+    "class": "opp-focus-value",
+    "width": 319.21875,
+    "client": 319,
+    "scroll": 319,
+    "display": "grid",
+    "grid": "257.047px 54.9844px"
+  },
+  {
+    "class": "opp-card-evidence",
+    "width": 319.21875,
+    "client": 319,
+    "scroll": 319,
+    "display": "flex",
+    "grid": "none"
+  },
+  {
+    "class": "opp-card-controls",
+    "width": 319.21875,
+    "client": 319,
+    "scroll": 319,
+    "display": "flex",
+    "grid": "none"
+  }
+]

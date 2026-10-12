@@ -24,42 +24,6 @@
     }
 }
 
-.form-side-field {
-    display: grid;
-    grid-template-columns: auto minmax(0, 1fr);
-    align-items: stretch;
-    gap: 0.2rem;
-    min-width: 0;
-
-    .segmented-choice {
-        width: 100%;
-        min-width: 0;
-    }
-
-    .segmented-choice-button--short {
-        flex: 1 1 0;
-        min-width: 0;
-    }
-}
-
-.form-side-label {
-    display: inline-flex;
-    align-items: center;
-    justify-content: flex-end;
-    min-width: 2.75rem;
-    padding: 0 0.15rem 0 0;
-    font-size: var(--font-size-xs, 0.75rem);
-    font-weight: var(--font-weight-medium);
-    letter-spacing: 0.02em;
-    color: var(--color-text-muted);
-    line-height: 1.1;
-    white-space: nowrap;
-    border: 0;
-    background: none;
-    pointer-events: none;
-    user-select: none;
-}
-
 .settings-sides {
     display: grid;
     grid-template-columns: 1fr;
@@ -135,8 +99,6 @@
     display: none;
 }
 
-// Segmented choices with long labels remain side by side in narrow form columns.
-.form-side-field--stacked { grid-template-columns: minmax(0, 1fr); > .form-side-label { justify-content: flex-start; } }
 .form-field { position: relative; min-width: 0; }
 .form-field-heading {
     display: flex; align-items: center; gap: .35rem; min-width: 0;
@@ -147,6 +109,7 @@
     // Clip only the title text; keep the adjacent action visible.
     overflow: hidden; text-overflow: ellipsis;
     font-size: var(--font-size-xs); line-height: 1; color: var(--color-text-muted);
+    text-transform: uppercase;
 }
 .form-field-all {
     display: inline-flex; align-items: center; justify-content: center;
@@ -173,14 +136,15 @@
     }
 }
 
-// Caption shared by city and item choices.
-.choice-field-label {
-    font-size: 0.65rem;
-    font-weight: var(--font-weight-semibold);
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-    color: var(--color-text-muted);
-    line-height: 1.2;
+.choice-field {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    align-content: start;
+    gap: 1px;
+    min-width: 0;
+
+    > .segmented-choice { width: 100%; min-width: 0; }
+    .segmented-choice-button--short { flex: 1 1 0; min-width: 0; }
 }
 
 .result-section-title {
@@ -189,4 +153,12 @@
     letter-spacing: 0.02em;
     line-height: 1.2;
     color: var(--color-text);
+}
+
+// Responsive groups of the existing floating fields, including filter drawers.
+.tool-split-controls.tool-controls-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 12rem), 1fr));
+    align-content: start;
+    > .form-actions { grid-column: 1 / -1; }
 }

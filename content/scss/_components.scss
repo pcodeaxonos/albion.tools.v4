@@ -2099,6 +2099,21 @@ $city-on-colors: (
     }
 }
 
+.app-dialog:has(> .app-dialog-sheet) {
+    width: 48rem;
+    padding: 0;
+    border: 1px solid var(--color-border);
+    background: var(--color-surface);
+}
+
+.app-dialog-sheet {
+    max-height: calc(100dvh - 3rem);
+    min-height: 0;
+    overflow: auto;
+    padding: clamp(1rem, 3vw, 1.5rem);
+    h2 { margin-top: 0; }
+}
+
 .app-dialog-close {
     position: absolute;
     top: 0;
@@ -2152,15 +2167,9 @@ $city-on-colors: (
     }
 }
 
-/* Diagonal / map-style city picker */
+/* City choice geometry; field rhythm is shared by .choice-field. */
 .city-field--diagonal,
-.city-field--horizontal {
-    display: flex;
-    flex-direction: column;
-    gap: 0.25rem;
-    min-width: 0;
-    width: 100%;
-}
+.city-field--horizontal { width: 100%; }
 
 /* Compact destructive / data-consistency warnings shared by native dialogs. */
 .app-warning-dialog {
@@ -2557,15 +2566,17 @@ $city-on-colors: (
 .city-field--crests.city-field--inline {
     position: relative;
     height: var(--input-height);
-    .choice-field-label {
+    .form-field-heading {
         position: absolute;
         top: calc(var(--floating-label-float-size) * -.6);
         left: var(--floating-label-inset);
         padding-inline: var(--floating-label-pad);
         z-index: 2;
-        font-size: var(--floating-label-float-size);
+        right: var(--floating-label-inset);
+        height: auto;
         line-height: 1;
         background: var(--color-surface);
+        .form-field-label { font-size: var(--floating-label-float-size); }
     }
     .city-map--horizontal {
         height: 100%;
@@ -2580,18 +2591,10 @@ $city-on-colors: (
 }
 
 /* Plant picker — icon rows (settings: plantPickerStyle) */
-.plant-field--icons {
-    display: flex;
-    flex-direction: column;
-    gap: 0.25rem;
-    min-width: 0;
-    width: 100%;
-}
+.plant-field--icons { width: 100%; }
 
 
-.plant-field--island-yield {
-    gap: 0;
-}
+
 
 .plant-field--island-yield .plant-icon-picker {
     gap: 0.5rem;
@@ -2851,17 +2854,6 @@ $city-on-colors: (
     pointer-events: none;
 }
 .form-range-field {
-    display: grid;
-    gap: var(--spacing-sm);
-
-    > label {
-        display: flex;
-        justify-content: space-between;
-        gap: var(--spacing-sm);
-        font-size: var(--font-size-sm);
-        color: var(--color-text-muted);
-    }
-
     output { color: var(--color-text); }
 }
 
@@ -2906,13 +2898,10 @@ $city-on-colors: (
 }
 .form-value-hint { color: var(--color-text-muted); font-size: var(--font-size-sm); white-space: nowrap; }
 
-.city-field:has(> .city-all-button) { position: relative; }
-.city-all-button { display: block; width: 100%; min-height: 1.75rem; margin: 0 0 .3rem; padding: .2rem 0; font-size: var(--font-size-xs); font-weight: var(--font-weight-semibold); }
-.city-field--standard > .city-all-button { margin: .35rem 0 0; }
+
 
 // Shared selection state for tier badges and city all buttons.
-.filter-selection-button,
-.opp-filter-badge {
+.filter-selection-button {
     border: 1px solid var(--color-border);
     background: var(--color-surface);
     color: var(--color-text-muted);
@@ -2932,4 +2921,10 @@ $city-on-colors: (
         outline: var(--focus-outline-width) solid var(--color-focus-ring);
         outline-offset: var(--focus-outline-offset);
     }
+}
+
+// Keep native fallback option palettes readable under the shared dark form theme.
+.form-select, select.form-control {
+    color-scheme: dark;
+    option { color: var(--color-text); background-color: var(--color-surface); }
 }

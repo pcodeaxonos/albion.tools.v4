@@ -3,7 +3,7 @@
  * Run: node scripts/build-app-catalog.mjs
  */
 import fs from 'fs';
-import { SITE_ROUTES } from './site-routes.mjs';
+import { SITE_ROUTES, runtimeRoute } from './site-routes.mjs';
 
 const items = JSON.parse(fs.readFileSync('data/items.json', 'utf8'));
 const economy = JSON.parse(fs.readFileSync('data/economy-constants.json', 'utf8'));
@@ -91,14 +91,6 @@ for (const group of materialGroups) {
 }
 
 // Runtime metadata deliberately contains a public path, never a source file path.
-const runtimeRoute = ({ source, kind, nav, path, ...entry }) => ({
-    ...entry,
-    path,
-    navLabel: nav.label,
-    navGroup: nav.group,
-    navOrder: nav.order,
-    navVisible: nav.visible
-});
 const siteTools = SITE_ROUTES.filter((entry) => entry.kind === 'tool').map(runtimeRoute);
 const sitePages = SITE_ROUTES.filter((entry) => entry.kind !== 'tool').map(runtimeRoute);
 

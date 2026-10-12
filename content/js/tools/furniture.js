@@ -1,10 +1,8 @@
 import { toggleAllFilter } from '../components/filter-selection.js';
 import { itemNameHtml } from '../components/item-name.js';
-import { toolPageHtml } from '../components/tool-page.js';
+import { toolPageHtml } from '../core/app-runtime.js';
 import { escapeHtml } from '../utils/utils.js';
-import { initNav } from '../core/nav.js';
 import { routeHref } from '../core/routes.js';
-import { initStore } from '../db/store.js';
 import { bonusDayIso, bonusWindowLabel } from '../core/bonus-day.js';
 import { getBonusFamilyLabel } from '../core/bonus-families.js';
 import { defaultCraftBonusRate, normalizeCraftBonusRate, todayCraftBonuses, craftBonusToggleHtml } from '../core/craft-bonus.js';
@@ -778,20 +776,20 @@ function renderPage(container) {
                     <div class="segmented-choice" role="radiogroup" aria-label="Premium">
                         ${renderPremiumToggle()}
                     </div>
-                    <div class="form-side-field">
-                        <span class="form-side-label" id="furnitureBonusLabel">Bonus</span>
+                    <div class="choice-field form-field">
+                        <div class="form-field-heading"><div class="form-field-label" id="furnitureBonusLabel">Bonus</div></div>
                         <div class="segmented-choice" role="radiogroup" aria-labelledby="furnitureBonusLabel">
                             ${craftBonusToggleHtml(state.bonusRate)}
                         </div>
                     </div>
-                    <div class="form-side-field">
-                        <span class="form-side-label" id="furnitureMatSideLabel">Malzeme</span>
+                    <div class="choice-field form-field">
+                        <div class="form-field-heading"><div class="form-field-label" id="furnitureMatSideLabel">Malzeme</div></div>
                         <div class="segmented-choice" role="radiogroup" aria-labelledby="furnitureMatSideLabel">
                             ${priceSideToggleHtml('mat', state.matSide)}
                         </div>
                     </div>
-                    <div class="form-side-field">
-                        <span class="form-side-label" id="furnitureItemSideLabel">Satış</span>
+                    <div class="choice-field form-field">
+                        <div class="form-field-heading"><div class="form-field-label" id="furnitureItemSideLabel">Satış</div></div>
                         <div class="segmented-choice" role="radiogroup" aria-labelledby="furnitureItemSideLabel">
                             ${priceSideToggleHtml('item', state.itemSide)}
                         </div>
@@ -900,7 +898,6 @@ async function loadPrices(container, { showLoader = true, source } = {}) {
 }
 
 async function init() {
-    initNav();
     const container = document.querySelector('[data-tool="furniture"]');
     if (!container) {
         return;
@@ -913,7 +910,6 @@ async function init() {
 
     showPageLoader();
     try {
-        await initStore();
         ensureManualMaps();
         state.cities = loadActiveCities();
         const preferred = getDefaultCity();

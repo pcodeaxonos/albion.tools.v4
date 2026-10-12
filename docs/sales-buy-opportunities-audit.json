@@ -1,0 +1,127 @@
+{
+  "itemId": "T6_FOXGLOVE",
+  "auditedAt": "2026-10-12T11:32:30.000Z",
+  "scope": "Persisted checkpoints; pending live journals excluded",
+  "cells": [
+    {
+      "city": "Martlock",
+      "quality": 1,
+      "buy": 491,
+      "buyAt": "2026-10-11T21:30:00.000Z",
+      "buyStale": true,
+      "buyReference": 541.5,
+      "salesMedian": 538,
+      "salesDays": 27,
+      "salesFresh": true,
+      "result": "no-sales-buy-signal",
+      "discount": null,
+      "evidence": [
+        "buy:stale-price",
+        "buy:observation-unverified",
+        "buy:execution-unverified"
+      ]
+    },
+    {
+      "city": "Thetford",
+      "quality": 1,
+      "buy": 515,
+      "buyAt": "2026-10-11T21:50:00.000Z",
+      "buyStale": true,
+      "buyReference": 513.5,
+      "salesMedian": 556,
+      "salesDays": 27,
+      "salesFresh": true,
+      "result": "no-sales-buy-signal",
+      "discount": null,
+      "evidence": [
+        "buy:stale-price",
+        "buy:execution-unverified"
+      ]
+    },
+    {
+      "city": "Brecilien",
+      "quality": 1,
+      "buy": 541,
+      "buyAt": "2026-10-12T06:10:00.000Z",
+      "buyStale": false,
+      "buyReference": 556,
+      "salesMedian": 571,
+      "salesDays": 27,
+      "salesFresh": true,
+      "result": "no-sales-buy-signal",
+      "discount": null,
+      "evidence": []
+    },
+    {
+      "city": "Bridgewatch",
+      "quality": 1,
+      "buy": 504,
+      "buyAt": "2026-10-10T22:20:00.000Z",
+      "buyStale": true,
+      "buyReference": 501,
+      "salesMedian": 528.5,
+      "salesDays": 26,
+      "salesFresh": false,
+      "result": "no-sales-buy-signal",
+      "discount": null,
+      "evidence": [
+        "buy:stale-price",
+        "buy:execution-unverified",
+        "buy:sales-reference-stale"
+      ]
+    },
+    {
+      "city": "Caerleon",
+      "quality": 1,
+      "buy": null,
+      "buyAt": null,
+      "buyStale": false,
+      "buyReference": null,
+      "salesMedian": 493.5,
+      "salesDays": 20,
+      "salesFresh": false,
+      "result": "no-sales-buy-signal",
+      "discount": null,
+      "evidence": [
+        "buy:missing-price"
+      ]
+    },
+    {
+      "city": "Fort Sterling",
+      "quality": 1,
+      "buy": 496,
+      "buyAt": "2026-10-09T20:10:00.000Z",
+      "buyStale": true,
+      "buyReference": 484.5,
+      "salesMedian": 529,
+      "salesDays": 26,
+      "salesFresh": false,
+      "result": "no-sales-buy-signal",
+      "discount": null,
+      "evidence": [
+        "buy:stale-price",
+        "buy:execution-unverified",
+        "buy:sales-reference-stale"
+      ]
+    },
+    {
+      "city": "Lymhurst",
+      "quality": 1,
+      "buy": 503,
+      "buyAt": "2026-10-10T00:10:00.000Z",
+      "buyStale": true,
+      "buyReference": 535,
+      "salesMedian": 543,
+      "salesDays": 26,
+      "salesFresh": false,
+      "result": "no-sales-buy-signal",
+      "discount": null,
+      "evidence": [
+        "buy:stale-price",
+        "buy:observation-unverified",
+        "buy:execution-unverified",
+        "buy:sales-reference-stale"
+      ]
+    }
+  ]
+}

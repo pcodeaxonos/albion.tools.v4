@@ -1,0 +1,61 @@
+{
+  "baseline": {
+    "evaluated": 25874,
+    "discovered": 2271,
+    "verified": 1061,
+    "watch": 970,
+    "primary": {
+      "local-make": 856,
+      "cross-city-instant": 202,
+      "local-flip": 1,
+      "place-sell-order": 2
+    },
+    "ms": 6385.38710000366
+  },
+  "next": {
+    "pipeline": {
+      "examined": 25874,
+      "validPrice": 25874,
+      "newArchiveObservations": null,
+      "sufficientReference": 68,
+      "discovered": 2266,
+      "validated": 59,
+      "discoveredRejected": 1134,
+      "watch": 1073,
+      "rejected": 24742,
+      "reasons": {
+        "STALE_PRICE": 10497,
+        "INSUFFICIENT_HISTORY": 7907,
+        "INVALID_SPREAD": 783,
+        "BELOW_NET_PROFIT": 299,
+        "LOW_INDEPENDENT_OBSERVATIONS": 4436,
+        "ACTION_NOT_VALIDATED": 1073,
+        "VALIDATED_OPPORTUNITY": 59,
+        "NORMAL_MARKET_BEHAVIOR": 468,
+        "QUARANTINED": 352
+      }
+    },
+    "resultCounts": {
+      "trade": 59,
+      "watch": 1073,
+      "rejected": 24742
+    },
+    "primary": {
+      "cross-city-instant": 57,
+      "place-sell-order": 2
+    },
+    "coldMs": 7703.771700002253,
+    "warmMs": 6507.2714000009
+  },
+  "referenceStates": {
+    "stale": 19665,
+    "insufficient-samples": 8653,
+    "suspicious": 61,
+    "low-independent-observations": 760,
+    "quarantined": 374,
+    "reliable": 63,
+    "no-history": 3344
+  },
+  "removedCells": 1002,
+  "prefixSeries": 12
+}

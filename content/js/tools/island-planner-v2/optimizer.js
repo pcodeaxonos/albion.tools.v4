@@ -3,13 +3,14 @@ import { placementValue } from '../../core/island/placement-model.js';
 // Count search: fixed productions participate in every score and relaxation.
 // The continuous relaxation permits fractional plots; its optimum is therefore
 // an upper bound on every integer completion, including all feed synergies.
-export async function optimizePlacement(options, fixed, slotCount, { cancelled = () => false, focusBudget = null, varietyCount = null } = {}) {
+export async function optimizePlacement(options, fixed, slotCount, { cancelled = () => false, focusBudget = null, varietyCount = null, score = null, upperBound = null } = {}) {
     const limited = focusBudget != null;
     if (limited && (!Number.isFinite(focusBudget) || focusBudget < 0)) throw new Error('Geçerli günlük Focus bütçesi girin.');
     const focusOf = profile => profile.focusPerDay ?? (profile.entry?.focus ? null : 0);
     const fixedFocus = fixed.reduce((sum, profile) => sum + (focusOf(profile) ?? NaN), 0);
     if (limited && (!Number.isFinite(fixedFocus) || fixedFocus > focusBudget)) throw new Error('Mevcut slotların Focus ihtiyacı bilinmiyor veya günlük bütçeyi aşıyor.');
-    const baseline = placementValue(fixed).net;
+    const value = profiles => score ? score(profiles) : placementValue(profiles).net;
+    const baseline = value(fixed);
     // Balanced alternatives rank each next group against the complete plan,
     // including internal feed and the shared daily Focus budget.
     if (varietyCount != null) {
@@ -24,7 +25,7 @@ export async function optimizePlacement(options, fixed, slotCount, { cancelled =
                 const trial = [...selected, ...Array(count).fill(choice)];
                 if (limited && (!trial.every(profile => Number.isFinite(focusOf(profile)))
                     || fixedFocus + trial.reduce((sum, profile) => sum + focusOf(profile), 0) > focusBudget + 1e-7)) continue;
-                const net = placementValue([...fixed, ...trial]).net;
+                const net = value([...fixed, ...trial]);
                 if (Number.isFinite(net) && net > bestNet) { winner = choice; bestNet = net; }
             }
             if (!winner) throw new Error('Seçilen tür sayısı için yeterli uygun alternatif yok; tür sayısını azaltın veya Focus bütçesini artırın.');
@@ -32,14 +33,14 @@ export async function optimizePlacement(options, fixed, slotCount, { cancelled =
             selected.push(...Array(count).fill(winner));
             await new Promise(resolve => setTimeout(resolve, 0));
         }
-        const net = placementValue([...fixed, ...selected]).net;
+        const net = value([...fixed, ...selected]);
         return { net, baseline, marginalNet: net - baseline, entries: selected.map(profile => profile.entry),
             metadata: { candidates: options.length, focusBudget, varietyCount, objective: 'balanced-ranked-alternatives' } };
     }
     const profiles = new Map();
     for (const option of options) {
         if (limited && (!Number.isFinite(focusOf(option)) || focusOf(option) + fixedFocus > focusBudget)) continue;
-        const key = JSON.stringify([option.supplies, option.feed, limited ? focusOf(option) : null]);
+        const key = JSON.stringify([option.supplies, option.feed, limited ? focusOf(option) : null, score ? option.entry : null]);
         if (!profiles.has(key) || option.net > profiles.get(key).net) profiles.set(key, option);
     }
     const choices = [...profiles.values()].sort((a, b) => b.net - a.net);
@@ -49,13 +50,29 @@ export async function optimizePlacement(options, fixed, slotCount, { cancelled =
     const feasible = () => !limited || fixedFocus + selected.reduce((sum, profile) => sum + focusOf(profile), 0) <= focusBudget + 1e-7;
     const evaluate = () => {
         if (!feasible()) return;
-        const net = placementValue([...fixed, ...selected]).net;
+        const net = value([...fixed, ...selected]);
         if (net > best.net + 1e-7) best = { net, marginalNet: net - baseline, entries: selected.map(profile => profile.entry) };
     };
     // Cheap incumbents improve pruning, without restricting the exact search.
     for (const choice of choices) {
         for (let count = 1; count <= slotCount; count++) {
             selected.push(choice); evaluate();
+        }
+        selected.length = 0;
+    }
+    if (score) {
+        // A mixed incumbent is essential when each product has its own capacity.
+        for (let slot = 0; slot < slotCount; slot++) {
+            let winner = null, winnerNet = value([...fixed, ...selected]);
+            for (const choice of choices) {
+                const net = value([...fixed, ...selected, choice]);
+                if (net > winnerNet + 1e-7) { winner = choice; winnerNet = net; }
+            }
+            if (!winner) break;
+            selected.push(winner);
+            evaluate();
+            await new Promise(resolve => setTimeout(resolve, 0));
+            if (cancelled()) throw new Error('Plan değişti; otomatik doldurma iptal edildi.');
         }
         selected.length = 0;
     }
@@ -67,9 +84,9 @@ export async function optimizePlacement(options, fixed, slotCount, { cancelled =
         }
         evaluate(); // Leaving all remaining slots empty is a real candidate.
         if (!remaining || index === choices.length) return;
-        const upper = placementValue([...fixed, ...selected], choices.slice(index), remaining, { focusBudget }).upper;
+        const upper = upperBound ? upperBound([...fixed, ...selected], choices.slice(index), remaining) : placementValue([...fixed, ...selected], choices.slice(index), remaining, { focusBudget }).upper;
         // Only the certified dual bound can prune; equal optima need no new plan.
-        if (upper <= best.net) { pruned++; return; }
+        if (upper <= best.net + (score ? 1e-7 : 0)) { pruned++; return; }
         const length = selected.length;
         for (let count = remaining; count >= 0; count--) {
             selected.length = length;

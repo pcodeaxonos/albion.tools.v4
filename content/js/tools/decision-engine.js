@@ -1,15 +1,10 @@
 import { itemNameHtml } from '../components/item-name.js';
-import { initNav } from '../core/nav.js';
-import { initStore } from '../db/store.js';
-import { recordCurrentToolVisit } from '../core/usage.js';
 import { getSettings, getServer, SETTINGS_STORAGE_KEY } from '../core/settings.js';
 import { bindLivePrices } from '../core/price-live.js';
 import { decisionCatalog, decisionFees, loadDecisionQuotes, loadDecisionSeries, loadRecipeMechanics, decisionRecipeInfo } from '../core/decision-data.js';
 import { decide, STATUS, DECISION_POLICY } from '../core/decision-engine.mjs';
-import { toolPageHtml } from '../components/tool-page.js';
+import { toolPageHtml } from '../core/app-runtime.js';
 import { cityFieldHtml, bindCityField } from '../components/city-picker.js';
-import { initTooltips } from '../components/tooltip.js';
-import { initDialogBackdropClose } from '../components/dialog.js';
 import { initFloatingLabels } from '../components/forms.js';
 import { itemIconHtml, itemLabel } from '../components/item-icon.js';
 import { loadDecisionIcons, decisionIcon as icon } from '../components/decision-icons.js';
@@ -279,7 +274,6 @@ function bind() {
 }
 async function main() {
     root = document.querySelector('[data-decision-engine]'); if (!root) return;
-    await initStore(); initNav(); initTooltips(); initDialogBackdropClose(); recordCurrentToolVisit();
     catalog = decisionCatalog(); state.city = getSettings().defaultCity; loadRecent();
     await Promise.allSettled([loadDecisionIcons(), loadRecipeMechanics()]); renderShell(); bind();
     bindLivePrices(() => ({ items: selectedItems(), cities: [state.city] }), reload, { packetSourceOnly: false });

@@ -1,0 +1,41 @@
+[
+  {
+    "item_id": "T8_FARM_PUMPKIN_SEED",
+    "city": "Bridgewatch",
+    "quality": 1,
+    "sell_price_min": 0,
+    "sell_price_min_date": "0001-01-01T00:00:00",
+    "sell_price_max": 0,
+    "sell_price_max_date": "0001-01-01T00:00:00",
+    "buy_price_min": 0,
+    "buy_price_min_date": "0001-01-01T00:00:00",
+    "buy_price_max": 0,
+    "buy_price_max_date": "0001-01-01T00:00:00"
+  },
+  {
+    "item_id": "T8_MILK",
+    "city": "Bridgewatch",
+    "quality": 1,
+    "sell_price_min": 518,
+    "sell_price_min_date": "2026-10-11T21:15:00",
+    "sell_price_max": 600,
+    "sell_price_max_date": "2026-10-11T21:15:00",
+    "buy_price_min": 1,
+    "buy_price_min_date": "2026-10-11T20:15:00",
+    "buy_price_max": 376,
+    "buy_price_max_date": "2026-10-11T20:15:00"
+  },
+  {
+    "item_id": "T8_PUMPKIN",
+    "city": "Bridgewatch",
+    "quality": 1,
+    "sell_price_min": 440,
+    "sell_price_min_date": "2026-10-11T20:00:00",
+    "sell_price_max": 441,
+    "sell_price_max_date": "2026-10-11T20:00:00",
+    "buy_price_min": 0,
+    "buy_price_min_date": "0001-01-01T00:00:00",
+    "buy_price_max": 0,
+    "buy_price_max_date": "0001-01-01T00:00:00"
+  }
+]

@@ -1,0 +1,72 @@
+{
+  "measuredAt": "2026-10-12T07:04:56.277Z",
+  "server": "europe",
+  "personalSnapshotRecords": 17,
+  "filteredPersonal": true,
+  "requestedItems": 113,
+  "returnedMarketSeries": 791,
+  "marketVolumeSeries": 707,
+  "earliestReportedDay": "2026-09-09T00:00:00",
+  "latestReportedDay": "2026-10-10T00:00:00",
+  "maxDaysStored": 32,
+  "actualLocalHttpRequests": 8,
+  "actualExternalHistoryRequestsFromThisVerification": 0,
+  "limitation": "External fallback is a spy only; background collector traffic is independent and not counted here",
+  "periods": [
+    {
+      "days": 7,
+      "sources": {
+        "Yerel": 298,
+        "API": 0,
+        "Karma": 0,
+        "Yetersiz": 549
+      },
+      "validUnique": 264,
+      "missingUnique": 527
+    },
+    {
+      "days": 14,
+      "sources": {
+        "Yerel": 295,
+        "API": 0,
+        "Karma": 0,
+        "Yetersiz": 552
+      },
+      "validUnique": 261,
+      "missingUnique": 530
+    },
+    {
+      "days": 28,
+      "sources": {
+        "Yerel": 297,
+        "API": 0,
+        "Karma": 0,
+        "Yetersiz": 550
+      },
+      "validUnique": 263,
+      "missingUnique": 528
+    },
+    {
+      "days": 60,
+      "sources": {
+        "Yerel": 0,
+        "API": 0,
+        "Karma": 0,
+        "Yetersiz": 847
+      },
+      "validUnique": 0,
+      "missingUnique": 791
+    },
+    {
+      "days": 90,
+      "sources": {
+        "Yerel": 0,
+        "API": 0,
+        "Karma": 0,
+        "Yetersiz": 847
+      },
+      "validUnique": 0,
+      "missingUnique": 791
+    }
+  ]
+}

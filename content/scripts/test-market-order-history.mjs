@@ -1,9 +1,10 @@
+import { normalizeMarketHistoryPacket, parseMarketHistoryBody } from './market-history-packets.mjs';
 import { mergePartialBook, latestBookOrders } from '../js/core/market-book.mjs';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import vm from 'node:vm';
 import { OrderPriceHistory } from '../js/core/order-price-history.mjs';
-import { ORDER_HISTORY_POLICY, DAY_MS } from '../js/core/market-history-config.mjs';
+import { ORDER_HISTORY_POLICY, DAY_MS, SALES_HISTORY_ENDPOINT, PACKET_HISTORY_ENDPOINT } from '../js/core/market-history-config.mjs';
 import { aodpLongTermReference, orderLongTermReference } from '../js/core/long-term-price.mjs';
 import { normalizePriceDate, marketSeriesKey, BOOK_PRICE_FIELDS, priceIndexKey } from '../js/core/market-primitives.mjs';
 
@@ -107,15 +108,20 @@ class PacketHistory extends OrderPriceHistory {
     restore(payload, at = packetNow) { return super.restore(payload, at); }
     prune(at = packetNow) { return super.prune(at); }
 }
-const context = vm.createContext({ mergePartialBook, latestBookOrders, preserveArchive: () => {}, console, URL, URLSearchParams, Map, Set, Buffer,
+const context = vm.createContext({
+    normalizeMarketHistoryPacket, parseMarketHistoryBody, PACKET_HISTORY_ENDPOINT,
+    MarketHistoryPackets: class { constructor() { this.rows = []; } history(scope) { return this.rows.filter(row => row.server === scope.server && scope.items.includes(row.item_id) && scope.locations.includes(row.location) && scope.qualities.includes(row.quality)); } status() { return {}; } ingest(row) { this.rows.push(row); return row.data.length; } }, mergePartialBook, latestBookOrders, preserveArchive: () => {}, console, URL, URLSearchParams, Map, Set, Buffer,
+    OpportunityEvidenceRepository: class { close() {} }, routeOpportunityEvidence: async () => false,
+    OpportunityDiagnosticsRepository: class { constructor() { this.data = { scans: [], collectorRuns: [] }; } },
     startQuoteService: () => ({ repository: { flush() {} }, collector: { state: {}, noteDiscovery() {} } }),
     locationNamesByIndex: () => new Map(),
     createNatsMarketAdapter: () => ({ start() {}, snapshot: () => ({ status: 'off' }) }),
-    process: { env: {}, argv: [] }, Date: PacketDate, Promise, OrderPriceHistory: PacketHistory, ORDER_HISTORY_POLICY,
+    process: { env: {}, argv: [] }, Date: PacketDate, Promise, OrderPriceHistory: PacketHistory, ORDER_HISTORY_POLICY, SALES_HISTORY_ENDPOINT,
     normalizePriceDate, marketSeriesKey, BOOK_PRICE_FIELDS,
     readFileSync: path => {
         if (String(path).endsWith('price-servers.json')) return JSON.stringify(servers.map(code => ({ code })));
         if (String(path).endsWith('price-hub-config.json')) return '{"server":"europe"}';
+        if (String(path).endsWith('items.json')) return '[{"id":38,"uniqueName":"T4_FARM_HORSE_BABY"}]';
         if (String(path).endsWith('locations.json')) return '[{"index":"3005","uniqueName":"Martlock"}]';
         if (String(path).endsWith('cities.json')) return '[{"isActive":true,"marketApiName":"Martlock"}]';
         if (files.has(path)) return files.get(path);
@@ -131,16 +137,26 @@ const hubSource = readFileSync(new URL('./price-hub.mjs', import.meta.url), 'utf
 vm.runInContext(hubSource, context);
 const expires = new Date(now + DAY_MS).toISOString();
 context.orders = [
-    { Id: 1, ItemTypeId: 'T1_CARROT', LocationId: '3005', QualityLevel: 1, AuctionType: 'request', Price: 400, Expires: expires },
-    { Id: 2, ItemTypeId: 'T1_CARROT', LocationId: '3005', QualityLevel: 1, AuctionType: 'request', Price: 450, Expires: expires },
-    { Id: 3, ItemTypeId: 'T1_CARROT', LocationId: '3005', QualityLevel: 1, AuctionType: 'offer', Price: 600, Expires: expires },
-    { Id: 4, ItemTypeId: 'T1_CARROT', LocationId: '3005', QualityLevel: 1, AuctionType: 'offer', Price: 550, Expires: expires }
+    { Id: 1, ItemTypeId: 'T1_CARROT', LocationId: '3005', QualityLevel: 1, AuctionType: 'request', Price: 400, Amount: 12, Expires: expires },
+    { Id: 2, ItemTypeId: 'T1_CARROT', LocationId: '3005', QualityLevel: 1, AuctionType: 'request', Price: 450, Amount: 7, Expires: expires },
+    { Id: 3, ItemTypeId: 'T1_CARROT', LocationId: '3005', QualityLevel: 1, AuctionType: 'offer', Price: 600, Amount: 3, Expires: expires },
+    { Id: 4, ItemTypeId: 'T1_CARROT', LocationId: '3005', QualityLevel: 1, AuctionType: 'offer', Price: 550, Amount: 9, Expires: expires }
 ];
 assert.equal(vm.runInContext('ingestMarketUpload(orders)', context), 2);
 const snapshot = vm.runInContext('orderHistory.snapshot(Date.now())', context);
 assert.equal(snapshot.series.length, 2);
 assert.equal(snapshot.series.find(s => s.side === 'buy').buckets[0].price, 450);
 assert.equal(snapshot.series.find(s => s.side === 'sell').buckets[0].price, 550);
+const buyPacket = snapshot.series.find(s => s.side === 'buy').buckets[0];
+assert.deepEqual([...buyPacket.rawEvidence.map(order => order.observedAmount)], [12, 7], 'packet amount survives as an individual observed order field');
+assert.equal(buyPacket.sourceTimeKnown, false, 'packet receipt time is not the order source time');
+assert.equal(buyPacket.coverage, 'partial', 'individual amounts do not imply a complete book');
+assert.equal(buyPacket.rawEvidence.every(order => !Object.hasOwn(order, 'sourceQuoteAt')), true);
+assert.equal(Object.hasOwn(buyPacket, 'availableQuantity'), false, 'partial packet evidence does not publish aggregate capacity');
+context.missingAmount = [{ ...context.orders[0], Id: 5, Amount: undefined }];
+vm.runInContext('ingestMarketUpload(missingAmount)', context);
+const missingAmountOrder = vm.runInContext("[...books.values()][0].orders.get('5')", context);
+assert.equal(missingAmountOrder.observedAmount, null, 'unknown packet amount remains unknown instead of becoming zero');
 vm.runInContext('ingestMarketUpload(orders); persistCache()', context);
 assert.equal(vm.runInContext('orderHistory.snapshot(Date.now()).series[0].buckets.length', context), 1);
 assert.equal(files.size, 2, 'Both cache and separate atomic history archive must be persisted');
@@ -168,6 +184,12 @@ await vm.runInContext("route({ method: 'GET' }, response, new URL('http://localh
 assert.equal(JSON.parse(context.response.body).series.length, 1);
 await vm.runInContext("route({ method: 'GET' }, response, new URL('http://localhost/api/v1/market/order-history'), '/api/v1/market/order-history')", context);
 assert.equal(context.response.code, 400);
+context.historyWire = JSON.stringify({AlbionId:38,LocationId:'3005',QualityLevel:1,Timescale:0,MarketHistories:[{ItemAmount:4,SilverAmount:'1620120000',Timestamp:String(BigInt(packetNow-3600000)*10000n+621355968000000000n)}]});
+context.historyRequest = {method:'POST',on(name,callback){if(name==='data')callback(Buffer.from(context.historyWire));if(name==='end')callback();return this;}};
+await vm.runInContext("route(historyRequest,response,new URL('http://localhost/markethistories.ingest'),'/markethistories.ingest')",context);
+assert.equal(context.response.code,200);assert.equal(JSON.parse(context.response.body).points,1,'history upload is stored rather than ignored');
+await vm.runInContext("route({method:'GET'},response,new URL('http://localhost/api/v1/market/packet-history?server=europe&items=T4_FARM_HORSE_BABY&locations=Martlock&qualities=1&days=28'),'/api/v1/market/packet-history')",context);
+assert.equal(JSON.parse(context.response.body).rows[0].data[0].avg_price,40503,'planner endpoint exposes normalized packet price');
 // Legacy cache is allowed for live prices, but never backfilled into history.
 vm.runInContext('orderHistory.series.clear(); loadCache()', context);
 assert.equal(vm.runInContext('orderHistory.series.size', context), 0);

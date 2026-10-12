@@ -1,0 +1,96 @@
+{
+  "baseline": {
+    "evaluated": 25874,
+    "discovered": 2266,
+    "verified": 59,
+    "watch": 1073,
+    "primary": {
+      "cross-city-instant": 57,
+      "place-sell-order": 2
+    },
+    "ms": 13155.614599995315
+  },
+  "next": {
+    "pipeline": {
+      "examined": 25874,
+      "validPrice": 25874,
+      "newArchiveObservations": null,
+      "sufficientReference": 68,
+      "discovered": 2473,
+      "validated": 107,
+      "executionConfirmed": 0,
+      "priceSupported": 107,
+      "discoveredRejected": 1273,
+      "watch": 1093,
+      "rejected": 24674,
+      "reasons": {
+        "STALE_PRICE": 10497,
+        "INSUFFICIENT_HISTORY": 8003,
+        "INVALID_SPREAD": 922,
+        "ACTION_NOT_VALIDATED": 1093,
+        "LOW_INDEPENDENT_OBSERVATIONS": 4436,
+        "VALIDATED_OPPORTUNITY": 107,
+        "NORMAL_MARKET_BEHAVIOR": 464,
+        "QUARANTINED": 352
+      }
+    },
+    "resultCounts": {
+      "trade": 107,
+      "watch": 1093,
+      "rejected": 24674
+    },
+    "primary": {
+      "cross-city-instant": 105,
+      "place-sell-order": 2
+    },
+    "coldMs": 16022.002399995923,
+    "warmMs": 21793.98149999976
+  },
+  "freshEvidence": {
+    "rows": 0,
+    "newSourceEvents": 0,
+    "repeatedSourceEvents": 0,
+    "changedPrices": 0,
+    "invalid": 0
+  },
+  "referenceStates": {
+    "stale": 19665,
+    "insufficient-samples": 8653,
+    "suspicious": 61,
+    "low-independent-observations": 760,
+    "quarantined": 374,
+    "reliable": 63,
+    "no-history": 3344
+  },
+  "referenceCoverage": {
+    "pricedSides": 32920,
+    "independentSourceShortage": 32659,
+    "acceptedEvidenceShortage": 32692,
+    "sufficientCells": 68,
+    "sufficientFreshCells": 59,
+    "failures": {
+      "no-history": 17836,
+      "independent-observations": 32720,
+      "time-span": 30776,
+      "stability": 18526,
+      "stale": 19775,
+      "source-scope": 831
+    },
+    "partition": {
+      "no-history": 17836,
+      "independent-observations": 14884,
+      "time-span": 98,
+      "stale": 13,
+      "stability": 25,
+      "sufficient": 64
+    }
+  },
+  "outcomeCounts": {
+    "execution-confirmed": 0,
+    "price-supported": 107,
+    "watch": 1093,
+    "rejected": 24674
+  },
+  "removedCells": 0,
+  "prefixSeries": 12
+}

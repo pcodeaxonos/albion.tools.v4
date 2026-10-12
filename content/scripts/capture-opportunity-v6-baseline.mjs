@@ -1,0 +1,15 @@
+import {readFileSync,writeFileSync} from 'node:fs';
+import {createHash} from 'node:crypto';
+import {gzipSync,gunzipSync} from 'node:zlib';
+import {rankOpportunityPresentation} from '../js/core/market-opportunity-quality.mjs';
+import {rankCommercialOpportunities} from '../js/core/market-opportunity-commerce.mjs';
+const root='docs/opportunity-v6';
+const names=[...readFileSync('content/scripts/quote-service.mjs','utf8').matchAll(/for \(const name of \[([\s\S]*?)\]\)/g)].flatMap(m=>[...m[1].matchAll(/'([^']+)'/g)].map(x=>x[1]));
+const hashes=Object.fromEntries([...names,'opportunity-assistant'].map(n=>[n,createHash('sha256').update(readFileSync(`content/js/core/${n}.mjs`)).digest('hex')]));
+const scan=process.argv.includes('--live') ? await (await fetch('http://127.0.0.1:3001/api/v1/market/opportunities?server=europe&premium=1',{signal:AbortSignal.timeout(90000)})).json() : JSON.parse(gunzipSync(readFileSync('docs/opportunity-v5/live-scan.json.gz')));
+if(!scan.eligibleCandidates) throw Error('Missing baseline candidates');
+const ranked=rankCommercialOpportunities(rankOpportunityPresentation(scan.eligibleCandidates,{calibration:scan.qualityCalibration}),{calibration:scan.qualityCalibration});
+writeFileSync(`${root}/baseline-scan.json.gz`,gzipSync(JSON.stringify(scan)));
+writeFileSync(`${root}/baseline-ranked.json.gz`,gzipSync(JSON.stringify(ranked)));
+writeFileSync(`${root}/baseline.json`,JSON.stringify({capturedAt:new Date().toISOString(),snapshotAt:scan.scannedAt,hashes,raw:scan.eligibleCandidates.length,groups:ranked.length},null,2));
+console.log(JSON.stringify({raw:scan.eligibleCandidates.length,groups:ranked.length,snapshotAt:scan.scannedAt}));

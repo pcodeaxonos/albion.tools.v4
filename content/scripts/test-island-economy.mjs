@@ -22,9 +22,10 @@ function moduleFor(file) {
     file = path.resolve(file);
     if (modules.has(file)) return modules.get(file);
     let code = fs.readFileSync(file, 'utf8');
-    if (file.endsWith(`${path.sep}nav.js`)) code = 'export function initNav() {}';
+    if (file.endsWith(`${path.sep}app-runtime.js`)) code = '';
+    if (file.endsWith(`${path.sep}toast.js`)) code = 'export function showToast(message, options = {}) { testToasts.push({ message, ...options }); }';
     if (file.endsWith(`${path.sep}forms.js`)) code = 'export function initFloatingLabels() {}';
-    if (file.endsWith(`${path.sep}island-planner-v2.js`)) code = code.replace(/init\(\);\s*$/, 'export { state, priceSummaryLabel, renderPriceSegment, priceLookup, fetchPlanPrices, renderDetail, renderSummary, renderControls };');
+    if (file.endsWith(`${path.sep}island-planner-v2.js`)) code = code.replace(/(?:void )?init\(\)(?:\.catch\([\s\S]*?\n\}\))?;\s*$/, 'export { state, priceSummaryLabel, renderPriceSegment, priceLookup, fetchPlanPrices, renderDetail, renderSummary, renderControls, autoFillIsland, potentialPriceRequests, v2PriceItemIds, renderSalesPotentialResult };');
     const module = new vm.SourceTextModule(code, { context, identifier: file });
     modules.set(file, module);
     return module;
@@ -57,7 +58,7 @@ assert.ok(wheat && chicken, 'real catalog loaded');
 store.replaceAllRows('islandYieldLogs', []);
 const near = (actual, expected, label) => assert.ok(Math.abs(actual - expected) < 1e-7, `${label}: ${actual} != ${expected}`);
 let checks = 0;
-function test(name, run) { run(); checks++; console.log(`PASS ${name}`); }
+function test(name, run) { if (process.env.ISLAND_TEST_FILTER && !name.includes(process.env.ISLAND_TEST_FILTER)) return; run(); checks++; console.log(`PASS ${name}`); }
 
 test('daily purchase expense lines reconcile order fees and retain missing prices', () => {
     const lines = v2.purchaseExpenseLines('Yem', 90, { price: 100, setup: true }, 9225);
@@ -335,7 +336,7 @@ test('V2 Focus totals use editable item defaults for watering and nurture', () =
     assert.equal(mixed.slots.get('R1').dependencies.focus.length, 0);
     assert.equal(plan(['wheat', 'chicken']).summary.focus, 0);
 });
-async function placementTest(name, run) { await run(); checks++; console.log(`PASS ${name}`); }
+async function placementTest(name, run) { if (process.env.ISLAND_TEST_FILTER && !name.includes(process.env.ISLAND_TEST_FILTER)) return; await run(); checks++; console.log(`PASS ${name}`); }
 await placementTest('V2 filling preserves occupied and locked slots; validates marginal total against engine', async () => {
     plan(['wheat']);
     const fixed = v2.state.draft.slots[0];
@@ -652,4 +653,190 @@ await placementTest('V2 production ledger renders every catalog mode and the lar
     assert.ok(largest.count >= 3);
     console.log('Largest production ledger:', JSON.stringify(largest));
 });
+
+const salesModule = await load('content/js/core/island-sales-potential.mjs');
+await salesModule.evaluate();
+const sales = salesModule.namespace;
+const salesBoundModule = await load('content/js/core/island/sales-bound.js');
+await salesBoundModule.evaluate();
+const optimizerModule = await load('content/js/tools/island-planner-v2/optimizer.js');
+await optimizerModule.evaluate();
+await placementTest('Sales potential uses common feed engine, preserves fixed slots and certifies capacity bounds', async () => {
+    plan(['chicken']);
+    const fixedEntry = v2.state.draft.slots[0];
+    const before = JSON.stringify(v2.state.draft);
+    const entries = [{ id: 'trial', item: 'wheat', focus: false }, { id: 'trial', item: 'chicken', productionMode: 'product', focus: false }];
+    const evidence = new Map();
+    for (const entry of [fixedEntry, ...entries]) {
+        const row = v2.calculateIslandPlan({ entries: [entry], update: false }).slots.get(entry.id);
+        evidence.set(row.saleItemId, { reliable: true, price: row.saleQuote.price, volume: 2800 });
+    }
+    const calculate = profiles => v2.calculateIslandPlan({ entries: profiles.map((profile, i) => ({ ...profile.entry, id: 'test-' + i })), salePrices: evidence, update: false });
+    const fixed = v2.calculateIslandPlan({ entries: [fixedEntry], salePrices: evidence, update: false }).profiles;
+    const choices = entries.map(entry => v2.calculateIslandPlan({ entries: [entry], salePrices: evidence, update: false }).profiles[0]);
+    const score = profiles => sales.salesPlanValue(calculate(profiles), evidence, 28, 10).net / 28;
+    const limits = new Map([...evidence].map(([id, stats]) => [id, stats.volume * .1 / 28]));
+    const upperBound = (fixed, options, remaining) => salesBoundModule.namespace.salesPlacementUpper(fixed, options, remaining, limits);
+    let best = score(fixed);
+    for (let a = 0; a <= 3; a++) for (let b = 0; b <= 3 - a; b++) best = Math.max(best, score([...fixed, ...Array(a).fill(choices[0]), ...Array(b).fill(choices[1])]));
+    assert.ok(upperBound(fixed, choices, 3) >= best - 1e-7);
+    for (let a = 0; a <= 3; a++) for (let b = 0; b <= 3 - a; b++) {
+        const selected = [...fixed, ...Array(a).fill(choices[0]), ...Array(b).fill(choices[1])];
+        near(salesBoundModule.namespace.salesProfileValue(selected, limits), score(selected), 'shared profile score equals full engine');
+    }
+    const result = await optimizerModule.namespace.optimizePlacement(choices, fixed, 3, { score, upperBound });
+    near(result.net, best, 'capacity + feed exact search');
+    assert.equal(JSON.stringify(v2.state.draft), before);
+    assert.equal(v2.state.draft.slots[0], fixedEntry);
+    const crop = calculate([choices[0]]).slots.get('test-0');
+    assert.ok(crop.saleEffective < evidence.get(crop.saleItemId).price, 'history price includes sale taxes and setup');
+});
+await placementTest('Sales potential full catalog 16-slot search remains usable', async () => {
+    plan([]);
+    v2.state.draft.islandLevel = 6;
+    const entries = v2.optimizationEntries().filter(entry => !entry.focus);
+    const evidence = new Map();
+    for (const entry of entries) {
+        const slot = v2.calculateIslandPlan({ entries: [entry], update: false }).slots.get(entry.id);
+        if (slot?.saleQuote) evidence.set(slot.saleItemId, { reliable: true, price: slot.saleQuote.price, volume: 280000 });
+    }
+    const choices = entries.flatMap(entry => {
+        const trial = v2.calculateIslandPlan({ entries: [entry], update: false, salePrices: evidence });
+        return Number.isFinite(trial.profiles[0]?.net) ? trial.profiles : [];
+    });
+
+    const limits = new Map([...evidence].map(([id, stats]) => [id, stats.volume * .1 / 28]));
+    const score = profiles => salesBoundModule.namespace.salesProfileValue(profiles, limits);
+    const start = Date.now();
+    const result = await optimizerModule.namespace.optimizePlacement(choices, [], 16, { score, upperBound: (fixed, options, remaining) => salesBoundModule.namespace.salesPlacementUpper(fixed, options, remaining, limits) });
+    near(result.net, score(result.entries.map(entry => choices.find(choice => JSON.stringify(choice.entry) === JSON.stringify(entry)))), 'catalog capacity result');
+    const final = v2.calculateIslandPlan({ entries: result.entries.map((entry, i) => ({ ...entry, id: 'final-' + i })), update: false, salePrices: evidence });
+    near(result.net, sales.salesPlanValue(final, evidence, 28, 10).net / 28, 'full common engine verification');
+    console.log('Sales catalog search', choices.length, result.metadata.visited, Date.now() - start, 'ms');
+});
+
+
+await placementTest('Sales potential live Europe Bridgewatch fixture validates a real placement and excludes missing seed prices', async () => {
+    const historyFixture = JSON.parse(fs.readFileSync('content/scripts/fixtures/island-sales-history-live.json', 'utf8').replace(/^\uFEFF/, ''));
+    const prices = JSON.parse(fs.readFileSync('content/scripts/fixtures/island-sales-prices-live.json', 'utf8').replace(/^\uFEFF/, ''));
+    plan(['cow']);
+    v2.state.draft.islandCity = 'Bridgewatch';
+    v2.state.draft.sellCity = 'Bridgewatch';
+    v2.state.draft.harvestSide = 'sell';
+    v2.state.priceIndex = market.indexPrices(prices);
+    const evidence = new Map(historyFixture.rows.map(row => [row.item_id, sales.salesEvidence(row.data, 28, Date.parse(historyFixture.capturedAt), prices.find(price => price.item_id === row.item_id)?.sell_price_min)]));
+    const fixedEntry = v2.state.draft.slots[0];
+    const fixed = v2.calculateIslandPlan({ entries: [fixedEntry], update: false, salePrices: evidence }).profiles;
+    const cow = v2.calculateIslandPlan({ entries: [{ ...fixedEntry, id: 'choice' }], update: false, salePrices: evidence }).profiles[0];
+    const pumpkin = v2.calculateIslandPlan({ entries: [{ id: 'crop', item: 'pumpkin' }], update: false, salePrices: evidence });
+    assert.equal(pumpkin.slots.get('crop').net, null, 'missing real seed quote is not zero cost');
+    const limits = new Map([...evidence].map(([id, stats]) => [id, stats.volume * .1 / 28]));
+    const result = await optimizerModule.namespace.optimizePlacement([cow], fixed, 3, { score: profiles => salesBoundModule.namespace.salesProfileValue(profiles, limits), upperBound: (fixed, options, remaining) => salesBoundModule.namespace.salesPlacementUpper(fixed, options, remaining, limits) });
+    const entries = [fixedEntry, ...result.entries.map((entry, i) => ({ ...entry, id: 'live-' + i }))];
+    const final = sales.salesPlanValue(v2.calculateIslandPlan({ entries, update: false, salePrices: evidence }), evidence, 28, 10);
+    near(final.net / 28, result.net, 'real prices/history engine verification');
+    assert.ok(result.marginalNet > 0);
+    assert.equal(entries[0], fixedEntry);
+    console.log('Live fixture placement', JSON.stringify({ slots: entries.length, net: final.net, gain: result.marginalNet * 28, salesDays: final.sellDays }));
+});
+
+
+await placementTest('Sales potential history transport preserves quality and raw transactions and reuses cache', async () => {
+    const historyModule = await load('content/js/core/market-history.js');
+    await historyModule.evaluate();
+    let requests = 0;
+    context.AbortSignal = { timeout: () => undefined };
+    context.fetch = async url => {
+        requests++;
+        const quality = Number(new URL(url).searchParams.get('qualities'));
+        return { ok: true, json: async () => [{ item_id: 'TEST_HISTORY', location: 'Bridgewatch', quality, data: [{ timestamp: '2026-10-10T00:00:00', avg_price: quality * 100, item_count: 42 }] }] };
+    };
+    const history = historyModule.namespace;
+    const first = await history.fetchHistoryIndex(['TEST_HISTORY'], ['Bridgewatch'], { days: 28, qualities: 1 });
+    assert.equal(history.historyAt(first, 'TEST_HISTORY', 'Bridgewatch', 1).points[0].item_count, 42);
+    await history.fetchHistoryIndex(['TEST_HISTORY'], ['Bridgewatch'], { days: 28, qualities: 1 });
+    assert.equal(requests, 1, 'same server/city/quality/window reuses cache');
+    const second = await history.fetchHistoryIndex(['TEST_HISTORY'], ['Bridgewatch'], { days: 28, qualities: 2 });
+    assert.equal(history.historyAt(second, 'TEST_HISTORY', 'Bridgewatch', 2).medianAvgPrice, 200);
+    assert.equal(history.historyAt(second, 'TEST_HISTORY', 'Bridgewatch', 1), null);
+    await history.fetchHistoryIndex(['TEST_HISTORY'], ['Bridgewatch'], { days: 28, qualities: 2 });
+    assert.equal(requests, 2, 'quality 2 uses its own cache');
+});
+
+
+await placementTest('Potential P25/P75 prices use the daily engine without volume limits and preserve occupied/locked slots', async () => {
+    plan(['chicken']); v2.state.draft.islandLevel = 6;
+    v2.state.draft.seedSide = 'potential'; v2.state.draft.harvestSide = 'potential'; v2.state.draft.potentialDays = 28;
+    v2.state.draft.minSalesVolume = 1000000;
+    v2.state.draft.slots.push({ id: 'R2', item: null }, { id: 'R3', item: null, locked: true });
+    const occupied = v2.state.draft.slots[0], locked = v2.state.draft.slots[2];
+    const prices = new Map(priceRows().map(row => [row.item_id, row.sell_price_min]));
+    const requests = v2.potentialPriceRequests();
+    const now = Date.now();
+    // Low historical quantities deliberately cannot be treated as production caps.
+    const trades = requests.flatMap(req => Array.from({ length: 5 }, (_, day) => Array.from({ length: 2 }, (_, n) => ({
+        sourceId: req.itemId + '-' + req.side + '-' + day + '-' + n, kind: 'instant_' + req.side,
+        itemId: req.itemId, locationName: req.city, quality: 1, quantity: 1, unitPriceSilver: prices.get(req.itemId) ?? fixture.other,
+        occurredAt: new Date(now - (day + 1) * 86400000).toISOString()
+    }))).flat());
+    let local = 0, external = 0;
+    context.AbortSignal = { timeout: () => undefined }; context.testToasts = [];
+    context.fetch = async url => {
+        if (url.includes('/api/v1/trades')) { local++; return { ok: true, json: async () => ({ server: 'europe', scope: 'personal', trades }) }; }
+        external++; throw new Error('Unexpected external request');
+    };
+    (await load('content/js/core/trade-live.js')).namespace.emitTradeLive({ type: 'initial' });
+    v2.renderControls(); assert.equal(local, 0);
+    assert.ok(v2.renderPriceSegment('Tohum', 'potential', false, 'seed').includes('data-v2-seed="potential"'));
+    await v2.autoFillIsland({ clearSlots: true });
+    assert.equal(local, 1); assert.equal(external, 0);
+    assert.equal(v2.state.draft.slots[0], occupied); assert.equal(v2.state.draft.slots[2], locked);
+    assert.ok(v2.state.draft.slots[1].item, 'historical quantity 10 never caps normal production');
+    assert.equal(v2.state.draft.seedSide, 'potential'); assert.equal(v2.state.draft.harvestSide, 'potential');
+    assert.ok(v2.state.autoFillResult.totalNet > v2.state.autoFillResult.baselineNet);
+    near(v2.state.derived.summary.net, v2.state.autoFillResult.totalNet, 'optimizer uses net per day');
+    const expected = v2.calculateIslandPlan({ update: false });
+    const selectedEntries = v2.state.draft.slots;
+    const inputPrices = new Map(), salePrices = new Map();
+    for (const req of requests) {
+        const quote = v2.priceLookup(req.itemId, req.city, 'potential', req.side, req.side === 'buy' ? 'input' : 'output').quote;
+        if (quote) (req.side === 'buy' ? inputPrices : salePrices).set(req.itemId, { reliable: true, price: quote.price, setup: true });
+    }
+    const sameInputs = v2.calculateIslandPlan({ entries: selectedEntries, update: false, inputPrices, salePrices });
+    near(expected.summary.net, sameInputs.summary.net, 'same price inputs give same existing engine result');
+    const html = v2.renderSalesPotentialResult(); assert.ok(html.includes('P25')); assert.ok(html.includes('P75')); assert.ok(html.includes('Kişisel'));
+    assert.ok(!v2.renderControls().includes('data-v2-sales-share'));
+});
+await placementTest('Potential acquisition and harvest selections are independent and unknown prices never fall back silently', async () => {
+    plan(['wheat']); v2.state.draft.potentialDays = 28;
+    v2.state.draft.seedSide = 'potential'; v2.state.draft.harvestSide = 'sell';
+    assert.ok(v2.potentialPriceRequests().every(req => req.side === 'buy'));
+    v2.state.potentialPriceIndex = new Map();
+    assert.equal(v2.priceLookup(wheat.seedId, 'Fort Sterling', 'potential', 'buy', 'input').quote, null);
+    assert.equal(v2.calculateIslandPlan({ update: false }).summary.net, null);
+    v2.state.draft.seedSide = 'buy'; v2.state.draft.harvestSide = 'potential';
+    assert.ok(v2.potentialPriceRequests().every(req => req.side === 'sell'));
+    assert.equal(v2.priceLookup(wheat.plantId, 'Fort Sterling', 'potential', 'sell', 'output').quote, null);
+    assert.equal(v2.calculateIslandPlan({ update: false }).summary.net, null);
+    v2.state.draft.seedSide = 'potential'; v2.state.draft.seedFixed = true;
+    v2.state.fixedPrices = [{ itemId: wheat.seedId, role: 'input', price: 12 }];
+    assert.equal(v2.priceLookup(wheat.seedId, 'Fort Sterling', 'potential', 'buy', 'input').quote?.price, 12, 'fixed method precedence remains unchanged');
+    v2.state.fixedPrices = [];
+});
+
+await placementTest('Daily mode without Potential performs zero trade/sales-history/API-history requests', async () => {
+    plan([]); v2.state.draft.islandLevel = 6;
+    v2.state.draft.slots.push({ id: 'R1', item: null });
+    v2.state.draft.seedSide = 'buy'; v2.state.draft.harvestSide = 'sell'; v2.state.draft.minSalesVolume = 0;
+    context.testToasts = [];
+    context.AbortSignal = { timeout: () => undefined };
+    let histories = 0;
+    context.fetch = async url => {
+        if (/\/api\/v1\/trades|sales-history|\/stats\/history/.test(url)) histories++;
+        return { ok: true, json: async () => [] };
+    };
+    v2.renderControls(); await v2.autoFillIsland();
+    assert.equal(histories, 0);
+});
+
 console.log(`${checks} island economy checks passed.`);

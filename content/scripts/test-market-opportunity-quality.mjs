@@ -31,7 +31,8 @@ assert.equal(rank([old, fresh])[0].id, 'fresh');
 const calibration = qualityCalibration([fresh]);
 const quality = strategyQuality(fresh, fresh.primary, calibration);
 assert.deepEqual(quality.unknown, ['orderDepth', 'volume', 'fillProbability']);
-assert.equal(quality.components.evidence, 1);
+assert.equal(quality.components.evidence, .5, 'unknown reference does not earn reference credit');
+assert.equal(quality.evidenceComponents.reference, null);
 assert.ok(!Object.hasOwn(quality.components, 'fillProbability'));
 assert.equal(strategyQuality(make('haul', 1000, .1, 1000, 'transport'), make('haul', 1000, .1, 1000, 'transport').primary, calibration).unknown.includes('travelCost'), true);
 // Near-score diversity is bounded; no group quota can lift substantially worse economics.
@@ -65,6 +66,7 @@ const repository = { identities: () => identities, seriesFor: identity => ({ sou
 const scan = scanQuoteBooks({ server: 'europe', repository, now, fees, includeCandidates: true });
 assert.equal(scan.eligibleCandidates.length, scan.counts.verified);
 assert.ok(scan.eligibleCandidates.every(row => !Object.hasOwn(row, 'decisions')));
-assert.equal(scan.opportunities[0].opportunityQuality.execution, 'order');
-assert.equal(scan.opportunities[0].quality, 1, 'ranking preserves product identity quality');
+assert.equal(scan.opportunities.length, 0, 'a first observation and positive maker spread are not an opportunity');
+assert.equal(scan.resultCounts.rejected, 1);
+assert.equal(scan.diagnostics[0].quality, 1, 'review preserves product identity quality');
 console.log('Opportunity quality: execution, economics, weights, unknown risks, diversity, preserved sort modes, filters, full pool and limit passed.');

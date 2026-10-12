@@ -1,6 +1,7 @@
 import https from 'node:https';
 import { gunzipSync } from 'node:zlib';
-import { AODP_COLLECTOR_POLICY, LONG_TERM_STRATEGIES } from '../js/core/market-history-config.mjs';
+import { AODP_COLLECTOR_POLICY, LONG_TERM_STRATEGIES, DAY_MS, HISTORY_CACHE_POLICY, PRICE_STALE_MS } from '../js/core/market-history-config.mjs';
+import { salesHistoryWindow } from '../js/core/sales-history-store.mjs';
 import { normalizePriceDate, BOOK_PRICE_FIELDS } from '../js/core/market-primitives.mjs';
 import { aodpUrl, urlBatches as priceBatches } from '../js/core/market-request.mjs';
 export { aodpUrl, urlBatches as priceBatches } from '../js/core/market-request.mjs';
@@ -34,14 +35,22 @@ export function requestAodp(url, timeoutMs) {
 
 export function createAodpCollector({ host, server, ids, cities, repository,
     policy = AODP_COLLECTOR_POLICY, collectionPlan = null, request = requestAodp, now = Date.now,
-    sleep = ms => new Promise(resolve => setTimeout(resolve, ms)), log = console.log,
+    sleep = ms => new Promise(resolve => setTimeout(resolve, ms)), log = console.log, onRun = () => {},
     timers = { setTimeout, clearTimeout } }) {
     const state = { status: 'scheduled', server, itemCount: ids.length, cityCount: cities.length,
         intervalMs: policy.intervalMs, lastSuccessAt: null, lastRun: null, nextRunAt: null };
     let running = false, stopped = false, timer = null, blockedUntil = 0;
+    const idleWaiters = [];
     const itemSet = new Set(ids), citySet = new Set(cities);
+    const historyPending = new Map(), historyCache = new Map();
     const inScope = row => itemSet.has(row.item_id) && citySet.has(row.city ?? row.location) && Number(row.quality) === policy.quality;
-    async function fetchRows(url, summary) {
+    let requestTail = Promise.resolve();
+    function fetchRows(url, summary) {
+        const job = requestTail.then(() => performFetchRows(url, summary));
+        requestTail = job.catch(() => {}).then(() => sleep(policy.requestGapMs));
+        return job;
+    }
+    async function performFetchRows(url, summary) {
         for (let attempt = 0; ; attempt++) {
             if (blockedUntil > now()) {
                 const delay = blockedUntil - now();
@@ -54,8 +63,14 @@ export function createAodpCollector({ host, server, ids, cities, repository,
                 const error = new Error('AODP request budget reached'); error.status = 429; error.budget = true; throw error;
             }
             collectionPlan?.noteRequest(now());
-            try { return await request(url, policy.timeoutMs); }
+            if (Number.isFinite(summary.httpRequestsSent)) summary.httpRequestsSent++;
+            try {
+                const rows = await request(url, policy.timeoutMs);
+                if (Number.isFinite(summary.httpResponsesSuccess)) summary.httpResponsesSuccess++;
+                return rows;
+            }
             catch (error) {
+                if (Number.isFinite(summary.httpResponsesFailure)) summary.httpResponsesFailure++;
                 if (error.budget) throw error;
                 if (error.status === 429) blockedUntil = now() + Math.max(error.retryAfterMs || 0, policy.retryBaseMs * 2 ** attempt);
                 if (attempt >= policy.retries || (error.status && error.status !== 429 && error.status < 500)) throw error;
@@ -67,23 +82,30 @@ export function createAodpCollector({ host, server, ids, cities, repository,
         if (running || stopped) return;
         running = true; state.status = 'collecting';
         const due = collectionPlan ? collectionPlan.dueIds(now()) : ids;
-        const summary = { fetchedAt: new Date(now()).toISOString(), items: due.length, cities: cities.length,
+        const summary = { server, fetchedAt: new Date(now()).toISOString(), items: due.length, cities: cities.length,
             batches: 0, requests: 0, buy: 0, sell: 0, observations: 0, supplementalObservations: 0, duplicates: 0, invalid: 0, stale: 0,
+            httpRequestsSent: 0, httpResponsesSuccess: 0, httpResponsesFailure: 0, rowsReceived: 0,
+            validPriceSides: 0, newSourceTimestampEvents: 0, sameSourceCorrections: 0, repeatedEvents: 0,
+            olderSourceTimestamps: 0, sourceOlderThan6h: 0, staleSourceSides: 0, rejectedPriceSides: 0,
+            newHourlyArchiveRecords: 0,
             deferred: false, errors: [] };
         if (!due.length) {
             state.status = 'ok'; state.lastRun = summary;
             if (collectionPlan) state.collection = collectionPlan.publicState(now());
             state.coverage = repository.coverage?.(now()) || null;
+            try { onRun({ ...summary, status: state.status }); } catch (error) { log(`[AODP collector diagnostics] ${error.message}`); }
             running = false; return summary;
         }
         try {
             const makeUrl = batch => aodpUrl(host, 'prices', batch, cities, policy.quality);
             const completed = [];
             for (const batch of priceBatches(due, makeUrl, policy.maxUrlLength)) {
+                if (stopped) break;
                 if (collectionPlan && !collectionPlan.allowRequest(now())) { summary.deferred = true; break; }
                 summary.batches++;
                 try {
                     const rows = await fetchRows(makeUrl(batch), summary);
+                    summary.rowsReceived += rows.length;
                     const fetchedAt = new Date(now()).toISOString();
                     for (const row of rows) {
                         if (!inScope(row)) { summary.invalid++; continue; }
@@ -92,14 +114,23 @@ export function createAodpCollector({ host, server, ids, cities, repository,
                             const at = Date.parse(sourceQuoteAt), price = Number(row[field]);
                             if (!(price > 0) || !Number.isFinite(price) || !Number.isFinite(at) || at > now()) {
                                 repository.recordRejected?.({ server, itemId: row.item_id, city: row.city, quality: Number(row.quality), side, price, sourceQuoteAt, fetchedAt, source: 'aodp-current', rawEvidence: row }, now());
-                                summary.invalid++; continue;
+                                summary.invalid++; summary.rejectedPriceSides++; continue;
                             }
-                            if (now() - at > policy.sourceMaxAgeMs) { summary.stale++; continue; }
+                            summary.validPriceSides++;
+                            if (now() - at >= PRICE_STALE_MS) summary.sourceOlderThan6h++;
+                            if (now() - at > policy.sourceMaxAgeMs) { summary.stale++; summary.staleSourceSides++; continue; }
                             summary[side]++;
                             const identity = {server,itemId:row.item_id,city:row.city,quality:Number(row.quality),side};
+                            const previousQuote = repository.currentQuote?.(identity);
+                            const previousAt = Date.parse(previousQuote?.sourceQuoteAt || '');
+                            if (!Number.isFinite(previousAt) || at > previousAt) summary.newSourceTimestampEvents++;
+                            else if (at === previousAt && price !== previousQuote?.price) summary.sameSourceCorrections++;
+                            else if (at === previousAt && price === previousQuote?.price) summary.repeatedEvents++;
+                            else if (at < previousAt) summary.olderSourceTimestamps++;
                             const revision = repository.seriesRevision?.(identity);
                             const added = repository.record({ server, itemId: row.item_id, city: row.city,
                                 quality: Number(row.quality), side, price, sourceQuoteAt, fetchedAt, source: 'aodp-current', coverage: 'reported-top', sourceTimeKnown: true, rawEvidence: row }, now());
+                            if (added) summary.newHourlyArchiveRecords++;
                             summary[added ? 'observations' : revision !== undefined && repository.seriesRevision(identity) !== revision ? 'supplementalObservations' : 'duplicates']++;
                         }
                     }
@@ -129,6 +160,7 @@ export function createAodpCollector({ host, server, ids, cities, repository,
             const historyBatches = priceBatches(refreshIds, historyUrl, policy.maxUrlLength);
             const historyCap = collectionPlan ? collectionPlan.historyBatchCap : historyBatches.length;
             for (const batch of historyBatches.slice(0, historyCap)) {
+                if (stopped) break;
                 if (collectionPlan && !collectionPlan.allowRequest(now())) { summary.deferred = true; break; }
                 try {
                     const rows = await fetchRows(historyUrl(batch), summary);
@@ -151,9 +183,12 @@ export function createAodpCollector({ host, server, ids, cities, repository,
         } catch (error) { summary.errors.push(error.message); state.status = 'error'; }
         finally {
             state.lastRun = summary; running = false;
+            state.lastDataRun = summary;
             if (collectionPlan) state.collection = collectionPlan.publicState(now());
             state.coverage = repository.coverage?.(now()) || null;
             log(`[AODP collector] ${JSON.stringify(summary)}`);
+            try { onRun({ ...summary, status: state.status }); } catch (error) { log(`[AODP collector diagnostics] ${error.message}`); }
+            for (const resolve of idleWaiters.splice(0)) resolve();
         }
         return summary;
     }
@@ -168,10 +203,52 @@ export function createAodpCollector({ host, server, ids, cities, repository,
     }
     return {
         state, run,
+        fetchSalesHistory({ items, locations, qualities, days, requestedServer = server, requestedHost = host }) {
+            items = [...new Set(items)].sort(); locations = [...new Set(locations)].sort(); qualities = [...new Set(qualities)].sort();
+            const key = JSON.stringify([requestedServer, requestedHost, items, locations, qualities, days, Math.floor(now() / DAY_MS)]);
+            const cached = historyCache.get(key);
+            if (cached && cached.expires > now()) return Promise.resolve(cached.rows);
+            if (historyPending.has(key)) return historyPending.get(key);
+            const job = fetchRequestedHistory({ items, locations, qualities, days, requestedServer, requestedHost }).then(rows => {
+                historyCache.set(key, { rows, expires: now() + (rows.some(row => row.data.length) ? HISTORY_CACHE_POLICY.positiveMs : HISTORY_CACHE_POLICY.negativeMs) });
+                for (const [key, hit] of historyCache) if (hit.expires <= now()) historyCache.delete(key);
+                return rows;
+            }).finally(() => historyPending.delete(key));
+            historyPending.set(key, job);
+            return job;
+        },
         noteOpportunities(itemIds, at = now()) { collectionPlan?.noteOpportunities(itemIds, at); },
         noteWatched(itemIds, at = now()) { collectionPlan?.noteWatched(itemIds, at); },
         noteDiscovery(itemIds, at = now()) { return collectionPlan?.noteDiscovery(itemIds, at) || 0; },
         start() { if (timer === null && !stopped) schedule(policy.initialDelayMs); },
-        stop() { stopped = true; timers.clearTimeout(timer); }
+        stop() {
+            stopped = true; timers.clearTimeout(timer);
+            return Promise.all([running ? new Promise(resolve => idleWaiters.push(resolve)) : Promise.resolve(),
+                ...historyPending.values(), requestTail]);
+        }
     };
+    async function fetchRequestedHistory({ items, locations, qualities, days, requestedServer, requestedHost }) {
+        if (stopped) throw new Error('AODP collector stopped');
+        const end = Math.floor(now() / DAY_MS) * DAY_MS;
+        const params = { date: new Date(end - days * DAY_MS).toISOString().slice(0, 10),
+            end_date: new Date(now()).toISOString().slice(0, 10), 'time-scale': '24' };
+        const summary = { requests: 0 };
+        const received = [];
+        for (const quality of qualities) {
+            const makeUrl = batch => aodpUrl(requestedHost, 'history', batch, locations, quality, params);
+            for (const batch of priceBatches(items, makeUrl, policy.maxUrlLength)) {
+                const rows = await fetchRows(makeUrl(batch), summary);
+                const fetchedAt = new Date(now()).toISOString();
+                for (const item of batch) for (const city of locations) {
+                    const row = rows.find(row => row.item_id === item && row.location === city && Number(row.quality) === quality);
+                    const observation = { item_id: item, location: city, quality, data: Array.isArray(row?.data) ? row.data : [],
+                        server: requestedServer, fetchedAt, source: 'aodp-sales-history' };
+                    repository.setAnchor(observation, now());
+                    received.push(salesHistoryWindow(observation, days, now()));
+                }
+                repository.flush(now());
+            }
+        }
+        return received;
+    }
 }

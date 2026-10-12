@@ -22,8 +22,8 @@ function moduleFor(file) {
     file = path.resolve(file);
     if (modules.has(file)) return modules.get(file);
     let code = fs.readFileSync(file, 'utf8');
-    if (file.endsWith(`${path.sep}nav.js`)) code = 'export function initNav() {}';
-    if (file.endsWith(`${path.sep}island-planner-v2.js`)) code = code.replace(/init\(\);\s*$/, 'export { state, priceSummaryLabel };');
+    if (file.endsWith(`${path.sep}app-runtime.js`)) code = '';
+    if (file.endsWith(`${path.sep}island-planner-v2.js`)) code = code.replace(/(?:void )?init\(\)(?:\.catch\([\s\S]*?\n\}\))?;\s*$/, 'export { state, priceSummaryLabel };');
     const module = new vm.SourceTextModule(code, { context, identifier: file });
     modules.set(file, module);
     return module;

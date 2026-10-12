@@ -1,0 +1,8 @@
+{
+  "parent": "BODY",
+  "inDialog": false,
+  "visibleHit": false,
+  "color": "rgb(242, 242, 244)",
+  "background": "rgb(42, 42, 46)",
+  "zIndex": "40"
+}

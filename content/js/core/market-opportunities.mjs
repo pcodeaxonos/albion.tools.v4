@@ -1,9 +1,9 @@
 import { strategyEconomics, rankOpportunityPresentation, OPPORTUNITY_QUALITY_POLICY } from './market-opportunity-quality.mjs';
+import { salesBuyOpportunity } from './market-sales-reference.mjs';
 import { STRATEGY_SPECS, strategyEvidence } from './market-strategy-policy.mjs';
 import { validateObservationSeries, OBSERVATION_POLICY } from './market-observation.mjs';
-import { median, normalizePriceDate, quotedBookPrice } from './market-primitives.mjs';
-import { purchaseCostFromRates, saleProceedsFromRates } from './market-fees.mjs';
-import { potentialStrategiesForRow } from './market-opportunity-review.mjs';
+import { median, normalizePriceDate } from './market-primitives.mjs';
+import { potentialStrategiesForRow, strategyAdvantage } from './market-opportunity-review.mjs';
 import { DAY_MS, LONG_TERM_STRATEGIES, ORDER_HISTORY_POLICY, PRICE_STALE_MS } from './market-history-config.mjs';
 
 /**
@@ -84,18 +84,6 @@ function freshnessOf(ageMs, policy) {
     if (ageMs <= policy.freshMs) return 1;
     if (ageMs >= PRICE_STALE_MS) return 0;
     return 1 - (ageMs - policy.freshMs) / (PRICE_STALE_MS - policy.freshMs);
-}
-
-function taxRate(premium, fees) {
-    return premium ? fees.taxPremiumRate : fees.taxFreeRate;
-}
-
-function saleNet(price, { premium, fees, setup }) {
-    return saleProceedsFromRates(price, { taxRate: taxRate(premium, fees), setup, setupFeeRate: fees.setupFeeRate });
-}
-
-function buyCost(price, { fees, setup }) {
-    return purchaseCostFromRates(price, { setup, setupFeeRate: fees.setupFeeRate });
 }
 
 function emptySide() {
@@ -196,6 +184,12 @@ export function assessMarketSide({ points = [], referenceQuote = null, now = Dat
     const confirmed = crosses && confirmingBuckets >= policy.minConfirmingBuckets && (!validated || latest.validationStatus === 'accepted');
     const usable = !stale && hasRef && (!validated || (quote.level >= 3 && quote.executionConfidence > 0 && Math.abs(deviation || 0) < OBSERVATION_POLICY.extreme));
     const reliability = usable ? quote.confidence * (confirmed ? 1 : policy.unconfirmedWeight) : 0;
+    const referenceState = latest.validationStatus === 'quarantined' ? 'quarantined' : stale ? 'stale'
+        : quote.level >= 3 ? 'reliable' : !(quote.samples > 0) && !(quote.rawObservationCount > 1) ? 'no-history'
+            : (quote.rawObservationCount > policy.referenceTargetSamples && !(quote.independentObservationCount > policy.referenceTargetSamples))
+                || !(quote.samples > 0) ? 'low-independent-observations'
+                : quote.samples < policy.referenceTargetSamples ? 'insufficient-samples'
+                    : quote.stability < OBSERVATION_POLICY.minStability ? 'suspicious' : 'low-independent-observations';
 
     return {
         sourceTimeKnown: latest.sourceTimeKnown ?? false, coverage: latest.coverage ?? null, evidenceId: latest.evidenceId ?? null,
@@ -205,6 +199,20 @@ export function assessMarketSide({ points = [], referenceQuote = null, now = Dat
         referenceEvidence: quote.referenceEvidence ?? [],
         normalRange: quote.normalRange ?? null,
         referenceConfidence: quote.confidence,
+        referenceState,
+        referenceCoverage: { rawObservations: quote.rawObservationCount ?? 0,
+            independentSourceObservations: quote.scopedIndependentObservationCount ?? 0,
+            acceptedIndependentObservations: quote.independentObservationCount ?? 0,
+            referenceSamples: quote.samples ?? 0, spanMs: quote.spanMs ?? 0, stability: quote.stability ?? 0,
+            // These flags overlap: e.g. a stale series can also have too little history.
+            failures: [
+                !(quote.samples > 0) ? 'no-history' : null,
+                !(quote.samples >= OBSERVATION_POLICY.levels[2][0]) ? 'independent-observations' : null,
+                !(quote.spanMs >= OBSERVATION_POLICY.levels[2][1]) ? 'time-span' : null,
+                !(quote.stability >= OBSERVATION_POLICY.minStability) ? 'stability' : null,
+                stale ? 'stale' : null,
+                !latest.sourceTimeKnown || !['reported-top', 'complete'].includes(latest.coverage) ? 'source-scope' : null
+            ].filter(Boolean) },
         referenceLevel: quote.level ?? null,
         executionConfidence: validated && stale ? 0 : quote.executionConfidence ?? null,
         transitions: quote.transitions ?? [],
@@ -268,6 +276,7 @@ function buildStrategies({ buy, sell, peers, city, premium, fees, policy }) {
     };
     const orderReliability = side => legacy ? side.reliability : side.executionConfidence;
     const remember = (row) => {
+        row.label = STRATEGY_SPECS[row.id]?.label;
         row.execution = STRATEGY_SPECS[row.id]?.execution;
         row.economics = strategyEconomics(row, currentInputs, { premium, fees });
         const evidence = evaluated.get(row.id);
@@ -281,53 +290,58 @@ function buildStrategies({ buy, sell, peers, city, premium, fees, policy }) {
     };
 
     if (check('instant-sell-to-buy') && buy?.usable && buy?.anomalous && buy.direction === 'up' && buy.reference > 0) {
-        const advantage = saleNet(buy.price, { premium, fees, setup: false }) - saleNet(buy.reference, { premium, fees, setup: false });
+        const advantage = strategyAdvantage('instant-sell-to-buy', currentInputs, { premium, fees });
         remember({
-            id: 'instant-sell-to-buy', label: 'Anında Buy Order’a satış', kind: 'top-of-book',
+            id: 'instant-sell-to-buy', kind: 'top-of-book',
             weight: policy.topOfBookWeight, advantageSilver: advantage, netSilver: advantage, reliability: buy.reliability,
             note: 'Görünen en yüksek alış emrine anında satış. Vergi düşülür. Emir derinliği olmadığı için bu fiyattan ne kadar satılabileceği bilinmiyor.'
         });
     }
     if (check('place-sell-order') && sell?.usable && sell?.anomalous && sell.direction === 'up' && sell.reference > 0) {
-        const posted = quotedBookPrice(sell.price, 'sell', 'sell');
-        const postedRef = quotedBookPrice(sell.reference, 'sell', 'sell');
-        const advantage = saleNet(posted, { premium, fees, setup: true }) - saleNet(postedRef, { premium, fees, setup: true });
+        const advantage = strategyAdvantage('place-sell-order', currentInputs, { premium, fees });
         remember({
-            id: 'place-sell-order', label: 'Satış emri açma', kind: 'unrealized',
+            id: 'place-sell-order', kind: 'unrealized',
             weight: policy.unrealizedWeight, advantageSilver: advantage, netSilver: advantage, reliability: sell.reliability,
             note: 'Satış emri, görünen satışın 1 gümüş altı. Setup ve vergi düşülür. Emrin dolacağı bilinmiyor; bu tutar gerçekleşmiş kâr değildir.'
         });
     }
     if (check('instant-buy-from-sell') && sell?.usable && sell?.anomalous && sell.direction === 'down' && sell.reference > 0) {
         remember({
-            id: 'instant-buy-from-sell', label: 'Düşük Sell fiyatından alış', kind: 'savings',
-            weight: policy.savingsWeight, advantageSilver: sell.reference - sell.price, netSilver: null, reliability: sell.reliability,
+            id: 'instant-buy-from-sell', kind: 'savings',
+            weight: policy.savingsWeight, advantageSilver: strategyAdvantage('instant-buy-from-sell', currentInputs, { premium, fees }), netSilver: null, reliability: sell.reliability,
             note: 'Görünen satış emrinden anında alış, referansa göre daha ucuz. Bu tasarruftur; satış yapılmadan kâr değildir. Derinlik bilinmiyor.'
         });
     }
     if (check('place-buy-order') && buy?.usable && buy?.anomalous && buy.direction === 'down' && buy.reference > 0) {
-        const cost = buyCost(quotedBookPrice(buy.price, 'buy', 'buy'), { fees, setup: true });
-        const costRef = buyCost(quotedBookPrice(buy.reference, 'buy', 'buy'), { fees, setup: true });
         remember({
-            id: 'place-buy-order', label: 'Düşük Buy fiyatından alış emri', kind: 'savings',
-            weight: policy.savingsWeight, advantageSilver: costRef - cost, netSilver: null, reliability: buy.reliability,
+            id: 'place-buy-order', kind: 'savings',
+            weight: policy.savingsWeight, advantageSilver: strategyAdvantage('place-buy-order', currentInputs, { premium, fees }), netSilver: null, reliability: buy.reliability,
             note: 'Alış emri, görünen alışın 1 gümüş üstü. Setup eklenir. Emrin dolacağı bilinmiyor; düşük teklif ucuz toplama adayıdır, kâr değildir.'
         });
     }
+    if (!legacy && buy?.salesReference?.price > 0) {
+        const valuation = salesBuyOpportunity(buy, fees);
+        const eligible = check('place-buy-order-sales');
+        if (eligible && valuation.advantageSilver >= policy.minAbsoluteDelta && -valuation.deviation >= policy.minDeviation) {
+            remember({ id: 'place-buy-order-sales', kind: 'savings', weight: policy.savingsWeight,
+                advantageSilver: valuation.advantageSilver, netSilver: null, deviation: valuation.deviation,
+                reliability: Math.min(buy.executionConfidence, buy.salesReference.confidenceScore),
+                note: 'Alış emri +1 ve setup maliyeti, tamamlanmış günlerin satış fiyatı medyanıyla karşılaştırılır. Buy fiyatının düşmesi gerekmez. Emir dolumu ve yeniden satış fiyatı garanti değildir.' });
+        }
+    }
     if (legacy ? buy?.usable && sell?.usable : check('local-flip')) {
-        const flip = saleNet(buy.price, { premium, fees, setup: false }) - buyCost(sell.price, { fees, setup: false });
+        const flip = strategyAdvantage('local-flip', currentInputs, { premium, fees });
         remember({
-            id: 'local-flip', label: 'Aynı şehirde anında çevirme', kind: 'top-of-book',
+            id: 'local-flip', kind: 'top-of-book',
             weight: policy.topOfBookWeight, advantageSilver: flip, netSilver: flip,
             reliability: Math.min(orderReliability(buy), orderReliability(sell)),
             note: 'Aynı şehirde görünen satıştan alıp görünen alışa satmanın vergi sonrası farkı. Derinlik bilinmiyor; kâr garantisi değildir.'
         });
     }
     if (legacy ? buy?.usable && sell?.usable && (buy.anomalous || sell.anomalous) : check('local-make')) {
-        const posted = saleNet(quotedBookPrice(sell.price, 'sell', 'sell'), { premium, fees, setup: true })
-            - buyCost(quotedBookPrice(buy.price, 'buy', 'buy'), { fees, setup: true });
+        const posted = strategyAdvantage('local-make', currentInputs, { premium, fees });
         remember({
-            id: 'local-make', label: 'Alış ve satış emrini birlikte kurma', kind: 'unrealized',
+            id: 'local-make', kind: 'unrealized',
             weight: policy.unrealizedWeight, advantageSilver: posted, netSilver: posted,
             reliability: Math.min(orderReliability(buy), orderReliability(sell)),
             note: 'İki emrin de dolacağı bilinmiyor. Ücret sonrası fark, gerçekleşmiş kâr olarak gösterilmez.'
@@ -340,12 +354,12 @@ function buildStrategies({ buy, sell, peers, city, premium, fees, policy }) {
             Object.assign(evidence, { id: 'cross-city-instant', toCity: peer.city });
             decisions.push(evidence);
             if (legacy ? !peer.buy?.usable || !(peer.buy.price > 0) || !(sell.anomalous || peer.buy.anomalous) : !evidence.eligible) continue;
-            const net = saleNet(peer.buy.price, { premium, fees, setup: false }) - buyCost(sell.price, { fees, setup: false });
+            const net = strategyAdvantage('cross-city-instant', evidence.inputs, { premium, fees });
             const reliability = Math.min(orderReliability(sell), orderReliability(peer.buy));
             if (!(net > 0) || !(reliability > 0)) { evidence.eligible = false; evidence.reasons.push('non-positive-after-fees'); continue; }
             if (!best || net > best.advantageSilver) {
                 best = {
-                    id: 'cross-city-instant', label: 'Şehirler arası taşıma', kind: 'top-of-book',
+                    id: 'cross-city-instant', label: STRATEGY_SPECS['cross-city-instant'].label, kind: 'top-of-book',
                     weight: policy.crossCityWeight, advantageSilver: net, netSilver: net, reliability,
                     fromCity: city, toCity: peer.city, buyPrice: sell.price, sellPrice: peer.buy.price,
                     destAgeMs: peer.buy.ageMs, destination: publicSide(peer.buy), evidence,
@@ -368,6 +382,7 @@ function publicSide(side) {
         sourceTimeKnown: side.sourceTimeKnown, coverage: side.coverage, evidenceId: side.evidenceId,
         validationStatus: side.validationStatus, validationReasons: side.validationReasons,
         referenceConfidence: side.referenceConfidence, referenceLevel: side.referenceLevel, executionConfidence: side.executionConfidence,
+        referenceState: side.referenceState, salesReference: side.salesReference,
         price: side.price, at: side.at, ageMs: side.ageMs, stale: side.stale, source: side.source,
         reference: side.reference, provisional: side.provisional, referenceSamples: side.referenceSamples,
         normalRange: side.normalRange ?? null,

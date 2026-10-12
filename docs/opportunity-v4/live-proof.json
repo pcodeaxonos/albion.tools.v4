@@ -1,0 +1,63 @@
+{
+  "verifiedAt": "2026-10-11T22:39:27.039Z",
+  "startedAt": "2026-10-11T21:40:21.926Z",
+  "engine": {
+    "version": 4,
+    "fingerprint": "f1a8a9fc4ad05d9f04b8f3bd682630225f904a37421ce24d61e3bb02135fc05e"
+  },
+  "engineMode": "validated",
+  "scannedAt": "2026-10-11T22:39:16.755Z",
+  "scanned": 30195,
+  "outcomeCounts": {
+    "execution-confirmed": 0,
+    "price-supported": 99,
+    "watch": 1226,
+    "rejected": 28870
+  },
+  "referenceCoverage": {
+    "pricedSides": 38826,
+    "independentSourceShortage": 38130,
+    "acceptedEvidenceShortage": 38251,
+    "sufficientCells": 239,
+    "sufficientFreshCells": 221,
+    "failures": {
+      "no-history": 17634,
+      "independent-observations": 38372,
+      "time-span": 32186,
+      "stability": 19112,
+      "stale": 24900,
+      "source-scope": 1217
+    },
+    "partition": {
+      "no-history": 17634,
+      "independent-observations": 20738,
+      "stability": 167,
+      "time-span": 16,
+      "sufficient": 247,
+      "stale": 24
+    }
+  },
+  "collection": {
+    "startedAt": "2026-10-11T22:33:28.198Z",
+    "newArchiveObservations": 956,
+    "supplementalObservations": 104,
+    "duplicates": 20980,
+    "stale": 0
+  },
+  "lastDataRun": {
+    "fetchedAt": "2026-10-11T22:33:28.198Z",
+    "items": 9509,
+    "cities": 7,
+    "batches": 61,
+    "requests": 61,
+    "buy": 4092,
+    "sell": 17948,
+    "observations": 956,
+    "supplementalObservations": 104,
+    "duplicates": 20980,
+    "invalid": 111086,
+    "stale": 0,
+    "deferred": false,
+    "errors": []
+  }
+}

@@ -1,4 +1,4 @@
-import { STRATEGY_SPECS } from './market-strategy-policy.mjs';
+import { STRATEGY_SPECS, strategyNeedsReference, strategyReferenceConfidence } from './market-strategy-policy.mjs';
 import { candidatePriority } from './opportunity-assistant.mjs';
 import { PRICE_STALE_MS } from './market-history-config.mjs';
 import { quotedBookPrice, quantile } from './market-primitives.mjs';
@@ -9,6 +9,7 @@ export const OPPORTUNITY_QUALITY_POLICY = Object.freeze({
     weights: Object.freeze({ silver: .30, return: .30, freshness: .25, evidence: .15 }),
     scaleQuantile: .90,
     absoluteSilverShare: .50,
+    evidenceReferenceShare: .50,
     diversityBand: .02,
     freshMs: 3600000,
     listLimit: 500,
@@ -16,6 +17,26 @@ export const OPPORTUNITY_QUALITY_POLICY = Object.freeze({
     minReturn: null
 });
 const LIMITATION_CODES = Object.freeze({ orderDepth: 'depth-unknown', volume: 'volume-unknown', fillProbability: 'fill-unknown', travelCost: 'travel-cost-unknown', travelTime: 'travel-time-unknown', travelRisk: 'travel-risk-unknown' });
+export const EXECUTION_LIMITATION_TEXT = Object.freeze({
+    'depth-unknown': 'Emir miktarı ve derinliği kontrol edilmeli', 'volume-unknown': 'İşlem hacmi bilinmiyor',
+    'fill-unknown': 'Emirlerin gerçekleşmesi belirsiz', 'travel-cost-unknown': 'Taşıma maliyeti bilinmiyor',
+    'travel-time-unknown': 'Taşıma süresi bilinmiyor', 'travel-risk-unknown': 'Taşıma riski değerlendirilmeli'
+});
+export const OPPORTUNITY_OUTCOMES = Object.freeze({
+    'execution-confirmed': 'İşlem kanıtı doğrulanmış', 'price-supported': 'Fiyat kanıtı güçlü · kontrol gerekli',
+    watch: 'Ekonomik sinyal · izle', rejected: 'Normal veya geçersiz'
+});
+export function opportunityEmptyText(scan, available = 0) {
+    if (!scan) return 'Tarama sonucu yok.';
+    if (available > 0) return 'Filtreler ekonomik adayları dışlıyor; filtreleri genişletin.';
+    if (scan.outcomeCounts?.watch > 0) return 'Ekonomik sinyal var, doğrulama eksik. İzle görünümünü kontrol edin.';
+    const reasons = scan.pipeline?.reasons || {};
+    const dominant = Object.entries(reasons).sort((a, b) => b[1] - a[1])[0]?.[0];
+    if (dominant === 'STALE_PRICE') return 'Fiyatlar eski; yeni kaynak gözlemi bekleniyor.';
+    if (['INSUFFICIENT_HISTORY', 'LOW_INDEPENDENT_OBSERVATIONS', 'NO_PRICE'].includes(dominant)) return 'Veri yetersiz; güvenilir bir ekonomik aday doğrulanamadı.';
+    if (dominant === 'ACTION_NOT_VALIDATED') return 'Ekonomik sinyalin işlem kanıtı eksik.';
+    return 'Güncel ve geçerli fiyatlarda ekonomik sinyal yok.';
+}
 const executionModel = (label, additional = []) => {
     const unknown = Object.freeze(['orderDepth', 'volume', ...additional]);
     return Object.freeze({ label, unknown, limitations: Object.freeze(unknown.map(key => LIMITATION_CODES[key])) });
@@ -32,15 +53,23 @@ export function strategyEconomics(strategy, inputs, { premium = true, fees }) {
     let capital = null, comparison = null;
     if (strategy.id === 'local-make') capital = cost(quotedBookPrice(inputs.buy?.price, 'buy', 'buy'), true);
     if (strategy.id === 'local-flip' || strategy.id === 'cross-city-instant') capital = cost(inputs.sell?.price, false);
-    if (strategy.id === 'place-buy-order') comparison = cost(quotedBookPrice(inputs.buy?.reference, 'buy', 'buy'), true);
-    if (strategy.id === 'instant-buy-from-sell') comparison = inputs.sell?.reference;
+    if (strategy.id === 'place-buy-order') {
+        capital = cost(quotedBookPrice(inputs.buy?.price, 'buy', 'buy'), true);
+        comparison = cost(quotedBookPrice(inputs.buy?.reference, 'buy', 'buy'), true);
+    }
+    if (strategy.id === 'place-buy-order-sales') {
+        capital = cost(quotedBookPrice(inputs.buy?.price, 'buy', 'buy'), true);
+        comparison = inputs.buy?.salesReference?.price;
+    }
+    if (strategy.id === 'instant-buy-from-sell') { capital = cost(inputs.sell?.price, false); comparison = inputs.sell?.reference; }
     if (strategy.id === 'instant-sell-to-buy') comparison = proceeds(inputs.buy?.reference, false);
     if (strategy.id === 'place-sell-order') comparison = proceeds(quotedBookPrice(inputs.sell?.reference, 'sell', 'sell'), true);
     const finite = value => Number.isFinite(value) && value > 0 ? value : null;
     capital = finite(capital); comparison = finite(comparison);
     const net = Number.isFinite(strategy.netSilver) ? strategy.netSilver : null;
     return { capitalSilver: capital, netSilver: net,
-        returnRatio: capital && net !== null ? net / capital : null,
+        // Historical sale deltas are not resale proceeds minus acquisition cost.
+        returnRatio: capital && net !== null && STRATEGY_SPECS[strategy.id]?.group !== 'historical' ? net / capital : null,
         referenceAdvantageRatio: comparison ? strategy.advantageSilver / comparison : null,
         basis: capital ? 'quoted-unit-capital' : comparison ? 'reference-comparison' : 'unknown' };
 }
@@ -64,7 +93,13 @@ export function strategyQuality(row, strategy, calibration, policy = OPPORTUNITY
     const age = ages.length && ages.every(Number.isFinite) ? Math.max(...ages) : null;
     const freshness = age === null ? null : age <= policy.freshMs ? 1 : unit((PRICE_STALE_MS - age) / (PRICE_STALE_MS - policy.freshMs));
     const confidences = inputs.map(side => side.executionConfidence);
-    const evidence = confidences.length && confidences.every(Number.isFinite) ? Math.min(...confidences) : null;
+    const sourceEvidence = confidences.length && confidences.every(Number.isFinite) ? Math.min(...confidences) : null;
+    const referenceRequired = strategyNeedsReference(strategy.id);
+    const referenceConfidences = referenceRequired ? inputs.map(side => strategyReferenceConfidence(strategy.id, side)) : [];
+    const referenceEvidence = referenceConfidences.length && referenceConfidences.every(Number.isFinite) ? Math.min(...referenceConfidences) : null;
+    const evidence = sourceEvidence === null ? null : referenceRequired
+        ? sourceEvidence * (1 - policy.evidenceReferenceShare) + (referenceEvidence ?? 0) * policy.evidenceReferenceShare
+        : sourceEvidence;
     const ratio = economicsRatio(strategy.economics);
     const execution = strategy.execution || STRATEGY_SPECS[strategy.id]?.execution;
     const context = calibration.byExecution?.[execution] || calibration;
@@ -80,6 +115,7 @@ export function strategyQuality(row, strategy, calibration, policy = OPPORTUNITY
     // Unknown terms remain visible as null. No unknown fill/travel value is in this sum.
     const score = Object.entries(policy.weights).reduce((sum, [key, weight]) => sum + weight * (components[key] ?? 0), 0);
     return { score, components, weights: policy.weights, calibration, execution,
+        evidenceComponents: { source: sourceEvidence, reference: referenceEvidence },
         normalization: { absoluteSilver, contextualSilver, absoluteSilverShare: policy.absoluteSilverShare },
         ageMs: age, economics: strategy.economics || null,
         limitations: EXECUTION_MODELS[execution]?.limitations || [],
@@ -94,7 +130,7 @@ export function rankOpportunityPresentation(rows, { mode = 'balanced', execution
         if (!row.eligible || row.validationMode !== 'validated' || !row.primary) return row;
         let primary = row.primary;
         let presentationStrategies;
-        if (execution || strategyIds || strategyFilter) {
+        {
             const choices = row.strategies.filter(strategy => (!strategyIds || strategyIds.includes(strategy.id))
                 && (!execution || (strategy.execution || STRATEGY_SPECS[strategy.id]?.execution) === execution)
                 && strategy.weight > 0 && strategy.advantageSilver > 0
@@ -105,7 +141,13 @@ export function rankOpportunityPresentation(rows, { mode = 'balanced', execution
             presentationStrategies = choices;
             primary = choices.slice().sort((a, b) => strategyQuality(row, b, calibration, policy).score - strategyQuality(row, a, calibration, policy).score || b.advantageSilver - a.advantageSilver)[0];
         }
-        return { ...row, ...(strategyContext ? strategyContext(row, primary) : {}), primary,
+        const selectedInputs = Object.values(primary.evidence?.inputs || {}).filter(Boolean);
+        const selectedEvidence = selectedInputs.length ? {
+            referenceConfidence: Math.min(...selectedInputs.map(side => strategyReferenceConfidence(primary.id, side))),
+            executionConfidence: Math.min(...selectedInputs.map(side => side.executionConfidence ?? 0)),
+            parts: { ...row.parts, reliability: primary.reliability ?? row.parts?.reliability }
+        } : {};
+        return { ...row, ...selectedEvidence, ...(strategyContext ? strategyContext(row, primary) : {}), primary,
             ...(presentationStrategies ? { presentationStrategies } : {}), opportunityQuality: strategyQuality(row, primary, calibration, policy) };
     }).filter(Boolean).filter(row => {
         if (execution && (row.primary?.execution || STRATEGY_SPECS[row.primary?.id]?.execution) !== execution) return false;

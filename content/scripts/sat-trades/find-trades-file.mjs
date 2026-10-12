@@ -1,6 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import os from 'node:os';
+import { parseTradeArchive } from './parse-archive.mjs';
 
 /**
  * Locate StatisticsAnalysisTool Europe Trades.json under %LOCALAPPDATA%.
@@ -104,7 +105,7 @@ export function readTradesFile(filePath) {
 
     let data;
     try {
-        data = JSON.parse(raw);
+        data = parseTradeArchive(raw);
     } catch (error) {
         throw new Error(`Trades.json JSON parse hatası (${filePath}): ${error.message}`);
     }

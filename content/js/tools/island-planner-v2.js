@@ -1,18 +1,25 @@
+import { SALE_HORIZONS, SALE_HISTORY_DAYS, saleHorizonTarget } from '../core/potential-sale-horizon.mjs';
+import { includePotentialOrder } from '../core/potential-order-candidate.mjs';
+import { readPotentialSnapshots, savePotentialSnapshots } from '../core/potential-price-snapshot.mjs';
+import { fieldHeadingHtml } from '../components/form-field.js';
+import { resolveTradePotential, tradeEvidenceKey, potentialPriceAt, POTENTIAL_PRICE_MODE, POTENTIAL_PRICE_POLICY } from '../core/trade-potential-evidence.mjs';
+import { fetchLocalSalesHistory } from '../core/local-sales-history.js';
+import { fetchCachedTradeSnapshot } from '../core/trade-live.js';
 import { itemNameHtml } from '../components/item-name.js';
 import { focusRequirement, focusSourceLabel, focusSourceSummary } from '../core/island/focus.js';
 import { allocateInternalFeed } from '../core/island/placement-model.js';
 import { optimizePlacement } from './island-planner-v2/optimizer.js';
 import { showToast } from '../components/toast.js';
+import '../core/app-runtime.js';
 import { initFloatingLabels } from '../components/forms.js';
 import { escapeHtml } from '../utils/utils.js';
-import { initNav } from '../core/nav.js';
-import { getAll, initStore, replaceAllRows } from '../db/store.js';
-import { getSettings, saveSettings, getDefaultCity } from '../core/settings.js';
+import { getAll, replaceAllRows } from '../db/store.js';
+import { getSettings, getServer, saveSettings, getDefaultCity } from '../core/settings.js';
 import { loadActiveCities } from '../core/cities.js';
 import { cityFieldHtml, bindCityField, cityIslandDecorate } from '../components/city-picker.js';
 import { getItemLocalizedName, getItemUniqueName } from '../db/relations.js';
 import { itemIconHtml } from '../components/item-icon.js';
-import { cityRow, fetchPrices, indexPrices } from '../core/market.js';
+import { cityRow, fetchPrices, fetchGamePrices, indexPrices } from '../core/market.js';
 import { quoteFromRow } from '../core/price-side.js';
 import { fetchLongTermIndex, longTermQuote, longTermMetadata, longTermSourceLabel, LONG_TERM_PRICE_MODE, LONG_TERM_PRICE_LABEL } from '../core/long-term-quotes.js';
 import { purchaseCost, saleProceeds, salesTaxRate, setupFeeRate } from '../core/market-fees.js';
@@ -61,7 +68,7 @@ const TOOLBAR_TYPE_ICONS = Object.freeze({
     kennel: './content/icons/T5_FARM_COUGAR_GROWN.png',
     house: './content/icons/PLAYERISLAND_FURNITUREITEM_WOOD_GATE_BIG_B.png'
 });
-const state = { cities: [], geometry: null, geometryRows: [], fixedPrices: [], selectedSlotId: 'R1', hoveredSlotId: null, toolbar: { stage: 'type', type: null }, draftsByCity: {}, committedByCity: {}, draft: null, committed: null, priceIndex: null, averagePriceIndex: null, longTermPriceIndex: null, priceLoading: false, autoFilling: false, optimizationPricesChecked: false, autoFillPriceDiagnostics: [], autoFillResult: null, priceError: null, priceRequestId: 0, priceDiagnosticSignature: null, derivedDiagnosticSignature: null, openDependencyPopover: null, drag: null, pointerDrag: null, dragPreviewFrame: null, dragPreviewPoint: null, suppressClick: false, derived: { slots: new Map(), summary: null }, calculationTimer: null, overlayDebugSignature: null };
+const state = { cities: [], geometry: null, geometryLoading: true, geometryRows: [], fixedPrices: [], selectedSlotId: 'R1', hoveredSlotId: null, toolbar: { stage: 'type', type: null }, draftsByCity: {}, committedByCity: {}, draft: null, committed: null, priceIndex: null, averagePriceIndex: null, longTermPriceIndex: null, potentialPriceIndex: null, priceLoading: false, autoFilling: false, optimizationPricesChecked: false, autoFillPriceDiagnostics: [], autoFillResult: null, priceError: null, priceRequestId: 0, priceDiagnosticSignature: null, derivedDiagnosticSignature: null, openDependencyPopover: null, drag: null, pointerDrag: null, dragPreviewFrame: null, dragPreviewPoint: null, suppressClick: false, derived: { slots: new Map(), summary: null }, calculationTimer: null, overlayDebugSignature: null };
 
 function defaultDraft(islandCity = getDefaultCity()) { const settings = getSettings(); return { premium: settings.premium !== false, focus: false, islandCity, sellCity: getDefaultCity(), islandLevel: 6, seedSide: settings.buyPriceSide, harvestSide: settings.sellPriceSide, seedFixed: false, harvestFixed: false, slots: Array.from({ length: 16 }, (_, i) => blankSlot(`R${i + 1}`)), pricesUpdatedAt: null }; }
 function normalizeDraft(value, islandCity) { return normalizeDraftModel(value, islandCity, defaultDraft(islandCity)); }
@@ -171,10 +178,10 @@ function feedItemIds(item) {
     return feedPlants(item).map((plant) => plant.plantId).filter(Boolean);
 }
 
-function resolveFeed(item) {
+function resolveFeed(item, inputLookup = itemId => priceLookup(itemId, state.draft.islandCity, state.draft.seedSide, 'buy', 'input')) {
     const ids = feedItemIds(item);
     const candidates = ids.map((itemId) => {
-        const lookup = priceLookup(itemId, state.draft.islandCity, state.draft.seedSide, 'buy', 'input');
+        const lookup = inputLookup(itemId);
         const effective = lookup.quote ? purchaseCost(lookup.quote.price, { setup: lookup.quote.setup }) : null;
         const quantity = animalForFeed(item, { plantId: itemId }).feedQty;
         return { itemId, lookup, effective, quantity, cycleCost: effective == null ? null : effective * quantity };
@@ -236,6 +243,14 @@ function priceLookup(itemId, city, side, intent, role = intent === 'buy' ? 'inpu
         if (fixed.quote) return fixed;
     }
     const lookup = { itemId: itemId ?? null, city: city ?? null, side, intent, row: null, quote: null, reason: null };
+    if (side === POTENTIAL_PRICE_MODE) {
+        const stats = potentialPriceAt(state.potentialPriceIndex, { server: getServer().id, city, itemId, quality: 1, side: intent }, potentialPriceDays());
+        if (stats?.reliable && stats.price > 0 && stats.days === potentialPriceDays()) lookup.quote = {
+            price: stats.price, book: stats.price, date: stats.latest, stale: false, side, intent, tick: 0, setup: true, potential: stats
+        };
+        else lookup.reason = stats?.reason ?? 'Potansiyel fiyat için yeterli gerçekleşmiş işlem kanıtı yok.';
+        return lookup;
+    }
     if (side === LONG_TERM_PRICE_MODE) {
         return { ...lookup, ...longTermQuote(state.longTermPriceIndex, { itemId, city, intent }) };
     }
@@ -509,7 +524,17 @@ export function purchaseExpenseLines(label, quantity, quote, total, copyName) {
     if (quote?.setup) lines.push({ kind: 'setup', label: `${label} emir ücreti`, cost: Number.isFinite(total) && Number.isFinite(base) ? total - base : null });
     return lines;
 }
-export function calculateIslandPlan({ entries = state.draft.slots, update = true } = {}) {
+export function calculateIslandPlan({ entries = state.draft.slots, update = true, salePrices = null, inputPrices = null } = {}) {
+    const saleLookupFor = itemId => {
+        const lookup = priceLookup(itemId, state.draft.sellCity, state.draft.harvestSide, 'sell', 'output');
+        const price = salePrices?.get(itemId)?.price;
+        return price > 0 ? { ...lookup, quote: { price, book: price, setup: salePrices?.get(itemId)?.setup ?? true, stale: false, side: 'history', intent: 'sell' }, reason: null } : lookup;
+    };
+    const inputLookupFor = itemId => {
+        if (!inputPrices) return priceLookup(itemId, state.draft.islandCity, state.draft.seedSide, 'buy', 'input');
+        const stats = inputPrices.get(itemId);
+        return { itemId, city: state.draft.islandCity, side: 'potential', intent: 'buy', quote: stats?.reliable && stats.price > 0 ? { price: stats.price, book: stats.price, setup: stats.setup ?? true, stale: false, side: 'history', intent: 'buy' } : null, reason: stats?.reason ?? 'Güvenilir edinim geçmişi yok.' };
+    };
     const slots = new Map(); const candidates = []; const profiles = [];
     const diagnostics = []; const staleDiagnostics = []; const derivedDependencies = [];
     for (const entry of entries) {
@@ -521,7 +546,7 @@ export function calculateIslandPlan({ entries = state.draft.slots, update = true
         const dailyFactor = Number.isFinite(production.hours) && production.hours > 0 ? planDayHours() / production.hours : null;
         const inputQuantity = production.requiresInput && Number.isFinite(capacity) && Number.isFinite(dailyFactor) && Number.isFinite(production.rr)
             ? capacity * dailyFactor * (1 - production.rr) : null;
-        const feed = production.requiresFeed ? resolveFeed(item) : null;
+        const feed = production.requiresFeed ? resolveFeed(item, inputLookupFor) : null;
         const feedId = feed?.itemId ?? null;
         const feedQuantity = !production.requiresFeed ? 0 : Number.isFinite(capacity) && Number.isFinite(dailyFactor) && Number.isFinite(feed?.quantity) && feed.quantity > 0
             ? capacity * dailyFactor * feed.quantity : null;
@@ -529,7 +554,7 @@ export function calculateIslandPlan({ entries = state.draft.slots, update = true
         const feedEffective = feed?.effective ?? null;
         const candidate = { entry, item, production, capacity, inputQuantity, feedIds: feed?.ids ?? [], feedId, feedQuantity, feedLookup, feedEffective, feedCycles: production.requiresFeed ? capacity * dailyFactor : 0, internalCycles: 0, internalFeed: [], feedChoices: feed?.candidates ?? [], internal: 0, market: feedQuantity, consumed: 0, internalTransferIn: 0, internalTransferOut: 0 };
         candidates.push(candidate);
-        const sale = item.plantId ? priceQuote(item.plantId, state.draft.sellCity, state.draft.harvestSide, 'sell', 'output') : null;
+        const sale = item.plantId ? saleLookupFor(item.plantId).quote : null;
         profiles.push({ entry, net: 0,
             supplies: sale && Number.isFinite(production.output) ? [{ id: item.plantId, quantity: production.output, unitValue: saleProceeds(sale.price, { premium: state.draft.premium, setup: sale.setup }) }] : [],
             feed: Number.isFinite(candidate.feedCycles) && Number.isFinite(feedEffective) && Number.isFinite(feedQuantity)
@@ -549,12 +574,12 @@ export function calculateIslandPlan({ entries = state.draft.slots, update = true
     }
     for (const candidate of candidates) {
         const { entry, item, production } = candidate;
-        const purchaseLookup = production.requiresInput ? priceLookup(purchaseItemId(item), state.draft.islandCity, state.draft.seedSide, 'buy', 'input') : null;
-        const saleLookup = priceLookup(production.saleItemId, state.draft.sellCity, state.draft.harvestSide, 'sell', 'output');
+        const purchaseLookup = production.requiresInput ? inputLookupFor(purchaseItemId(item)) : null;
+        const saleLookup = saleLookupFor(production.saleItemId);
         const feedLookup = candidate.feedId && (candidate.market > 0 || candidate.internal > 0) ? candidate.feedLookup : null;
         const purchaseQuote = purchaseLookup?.quote ?? null; const saleQuote = saleLookup.quote; const feedQuote = feedLookup?.quote ?? null;
         const mountMaterials = (production.mountMaterials ?? []).map(line => {
-            const lookup = priceLookup(line.uniqueName, state.draft.islandCity, state.draft.seedSide, 'buy', 'input');
+            const lookup = inputLookupFor(line.uniqueName);
             return { ...line, ...mountMaterialConsumption(line), lookup, quote: lookup.quote };
         });
         for (const line of mountMaterials) {
@@ -596,6 +621,16 @@ export function calculateIslandPlan({ entries = state.draft.slots, update = true
         const standaloneIncome = Number.isFinite(effectiveSell) && Number.isFinite(production.output) ? effectiveSell * production.output : null;
         const standaloneExpense = Number.isFinite(seedOrBabyCost) && Number.isFinite(standaloneFeedCost) && Number.isFinite(mountCost) && feedRuleReady ? seedOrBabyCost + standaloneFeedCost + mountCost : null;
         profiles[candidates.indexOf(candidate)].net = Number.isFinite(standaloneIncome) && Number.isFinite(standaloneExpense) ? standaloneIncome - standaloneExpense : null;
+        if (salePrices) {
+            const profile = profiles[candidates.indexOf(candidate)];
+            profile.sale = { id: production.saleItemId, quantity: production.output, unitValue: effectiveSell };
+            profile.purchases = [
+                ...(production.requiresInput ? [{ id: purchaseItemId(item), quantity: Math.max(0, candidate.inputQuantity) }] : []),
+                ...(candidate.feedId ? [{ id: candidate.feedId, quantity: candidate.feedQuantity }] : []),
+                ...mountMaterials.map(line => ({ id: line.uniqueName, quantity: line.dailyQuantity }))
+            ];
+            profile.feedPurchase = candidate.feedId && candidate.feedCycles > 0 ? { id: candidate.feedId, quantityPerCycle: candidate.feedQuantity / candidate.feedCycles } : null;
+        }
         const externalIncome = income;
         const externalExpense = expense;
         const productionCost = Number.isFinite(externalExpense) ? externalExpense + candidate.internalTransferIn : null;
@@ -686,9 +721,128 @@ function clearDraftSlots() {
     state.draft.slots = state.draft.slots.map(entry => entry.locked ? entry : blankSlot(entry.id));
     state.autoFillResult = null;
 }
+function hasPotentialPrice() {
+    return [state.draft?.seedSide, state.draft?.harvestSide].includes(POTENTIAL_PRICE_MODE);
+}
+function potentialPriceDays() { return state.draft?.potentialDays ?? POTENTIAL_PRICE_POLICY.defaultDays; }
+function potentialPriceRequests(entries = v2PriceEntries()) {
+    const requests = [];
+    const add = (itemId, city, side, role) => {
+        const method = role === 'input' ? state.draft.seedSide : state.draft.harvestSide;
+        const fixed = role === 'input' ? state.draft.seedFixed : state.draft.harvestFixed;
+        if (method === POTENTIAL_PRICE_MODE && itemId && !(fixed && fixedPriceLookup(itemId, role, side).quote))
+            requests.push({ server: getServer().id, itemId, city, side, quality: 1 });
+    };
+    for (const entry of entries) {
+        const item = itemForSlot(entry);
+        if (!isEconomicItem(item)) continue;
+        const production = productionDerived(item, entry);
+        add(production.saleItemId, state.draft.sellCity, 'sell', 'output');
+        if (production.requiresInput) add(purchaseItemId(item), state.draft.islandCity, 'buy', 'input');
+        if (production.requiresFeed) feedItemIds(item).forEach(id => add(id, state.draft.islandCity, 'buy', 'input'));
+        (production.mountMaterials ?? []).forEach(line => add(line.uniqueName, state.draft.islandCity, 'buy', 'input'));
+    }
+    return [...new Map(requests.map(request => [tradeEvidenceKey(request), request])).values()];
+}
+async function fetchPotentialPriceIndex(entries = v2PriceEntries(), refresh = false) {
+    const requests = potentialPriceRequests(entries), days = potentialPriceDays(), historyDays = SALE_HISTORY_DAYS;
+    if (!requests.length) return new Map();
+    const saved = readPotentialSnapshots(localStorage, requests, days);
+    const needed = refresh ? requests : requests.filter(request => !saved.has(tradeEvidenceKey(request)));
+    if (!needed.length) return saved;
+    let snapshot;
+    try { snapshot = await fetchCachedTradeSnapshot({ server: getServer().id, days: historyDays,
+        items: [...new Set(requests.map(row => row.itemId))].sort(),
+        locations: [...new Set(requests.map(row => row.city))].sort(), qualities: [...new Set(requests.map(row => row.quality))].sort() }, { force: refresh }); }
+    catch (error) { snapshot = { trades: [], error: error.message }; }
+    const selected = await resolveTradePotential(needed, { snapshot, days: historyDays, opportunity: true, priceOnly: true,
+        fetchHourlyHistory: async (ids, request) => {
+            const index = await fetchHistoryIndex(ids, [request.city], { days: historyDays, timeScale: 1, qualities: request.quality, force: refresh });
+            return new Map(ids.map(id => [id, { points: historyAt(index, id, request.city, request.quality)?.points ?? [] }]));
+        },
+        fetchPacketHistory: (ids, request) => fetchLocalSalesHistory(ids, request, historyDays, { packet: true, force: refresh }),
+        fetchLocalHistory: (ids, request) => fetchLocalSalesHistory(ids, request, days, { force: refresh }),
+        fetchHistory: (ids, request) => fetchLocalSalesHistory(ids, request, days, { external: true, force: refresh }) });
+    const forecastRequests = needed.filter(request => request.side === 'sell'
+        && new Set((selected.get(tradeEvidenceKey(request))?.forecastPoints ?? []).map(point => point.timestamp.slice(0,10))).size < SALE_HORIZONS.at(-1).days + 2);
+    const forecastGroups = new Map();
+    for (const request of forecastRequests) { const key = request.city + '|' + request.quality; if (!forecastGroups.has(key)) forecastGroups.set(key, []); forecastGroups.get(key).push(request); }
+    for (const group of forecastGroups.values()) {
+        const ids = group.map(request => request.itemId);
+        let packet = new Map(), local = new Map(), api = null;
+        try { packet = await fetchLocalSalesHistory(ids, group[0], historyDays, {packet:true,force:refresh}); } catch {}
+        try { local = await fetchLocalSalesHistory(ids, group[0], historyDays, {force:refresh}); } catch {}
+        const localDayCount = request => new Set([...(packet.get(request.itemId)?.points ?? []), ...(local.get(request.itemId)?.points ?? [])].map(point => point.timestamp?.slice(0,10))).size;
+        const apiIds = group.filter(request => localDayCount(request) < SALE_HORIZONS.at(-1).days + 2).map(request=>request.itemId);
+        if (apiIds.length) api = await fetchHistoryIndex(apiIds,[group[0].city],{days:historyDays,timeScale:24,qualities:group[0].quality,force:refresh});
+        for (const request of group) {
+            const value = selected.get(tradeEvidenceKey(request));
+            const daily = new Map();
+            // Fine/local/personal evidence overrides external daily averages.
+            for (const points of [historyAt(api,request.itemId,request.city,request.quality)?.points ?? [], local.get(request.itemId)?.points ?? [], packet.get(request.itemId)?.points ?? [], value?.forecastPoints ?? []]) {
+                const grouped = new Map();
+                for (const point of points) { const key = point.timestamp?.slice(0,10); if (!key) continue; if (!grouped.has(key)) grouped.set(key,[]); grouped.get(key).push({timestamp:point.timestamp,price:point.price ?? Number(point.avg_price),quantity:point.quantity ?? Number(point.item_count)}); }
+                for (const [day, list] of grouped) daily.set(day,list);
+            }
+            if (value) selected.set(tradeEvidenceKey(request),{...value,forecastPoints:[...daily.values()].flat(),forecastSource:'Şahsi/oyun/yerel öncelikli, eksik günlerde API geçmişi'});
+        }
+    }
+    const horizonEvidence = new Map(selected);
+    let currentOrders = new Map();
+    try {
+        const rows = await fetchGamePrices([...new Set(needed.map(request => request.itemId))], [...new Set(needed.map(request => request.city))]);
+        const index = indexPrices(rows);
+        currentOrders = index;
+        for (const request of needed) {
+            const key = tradeEvidenceKey(request);
+            const evidence = selected.get(key);
+            const row = cityRow(index, request.itemId, request.city);
+            selected.set(key, request.side === 'sell' ? saleHorizonTarget(evidence, request, row, days) : { ...includePotentialOrder(evidence, request, row, historyDays), days });
+        }
+    } catch (error) {
+        console.warn('[Island Planner V2] Güncel oyun emirleri alınamadı; geçmiş kanıtı korunuyor.', error.message);
+        for (const request of needed) { const key = tradeEvidenceKey(request), evidence = selected.get(key); selected.set(key, request.side === 'sell' ? saleHorizonTarget(evidence, request, null, days) : { ...evidence, days }); }
+    }
+    // Freeze every sale horizon from the same evidence and order-book snapshot.
+    for (const period of SALE_HORIZONS) {
+        const targets = new Map(needed.map(request => {
+            const key = tradeEvidenceKey(request);
+            const value = request.side === 'sell' ? saleHorizonTarget(horizonEvidence.get(key), request, cityRow(currentOrders, request.itemId, request.city), period.days)
+                : { ...selected.get(key), days: period.days };
+            return [key, value];
+        }));
+        savePotentialSnapshots(localStorage, needed, period.days, targets);
+        if (period.days === days) for (const [key, value] of targets) selected.set(key, value);
+    }
+    for (const [key, value] of selected) if (value.reliable || !saved.has(key)) saved.set(key, value);
+    return saved;
+}
+function renderSalesPotentialControls() {
+    if (!hasPotentialPrice()) return '';
+    return `<div class="choice-field form-field">${fieldHeadingHtml('Öngörülen satış süresi')}<div class="segmented-choice segmented-choice--dense" role="group" aria-label="Öngörülen satış süresi">`
+        + SALE_HORIZONS.map(({ days: day, label }) => '<button type="button" class="segmented-choice-button segmented-choice-button--compact ' + (day === potentialPriceDays() ? 'is-active' : '')
+            + '" data-v2-potential-days="' + day + '" aria-pressed="' + (day === potentialPriceDays()) + '"' + (state.autoFilling ? ' disabled' : '') + '>' + label + '</button>').join('') + '</div></div>';
+}
+function renderSalesPotentialResult() {
+    if (!hasPotentialPrice()) return '';
+    const values = potentialPriceRequests().map(request => ({ request, stats: potentialPriceAt(state.potentialPriceIndex, request, potentialPriceDays()) }));
+    return '<dialog class="app-dialog" data-v2-potential-dialog aria-label="Potansiyel fiyat kanıtları"><button type="button" class="app-dialog-close" aria-label="Kapat" data-v2-potential-close></button><div class="app-dialog-sheet"><h2>Potansiyel fiyat kanıtları</h2><p>Alışta düşük, satışta yüksek gerçekleşmiş fiyat aranır. Önce şahsi gerçekleşmiş işlemler, ardından oyun Market History paketleri ve yerel arşiv, en son API geçmişi kullanılır. Kaydedilmiş fiyatlar yalnız manuel potansiyel güncellemesinde değiştirilir. Kâr/gün ortak günlük motorla hesaplanır. Geçmiş hacim yalnız fiyat kanıtıdır; satış kapasitesi, pazar payı ve stok sınırı uygulanmaz. Gelecekteki işlem garantisi değildir.</p>'
+        + values.map(({ request, stats }) => '<p>' + itemNameHtml(getItemLocalizedName(request.itemId, request.itemId)) + ': ' + (request.side === 'buy' ? 'TOHUM' : 'HASAT') + ' · ' + escapeHtml(stats?.method ?? 'bilinmiyor')
+            + ' · ' + escapeHtml(request.city) + ' · fiyat ' + (stats?.reliable ? displayValue(stats.price) : 'bilinmiyor')
+            + ' · kaynak ' + escapeHtml(stats?.reliable ? stats.source : 'güvenilir kaynak yok') + ' · satış hedefi ' + potentialPriceDays() + ' gün · geçmiş ' + SALE_HISTORY_DAYS + ' gün'
+            + (stats?.horizonEnd ? ' · hedef sonu ' + escapeHtml(stats.horizonEnd) + ' · geçmiş pencere ' + stats.historicalWindows + ' · başlangıç fiyatı ' + displayValue(stats.baseline) : '')
+            + ' · kullanılan işlem günü ' + (stats?.samples ?? 0) + ' · bağımsız işlem ' + (stats?.transactions ?? 'bilinmiyor') + ' · adet ' + displayValue(stats?.quantity)
+            + ' · ' + (stats?.source === 'Kişisel' ? 'son geçerli işlem ' : 'son geçerli veri günü ') + escapeHtml(stats?.latest ?? 'bilinmiyor') + ' · ' + escapeHtml(stats?.evidenceType ?? '')
+            + (stats?.savedAt ? ' · kaydedildi ' + escapeHtml(stats.savedAt) : '')
+            + (stats?.selectedAt ? ' · seçilen saat ' + escapeHtml(stats.selectedAt) + ' · o saatte işlem adedi ' + displayValue(stats.selectedQuantity) : '')
+            + ' · güvenilirlik ' + (stats?.reliable ? 'uygun' : 'yetersiz') + (stats?.reason ? ' · ' + escapeHtml(stats.reason) : '')
+            + (stats?.marketMeaning ? ' · ' + escapeHtml(stats.marketMeaning) : '') + '</p>').join('') + '</div></dialog>';
+}
 async function autoFillIsland({ clearSlots = false, varietyCount = null } = {}) {
     if (state.autoFilling || state.priceLoading) return;
+    if (hasPotentialPrice()) { clearSlots = false; varietyCount = null; }
     clearTimeout(state.calculationTimer);
+    state.calculationTimer = null;
     const previousSlots = clearSlots ? state.draft.slots : null;
     if (clearSlots) clearDraftSlots();
     const available = state.draft.slots.filter(entry => !entry.item && !isSlotLocked(entry.id));
@@ -706,11 +860,12 @@ async function autoFillIsland({ clearSlots = false, varietyCount = null } = {}) 
         const entries = optimizationEntries();
         const ids = v2PriceItemIds([...state.draft.slots, ...entries]);
         if (ids.length) {
-            const { rows, history, longTerm } = await fetchPlanPrices(ids, v2PriceCities([...state.draft.slots, ...entries]));
+            const { rows, history, longTerm, potential } = await fetchPlanPrices(ids, v2PriceCities([...state.draft.slots, ...entries]), [...state.draft.slots, ...entries]);
             if (cancelled()) throw new Error('Plan değişti; otomatik doldurma iptal edildi.');
             state.priceIndex = indexPrices(rows);
             state.averagePriceIndex = history;
             state.longTermPriceIndex = longTerm;
+            state.potentialPriceIndex = potential;
         }
         const baseline = calculateIslandPlan({ update: false });
         if (!Number.isFinite(baseline.summary.net) || baseline.profiles.some(profile => !Number.isFinite(profile.net))) {
@@ -719,7 +874,7 @@ async function autoFillIsland({ clearSlots = false, varietyCount = null } = {}) 
         }
         const evaluated = evaluatePlacementCandidates(entries);
         const { diagnostics } = evaluated;
-        const minimum = state.draft.minSalesVolume;
+        const minimum = hasPotentialPrice() ? 0 : state.draft.minSalesVolume;
         const outputId = candidate => productionDerived(itemForSlot(candidate.entry), candidate.entry).saleItemId;
         const history = minimum > 0
             ? await fetchHistoryIndex(evaluated.candidates.map(outputId), [state.draft.sellCity], { days: SALES_VOLUME.days, timeScale: 24 })
@@ -771,17 +926,18 @@ async function autoFillIsland({ clearSlots = false, varietyCount = null } = {}) 
     }
 }
 
-async function fetchPlanPrices(ids, cities) {
+async function fetchPlanPrices(ids, cities, entries = v2PriceEntries(), refreshPotential = false) {
     const useAverage = state.draft.seedSide === 'average' || state.draft.harvestSide === 'average';
     const useLongTerm = [state.draft.seedSide, state.draft.harvestSide].includes(LONG_TERM_PRICE_MODE);
-    const [rows, history, longTerm] = await Promise.all([
-        fetchPrices(ids, cities, { source: getSettings().priceSource }).catch(error => { if (useLongTerm) return []; throw error; }),
+    const [rows, history, longTerm, potential] = await Promise.all([
+        ([state.draft.seedSide, state.draft.harvestSide].every(side => side === POTENTIAL_PRICE_MODE) ? Promise.resolve([]) : fetchPrices(ids, cities, { source: getSettings().priceSource })).catch(error => { if (useLongTerm) return []; throw error; }),
         useAverage ? fetchHistoryIndex(ids, cities, { days: 28, timeScale: 24 }) : Promise.resolve(null),
-        useLongTerm ? fetchLongTermIndex(ids, cities) : Promise.resolve(null)
+        useLongTerm ? fetchLongTermIndex(ids, cities) : Promise.resolve(null),
+        hasPotentialPrice() ? fetchPotentialPriceIndex(entries, refreshPotential) : Promise.resolve(null)
     ]);
-    return { rows, history, longTerm };
+    return { rows, history, longTerm, potential };
 }
-async function loadV2Prices() {
+async function loadV2Prices({ refreshPotential = false } = {}) {
     if (state.autoFilling) return;
     const requestId = ++state.priceRequestId;
     const entries = v2PriceEntries();
@@ -798,11 +954,12 @@ async function loadV2Prices() {
     render();
     try {
         const cities = v2PriceCities(entries);
-        const { rows, history, longTerm } = await fetchPlanPrices(ids, cities);
+        const { rows, history, longTerm, potential } = await fetchPlanPrices(ids, cities, entries, refreshPotential);
         if (requestId !== state.priceRequestId) return;
         state.priceIndex = indexPrices(rows);
         state.averagePriceIndex = history;
         state.longTermPriceIndex = longTerm;
+        state.potentialPriceIndex = potential;
         state.draft.pricesUpdatedAt = new Date().toISOString();
         persistDrafts();
         const selectedQuotes = state.draft.slots.filter((entry) => isEconomicItem(itemForSlot(entry))).map((entry) => {
@@ -827,13 +984,15 @@ async function loadV2Prices() {
 function scheduleEconomicUpdate() {
     clearTimeout(state.calculationTimer);
     persistDrafts();
-    state.calculationTimer = setTimeout(() => { void loadV2Prices(); }, 125);
+    state.calculationTimer = setTimeout(() => { state.calculationTimer = null; void loadV2Prices(); }, 125);
 }
 
-function renderSegment(label, values, current, attr, extra = '') { return `<div><p class="choice-field-label island-v2-group-label">${label}</p><div class="island-v2-segment">${values.map(([value, text]) => `<button type="button" data-v2-${attr}="${value}" class="${String(value) === String(current) ? 'is-active' : ''}">${text}</button>`).join('')}${extra}</div></div>`; }
+function renderSegment(label, values, current, attr, extra = '') { return `<div class="choice-field form-field">${fieldHeadingHtml(label)}<div class="segmented-choice segmented-choice--dense" role="group" aria-label="${label}">${values.map(([value, text]) => `<button type="button" data-v2-${attr}="${value}" aria-pressed="${String(value) === String(current)}" class="segmented-choice-button segmented-choice-button--short segmented-choice-button--compact ${String(value) === String(current) ? 'is-active' : ''}">${text}</button>`).join('')}${extra}</div></div>`; }
 function renderPriceSegment(label, side, fixed, attr) {
-    const toggle = `<button type="button" data-v2-${attr}-fixed="1" aria-pressed="${Boolean(fixed)}" class="${fixed ? "is-active" : ""}" data-app-tooltip="Tanımlı sabit fiyatı kullan. Yoksa seçili fiyat yöntemi uygulanır.">Sabit</button>`;
-    return renderSegment(label, [["buy", "Buy"], ["sell", "Sell"], ["average", "4H"], [LONG_TERM_PRICE_MODE, LONG_TERM_PRICE_LABEL]], side, attr, toggle);
+    const base = 'segmented-choice-button segmented-choice-button--compact';
+    const values = [["buy", "Buy"], ["sell", "Sell"], ["average", "4H"], [LONG_TERM_PRICE_MODE, LONG_TERM_PRICE_LABEL], [POTENTIAL_PRICE_MODE, "Pot."]];
+    const toggle = `<button type="button" data-v2-${attr}-fixed="1" aria-pressed="${Boolean(fixed)}" class="${base} ${fixed ? "is-active" : ""}" data-app-tooltip="Tanımlı sabit fiyatı kullan. Yoksa seçili fiyat yöntemi uygulanır.">Sabit</button>`;
+    return `<div class="choice-field form-field">${fieldHeadingHtml(label)}<div class="segmented-choice segmented-choice--dense segmented-choice--content-width" role="group" aria-label="${label} fiyat yöntemi">${values.map(([value, text]) => `<button type="button" class="${base} ${value === side ? 'is-active' : ''}" data-v2-${attr}="${value}" aria-pressed="${value === side}"${value === POTENTIAL_PRICE_MODE ? ' aria-label="Potansiyel" data-app-tooltip="Potansiyel"' : ''}>${text}</button>`).join('')}${toggle}</div></div>`;
 }
 function renderCities(label, current, attr, disabled = false) {
     return cityFieldHtml({
@@ -852,7 +1011,7 @@ function renderOptimizationPriceStatus() {
 }
 function renderSalesVolume() {
     const value = state.draft.minSalesVolume;
-    return `<div class="island-v2-volume"><p class="choice-field-label island-v2-group-label">Minimum satış hacmi</p><div class="island-v2-volume-inputs"><input type="range" min="${SALES_VOLUME.min}" max="${SALES_VOLUME.max}" step="${SALES_VOLUME.step}" value="${value}" data-v2-volume-range aria-label="Minimum günlük satış hacmi"><input type="number" min="${SALES_VOLUME.min}" max="${SALES_VOLUME.max}" step="1" value="${value}" data-v2-volume-number aria-label="Minimum günlük satış adedi"></div><small>adet/gün · Son ${SALES_VOLUME.days} gün ortalaması · 0: filtre kapalı</small></div>`;
+    return `<div class="choice-field form-field island-v2-volume" data-app-tooltip="adet/gün · Son ${SALES_VOLUME.days} gün ortalaması · 0: filtre kapalı">${fieldHeadingHtml('Minimum satış hacmi')}<div class="island-v2-volume-inputs"><input type="range" min="${SALES_VOLUME.min}" max="${SALES_VOLUME.max}" step="${SALES_VOLUME.step}" value="${value}" data-v2-volume-range aria-label="Minimum günlük satış hacmi"><input type="number" min="${SALES_VOLUME.min}" max="${SALES_VOLUME.max}" step="1" value="${value}" data-v2-volume-number aria-label="Minimum günlük satış adedi"></div></div>`;
 }
 function renderFocusBudget() {
     const budget = getSettings().islandFocusBudget;
@@ -860,14 +1019,18 @@ function renderFocusBudget() {
 }
 function renderFillVariety() {
     const disabled = state.autoFilling || state.priceLoading ? ' disabled' : '';
-    return `<div class="island-v2-segment island-v2-fill-variety" role="group" aria-label="Alternatif tür sayısı">${FILL_VARIETY_COUNTS.map(count => `<button type="button" data-v2-fill-variety="${count}" class="${count === fillVarietyCount ? 'is-active' : ''}" aria-pressed="${count === fillVarietyCount}"${disabled}>${count}</button>`).join('')}<button class="btn btn-primary" type="button" data-v2-fill-alternatives data-app-tooltip="Slotları boşalt ve seçilen sayıda tür arasında dengeli doldur" aria-label="Alternatiflerle doldur"${disabled}><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m4 20 12-12 4 4-12 12M14 10l4 4M5 3v6M2 6h6M18 1v6M15 4h6"/></svg></button></div>`;
+    return `<div class="segmented-choice segmented-choice--dense island-v2-fill-variety" role="group" aria-label="Alternatif tür sayısı">${FILL_VARIETY_COUNTS.map(count => `<button type="button" data-v2-fill-variety="${count}" class="segmented-choice-button segmented-choice-button--compact ${count === fillVarietyCount ? 'is-active' : ''}" aria-pressed="${count === fillVarietyCount}"${disabled}>${count}</button>`).join('')}<button class="btn btn-primary" type="button" data-v2-fill-alternatives${hasPotentialPrice() ? ' disabled' : ''} data-app-tooltip="Slotları boşalt ve seçilen sayıda tür arasında dengeli doldur" aria-label="Alternatiflerle doldur"${disabled}><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m4 20 12-12 4 4-12 12M14 10l4 4M5 3v6M2 6h6M18 1v6M15 4h6"/></svg></button></div>`;
 }
-function renderControls() { const d = state.draft; const plots = V2_UNLOCKED_SLOTS_BY_LEVEL?.[d.islandLevel]?.length; return `<aside class="island-v2-controls tool-form-controls">${renderSegment('PREMIUM', [['1','Premium'],['0','Free']], d.premium ? '1' : '0', 'premium')}${renderSegment('FOCUS', [['1','Focus'],['0','Yok']], d.focus ? '1' : '0', 'focus')}${renderFocusBudget()}${renderCities('ADA ŞEHRİ',d.islandCity,'island-city')}${renderCities('SATIŞ ŞEHRİ',d.sellCity,'sell-city')}${renderSegment('ADA SEVİYESİ',[[2,'L2'],[3,'L3'],[4,'L4'],[5,'L5'],[6,'L6']],d.islandLevel,'level')}<p class="island-v2-price-time">${plots == null ? 'Plot slot eşlemesi: TODO' : `${plots} plot`}</p>${renderPriceSegment('Tohum', d.seedSide, d.seedFixed, 'seed')}${renderPriceSegment('Hasat', d.harvestSide, d.harvestFixed, 'harvest')}${renderSalesVolume()}<div class="island-v2-actions"><button class="btn btn-success" type="button" data-v2-refill${state.autoFilling || state.priceLoading ? ' disabled' : ''}>Boşalt ve Doldur</button>${renderFillVariety()}<button class="btn btn-outline-secondary" type="button" data-v2-clear-slots>Slotları Boşalt</button><div class="island-v2-auto-fill-row"><button class="btn btn-primary" type="button" data-v2-auto-fill${state.autoFilling || state.priceLoading ? ' disabled' : ''}>${state.autoFilling ? 'Hesaplanıyor…' : 'Otomatik Doldur'}</button>${renderOptimizationPriceStatus()}</div><button class="btn btn-primary" type="button" data-v2-save>Kaydet</button><button class="btn btn-outline-secondary" type="button" data-v2-revert>Kaydedilmiş Haline Dön</button><button class="btn btn-outline-secondary" type="button" data-v2-prices>Fiyatları Yenile</button><p class="island-v2-price-time">${escapeHtml(priceText())}</p></div></aside>`; }
-function renderIsland() { const points = geometryForCity(); const d = state.draft; const overlays = points ? `<div class="island-v2-overlay-layer" data-v2-overlay-layer>${d.slots.map((entry) => { const p = points[entry.id]; if (!p) return ''; const item = itemForSlot(entry); const active = entry.id === state.selectedSlotId; const hover = entry.id === state.hoveredSlotId; const debug = OVERLAY_DEBUG && ['R1','R10','R16'].includes(entry.id) ? ' is-debug' : ''; return `<div class="island-v2-slot-anchor${debug}" data-v2-overlay-anchor="${entry.id}" data-v2-x="${p.x}" data-v2-y="${p.y}"><button type="button" draggable="true" class="island-v2-overlay ${item ? 'is-filled' : 'is-empty'} ${active ? 'is-selected' : ''} ${hover ? 'is-hovered' : ''} ${entry.locked ? 'is-protected' : ''}" data-v2-slot="${entry.id}">${item ? itemIconHtml(itemUniqueName(item), { size: 30, className: 'island-v2-overlay-icon' }) : ''}</button><span class="island-v2-overlay-number">${entry.id.slice(1).padStart(2,'0')}</span>${renderSlotLock(entry)}</div>`; }).join('')}</div>` : `<div class="island-v2-unresolved">${cityKey(d.islandCity) === 'brecilien' ? 'Brecilien slot koordinatları yapılandırılmayı bekliyor.' : 'Caerleon slot koordinatları yapılandırılmayı bekliyor.'}</div>`; return `<section class="island-v2-island"><img class="island-v2-island-image" src="${islandImage(d.islandCity)}" alt="${escapeHtml(cityName(d.islandCity))} adası">${renderIslandCityBonuses()}${overlays}${renderToolbar()}${renderIslandPriceAlert()}<div class="island-v2-drop-actions"><div class="island-v2-clear-drop" data-v2-clear-drop>Boşalt</div><div class="island-v2-lock-drop" data-v2-lock-drop>Kilitle / Kilidi Aç</div></div></section>`; }
+function renderControls() { const d = state.draft; const plots = V2_UNLOCKED_SLOTS_BY_LEVEL?.[d.islandLevel]?.length; return `<aside class="island-v2-controls tool-form-controls tool-split-controls">${renderSegment('PREMIUM', [['1','Premium'],['0','Free']], d.premium ? '1' : '0', 'premium')}${renderSegment('FOCUS', [['1','Focus'],['0','Yok']], d.focus ? '1' : '0', 'focus')}${renderFocusBudget()}${renderCities('ADA ŞEHRİ',d.islandCity,'island-city')}${renderCities('SATIŞ ŞEHRİ',d.sellCity,'sell-city')}${renderSegment('ADA SEVİYESİ',[[2,'L2'],[3,'L3'],[4,'L4'],[5,'L5'],[6,'L6']],d.islandLevel,'level')}<p class="island-v2-price-time">${plots == null ? 'Plot slot eşlemesi: TODO' : `${plots} plot`}</p>${renderPriceSegment('Tohum', d.seedSide, d.seedFixed, 'seed')}${renderPriceSegment('Hasat', d.harvestSide, d.harvestFixed, 'harvest')}${renderSalesPotentialControls()}${hasPotentialPrice() ? '<button type="button" class="btn btn-outline-secondary" data-v2-potential-refresh>Potansiyel Fiyatları Güncelle</button><button type="button" class="btn btn-outline-secondary" data-v2-potential-open aria-haspopup="dialog">Potansiyel fiyat kanıtları</button>' : ''}${!hasPotentialPrice() ? renderSalesVolume() : ''}<div class="island-v2-actions"><button class="btn btn-success" type="button" data-v2-refill${hasPotentialPrice() || state.autoFilling || state.priceLoading ? ' disabled' : ''}>Boşalt ve Doldur</button>${renderFillVariety()}<button class="btn btn-outline-secondary" type="button" data-v2-clear-slots>Slotları Boşalt</button><div class="island-v2-auto-fill-row"><button class="btn btn-primary" type="button" data-v2-auto-fill${state.autoFilling || state.priceLoading ? ' disabled' : ''}>${state.autoFilling ? 'Hesaplanıyor…' : 'Otomatik Doldur'}</button>${renderOptimizationPriceStatus()}</div><button class="btn btn-primary" type="button" data-v2-save>Kaydet</button><button class="btn btn-outline-secondary" type="button" data-v2-revert>Kaydedilmiş Haline Dön</button><button class="btn btn-outline-secondary" type="button" data-v2-prices>Fiyatları Yenile</button><p class="island-v2-price-time">${escapeHtml(priceText())}</p></div></aside>`; }
+function renderIsland() { const points = geometryForCity(); const d = state.draft; const overlays = points ? `<div class="island-v2-overlay-layer" data-v2-overlay-layer>${d.slots.map((entry) => { const p = points[entry.id]; if (!p) return ''; const item = itemForSlot(entry); const active = entry.id === state.selectedSlotId; const hover = entry.id === state.hoveredSlotId; const debug = OVERLAY_DEBUG && ['R1','R10','R16'].includes(entry.id) ? ' is-debug' : ''; return `<div class="island-v2-slot-anchor${debug}" data-v2-overlay-anchor="${entry.id}" data-v2-x="${p.x}" data-v2-y="${p.y}"><button type="button" draggable="true" class="island-v2-overlay ${item ? 'is-filled' : 'is-empty'} ${active ? 'is-selected' : ''} ${hover ? 'is-hovered' : ''} ${entry.locked ? 'is-protected' : ''}" data-v2-slot="${entry.id}">${item ? itemIconHtml(itemUniqueName(item), { size: 30, className: 'island-v2-overlay-icon' }) : ''}</button><span class="island-v2-overlay-number">${entry.id.slice(1).padStart(2,'0')}</span>${renderSlotLock(entry)}</div>`; }).join('')}</div>` : `<div class="island-v2-unresolved">${state.geometryLoading ? 'Ada haritası yükleniyor…' : cityKey(d.islandCity) === 'brecilien' ? 'Brecilien slot koordinatları yapılandırılmayı bekliyor.' : 'Caerleon slot koordinatları yapılandırılmayı bekliyor.'}</div>`; return `<section class="island-v2-island"><img class="island-v2-island-image" src="${islandImage(d.islandCity)}" alt="${escapeHtml(cityName(d.islandCity))} adası">${renderIslandCityBonuses()}${overlays}${renderToolbar()}${renderIslandPriceAlert()}<div class="island-v2-drop-actions"><div class="island-v2-clear-drop" data-v2-clear-drop>Boşalt</div><div class="island-v2-lock-drop" data-v2-lock-drop>Kilitle / Kilidi Aç</div></div></section>`; }
 function displayValue(value) { return Number.isFinite(value) ? new Intl.NumberFormat('tr-TR', { maximumFractionDigits: 0 }).format(value) : '—'; }
+// Color conveys direction; magnitude formatting never changes the underlying value.
+function displayMagnitude(value, formatter = displayValue) { return formatter(Number.isFinite(value) ? Math.abs(value) : value); }
+function displayQuantity(value) { return Number.isFinite(value) ? new Intl.NumberFormat('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(value) : '—'; }
 
 function displayRate(value) { return Number.isFinite(value) ? `${(value * 100).toLocaleString('tr-TR', { maximumFractionDigits: 0 })}%` : '—'; }
 function displayDays(hours) { return Number.isFinite(hours) && hours > 0 ? `${(hours / planDayHours()).toLocaleString('tr-TR', { maximumFractionDigits: 1 })} gün` : '—'; }
+function expenseTone(value) { return valueTone(Number.isFinite(value) ? -value : value); }
 function valueTone(value) { return Number.isFinite(value) ? (value > 0 ? 'is-positive' : (value < 0 ? 'is-negative' : 'is-neutral')) : 'is-neutral'; }
 // Compact only the two secondary amounts; keep the exact value in the tooltip.
 const cardAmountFormatter = new Intl.NumberFormat('en-US', { notation: 'compact', maximumFractionDigits: 1 });
@@ -892,14 +1055,15 @@ function renderCards() {
         if (locked) return `<button type="button" class="island-v2-card is-locked${stateClasses}" data-v2-slot="${entry.id}"><span class="island-v2-card-head"><span class="island-v2-slot-number">${number}</span>${renderSlotLock(entry)}</span><span class="island-v2-card-empty"><b class="island-v2-lock" aria-hidden="true"></b><span>Kilitli Slot</span><small>Ada seviyesi yetersiz olduğu için kullanılamaz.</small></span></button>`;
         if (!item) return `<button type="button" class="island-v2-card is-empty${stateClasses}" data-v2-slot="${entry.id}"><span class="island-v2-card-head"><span class="island-v2-slot-number">${number}</span>${renderSlotLock(entry)}</span><span class="island-v2-card-empty"><b aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><path d="M12 5v14M5 12h14" fill="none" stroke="currentColor" stroke-width="3"/></svg></b><span>Plot Seçin</span><small>Atama için seçin</small></span></button>`;
         const values = state.derived.slots.get(entry.id) ?? {};
-        if (!Number.isFinite(values.contribution)) {
-            const label = !isEconomicItem(item) ? 'Hesap yok' : values.priceState === 'missing' ? 'Fiyat eksik' : 'Veri eksik';
-            const hint = `${itemName(item)} · ${label}${!isEconomicItem(item) ? ': Bu ürün için ekonomi hesabı desteklenmiyor.' : `: ${diagnosticsTitle(values.diagnostics ?? []) || 'Üretim veya fiyat verisi bulunamadı.'}`}`;
-            return `<button type="button" draggable="true" class="island-v2-card is-filled is-uncalculated${stateClasses}" data-tier="${item.tier}" data-v2-slot="${entry.id}" data-app-tooltip="${escapeHtml(hint)}" aria-label="${escapeHtml(hint)}"><span class="island-v2-card-head"><span class="island-v2-slot-number">${number}</span>${renderSlotLock(entry)}<span class="island-v2-card-tier-stack"><span class="badge island-v2-tier" data-tier="${item.tier}">T${item.tier}</span></span></span><span class="island-v2-card-item">${itemIconHtml(itemUniqueName(item), { size: 42, className: 'island-v2-card-icon' })}<span>${itemNameHtml(itemName(item))}</span></span><span class="island-v2-card-price-unavailable">${cardWarningIcon(label)}<span>${label}</span></span></button>`;
+        const calculating = isEconomicItem(item) && (state.priceLoading || state.autoFilling || state.calculationTimer != null || !state.optimizationPricesChecked);
+        if (calculating || !Number.isFinite(values.contribution)) {
+            const label = calculating ? 'Hesaplanıyor…' : !isEconomicItem(item) ? 'Hesap yok' : values.priceState === 'missing' ? 'Fiyat eksik' : 'Veri eksik';
+            const hint = `${itemName(item)} · ${label}${calculating ? ': Fiyatlar ve üretim hesabı hazırlanıyor.' : !isEconomicItem(item) ? ': Bu ürün için ekonomi hesabı desteklenmiyor.' : `: ${diagnosticsTitle(values.diagnostics ?? []) || 'Üretim veya fiyat verisi bulunamadı.'}`}`;
+            return `<button type="button" draggable="true" class="island-v2-card is-filled ${calculating ? 'is-calculating' : 'is-uncalculated'}${stateClasses}" aria-busy="${calculating}" data-tier="${item.tier}" data-v2-slot="${entry.id}" data-app-tooltip="${escapeHtml(hint)}" aria-label="${escapeHtml(hint)}"><span class="island-v2-card-head"><span class="island-v2-slot-number">${number}</span>${renderSlotLock(entry)}<span class="island-v2-card-tier-stack"><span class="badge island-v2-tier" data-tier="${item.tier}">T${item.tier}</span></span></span><span class="island-v2-card-item">${itemIconHtml(itemUniqueName(item), { size: 42, className: 'island-v2-card-icon' })}<span>${itemNameHtml(itemName(item))}</span></span><span class="island-v2-card-price-unavailable">${calculating ? '<svg class="island-v2-card-warning-icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 6v6l4 2" fill="none" stroke="currentColor" stroke-width="2"/></svg>' : cardWarningIcon(label)}<span>${label}</span></span></button>`;
         }
         const profitPercent = values.profitPercent;
         const netTone = valueTone(values.contribution);
-        const cardValue = (value, format = cardAmount) => Number.isFinite(value) ? format(value) : '—';
+        const cardValue = (value, format = cardAmount) => displayMagnitude(value, format);
         const warningClass = values.priceState === 'stale' ? ' is-price-stale' : '';
         const icon = itemIconHtml(itemUniqueName(item), { size: 42, className: 'island-v2-card-icon' });
         const bonus = hasCityBonus(item, state.draft.islandCity) ? '<svg class="island-v2-card-city-bonus" viewBox="0 0 24 24" role="img" aria-label="Şehir Bonusu +10%"><title>Şehir Bonusu +10%</title><path fill="currentColor" d="M21 2C10 2 3 7 4 15c4 3 9 2 12-1 4-4 5-8 5-12Z"/><path d="M3 22 15 9M8 17l-1-5m4 2 5-1" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>' : '';
@@ -909,7 +1073,7 @@ function renderCards() {
         const usesFocus = productionModeUsesFocus(item, entry.productionMode);
         const focusSelected = Boolean(entry.focus && usesFocus);
         const focusTitle = !usesFocus ? 'Bu üretim modu Focus kullanmaz.' : focusSelected && !values.effectiveFocus ? 'Bu slotta Focus seçili; hesap için global Focus master kapalı.' : focusSelected ? 'Focus etkin.' : 'Focus kapalı.';
-        const financialContent = `<span class="island-v2-finance">${renderFinancialOrder({ income: `<span class="island-v2-income" data-app-tooltip="Gelir: ${displayValue(values.income)}"><b aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><path d="M5 12h14M12 5v14" fill="none" stroke="currentColor" stroke-width="2.5"/></svg></b><span>${cardValue(values.income)}</span></span>`, expense: `<span class="island-v2-expense" data-app-tooltip="Gider: ${displayValue(values.expense)}"><span>${cardValue(values.expense)}</span><b aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><path d="M5 12h14" fill="none" stroke="currentColor" stroke-width="2.5"/></svg></b></span>` }, `<em class="${valueTone(profitPercent)}">${cardValue(profitPercent, value => `${Math.round(value)}%`)}</em>`)}</span><strong class="island-v2-net">${cardValue(values.contribution, displayValue)}</strong>`;
+        const financialContent = `<span class="island-v2-finance">${renderFinancialOrder({ income: `<span class="island-v2-income" data-app-tooltip="Gelir: ${displayValue(values.income)}"><span>${cardValue(values.income)}</span></span>`, expense: `<span class="island-v2-expense" data-app-tooltip="Gider: ${displayValue(values.expense)}"><span>${cardValue(values.expense)}</span></span>` }, `<em class="${valueTone(profitPercent)}">${cardValue(profitPercent, value => `${Math.round(value)}%`)}</em>`)}</span><strong class="island-v2-net">${cardValue(values.contribution, displayValue)}</strong>`;
         return `<button type="button" draggable="true" class="island-v2-card is-filled ${netTone}${stateClasses}${warningClass}" data-tier="${item.tier}" data-v2-slot="${entry.id}"${priceTitle}><span class="island-v2-card-head"><span class="island-v2-slot-number">${number}</span>${renderSlotLock(entry)}<i class="island-v2-focus-dot ${focusSelected ? 'is-on' : ''}${focusSelected && !values.effectiveFocus ? ' is-awaiting-master' : ''}" data-app-tooltip="${escapeHtml(focusTitle)}" aria-label="${escapeHtml(focusTitle)}"></i><span class="island-v2-card-tier-stack"><span class="badge island-v2-tier" data-tier="${item.tier}">T${item.tier}</span>${bonus}</span></span><span class="island-v2-card-item">${icon}<span>${itemNameHtml(itemName(item))}</span></span>${financialContent}${values.effectiveFocus ? `<span class="island-v2-focus-source is-${values.focusSource}">${focusSourceLabel(values.focusSource)}</span>` : ''}</button>`;
     }).join('')}</section>`;
 }
@@ -949,8 +1113,15 @@ function renderDetail() {
     while (expenses.length < expenseTemplate.length) {
         expenses.push({ label: expenseTemplate[expenses.length].label, placeholder: true });
     }
+    const returnLines = expenses.filter(line => !line.placeholder && Number.isFinite(line.quantity) && line.quantity < 0);
+    const purchaseLines = expenses.filter(line => !returnLines.includes(line));
+    const returnIncome = returnLines.reduce((total, line) => total - line.total, 0);
+    const ledgerIncome = Number.isFinite(values.income) && Number.isFinite(returnIncome) ? values.income + returnIncome : null;
+    const ledgerExpense = Number.isFinite(values.expense) && Number.isFinite(returnIncome) ? values.expense + returnIncome : null;
+    const saleFees = sumFinite([values.saleSetup, values.saleTax]);
+    const ledgerRows = lines => lines.map(line => `<tr><th scope="row">${line.placeholder ? `<span class="island-v2-field-placeholder" aria-hidden="true">${escapeHtml(line.label)}</span>` : line.copyName ? itemNameHtml(line.label, line.copyName) : escapeHtml(line.label)}</th><td class="${expenseTone(line.quantity)}">${displayMagnitude(line.quantity, displayQuantity)}</td><td>${displayValue(line.unitPrice)}</td><td class="${expenseTone(line.setup)}">${displayMagnitude(line.setup)}</td><td class="${expenseTone(line.total)}">${displayMagnitude(line.total)}</td></tr>`).join('');
     const priceStatus = { current: 'Güncel', stale: 'Fiyatlar eski', fixed: 'Sabit', missing: 'Fiyat eksik' }[values.priceState] ?? '—';
-    const deduction = value => Number.isFinite(value) && value > 0 ? '−' + displayValue(value) : displayValue(value);
+    const totalRow = (label, value, tone, dependency) => '<tr class="island-v2-ledger-total"><th scope="row" colspan="4" data-app-tooltip="' + escapeHtml(dependencyHint(dependency)) + '">' + label + '</th><td class="' + tone + '">' + displayMagnitude(value) + '</td></tr>';
     const saleLabel = values.saleItemId ? getItemLocalizedName(values.saleItemId, values.saleItemId) : 'Satış';
     return `<section class="island-v2-detail island-v2-production-card${editable ? '' : ' is-readonly'}">
         <header class="island-v2-production-head"><strong class="island-v2-detail-number">${entry.id.slice(1).padStart(2,'0')}</strong><div class="island-v2-detail-main">${identity}</div><div class="island-v2-detail-controls">${focusControl}${modeControl}</div></header>
@@ -960,22 +1131,24 @@ function renderDetail() {
                 ${detailRow('Büyüme süresi', displayDays(values.productionHours))}
                 ${detailRow('Geri dönüş', displayRate(values.rr), dependencyHint('rr'))}
                 ${detailRow('Net çıktı', displayValue(values.netOutput), dependencyHint('output'))}
-                ${detailRow('Focus / gün', displayValue(values.focus), dependencyHint('focus'))}
-                ${values.effectiveFocus ? detailRow('Focus / kullanım', displayValue(values.focusPerUse) + ' <strong class="island-v2-focus-source is-' + values.focusSource + '">' + focusSourceLabel(values.focusSource) + '</strong>') + detailRow('Kullanım / cycle', displayValue(values.focusUsesPerCycle)) + detailRow('Cycle Focus', displayValue(values.cycleFocus)) + (values.focusObservedAt ? detailRow('Ölçüm', escapeHtml(values.focusObservedAt)) : '') : ''}
                 ${detailRow('Birim maliyet', displayValue(values.unitCost), 'Üretim gideri ve ada yemi değeri / günlük çıktı.')}
                 ${detailRow('Ada yemi', displayValue(values.internalTransferIn), 'Adadan karşılanan yemin satış değeri; nakit üretim giderine dahil değildir.')}
+                ${detailRow('Focus / gün', values.effectiveFocus ? displayValue(values.focus) : '—', values.effectiveFocus ? dependencyHint('focus') : 'Focus kullanılmıyor.', values.effectiveFocus ? '' : 'inactive')}
+                ${detailRow('Focus / kullanım', values.effectiveFocus ? displayValue(values.focusPerUse) : '—', values.effectiveFocus ? focusSourceLabel(values.focusSource) : 'Focus kullanılmıyor.', values.effectiveFocus ? '' : 'inactive')}
             </div>
             <div class="island-v2-production-ledger"><div class="island-v2-ledger-heading"><h3>Günlük alış · satış</h3><div class="island-v2-production-foot"><span data-app-tooltip="${escapeHtml(productionSourceTitle(values))}">Kaynak: ${productionSourceLabel(values)}</span><span data-app-tooltip="${escapeHtml(priceDiagnostic)}">${priceStatus}</span></div></div>
-                <table aria-label="Günlük alış ve satış hesabı"><thead><tr><th>Kalem</th><th>Adet</th><th>Birim fiyat</th><th>Emir ücreti</th><th>Vergi</th><th>Tutar</th></tr></thead>
+                <table aria-label="Günlük alış ve satış hesabı"><thead><tr><th>Kalem</th><th>Adet</th><th>Birim fiyat</th><th>Komisyon</th><th>Tutar</th></tr></thead>
                 <tbody class="island-v2-sale-rows" aria-label="Satış">
-                    <tr><th scope="row">${values.saleItemId ? itemNameHtml(saleLabel) : escapeHtml(saleLabel)}</th><td>${displayValue(values.netOutput)}</td><td data-app-tooltip="${escapeHtml(longTermMetadata(values.saleQuote))}">${displayValue(values.saleQuote?.price)}</td><td class="is-negative">${deduction(values.saleSetup)}</td><td class="is-negative">${deduction(values.saleTax)}</td><td class="is-positive">${displayValue(values.income)}</td></tr>
-                    <tr class="island-v2-gross-sale"><td colspan="6">Brüt satış: <b>${displayValue(values.grossIncome)}</b></td></tr>
+                    <tr><th scope="row">${values.saleItemId ? itemNameHtml(saleLabel) : escapeHtml(saleLabel)}</th><td>${displayQuantity(values.netOutput)}</td><td data-app-tooltip="${escapeHtml(longTermMetadata(values.saleQuote))}">${displayValue(values.saleQuote?.price)}</td><td class="${expenseTone(saleFees)}">${displayMagnitude(saleFees)}</td><td class="is-positive">${displayMagnitude(values.income)}</td></tr>
+                    ${ledgerRows(returnLines)}
+                    ${totalRow('Toplam gelir', ledgerIncome, 'is-positive', 'income')}
                 </tbody><tbody class="island-v2-buy-rows" aria-label="Alış / üretim">
-                    ${expenses.map(line => `<tr><th scope="row">${line.placeholder ? `<span class="island-v2-field-placeholder" aria-hidden="true">${escapeHtml(line.label)}</span>` : line.copyName ? itemNameHtml(line.label, line.copyName) : escapeHtml(line.label)}</th><td>${displayValue(line.quantity)}</td><td>${displayValue(line.unitPrice)}</td><td>${displayValue(line.setup)}</td><td>—</td><td class="is-negative">${displayValue(line.total)}</td></tr>`).join('')}
-                </tbody></table>
+                    ${ledgerRows(purchaseLines)}
+                ${totalRow('Toplam gider', ledgerExpense, 'is-negative', 'expense')}
+                </tbody><tfoot>${totalRow('Net kâr/zarar', values.net, valueTone(values.net), 'net')}</tfoot></table>
             </div>
         </div>
-        <div class="island-v2-production-equation">${detailRow('Net satış / gün', displayValue(values.income), dependencyHint('income'))}<i aria-hidden="true">−</i>${detailRow('Üretim gideri / gün', displayValue(values.expense), dependencyHint('expense'), 'is-negative')}<i aria-hidden="true">=</i>${detailRow('Net kâr / gün', displayValue(values.net), dependencyHint('net'), valueTone(values.net))}</div>
+
     </section>`;
 
 }
@@ -1095,22 +1268,23 @@ function renderIslandPriceAlert() {
 function renderSummary() {
     const summary = state.derived.summary ?? {};
     const dependencies = summary.dependencies ?? {};
-    return `<section class="island-v2-summary"><div class="island-v2-summary-title" data-app-tooltip="Mevcut yerleşimin günlük sonucu. Seçili şehir, Premium, Focus ve fiyat ayarları kullanılır."><strong>05</strong><span class="island-v2-summary-name">Ada Özeti</span><span>${escapeHtml(cityName(state.draft.islandCity))} · Seviye ${state.draft.islandLevel}</span></div>${metric('Net Kâr / Gün', displayValue(summary.net), dependencies.net ?? [], 'net')}${metric('Gelir', displayValue(summary.income), dependencies.income ?? [], 'income')}${metric('Gider', displayValue(summary.expense), dependencies.expense ?? [], 'expense')}${metric('Focus / Gün', `${displayValue(summary.focus)}<small class="island-v2-focus-summary">${focusSourceSummary(state.derived.slots.values())}</small>`, dependencies.focus ?? [], 'focus')}${metric('İçeriden', displayValue(summary.internal), [], 'internal')}${metric('Marketten', displayValue(summary.market), [], 'market')}${metric('Satışa Kalan', displayValue(summary.surplus), [], 'surplus')}${metric('Yem', displayValue(summary.feed), [], 'feed')}</section>`;
+    return `<section class="island-v2-summary"><div class="island-v2-summary-title" data-app-tooltip="Mevcut yerleşimin günlük sonucu. Seçili şehir, Premium, Focus ve fiyat ayarları kullanılır."><strong>05</strong><span class="island-v2-summary-name">Ada Özeti</span><span>${escapeHtml(cityName(state.draft.islandCity))} · Seviye ${state.draft.islandLevel}</span></div>${metric('Net Kâr / Gün', displayMagnitude(summary.net), dependencies.net ?? [], 'net')}${metric('Gelir', displayMagnitude(summary.income), dependencies.income ?? [], 'income')}${metric('Gider', displayMagnitude(summary.expense), dependencies.expense ?? [], 'expense')}${metric('Focus / Gün', `${displayValue(summary.focus)}<small class="island-v2-focus-summary">${focusSourceSummary(state.derived.slots.values())}</small>`, dependencies.focus ?? [], 'focus')}${metric('İçeriden', displayValue(summary.internal), [], 'internal')}${metric('Marketten', displayValue(summary.market), [], 'market')}${metric('Satışa Kalan', displayValue(summary.surplus), [], 'surplus')}${metric('Yem', displayValue(summary.feed), [], 'feed')}</section>`;
 }
 function syncLayoutGeometry(root) {
     const layout = root.querySelector('.island-v2-layout');
     const summary = root.querySelector('.island-v2-summary');
     if (!layout || !summary || window.matchMedia('(max-width: 1199px)').matches) return;
-    const styles = getComputedStyle(layout);
-    const gap = Number.parseFloat(styles.columnGap) || 0;
-    const left = Number.parseFloat(styles.gridTemplateColumns) || 0;
-    const minimumRight = Number.parseFloat(getComputedStyle(root.querySelector('.island-v2-right')).minWidth) || 0;
-    const summarySpace = summary.getBoundingClientRect().height + (Number.parseFloat(styles.rowGap) || 0);
-    // A growing ledger must not enlarge the island and take width back from the card.
-    const upperHeight = Math.min(layout.clientHeight, window.innerHeight - layout.getBoundingClientRect().top) - summarySpace;
-    const availableWidth = layout.clientWidth - left - minimumRight - (gap * 2);
-    const size = Math.max(0, Math.floor(Math.min(upperHeight, availableWidth)));
-    layout.style.setProperty('--island-v2-size', `${size}px`);
+    const style = getComputedStyle(layout);
+    const number = value => Number.parseFloat(value) || 0;
+    const gap = number(style.columnGap);
+    const controlsWidth = number(style.gridTemplateColumns);
+    const width = layout.clientWidth - number(style.paddingLeft) - number(style.paddingRight);
+    const height = layout.clientHeight - number(style.paddingTop) - number(style.paddingBottom)
+        - summary.getBoundingClientRect().height - number(style.rowGap);
+    const rightMinimum = number(style.getPropertyValue('--island-v2-result-min-width')) * number(getComputedStyle(document.documentElement).fontSize);
+    const available = width - controlsWidth - 2 * gap;
+    const size = Math.max(0, Math.floor(Math.min(height, available - Math.min(rightMinimum, available / 2))));
+    layout.style.setProperty('--island-v2-size', size + 'px');
 }
 function renderedImageContentRect(image) {
     const box = image.getBoundingClientRect();
@@ -1188,8 +1362,17 @@ function openDependencyPopover(root, key) {
     }
     list.showPopover?.();
 }
-function render() { const root = document.querySelector('[data-island-planner-v2]'); if (!root) return; root.innerHTML = `<div class="island-v2-page"><section class="page-head" data-page-head="island-planner-v2"><h1>Ada Planlayıcı V2</h1><p>Adandaki plotları düzenle; üretim, fiyat ve günlük net kârı tek planda takip et.</p></section><div class="island-v2-layout page-body">${renderControls()}${renderIsland()}<div class="island-v2-right">${renderCards()}${renderDetail()}</div>${renderSummary()}</div>${renderDragUi()}</div>`; syncLayoutGeometry(root); const image = root.querySelector('.island-v2-island-image'); if (image?.complete) syncOverlayGeometry(root); else image?.addEventListener('load', () => syncOverlayGeometry(root), { once: true }); bind(root); if (state.openDependencyPopover) openDependencyPopover(root, state.openDependencyPopover); }
-function mutate(mutator, economic = true) { if (economic) { state.autoFillPriceDiagnostics = []; state.optimizationPricesChecked = false; } mutator(); if (economic) scheduleEconomicUpdate(); else render(); }
+// Slot navigation changes presentation only; preserve the map, controls and cards.
+function renderSlotDetail(root) {
+    const detail = root.querySelector('.island-v2-detail');
+    if (detail) detail.outerHTML = renderDetail();
+    root.querySelectorAll('[data-v2-slot]').forEach(element => {
+        element.classList.toggle('is-selected', element.dataset.v2Slot === state.selectedSlotId);
+        element.classList.toggle('is-hovered', element.dataset.v2Slot === state.hoveredSlotId);
+    });
+}
+function render() { const root = document.querySelector('[data-island-planner-v2]'); if (!root) return; const potentialDialogOpen = root.querySelector('[data-v2-potential-dialog]')?.open; root.innerHTML = `<div class="island-v2-page"><section class="page-head" data-page-head="island-planner-v2"><div class="page-head-content"><h1>Ada Planlayıcı V2</h1><p>Adandaki plotları düzenle; üretim, fiyat ve günlük net kârı tek planda takip et.</p></div></section><div class="island-v2-layout page-body">${renderControls()}${renderIsland()}<div class="island-v2-right tool-split-result">${renderCards()}${renderDetail()}</div>${renderSummary()}</div>${renderDragUi()}${renderSalesPotentialResult()}</div>`; syncLayoutGeometry(root); const image = root.querySelector('.island-v2-island-image'); if (image?.complete) syncOverlayGeometry(root); else image?.addEventListener('load', () => syncOverlayGeometry(root), { once: true }); bind(root); if (potentialDialogOpen) root.querySelector('[data-v2-potential-dialog]')?.showModal(); if (state.openDependencyPopover) openDependencyPopover(root, state.openDependencyPopover); }
+function mutate(mutator, economic = true) { if (economic) { state.autoFillResult = null; state.autoFillPriceDiagnostics = []; state.optimizationPricesChecked = false; } mutator(); if (economic) scheduleEconomicUpdate(); else render(); }
 function isSlotLocked(slotId) { if (slot(slotId)?.locked) return true; const unlocked = V2_UNLOCKED_SLOTS_BY_LEVEL?.[state.draft.islandLevel]; return Array.isArray(unlocked) && !unlocked.includes(slotId); }
 const DRAG_PREVIEW_SIZE_VARS = ['--island-v2-diamond-aspect','--island-v2-diamond-width','--island-v2-diamond-height','--island-v2-inner-width','--island-v2-inner-height','--island-v2-icon-width','--island-v2-icon-height','--island-v2-badge-width','--island-v2-badge-height','--island-v2-badge-font','--island-v2-plus-size','--island-v2-selected-outline'];
 function prepareDragPreview(root) {
@@ -1269,6 +1452,13 @@ async function completeDrag(root, target, clientX, clientY) {
 }
 function bind(root) {
     initFloatingLabels(root);
+    bindCityField(root, 'v2-island-city', (value) => {
+        switchIslandCity(value);
+        scheduleEconomicUpdate();
+    });
+    bindCityField(root, 'v2-sell-city', (value) => mutate(() => { state.draft.sellCity = value; }));
+    if (root.dataset.v2Bound === '1') return;
+    root.dataset.v2Bound = '1';
     root.addEventListener('change', event => {
         if (!event.target.matches('[data-v2-focus-budget]')) return;
         const value = event.target.value.trim();
@@ -1285,23 +1475,20 @@ function bind(root) {
         persistDrafts();
         root.querySelectorAll('[data-v2-volume-range], [data-v2-volume-number]').forEach(input => { if (input !== event.target) input.value = value; });
     });
-    bindCityField(root, 'v2-island-city', (value) => {
-        switchIslandCity(value);
-        scheduleEconomicUpdate();
-    });
-    bindCityField(root, 'v2-sell-city', (value) => mutate(() => { state.draft.sellCity = value; }));
-    if (root.dataset.v2Bound === '1') return;
-    root.dataset.v2Bound = '1';
+
     root.addEventListener('click', (event) => {
         if (state.suppressClick) { state.suppressClick = false; event.preventDefault(); return; }
         const button = event.target.closest('button'); if (!button) return; const d = button.dataset;
+        if ('v2PotentialOpen' in d) { root.querySelector('[data-v2-potential-dialog]')?.showModal(); return; }
+        if ('v2PotentialClose' in d) { root.querySelector('[data-v2-potential-dialog]')?.close(); return; }
         if (d.v2DependencyPopover) {
             const list = root.querySelector(`[data-v2-dependency-list="${d.v2DependencyPopover}"]`);
             if (list?.matches(':popover-open')) { list.hidePopover(); state.openDependencyPopover = null; }
             else { state.openDependencyPopover = d.v2DependencyPopover; openDependencyPopover(root, d.v2DependencyPopover); }
             return;
         }
-        if (d.v2Slot) { mutate(() => { state.selectedSlotId = d.v2Slot; }, false); return; }
+        if (d.v2Slot) { state.selectedSlotId = d.v2Slot; renderSlotDetail(root); return; }
+        if (d.v2PotentialDays) { mutate(() => { state.draft.potentialDays = Number(d.v2PotentialDays); }); return; }
         if (d.v2Premium) mutate(() => { state.draft.premium = d.v2Premium === '1'; });
         if ('v2FocusBudget' in d) return;
         if (d.v2Focus) mutate(() => { state.draft.focus = d.v2Focus === '1'; });
@@ -1326,6 +1513,7 @@ function bind(root) {
         if ('v2AutoFill' in d) { void autoFillIsland(); return; }
         if ('v2Save' in d) { persistDrafts(); state.committed = clone(state.draft); persistCommitted(); render(); }
         if ('v2Revert' in d && state.committed) { state.draft = normalizeDraft(state.committed, state.draft.islandCity); persistDrafts(); scheduleEconomicUpdate(); }
+        if ('v2PotentialRefresh' in d) { void loadV2Prices({ refreshPotential: true }); return; }
         if ('v2Prices' in d) { void loadV2Prices(); return; }
     });
     root.addEventListener('dragstart', (event) => event.preventDefault());
@@ -1342,7 +1530,7 @@ function bind(root) {
             const nextHoveredSlotId = hit?.dataset.v2Slot ?? null;
             if (nextHoveredSlotId !== state.hoveredSlotId) {
                 state.hoveredSlotId = nextHoveredSlotId;
-                render();
+                renderSlotDetail(root);
             }
             return;
         }
@@ -1358,7 +1546,7 @@ function bind(root) {
     root.addEventListener('pointerleave', () => {
         if (!state.drag && !state.pointerDrag && state.hoveredSlotId) {
             state.hoveredSlotId = null;
-            render();
+            renderSlotDetail(root);
         }
     });
     root.addEventListener('pointerup', async (event) => {
@@ -1369,7 +1557,9 @@ function bind(root) {
     window.addEventListener('keydown', (event) => { if (event.key === 'Escape' && (state.drag || state.pointerDrag)) { event.preventDefault(); state.suppressClick = true; cleanupDrag(root); } });
 }
 async function init() {
-    initNav(); await initStore(); state.cities = await loadActiveCities();
+    const root = document.querySelector('[data-island-planner-v2]');
+    if (!root) return;
+    state.cities = loadActiveCities();
     const storedDrafts = readPlanTable(V2_DRAFT_TABLE, V2_STORAGE_KEY, true);
     const storedCommitted = readPlanTable(V2_COMMITTED_TABLE, V2_COMMITTED_STORAGE_KEY);
     const initialCity = storedDrafts.activeCity || getDefaultCity();
@@ -1379,9 +1569,18 @@ async function init() {
     state.geometryRows = getAll(V2_GEOMETRY_TABLE);
     state.fixedPrices = getAll(FIXED_PRICE_TABLE);
     persistDrafts(); persistCommitted();
-    try { const response = await fetch(V2_GEOMETRY_URL); state.geometry = response.ok ? await response.json() : null; } catch { state.geometry = null; }
-    if (v2PriceItemIds().length) await loadV2Prices(); else calculateIslandPlan();
-    const root = document.querySelector('[data-island-planner-v2]');
+    // Build the same ledger structure before prices arrive; unknown values remain placeholders.
+    state.derived = calculateIslandPlan({ update: false });
+    render();
+    root.inert = false;
+    root.removeAttribute('aria-busy');
+    const geometryReady = (async () => {
+        try { const response = await fetch(V2_GEOMETRY_URL); state.geometry = response.ok ? await response.json() : null; }
+        catch { state.geometry = null; }
+        finally { state.geometryLoading = false; render(); }
+    })();
+    const pricesReady = v2PriceItemIds().length ? loadV2Prices() : Promise.resolve(calculateIslandPlan());
+    await Promise.all([geometryReady, pricesReady]);
     const focusTables = new Set(['islandYieldLogs', 'plants', 'animals']);
     const onFocusData = tableName => {
         if (focusTables.has(tableName)) { state.autoFillResult = null; calculateIslandPlan(); }
@@ -1396,4 +1595,7 @@ async function init() {
         return { items: v2PriceItemIds(entries), cities: v2PriceCities(entries) };
     }, () => { void loadV2Prices(); });
 }
-init();
+void init().catch(error => {
+    console.error('Ada planlayıcı başlatılamadı', error);
+    showToast('Ada planı yüklenemedi. Sayfayı yeniden yükleyin.', 'error');
+});

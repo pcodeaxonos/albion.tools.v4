@@ -228,7 +228,7 @@ export function normalizeTrade(raw, locationNames = new Map()) {
             : String(raw.ClusterIndex);
 
         const base = {
-            sourceId: raw?.Id != null ? raw.Id : null,
+            sourceId: raw?.Id != null ? String(raw.Id) : null,
             occurredAt: csvOccurredAt(raw?.CsvOutput),
             clusterIndex,
             locationName: resolveLocationName(clusterIndex, locationNames),
@@ -265,7 +265,7 @@ export function normalizeTrade(raw, locationNames = new Map()) {
         });
     } catch {
         return emptyNormalized({
-            sourceId: raw?.Id != null ? raw.Id : null,
+            sourceId: raw?.Id != null ? String(raw.Id) : null,
             kind: 'normalize_error',
             rawType: raw?.Type != null ? Number(raw.Type) : null
         });

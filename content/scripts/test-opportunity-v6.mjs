@@ -1,0 +1,111 @@
+import assert from 'node:assert/strict';
+import { mkdtempSync, rmSync, readFileSync, writeFileSync, appendFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import { gunzipSync } from 'node:zlib';
+import { spawnSync } from 'node:child_process';
+import { createServer } from 'node:http';
+import { OpportunityEvidenceRepository, routeOpportunityEvidence } from './opportunity-evidence-repository.mjs';
+import { signalSnapshot, verification, tradeAccounting, evidenceReport, freshnessBand, evidenceCanonical } from '../js/core/opportunity-evidence.mjs';
+import { rankOpportunityPresentation } from '../js/core/market-opportunity-quality.mjs';
+import { rankCommercialOpportunities } from '../js/core/market-opportunity-commerce.mjs';
+
+const dir = mkdtempSync(join(tmpdir(), 'albion-v6-')), file = join(dir, 'evidence.jsonl');
+const now = new Date().toISOString(), at = '2026-10-11T20:00:00.000Z';
+const quote = price => ({ price, at: '2026-10-11T19:30:00.000Z', source: 'aodp-current' });
+const row = { id: 'fixture-route', server: 'europe', itemId: 'T4_TEST', city: 'Lymhurst', quality: 1,
+    buy: { price: 140 }, sell: { price: 100 }, primary: { id: 'cross-city-instant', toCity: 'Martlock', evidence: { inputs: { sell: quote(100), destination: quote(140) } }, economics: { capitalSilver: 100, returnRatio: .3 } } };
+const snapshot = signalSnapshot(row, { observedAt: at, productGroup: 'resources' });
+let repo = new OpportunityEvidenceRepository(file), n = 0;
+const submit = command => repo.submit({ requestId: `request-${++n}`, command });
+const check = (side, result, extra = {}) => submit({ type: 'check', snapshot, side, result, at, ...extra });
+const event = (tradeId, type, extra = {}) => submit({ type: 'event', tradeId, at, event: { type, ...extra } });
+try {
+    assert.equal(freshnessBand(snapshot), '0–1 saat');
+    const original = evidenceCanonical(snapshot);
+    assert.throws(() => new OpportunityEvidenceRepository(file), /başka bir servis/);
+    assert.throws(() => check('buy', 'quantity', { availableQuantity: 1.5 }), /tam sayı/);
+    assert.equal(repo.state.checks.length, 0);
+    const partialCheck = check('buy', 'correct');
+    const partialTrade = submit({ type: 'start', snapshot, checkId: partialCheck.requestId, at, initial: { type: 'buy', price: 10, quantity: 1 } }).requestId;
+    assert.equal(repo.state.trades[partialTrade].verificationAtStart.complete, false);
+    event(partialTrade, 'sell', { price: 10, quantity: 1 }); event(partialTrade, 'complete');
+    assert.equal(tradeAccounting(repo.state.trades[partialTrade]).realizedNet, 0);
+    const a = check('buy', 'correct', { observedPrice: 100, availableQuantity: 10 });
+    assert.equal(verification(repo.state, a.signalId).verified, 1); assert.equal(verification(repo.state, a.signalId).complete, false);
+    check('sell', 'changed', { observedPrice: 110 });
+    let report = evidenceReport(repo.state); assert.equal(report.checked, 1); assert.equal(report.accuracy, .5); assert.equal(report.changed, 1);
+    check('sell', 'quantity', { availableQuantity: 2 }); report = evidenceReport(repo.state); assert.equal(report.insufficient, 1); assert.equal(report.priceChecks, 2);
+    check('sell', 'unchecked'); assert.equal(evidenceReport(repo.state).insufficient, 1, 'unable-to-check does not erase actual observation');
+    const b = check('sell', 'correct'); assert.equal(verification(repo.state, b.signalId).complete, true);
+    const input = { requestId: 'duplicate-request', command: { type: 'check', snapshot, side: 'buy', result: 'executable', at } };
+    const first = repo.submit(input), length = repo.state.checks.length;
+    assert.equal(repo.submit(input).duplicate, true); assert.equal(repo.state.checks.length, length);
+    assert.throws(() => repo.submit({ ...input, command: { ...input.command, result: 'missing' } }), /farklı içerik/);
+    const trade = submit({ type: 'start', snapshot, checkId: first.requestId, at, initial: { type: 'buy', price: 100, quantity: 10, fee: 10, extra: 20 } }).requestId;
+    assert.equal(repo.state.trades[trade].verificationAtStart.complete, true);
+    const order = event(trade, 'order', { side: 'sell', price: 150, quantity: 10, fee: 15 }).requestId;
+    let accounting = tradeAccounting(repo.state.trades[trade]); assert.equal(accounting.salesGross, 0); assert.equal(accounting.inventoryCost, 1030); assert.equal(accounting.realizedNet, -15);
+    event(trade, 'sell', { orderId: order, price: 140, quantity: 4, tax: 24, fee: 2 });
+    accounting = tradeAccounting(repo.state.trades[trade]); assert.equal(accounting.remaining, 6); assert.equal(accounting.costOfSales, 412); assert.equal(accounting.inventoryCost, 618); assert.equal(accounting.realizedNet, 107); assert.equal(accounting.saleNet, 534); assert.equal(accounting.openOrders[0].remaining, 6);
+    assert.throws(() => event(trade, 'sell', { price: 140, quantity: 1 }), /serbest stok/);
+    assert.throws(() => event(trade, 'complete'), /stok satılmalı/);
+    event(trade, 'cancel', { orderId: order, fee: 3 });
+    assert.equal(tradeAccounting(repo.state.trades[trade]).remaining, 6);
+    event(trade, 'sell', { price: 90, quantity: 6, tax: 30 }); event(trade, 'complete');
+    accounting = tradeAccounting(repo.state.trades[trade]); assert.equal(accounting.realizedNet, -4); assert.equal(accounting.cashFlow, -4); assert.equal(accounting.inventoryCost, 0); assert.equal(repo.state.trades[trade].status, 'completed');
+    assert.throws(() => event(trade, 'expense', { extra: 1 }), /Kapanmış/);
+    // Open buy order produces no stock or imagined sale, partial acquisitions persist.
+    const buyTrade = submit({ type: 'start', snapshot, checkId: first.requestId, at, initial: { type: 'order', side: 'buy', price: 50, quantity: 10, fee: 5 } }).requestId;
+    const buyOrder = repo.state.trades[buyTrade].events[0].id;
+    accounting = tradeAccounting(repo.state.trades[buyTrade]); assert.equal(accounting.bought, 0); assert.equal(accounting.reservedPurchase, 500); assert.equal(accounting.realizedNet, -5);
+    event(buyTrade, 'buy', { orderId: buyOrder, price: 49, quantity: 3, extra: 3 });
+    event(buyTrade, 'cancel', { orderId: buyOrder }); event(buyTrade, 'abandon');
+    accounting = tradeAccounting(repo.state.trades[buyTrade]); assert.equal(accounting.remaining, 3); assert.equal(accounting.tiedCapital, 150); assert.equal(accounting.realizedNet, -5);
+    // New control dates remain separate, same signal is historical and never changed by live row mutation.
+    check('buy', 'changed', { at: '2026-10-11T21:00:00Z' });
+    check('buy', 'correct', { at: '2026-10-11T20:30:00Z' });
+    assert.equal(verification(repo.state, first.signalId).sides.buy.result, 'changed', 'chronological outcome, not submission order');
+    row.primary.evidence.inputs.sell.price = 999; row.sell.price = 999;
+    assert.equal(evidenceCanonical(snapshot), original); assert.equal(repo.state.signals[first.signalId].legs.buy.price, 100);
+    assert.throws(() => submit({ type: 'start', snapshot, checkId: first.requestId, at, initial: { type: 'buy', price: 1, quantity: 1 } }), /güncel olumlu/);
+    const later = { ...snapshot, observedAt: '2026-10-11T22:00:00Z' };
+    const laterCheck = submit({ type: 'check', snapshot: later, at: '2026-10-11T22:01:00Z', side: 'buy', result: 'missing' });
+    assert.notEqual(laterCheck.signalId, first.signalId); assert.equal(evidenceReport(repo.state).checked, 1);
+    assert.equal(evidenceReport(repo.state, { city: 'Martlock' }).completed, 2);
+    assert.equal(evidenceReport(repo.state, { city: 'Caerleon' }).priceChecks, 0);
+    assert.equal(evidenceReport(repo.state, { productGroup: 'resources', freshness: '0–1 saat' }).trades.length, 3);
+    assert.equal(repo.state.trades[partialTrade].verificationAtStart.complete, false, 'future controls never rewrite start validation');
+    const fifoCheck = check('sell', 'correct', { at: '2026-10-11T23:00:00Z' });
+    const fifoTrade = submit({ type: 'start', snapshot, checkId: fifoCheck.requestId, at, initial: { type: 'buy', price: 10, quantity: 2 } }).requestId;
+    event(fifoTrade, 'sell', { price: 20, quantity: 1 }); event(fifoTrade, 'buy', { price: 100, quantity: 2, fee: 10 });
+    let fifo = tradeAccounting(repo.state.trades[fifoTrade]); assert.equal(fifo.costOfSales, 10); assert.equal(fifo.inventoryCost, 220);
+    event(fifoTrade, 'sell', { price: 120, quantity: 2 }); fifo = tradeAccounting(repo.state.trades[fifoTrade]); assert.equal(fifo.costOfSales, 125); assert.equal(fifo.inventoryCost, 105);
+    const saved = evidenceCanonical(repo.state); repo.close();
+    const reopenModule = new URL('./opportunity-evidence-repository.mjs', import.meta.url).href;
+    const child = spawnSync(process.execPath, ['--input-type=module', '-e', 'const {OpportunityEvidenceRepository}=await import(process.argv[1]);const r=new OpportunityEvidenceRepository(process.argv[2]);console.log(JSON.stringify(r.snapshot()));r.close();', reopenModule, file], { encoding: 'utf8' });
+    assert.equal(child.status, 0, child.stderr); assert.equal(evidenceCanonical(JSON.parse(child.stdout)), saved, 'fresh OS process reads all committed records');
+    repo = new OpportunityEvidenceRepository(file);
+    assert.equal(evidenceCanonical(repo.state), saved); assert.equal(repo.submit(input).duplicate, true);
+    // An incomplete final write is preserved for inspection, removed before replay; complete corruption never discarded.
+    repo.close(); appendFileSync(file, '{"partial":'); repo = new OpportunityEvidenceRepository(file); assert.ok(repo.recovery.discardedBytes > 0); assert.equal(evidenceCanonical(repo.state), saved);
+    const server = createServer(async (req, res) => { if (!await routeOpportunityEvidence(req, res, repo, new URL(req.url, 'http://localhost').pathname)) res.end(); });
+    await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
+    const host = `http://127.0.0.1:${server.address().port}`;
+    try {
+        assert.equal((await (await fetch(host + '/api/v1/opportunity-evidence')).json()).checks.length, repo.state.checks.length);
+        const response = await fetch(host + '/api/v1/opportunity-evidence', { method: 'POST', body: JSON.stringify(input) });
+        assert.equal(response.status, 200); assert.equal((await response.json()).duplicate, true);
+        assert.equal((await fetch(host + '/api/v1/opportunity-evidence', { method: 'POST', body: '{}' })).status, 400);
+    } finally { await new Promise(resolve => server.close(resolve)); }
+    repo.close(); const journal = readFileSync(file, 'utf8'); writeFileSync(file, journal.replace('"correct"', '"changed"'));
+    assert.throws(() => new OpportunityEvidenceRepository(file), /bütünlük/); writeFileSync(file, journal);
+    // Preserve full ranking of the archived V5 snapshot; discovery now also supports sales valuation.
+    const baseline = JSON.parse(readFileSync('docs/opportunity-v6/baseline.json'));
+    const scan = JSON.parse(gunzipSync(readFileSync('docs/opportunity-v6/baseline-scan.json.gz'))), frozen = JSON.stringify(scan);
+    const ranked = rankCommercialOpportunities(rankOpportunityPresentation(scan.eligibleCandidates, { calibration: scan.qualityCalibration }), { calibration: scan.qualityCalibration });
+    assert.equal(JSON.stringify(scan), frozen); assert.equal(JSON.stringify(ranked), gunzipSync(readFileSync('docs/opportunity-v6/baseline-ranked.json.gz')).toString());
+    const proof = { verifiedAt: now, raw: baseline.raw, groups: ranked.length, fullRankingAndReferencesUnchanged: true,  syntheticAccountingAndPersistence: 'passed', realUserRecordsCreated: 0 };
+    writeFileSync('docs/opportunity-v6/verification.json', JSON.stringify(proof, null, 2));
+    console.log('V6: independent checks, chronological outcomes, duplicate/conflict, immutable signals, FIFO partial fills, open/cancelled/completed orders, stock/negative P&L, restart, partial recovery, integrity refusal, HTTP and exact V5 invariance passed.');
+} finally { repo.close(); rmSync(dir, { recursive: true, force: true }); }

@@ -1,16 +1,38 @@
 import { localTradeHost } from './settings.js';
+import { TRADE_ARCHIVE_CONTEXT } from './trade-config.mjs';
+import { DAY_MS, HISTORY_CACHE_POLICY } from './market-history-config.mjs';
 
 export const TRADES_EVENT = 'albiontools:trades';
 
 let source = null;
 let connected = false;
 let lastAt = null;
+const SNAPSHOT_TTL_MS = HISTORY_CACHE_POLICY.localMs;
+let snapshotCache = null;
+let snapshotPending = null;
+
+// No SSE startup or polling: consumers explicitly request this cached snapshot.
+export async function fetchCachedTradeSnapshot(scope = null, { force = false } = {}) {
+    const host = localTradeHost();
+    if (scope) scope = { server: scope.server, days: scope.days, items: [...new Set(scope.items)].sort(),
+        locations: [...new Set(scope.locations)].sort(), qualities: [...new Set(scope.qualities)].sort((a, b) => a - b) };
+    const key = JSON.stringify([Math.floor(Date.now() / DAY_MS), scope]);
+    if (!force && snapshotCache?.host === host && snapshotCache.key === key && Date.now() - snapshotCache.at < SNAPSHOT_TTL_MS) return snapshotCache.value;
+    if (snapshotPending?.host === host && snapshotPending.key === key) return snapshotPending.promise;
+    const promise = fetchTradeSnapshot(AbortSignal.timeout(5000), scope).then(value => {
+        snapshotCache = { host, key, at: Date.now(), value };
+        return value;
+    }).finally(() => { if (snapshotPending?.promise === promise) snapshotPending = null; });
+    snapshotPending = { host, key, promise };
+    return promise;
+}
 
 export function isTradeLiveConnected() {
     return connected && source != null && source.readyState === EventSource.OPEN;
 }
 
 export function emitTradeLive(detail) {
+    if (detail.type === 'initial' || detail.type === 'added' || detail.type === 'error') snapshotCache = null;
     window.dispatchEvent(new CustomEvent(TRADES_EVENT, { detail }));
 }
 
@@ -94,8 +116,10 @@ export function stopTradeLive() {
 /**
  * Optional REST snapshot (used if SSE has not delivered initial yet).
  */
-export async function fetchTradeSnapshot(signal) {
-    const response = await fetch(`${localTradeHost()}/api/v1/trades`, {
+export async function fetchTradeSnapshot(signal, scope = null) {
+    const params = scope ? `?${new URLSearchParams({ server: scope.server, items: scope.items.join(','),
+        locations: scope.locations.join(','), qualities: scope.qualities.join(','), days: String(scope.days) })}` : '';
+    const response = await fetch(`${localTradeHost()}/api/v1/trades${params}`, {
         signal,
         cache: 'no-store'
     });
@@ -103,7 +127,7 @@ export async function fetchTradeSnapshot(signal) {
         const body = await response.json().catch(() => ({}));
         throw new Error(body.error || `Trade hub HTTP ${response.status}`);
     }
-    return response.json();
+    return { ...TRADE_ARCHIVE_CONTEXT, ...await response.json() };
 }
 
 export async function fetchTradeStatus(signal) {

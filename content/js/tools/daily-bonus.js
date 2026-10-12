@@ -1,13 +1,12 @@
 import { itemNameHtml } from '../components/item-name.js';
-import { toolPageHtml } from '../components/tool-page.js';
+import { toolPageHtml } from '../core/app-runtime.js';
 import { escapeHtml } from '../utils/utils.js';
-import { initNav } from '../core/nav.js';
 import { initFloatingLabels } from '../components/forms.js';
-import { initStore, getAll, createRow, updateRow, deleteRow } from '../db/store.js';
+import { getAll, createRow, updateRow, deleteRow } from '../db/store.js';
 import { getBonusFamilies, getBonusFamilyByKey, getBonusFamilyLabel } from '../core/bonus-families.js';
 import { addDays, bonusDayIso, bonusWindowLabel } from '../core/bonus-day.js';
 import { bonusCityLabel } from '../core/bonus-cities.js';
-import { refreshTodayBonusChip } from '../core/today-bonus.js';
+import { refreshTodayBonusChip } from '../core/app-runtime.js';
 import { showPageLoader, hidePageLoader } from '../components/loader.js';
 import { initTableSort, sortHeaderHtml } from '../utils/table-sort.js';
 import { bindCalcSticky } from '../utils/calc-sticky.js';
@@ -1233,7 +1232,6 @@ function saveEntry(container) {
 }
 
 async function init() {
-    initNav();
     const container = document.querySelector('[data-tool="daily-bonus"]');
     if (!container) {
         return;
@@ -1242,7 +1240,6 @@ async function init() {
     showPageLoader();
 
     try {
-        await initStore();
         state.month = toYearMonth(bonusDayIso());
         state.analysis.preparing = todayAnalysisFamilies().length > 0;
         renderPage(container);

@@ -7,7 +7,7 @@ const migrations = JSON.parse(fs.readFileSync(new URL('./css-component-migration
 const legacy = Object.keys(Object.assign({}, ...Object.values(migrations)));
 const escape = s => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 const legacyPattern = new RegExp(`(?<![\\w/-])(${legacy.map(escape).sort((a, b) => b.length - a.length).join('|')})(?![\\w-])`, 'g');
-const skip = new Set(['node_modules', '.git', '.agents', '.codex', '.css-audit']);
+const skip = new Set(['node_modules', '.git', '.agents', '.codex', '.css-audit', '.tmp']);
 function walk(dir) {
     return fs.readdirSync(dir, { withFileTypes: true }).flatMap(entry => skip.has(entry.name) ? [] : entry.isDirectory() ? walk(path.join(dir, entry.name)) : [path.join(dir, entry.name)]);
 }

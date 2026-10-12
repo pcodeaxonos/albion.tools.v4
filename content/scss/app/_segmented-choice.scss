@@ -1,4 +1,15 @@
 // Shared segmented choices; width/icon differences are semantic modifiers.
+.filter-choice-grid {
+    display: grid;
+    grid-template-columns: repeat(var(--filter-choice-columns, 4), minmax(0, 1fr));
+    gap: .3rem;
+}
+
+.filter-selection-button--badge {
+    min-width: 0;
+    padding: .2rem 0;
+}
+
 .segmented-choice {
     display: flex;
     flex-wrap: wrap;
@@ -49,6 +60,21 @@
 .segmented-choice-button--compact {
     min-width: 0;
     padding-inline: 0.5rem;
+}
+
+// Variable-length labels retain enough room for their text, share spare space,
+// and wrap within narrow panels.
+.segmented-choice.segmented-choice--content-width > .segmented-choice-button {
+    flex: 1 0 auto;
+    min-width: max-content;
+}
+
+// Dense tool panels use the same choice states with a smaller shared rhythm.
+.segmented-choice--dense .segmented-choice-button {
+    min-height: 1.65rem;
+    padding: .15rem .35rem;
+    font-size: var(--font-size-xs);
+    line-height: 1.2;
 }
 
 .segmented-choice-button--icon {

@@ -1,9 +1,7 @@
 import { itemNameHtml } from '../components/item-name.js';
-import { toolPageHtml } from '../components/tool-page.js';
+import { toolPageHtml } from '../core/app-runtime.js';
 import { escapeHtml } from '../utils/utils.js';
-import { initNav } from '../core/nav.js';
 import { initFloatingLabels } from '../components/forms.js';
-import { initStore } from '../db/store.js';
 import { itemIconHtml, itemLabel, rawStoneId, stoneBlockId } from '../components/item-icon.js';
 import { getBuildings, getRefineTiers } from '../core/catalog.js';
 
@@ -359,14 +357,12 @@ function bindPage(container) {
 }
 
 async function init() {
-    initNav();
     const container = document.querySelector('[data-tool="house"]');
     if (!container) {
         return;
     }
     try {
-        await initStore();
-    } catch (error) {
+        } catch (error) {
         console.error(error);
     }
     renderPage(container);

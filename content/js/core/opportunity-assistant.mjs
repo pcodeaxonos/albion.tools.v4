@@ -24,7 +24,10 @@ export function assistantAction(row) {
             && row.spreadReview.spanMs >= row.spreadReview.spanRequired
             && row.spreadRealism?.classification === 'historical-price-supported') id = 'order';
     }
-    return { id, label: ACTION_LABELS[id], status: card.status };
+    const label = row.outcome === 'price-supported' && id !== 'watch'
+        ? { buy: 'Alış fiyatını ve miktarı kontrol et', sell: 'Buy emrini ve miktarı kontrol et',
+            transport: 'Rotayı ve emir miktarını kontrol et', order: 'Emir koşullarını kontrol et' }[id] : ACTION_LABELS[id];
+    return { id, label, status: card.status };
 }
 export function candidatePriority(row) {
     const sides = Object.values(row.primary?.evidence?.inputs || {}).filter(Boolean);

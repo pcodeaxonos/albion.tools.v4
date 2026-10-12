@@ -154,6 +154,10 @@ async function fetchPricesQuiet(host, ids, locations, qualityParam, options) {
  * Loads the configured price source, with the other provider as a per-side fallback.
  * A configured packet/API quote is never silently replaced by the other source.
  */
+export async function fetchGamePrices(itemIds, locations, { qualities = '1', signal } = {}) {
+    return fetchPricesFromHost(localPriceHost(), [...new Set(itemIds)].sort(), [...new Set(locations)].sort(), String(qualities), { server: getServer().id, signal });
+}
+
 export async function fetchPrices(itemIds, locations = ['Black Market', 'Caerleon'], { source, qualities = '1', signal } = {}) {
     const ids = [...new Set(itemIds.filter(Boolean))];
     if (ids.length === 0) {

@@ -1,11 +1,8 @@
-import { initNav } from '../core/nav.js';
-import { initStore } from '../db/store.js';
+import '../core/app-runtime.js';
 import { renderDashboard } from './dashboard.js';
 import { showPageLoader, hidePageLoader } from '../components/loader.js';
 
 async function init() {
-    initNav();
-
     const dashboardContainer = document.getElementById('dashboard');
 
     if (!dashboardContainer) {
@@ -15,7 +12,6 @@ async function init() {
     showPageLoader();
 
     try {
-        await initStore();
         await renderDashboard(dashboardContainer);
         hidePageLoader();
     } catch (error) {

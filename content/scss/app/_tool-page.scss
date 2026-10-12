@@ -158,3 +158,25 @@ main.tool-page {
     .tool-page .result :where(div, section):has(.calc-table-wrap) { flex: 1 0 auto; }
     .tool-page .trades-root { min-height: 40rem; }
 }
+
+// Full-width result tools can opt into a compact control row above the scrollport.
+.page-body > .tool-split--stacked {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto minmax(0, 1fr);
+    gap: var(--spacing-sm);
+    > .left { height: auto; position: static; }
+    // Mobile follows content height; a bounded fractional row would let its
+    // content-sized result paint over the optional analysis below it.
+    @media (max-width: 991px) {
+        grid-template-rows: auto auto;
+        flex: 0 0 auto;
+        > .right > .result > :where(div, section) { flex: 1 0 auto; }
+    }
+}
+
+// Optional analysis owns its scroll area without consuming height when collapsed.
+.tool-page-bottom-result--optional {
+    flex: 0 0 auto; min-height: 0; max-height: 60dvh; overflow: auto;
+    > details > summary { cursor: pointer; padding: .5rem 0; font-size: .8rem; }
+    .tool-split--stacked { grid-template-columns: minmax(0,1fr); }
+}

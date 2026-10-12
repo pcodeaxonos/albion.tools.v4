@@ -1,11 +1,9 @@
 import { toggleAllFilter } from '../components/filter-selection.js';
 import { itemNameHtml } from '../components/item-name.js';
 import { bindCalcExplain } from '../utils/calc-explain.js';
-import { toolPageHtml } from '../components/tool-page.js';
+import { toolPageHtml } from '../core/app-runtime.js';
 import { escapeHtml } from '../utils/utils.js';
-import { initNav } from '../core/nav.js';
 import { routeHref } from '../core/routes.js';
-import { initStore } from '../db/store.js';
 import { getSettings, getStandardCombos, getDefaultCity } from '../core/settings.js';
 import { fetchPrices, indexPrices, cityRow } from '../core/market.js';
 import { itemIconHtml } from '../components/item-icon.js';
@@ -2123,14 +2121,14 @@ function renderPage(container) {
                             { id: '0', label: 'Premium yok' }
                         ], state.premium ? '1' : '0', 'premium')}
                     </div>
-                    <div class="form-side-field">
-                        <span class="form-side-label" id="royalMatSideLabel">Alış</span>
+                    <div class="choice-field form-field">
+                        <div class="form-field-heading"><div class="form-field-label" id="royalMatSideLabel">Alış</div></div>
                         <div class="segmented-choice" role="radiogroup" aria-labelledby="royalMatSideLabel">
                             ${priceSideToggleHtml('mat', state.matSide)}
                         </div>
                     </div>
-                    <div class="form-side-field">
-                        <span class="form-side-label" id="royalItemSideLabel">Satış</span>
+                    <div class="choice-field form-field">
+                        <div class="form-field-heading"><div class="form-field-label" id="royalItemSideLabel">Satış</div></div>
                         <div class="segmented-choice" role="radiogroup" aria-labelledby="royalItemSideLabel">
                             ${priceSideToggleHtml('item', state.itemSide)}
                         </div>
@@ -2417,8 +2415,6 @@ async function boot() {
     if (!container) {
         return;
     }
-    await initStore();
-    initNav();
     const settings = getSettings();
     state.premium = settings.premium;
     state.matSide = settings.buyPriceSide;

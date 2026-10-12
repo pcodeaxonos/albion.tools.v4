@@ -1,0 +1,19 @@
+{
+  "capturedAt": "2026-10-12T00:02:07.490Z",
+  "snapshotAt": "2026-10-12T00:01:59.382Z",
+  "hashes": {
+    "market-opportunity-scan": "abfc22772e4f8c3b05330b2b98d512d6b1e69babf5f29bc3193f0c76ee6e479e",
+    "market-opportunity-review": "1fc0982a4d543eb633705022bd241169a69f82a7a8358b95cbf01e2bee5ebec3",
+    "market-opportunities": "f586e041eae9b3bfe20ffcc4f8a44fbfbf9292b08fd27570c2c8db272c0debfb",
+    "market-opportunity-quality": "393048c8295309b27c733d87d0cfd46821ad38121729d64cc21d40e1be326b7e",
+    "market-strategy-policy": "5fbb1b17d2217b24b7e1d3f65267cf619a9cf4d2f0822cd67728d92fa950f1fb",
+    "market-observation": "08b337a44c257af7736fa94ad0e8c0715adabc29fc85d519dbc1f34a679d3770",
+    "opportunity-assistant": "6d6c7ca146018c62390318d47ce30d8d8e75f3bc5a8214f8b7df8d20aa314864",
+    "opportunity-status": "3ababb90b23db211a73f83b685b12527e789c55e65e37e6f57d1042b79db96c8",
+    "market-sales-activity": "db0402877d5194da34a91bc14b405808cec3ba6e286916122440db60f04d123c",
+    "market-opportunity-commerce": "b6194b8ca09db07b023181f02410188875aca81bc1c43041a191fc3780e3b3ac",
+    "market-trade-scenario": "d3cf698f81a863ebed27d72b66c341c97c33e96669eef2cf9ba720c351e146ad"
+  },
+  "raw": 94,
+  "groups": 74
+}

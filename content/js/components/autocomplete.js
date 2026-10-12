@@ -648,7 +648,8 @@ function enhanceSelect(select) {
         }
 
         bindGlobalListeners();
-        document.body.appendChild(menu);
+        // Native dialogs occupy the top layer: a body portal would be inert behind them.
+        (wrap.closest('dialog[open]') || document.body).appendChild(menu);
         menu.hidden = false;
         open = true;
         wrap.classList.add('is-open');

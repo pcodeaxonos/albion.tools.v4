@@ -1,0 +1,3767 @@
+{
+  "asOf": "2026-10-12T07:11:51.976Z",
+  "baseline": "2026-10-12T00:01:59.382Z",
+  "counts": {
+    "ACTION_NOT_VALIDATED": 56,
+    "INVALID_SPREAD": 33,
+    "NORMAL_MARKET_BEHAVIOR": 1,
+    "INSUFFICIENT_HISTORY": 2,
+    "VALIDATED_OPPORTUNITY": 2
+  },
+  "counters": {
+    "retained": 2,
+    "priceChanged": 36,
+    "missingQuote": 0,
+    "staleSource": 86,
+    "asyncOver60m": 38,
+    "missingReference": 0
+  },
+  "per": [
+    {
+      "id": "T6_SHOES_GATHERER_WOOD|Brecilien|1",
+      "eligibleNow": false,
+      "potentialNow": true,
+      "currentStage": "watch",
+      "reason": "ACTION_NOT_VALIDATED",
+      "validation": "provisional",
+      "oldStrategy": "cross-city-instant",
+      "oldNet": 11007.759999999998,
+      "legs": [
+        {
+          "label": "sell",
+          "city": "Brecilien",
+          "side": "sell",
+          "oldPrice": 12998,
+          "currentPrice": 12998,
+          "changed": false,
+          "oldAt": "2026-10-11T21:30:00.000Z",
+          "currentAt": "2026-10-11T21:30:00Z",
+          "ageMin": 582,
+          "stale": true,
+          "refLevel": 0,
+          "gapMin": 0
+        },
+        {
+          "label": "destination",
+          "city": "Lymhurst",
+          "side": "buy",
+          "oldPrice": 25006,
+          "currentPrice": 25006,
+          "changed": false,
+          "oldAt": "2026-10-11T22:10:00.000Z",
+          "currentAt": "2026-10-11T22:10:00Z",
+          "ageMin": 542,
+          "stale": true,
+          "refLevel": 1,
+          "gapMin": 0
+        }
+      ]
+    },
+    {
+      "id": "T3_MOUNT_OX|Fort Sterling|1",
+      "eligibleNow": false,
+      "potentialNow": true,
+      "currentStage": "watch",
+      "reason": "ACTION_NOT_VALIDATED",
+      "validation": "provisional",
+      "oldStrategy": "cross-city-instant",
+      "oldNet": 1434.8000000000002,
+      "legs": [
+        {
+          "label": "sell",
+          "city": "Fort Sterling",
+          "side": "sell",
+          "oldPrice": 3466,
+          "currentPrice": 3466,
+          "changed": false,
+          "oldAt": "2026-10-11T22:00:00.000Z",
+          "currentAt": "2026-10-11T22:00:00Z",
+          "ageMin": 552,
+          "stale": true,
+          "refLevel": 1,
+          "gapMin": 0
+        },
+        {
+          "label": "destination",
+          "city": "Caerleon",
+          "side": "buy",
+          "oldPrice": 5105,
+          "currentPrice": 5105,
+          "changed": false,
+          "oldAt": "2026-10-11T21:30:00.000Z",
+          "currentAt": "2026-10-11T21:30:00Z",
+          "ageMin": 582,
+          "stale": true,
+          "refLevel": 1,
+          "gapMin": 0
+        }
+      ]
+    },
+    {
+      "id": "T7_ARTEFACT_2H_ROCKSTAFF_KEEPER|Bridgewatch|1",
+      "eligibleNow": false,
+      "potentialNow": true,
+      "currentStage": "watch",
+      "reason": "ACTION_NOT_VALIDATED",
+      "validation": "provisional",
+      "oldStrategy": "cross-city-instant",
+      "oldNet": 15694.400000000001,
+      "legs": [
+        {
+          "label": "sell",
+          "city": "Bridgewatch",
+          "side": "sell",
+          "oldPrice": 40000,
+          "currentPrice": 40000,
+          "changed": false,
+          "oldAt": "2026-10-11T21:00:00.000Z",
+          "currentAt": "2026-10-11T21:00:00Z",
+          "ageMin": 612,
+          "stale": true,
+          "refLevel": 0,
+          "gapMin": 0
+        },
+        {
+          "label": "destination",
+          "city": "Brecilien",
+          "side": "buy",
+          "oldPrice": 58015,
+          "currentPrice": 58015,
+          "changed": false,
+          "oldAt": "2026-10-11T21:20:00.000Z",
+          "currentAt": "2026-10-11T21:20:00Z",
+          "ageMin": 592,
+          "stale": true,
+          "refLevel": 0,
+          "gapMin": 0
+        }
+      ]
+    },
+    {
+      "id": "T4_SHOES_CLOTH_SET2|Brecilien|1",
+      "eligibleNow": false,
+      "potentialNow": true,
+      "currentStage": "watch",
+      "reason": "ACTION_NOT_VALIDATED",
+      "validation": "provisional",
+      "oldStrategy": "cross-city-instant",
+      "oldNet": 449.8399999999999,
+      "legs": [
+        {
+          "label": "sell",
+          "city": "Brecilien",
+          "side": "sell",
+          "oldPrice": 898,
+          "currentPrice": 898,
+          "changed": false,
+          "oldAt": "2026-10-11T21:20:00.000Z",
+          "currentAt": "2026-10-11T21:20:00Z",
+          "ageMin": 592,
+          "stale": true,
+          "refLevel": 1,
+          "gapMin": 0
+        },
+        {
+          "label": "destination",
+          "city": "Bridgewatch",
+          "side": "buy",
+          "oldPrice": 1404,
+          "currentPrice": 1404,
+          "changed": false,
+          "oldAt": "2026-10-11T20:55:00.000Z",
+          "currentAt": "2026-10-11T20:55:00Z",
+          "ageMin": 617,
+          "stale": true,
+          "refLevel": 1,
+          "gapMin": 0
+        }
+      ]
+    },
+    {
+      "id": "T6_ROCK_LEVEL2@2|Caerleon|1",
+      "eligibleNow": false,
+      "potentialNow": false,
+      "currentStage": "rejected",
+      "reason": "INVALID_SPREAD",
+      "validation": "provisional",
+      "oldStrategy": "cross-city-instant",
+      "oldNet": 497.5999999999999,
+      "legs": [
+        {
+          "label": "sell",
+          "city": "Caerleon",
+          "side": "sell",
+          "oldPrice": 688,
+          "currentPrice": 688,
+          "changed": false,
+          "oldAt": "2026-10-11T21:15:00.000Z",
+          "currentAt": "2026-10-12T01:10:00Z",
+          "ageMin": 362,
+          "stale": true,
+          "refLevel": 2,
+          "gapMin": 235
+        },
+        {
+          "label": "destination",
+          "city": "Bridgewatch",
+          "side": "buy",
+          "oldPrice": 1235,
+          "currentPrice": 1235,
+          "changed": false,
+          "oldAt": "2026-10-11T20:30:00.000Z",
+          "currentAt": "2026-10-11T20:30:00Z",
+          "ageMin": 642,
+          "stale": true,
+          "refLevel": 1,
+          "gapMin": 0
+        }
+      ]
+    },
+    {
+      "id": "T4_HEAD_CLOTH_SET1@2|Thetford|1",
+      "eligibleNow": false,
+      "potentialNow": true,
+      "currentStage": "watch",
+      "reason": "ACTION_NOT_VALIDATED",
+      "validation": "provisional",
+      "oldStrategy": "cross-city-instant",
+      "oldNet": 3212.16,
+      "legs": [
+        {
+          "label": "sell",
+          "city": "Thetford",
+          "side": "sell",
+          "oldPrice": 7992,
+          "currentPrice": 7992,
+          "changed": false,
+          "oldAt": "2026-10-11T19:50:00.000Z",
+          "currentAt": "2026-10-11T19:50:00Z",
+          "ageMin": 682,
+          "stale": true,
+          "refLevel": 0,
+          "gapMin": 0
+        },
+        {
+          "label": "destination",
+          "city": "Bridgewatch",
+          "side": "buy",
+          "oldPrice": 11671,
+          "currentPrice": 11671,
+          "changed": false,
+          "oldAt": "2026-10-11T19:45:00.000Z",
+          "currentAt": "2026-10-11T19:45:00Z",
+          "ageMin": 687,
+          "stale": true,
+          "refLevel": 1,
+          "gapMin": 0
+        }
+      ]
+    },
+    {
+      "id": "T5_ORE_LEVEL2@2|Caerleon|1",
+      "eligibleNow": false,
+      "potentialNow": false,
+      "currentStage": "rejected",
+      "reason": "INVALID_SPREAD",
+      "validation": "provisional",
+      "oldStrategy": "cross-city-instant",
+      "oldNet": 565.6399999999999,
+      "legs": [
+        {
+          "label": "sell",
+          "city": "Caerleon",
+          "side": "sell",
+          "oldPrice": 1699,
+          "currentPrice": 1717,
+          "changed": true,
+          "oldAt": "2026-10-11T19:30:00.000Z",
+          "currentAt": "2026-10-12T00:35:00Z",
+          "ageMin": 397,
+          "stale": true,
+          "refLevel": 2,
+          "gapMin": 305
+        },
+        {
+          "label": "destination",
+          "city": "Fort Sterling",
+          "side": "buy",
+          "oldPrice": 2359,
+          "currentPrice": 2359,
+          "changed": false,
+          "oldAt": "2026-10-11T19:50:00.000Z",
+          "currentAt": "2026-10-11T19:50:00Z",
+          "ageMin": 682,
+          "stale": true,
+          "refLevel": 2,
+          "gapMin": 0
+        }
+      ]
+    },
+    {
+      "id": "T7_FIBER_LEVEL1@1|Brecilien|1",
+      "eligibleNow": false,
+      "potentialNow": true,
+      "currentStage": "watch",
+      "reason": "ACTION_NOT_VALIDATED",
+      "validation": "provisional",
+      "oldStrategy": "cross-city-instant",
+      "oldNet": 917.8000000000002,
+      "legs": [
+        {
+          "label": "sell",
+          "city": "Brecilien",
+          "side": "sell",
+          "oldPrice": 4079,
+          "currentPrice": 4079,
+          "changed": false,
+          "oldAt": "2026-10-11T21:30:00.000Z",
+          "currentAt": "2026-10-11T21:30:00Z",
+          "ageMin": 582,
+          "stale": true,
+          "refLevel": 1,
+          "gapMin": 0
+        },
+        {
+          "label": "destination",
+          "city": "Lymhurst",
+          "side": "buy",
+          "oldPrice": 5205,
+          "currentPrice": 5205,
+          "changed": false,
+          "oldAt": "2026-10-11T20:50:00.000Z",
+          "currentAt": "2026-10-11T20:50:00Z",
+          "ageMin": 622,
+          "stale": true,
+          "refLevel": 1,
+          "gapMin": 0
+        }
+      ]
+    },
+    {
+      "id": "T5_ARMOR_CLOTH_SET2|Fort Sterling|1",
+      "eligibleNow": false,
+      "potentialNow": true,
+      "currentStage": "watch",
+      "reason": "ACTION_NOT_VALIDATED",
+      "validation": "provisional",
+      "oldStrategy": "cross-city-instant",
+      "oldNet": 605.7599999999993,
+      "legs": [
+        {
+          "label": "sell",
+          "city": "Fort Sterling",
+          "side": "sell",
+          "oldPrice": 6264,
+          "currentPrice": 6264,
+          "changed": false,
+          "oldAt": "2026-10-11T22:35:00.000Z",
+          "currentAt": "2026-10-11T22:35:00Z",
+          "ageMin": 517,
+          "stale": true,
+          "refLevel": 1,
+          "gapMin": 0
+        },
+        {
+          "label": "destination",
+          "city": "Bridgewatch",
+          "side": "buy",
+          "oldPrice": 7156,
+          "currentPrice": 7156,
+          "changed": false,
+          "oldAt": "2026-10-11T22:40:00.000Z",
+          "currentAt": "2026-10-11T22:40:00Z",
+          "ageMin": 512,
+          "stale": true,
+          "refLevel": 0,
+          "gapMin": 0
+        }
+      ]
+    },
+    {
+      "id": "T5_ROCK|Brecilien|1",
+      "eligibleNow": false,
+      "potentialNow": true,
+      "currentStage": "watch",
+      "reason": "ACTION_NOT_VALIDATED",
+      "validation": "provisional",
+      "oldStrategy": "cross-city-instant",
+      "oldNet": 42.28,
+      "legs": [
+        {
+          "label": "sell",
+          "city": "Brecilien",
+          "side": "sell",
+          "oldPrice": 23,
+          "currentPrice": 23,
+          "changed": false,
+          "oldAt": "2026-10-11T20:55:00.000Z",
+          "currentAt": "2026-10-11T20:55:00Z",
+          "ageMin": 617,
+          "stale": true,
+          "refLevel": 1,
+          "gapMin": 0
+        },
+        {
+          "label": "destination",
+          "city": "Bridgewatch",
+          "side": "buy",
+          "oldPrice": 68,
+          "currentPrice": 68,
+          "changed": false,
+          "oldAt": "2026-10-11T20:30:00.000Z",
+          "currentAt": "2026-10-11T20:30:00Z",
+          "ageMin": 642,
+          "stale": true,
+          "refLevel": 1,
+          "gapMin": 0
+        }
+      ]
+    },
+    {
+      "id": "T5_ROCK_LEVEL1@1|Lymhurst|1",
+      "eligibleNow": false,
+      "potentialNow": true,
+      "currentStage": "watch",
+      "reason": "ACTION_NOT_VALIDATED",
+      "validation": "provisional",
+      "oldStrategy": "cross-city-instant",
+      "oldNet": 28.239999999999995,
+      "legs": [
+        {
+          "label": "sell",
+          "city": "Lymhurst",
+          "side": "sell",
+          "oldPrice": 62,
+          "currentPrice": 62,
+          "changed": false,
+          "oldAt": "2026-10-11T21:05:00.000Z",
+          "currentAt": "2026-10-11T21:05:00Z",
+          "ageMin": 607,
+          "stale": true,
+          "refLevel": 2,
+          "gapMin": 0
+        },
+        {
+          "label": "destination",
+          "city": "Bridgewatch",
+          "side": "buy",
+          "oldPrice": 94,
+          "currentPrice": 94,
+          "changed": false,
+          "oldAt": "2026-10-11T20:30:00.000Z",
+          "currentAt": "2026-10-11T20:30:00Z",
+          "ageMin": 642,
+          "stale": true,
+          "refLevel": 1,
+          "gapMin": 0
+        }
+      ]
+    },
+    {
+      "id": "T4_ROCK_LEVEL1@1|Thetford|1",
+      "eligibleNow": false,
+      "potentialNow": false,
+      "currentStage": "rejected",
+      "reason": "INVALID_SPREAD",
+      "validation": "provisional",
+      "oldStrategy": "cross-city-instant",
+      "oldNet": 22.799999999999997,
+      "legs": [
+        {
+          "label": "sell",
+          "city": "Thetford",
+          "side": "sell",
+          "oldPrice": 6,
+          "currentPrice": 9,
+          "changed": true,
+          "oldAt": "2026-10-11T21:25:00.000Z",
+          "currentAt": "2026-10-12T05:50:00Z",
+          "ageMin": 82,
+          "stale": false,
+          "refLevel": 1,
+          "gapMin": 505
+        },
+        {
+          "label": "destination",
+          "city": "Martlock",
+          "side": "buy",
+          "oldPrice": 30,
+          "currentPrice": 30,
+          "changed": false,
+          "oldAt": "2026-10-11T20:30:00.000Z",
+          "currentAt": "2026-10-11T20:30:00Z",
+          "ageMin": 642,
+          "stale": true,
+          "refLevel": 1,
+          "gapMin": 0
+        }
+      ]
+    },
+    {
+      "id": "T6_MEAL_STEW_AVALON|Lymhurst|1",
+      "eligibleNow": false,
+      "potentialNow": false,
+      "currentStage": "rejected",
+      "reason": "INVALID_SPREAD",
+      "validation": "provisional",
+      "oldStrategy": "cross-city-instant",
+      "oldNet": 684,
+      "legs": [
+        {
+          "label": "sell",
+          "city": "Lymhurst",
+          "side": "sell",
+          "oldPrice": 30996,
+          "currentPrice": 30995,
+          "changed": true,
+          "oldAt": "2026-10-11T23:10:00.000Z",
+          "currentAt": "2026-10-12T03:15:00Z",
+          "ageMin": 237,
+          "stale": false,
+          "refLevel": 3,
+          "gapMin": 245
+        },
+        {
+          "label": "destination",
+          "city": "Caerleon",
+          "side": "buy",
+          "oldPrice": 33000,
+          "currentPrice": 33000,
+          "changed": false,
+          "oldAt": "2026-10-11T23:25:00.000Z",
+          "currentAt": "2026-10-11T23:25:00Z",
+          "ageMin": 467,
+          "stale": true,
+          "refLevel": 0,
+          "gapMin": 0
+        }
+      ]
+    },
+    {
+      "id": "T4_HEAD_CLOTH_SET1@1|Brecilien|1",
+      "eligibleNow": false,
+      "potentialNow": true,
+      "currentStage": "watch",
+      "reason": "ACTION_NOT_VALIDATED",
+      "validation": "provisional",
+      "oldStrategy": "cross-city-instant",
+      "oldNet": 302.1199999999999,
+      "legs": [
+        {
+          "label": "sell",
+          "city": "Brecilien",
+          "side": "sell",
+          "oldPrice": 991,
+          "currentPrice": 991,
+          "changed": false,
+          "oldAt": "2026-10-11T18:50:00.000Z",
+          "currentAt": "2026-10-11T18:50:00Z",
+          "ageMin": 742,
+          "stale": true,
+          "refLevel": 1,
+          "gapMin": 0
+        },
+        {
+          "label": "destination",
+          "city": "Lymhurst",
+          "side": "buy",
+          "oldPrice": 1347,
+          "currentPrice": 1347,
+          "changed": false,
+          "oldAt": "2026-10-11T19:05:00.000Z",
+          "currentAt": "2026-10-11T19:05:00Z",
+          "ageMin": 727,
+          "stale": true,
+          "refLevel": 1,
+          "gapMin": 0
+        }
+      ]
+    },
+    {
+      "id": "T4_MAIN_RAPIER_MORGANA@3|Caerleon|1",
+      "eligibleNow": false,
+      "potentialNow": true,
+      "currentStage": "watch",
+      "reason": "ACTION_NOT_VALIDATED",
+      "validation": "provisional",
+      "oldStrategy": "cross-city-instant",
+      "oldNet": 16227.759999999995,
+      "legs": [
+        {
+          "label": "sell",
+          "city": "Caerleon",
+          "side": "sell",
+          "oldPrice": 99986,
+          "currentPrice": 99986,
+          "changed": false,
+          "oldAt": "2026-10-11T20:15:00.000Z",
+          "currentAt": "2026-10-11T20:15:00Z",
+          "ageMin": 657,
+          "stale": true,
+          "refLevel": 1,
+          "gapMin": 0
+        },
+        {
+          "label": "destination",
+          "city": "Lymhurst",
+          "side": "buy",
+          "oldPrice": 121056,
+          "currentPrice": 121056,
+          "changed": false,
+          "oldAt": "2026-10-11T21:05:00.000Z",
+          "currentAt": "2026-10-11T21:05:00Z",
+          "ageMin": 607,
+          "stale": true,
+          "refLevel": 0,
+          "gapMin": 0
+        }
+      ]
+    },
+    {
+      "id": "T4_SOUL|Caerleon|1",
+      "eligibleNow": false,
+      "potentialNow": false,
+      "currentStage": "rejected",
+      "reason": "INVALID_SPREAD",
+      "validation": "accepted",
+      "oldStrategy": "cross-city-instant",
+      "oldNet": 16.36,
+      "legs": [
+        {
+          "label": "sell",
+          "city": "Caerleon",
+          "side": "sell",
+          "oldPrice": 71,
+          "currentPrice": 61,
+          "changed": true,
+          "oldAt": "2026-10-11T22:35:00.000Z",
+          "currentAt": "2026-10-12T01:25:00Z",
+          "ageMin": 347,
+          "stale": false,
+          "refLevel": 1,
+          "gapMin": 170
+        },
+        {
+          "label": "destination",
+          "city": "Martlock",
+          "side": "buy",
+          "oldPrice": 91,
+          "currentPrice": 91,
+          "changed": false,
+          "oldAt": "2026-10-11T22:30:00.000Z",
+          "currentAt": "2026-10-12T06:45:00Z",
+          "ageMin": 27,
+          "stale": false,
+          "refLevel": 3,
+          "gapMin": 495
+        }
+      ]
+    },
+    {
+      "id": "T6_ROCK_LEVEL1@1|Caerleon|1",
+      "eligibleNow": false,
+      "potentialNow": false,
+      "currentStage": "rejected",
+      "reason": "INVALID_SPREAD",
+      "validation": "provisional",
+      "oldStrategy": "cross-city-instant",
+      "oldNet": 92.84000000000003,
+      "legs": [
+        {
+          "label": "sell",
+          "city": "Caerleon",
+          "side": "sell",
+          "oldPrice": 463,
+          "currentPrice": 460,
+          "changed": true,
+          "oldAt": "2026-10-11T21:15:00.000Z",
+          "currentAt": "2026-10-12T01:10:00Z",
+          "ageMin": 362,
+          "stale": true,
+          "refLevel": 2,
+          "gapMin": 235
+        },
+        {
+          "label": "destination",
+          "city": "Brecilien",
+          "side": "buy",
+          "oldPrice": 579,
+          "currentPrice": 579,
+          "changed": false,
+          "oldAt": "2026-10-11T21:35:00.000Z",
+          "currentAt": "2026-10-11T21:35:00Z",
+          "ageMin": 577,
+          "stale": true,
+          "refLevel": 0,
+          "gapMin": 0
+        }
+      ]
+    },
+    {
+      "id": "T6_RANDOM_DUNGEON_SOLO_TOKEN_D2@2|Caerleon|1",
+      "eligibleNow": false,
+      "potentialNow": false,
+      "currentStage": "rejected",
+      "reason": "INVALID_SPREAD",
+      "validation": "provisional",
+      "oldStrategy": "cross-city-instant",
+      "oldNet": 570.9200000000001,
+      "legs": [
+        {
+          "label": "sell",
+          "city": "Caerleon",
+          "side": "sell",
+          "oldPrice": 4999,
+          "currentPrice": 4999,
+          "changed": false,
+          "oldAt": "2026-10-11T21:15:00.000Z",
+          "currentAt": "2026-10-12T01:10:00Z",
+          "ageMin": 362,
+          "stale": true,
+          "refLevel": 2,
+          "gapMin": 235
+        },
+        {
+          "label": "destination",
+          "city": "Lymhurst",
+          "side": "buy",
+          "oldPrice": 5802,
+          "currentPrice": 5802,
+          "changed": false,
+          "oldAt": "2026-10-11T20:40:00.000Z",
+          "currentAt": "2026-10-11T20:40:00Z",
+          "ageMin": 632,
+          "stale": true,
+          "refLevel": 1,
+          "gapMin": 0
+        }
+      ]
+    },
+    {
+      "id": "T8_SHARD_RANDOM_DUNGEON_ELITE_DRAGON_TOKEN|Caerleon|1",
+      "eligibleNow": false,
+      "potentialNow": true,
+      "currentStage": "watch",
+      "reason": "ACTION_NOT_VALIDATED",
+      "validation": "provisional",
+      "oldStrategy": "cross-city-instant",
+      "oldNet": 380.27999999999975,
+      "legs": [
+        {
+          "label": "sell",
+          "city": "Caerleon",
+          "side": "sell",
+          "oldPrice": 3909,
+          "currentPrice": 3907,
+          "changed": true,
+          "oldAt": "2026-10-11T21:20:00.000Z",
+          "currentAt": "2026-10-12T01:05:00Z",
+          "ageMin": 367,
+          "stale": true,
+          "refLevel": 2,
+          "gapMin": 225
+        },
+        {
+          "label": "destination",
+          "city": "Martlock",
+          "side": "buy",
+          "oldPrice": 4468,
+          "currentPrice": 4468,
+          "changed": false,
+          "oldAt": "2026-10-11T21:10:00.000Z",
+          "currentAt": "2026-10-11T21:10:00Z",
+          "ageMin": 602,
+          "stale": true,
+          "refLevel": 0,
+          "gapMin": 0
+        }
+      ]
+    },
+    {
+      "id": "T5_RELIC|Brecilien|1",
+      "eligibleNow": false,
+      "potentialNow": false,
+      "currentStage": "rejected",
+      "reason": "INVALID_SPREAD",
+      "validation": "accepted",
+      "oldStrategy": "cross-city-instant",
+      "oldNet": 128.19999999999993,
+      "legs": [
+        {
+          "label": "sell",
+          "city": "Brecilien",
+          "side": "sell",
+          "oldPrice": 587,
+          "currentPrice": 585,
+          "changed": true,
+          "oldAt": "2026-10-11T20:15:00.000Z",
+          "currentAt": "2026-10-12T02:15:00Z",
+          "ageMin": 297,
+          "stale": false,
+          "refLevel": 2,
+          "gapMin": 360
+        },
+        {
+          "label": "destination",
+          "city": "Bridgewatch",
+          "side": "buy",
+          "oldPrice": 745,
+          "currentPrice": 745,
+          "changed": false,
+          "oldAt": "2026-10-11T20:45:00.000Z",
+          "currentAt": "2026-10-11T20:45:00Z",
+          "ageMin": 627,
+          "stale": true,
+          "refLevel": 1,
+          "gapMin": 0
+        }
+      ]
+    },
+    {
+      "id": "T4_HIDE_LEVEL1@1|Thetford|1",
+      "eligibleNow": false,
+      "potentialNow": true,
+      "currentStage": "watch",
+      "reason": "ACTION_NOT_VALIDATED",
+      "validation": "provisional",
+      "oldStrategy": "cross-city-instant",
+      "oldNet": 42.879999999999995,
+      "legs": [
+        {
+          "label": "sell",
+          "city": "Thetford",
+          "side": "sell",
+          "oldPrice": 128,
+          "currentPrice": 128,
+          "changed": false,
+          "oldAt": "2026-10-11T19:35:00.000Z",
+          "currentAt": "2026-10-11T19:35:00Z",
+          "ageMin": 697,
+          "stale": true,
+          "refLevel": 1,
+          "gapMin": 0
+        },
+        {
+          "label": "destination",
+          "city": "Bridgewatch",
+          "side": "buy",
+          "oldPrice": 178,
+          "currentPrice": 178,
+          "changed": false,
+          "oldAt": "2026-10-11T20:15:00.000Z",
+          "currentAt": "2026-10-11T20:15:00Z",
+          "ageMin": 657,
+          "stale": true,
+          "refLevel": 1,
+          "gapMin": 0
+        }
+      ]
+    },
+    {
+      "id": "T4_ROCK_LEVEL2@2|Thetford|1",
+      "eligibleNow": false,
+      "potentialNow": false,
+      "currentStage": "rejected",
+      "reason": "INVALID_SPREAD",
+      "validation": "provisional",
+      "oldStrategy": "cross-city-instant",
+      "oldNet": 11.16,
+      "legs": [
+        {
+          "label": "sell",
+          "city": "Thetford",
+          "side": "sell",
+          "oldPrice": 9,
+          "currentPrice": 9,
+          "changed": false,
+          "oldAt": "2026-10-11T20:00:00.000Z",
+          "currentAt": "2026-10-12T05:50:00Z",
+          "ageMin": 82,
+          "stale": false,
+          "refLevel": 1,
+          "gapMin": 590
+        },
+        {
+          "label": "destination",
+          "city": "Bridgewatch",
+          "side": "buy",
+          "oldPrice": 21,
+          "currentPrice": 21,
+          "changed": false,
+          "oldAt": "2026-10-11T20:30:00.000Z",
+          "currentAt": "2026-10-11T20:30:00Z",
+          "ageMin": 642,
+          "stale": true,
+          "refLevel": 1,
+          "gapMin": 0
+        }
+      ]
+    },
+    {
+      "id": "T7_MEAL_OMELETTE|Lymhurst|1",
+      "eligibleNow": false,
+      "potentialNow": false,
+      "currentStage": "rejected",
+      "reason": "NORMAL_MARKET_BEHAVIOR",
+      "validation": "provisional",
+      "oldStrategy": "place-sell-order",
+      "oldNet": 657.7724999999996,
+      "legs": [
+        {
+          "label": "sell",
+          "city": "Lymhurst",
+          "side": "sell",
+          "oldPrice": 4659,
+          "currentPrice": 4658,
+          "changed": true,
+          "oldAt": "2026-10-11T22:30:00.000Z",
+          "currentAt": "2026-10-12T00:20:00Z",
+          "ageMin": 412,
+          "stale": true,
+          "refLevel": 3,
+          "gapMin": 110
+        }
+      ]
+    },
+    {
+      "id": "T4_ROCK_LEVEL2@2|Lymhurst|1",
+      "eligibleNow": false,
+      "potentialNow": false,
+      "currentStage": "rejected",
+      "reason": "INVALID_SPREAD",
+      "validation": "provisional",
+      "oldStrategy": "cross-city-instant",
+      "oldNet": 6.16,
+      "legs": [
+        {
+          "label": "sell",
+          "city": "Lymhurst",
+          "side": "sell",
+          "oldPrice": 14,
+          "currentPrice": 14,
+          "changed": false,
+          "oldAt": "2026-10-11T20:20:00.000Z",
+          "currentAt": "2026-10-12T06:45:00Z",
+          "ageMin": 27,
+          "stale": false,
+          "refLevel": 1,
+          "gapMin": 625
+        },
+        {
+          "label": "destination",
+          "city": "Bridgewatch",
+          "side": "buy",
+          "oldPrice": 21,
+          "currentPrice": 21,
+          "changed": false,
+          "oldAt": "2026-10-11T20:30:00.000Z",
+          "currentAt": "2026-10-11T20:30:00Z",
+          "ageMin": 642,
+          "stale": true,
+          "refLevel": 1,
+          "gapMin": 0
+        }
+      ]
+    },
+    {
+      "id": "T4_FARM_HORSE_BABY|Martlock|1",
+      "eligibleNow": false,
+      "potentialNow": true,
+      "currentStage": "watch",
+      "reason": "ACTION_NOT_VALIDATED",
+      "validation": "provisional",
+      "oldStrategy": "cross-city-instant",
+      "oldNet": 1840.6800000000003,
+      "legs": [
+        {
+          "label": "sell",
+          "city": "Martlock",
+          "side": "sell",
+          "oldPrice": 57687,
+          "currentPrice": 57687,
+          "changed": false,
+          "oldAt": "2026-10-11T21:35:00.000Z",
+          "currentAt": "2026-10-11T21:35:00Z",
+          "ageMin": 577,
+          "stale": true,
+          "refLevel": 1,
+          "gapMin": 0
+        },
+        {
+          "label": "destination",
+          "city": "Thetford",
+          "side": "buy",
+          "oldPrice": 62008,
+          "currentPrice": 62008,
+          "changed": false,
+          "oldAt": "2026-10-11T21:50:00.000Z",
+          "currentAt": "2026-10-11T21:50:00Z",
+          "ageMin": 562,
+          "stale": true,
+          "refLevel": 0,
+          "gapMin": 0
+        }
+      ]
+    },
+    {
+      "id": "T5_ROCK_LEVEL1@1|Brecilien|1",
+      "eligibleNow": false,
+      "potentialNow": false,
+      "currentStage": "rejected",
+      "reason": "INVALID_SPREAD",
+      "validation": "provisional",
+      "oldStrategy": "cross-city-instant",
+      "oldNet": 21.239999999999995,
+      "legs": [
+        {
+          "label": "sell",
+          "city": "Brecilien",
+          "side": "sell",
+          "oldPrice": 69,
+          "currentPrice": 69,
+          "changed": false,
+          "oldAt": "2026-10-11T20:00:00.000Z",
+          "currentAt": "2026-10-12T01:10:00Z",
+          "ageMin": 362,
+          "stale": true,
+          "refLevel": 3,
+          "gapMin": 310
+        },
+        {
+          "label": "destination",
+          "city": "Bridgewatch",
+          "side": "buy",
+          "oldPrice": 94,
+          "currentPrice": 94,
+          "changed": false,
+          "oldAt": "2026-10-11T20:30:00.000Z",
+          "currentAt": "2026-10-11T20:30:00Z",
+          "ageMin": 642,
+          "stale": true,
+          "refLevel": 1,
+          "gapMin": 0
+        }
+      ]
+    },
+    {
+      "id": "T5_ARMOR_CLOTH_SET3|Fort Sterling|1",
+      "eligibleNow": false,
+      "potentialNow": true,
+      "currentStage": "watch",
+      "reason": "ACTION_NOT_VALIDATED",
+      "validation": "provisional",
+      "oldStrategy": "cross-city-instant",
+      "oldNet": 545.6800000000003,
+      "legs": [
+        {
+          "label": "sell",
+          "city": "Fort Sterling",
+          "side": "sell",
+          "oldPrice": 9422,
+          "currentPrice": 9422,
+          "changed": false,
+          "oldAt": "2026-10-11T20:50:00.000Z",
+          "currentAt": "2026-10-11T20:50:00Z",
+          "ageMin": 622,
+          "stale": true,
+          "refLevel": 1,
+          "gapMin": 0
+        },
+        {
+          "label": "destination",
+          "city": "Bridgewatch",
+          "side": "buy",
+          "oldPrice": 10383,
+          "currentPrice": 10383,
+          "changed": false,
+          "oldAt": "2026-10-11T21:35:00.000Z",
+          "currentAt": "2026-10-11T21:35:00Z",
+          "ageMin": 577,
+          "stale": true,
+          "refLevel": 0,
+          "gapMin": 0
+        }
+      ]
+    },
+    {
+      "id": "T8_FIBER|Brecilien|1",
+      "eligibleNow": false,
+      "potentialNow": false,
+      "currentStage": "rejected",
+      "reason": "INVALID_SPREAD",
+      "validation": "provisional",
+      "oldStrategy": "cross-city-instant",
+      "oldNet": 460,
+      "legs": [
+        {
+          "label": "sell",
+          "city": "Brecilien",
+          "side": "sell",
+          "oldPrice": 6932,
+          "currentPrice": 6932,
+          "changed": false,
+          "oldAt": "2026-10-11T21:30:00.000Z",
+          "currentAt": "2026-10-11T21:30:00Z",
+          "ageMin": 582,
+          "stale": true,
+          "refLevel": 1,
+          "gapMin": 0
+        },
+        {
+          "label": "destination",
+          "city": "Lymhurst",
+          "side": "buy",
+          "oldPrice": 7700,
+          "currentPrice": 7702,
+          "changed": true,
+          "oldAt": "2026-10-11T20:50:00.000Z",
+          "currentAt": "2026-10-12T03:15:00Z",
+          "ageMin": 237,
+          "stale": false,
+          "refLevel": 3,
+          "gapMin": 385
+        }
+      ]
+    },
+    {
+      "id": "T5_FARM_HORSE_BABY|Brecilien|1",
+      "eligibleNow": false,
+      "potentialNow": false,
+      "currentStage": "rejected",
+      "reason": "INVALID_SPREAD",
+      "validation": "provisional",
+      "oldStrategy": "cross-city-instant",
+      "oldNet": 812.5999999999913,
+      "legs": [
+        {
+          "label": "sell",
+          "city": "Brecilien",
+          "side": "sell",
+          "oldPrice": 99997,
+          "currentPrice": 99997,
+          "changed": false,
+          "oldAt": "2026-10-11T21:55:00.000Z",
+          "currentAt": "2026-10-11T21:55:00Z",
+          "ageMin": 557,
+          "stale": true,
+          "refLevel": 1,
+          "gapMin": 0
+        },
+        {
+          "label": "destination",
+          "city": "Martlock",
+          "side": "buy",
+          "oldPrice": 105010,
+          "currentPrice": 105011,
+          "changed": true,
+          "oldAt": "2026-10-11T21:25:00.000Z",
+          "currentAt": "2026-10-12T07:00:00Z",
+          "ageMin": 12,
+          "stale": false,
+          "refLevel": 1,
+          "gapMin": 575
+        }
+      ]
+    },
+    {
+      "id": "T6_ROCK|Lymhurst|1",
+      "eligibleNow": false,
+      "potentialNow": true,
+      "currentStage": "watch",
+      "reason": "ACTION_NOT_VALIDATED",
+      "validation": "provisional",
+      "oldStrategy": "cross-city-instant",
+      "oldNet": 80.47999999999996,
+      "legs": [
+        {
+          "label": "sell",
+          "city": "Lymhurst",
+          "side": "sell",
+          "oldPrice": 316,
+          "currentPrice": 316,
+          "changed": false,
+          "oldAt": "2026-10-11T19:10:00.000Z",
+          "currentAt": "2026-10-11T19:10:00Z",
+          "ageMin": 722,
+          "stale": true,
+          "refLevel": 1,
+          "gapMin": 0
+        },
+        {
+          "label": "destination",
+          "city": "Martlock",
+          "side": "buy",
+          "oldPrice": 413,
+          "currentPrice": 413,
+          "changed": false,
+          "oldAt": "2026-10-11T19:20:00.000Z",
+          "currentAt": "2026-10-11T19:20:00Z",
+          "ageMin": 712,
+          "stale": true,
+          "refLevel": 2,
+          "gapMin": 0
+        }
+      ]
+    },
+    {
+      "id": "T7_FIBER_LEVEL1@1|Caerleon|1",
+      "eligibleNow": false,
+      "potentialNow": false,
+      "currentStage": "rejected",
+      "reason": "INVALID_SPREAD",
+      "validation": "provisional",
+      "oldStrategy": "cross-city-instant",
+      "oldNet": 311.8000000000002,
+      "legs": [
+        {
+          "label": "sell",
+          "city": "Caerleon",
+          "side": "sell",
+          "oldPrice": 4685,
+          "currentPrice": 4684,
+          "changed": true,
+          "oldAt": "2026-10-11T21:20:00.000Z",
+          "currentAt": "2026-10-12T01:10:00Z",
+          "ageMin": 362,
+          "stale": true,
+          "refLevel": 1,
+          "gapMin": 230
+        },
+        {
+          "label": "destination",
+          "city": "Lymhurst",
+          "side": "buy",
+          "oldPrice": 5205,
+          "currentPrice": 5205,
+          "changed": false,
+          "oldAt": "2026-10-11T20:50:00.000Z",
+          "currentAt": "2026-10-11T20:50:00Z",
+          "ageMin": 622,
+          "stale": true,
+          "refLevel": 1,
+          "gapMin": 0
+        }
+      ]
+    },
+    {
+      "id": "T3_MOUNT_HORSE|Lymhurst|1",
+      "eligibleNow": false,
+      "potentialNow": false,
+      "currentStage": "rejected",
+      "reason": "INSUFFICIENT_HISTORY",
+      "validation": "provisional",
+      "oldStrategy": "cross-city-instant",
+      "oldNet": 89,
+      "legs": [
+        {
+          "label": "sell",
+          "city": "Lymhurst",
+          "side": "sell",
+          "oldPrice": 12103,
+          "currentPrice": 12650,
+          "changed": true,
+          "oldAt": "2026-10-11T23:30:00.000Z",
+          "currentAt": "2026-10-12T05:30:00Z",
+          "ageMin": 102,
+          "stale": false,
+          "refLevel": 4,
+          "gapMin": 360
+        },
+        {
+          "label": "destination",
+          "city": "Brecilien",
+          "side": "buy",
+          "oldPrice": 12700,
+          "currentPrice": 12698,
+          "changed": true,
+          "oldAt": "2026-10-11T23:35:00.000Z",
+          "currentAt": "2026-10-12T01:55:00Z",
+          "ageMin": 317,
+          "stale": false,
+          "refLevel": 4,
+          "gapMin": 140
+        }
+      ]
+    },
+    {
+      "id": "T4_RELIC|Caerleon|1",
+      "eligibleNow": false,
+      "potentialNow": false,
+      "currentStage": "rejected",
+      "reason": "INVALID_SPREAD",
+      "validation": "accepted",
+      "oldStrategy": "cross-city-instant",
+      "oldNet": 42.75999999999999,
+      "legs": [
+        {
+          "label": "sell",
+          "city": "Caerleon",
+          "side": "sell",
+          "oldPrice": 299,
+          "currentPrice": 282,
+          "changed": true,
+          "oldAt": "2026-10-11T21:20:00.000Z",
+          "currentAt": "2026-10-12T01:25:00Z",
+          "ageMin": 347,
+          "stale": false,
+          "refLevel": 2,
+          "gapMin": 245
+        },
+        {
+          "label": "destination",
+          "city": "Lymhurst",
+          "side": "buy",
+          "oldPrice": 356,
+          "currentPrice": 334,
+          "changed": true,
+          "oldAt": "2026-10-11T21:15:00.000Z",
+          "currentAt": "2026-10-12T06:50:00Z",
+          "ageMin": 22,
+          "stale": false,
+          "refLevel": 3,
+          "gapMin": 575
+        }
+      ]
+    },
+    {
+      "id": "T6_RUNE|Thetford|1",
+      "eligibleNow": false,
+      "potentialNow": false,
+      "currentStage": "rejected",
+      "reason": "INVALID_SPREAD",
+      "validation": "provisional",
+      "oldStrategy": "cross-city-instant",
+      "oldNet": 33.47999999999999,
+      "legs": [
+        {
+          "label": "sell",
+          "city": "Thetford",
+          "side": "sell",
+          "oldPrice": 123,
+          "currentPrice": 123,
+          "changed": false,
+          "oldAt": "2026-10-11T19:50:00.000Z",
+          "currentAt": "2026-10-11T19:50:00Z",
+          "ageMin": 682,
+          "stale": true,
+          "refLevel": 1,
+          "gapMin": 0
+        },
+        {
+          "label": "destination",
+          "city": "Brecilien",
+          "side": "buy",
+          "oldPrice": 163,
+          "currentPrice": 162,
+          "changed": true,
+          "oldAt": "2026-10-11T19:25:00.000Z",
+          "currentAt": "2026-10-12T00:30:00Z",
+          "ageMin": 402,
+          "stale": true,
+          "refLevel": 1,
+          "gapMin": 305
+        }
+      ]
+    },
+    {
+      "id": "T6_RUNE|Fort Sterling|1",
+      "eligibleNow": false,
+      "potentialNow": true,
+      "currentStage": "watch",
+      "reason": "ACTION_NOT_VALIDATED",
+      "validation": "provisional",
+      "oldStrategy": "cross-city-instant",
+      "oldNet": 20.039999999999992,
+      "legs": [
+        {
+          "label": "sell",
+          "city": "Fort Sterling",
+          "side": "sell",
+          "oldPrice": 123,
+          "currentPrice": 115,
+          "changed": true,
+          "oldAt": "2026-10-11T21:25:00.000Z",
+          "currentAt": "2026-10-12T06:50:00Z",
+          "ageMin": 22,
+          "stale": false,
+          "refLevel": 1,
+          "gapMin": 565
+        },
+        {
+          "label": "destination",
+          "city": "Martlock",
+          "side": "buy",
+          "oldPrice": 149,
+          "currentPrice": 138,
+          "changed": true,
+          "oldAt": "2026-10-11T22:15:00.000Z",
+          "currentAt": "2026-10-12T03:55:00Z",
+          "ageMin": 197,
+          "stale": false,
+          "refLevel": 1,
+          "gapMin": 340
+        }
+      ]
+    },
+    {
+      "id": "T4_ORE_LEVEL1@1|Lymhurst|1",
+      "eligibleNow": false,
+      "potentialNow": true,
+      "currentStage": "watch",
+      "reason": "ACTION_NOT_VALIDATED",
+      "validation": "provisional",
+      "oldStrategy": "cross-city-instant",
+      "oldNet": 40.28,
+      "legs": [
+        {
+          "label": "sell",
+          "city": "Lymhurst",
+          "side": "sell",
+          "oldPrice": 145,
+          "currentPrice": 145,
+          "changed": false,
+          "oldAt": "2026-10-11T18:55:00.000Z",
+          "currentAt": "2026-10-11T18:55:00Z",
+          "ageMin": 737,
+          "stale": true,
+          "refLevel": 2,
+          "gapMin": 0
+        },
+        {
+          "label": "destination",
+          "city": "Thetford",
+          "side": "buy",
+          "oldPrice": 193,
+          "currentPrice": 193,
+          "changed": false,
+          "oldAt": "2026-10-11T18:55:00.000Z",
+          "currentAt": "2026-10-11T18:55:00Z",
+          "ageMin": 737,
+          "stale": true,
+          "refLevel": 1,
+          "gapMin": 0
+        }
+      ]
+    },
+    {
+      "id": "T6_HIDE_LEVEL1@1|Caerleon|1",
+      "eligibleNow": false,
+      "potentialNow": false,
+      "currentStage": "rejected",
+      "reason": "INVALID_SPREAD",
+      "validation": "provisional",
+      "oldStrategy": "cross-city-instant",
+      "oldNet": 134.75999999999976,
+      "legs": [
+        {
+          "label": "sell",
+          "city": "Caerleon",
+          "side": "sell",
+          "oldPrice": 2655,
+          "currentPrice": 2654,
+          "changed": true,
+          "oldAt": "2026-10-11T21:15:00.000Z",
+          "currentAt": "2026-10-12T01:10:00Z",
+          "ageMin": 362,
+          "stale": true,
+          "refLevel": 2,
+          "gapMin": 235
+        },
+        {
+          "label": "destination",
+          "city": "Brecilien",
+          "side": "buy",
+          "oldPrice": 2906,
+          "currentPrice": 2906,
+          "changed": false,
+          "oldAt": "2026-10-11T21:30:00.000Z",
+          "currentAt": "2026-10-11T21:30:00Z",
+          "ageMin": 582,
+          "stale": true,
+          "refLevel": 1,
+          "gapMin": 0
+        }
+      ]
+    },
+    {
+      "id": "T7_HIDE|Brecilien|1",
+      "eligibleNow": false,
+      "potentialNow": true,
+      "currentStage": "watch",
+      "reason": "ACTION_NOT_VALIDATED",
+      "validation": "provisional",
+      "oldStrategy": "cross-city-instant",
+      "oldNet": 128.35999999999967,
+      "legs": [
+        {
+          "label": "sell",
+          "city": "Brecilien",
+          "side": "sell",
+          "oldPrice": 3799,
+          "currentPrice": 3799,
+          "changed": false,
+          "oldAt": "2026-10-11T21:30:00.000Z",
+          "currentAt": "2026-10-11T21:30:00Z",
+          "ageMin": 582,
+          "stale": true,
+          "refLevel": 2,
+          "gapMin": 0
+        },
+        {
+          "label": "destination",
+          "city": "Bridgewatch",
+          "side": "buy",
+          "oldPrice": 4091,
+          "currentPrice": 4091,
+          "changed": false,
+          "oldAt": "2026-10-11T21:35:00.000Z",
+          "currentAt": "2026-10-11T21:35:00Z",
+          "ageMin": 577,
+          "stale": true,
+          "refLevel": 1,
+          "gapMin": 0
+        }
+      ]
+    },
+    {
+      "id": "T5_ROCK|Lymhurst|1",
+      "eligibleNow": false,
+      "potentialNow": true,
+      "currentStage": "watch",
+      "reason": "ACTION_NOT_VALIDATED",
+      "validation": "provisional",
+      "oldStrategy": "cross-city-instant",
+      "oldNet": 12.280000000000001,
+      "legs": [
+        {
+          "label": "sell",
+          "city": "Lymhurst",
+          "side": "sell",
+          "oldPrice": 53,
+          "currentPrice": 53,
+          "changed": false,
+          "oldAt": "2026-10-11T20:25:00.000Z",
+          "currentAt": "2026-10-11T20:25:00Z",
+          "ageMin": 647,
+          "stale": true,
+          "refLevel": 1,
+          "gapMin": 0
+        },
+        {
+          "label": "destination",
+          "city": "Bridgewatch",
+          "side": "buy",
+          "oldPrice": 68,
+          "currentPrice": 68,
+          "changed": false,
+          "oldAt": "2026-10-11T20:30:00.000Z",
+          "currentAt": "2026-10-11T20:30:00Z",
+          "ageMin": 642,
+          "stale": true,
+          "refLevel": 1,
+          "gapMin": 0
+        }
+      ]
+    },
+    {
+      "id": "T5_ROCK_LEVEL2@2|Fort Sterling|1",
+      "eligibleNow": false,
+      "potentialNow": true,
+      "currentStage": "watch",
+      "reason": "ACTION_NOT_VALIDATED",
+      "validation": "provisional",
+      "oldStrategy": "cross-city-instant",
+      "oldNet": 23.120000000000005,
+      "legs": [
+        {
+          "label": "sell",
+          "city": "Fort Sterling",
+          "side": "sell",
+          "oldPrice": 118,
+          "currentPrice": 118,
+          "changed": false,
+          "oldAt": "2026-10-11T20:20:00.000Z",
+          "currentAt": "2026-10-11T20:20:00Z",
+          "ageMin": 652,
+          "stale": true,
+          "refLevel": 3,
+          "gapMin": 0
+        },
+        {
+          "label": "destination",
+          "city": "Bridgewatch",
+          "side": "buy",
+          "oldPrice": 147,
+          "currentPrice": 147,
+          "changed": false,
+          "oldAt": "2026-10-11T20:30:00.000Z",
+          "currentAt": "2026-10-11T20:30:00Z",
+          "ageMin": 642,
+          "stale": true,
+          "refLevel": 1,
+          "gapMin": 0
+        }
+      ]
+    },
+    {
+      "id": "T6_FIBER|Martlock|1",
+      "eligibleNow": false,
+      "potentialNow": true,
+      "currentStage": "watch",
+      "reason": "ACTION_NOT_VALIDATED",
+      "validation": "provisional",
+      "oldStrategy": "cross-city-instant",
+      "oldNet": 86.03999999999996,
+      "legs": [
+        {
+          "label": "sell",
+          "city": "Martlock",
+          "side": "sell",
+          "oldPrice": 969,
+          "currentPrice": 969,
+          "changed": false,
+          "oldAt": "2026-10-11T20:50:00.000Z",
+          "currentAt": "2026-10-11T20:50:00Z",
+          "ageMin": 622,
+          "stale": true,
+          "refLevel": 2,
+          "gapMin": 0
+        },
+        {
+          "label": "destination",
+          "city": "Lymhurst",
+          "side": "buy",
+          "oldPrice": 1099,
+          "currentPrice": 1099,
+          "changed": false,
+          "oldAt": "2026-10-11T20:55:00.000Z",
+          "currentAt": "2026-10-11T20:55:00Z",
+          "ageMin": 617,
+          "stale": true,
+          "refLevel": 1,
+          "gapMin": 0
+        }
+      ]
+    },
+    {
+      "id": "T4_LEATHER|Martlock|1",
+      "eligibleNow": false,
+      "potentialNow": true,
+      "currentStage": "watch",
+      "reason": "ACTION_NOT_VALIDATED",
+      "validation": "provisional",
+      "oldStrategy": "cross-city-instant",
+      "oldNet": 28.839999999999975,
+      "legs": [
+        {
+          "label": "sell",
+          "city": "Martlock",
+          "side": "sell",
+          "oldPrice": 311,
+          "currentPrice": 311,
+          "changed": false,
+          "oldAt": "2026-10-11T21:35:00.000Z",
+          "currentAt": "2026-10-11T21:35:00Z",
+          "ageMin": 577,
+          "stale": true,
+          "refLevel": 3,
+          "gapMin": 0
+        },
+        {
+          "label": "destination",
+          "city": "Brecilien",
+          "side": "buy",
+          "oldPrice": 354,
+          "currentPrice": 354,
+          "changed": false,
+          "oldAt": "2026-10-11T22:00:00.000Z",
+          "currentAt": "2026-10-11T22:00:00Z",
+          "ageMin": 552,
+          "stale": true,
+          "refLevel": 1,
+          "gapMin": 0
+        }
+      ]
+    },
+    {
+      "id": "T6_FIBER|Caerleon|1",
+      "eligibleNow": false,
+      "potentialNow": false,
+      "currentStage": "rejected",
+      "reason": "INVALID_SPREAD",
+      "validation": "provisional",
+      "oldStrategy": "cross-city-instant",
+      "oldNet": 75.03999999999996,
+      "legs": [
+        {
+          "label": "sell",
+          "city": "Caerleon",
+          "side": "sell",
+          "oldPrice": 980,
+          "currentPrice": 979,
+          "changed": true,
+          "oldAt": "2026-10-11T21:10:00.000Z",
+          "currentAt": "2026-10-12T01:10:00Z",
+          "ageMin": 362,
+          "stale": true,
+          "refLevel": 2,
+          "gapMin": 240
+        },
+        {
+          "label": "destination",
+          "city": "Lymhurst",
+          "side": "buy",
+          "oldPrice": 1099,
+          "currentPrice": 1099,
+          "changed": false,
+          "oldAt": "2026-10-11T20:55:00.000Z",
+          "currentAt": "2026-10-11T20:55:00Z",
+          "ageMin": 617,
+          "stale": true,
+          "refLevel": 1,
+          "gapMin": 0
+        }
+      ]
+    },
+    {
+      "id": "T2_METALBAR|Bridgewatch|1",
+      "eligibleNow": false,
+      "potentialNow": true,
+      "currentStage": "watch",
+      "reason": "ACTION_NOT_VALIDATED",
+      "validation": "provisional",
+      "oldStrategy": "cross-city-instant",
+      "oldNet": 7.799999999999997,
+      "legs": [
+        {
+          "label": "sell",
+          "city": "Bridgewatch",
+          "side": "sell",
+          "oldPrice": 21,
+          "currentPrice": 21,
+          "changed": false,
+          "oldAt": "2026-10-11T18:30:00.000Z",
+          "currentAt": "2026-10-11T18:30:00Z",
+          "ageMin": 762,
+          "stale": true,
+          "refLevel": 1,
+          "gapMin": 0
+        },
+        {
+          "label": "destination",
+          "city": "Thetford",
+          "side": "buy",
+          "oldPrice": 30,
+          "currentPrice": 30,
+          "changed": false,
+          "oldAt": "2026-10-11T18:55:00.000Z",
+          "currentAt": "2026-10-11T18:55:00Z",
+          "ageMin": 737,
+          "stale": true,
+          "refLevel": 1,
+          "gapMin": 0
+        }
+      ]
+    },
+    {
+      "id": "T7_WOOD_LEVEL2@2|Caerleon|1",
+      "eligibleNow": false,
+      "potentialNow": false,
+      "currentStage": "rejected",
+      "reason": "INVALID_SPREAD",
+      "validation": "provisional",
+      "oldStrategy": "cross-city-instant",
+      "oldNet": 303.35999999999876,
+      "legs": [
+        {
+          "label": "sell",
+          "city": "Caerleon",
+          "side": "sell",
+          "oldPrice": 15000,
+          "currentPrice": 15000,
+          "changed": false,
+          "oldAt": "2026-10-11T21:20:00.000Z",
+          "currentAt": "2026-10-12T01:10:00Z",
+          "ageMin": 362,
+          "stale": true,
+          "refLevel": 2,
+          "gapMin": 230
+        },
+        {
+          "label": "destination",
+          "city": "Bridgewatch",
+          "side": "buy",
+          "oldPrice": 15941,
+          "currentPrice": 15941,
+          "changed": false,
+          "oldAt": "2026-10-11T20:30:00.000Z",
+          "currentAt": "2026-10-11T20:30:00Z",
+          "ageMin": 642,
+          "stale": true,
+          "refLevel": 1,
+          "gapMin": 0
+        }
+      ]
+    },
+    {
+      "id": "T4_2H_LONGBOW@2|Lymhurst|1",
+      "eligibleNow": false,
+      "potentialNow": true,
+      "currentStage": "watch",
+      "reason": "ACTION_NOT_VALIDATED",
+      "validation": "provisional",
+      "oldStrategy": "cross-city-instant",
+      "oldNet": 1143,
+      "legs": [
+        {
+          "label": "sell",
+          "city": "Lymhurst",
+          "side": "sell",
+          "oldPrice": 19977,
+          "currentPrice": 19977,
+          "changed": false,
+          "oldAt": "2026-10-11T19:10:00.000Z",
+          "currentAt": "2026-10-11T19:10:00Z",
+          "ageMin": 722,
+          "stale": true,
+          "refLevel": 1,
+          "gapMin": 0
+        },
+        {
+          "label": "destination",
+          "city": "Bridgewatch",
+          "side": "buy",
+          "oldPrice": 22000,
+          "currentPrice": 22000,
+          "changed": false,
+          "oldAt": "2026-10-11T19:45:00.000Z",
+          "currentAt": "2026-10-11T19:45:00Z",
+          "ageMin": 687,
+          "stale": true,
+          "refLevel": 1,
+          "gapMin": 0
+        }
+      ]
+    },
+    {
+      "id": "T7_FIBER_LEVEL1@1|Thetford|1",
+      "eligibleNow": false,
+      "potentialNow": true,
+      "currentStage": "watch",
+      "reason": "ACTION_NOT_VALIDATED",
+      "validation": "provisional",
+      "oldStrategy": "cross-city-instant",
+      "oldNet": 227.80000000000018,
+      "legs": [
+        {
+          "label": "sell",
+          "city": "Thetford",
+          "side": "sell",
+          "oldPrice": 4769,
+          "currentPrice": 4769,
+          "changed": false,
+          "oldAt": "2026-10-11T20:10:00.000Z",
+          "currentAt": "2026-10-11T20:10:00Z",
+          "ageMin": 662,
+          "stale": true,
+          "refLevel": 1,
+          "gapMin": 0
+        },
+        {
+          "label": "destination",
+          "city": "Lymhurst",
+          "side": "buy",
+          "oldPrice": 5205,
+          "currentPrice": 5205,
+          "changed": false,
+          "oldAt": "2026-10-11T20:50:00.000Z",
+          "currentAt": "2026-10-11T20:50:00Z",
+          "ageMin": 622,
+          "stale": true,
+          "refLevel": 1,
+          "gapMin": 0
+        }
+      ]
+    },
+    {
+      "id": "T5_ORE_LEVEL1@1|Caerleon|1",
+      "eligibleNow": false,
+      "potentialNow": true,
+      "currentStage": "watch",
+      "reason": "ACTION_NOT_VALIDATED",
+      "validation": "provisional",
+      "oldStrategy": "cross-city-instant",
+      "oldNet": 99.48000000000002,
+      "legs": [
+        {
+          "label": "sell",
+          "city": "Caerleon",
+          "side": "sell",
+          "oldPrice": 609,
+          "currentPrice": 516,
+          "changed": true,
+          "oldAt": "2026-10-11T19:30:00.000Z",
+          "currentAt": "2026-10-12T07:00:00Z",
+          "ageMin": 12,
+          "stale": false,
+          "refLevel": 1,
+          "gapMin": 690
+        },
+        {
+          "label": "destination",
+          "city": "Thetford",
+          "side": "buy",
+          "oldPrice": 738,
+          "currentPrice": 738,
+          "changed": false,
+          "oldAt": "2026-10-11T19:00:00.000Z",
+          "currentAt": "2026-10-11T19:00:00Z",
+          "ageMin": 732,
+          "stale": true,
+          "refLevel": 2,
+          "gapMin": 0
+        }
+      ]
+    },
+    {
+      "id": "T7_CORN|Bridgewatch|1",
+      "eligibleNow": false,
+      "potentialNow": true,
+      "currentStage": "watch",
+      "reason": "ACTION_NOT_VALIDATED",
+      "validation": "provisional",
+      "oldStrategy": "cross-city-instant",
+      "oldNet": 30.560000000000002,
+      "legs": [
+        {
+          "label": "sell",
+          "city": "Bridgewatch",
+          "side": "sell",
+          "oldPrice": 412,
+          "currentPrice": 412,
+          "changed": false,
+          "oldAt": "2026-10-11T21:15:00.000Z",
+          "currentAt": "2026-10-11T21:15:00Z",
+          "ageMin": 597,
+          "stale": true,
+          "refLevel": 3,
+          "gapMin": 0
+        },
+        {
+          "label": "destination",
+          "city": "Thetford",
+          "side": "buy",
+          "oldPrice": 461,
+          "currentPrice": 461,
+          "changed": false,
+          "oldAt": "2026-10-11T21:50:00.000Z",
+          "currentAt": "2026-10-11T21:50:00Z",
+          "ageMin": 562,
+          "stale": true,
+          "refLevel": 2,
+          "gapMin": 0
+        }
+      ]
+    },
+    {
+      "id": "T4_METALBAR_LEVEL1@1|Thetford|1",
+      "eligibleNow": false,
+      "potentialNow": true,
+      "currentStage": "watch",
+      "reason": "ACTION_NOT_VALIDATED",
+      "validation": "provisional",
+      "oldStrategy": "cross-city-instant",
+      "oldNet": 58.80000000000001,
+      "legs": [
+        {
+          "label": "sell",
+          "city": "Thetford",
+          "side": "sell",
+          "oldPrice": 330,
+          "currentPrice": 330,
+          "changed": false,
+          "oldAt": "2026-10-11T18:55:00.000Z",
+          "currentAt": "2026-10-11T18:55:00Z",
+          "ageMin": 737,
+          "stale": true,
+          "refLevel": 1,
+          "gapMin": 0
+        },
+        {
+          "label": "destination",
+          "city": "Martlock",
+          "side": "buy",
+          "oldPrice": 405,
+          "currentPrice": 405,
+          "changed": false,
+          "oldAt": "2026-10-11T19:00:00.000Z",
+          "currentAt": "2026-10-11T19:00:00Z",
+          "ageMin": 732,
+          "stale": true,
+          "refLevel": 2,
+          "gapMin": 0
+        }
+      ]
+    },
+    {
+      "id": "T5_RUNE|Thetford|1",
+      "eligibleNow": false,
+      "potentialNow": false,
+      "currentStage": "rejected",
+      "reason": "INVALID_SPREAD",
+      "validation": "accepted",
+      "oldStrategy": "cross-city-instant",
+      "oldNet": 5.68,
+      "legs": [
+        {
+          "label": "sell",
+          "city": "Thetford",
+          "side": "sell",
+          "oldPrice": 26,
+          "currentPrice": 27,
+          "changed": true,
+          "oldAt": "2026-10-11T20:15:00.000Z",
+          "currentAt": "2026-10-12T02:05:00Z",
+          "ageMin": 307,
+          "stale": false,
+          "refLevel": 1,
+          "gapMin": 350
+        },
+        {
+          "label": "destination",
+          "city": "Fort Sterling",
+          "side": "buy",
+          "oldPrice": 33,
+          "currentPrice": 33,
+          "changed": false,
+          "oldAt": "2026-10-11T20:20:00.000Z",
+          "currentAt": "2026-10-11T20:20:00Z",
+          "ageMin": 652,
+          "stale": true,
+          "refLevel": 1,
+          "gapMin": 0
+        }
+      ]
+    },
+    {
+      "id": "T7_MULLEIN|Caerleon|1",
+      "eligibleNow": false,
+      "potentialNow": true,
+      "currentStage": "watch",
+      "reason": "ACTION_NOT_VALIDATED",
+      "validation": "provisional",
+      "oldStrategy": "cross-city-instant",
+      "oldNet": 29.319999999999936,
+      "legs": [
+        {
+          "label": "sell",
+          "city": "Caerleon",
+          "side": "sell",
+          "oldPrice": 491,
+          "currentPrice": 492,
+          "changed": true,
+          "oldAt": "2026-10-11T21:15:00.000Z",
+          "currentAt": "2026-10-12T01:10:00Z",
+          "ageMin": 362,
+          "stale": true,
+          "refLevel": 3,
+          "gapMin": 235
+        },
+        {
+          "label": "destination",
+          "city": "Thetford",
+          "side": "buy",
+          "oldPrice": 542,
+          "currentPrice": 542,
+          "changed": false,
+          "oldAt": "2026-10-11T21:50:00.000Z",
+          "currentAt": "2026-10-11T21:50:00Z",
+          "ageMin": 562,
+          "stale": true,
+          "refLevel": 2,
+          "gapMin": 0
+        }
+      ]
+    },
+    {
+      "id": "T3_ROCK|Martlock|1",
+      "eligibleNow": false,
+      "potentialNow": false,
+      "currentStage": "rejected",
+      "reason": "INVALID_SPREAD",
+      "validation": "provisional",
+      "oldStrategy": "cross-city-instant",
+      "oldNet": 8.559999999999995,
+      "legs": [
+        {
+          "label": "sell",
+          "city": "Martlock",
+          "side": "sell",
+          "oldPrice": 50,
+          "currentPrice": 40,
+          "changed": true,
+          "oldAt": "2026-10-11T20:30:00.000Z",
+          "currentAt": "2026-10-12T06:30:00Z",
+          "ageMin": 42,
+          "stale": false,
+          "refLevel": 1,
+          "gapMin": 600
+        },
+        {
+          "label": "destination",
+          "city": "Bridgewatch",
+          "side": "buy",
+          "oldPrice": 61,
+          "currentPrice": 61,
+          "changed": false,
+          "oldAt": "2026-10-11T20:30:00.000Z",
+          "currentAt": "2026-10-11T20:30:00Z",
+          "ageMin": 642,
+          "stale": true,
+          "refLevel": 1,
+          "gapMin": 0
+        }
+      ]
+    },
+    {
+      "id": "T5_PLANKS|Lymhurst|1",
+      "eligibleNow": false,
+      "potentialNow": true,
+      "currentStage": "watch",
+      "reason": "ACTION_NOT_VALIDATED",
+      "validation": "provisional",
+      "oldStrategy": "cross-city-instant",
+      "oldNet": 23.959999999999923,
+      "legs": [
+        {
+          "label": "sell",
+          "city": "Lymhurst",
+          "side": "sell",
+          "oldPrice": 937,
+          "currentPrice": 937,
+          "changed": false,
+          "oldAt": "2026-10-11T22:05:00.000Z",
+          "currentAt": "2026-10-11T22:05:00Z",
+          "ageMin": 547,
+          "stale": true,
+          "refLevel": 1,
+          "gapMin": 0
+        },
+        {
+          "label": "destination",
+          "city": "Brecilien",
+          "side": "buy",
+          "oldPrice": 1001,
+          "currentPrice": 1001,
+          "changed": false,
+          "oldAt": "2026-10-11T21:55:00.000Z",
+          "currentAt": "2026-10-11T21:55:00Z",
+          "ageMin": 557,
+          "stale": true,
+          "refLevel": 0,
+          "gapMin": 0
+        }
+      ]
+    },
+    {
+      "id": "T7_ORE_LEVEL1@1|Fort Sterling|1",
+      "eligibleNow": false,
+      "potentialNow": true,
+      "currentStage": "watch",
+      "reason": "ACTION_NOT_VALIDATED",
+      "validation": "provisional",
+      "oldStrategy": "cross-city-instant",
+      "oldNet": 397.3599999999997,
+      "legs": [
+        {
+          "label": "sell",
+          "city": "Fort Sterling",
+          "side": "sell",
+          "oldPrice": 5978,
+          "currentPrice": 5978,
+          "changed": false,
+          "oldAt": "2026-10-11T18:35:00.000Z",
+          "currentAt": "2026-10-11T18:35:00Z",
+          "ageMin": 757,
+          "stale": true,
+          "refLevel": 1,
+          "gapMin": 0
+        },
+        {
+          "label": "destination",
+          "city": "Thetford",
+          "side": "buy",
+          "oldPrice": 6641,
+          "currentPrice": 6641,
+          "changed": false,
+          "oldAt": "2026-10-11T19:00:00.000Z",
+          "currentAt": "2026-10-11T19:00:00Z",
+          "ageMin": 732,
+          "stale": true,
+          "refLevel": 2,
+          "gapMin": 0
+        }
+      ]
+    },
+    {
+      "id": "T5_RELIC|Lymhurst|1",
+      "eligibleNow": false,
+      "potentialNow": true,
+      "currentStage": "watch",
+      "reason": "ACTION_NOT_VALIDATED",
+      "validation": "provisional",
+      "oldStrategy": "cross-city-instant",
+      "oldNet": 39.19999999999993,
+      "legs": [
+        {
+          "label": "sell",
+          "city": "Lymhurst",
+          "side": "sell",
+          "oldPrice": 676,
+          "currentPrice": 676,
+          "changed": false,
+          "oldAt": "2026-10-11T21:15:00.000Z",
+          "currentAt": "2026-10-11T21:15:00Z",
+          "ageMin": 597,
+          "stale": true,
+          "refLevel": 1,
+          "gapMin": 0
+        },
+        {
+          "label": "destination",
+          "city": "Bridgewatch",
+          "side": "buy",
+          "oldPrice": 745,
+          "currentPrice": 745,
+          "changed": false,
+          "oldAt": "2026-10-11T20:45:00.000Z",
+          "currentAt": "2026-10-11T20:45:00Z",
+          "ageMin": 627,
+          "stale": true,
+          "refLevel": 1,
+          "gapMin": 0
+        }
+      ]
+    },
+    {
+      "id": "T2_METALBAR|Lymhurst|1",
+      "eligibleNow": false,
+      "potentialNow": true,
+      "currentStage": "watch",
+      "reason": "ACTION_NOT_VALIDATED",
+      "validation": "provisional",
+      "oldStrategy": "cross-city-instant",
+      "oldNet": 3.0799999999999983,
+      "legs": [
+        {
+          "label": "sell",
+          "city": "Lymhurst",
+          "side": "sell",
+          "oldPrice": 19,
+          "currentPrice": 19,
+          "changed": false,
+          "oldAt": "2026-10-11T21:05:00.000Z",
+          "currentAt": "2026-10-11T21:05:00Z",
+          "ageMin": 607,
+          "stale": true,
+          "refLevel": 1,
+          "gapMin": 0
+        },
+        {
+          "label": "destination",
+          "city": "Fort Sterling",
+          "side": "buy",
+          "oldPrice": 23,
+          "currentPrice": 23,
+          "changed": false,
+          "oldAt": "2026-10-11T21:10:00.000Z",
+          "currentAt": "2026-10-11T21:10:00Z",
+          "ageMin": 602,
+          "stale": true,
+          "refLevel": 2,
+          "gapMin": 0
+        }
+      ]
+    },
+    {
+      "id": "T6_FIBER|Fort Sterling|1",
+      "eligibleNow": false,
+      "potentialNow": true,
+      "currentStage": "watch",
+      "reason": "ACTION_NOT_VALIDATED",
+      "validation": "provisional",
+      "oldStrategy": "cross-city-instant",
+      "oldNet": 60.039999999999964,
+      "legs": [
+        {
+          "label": "sell",
+          "city": "Fort Sterling",
+          "side": "sell",
+          "oldPrice": 995,
+          "currentPrice": 995,
+          "changed": false,
+          "oldAt": "2026-10-11T20:05:00.000Z",
+          "currentAt": "2026-10-11T20:05:00Z",
+          "ageMin": 667,
+          "stale": true,
+          "refLevel": 1,
+          "gapMin": 0
+        },
+        {
+          "label": "destination",
+          "city": "Lymhurst",
+          "side": "buy",
+          "oldPrice": 1099,
+          "currentPrice": 1099,
+          "changed": false,
+          "oldAt": "2026-10-11T20:55:00.000Z",
+          "currentAt": "2026-10-11T20:55:00Z",
+          "ageMin": 617,
+          "stale": true,
+          "refLevel": 1,
+          "gapMin": 0
+        }
+      ]
+    },
+    {
+      "id": "T5_PLANKS|Fort Sterling|1",
+      "eligibleNow": false,
+      "potentialNow": true,
+      "currentStage": "watch",
+      "reason": "ACTION_NOT_VALIDATED",
+      "validation": "provisional",
+      "oldStrategy": "cross-city-instant",
+      "oldNet": 26.959999999999923,
+      "legs": [
+        {
+          "label": "sell",
+          "city": "Fort Sterling",
+          "side": "sell",
+          "oldPrice": 934,
+          "currentPrice": 934,
+          "changed": false,
+          "oldAt": "2026-10-11T21:15:00.000Z",
+          "currentAt": "2026-10-11T21:15:00Z",
+          "ageMin": 597,
+          "stale": true,
+          "refLevel": 1,
+          "gapMin": 0
+        },
+        {
+          "label": "destination",
+          "city": "Brecilien",
+          "side": "buy",
+          "oldPrice": 1001,
+          "currentPrice": 1001,
+          "changed": false,
+          "oldAt": "2026-10-11T21:55:00.000Z",
+          "currentAt": "2026-10-11T21:55:00Z",
+          "ageMin": 557,
+          "stale": true,
+          "refLevel": 0,
+          "gapMin": 0
+        }
+      ]
+    },
+    {
+      "id": "T8_YARROW|Caerleon|1",
+      "eligibleNow": true,
+      "potentialNow": false,
+      "currentStage": "trade",
+      "reason": "VALIDATED_OPPORTUNITY",
+      "validation": "accepted",
+      "oldStrategy": "cross-city-instant",
+      "oldNet": 12.079999999999984,
+      "legs": [
+        {
+          "label": "sell",
+          "city": "Caerleon",
+          "side": "sell",
+          "oldPrice": 490,
+          "currentPrice": 490,
+          "changed": false,
+          "oldAt": "2026-10-11T22:30:00.000Z",
+          "currentAt": "2026-10-12T07:00:00Z",
+          "ageMin": 12,
+          "stale": false,
+          "refLevel": 3,
+          "gapMin": 510
+        },
+        {
+          "label": "destination",
+          "city": "Brecilien",
+          "side": "buy",
+          "oldPrice": 523,
+          "currentPrice": 512,
+          "changed": true,
+          "oldAt": "2026-10-11T22:00:00.000Z",
+          "currentAt": "2026-10-12T06:10:00Z",
+          "ageMin": 62,
+          "stale": false,
+          "refLevel": 2,
+          "gapMin": 490
+        }
+      ]
+    },
+    {
+      "id": "T6_ORE|Lymhurst|1",
+      "eligibleNow": false,
+      "potentialNow": true,
+      "currentStage": "watch",
+      "reason": "ACTION_NOT_VALIDATED",
+      "validation": "provisional",
+      "oldStrategy": "cross-city-instant",
+      "oldNet": 108.31999999999994,
+      "legs": [
+        {
+          "label": "sell",
+          "city": "Lymhurst",
+          "side": "sell",
+          "oldPrice": 988,
+          "currentPrice": 988,
+          "changed": false,
+          "oldAt": "2026-10-11T18:30:00.000Z",
+          "currentAt": "2026-10-11T18:30:00Z",
+          "ageMin": 762,
+          "stale": true,
+          "refLevel": 1,
+          "gapMin": 0
+        },
+        {
+          "label": "destination",
+          "city": "Thetford",
+          "side": "buy",
+          "oldPrice": 1142,
+          "currentPrice": 1142,
+          "changed": false,
+          "oldAt": "2026-10-11T19:00:00.000Z",
+          "currentAt": "2026-10-11T19:00:00Z",
+          "ageMin": 732,
+          "stale": true,
+          "refLevel": 2,
+          "gapMin": 0
+        }
+      ]
+    },
+    {
+      "id": "T8_ORE|Lymhurst|1",
+      "eligibleNow": false,
+      "potentialNow": true,
+      "currentStage": "watch",
+      "reason": "ACTION_NOT_VALIDATED",
+      "validation": "provisional",
+      "oldStrategy": "cross-city-instant",
+      "oldNet": 316,
+      "legs": [
+        {
+          "label": "sell",
+          "city": "Lymhurst",
+          "side": "sell",
+          "oldPrice": 6980,
+          "currentPrice": 6980,
+          "changed": false,
+          "oldAt": "2026-10-11T18:30:00.000Z",
+          "currentAt": "2026-10-11T18:30:00Z",
+          "ageMin": 762,
+          "stale": true,
+          "refLevel": 1,
+          "gapMin": 0
+        },
+        {
+          "label": "destination",
+          "city": "Thetford",
+          "side": "buy",
+          "oldPrice": 7600,
+          "currentPrice": 7600,
+          "changed": false,
+          "oldAt": "2026-10-11T19:00:00.000Z",
+          "currentAt": "2026-10-11T19:00:00Z",
+          "ageMin": 732,
+          "stale": true,
+          "refLevel": 1,
+          "gapMin": 0
+        }
+      ]
+    },
+    {
+      "id": "T7_CORN|Fort Sterling|1",
+      "eligibleNow": false,
+      "potentialNow": true,
+      "currentStage": "watch",
+      "reason": "ACTION_NOT_VALIDATED",
+      "validation": "provisional",
+      "oldStrategy": "cross-city-instant",
+      "oldNet": 15.560000000000002,
+      "legs": [
+        {
+          "label": "sell",
+          "city": "Fort Sterling",
+          "side": "sell",
+          "oldPrice": 427,
+          "currentPrice": 427,
+          "changed": false,
+          "oldAt": "2026-10-11T21:20:00.000Z",
+          "currentAt": "2026-10-11T21:20:00Z",
+          "ageMin": 592,
+          "stale": true,
+          "refLevel": 1,
+          "gapMin": 0
+        },
+        {
+          "label": "destination",
+          "city": "Thetford",
+          "side": "buy",
+          "oldPrice": 461,
+          "currentPrice": 461,
+          "changed": false,
+          "oldAt": "2026-10-11T21:50:00.000Z",
+          "currentAt": "2026-10-11T21:50:00Z",
+          "ageMin": 562,
+          "stale": true,
+          "refLevel": 2,
+          "gapMin": 0
+        }
+      ]
+    },
+    {
+      "id": "T6_ORE_LEVEL1@1|Lymhurst|1",
+      "eligibleNow": false,
+      "potentialNow": false,
+      "currentStage": "rejected",
+      "reason": "INVALID_SPREAD",
+      "validation": "provisional",
+      "oldStrategy": "cross-city-instant",
+      "oldNet": 159.36000000000013,
+      "legs": [
+        {
+          "label": "sell",
+          "city": "Lymhurst",
+          "side": "sell",
+          "oldPrice": 2088,
+          "currentPrice": 2204,
+          "changed": true,
+          "oldAt": "2026-10-11T18:30:00.000Z",
+          "currentAt": "2026-10-12T00:35:00Z",
+          "ageMin": 397,
+          "stale": true,
+          "refLevel": 2,
+          "gapMin": 365
+        },
+        {
+          "label": "destination",
+          "city": "Fort Sterling",
+          "side": "buy",
+          "oldPrice": 2341,
+          "currentPrice": 2341,
+          "changed": false,
+          "oldAt": "2026-10-11T18:35:00.000Z",
+          "currentAt": "2026-10-11T18:35:00Z",
+          "ageMin": 757,
+          "stale": true,
+          "refLevel": 1,
+          "gapMin": 0
+        }
+      ]
+    },
+    {
+      "id": "T6_FOXGLOVE|Caerleon|1",
+      "eligibleNow": false,
+      "potentialNow": false,
+      "currentStage": "rejected",
+      "reason": "INVALID_SPREAD",
+      "validation": "provisional",
+      "oldStrategy": "cross-city-instant",
+      "oldNet": 17.559999999999945,
+      "legs": [
+        {
+          "label": "sell",
+          "city": "Caerleon",
+          "side": "sell",
+          "oldPrice": 521,
+          "currentPrice": 519,
+          "changed": true,
+          "oldAt": "2026-10-11T21:15:00.000Z",
+          "currentAt": "2026-10-12T01:10:00Z",
+          "ageMin": 362,
+          "stale": true,
+          "refLevel": 2,
+          "gapMin": 235
+        },
+        {
+          "label": "destination",
+          "city": "Brecilien",
+          "side": "buy",
+          "oldPrice": 561,
+          "currentPrice": 541,
+          "changed": true,
+          "oldAt": "2026-10-11T22:00:00.000Z",
+          "currentAt": "2026-10-12T06:10:00Z",
+          "ageMin": 62,
+          "stale": false,
+          "refLevel": 1,
+          "gapMin": 490
+        }
+      ]
+    },
+    {
+      "id": "T3_FIBER|Thetford|1",
+      "eligibleNow": false,
+      "potentialNow": false,
+      "currentStage": "rejected",
+      "reason": "INVALID_SPREAD",
+      "validation": "accepted",
+      "oldStrategy": "cross-city-instant",
+      "oldNet": 13.879999999999995,
+      "legs": [
+        {
+          "label": "sell",
+          "city": "Thetford",
+          "side": "sell",
+          "oldPrice": 61,
+          "currentPrice": 60,
+          "changed": true,
+          "oldAt": "2026-10-11T18:10:00.000Z",
+          "currentAt": "2026-10-12T05:50:00Z",
+          "ageMin": 82,
+          "stale": false,
+          "refLevel": 1,
+          "gapMin": 700
+        },
+        {
+          "label": "destination",
+          "city": "Lymhurst",
+          "side": "buy",
+          "oldPrice": 78,
+          "currentPrice": 77,
+          "changed": true,
+          "oldAt": "2026-10-11T18:50:00.000Z",
+          "currentAt": "2026-10-12T06:50:00Z",
+          "ageMin": 22,
+          "stale": false,
+          "refLevel": 1,
+          "gapMin": 720
+        }
+      ]
+    },
+    {
+      "id": "T2_MOUNT_MULE|Lymhurst|1",
+      "eligibleNow": false,
+      "potentialNow": false,
+      "currentStage": "rejected",
+      "reason": "INVALID_SPREAD",
+      "validation": "provisional",
+      "oldStrategy": "cross-city-instant",
+      "oldNet": 217.80000000000018,
+      "legs": [
+        {
+          "label": "sell",
+          "city": "Lymhurst",
+          "side": "sell",
+          "oldPrice": 4875,
+          "currentPrice": 4895,
+          "changed": true,
+          "oldAt": "2026-10-11T18:30:00.000Z",
+          "currentAt": "2026-10-12T00:20:00Z",
+          "ageMin": 412,
+          "stale": true,
+          "refLevel": 1,
+          "gapMin": 350
+        },
+        {
+          "label": "destination",
+          "city": "Caerleon",
+          "side": "buy",
+          "oldPrice": 5305,
+          "currentPrice": 5305,
+          "changed": false,
+          "oldAt": "2026-10-11T18:45:00.000Z",
+          "currentAt": "2026-10-11T18:45:00Z",
+          "ageMin": 747,
+          "stale": true,
+          "refLevel": 0,
+          "gapMin": 0
+        }
+      ]
+    },
+    {
+      "id": "T4_RANDOM_DUNGEON_SOLO_TOKEN_D1@1|Lymhurst|1",
+      "eligibleNow": false,
+      "potentialNow": true,
+      "currentStage": "watch",
+      "reason": "ACTION_NOT_VALIDATED",
+      "validation": "provisional",
+      "oldStrategy": "cross-city-instant",
+      "oldNet": 77.59999999999991,
+      "legs": [
+        {
+          "label": "sell",
+          "city": "Lymhurst",
+          "side": "sell",
+          "oldPrice": 2356,
+          "currentPrice": 2356,
+          "changed": false,
+          "oldAt": "2026-10-11T20:20:00.000Z",
+          "currentAt": "2026-10-11T20:20:00Z",
+          "ageMin": 652,
+          "stale": true,
+          "refLevel": 1,
+          "gapMin": 0
+        },
+        {
+          "label": "destination",
+          "city": "Brecilien",
+          "side": "buy",
+          "oldPrice": 2535,
+          "currentPrice": 2535,
+          "changed": false,
+          "oldAt": "2026-10-11T19:30:00.000Z",
+          "currentAt": "2026-10-11T19:30:00Z",
+          "ageMin": 702,
+          "stale": true,
+          "refLevel": 0,
+          "gapMin": 0
+        }
+      ]
+    },
+    {
+      "id": "T7_ROCK_LEVEL1@1|Thetford|1",
+      "eligibleNow": false,
+      "potentialNow": true,
+      "currentStage": "watch",
+      "reason": "ACTION_NOT_VALIDATED",
+      "validation": "provisional",
+      "oldStrategy": "cross-city-instant",
+      "oldNet": 64.79999999999973,
+      "legs": [
+        {
+          "label": "sell",
+          "city": "Thetford",
+          "side": "sell",
+          "oldPrice": 2748,
+          "currentPrice": 2748,
+          "changed": false,
+          "oldAt": "2026-10-11T20:10:00.000Z",
+          "currentAt": "2026-10-11T20:10:00Z",
+          "ageMin": 662,
+          "stale": true,
+          "refLevel": 3,
+          "gapMin": 0
+        },
+        {
+          "label": "destination",
+          "city": "Martlock",
+          "side": "buy",
+          "oldPrice": 2930,
+          "currentPrice": 2930,
+          "changed": false,
+          "oldAt": "2026-10-11T19:25:00.000Z",
+          "currentAt": "2026-10-11T19:25:00Z",
+          "ageMin": 707,
+          "stale": true,
+          "refLevel": 2,
+          "gapMin": 0
+        }
+      ]
+    },
+    {
+      "id": "T3_ORE|Martlock|1",
+      "eligibleNow": true,
+      "potentialNow": false,
+      "currentStage": "trade",
+      "reason": "VALIDATED_OPPORTUNITY",
+      "validation": "accepted",
+      "oldStrategy": "cross-city-instant",
+      "oldNet": 7.719999999999999,
+      "legs": [
+        {
+          "label": "sell",
+          "city": "Martlock",
+          "side": "sell",
+          "oldPrice": 47,
+          "currentPrice": 50,
+          "changed": true,
+          "oldAt": "2026-10-11T19:00:00.000Z",
+          "currentAt": "2026-10-12T06:30:00Z",
+          "ageMin": 42,
+          "stale": false,
+          "refLevel": 1,
+          "gapMin": 690
+        },
+        {
+          "label": "destination",
+          "city": "Thetford",
+          "side": "buy",
+          "oldPrice": 57,
+          "currentPrice": 59,
+          "changed": true,
+          "oldAt": "2026-10-11T18:55:00.000Z",
+          "currentAt": "2026-10-12T05:50:00Z",
+          "ageMin": 82,
+          "stale": false,
+          "refLevel": 2,
+          "gapMin": 655
+        }
+      ]
+    },
+    {
+      "id": "T5_ROCK_LEVEL2@2|Thetford|1",
+      "eligibleNow": false,
+      "potentialNow": true,
+      "currentStage": "watch",
+      "reason": "ACTION_NOT_VALIDATED",
+      "validation": "provisional",
+      "oldStrategy": "cross-city-instant",
+      "oldNet": 11.120000000000005,
+      "legs": [
+        {
+          "label": "sell",
+          "city": "Thetford",
+          "side": "sell",
+          "oldPrice": 130,
+          "currentPrice": 130,
+          "changed": false,
+          "oldAt": "2026-10-11T19:50:00.000Z",
+          "currentAt": "2026-10-11T19:50:00Z",
+          "ageMin": 682,
+          "stale": true,
+          "refLevel": 2,
+          "gapMin": 0
+        },
+        {
+          "label": "destination",
+          "city": "Bridgewatch",
+          "side": "buy",
+          "oldPrice": 147,
+          "currentPrice": 147,
+          "changed": false,
+          "oldAt": "2026-10-11T20:30:00.000Z",
+          "currentAt": "2026-10-11T20:30:00Z",
+          "ageMin": 642,
+          "stale": true,
+          "refLevel": 1,
+          "gapMin": 0
+        }
+      ]
+    },
+    {
+      "id": "T5_SOUL|Brecilien|1",
+      "eligibleNow": false,
+      "potentialNow": false,
+      "currentStage": "rejected",
+      "reason": "INVALID_SPREAD",
+      "validation": "accepted",
+      "oldStrategy": "cross-city-instant",
+      "oldNet": 10.680000000000007,
+      "legs": [
+        {
+          "label": "sell",
+          "city": "Brecilien",
+          "side": "sell",
+          "oldPrice": 165,
+          "currentPrice": 176,
+          "changed": true,
+          "oldAt": "2026-10-11T20:15:00.000Z",
+          "currentAt": "2026-10-12T02:15:00Z",
+          "ageMin": 297,
+          "stale": false,
+          "refLevel": 1,
+          "gapMin": 360
+        },
+        {
+          "label": "destination",
+          "city": "Fort Sterling",
+          "side": "buy",
+          "oldPrice": 183,
+          "currentPrice": 183,
+          "changed": false,
+          "oldAt": "2026-10-11T20:10:00.000Z",
+          "currentAt": "2026-10-11T20:10:00Z",
+          "ageMin": 662,
+          "stale": true,
+          "refLevel": 1,
+          "gapMin": 0
+        }
+      ]
+    },
+    {
+      "id": "T5_RUNE|Fort Sterling|1",
+      "eligibleNow": false,
+      "potentialNow": false,
+      "currentStage": "rejected",
+      "reason": "INVALID_SPREAD",
+      "validation": "provisional",
+      "oldStrategy": "cross-city-instant",
+      "oldNet": 2.479999999999997,
+      "legs": [
+        {
+          "label": "sell",
+          "city": "Fort Sterling",
+          "side": "sell",
+          "oldPrice": 34,
+          "currentPrice": 34,
+          "changed": false,
+          "oldAt": "2026-10-11T21:10:00.000Z",
+          "currentAt": "2026-10-11T21:10:00Z",
+          "ageMin": 602,
+          "stale": true,
+          "refLevel": 1,
+          "gapMin": 0
+        },
+        {
+          "label": "destination",
+          "city": "Lymhurst",
+          "side": "buy",
+          "oldPrice": 38,
+          "currentPrice": 36,
+          "changed": true,
+          "oldAt": "2026-10-11T21:15:00.000Z",
+          "currentAt": "2026-10-12T00:30:00Z",
+          "ageMin": 402,
+          "stale": true,
+          "refLevel": 1,
+          "gapMin": 195
+        }
+      ]
+    },
+    {
+      "id": "T5_FIBER|Brecilien|1",
+      "eligibleNow": false,
+      "potentialNow": true,
+      "currentStage": "watch",
+      "reason": "ACTION_NOT_VALIDATED",
+      "validation": "provisional",
+      "oldStrategy": "cross-city-instant",
+      "oldNet": 4.9599999999999795,
+      "legs": [
+        {
+          "label": "sell",
+          "city": "Brecilien",
+          "side": "sell",
+          "oldPrice": 332,
+          "currentPrice": 332,
+          "changed": false,
+          "oldAt": "2026-10-11T21:35:00.000Z",
+          "currentAt": "2026-10-11T21:35:00Z",
+          "ageMin": 577,
+          "stale": true,
+          "refLevel": 1,
+          "gapMin": 0
+        },
+        {
+          "label": "destination",
+          "city": "Lymhurst",
+          "side": "buy",
+          "oldPrice": 351,
+          "currentPrice": 351,
+          "changed": false,
+          "oldAt": "2026-10-11T22:10:00.000Z",
+          "currentAt": "2026-10-11T22:10:00Z",
+          "ageMin": 542,
+          "stale": true,
+          "refLevel": 2,
+          "gapMin": 0
+        }
+      ]
+    },
+    {
+      "id": "T3_ROCK|Lymhurst|1",
+      "eligibleNow": false,
+      "potentialNow": false,
+      "currentStage": "rejected",
+      "reason": "INVALID_SPREAD",
+      "validation": "provisional",
+      "oldStrategy": "cross-city-instant",
+      "oldNet": 4.559999999999995,
+      "legs": [
+        {
+          "label": "sell",
+          "city": "Lymhurst",
+          "side": "sell",
+          "oldPrice": 54,
+          "currentPrice": 46,
+          "changed": true,
+          "oldAt": "2026-10-11T20:25:00.000Z",
+          "currentAt": "2026-10-12T06:50:00Z",
+          "ageMin": 22,
+          "stale": false,
+          "refLevel": 1,
+          "gapMin": 625
+        },
+        {
+          "label": "destination",
+          "city": "Bridgewatch",
+          "side": "buy",
+          "oldPrice": 61,
+          "currentPrice": 61,
+          "changed": false,
+          "oldAt": "2026-10-11T20:30:00.000Z",
+          "currentAt": "2026-10-11T20:30:00Z",
+          "ageMin": 642,
+          "stale": true,
+          "refLevel": 1,
+          "gapMin": 0
+        }
+      ]
+    },
+    {
+      "id": "T6_ORE|Martlock|1",
+      "eligibleNow": false,
+      "potentialNow": true,
+      "currentStage": "watch",
+      "reason": "ACTION_NOT_VALIDATED",
+      "validation": "provisional",
+      "oldStrategy": "cross-city-instant",
+      "oldNet": 41.319999999999936,
+      "legs": [
+        {
+          "label": "sell",
+          "city": "Martlock",
+          "side": "sell",
+          "oldPrice": 1055,
+          "currentPrice": 1055,
+          "changed": false,
+          "oldAt": "2026-10-11T19:00:00.000Z",
+          "currentAt": "2026-10-11T19:00:00Z",
+          "ageMin": 732,
+          "stale": true,
+          "refLevel": 2,
+          "gapMin": 0
+        },
+        {
+          "label": "destination",
+          "city": "Thetford",
+          "side": "buy",
+          "oldPrice": 1142,
+          "currentPrice": 1142,
+          "changed": false,
+          "oldAt": "2026-10-11T19:00:00.000Z",
+          "currentAt": "2026-10-11T19:00:00Z",
+          "ageMin": 732,
+          "stale": true,
+          "refLevel": 2,
+          "gapMin": 0
+        }
+      ]
+    },
+    {
+      "id": "T5_WOOD|Lymhurst|1",
+      "eligibleNow": false,
+      "potentialNow": false,
+      "currentStage": "rejected",
+      "reason": "INVALID_SPREAD",
+      "validation": "accepted",
+      "oldStrategy": "cross-city-instant",
+      "oldNet": 6.399999999999977,
+      "legs": [
+        {
+          "label": "sell",
+          "city": "Lymhurst",
+          "side": "sell",
+          "oldPrice": 320,
+          "currentPrice": 315,
+          "changed": true,
+          "oldAt": "2026-10-11T21:05:00.000Z",
+          "currentAt": "2026-10-12T05:35:00Z",
+          "ageMin": 97,
+          "stale": false,
+          "refLevel": 3,
+          "gapMin": 510
+        },
+        {
+          "label": "destination",
+          "city": "Fort Sterling",
+          "side": "buy",
+          "oldPrice": 340,
+          "currentPrice": 341,
+          "changed": true,
+          "oldAt": "2026-10-11T20:55:00.000Z",
+          "currentAt": "2026-10-12T01:45:00Z",
+          "ageMin": 327,
+          "stale": false,
+          "refLevel": 2,
+          "gapMin": 290
+        }
+      ]
+    },
+    {
+      "id": "T8_ORE|Martlock|1",
+      "eligibleNow": false,
+      "potentialNow": true,
+      "currentStage": "watch",
+      "reason": "ACTION_NOT_VALIDATED",
+      "validation": "provisional",
+      "oldStrategy": "cross-city-instant",
+      "oldNet": 68,
+      "legs": [
+        {
+          "label": "sell",
+          "city": "Martlock",
+          "side": "sell",
+          "oldPrice": 7228,
+          "currentPrice": 7228,
+          "changed": false,
+          "oldAt": "2026-10-11T19:00:00.000Z",
+          "currentAt": "2026-10-11T19:00:00Z",
+          "ageMin": 732,
+          "stale": true,
+          "refLevel": 2,
+          "gapMin": 0
+        },
+        {
+          "label": "destination",
+          "city": "Thetford",
+          "side": "buy",
+          "oldPrice": 7600,
+          "currentPrice": 7600,
+          "changed": false,
+          "oldAt": "2026-10-11T19:00:00.000Z",
+          "currentAt": "2026-10-11T19:00:00Z",
+          "ageMin": 732,
+          "stale": true,
+          "refLevel": 1,
+          "gapMin": 0
+        }
+      ]
+    },
+    {
+      "id": "T6_ORE|Brecilien|1",
+      "eligibleNow": false,
+      "potentialNow": true,
+      "currentStage": "watch",
+      "reason": "ACTION_NOT_VALIDATED",
+      "validation": "provisional",
+      "oldStrategy": "cross-city-instant",
+      "oldNet": 9.159999999999854,
+      "legs": [
+        {
+          "label": "sell",
+          "city": "Brecilien",
+          "side": "sell",
+          "oldPrice": 1019,
+          "currentPrice": 1019,
+          "changed": false,
+          "oldAt": "2026-10-11T21:30:00.000Z",
+          "currentAt": "2026-10-11T21:30:00Z",
+          "ageMin": 582,
+          "stale": true,
+          "refLevel": 2,
+          "gapMin": 0
+        },
+        {
+          "label": "destination",
+          "city": "Fort Sterling",
+          "side": "buy",
+          "oldPrice": 1071,
+          "currentPrice": 1071,
+          "changed": false,
+          "oldAt": "2026-10-11T20:40:00.000Z",
+          "currentAt": "2026-10-11T20:40:00Z",
+          "ageMin": 632,
+          "stale": true,
+          "refLevel": 1,
+          "gapMin": 0
+        }
+      ]
+    },
+    {
+      "id": "T5_HIDE_LEVEL2@2|Caerleon|1",
+      "eligibleNow": false,
+      "potentialNow": false,
+      "currentStage": "rejected",
+      "reason": "INVALID_SPREAD",
+      "validation": "provisional",
+      "oldStrategy": "cross-city-instant",
+      "oldNet": 62.960000000000036,
+      "legs": [
+        {
+          "label": "sell",
+          "city": "Caerleon",
+          "side": "sell",
+          "oldPrice": 2482,
+          "currentPrice": 1850,
+          "changed": true,
+          "oldAt": "2026-10-11T18:35:00.000Z",
+          "currentAt": "2026-10-12T00:25:00Z",
+          "ageMin": 407,
+          "stale": true,
+          "refLevel": 2,
+          "gapMin": 350
+        },
+        {
+          "label": "destination",
+          "city": "Martlock",
+          "side": "buy",
+          "oldPrice": 2651,
+          "currentPrice": 2651,
+          "changed": false,
+          "oldAt": "2026-10-11T19:15:00.000Z",
+          "currentAt": "2026-10-11T19:15:00Z",
+          "ageMin": 717,
+          "stale": true,
+          "refLevel": 1,
+          "gapMin": 0
+        }
+      ]
+    },
+    {
+      "id": "T4_FIBER|Thetford|1",
+      "eligibleNow": false,
+      "potentialNow": true,
+      "currentStage": "watch",
+      "reason": "ACTION_NOT_VALIDATED",
+      "validation": "provisional",
+      "oldStrategy": "cross-city-instant",
+      "oldNet": 5.719999999999999,
+      "legs": [
+        {
+          "label": "sell",
+          "city": "Thetford",
+          "side": "sell",
+          "oldPrice": 73,
+          "currentPrice": 73,
+          "changed": false,
+          "oldAt": "2026-10-11T19:40:00.000Z",
+          "currentAt": "2026-10-11T19:40:00Z",
+          "ageMin": 692,
+          "stale": true,
+          "refLevel": 1,
+          "gapMin": 0
+        },
+        {
+          "label": "destination",
+          "city": "Bridgewatch",
+          "side": "buy",
+          "oldPrice": 82,
+          "currentPrice": 82,
+          "changed": false,
+          "oldAt": "2026-10-11T20:35:00.000Z",
+          "currentAt": "2026-10-11T20:35:00Z",
+          "ageMin": 637,
+          "stale": true,
+          "refLevel": 1,
+          "gapMin": 0
+        }
+      ]
+    },
+    {
+      "id": "T4_METALBAR_LEVEL3@3|Martlock|1",
+      "eligibleNow": false,
+      "potentialNow": false,
+      "currentStage": "rejected",
+      "reason": "INSUFFICIENT_HISTORY",
+      "validation": "provisional",
+      "oldStrategy": "cross-city-instant",
+      "oldNet": 42,
+      "legs": [
+        {
+          "label": "sell",
+          "city": "Martlock",
+          "side": "sell",
+          "oldPrice": 7158,
+          "currentPrice": 7749,
+          "changed": true,
+          "oldAt": "2026-10-11T19:00:00.000Z",
+          "currentAt": "2026-10-12T02:55:00Z",
+          "ageMin": 257,
+          "stale": false,
+          "refLevel": 2,
+          "gapMin": 475
+        },
+        {
+          "label": "destination",
+          "city": "Thetford",
+          "side": "buy",
+          "oldPrice": 7500,
+          "currentPrice": 7500,
+          "changed": false,
+          "oldAt": "2026-10-11T18:55:00.000Z",
+          "currentAt": "2026-10-11T18:55:00Z",
+          "ageMin": 737,
+          "stale": true,
+          "refLevel": 1,
+          "gapMin": 0
+        }
+      ]
+    },
+    {
+      "id": "T4_ORE_LEVEL3@3|Martlock|1",
+      "eligibleNow": false,
+      "potentialNow": true,
+      "currentStage": "watch",
+      "reason": "ACTION_NOT_VALIDATED",
+      "validation": "provisional",
+      "oldStrategy": "cross-city-instant",
+      "oldNet": 21.039999999999964,
+      "legs": [
+        {
+          "label": "sell",
+          "city": "Martlock",
+          "side": "sell",
+          "oldPrice": 4898,
+          "currentPrice": 4898,
+          "changed": false,
+          "oldAt": "2026-10-11T19:00:00.000Z",
+          "currentAt": "2026-10-11T19:00:00Z",
+          "ageMin": 732,
+          "stale": true,
+          "refLevel": 1,
+          "gapMin": 0
+        },
+        {
+          "label": "destination",
+          "city": "Thetford",
+          "side": "buy",
+          "oldPrice": 5124,
+          "currentPrice": 5124,
+          "changed": false,
+          "oldAt": "2026-10-11T18:55:00.000Z",
+          "currentAt": "2026-10-11T18:55:00Z",
+          "ageMin": 737,
+          "stale": true,
+          "refLevel": 1,
+          "gapMin": 0
+        }
+      ]
+    },
+    {
+      "id": "T5_RUNE|Bridgewatch|1",
+      "eligibleNow": false,
+      "potentialNow": true,
+      "currentStage": "watch",
+      "reason": "ACTION_NOT_VALIDATED",
+      "validation": "provisional",
+      "oldStrategy": "cross-city-instant",
+      "oldNet": 1.6799999999999997,
+      "legs": [
+        {
+          "label": "sell",
+          "city": "Bridgewatch",
+          "side": "sell",
+          "oldPrice": 30,
+          "currentPrice": 30,
+          "changed": false,
+          "oldAt": "2026-10-11T19:50:00.000Z",
+          "currentAt": "2026-10-11T19:50:00Z",
+          "ageMin": 682,
+          "stale": true,
+          "refLevel": 1,
+          "gapMin": 0
+        },
+        {
+          "label": "destination",
+          "city": "Fort Sterling",
+          "side": "buy",
+          "oldPrice": 33,
+          "currentPrice": 33,
+          "changed": false,
+          "oldAt": "2026-10-11T20:20:00.000Z",
+          "currentAt": "2026-10-11T20:20:00Z",
+          "ageMin": 652,
+          "stale": true,
+          "refLevel": 1,
+          "gapMin": 0
+        }
+      ]
+    },
+    {
+      "id": "T4_ORE_LEVEL2@2|Thetford|1",
+      "eligibleNow": false,
+      "potentialNow": true,
+      "currentStage": "watch",
+      "reason": "ACTION_NOT_VALIDATED",
+      "validation": "provisional",
+      "oldStrategy": "cross-city-instant",
+      "oldNet": 19.3599999999999,
+      "legs": [
+        {
+          "label": "sell",
+          "city": "Thetford",
+          "side": "sell",
+          "oldPrice": 1076,
+          "currentPrice": 1076,
+          "changed": false,
+          "oldAt": "2026-10-11T18:55:00.000Z",
+          "currentAt": "2026-10-11T18:55:00Z",
+          "ageMin": 737,
+          "stale": true,
+          "refLevel": 1,
+          "gapMin": 0
+        },
+        {
+          "label": "destination",
+          "city": "Lymhurst",
+          "side": "buy",
+          "oldPrice": 1141,
+          "currentPrice": 1141,
+          "changed": false,
+          "oldAt": "2026-10-11T18:30:00.000Z",
+          "currentAt": "2026-10-11T18:30:00Z",
+          "ageMin": 762,
+          "stale": true,
+          "refLevel": 1,
+          "gapMin": 0
+        }
+      ]
+    },
+    {
+      "id": "T4_ORE_LEVEL3@3|Brecilien|1",
+      "eligibleNow": false,
+      "potentialNow": false,
+      "currentStage": "rejected",
+      "reason": "INVALID_SPREAD",
+      "validation": "provisional",
+      "oldStrategy": "cross-city-instant",
+      "oldNet": 25.039999999999964,
+      "legs": [
+        {
+          "label": "sell",
+          "city": "Brecilien",
+          "side": "sell",
+          "oldPrice": 4894,
+          "currentPrice": 4889,
+          "changed": true,
+          "oldAt": "2026-10-11T18:25:00.000Z",
+          "currentAt": "2026-10-12T02:00:00Z",
+          "ageMin": 312,
+          "stale": false,
+          "refLevel": 2,
+          "gapMin": 455
+        },
+        {
+          "label": "destination",
+          "city": "Thetford",
+          "side": "buy",
+          "oldPrice": 5124,
+          "currentPrice": 5124,
+          "changed": false,
+          "oldAt": "2026-10-11T18:55:00.000Z",
+          "currentAt": "2026-10-11T18:55:00Z",
+          "ageMin": 737,
+          "stale": true,
+          "refLevel": 1,
+          "gapMin": 0
+        }
+      ]
+    },
+    {
+      "id": "T4_ROCK_LEVEL1@1|Bridgewatch|1",
+      "eligibleNow": false,
+      "potentialNow": false,
+      "currentStage": "rejected",
+      "reason": "INVALID_SPREAD",
+      "validation": "provisional",
+      "oldStrategy": "cross-city-instant",
+      "oldNet": 0.7999999999999972,
+      "legs": [
+        {
+          "label": "sell",
+          "city": "Bridgewatch",
+          "side": "sell",
+          "oldPrice": 28,
+          "currentPrice": 16,
+          "changed": true,
+          "oldAt": "2026-10-11T20:30:00.000Z",
+          "currentAt": "2026-10-12T04:50:00Z",
+          "ageMin": 142,
+          "stale": false,
+          "refLevel": 1,
+          "gapMin": 500
+        },
+        {
+          "label": "destination",
+          "city": "Martlock",
+          "side": "buy",
+          "oldPrice": 30,
+          "currentPrice": 30,
+          "changed": false,
+          "oldAt": "2026-10-11T20:30:00.000Z",
+          "currentAt": "2026-10-11T20:30:00Z",
+          "ageMin": 642,
+          "stale": true,
+          "refLevel": 1,
+          "gapMin": 0
+        }
+      ]
+    },
+    {
+      "id": "T4_METALBAR_LEVEL3@3|Bridgewatch|1",
+      "eligibleNow": false,
+      "potentialNow": true,
+      "currentStage": "watch",
+      "reason": "ACTION_NOT_VALIDATED",
+      "validation": "provisional",
+      "oldStrategy": "cross-city-instant",
+      "oldNet": 17,
+      "legs": [
+        {
+          "label": "sell",
+          "city": "Bridgewatch",
+          "side": "sell",
+          "oldPrice": 7183,
+          "currentPrice": 7183,
+          "changed": false,
+          "oldAt": "2026-10-11T18:30:00.000Z",
+          "currentAt": "2026-10-11T18:30:00Z",
+          "ageMin": 762,
+          "stale": true,
+          "refLevel": 2,
+          "gapMin": 0
+        },
+        {
+          "label": "destination",
+          "city": "Thetford",
+          "side": "buy",
+          "oldPrice": 7500,
+          "currentPrice": 7500,
+          "changed": false,
+          "oldAt": "2026-10-11T18:55:00.000Z",
+          "currentAt": "2026-10-11T18:55:00Z",
+          "ageMin": 737,
+          "stale": true,
+          "refLevel": 1,
+          "gapMin": 0
+        }
+      ]
+    },
+    {
+      "id": "T6_ORE|Caerleon|1",
+      "eligibleNow": false,
+      "potentialNow": false,
+      "currentStage": "rejected",
+      "reason": "INVALID_SPREAD",
+      "validation": "provisional",
+      "oldStrategy": "cross-city-instant",
+      "oldNet": 12.319999999999936,
+      "legs": [
+        {
+          "label": "sell",
+          "city": "Caerleon",
+          "side": "sell",
+          "oldPrice": 1084,
+          "currentPrice": 1034,
+          "changed": true,
+          "oldAt": "2026-10-11T18:35:00.000Z",
+          "currentAt": "2026-10-12T01:10:00Z",
+          "ageMin": 362,
+          "stale": true,
+          "refLevel": 2,
+          "gapMin": 395
+        },
+        {
+          "label": "destination",
+          "city": "Thetford",
+          "side": "buy",
+          "oldPrice": 1142,
+          "currentPrice": 1142,
+          "changed": false,
+          "oldAt": "2026-10-11T19:00:00.000Z",
+          "currentAt": "2026-10-11T19:00:00Z",
+          "ageMin": 732,
+          "stale": true,
+          "refLevel": 2,
+          "gapMin": 0
+        }
+      ]
+    },
+    {
+      "id": "T4_ORE|Martlock|1",
+      "eligibleNow": false,
+      "potentialNow": true,
+      "currentStage": "watch",
+      "reason": "ACTION_NOT_VALIDATED",
+      "validation": "provisional",
+      "oldStrategy": "cross-city-instant",
+      "oldNet": 3.039999999999992,
+      "legs": [
+        {
+          "label": "sell",
+          "city": "Martlock",
+          "side": "sell",
+          "oldPrice": 68,
+          "currentPrice": 68,
+          "changed": false,
+          "oldAt": "2026-10-11T19:00:00.000Z",
+          "currentAt": "2026-10-11T19:00:00Z",
+          "ageMin": 732,
+          "stale": true,
+          "refLevel": 1,
+          "gapMin": 0
+        },
+        {
+          "label": "destination",
+          "city": "Lymhurst",
+          "side": "buy",
+          "oldPrice": 74,
+          "currentPrice": 74,
+          "changed": false,
+          "oldAt": "2026-10-11T18:30:00.000Z",
+          "currentAt": "2026-10-11T18:30:00Z",
+          "ageMin": 762,
+          "stale": true,
+          "refLevel": 2,
+          "gapMin": 0
+        }
+      ]
+    },
+    {
+      "id": "T4_METALBAR|Thetford|1",
+      "eligibleNow": false,
+      "potentialNow": true,
+      "currentStage": "watch",
+      "reason": "ACTION_NOT_VALIDATED",
+      "validation": "provisional",
+      "oldStrategy": "cross-city-instant",
+      "oldNet": 3,
+      "legs": [
+        {
+          "label": "sell",
+          "city": "Thetford",
+          "side": "sell",
+          "oldPrice": 213,
+          "currentPrice": 213,
+          "changed": false,
+          "oldAt": "2026-10-11T18:55:00.000Z",
+          "currentAt": "2026-10-11T18:55:00Z",
+          "ageMin": 737,
+          "stale": true,
+          "refLevel": 3,
+          "gapMin": 0
+        },
+        {
+          "label": "destination",
+          "city": "Bridgewatch",
+          "side": "buy",
+          "oldPrice": 225,
+          "currentPrice": 225,
+          "changed": false,
+          "oldAt": "2026-10-11T18:30:00.000Z",
+          "currentAt": "2026-10-11T18:30:00Z",
+          "ageMin": 762,
+          "stale": true,
+          "refLevel": 2,
+          "gapMin": 0
+        }
+      ]
+    },
+    {
+      "id": "T2_ORE|Martlock|1",
+      "eligibleNow": false,
+      "potentialNow": true,
+      "currentStage": "watch",
+      "reason": "ACTION_NOT_VALIDATED",
+      "validation": "provisional",
+      "oldStrategy": "cross-city-instant",
+      "oldNet": 0.03999999999999915,
+      "legs": [
+        {
+          "label": "sell",
+          "city": "Martlock",
+          "side": "sell",
+          "oldPrice": 23,
+          "currentPrice": 23,
+          "changed": false,
+          "oldAt": "2026-10-11T19:55:00.000Z",
+          "currentAt": "2026-10-11T19:55:00Z",
+          "ageMin": 677,
+          "stale": true,
+          "refLevel": 1,
+          "gapMin": 0
+        },
+        {
+          "label": "destination",
+          "city": "Fort Sterling",
+          "side": "buy",
+          "oldPrice": 24,
+          "currentPrice": 24,
+          "changed": false,
+          "oldAt": "2026-10-11T19:25:00.000Z",
+          "currentAt": "2026-10-11T19:25:00Z",
+          "ageMin": 707,
+          "stale": true,
+          "refLevel": 1,
+          "gapMin": 0
+        }
+      ]
+    },
+    {
+      "id": "T5_ORE_LEVEL1@1|Lymhurst|1",
+      "eligibleNow": false,
+      "potentialNow": true,
+      "currentStage": "watch",
+      "reason": "ACTION_NOT_VALIDATED",
+      "validation": "provisional",
+      "oldStrategy": "cross-city-instant",
+      "oldNet": 1.4800000000000182,
+      "legs": [
+        {
+          "label": "sell",
+          "city": "Lymhurst",
+          "side": "sell",
+          "oldPrice": 707,
+          "currentPrice": 707,
+          "changed": false,
+          "oldAt": "2026-10-11T18:30:00.000Z",
+          "currentAt": "2026-10-11T18:30:00Z",
+          "ageMin": 762,
+          "stale": true,
+          "refLevel": 2,
+          "gapMin": 0
+        },
+        {
+          "label": "destination",
+          "city": "Thetford",
+          "side": "buy",
+          "oldPrice": 738,
+          "currentPrice": 738,
+          "changed": false,
+          "oldAt": "2026-10-11T19:00:00.000Z",
+          "currentAt": "2026-10-11T19:00:00Z",
+          "ageMin": 732,
+          "stale": true,
+          "refLevel": 2,
+          "gapMin": 0
+        }
+      ]
+    },
+    {
+      "id": "T2_FISH_SALTWATER_ALL_COMMON|Martlock|1",
+      "eligibleNow": false,
+      "potentialNow": true,
+      "currentStage": "watch",
+      "reason": "ACTION_NOT_VALIDATED",
+      "validation": "provisional",
+      "oldStrategy": "cross-city-instant",
+      "oldNet": 0.7999999999999545,
+      "legs": [
+        {
+          "label": "sell",
+          "city": "Martlock",
+          "side": "sell",
+          "oldPrice": 508,
+          "currentPrice": 508,
+          "changed": false,
+          "oldAt": "2026-10-11T18:50:00.000Z",
+          "currentAt": "2026-10-11T18:50:00Z",
+          "ageMin": 742,
+          "stale": true,
+          "refLevel": 0,
+          "gapMin": 0
+        },
+        {
+          "label": "destination",
+          "city": "Lymhurst",
+          "side": "buy",
+          "oldPrice": 530,
+          "currentPrice": 530,
+          "changed": false,
+          "oldAt": "2026-10-11T18:20:00.000Z",
+          "currentAt": "2026-10-11T18:20:00Z",
+          "ageMin": 772,
+          "stale": true,
+          "refLevel": 1,
+          "gapMin": 0
+        }
+      ]
+    }
+  ]
+}

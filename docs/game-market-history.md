@@ -1,0 +1,13 @@
+# Game Market History integration
+
+The existing Albion Data Client already forwards decoded packets to the local price hub with `-i http://127.0.0.1:3001`. The hub now accepts `markethistories.ingest` (including its POW form) and `/api/v1/stats/MarketHistories` instead of ignoring them.
+
+Open an item's Market History chart in the game. The 24-hour chart supplies hourly buckets; the 7-day and 4-week views supply coarser buckets. Item, city, quality, configured server, timestamp and resolution remain separate. Unknown item/location mappings are rejected. The endpoint `/api/v1/market/packet-history` exposes the archive with explicit server/item/location/quality/day filters. Hub status exposes captured series, point count and last receipt time.
+
+`.market-history-packets.jsonl` is a separate append-only game archive. Repeated reports do not add volume; corrections replace the same bucket. Different chart resolutions are never summed. Reads retain only the requested date range, and the planner prefers available hourly rows over coarser rows for the same item. A crash with an incomplete journal tail fails closed for inspection rather than overwriting the archive.
+
+Potentials use personal executed trades first, game history second, the existing local AODP archive third, and external API last. Opening a chart captures evidence but does not modify a saved potential. Click **Potansiyel Fiyatları Güncelle** to select and save new potentials. The popup shows source, selected bucket time, quantity, resolution and snapshot time. A captured market average does not distinguish personal buy/sell direction or individual executions.
+
+Wire conversion follows the [AODP client schema](https://github.com/ao-data/albiondata-client/blob/master/lib/marketHistory.go), [dedupe silver scaling](https://github.com/ao-data/albiondata-server-rails/blob/main/app/services/market_history_dedupe_service.rb) and [timestamp/resolution conversion](https://github.com/ao-data/albiondata-server-rails/blob/main/app/services/market_history_processor_service.rb): `SilverAmount / 10000 / ItemAmount`; .NET ticks are converted with integer arithmetic before conversion to Unix milliseconds. JSON parsing preserves 64-bit wire tokens.
+
+Validation: `node content/scripts/test-market-history-packets.mjs` covers wire precision, price/timestamp conversion, POW, future/malformed points, scope isolation, correction/deduplication, durable replay, resolution separation and game-before-API priority. `test-market-order-history.mjs` additionally exercises the hub POST/GET routes in isolation. Synthetic test packets are never posted to the user's live archive.

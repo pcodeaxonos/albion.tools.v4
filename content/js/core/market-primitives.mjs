@@ -15,6 +15,27 @@ export function marketSeriesKey({ server, itemId, city, quality, side }) {
 }
 
 export const BOOK_PRICE_FIELDS = Object.freeze({ buy: 'buy_price_max', sell: 'sell_price_min' });
+/** Inverse weighted empirical CDF: quantities, not number of rows, carry weight. */
+export function weightedQuantile(rows, fraction) {
+    const sorted = rows.filter(row => Number.isFinite(row.value) && Number.isSafeInteger(row.weight) && row.weight > 0)
+        .slice().sort((a, b) => a.value - b.value);
+    const total = sorted.reduce((sum, row) => sum + row.weight, 0);
+    if (!Number.isSafeInteger(total) || total <= 0 || !(fraction > 0 && fraction < 1)) return null;
+    let cumulative = 0;
+    for (const row of sorted) { cumulative += row.weight; if (cumulative >= fraction * total) return row.value; }
+    return null;
+}
+
+export function weightedPriceQuantile(rows, fraction) {
+    return weightedQuantile(rows.filter(row => row.price > 0).map(row => ({ value: row.price, weight: row.quantity })), fraction);
+}
+
+/** Posted market prices use whole silver; never add a live order-book tick to history. */
+export function roundHistoricalPrice(price, side) {
+    if (!Number.isFinite(price) || price <= 0) return null;
+    const rounded = side === 'buy' ? Math.ceil(price) : Math.floor(price);
+    return Number.isSafeInteger(rounded) && rounded >= 1 ? rounded : null;
+}
 
 /** Same tick the order book uses: posting on a side steps one silver toward the spread. */
 export function bookTick(side, intent) {

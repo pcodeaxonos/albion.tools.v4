@@ -1,3 +1,4 @@
+import { MarketHistoryPackets, normalizeMarketHistoryPacket, parseMarketHistoryBody } from './market-history-packets.mjs';
 /**
  * Local market-price hub.
  *
@@ -15,18 +16,22 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { promisify } from 'node:util';
 import { normalizePriceDate, marketSeriesKey, BOOK_PRICE_FIELDS } from '../js/core/market-primitives.mjs';
-import { ORDER_HISTORY_POLICY } from '../js/core/market-history-config.mjs';
+import { ORDER_HISTORY_POLICY, SALES_HISTORY_ENDPOINT, PACKET_HISTORY_ENDPOINT } from '../js/core/market-history-config.mjs';
 import { mergePartialBook, latestBookOrders } from '../js/core/market-book.mjs';
 import { preserveArchive } from './archive-backup.mjs';
 import { OrderPriceHistory } from '../js/core/order-price-history.mjs';
 import { startQuoteService } from './quote-service.mjs';
 import { locationNamesByIndex } from '../js/core/market-catalog.mjs';
 import { createNatsMarketAdapter } from './aodp-nats-adapter.mjs';
+import { OpportunityEvidenceRepository, routeOpportunityEvidence } from './opportunity-evidence-repository.mjs';
+import { OpportunityDiagnosticsRepository } from './opportunity-diagnostics-repository.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 // The hub lives in content/scripts; persistent data and game catalogs belong
 // to the repository root.
 const ROOT = join(__dirname, '..', '..');
+const opportunityEvidence = new OpportunityEvidenceRepository(join(ROOT, '.opportunity-evidence.jsonl'));
+const opportunityDiagnostics = new OpportunityDiagnosticsRepository(join(ROOT, '.opportunity-diagnostics.json'));
 const configuredServers = JSON.parse(readFileSync(join(ROOT, 'data', 'price-servers.json'), 'utf8')).map(row => row.code);
 const hubConfig = JSON.parse(readFileSync(join(ROOT, 'data', 'price-hub-config.json'), 'utf8'));
 // Explicit operator assignment: packets have no authenticated region identity.
@@ -61,6 +66,8 @@ const CITY_NAMES = new Set([
 ]);
 
 const locationToCity = buildLocationMap();
+const packetItemNames = new Map(JSON.parse(readFileSync(join(ROOT, 'data', 'items.json'), 'utf8')).map(item => [item.id, item.uniqueName]));
+const packetHistory = new MarketHistoryPackets(join(ROOT, '.market-history-packets.jsonl'));
 const books = new Map();
 const startedAt = new Date().toISOString();
 let lastIngestAt = null;
@@ -83,7 +90,8 @@ const sseClients = new Set();
 loadCache();
 loadOrderHistory();
 loadLocalDataFile();
-const quoteService = startQuoteService({ root: ROOT, server: MARKET_SERVER, packetHistory: orderHistory });
+const quoteService = startQuoteService({ root: ROOT, server: MARKET_SERVER, packetHistory: orderHistory,
+    diagnosticsRepository: opportunityDiagnostics });
 const priceServers = JSON.parse(readFileSync(join(ROOT, 'data', 'price-servers.json'), 'utf8'));
 const locationRows = JSON.parse(readFileSync(LOCATIONS_PATH, 'utf8'));
 const cityRows = JSON.parse(readFileSync(join(ROOT, 'data', 'cities.json'), 'utf8'));
@@ -134,12 +142,19 @@ server.listen(PORT, HOST, () => {
 });
 
 // Preserve pending local observations and journal transactions during an operator restart.
-function shutdown() {
-    quoteService.collector.stop?.();
+let shuttingDown = false;
+async function shutdown() {
+    if (shuttingDown) return;
+    shuttingDown = true;
+    const collectorIdle = quoteService.collector.stop?.();
     natsAdapter.stop?.();
+    // Finish the already-started request and its durable transaction before exit.
+    await collectorIdle;
     if (persistTimer) { clearTimeout(persistTimer); persistTimer = null; persistCache(); }
-    try { quoteService.repository?.flush(); } catch (error) { console.error('Shutdown journal flush:', error.message); }
-    server.close(() => process.exit(0));
+    try { quoteService.repository?.flush(); }
+    catch (error) { console.error('Shutdown aborted; pending journal preserved in memory:', error.message); shuttingDown = false; return; }
+    for (const client of sseClients) client.end();
+    server.close(() => { opportunityEvidence.close(); process.exit(0); });
     setTimeout(() => process.exit(0), 5000).unref();
 }
 process.once?.('SIGINT', shutdown);
@@ -152,6 +167,53 @@ function applyCors(res) {
 }
 
 async function route(req, res, url, path) {
+    if (await routeOpportunityEvidence(req, res, opportunityEvidence, path)) return;
+    if (req.method === 'GET' && path === '/api/v1/market/opportunity-diagnostics') {
+        const requestedServer = url.searchParams.get('server');
+        if (requestedServer !== MARKET_SERVER) {
+            sendJson(res, 400, { error: 'Hub server differs from requested server', server: MARKET_SERVER }); return;
+        }
+        sendJson(res, 200, { ...opportunityDiagnostics.snapshot({ server: requestedServer }),
+            nats: natsAdapter.snapshot(), collector: { status: quoteService.collector.state.status,
+                lastSuccessAt: quoteService.collector.state.lastSuccessAt,
+                nextRunAt: quoteService.collector.state.nextRunAt,
+                lastRun: quoteService.collector.state.lastDataRun || quoteService.collector.state.lastRun } });
+        return;
+    }
+    if (req.method === 'POST' && path === '/api/v1/market/opportunity-diagnostics/client') {
+        const body = parseJsonBody(await readBody(req, 32 * 1024));
+        if (typeof body.scanId !== 'string' || body.scanId.length > 80 || !body.filters || typeof body.filters !== 'object') {
+            sendJson(res, 400, { error: 'Invalid opportunity client diagnostics' }); return;
+        }
+        const saved = opportunityDiagnostics.recordClientState(body);
+        sendJson(res, saved ? 202 : 404, saved ? { ok: true } : { error: opportunityDiagnostics.error || 'Scan ID is not retained' });
+        return;
+    }
+    if (req.method === 'GET' && (path === SALES_HISTORY_ENDPOINT || path === PACKET_HISTORY_ENDPOINT)) {
+        if (!quoteService.repository) { sendJson(res, 503, { error: 'Sales repository unavailable' }); return; }
+        const requestedServer = url.searchParams.get('server');
+        const items = [...new Set(splitCsv(url.searchParams.get('items')))];
+        const locations = [...new Set(splitCsv(url.searchParams.get('locations')))];
+        const qualities = splitCsv(url.searchParams.get('qualities')).map(Number);
+        const days = Number(url.searchParams.get('days'));
+        if (!configuredServers.includes(requestedServer) || !items.length || items.length > 128 || !locations.length
+            || locations.some(city => !CITY_NAMES.has(city)) || !qualities.length
+            || qualities.some(q => !Number.isInteger(q) || q < 1 || q > 5)
+            || !Number.isInteger(days) || days < 1 || days > 90) {
+            sendJson(res, 400, { error: 'Invalid sales history scope' }); return;
+        }
+        let rows;
+        try {
+            rows = path === PACKET_HISTORY_ENDPOINT
+                ? packetHistory.history({ server: requestedServer, items, locations, qualities, days }).sort((a,b) => b.timescale - a.timescale).filter(row => row.data.length)
+                : url.searchParams.get('external') === '1'
+                ? await quoteService.collector.fetchSalesHistory({ items, locations, qualities, days, requestedServer,
+                    requestedHost: priceServers.find(row => row.code === requestedServer).host })
+                : quoteService.repository.salesHistory({ server: requestedServer, items, locations, qualities, days });
+        } catch (error) { sendJson(res, error.status === 429 ? 429 : 502, { error: error.message }); return; }
+        sendJson(res, 200, { server: requestedServer, rows }, { compress: /\bgzip\b/.test(req.headers?.['accept-encoding'] || '') });
+        return;
+    }
     if (req.method === 'GET' && path === '/api/v1/market/long-term') {
         if (quoteService.error) {
             sendJson(res, 503, { error: `AODP repository unavailable: ${quoteService.error}` }); return;
@@ -272,6 +334,15 @@ async function route(req, res, url, path) {
     if (req.method === 'POST' && isIngestPath(path)) {
         const body = await readBody(req);
         noteClient(path);
+        if (isMarketHistoryPath(path)) {
+            try {
+                const payload = parseMarketHistoryBody(body, path.includes('/pow/'));
+                const row = normalizeMarketHistoryPacket(payload, { server: MARKET_SERVER, itemNames: packetItemNames, cityFromLocation });
+                const points = packetHistory.ingest(row);
+                sendJson(res, 200, { ok: true, points });
+            } catch (error) { sendJson(res, 400, { error: error.message }); }
+            return;
+        }
         if (isMarketOrdersPath(path)) {
             const payload = path.includes('/pow/') ? parsePowBody(body) : parseJsonBody(body);
             const added = ingestMarketUpload(payload);
@@ -319,7 +390,11 @@ function ingestTopic(path) {
 }
 
 function isIngestPath(path) {
-    return Boolean(ingestTopic(path)) || isMarketOrdersPath(path);
+    return Boolean(ingestTopic(path)) || isMarketOrdersPath(path) || isMarketHistoryPath(path);
+}
+
+function isMarketHistoryPath(path) {
+    return ingestTopic(path) === 'markethistories.ingest' || path.toLowerCase() === '/api/v1/stats/markethistories';
 }
 
 function isMarketOrdersPath(path) {
@@ -345,6 +420,10 @@ function statusPayload(adcProcess = null) {
         startedAt,
         collector: quoteService.collector.state,
         nats: natsAdapter.snapshot(),
+        opportunityDiagnostics: { status: opportunityDiagnostics.error ? 'error' : 'ok',
+            scanRecords: opportunityDiagnostics.data.scans.length,
+            collectorRuns: opportunityDiagnostics.data.collectorRuns.length,
+            error: opportunityDiagnostics.error },
         lastIngestAt,
         lastClientAt,
         lastIngestPath,
@@ -357,6 +436,7 @@ function statusPayload(adcProcess = null) {
         lastItems,
         lastCities,
         unknownLocations,
+        marketHistoryPackets: packetHistory.status(),
         ingestCount,
         marketServer: MARKET_SERVER,
         orderHistory: { series: orderHistory.series.size, policy: ORDER_HISTORY_POLICY,
@@ -625,6 +705,8 @@ function normalizeOrder(raw, seenAt) {
     const itemId = String(raw.ItemTypeId ?? raw.item_id ?? raw.itemId ?? '').trim();
     const city = cityFromLocation(raw.LocationId ?? raw.location_id ?? raw.LocationID);
     const price = toSilver(raw.UnitPriceSilver ?? raw.unit_price_silver ?? raw.Price ?? raw.price);
+    const amount = Number(raw.Amount ?? raw.amount);
+    const observedAmount = Number.isSafeInteger(amount) && amount > 0 ? amount : null;
     const quality = Number(raw.QualityLevel ?? raw.quality ?? 1) || 1;
     const side = auctionSide(raw.AuctionType ?? raw.auction_type);
     const id = String(raw.Id ?? raw.id ?? `${itemId}|${city}|${price}|${raw.Amount ?? ''}`);
@@ -645,6 +727,7 @@ function normalizeOrder(raw, seenAt) {
         quality,
         side,
         price,
+        observedAmount,
         seenAt,
         expiresAt: expires ? expires.toISOString() : null
     };

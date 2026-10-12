@@ -1,0 +1,87 @@
+{
+  "baseline": {
+    "evaluated": 29538,
+    "discovered": 2487,
+    "verified": 53,
+    "watch": 988,
+    "primary": {
+      "cross-city-instant": 51,
+      "local-flip": 1,
+      "place-sell-order": 1
+    },
+    "ms": 8321.781999997795
+  },
+  "next": {
+    "pipeline": {
+      "examined": 29538,
+      "validPrice": 29538,
+      "newArchiveObservations": null,
+      "sufficientReference": 205,
+      "discovered": 2680,
+      "validated": 105,
+      "discoveredRejected": 1572,
+      "watch": 1003,
+      "rejected": 28430,
+      "reasons": {
+        "INSUFFICIENT_HISTORY": 7479,
+        "INVALID_SPREAD": 1025,
+        "STALE_PRICE": 14007,
+        "VALIDATED_OPPORTUNITY": 105,
+        "LOW_INDEPENDENT_OBSERVATIONS": 4325,
+        "ACTION_NOT_VALIDATED": 1003,
+        "QUARANTINED": 550,
+        "NORMAL_MARKET_BEHAVIOR": 1044
+      }
+    },
+    "resultCounts": {
+      "trade": 105,
+      "watch": 1003,
+      "rejected": 28430
+    },
+    "primary": {
+      "cross-city-instant": 103,
+      "local-flip": 1,
+      "place-sell-order": 1
+    },
+    "coldMs": 10257.717900000513,
+    "warmMs": 8556.997299998999
+  },
+  "referenceStates": {
+    "low-independent-observations": 283,
+    "stale": 25270,
+    "insufficient-samples": 8818,
+    "suspicious": 134,
+    "quarantined": 580,
+    "reliable": 215,
+    "no-history": 2583
+  },
+  "referenceCoverage": {
+    "pricedSides": 37883,
+    "sufficientCells": 205,
+    "sufficientFreshCells": 192,
+    "failures": {
+      "no-history": 17857,
+      "independent-observations": 37483,
+      "time-span": 31915,
+      "stability": 19214,
+      "stale": 25557,
+      "source-scope": 1213
+    },
+    "partition": {
+      "no-history": 17857,
+      "independent-observations": 19626,
+      "stability": 144,
+      "time-span": 20,
+      "sufficient": 217,
+      "stale": 19
+    }
+  },
+  "outcomeCounts": {
+    "execution-confirmed": 0,
+    "price-supported": 105,
+    "watch": 1003,
+    "rejected": 28430
+  },
+  "removedCells": 0,
+  "prefixSeries": 0
+}

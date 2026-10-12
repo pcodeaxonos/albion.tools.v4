@@ -2,7 +2,7 @@ import { median, normalizePriceDate, marketSeriesKey } from './market-primitives
 import { DAY_MS, PRICE_STALE_MS, OBSERVATION_REFERENCE_LEVELS } from './market-history-config.mjs';
 import { normalPriceRange } from './market-normal-range.mjs';
 
-export const OBSERVATION_POLICY = Object.freeze({ version: 2, flatBand: .05, minDelta: 25,
+export const OBSERVATION_POLICY = Object.freeze({ version: 2, flatBand: .05, minDelta: 25, minStability: .8,
     suspicion: .5, highSuspicion: 1, extreme: 3, windowMs: 28 * DAY_MS,
     levels: OBSERVATION_REFERENCE_LEVELS,
     confirmations: 2, suspiciousConfirmations: 5, highSuspicionConfirmations: 8, extremeConfirmations: 12,
@@ -84,7 +84,7 @@ export function referenceLevel(count, span, stability) {
     if (!count) return 0;
     let level = 1;
     OBSERVATION_POLICY.levels.forEach(([samples, duration], index) => {
-        if (count >= samples && span >= duration && stability >= .8) level = index + 1;
+        if (count >= samples && span >= duration && stability >= OBSERVATION_POLICY.minStability) level = index + 1;
     });
     return level;
 }
@@ -117,9 +117,11 @@ export function validateObservationSeries(points, { now = Date.now(), revision =
     if (cached && cached.revision === revision && cached.length === points.length && now >= cached.at && now < cached.expiresAt) return cached.result;
     const policy = OBSERVATION_POLICY;
     const unique = new Map(), conflicts = new Set(), eventAliases = new Map();
+    let rawObservationCount = 0;
     for (const raw of points || []) {
         const point = normalizeObservation(raw, { now });
         if (!Number.isFinite(point.at) || point.at < now - policy.windowMs || point.at > now) continue;
+        rawObservationCount++;
         // Unproven partial-book prices cannot contradict the identity of a proven market-top event.
         const scoped = hasKnownObservationScope(point);
         const evidenceKey = scoped ? point.evidenceId : `${point.source}|unverified|${point.evidenceId}`;
@@ -199,6 +201,8 @@ export function validateObservationSeries(points, { now = Date.now(), revision =
     }
     const {spanMs,stability,level}=metrics(currentHistory,currentReference);
     const result={observations,latest,sourceDecisions,reference:currentReference>0?currentReference:null,samples:currentHistory.length,
+        rawObservationCount, scopedIndependentObservationCount: observations.filter(hasKnownObservationScope).length,
+        independentObservationCount: observations.filter(point => hasKnownObservationScope(point) && point.validationStatus === 'accepted').length,
         normalRange: normalPriceRange(currentHistory, level, spanMs),
         spanMs,stability,level,confidence:level/4,provisional:level<3,move:currentMove,transitions,
         referenceEvidence:currentHistory.map(p=>p.observationId),

@@ -1,11 +1,12 @@
 import { readFileSync } from 'node:fs';
+import { createHash, randomUUID } from 'node:crypto';
 import { join } from 'node:path';
 import { islandMarketItemIds, islandMarketCities } from '../js/core/island/market-scope.mjs';
 import { marketCatalogItemIds } from '../js/core/market-catalog.mjs';
 import { createCollectionPlan } from '../js/core/market-collection-plan.mjs';
 import { aodpUrl, urlBatches } from '../js/core/market-request.mjs';
 import { BOOK_PRICE_FIELDS } from '../js/core/market-primitives.mjs';
-import { AODP_COLLECTOR_POLICY, MARKET_COLLECTION_POLICY } from '../js/core/market-history-config.mjs';
+import { AODP_COLLECTOR_POLICY, MARKET_COLLECTION_POLICY, PRICE_STALE_MS } from '../js/core/market-history-config.mjs';
 import { selectLongTermReference } from '../js/core/long-term-price.mjs';
 import { shadowEvaluate } from '../js/core/market-opportunity-shadow.mjs';
 import { OBSERVATION_POLICY } from '../js/core/market-observation.mjs';
@@ -13,6 +14,56 @@ import { OPPORTUNITY_POLICY } from '../js/core/market-opportunities.mjs';
 import { scanQuoteBooks, seriesForCell } from '../js/core/market-opportunity-scan.mjs';
 import { QuoteHistoryRepository } from './quote-history-repository.mjs';
 import { createAodpCollector } from './aodp-collector.mjs';
+import { attachOpportunitySales, rankCommercialOpportunities } from '../js/core/market-opportunity-commerce.mjs';
+import { rankOpportunityPresentation } from '../js/core/market-opportunity-quality.mjs';
+
+function diagnosticEvidence(rows, now) {
+    const seen = new Set(), ages = [];
+    let fresh = 0, stale = 0, missing = 0, unknownSourceTime = 0, timeSkewOver60m = 0;
+    for (const row of rows) {
+        const inputs = row.primary?.evidence?.inputs || {};
+        const routeTimes = [];
+        for (const [role, side] of Object.entries(inputs)) {
+            const sourceAt = Date.parse(side?.at || '');
+            if (Number.isFinite(sourceAt)) routeTimes.push(sourceAt);
+            const key = side?.evidenceId || `${row.server}|${row.itemId}|${row.city}|${row.quality}|${role}|${side?.at || ''}`;
+            if (seen.has(key)) continue;
+            seen.add(key);
+            if (!(Number(side?.price) > 0) || !side?.at) { missing++; continue; }
+            const age = Number.isFinite(side.ageMs) ? side.ageMs : now - Date.parse(side.at);
+            ages.push(age);
+            if (age < 0 || !side.sourceTimeKnown) unknownSourceTime++;
+            else if (age >= PRICE_STALE_MS) stale++;
+            else fresh++;
+        }
+        if (routeTimes.length > 1 && Math.max(...routeTimes) - Math.min(...routeTimes) > 60 * 60 * 1000) timeSkewOver60m++;
+    }
+    const sorted = ages.slice().sort((a, b) => a - b);
+    return { scope: 'unique primary evidence legs on returned opportunity/watch candidates; not all scanned cells',
+        uniquePriceLegs: seen.size, freshUnder6h: fresh, stale6hOrMore: stale, missingPriceOrTime: missing,
+        unknownOrFutureSourceTime: unknownSourceTime, routesWithSourceTimeSkewOver60m: timeSkewOver60m,
+        ageMs: sorted.length ? { min: sorted[0], median: sorted[Math.floor(sorted.length / 2)], max: sorted.at(-1) } : null };
+}
+
+function groupedCount(rows, calibration) {
+    const presented = rankOpportunityPresentation(rows, { calibration });
+    return { before: rows.length, after: rankCommercialOpportunities(presented, { calibration }).length };
+}
+
+function diagnosticScan(payload, { scanId, snapshotId, engine, server, now }) {
+    const eligible = payload.eligibleCandidates || payload.opportunities || [];
+    const potential = payload.potentialCandidates || payload.potential || [];
+    const suspicious = payload.suspiciousCandidates || [];
+    const evidenceRows = [...eligible, ...potential, ...suspicious];
+    return { scanId, snapshotId, server, scannedAt: payload.scannedAt || new Date(now).toISOString(), engine,
+        counts: { examined: payload.scanned ?? payload.counts?.evaluated ?? null,
+            discovered: payload.pipeline?.discovered ?? null, priceSupported: eligible.length, watch: potential.length,
+            rejected: payload.pipeline?.rejected ?? null, suspicious: payload.counts?.suspicious ?? suspicious.length,
+            insufficient: payload.counts?.insufficient ?? null,
+            groups: { opportunities: groupedCount(eligible, payload.qualityCalibration), watch: groupedCount(potential, payload.qualityCalibration) } },
+        funnel: payload.funnel || null, primaryReasons: payload.pipeline?.reasons || payload.rejectionReasons || {},
+        excluded: payload.excluded || null, priceEvidence: diagnosticEvidence(evidenceRows, now) };
+}
 
 function economyRates(root) {
     const rows = JSON.parse(readFileSync(join(root, 'data', 'economy-constants.json'), 'utf8'));
@@ -24,7 +75,17 @@ function economyRates(root) {
     return { setupFeeRate: read('setup_fee'), taxPremiumRate: read('tax_premium'), taxFreeRate: read('tax_free') };
 }
 
-export function startQuoteService({ root, server, packetHistory, collectorOptions = {} }) {
+export function startQuoteService({ root, server, packetHistory, collectorOptions = {}, diagnosticsRepository = null }) {
+    // Fingerprint is captured once at process start, never read from disk per request.
+    const engineBuild = createHash('sha256');
+    for (const name of ['market-opportunity-scan', 'market-opportunity-review', 'market-opportunities',
+        'market-opportunity-quality', 'market-strategy-policy', 'market-observation', 'opportunity-assistant', 'opportunity-status',
+        'market-sales-reference', 'long-term-price'])
+        engineBuild.update(readFileSync(new URL(`../js/core/${name}.mjs`, import.meta.url)));
+    const presentationBuild = createHash('sha256');
+    for (const name of ['market-sales-activity', 'market-opportunity-commerce', 'market-trade-scenario'])
+        presentationBuild.update(readFileSync(new URL(`../js/core/${name}.mjs`, import.meta.url)));
+    const engine = { version: 4, fingerprint: engineBuild.digest('hex'), presentationVersion: 5, presentationFingerprint: presentationBuild.digest('hex') };
     const read = name => JSON.parse(readFileSync(join(root, 'data', `${name}.json`), 'utf8'));
     const servers = read('price-servers');
     const host = servers.find(row => row.code === server)?.host;
@@ -47,6 +108,11 @@ export function startQuoteService({ root, server, packetHistory, collectorOption
     }
     const collector = createAodpCollector({
         ...collectorOptions, host, server, ids, cities, repository, collectionPlan,
+        onRun: run => {
+            try { diagnosticsRepository?.recordCollectorRun({ ...run, server }); }
+            catch (error) { console.warn('Collector diagnostics could not be recorded:', error.message); }
+            collectorOptions.onRun?.(run);
+        },
         policy: {
             ...AODP_COLLECTOR_POLICY, requestGapMs: collectionPlan.cadence.requestGapMs,
             ...collectorOptions.policy
@@ -75,7 +141,24 @@ export function startQuoteService({ root, server, packetHistory, collectorOption
                 shadowCache = { at: now, premium: enabled, summary };
             }
             delete payload.evaluation;
+            // Sales activity enriches strategies; sales valuation is evaluated inside the scan.
+            for (const key of ['eligibleCandidates', 'potentialCandidates', 'opportunities', 'potential']) {
+                if (Array.isArray(payload[key])) payload[key] = attachOpportunitySales(payload[key],
+                    (item, city, quality, region) => repository.anchor(item, city, quality, region), now);
+            }
             payload.engineMode = validated ? 'validated' : 'legacy-shadow';
+            payload.engine = engine;
+            const scanId = randomUUID();
+            const snapshotId = createHash('sha256').update([server, engine.fingerprint, engine.presentationFingerprint,
+                repository.sequence ?? 0, repository.history?.revision ?? 0, packetHistory.revision ?? 0].join('|')).digest('hex');
+            payload.scanId = scanId;
+            payload.snapshotId = snapshotId;
+            try { diagnosticsRepository?.recordServerScan(diagnosticScan(payload, { scanId, snapshotId, engine, server, now })); }
+            catch (error) { console.warn('Opportunity scan diagnostics could not be recorded:', error.message); }
+            const collection = collector.state.lastDataRun || collector.state.lastRun;
+            if (collection) payload.collection = { startedAt: collection.fetchedAt ?? null,
+                newArchiveObservations: collection.observations ?? 0, supplementalObservations: collection.supplementalObservations ?? 0,
+                duplicates: collection.duplicates ?? 0, stale: collection.stale ?? 0 };
             payload.shadow = shadowCache.summary;
             collector.noteOpportunities((payload.opportunities || []).map((row) => row.itemId), now);
             opportunityCache = { slot, payload };

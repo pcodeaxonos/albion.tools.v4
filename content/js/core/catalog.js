@@ -1,4 +1,5 @@
 import { getAll } from '../db/store.js';
+import { SITE_ROUTES, runtimeRoute } from '../../scripts/site-routes.mjs';
 import {
     getItemById,
     getItemUniqueName,
@@ -488,7 +489,8 @@ export function getMaterialGroups() {
 }
 
 export function getSiteTools() {
-    return getAll('siteTools')
+    const stored = getAll('siteTools');
+    return (stored.length ? stored : SITE_ROUTES.filter(entry => entry.kind === 'tool').map(runtimeRoute))
         .filter((row) => row.navVisible !== false)
         .slice()
         .sort((a, b) => num(a.navOrder) - num(b.navOrder))
@@ -506,7 +508,8 @@ export function getSiteTools() {
 }
 
 export function getSitePages() {
-    return getAll('sitePages')
+    const stored = getAll('sitePages');
+    return (stored.length ? stored : SITE_ROUTES.filter(entry => entry.kind !== 'tool').map(runtimeRoute))
         .slice()
         .filter((row) => row.navVisible !== false)
         .sort((a, b) => num(a.navOrder) - num(b.navOrder))

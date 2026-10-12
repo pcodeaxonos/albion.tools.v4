@@ -51,3 +51,9 @@ content/icons/*
 
 # Local browser checks and temporary screenshots
 /.tmp/
+
+# Separate durable user opportunity checks and real trade ledger
+.opportunity-evidence.jsonl*
+
+# Captured game Market History packets
+.market-history-packets.jsonl*

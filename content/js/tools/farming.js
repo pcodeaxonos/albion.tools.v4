@@ -1,8 +1,6 @@
 import { itemNameHtml } from '../components/item-name.js';
-import { toolPageHtml } from '../components/tool-page.js';
+import { toolPageHtml } from '../core/app-runtime.js';
 import { escapeHtml } from '../utils/utils.js';
-import { initNav } from '../core/nav.js';
-import { initStore } from '../db/store.js';
 import { getSettings, getDefaultCity } from '../core/settings.js';
 import { fetchPrices, indexPrices, cityRow } from '../core/market.js';
 import { itemIconHtml, itemLabel } from '../components/item-icon.js';
@@ -681,14 +679,14 @@ function renderPage(container) {
                     <div class="segmented-choice" role="radiogroup" aria-label="Premium">
                         ${renderPremiumToggle()}
                     </div>
-                    <div class="form-side-field">
-                        <span class="form-side-label" id="farmingSeedSideLabel">Tohum</span>
+                    <div class="choice-field form-field">
+                        <div class="form-field-heading"><div class="form-field-label" id="farmingSeedSideLabel">Tohum</div></div>
                         <div class="segmented-choice" role="radiogroup" aria-labelledby="farmingSeedSideLabel">
                             ${priceSideToggleHtml('seed', state.seedSide)}
                         </div>
                     </div>
-                    <div class="form-side-field">
-                        <span class="form-side-label" id="farmingPlantSideLabel">Hasat</span>
+                    <div class="choice-field form-field">
+                        <div class="form-field-heading"><div class="form-field-label" id="farmingPlantSideLabel">Hasat</div></div>
                         <div class="segmented-choice" role="radiogroup" aria-labelledby="farmingPlantSideLabel">
                             ${priceSideToggleHtml('plant', state.plantSide)}
                         </div>
@@ -821,7 +819,6 @@ async function loadPrices(container, { showLoader = true, source } = {}) {
 }
 
 async function init() {
-    initNav();
     const container = document.querySelector('[data-tool="farming"]');
     if (!container) {
         return;
@@ -836,7 +833,6 @@ async function init() {
 
     showPageLoader();
     try {
-        await initStore();
         ensureManualMaps();
         state.cities = loadActiveCities();
         state.city = readSavedCity(state.cities);

@@ -1,0 +1,133 @@
+{
+  "ok": true,
+  "host": "http://127.0.0.1:3001",
+  "startedAt": "2026-10-11T15:40:04.023Z",
+  "collector": {
+    "status": "collecting",
+    "server": "europe",
+    "itemCount": 9509,
+    "cityCount": 7,
+    "intervalMs": 3600000,
+    "lastSuccessAt": "2026-10-11T21:16:29.725Z",
+    "lastRun": {
+      "fetchedAt": "2026-10-11T21:29:30.776Z",
+      "items": 0,
+      "cities": 7,
+      "batches": 0,
+      "requests": 0,
+      "buy": 0,
+      "sell": 0,
+      "observations": 0,
+      "supplementalObservations": 0,
+      "duplicates": 0,
+      "invalid": 0,
+      "stale": 0,
+      "deferred": false,
+      "errors": []
+    },
+    "nextRunAt": "2026-10-11T21:30:30.826Z",
+    "collection": {
+      "cadence": {
+        "A": 900000,
+        "B": 900000,
+        "C": 900000,
+        "budgetPerFiveMin": 240,
+        "budgetPerMinute": 144,
+        "requestGapMs": 1250,
+        "fullSweepFitsFastest": true,
+        "batchCount": 61
+      },
+      "classes": {
+        "A": 9508,
+        "B": 0,
+        "C": 1
+      },
+      "requestsInMinute": 0,
+      "requestsInFiveMin": 0,
+      "budgetPerMinute": 144,
+      "budgetPerFiveMin": 240,
+      "discoveredSignals": 0
+    },
+    "coverage": {
+      "series": 36670,
+      "currentQuotes": 36670,
+      "cells": 28629,
+      "fresh1h": 1978,
+      "fresh6h": 12019,
+      "fresh24h": 21105,
+      "sourceFresh6h": 11837
+    }
+  },
+  "nats": {
+    "status": "off",
+    "messages": 0,
+    "validOrders": 0,
+    "invalidOrders": 0,
+    "duplicateOrders": 0,
+    "items": 0,
+    "cells": 0,
+    "buy": 0,
+    "sell": 0,
+    "inScope": 0,
+    "outOfScope": 0,
+    "cities": {},
+    "qualities": {},
+    "shapes": {},
+    "reasons": {},
+    "singleOrderCells": 0,
+    "multiOrderCells": 0,
+    "reliableBooks": 0,
+    "reconnects": 0,
+    "delayKnown": false,
+    "dedupeWindowMs": 300000,
+    "firstOrderKeys": null,
+    "lastMessageAt": null,
+    "lastError": null,
+    "bookLimit": {
+      "snapshotAvailable": false,
+      "reason": "NATS marketorders.deduped has no snapshot and no delete event. Absence is not a cancellation until the documented multi-hour timeout."
+    }
+  },
+  "lastIngestAt": "2026-10-11T21:31:35.897Z",
+  "lastClientAt": "2026-10-11T21:31:35.897Z",
+  "lastIngestPath": "/marketorders.ingest",
+  "lastPowAt": null,
+  "cachedMarketAt": "2026-10-11T15:37:14.11Z",
+  "sessionMarketAt": "2026-10-11T21:31:35.897Z",
+  "sessionClientAt": "2026-10-11T21:31:35.897Z",
+  "sessionDroppedMarketAt": null,
+  "adcProcess": true,
+  "lastItems": [
+    "T6_POTATO"
+  ],
+  "lastCities": [
+    "Martlock"
+  ],
+  "unknownLocations": [],
+  "ingestCount": 33744,
+  "marketServer": "europe",
+  "orderHistory": {
+    "series": 1978,
+    "policy": {
+      "bucketMs": 3600000,
+      "retentionMs": 7776000000,
+      "maintenanceMs": 3600000,
+      "fileName": ".price-order-history.json",
+      "version": 1,
+      "representative": "first-observation",
+      "observationTimeMeaning": "hub-packet-received-at; not order-created-at"
+    },
+    "serverAssignment": "operator-configured; restart/reconfigure when client changes server"
+  },
+  "books": 7791,
+  "orders": 102360,
+  "cities": [
+    "Brecilien",
+    "Bridgewatch",
+    "Caerleon",
+    "Fort Sterling",
+    "Lymhurst",
+    "Martlock",
+    "Thetford"
+  ]
+}

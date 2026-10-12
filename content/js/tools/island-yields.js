@@ -1,10 +1,9 @@
 import { toggleAllFilter } from '../components/filter-selection.js';
 import { itemNameHtml } from '../components/item-name.js';
-import { toolPageHtml } from '../components/tool-page.js';
+import { toolPageHtml } from '../core/app-runtime.js';
 import { escapeHtml } from '../utils/utils.js';
-import { initNav } from '../core/nav.js';
 import { initFloatingLabels } from '../components/forms.js';
-import { initStore, getAll, createRow, updateRow, deleteRow, replaceAllRows } from '../db/store.js';
+import { getAll, createRow, updateRow, deleteRow, replaceAllRows } from '../db/store.js';
 import { showPageLoader, hidePageLoader } from '../components/loader.js';
 import { bindCalcSticky } from '../utils/calc-sticky.js';
 import { bindLogTableRows } from '../components/log-table.js';
@@ -2033,7 +2032,6 @@ function bindPage(container) {
 }
 
 async function init() {
-    initNav();
     const container = document.querySelector('[data-tool="island-yields"]');
     if (!container) {
         return;
@@ -2045,7 +2043,6 @@ async function init() {
 
     showPageLoader();
     try {
-        await initStore();
         state.cities = await loadActiveCities();
         state.islandCity = readStoredCity(CITY_STORAGE_KEY, state.cities, getDefaultCity());
         renderPage(container);

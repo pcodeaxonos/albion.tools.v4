@@ -18,9 +18,9 @@ for(const row of rows){
  const points=row.timeline.map(p=>({...identity,...p}));
  const before=assessMarketSide({referenceQuote:functional.validateObservationSeries(points,{now}),now});
  const after=assessMarketSide({referenceQuote:validateObservationSeries(points,{now}),now});
- // V2 adds a descriptive interval; all existing validation and decision fields must stay identical.
+ // V2/V3 add descriptive interval/state; validation and decision fields stay identical.
  if (after.normalRange) { assert.ok(after.referenceLevel >= 3); assert.ok(after.normalRange.samples >= 12); }
- try{assert.deepEqual({...after,normalRange:null},{...before,normalRange:null});}catch{changed.push(row.id);}
+ try{assert.deepEqual({...after,normalRange:null,referenceState:null,referenceCoverage:null},{...before,normalRange:null,referenceState:null,referenceCoverage:null});}catch{changed.push(row.id);}
 }
 writeFileSync('docs/market-observation-fix/optimization-equivalence.json',JSON.stringify({asOf:new Date(now).toISOString(),comparedSeries:rows.length,changed:changed.length,changedIds:changed,method:'Both implementations replay identical final market-book evidence fields and identities; rawEvidence is not a decision input'},null,2));
 console.log({compared:rows.length,changed:changed.length,first:changed.slice(0,10)});

@@ -1,5 +1,11 @@
 # Albion Tools project instructions
 
+## Island planner geometry
+
+- The grid cell allocated to the island image must always have a 1:1 aspect ratio at every breakpoint. The image must fill that square cell without stretching or letterboxing.
+- Derive the desktop grid row and island column from the same dynamic square size. Place the summary immediately below that row with only the standard grid gap; do not stretch the row independently and leave empty space below the island.
+- Keep slot overlays aligned with the rendered image when the square resizes. Preserve the bounded viewport and panel scrollports.
+
 ## Work efficiently
 
 - Start with the smallest relevant context and use targeted searches/reads.
@@ -23,6 +29,8 @@ Pages with filters/forms plus a result or table use `.tool-split`:
 - Never use `overflow: hidden` to suppress page scrolling or force a table into view. Establish a bounded flex/grid height chain with `min-height: 0`, then assign `overflow: auto` to the intended table or panel scrollport. Use clipping only for deliberate visual clipping (such as media) and document the reason.
 
 ## Standard form inputs
+
+- Labelled choice, city/icon picker, and range fields use `.choice-field.form-field`. Put the caption and optional top-right action in `.form-field-heading`, the caption in a `div.form-field-label`, and controls below it. Manage vertical spacing with the shared container `gap`, never label margins. Reuse `fieldHeadingHtml` and `fieldAllButtonHtml` from `content/js/components/form-field.js` for generated headings and “Tümü” actions; floating inputs retain `.form-floating` and their accessible labels.
 
 - The same semantic UI component uses one shared class across tools/pages. Reuse the existing component first; express necessary differences with a base class plus modifier/state, never a new tool-prefixed copy.
 - Shared segmented choices live in `content/scss/app/_segmented-choice.scss`, form controls in `_tool-controls.scss`, market price inputs in `_market-fields.scss`, and market rows/cards in `_market-resources.scss`. Tool styles contain only domain-specific differences. Keep JavaScript hooks on scoped `data-*` attributes.
@@ -72,3 +80,8 @@ Item and material images that sit in a row, cell, card, or other slot with spare
 - Use descriptive `data-*` hooks instead: `data-price-check`, or value-bearing attributes such as `data-product="milk"`.
 - Scope attribute selectors to their owning tool container where possible.
 - Retain an `id` only where an HTML accessibility relationship requires an ID reference; never use it as a JavaScript selector.
+
+## Shared JavaScript startup
+
+- Put page-wide startup behavior in `content/js/core/app-runtime.js`; every tool entry imports this module. Do not create separate startup modules or repeat shared initialization in tool entries.
+- Preserve startup order: critical data/sync preparation, menu, appStatus, empty page content structure, then tool-specific content/data. Domain services and reusable input/item components remain separate libraries.

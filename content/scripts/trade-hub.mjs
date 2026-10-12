@@ -11,7 +11,8 @@
 
 import { createServer } from 'node:http';
 import { createTradeWatcher } from './sat-trades/index.mjs';
-import { TRADE_HUB_HOST, TRADE_HUB_PORT } from '../js/core/trade-config.mjs';
+import { potentialTradeSnapshot } from './sat-trades/potential-snapshot.mjs';
+import { TRADE_HUB_HOST, TRADE_HUB_PORT, TRADE_ARCHIVE_CONTEXT } from '../js/core/trade-config.mjs';
 
 const PORT = Number(process.env.TRADE_HUB_PORT) || TRADE_HUB_PORT;
 const HOST = process.env.TRADE_HUB_HOST || TRADE_HUB_HOST;
@@ -45,6 +46,7 @@ function sendJson(res, status, body) {
 
 function statusPayload() {
     return {
+        ...TRADE_ARCHIVE_CONTEXT,
         ready,
         live: ready && !lastError,
         count: trades.length,
@@ -57,6 +59,7 @@ function statusPayload() {
 
 function snapshotPayload() {
     return {
+        ...TRADE_ARCHIVE_CONTEXT,
         at: lastEventAt || new Date().toISOString(),
         path: tradesPath,
         count: trades.length,
@@ -193,7 +196,17 @@ const server = createServer((req, res) => {
                     sendJson(res, 503, { error: lastError.message, ...statusPayload() });
                     return;
                 }
-                sendJson(res, 200, snapshotPayload());
+                if (url.searchParams.has('items')) {
+                    const items = [...new Set((url.searchParams.get('items') || '').split(',').filter(Boolean))];
+                    const locations = (url.searchParams.get('locations') || '').split(',').filter(Boolean);
+                    const qualities = (url.searchParams.get('qualities') || '').split(',').map(Number);
+                    const days = Number(url.searchParams.get('days'));
+                    if (!items.length || items.length > 128 || !locations.length || locations.length > 8
+                        || qualities.some(q => !Number.isInteger(q) || q < 1 || q > 5) || !Number.isInteger(days) || days < 1 || days > 90) {
+                        sendJson(res, 400, { error: 'Invalid personal history scope' }); return;
+                    }
+                    sendJson(res, 200, potentialTradeSnapshot(snapshotPayload(), { server: url.searchParams.get('server'), items, locations, qualities, days }));
+                } else sendJson(res, 200, snapshotPayload());
                 return;
             }
 

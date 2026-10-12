@@ -1,0 +1,23 @@
+[
+  {
+    "file": "content/scripts/price-hub.mjs",
+    "baseline": "ac36eb374c29abb15018f3fdeb6b38a6390c84f39e5af85d787163ac4b7075af",
+    "observed": "0e0986e6a8687c8902b13b0d436e897cb9b909abee09da834ed94e4a626a87d9",
+    "observedAt": "2026-10-12T06:55:49.396Z",
+    "note": "Concurrent infrastructure difference outside the UI change scope; not claimed unchanged."
+  },
+  {
+    "file": "content/scripts/aodp-collector.mjs",
+    "baseline": "94d02b5ff399e0332e8f0a0b8ca3087a73ff110fa6aa45cf64238ff8a5903e36",
+    "observed": "d257abbbbf37e0d60ae85e984ab92cc48f9215d7b71d343c0cf2fd33b5e134e6",
+    "observedAt": "2026-10-12T06:55:49.397Z",
+    "note": "Concurrent infrastructure difference outside the UI change scope; not claimed unchanged."
+  },
+  {
+    "file": "content/scripts/quote-history-repository.mjs",
+    "baseline": "89fb3a6fb8670e172a4316af53dbc277b7f849b9437c52199f64b402b9cfc88b",
+    "observed": "9def028d7a3e669ea0f4eaceb8fed9fbdef066aea520391b37ca9b1286192b12",
+    "observedAt": "2026-10-12T06:55:49.398Z",
+    "note": "Concurrent infrastructure difference outside the UI change scope; not claimed unchanged."
+  }
+]

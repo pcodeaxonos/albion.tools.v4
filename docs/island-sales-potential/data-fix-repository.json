@@ -1,0 +1,16 @@
+{
+  "measuredAt": "2026-10-12T06:50:15.367Z",
+  "checkpointAt": "2026-10-12T06:45:55.544Z",
+  "sequence": 6509,
+  "salesHistoryVersion": 1,
+  "totalSeries": 66563,
+  "volumeSeries": 18384,
+  "maxDailyBuckets": 32,
+  "qualified": {
+    "7": 2211,
+    "14": 2105,
+    "28": 2102,
+    "60": 0,
+    "90": 0
+  }
+}

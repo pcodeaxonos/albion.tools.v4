@@ -1,0 +1,313 @@
+{
+  "source": "https://europe.albion-online-data.com/api/v2/stats/history",
+  "capturedAt": "2026-10-11T21:32:40.5430988Z",
+  "server": "europe",
+  "city": "Bridgewatch",
+  "quality": 1,
+  "rows": [
+    {
+      "location": "Bridgewatch",
+      "item_id": "T8_MILK",
+      "quality": 1,
+      "data": [
+        {
+          "item_count": 709,
+          "avg_price": 348,
+          "timestamp": "2026-09-12T00:00:00"
+        },
+        {
+          "item_count": 35503,
+          "avg_price": 350,
+          "timestamp": "2026-09-13T00:00:00"
+        },
+        {
+          "item_count": 20374,
+          "avg_price": 363,
+          "timestamp": "2026-09-14T00:00:00"
+        },
+        {
+          "item_count": 21394,
+          "avg_price": 359,
+          "timestamp": "2026-09-15T00:00:00"
+        },
+        {
+          "item_count": 12077,
+          "avg_price": 363,
+          "timestamp": "2026-09-16T00:00:00"
+        },
+        {
+          "item_count": 10668,
+          "avg_price": 366,
+          "timestamp": "2026-09-17T00:00:00"
+        },
+        {
+          "item_count": 42874,
+          "avg_price": 336,
+          "timestamp": "2026-09-18T00:00:00"
+        },
+        {
+          "item_count": 35679,
+          "avg_price": 341,
+          "timestamp": "2026-09-19T00:00:00"
+        },
+        {
+          "item_count": 12104,
+          "avg_price": 337,
+          "timestamp": "2026-09-20T00:00:00"
+        },
+        {
+          "item_count": 14710,
+          "avg_price": 342,
+          "timestamp": "2026-09-21T00:00:00"
+        },
+        {
+          "item_count": 22821,
+          "avg_price": 335,
+          "timestamp": "2026-09-22T00:00:00"
+        },
+        {
+          "item_count": 12560,
+          "avg_price": 327,
+          "timestamp": "2026-09-23T00:00:00"
+        },
+        {
+          "item_count": 30046,
+          "avg_price": 353,
+          "timestamp": "2026-09-24T00:00:00"
+        },
+        {
+          "item_count": 15949,
+          "avg_price": 324,
+          "timestamp": "2026-09-25T00:00:00"
+        },
+        {
+          "item_count": 42649,
+          "avg_price": 346,
+          "timestamp": "2026-09-26T00:00:00"
+        },
+        {
+          "item_count": 45428,
+          "avg_price": 368,
+          "timestamp": "2026-09-27T00:00:00"
+        },
+        {
+          "item_count": 15444,
+          "avg_price": 346,
+          "timestamp": "2026-09-28T00:00:00"
+        },
+        {
+          "item_count": 49382,
+          "avg_price": 393,
+          "timestamp": "2026-09-29T00:00:00"
+        },
+        {
+          "item_count": 37625,
+          "avg_price": 419,
+          "timestamp": "2026-09-30T00:00:00"
+        },
+        {
+          "item_count": 14229,
+          "avg_price": 429,
+          "timestamp": "2026-10-01T00:00:00"
+        },
+        {
+          "item_count": 11692,
+          "avg_price": 433,
+          "timestamp": "2026-10-02T00:00:00"
+        },
+        {
+          "item_count": 31251,
+          "avg_price": 423,
+          "timestamp": "2026-10-03T00:00:00"
+        },
+        {
+          "item_count": 36681,
+          "avg_price": 398,
+          "timestamp": "2026-10-04T00:00:00"
+        },
+        {
+          "item_count": 33487,
+          "avg_price": 457,
+          "timestamp": "2026-10-05T00:00:00"
+        },
+        {
+          "item_count": 7826,
+          "avg_price": 691,
+          "timestamp": "2026-10-06T00:00:00"
+        },
+        {
+          "item_count": 14868,
+          "avg_price": 578,
+          "timestamp": "2026-10-07T00:00:00"
+        },
+        {
+          "item_count": 11586,
+          "avg_price": 554,
+          "timestamp": "2026-10-08T00:00:00"
+        },
+        {
+          "item_count": 16959,
+          "avg_price": 449,
+          "timestamp": "2026-10-09T00:00:00"
+        },
+        {
+          "item_count": 35026,
+          "avg_price": 447,
+          "timestamp": "2026-10-10T00:00:00"
+        },
+        {
+          "item_count": 17793,
+          "avg_price": 467,
+          "timestamp": "2026-10-11T00:00:00"
+        }
+      ]
+    },
+    {
+      "location": "Bridgewatch",
+      "item_id": "T8_PUMPKIN",
+      "quality": 1,
+      "data": [
+        {
+          "item_count": 3113,
+          "avg_price": 453,
+          "timestamp": "2026-09-12T00:00:00"
+        },
+        {
+          "item_count": 69523,
+          "avg_price": 462,
+          "timestamp": "2026-09-13T00:00:00"
+        },
+        {
+          "item_count": 29591,
+          "avg_price": 758,
+          "timestamp": "2026-09-14T00:00:00"
+        },
+        {
+          "item_count": 24579,
+          "avg_price": 442,
+          "timestamp": "2026-09-15T00:00:00"
+        },
+        {
+          "item_count": 38127,
+          "avg_price": 440,
+          "timestamp": "2026-09-16T00:00:00"
+        },
+        {
+          "item_count": 34980,
+          "avg_price": 427,
+          "timestamp": "2026-09-17T00:00:00"
+        },
+        {
+          "item_count": 59964,
+          "avg_price": 423,
+          "timestamp": "2026-09-18T00:00:00"
+        },
+        {
+          "item_count": 46689,
+          "avg_price": 862,
+          "timestamp": "2026-09-19T00:00:00"
+        },
+        {
+          "item_count": 40770,
+          "avg_price": 565,
+          "timestamp": "2026-09-20T00:00:00"
+        },
+        {
+          "item_count": 31923,
+          "avg_price": 415,
+          "timestamp": "2026-09-21T00:00:00"
+        },
+        {
+          "item_count": 28729,
+          "avg_price": 449,
+          "timestamp": "2026-09-22T00:00:00"
+        },
+        {
+          "item_count": 21251,
+          "avg_price": 716,
+          "timestamp": "2026-09-23T00:00:00"
+        },
+        {
+          "item_count": 40298,
+          "avg_price": 464,
+          "timestamp": "2026-09-24T00:00:00"
+        },
+        {
+          "item_count": 33034,
+          "avg_price": 448,
+          "timestamp": "2026-09-25T00:00:00"
+        },
+        {
+          "item_count": 33960,
+          "avg_price": 716,
+          "timestamp": "2026-09-26T00:00:00"
+        },
+        {
+          "item_count": 40853,
+          "avg_price": 462,
+          "timestamp": "2026-09-27T00:00:00"
+        },
+        {
+          "item_count": 35475,
+          "avg_price": 482,
+          "timestamp": "2026-09-28T00:00:00"
+        },
+        {
+          "item_count": 35006,
+          "avg_price": 471,
+          "timestamp": "2026-09-29T00:00:00"
+        },
+        {
+          "item_count": 42525,
+          "avg_price": 478,
+          "timestamp": "2026-09-30T00:00:00"
+        },
+        {
+          "item_count": 32311,
+          "avg_price": 471,
+          "timestamp": "2026-10-01T00:00:00"
+        },
+        {
+          "item_count": 42239,
+          "avg_price": 477,
+          "timestamp": "2026-10-02T00:00:00"
+        },
+        {
+          "item_count": 45632,
+          "avg_price": 472,
+          "timestamp": "2026-10-03T00:00:00"
+        },
+        {
+          "item_count": 34217,
+          "avg_price": 465,
+          "timestamp": "2026-10-04T00:00:00"
+        },
+        {
+          "item_count": 27294,
+          "avg_price": 463,
+          "timestamp": "2026-10-05T00:00:00"
+        },
+        {
+          "item_count": 20869,
+          "avg_price": 455,
+          "timestamp": "2026-10-06T00:00:00"
+        },
+        {
+          "item_count": 49125,
+          "avg_price": 467,
+          "timestamp": "2026-10-07T00:00:00"
+        },
+        {
+          "item_count": 47822,
+          "avg_price": 465,
+          "timestamp": "2026-10-08T00:00:00"
+        },
+        {
+          "item_count": 19687,
+          "avg_price": 450,
+          "timestamp": "2026-10-09T00:00:00"
+        }
+      ]
+    }
+  ]
+}

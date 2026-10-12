@@ -1,9 +1,7 @@
 import { itemNameHtml } from '../components/item-name.js';
-import { toolPageHtml } from '../components/tool-page.js';
+import { toolPageHtml } from '../core/app-runtime.js';
 import { escapeHtml } from '../utils/utils.js';
-import { initNav } from '../core/nav.js';
 import { routeHref } from '../core/routes.js';
-import { initStore } from '../db/store.js';
 import { getSettings, cityHasIsland, getDefaultCity } from '../core/settings.js';
 import { fetchPrices, indexPrices } from '../core/market.js';
 import { fetchHistoryIndex } from '../core/market-history.js';
@@ -1473,7 +1471,6 @@ async function loadPrices(container, { showLoader = true, source } = {}) {
 }
 
 async function init() {
-    initNav();
     const container = document.querySelector('[data-tool="island-planner"]');
     if (!container) {
         return;
@@ -1488,7 +1485,6 @@ async function init() {
 
     showPageLoader();
     try {
-        await initStore();
         state.cities = await loadActiveCities();
         state.islandCity = readSavedCity(CITY_STORAGE_KEY, state.cities, getDefaultCity());
         state.sellCity = readSavedCity(SELL_CITY_STORAGE_KEY, state.cities, state.islandCity);

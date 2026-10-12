@@ -1,3 +1,4 @@
+import { fieldHeadingHtml } from './form-field.js';
 import { escapeHtml } from '../utils/utils.js';
 import { getPlants, getAnimals } from '../core/catalog.js';
 import { itemIconHtml } from './item-icon.js';
@@ -129,8 +130,8 @@ function renderAnimalProductRow(items, selected, tierSlots = false, selectedOutp
 function pickerFieldHtml({ items, groups, iconIdFor, id, label, selected = '', selectedOutputMode = 'offspring', className = 'tool-form-field', name = id, includeAnimalProducts = false, outputGroupKind = null }) {
     if (getPlantPickerStyle() === 'icons') {
         return `
-            <div class="plant-field plant-field--icons ${escapeHtml(className)}" data-plant-field="${escapeHtml(id)}">
-                <span class="choice-field-label" id="${escapeHtml(id)}-label">${escapeHtml(label)}</span>
+            <div class="choice-field form-field plant-field plant-field--icons ${escapeHtml(className)}" data-plant-field="${escapeHtml(id)}">
+                ${fieldHeadingHtml(label, '', `id="${escapeHtml(id)}-label"`)}
                 <div class="plant-icon-picker" role="radiogroup" aria-labelledby="${escapeHtml(id)}-label">
                     ${renderIconRows(items, groups, selected, iconIdFor, includeAnimalProducts, selectedOutputMode, outputGroupKind)}
                 </div>
@@ -239,7 +240,7 @@ export function islandYieldFieldHtml(opts = {}) {
     const className = opts.className ?? 'tool-form-field';
     if (getPlantPickerStyle() === 'icons') {
         return `
-            <div class="plant-field plant-field--icons plant-field--island-yield ${escapeHtml(className)}" data-plant-field="${escapeHtml(id)}">
+            <div class="choice-field form-field plant-field plant-field--icons plant-field--island-yield ${escapeHtml(className)}" data-plant-field="${escapeHtml(id)}">
                 <div class="plant-icon-picker" role="radiogroup" aria-label="Ada çıktısı">
                     ${ISLAND_YIELD_SECTIONS.map((section) => `
                         <details class="plant-field-section" data-picker-kind="${escapeHtml(section.kind)}"${section.defaultOpen ? ' open' : ''}>

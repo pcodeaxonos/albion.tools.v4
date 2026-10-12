@@ -1,6 +1,5 @@
 import { fieldLabel, fieldAllButtonHtml, fieldHeadingHtml } from '../components/form-field.js';
-import { initNav } from '../core/nav.js';
-import { initStore, getAll } from '../db/store.js';
+import { getAll } from '../db/store.js';
 import { cityFieldHtml, bindCityField, getCityFieldValue, setCityFieldValue } from '../components/city-picker.js';
 import { loadActiveCities } from '../core/cities.js';
 import { decisionFees } from '../core/decision-data.js';
@@ -9,16 +8,14 @@ import { BLACK_MARKET, optimizeLoad, FLIPPER_SORTS, sortFlips } from '../core/fl
 import { scanFlips } from '../core/flipper-data.js';
 import { itemNameHtml } from '../components/item-name.js';
 import { itemIconHtml, itemLabel } from '../components/item-icon.js';
-import { toolPageHtml } from '../components/tool-page.js';
+import { toolPageHtml } from '../core/app-runtime.js';
 import { pageInfoCardsHtml } from '../components/page-info.js';
 import { groupedIntegerFieldHtml, bindGroupedIntegerFields, numericInputValue } from '../components/numeric-field.js';
 import { initFloatingLabels } from '../components/forms.js';
-import { initTooltips } from '../components/tooltip.js';
 import { bindCalcSticky } from '../utils/calc-sticky.js';
 import { escapeHtml as esc } from '../utils/utils.js';
 import { formatAge } from '../utils/format.js';
 import { bindLivePrices } from '../core/price-live.js';
-import { recordCurrentToolVisit } from '../core/usage.js';
 const root = document.querySelector('[data-flipper]');
 const money = n => Number.isFinite(n) ? n.toLocaleString('tr-TR', { maximumFractionDigits: 0 }) : '—';
 const pct = n => Number.isFinite(n) ? `%${(n*100).toLocaleString('tr-TR', { maximumFractionDigits: 1 })}` : '—';
@@ -26,6 +23,11 @@ const spikeBadgeHtml = row => row.spikes?.length ? `<span class="badge flipper-s
 const roiBadgeHtml = row => {
     const level = row.roi < 0 ? 'loss' : row.roi < .1 ? 'low' : row.roi < .3 ? 'medium' : 'high';
     return `<span class="badge flipper-roi-badge is-${level}${row.safe ? '' : ' is-uncertain'}" data-app-tooltip="${esc(`Net kâr / toplam alış maliyeti. ${row.safe ? 'Görünen fiyatlara göre hesaplanır; gerçekleşen kazanç değildir.' : 'Riskli fiyat: bu oran doğrulanmış kazanç değildir.'}`)}">%${Math.round(row.roi * 100).toLocaleString('tr-TR')}</span>`;
+};
+const opportunityPricesHtml = row => {
+    const metrics = [['buy', 'Alış', money(row.buy)], ['sell', 'Satış', money(row.sell)], ['net', 'Net / adet', (row.net > 0 ? '+' : '') + money(row.net)], ['roi', 'ROI', roiBadgeHtml(row)]];
+    const symbols = ["<svg class=\"flipper-metric-icon\" viewBox=\"0 0 36 36\" aria-hidden=\"true\"><g stroke=\"#945b22\" stroke-width=\".9\" stroke-linejoin=\"round\"><path d=\"M5 10v6c0 5 18 5 18 0v-6\" fill=\"#e6a93f\"/><path d=\"M5 16v5c0 5 18 5 18 0v-5\" fill=\"#e6a93f\"/><ellipse cx=\"14\" cy=\"10\" rx=\"9\" ry=\"4.6\" fill=\"#ffd06e\"/><path d=\"M14 24v5c0 5 18 5 18 0v-5\" fill=\"#e6a93f\"/><ellipse cx=\"23\" cy=\"24\" rx=\"9\" ry=\"4.6\" fill=\"#ffd06e\"/></g><path d=\"M8 9.8c3.6-1.9 8.1-1.9 11.6 0M17 23.8c3.3-1.6 7.3-1.6 10.7 0\" fill=\"none\" stroke=\"#ffe4a0\" stroke-width=\"1.2\" stroke-linecap=\"round\" opacity=\".92\"/><path d=\"M7 17c3.8 2.2 10.6 2.4 14 0M16 30c4.5 2 9.7 2 14 0\" fill=\"none\" stroke=\"#945b22\" stroke-width=\".9\" opacity=\".7\"/></svg>","<svg class=\"flipper-metric-icon\" viewBox=\"0 0 36 36\" aria-hidden=\"true\"><g stroke=\"#586775\" stroke-width=\".9\" stroke-linejoin=\"round\"><path d=\"M5 10v6c0 5 18 5 18 0v-6\" fill=\"#a8b4bf\"/><path d=\"M5 16v5c0 5 18 5 18 0v-5\" fill=\"#a8b4bf\"/><ellipse cx=\"14\" cy=\"10\" rx=\"9\" ry=\"4.6\" fill=\"#f0f3f5\"/><path d=\"M14 24v5c0 5 18 5 18 0v-5\" fill=\"#a8b4bf\"/><ellipse cx=\"23\" cy=\"24\" rx=\"9\" ry=\"4.6\" fill=\"#f0f3f5\"/></g><path d=\"M8 9.8c3.6-1.9 8.1-1.9 11.6 0M17 23.8c3.3-1.6 7.3-1.6 10.7 0\" fill=\"none\" stroke=\"#ffffff\" stroke-width=\"1.2\" stroke-linecap=\"round\" opacity=\".92\"/><path d=\"M7 17c3.8 2.2 10.6 2.4 14 0M16 30c4.5 2 9.7 2 14 0\" fill=\"none\" stroke=\"#586775\" stroke-width=\".9\" opacity=\".7\"/></svg>","<svg class=\"flipper-metric-icon\" viewBox=\"0 0 32 32\" aria-hidden=\"true\"><path fill=\"#e6a43d\" d=\"M3 18h6v11H3zM12 11h6v18h-6zM21 4h6v25h-6z\"/><path fill=\"#ffd278\" d=\"M3 18h6v3H3zM12 11h6v3h-6zM21 4h6v3h-6z\"/></svg>","<svg class=\"flipper-metric-icon\" viewBox=\"0 0 32 32\" aria-hidden=\"true\"><circle cx=\"16\" cy=\"16\" r=\"15\" fill=\"#393632\"/><text x=\"16\" y=\"23\" font-size=\"24\" fill=\"#edba5d\" font-weight=\"800\" text-anchor=\"middle\">%</text></svg>"];
+    return '<div class="flipper-row-prices" aria-label="Alış, satış, net kâr ve ROI">' + metrics.map(([kind, label, value], index) => `<div class="flipper-price-cell flipper-price-cell--${kind}${kind === 'net' && !row.safe ? ' is-uncertain' : ''}"><div class="flipper-metric-inner"><small>${symbols[index]}<span>${label}</span></small>${kind === 'roi' ? value : `<strong>${value}</strong>`}</div></div>`).join('') + '</div>';
 };
 const state = { rows: [], limits: {}, selected: '', sort: 'balanced', phase: 'idle', busy: false, scan: null, controller: null, basket: null };
 let items, cities, icons = {};
@@ -38,7 +40,7 @@ const QUALITIES = [[1, 'Normal', 'No'], [2, 'Good', 'Go'], [3, 'Outstanding', 'O
 const choiceFieldHtml = (key, label, options) => {
     const all = options.find(([value]) => value === 0);
     const action = all ? fieldAllButtonHtml({ label, attributes: `data-choice-filter="${key}" data-choice-value="0"`, active: options[0][0] === 0 }) : '';
-    return `<div class="form-side-field form-side-field--stacked form-field">${fieldHeadingHtml(label, action)}<div class="segmented-choice" role="group" aria-label="${esc(label)}">${options.filter(([value]) => value !== 0).map(([value, text, shortText = text]) => `<button type="button" class="segmented-choice-button segmented-choice-button--short${value === options[0][0] ? ' is-active' : ''}" data-choice-filter="${key}" data-choice-value="${value}" aria-pressed="${value === options[0][0]}" title="${esc(text)}" aria-label="${esc(text)}">${esc(shortText)}</button>`).join('')}</div><input type="hidden" data-filter="${key}" value="${options[0][0]}"></div>`;
+    return `<div class="choice-field form-field">${fieldHeadingHtml(label, action)}<div class="segmented-choice" role="group" aria-label="${esc(label)}">${options.filter(([value]) => value !== 0).map(([value, text, shortText = text]) => `<button type="button" class="segmented-choice-button segmented-choice-button--short${value === options[0][0] ? ' is-active' : ''}" data-choice-filter="${key}" data-choice-value="${value}" aria-pressed="${value === options[0][0]}" title="${esc(text)}" aria-label="${esc(text)}">${esc(shortText)}</button>`).join('')}</div><input type="hidden" data-filter="${key}" value="${options[0][0]}"></div>`;
 };
 
 const CITY_FIELDS = { source: 'flipper-source', target: 'flipper-target' };
@@ -98,14 +100,14 @@ function updateMonitor(phase, { done = 0, total = 0, message = '' } = {}) {
 function layout() {
     const targets = [...cities, { name: BLACK_MARKET, displayName: BLACK_MARKET, marketApiName: BLACK_MARKET, mapPosition: { x: 46, y: 68 }, iconHtml: icons['black-market'] }];
     root.innerHTML = toolPageHtml({ key: 'flipper', head: `<section class="page-head" data-page-head="flipper"><h1>${icon('flipper')} Flipper</h1><p>Şehirler Arası Arbitraj</p></section>`, controls: `<section class="form-section"><div class="flipper-controls">
-    ${cityFieldHtml({ id: CITY_FIELDS.source, label: 'Nereden', selected: '', cities, allowAll: true, showAllButton: true, headingAction: true, className: '' })}${cityFieldHtml({ id: CITY_FIELDS.target, label: 'Nereye', selected: BLACK_MARKET, cities: targets, allowAll: true, showAllButton: true, headingAction: true, className: '' })}
+    ${cityFieldHtml({ id: CITY_FIELDS.source, label: 'Nereden', selected: '', cities, allowAll: true, showAllButton: true, className: '' })}${cityFieldHtml({ id: CITY_FIELDS.target, label: 'Nereye', selected: BLACK_MARKET, cities: targets, allowAll: true, showAllButton: true, className: '' })}
     ${groupedIntegerFieldHtml({ key: 'budget', label: 'BÜTÇE (GÜMÜŞ)', value: 20000000 })}${input('capacity','Taşıma (kg)',950,'step="0.1"')}${input('roi','Min ROI (%)',10)}${choiceFieldHtml('age', 'Veri yaşı', DATA_AGES, true)}${choiceFieldHtml('quality', 'Kalite', QUALITIES, true)}
     ${input('transport','Ek gider / adet',0,'step="0.01"')}<div class="form-actions"><button class="btn btn-primary" data-scan>${icon('scan')} Tara</button><button class="btn btn-secondary" data-fill>${icon('cart')} Yükümü Doldur</button></div>
     </div></section>`, summary: monitorHtml(), resultClass: 'flipper-results result--sections', result: `<div class="flipper-metrics" data-metrics></div><div class="flipper-columns"><section class="flipper-list-panel"><div class="flipper-list-head"><h2>Fırsatlar <small data-count></small></h2><div class="segmented-choice flipper-sort" role="group" aria-label="Sıralama">${FLIPPER_SORTS.map(option => `<button type="button" class="segmented-choice-button segmented-choice-button--short${option.id === state.sort ? ' is-active' : ''}" data-flipper-sort="${option.id}" aria-pressed="${option.id === state.sort}" aria-label="${option.label}" data-app-tooltip="${option.label}">${icon(SORT_ICONS[option.id])}</button>`).join('')}</div></div><div class="flipper-list" data-list></div></section><section class="flipper-detail" data-detail></section></div>
     <section class="flipper-basket"><h2>${icon('cart')} Yükümü Doldur</h2><div data-basket>Detay panelinde oyunda gördüğünüz adet sınırı ve birim ağırlığı doğrulayın. Bilinmeyen ağırlık veya emir derinliği ile sepet oluşturulmaz.</div></section>
     <section data-info data-flipper-info></section>` });
     restorePreferences();
-    initNav(); initFloatingLabels(root); initTooltips(); bindGroupedIntegerFields(root);
+    initFloatingLabels(root); bindGroupedIntegerFields(root);
     for (const key of Object.keys(CITY_FIELDS)) bindCityField(root, CITY_FIELDS[key], () => filtersChanged(key), { syncPeers: false });
     render();
 }
@@ -145,7 +147,7 @@ function render(changed = null) {
     ].map(([symbol,label,value]) => `<div>${icon(symbol)}<span>${label}<strong>${isLoading() ? '<span class="flipper-loading-spinner" role="img" aria-label="Yükleniyor"></span>' : value}</strong></span></div>`).join('');
     const listHtml = rows.length ? rows.map(row => `<article class="flipper-opportunity ${row.id === selected?.id ? 'is-selected' : ''} ${row.safe ? '' : 'is-risk'}" data-select="${esc(row.id)}" tabindex="0" role="button" aria-label="${esc(itemLabel(row.itemId))} detayını aç" aria-pressed="${row.id === selected?.id}">
     ${itemIconHtml(row.itemId,{ visual:true })}<div class="flipper-item"><h3>${itemNameHtml(itemLabel(row.itemId))}</h3><p>${esc(row.source)} → ${esc(row.target)}</p><div class="flipper-item-meta"><span class="badge bg-secondary" data-app-tooltip="Kalite ${row.quality}: kaynak ve hedef aynı kalitede eşleşir.">${QUALITIES.find(([value]) => value === row.quality)?.[1] || `Kalite ${row.quality}`}</span><small data-app-tooltip="Fiyat çiftindeki en eski teklifin gözlem yaşı. Emir derinliği bilinmiyor.">${esc(formatAge(row.ageMs))}</small>${row.safe || row.spikes?.length ? '' : `<span class="badge flipper-risk-badge" data-app-tooltip="${esc(row.reasons.join(' · ') || 'Eski veya aykırı fiyat; sepet hesabına alınmaz.')}">Riskli fiyat</span>`}${spikeBadgeHtml(row)}</div></div>
-    <div class="flipper-row-prices"><div class="flipper-price-cell"><small>Alış</small><strong>${money(row.buy)}</strong></div><div class="flipper-price-cell"><small>Satış</small><strong>${money(row.sell)}</strong></div><div class="flipper-price-cell ${row.safe ? 'flipper-profit' : 'flipper-warning'}"><small>Net / adet</small><strong>+${money(row.net)}</strong></div><div class="flipper-price-cell"><small>ROI</small>${roiBadgeHtml(row)}</div></div></article>`).join('') : emptyHtml();
+    ${opportunityPricesHtml(row)}</article>`).join('') : emptyHtml();
     const list = root.querySelector('[data-list]');
     if (!changed) list.innerHTML = listHtml;
     else {
@@ -283,14 +285,12 @@ async function refreshLivePrices(detail) {
     } finally { liveController = null; if (liveQueue.size && state.scan && !state.busy) void refreshLivePrices({items:[...liveQueue]}); }
 }
 async function main() {
-    await initStore();
     cities=loadActiveCities().filter(city=>city.marketApiName !== BLACK_MARKET);
     items=getAll('items').filter(isMarketCatalogItem);
     await Promise.all([...new Set(['black-market','flipper','scan','cart','profit','order-book','confidence','risk','quality', ...Object.values(SORT_ICONS)])].map(async name=>{
         const response=await fetch(`content/icons/flipper/${name}.svg`); if(response.ok) icons[name]=await response.text();
     }));
-    layout(); recordCurrentToolVisit();
-    root.addEventListener('keydown', event => {
+    layout(); root.addEventListener('keydown', event => {
         if (event.target.matches('[data-select]') && ['Enter', ' '].includes(event.key)) {
             event.preventDefault();
             const id = event.target.dataset.select;

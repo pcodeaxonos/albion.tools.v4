@@ -1,0 +1,160 @@
+// Shared viewport contract for every tool. Outer slots allow outlines, shadows
+// and floating controls to extend beyond their layout bounds. Only inner tables
+// and dedicated panels own scrollports; app-content handles page overflow.
+main.tool-page {
+    flex: 1 1 0;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    min-height: 0;
+    padding: 0;
+
+    > .page-body {
+        display: flex;
+        flex-direction: column;
+        flex: 1 1 0;
+        min-height: 0;
+        padding-bottom: var(--spacing-sm);
+    }
+}
+
+.tool-page-top-controls {
+    flex: 0 0 auto;
+    width: 100%;
+    padding-bottom: var(--spacing-md);
+}
+
+.tool-page-bottom-result {
+    display: flex;
+    flex-direction: column;
+    flex: .78 1 0;
+    min-height: 0;
+    margin-top: var(--spacing-sm);
+    overflow: visible;
+}
+
+
+.page-body > .tool-split {
+    flex: 1 1 0;
+    height: 100%;
+    grid-template-rows: minmax(0, 1fr);
+    align-items: stretch;
+
+    > .left, > .right {
+        display: flex;
+        flex-direction: column;
+        min-width: 0;
+        min-height: 0;
+        height: 100%;
+    }
+
+    > .left {
+        position: sticky;
+        top: 0;
+        overflow: visible;
+        gap: var(--spacing-md);
+    }
+
+    > .left > .controls { flex: 0 0 auto; }
+    > .left > .summary {
+        display: flex;
+        flex-direction: column;
+        flex: 1 0 auto;
+        justify-content: flex-end;
+        margin: 0;
+    }
+
+    // Opt-in panels consume spare height without shrinking their content.
+    // Content exceeding the viewport remains reachable through app-content.
+    @media (min-width: 992px) {
+        > .left > .tool-split-controls--fill {
+            flex: 1 0 auto;
+
+            > * { flex: 1 0 auto; }
+        }
+    }
+
+    > .right > .result {
+        --chrome-top: 0px;
+        --calc-toolbar-height: 0px;
+        display: flex;
+        flex: 1 1 0;
+        flex-direction: column;
+        min-width: 0;
+        min-height: 0;
+        overflow: visible;
+    }
+}
+
+// Carry height through result components, including those replaced on refresh.
+.tool-page .result {
+    :where(div, section):has(.calc-table-wrap) {
+        display: flex;
+        flex-direction: column;
+        flex: 1 1 0;
+        min-height: 0;
+        min-width: 0;
+    }
+
+    :where(div, section):has(.calc-table-wrap) > :not(:has(.calc-table-wrap)):not(.calc-table-wrap) {
+        flex-shrink: 0;
+    }
+
+    .calc-table-wrap.table-responsive {
+        flex: 1 1 0;
+        min-height: 0;
+        overflow: auto;
+        overscroll-behavior: contain;
+    }
+
+    .calc-table thead th { top: 0; }
+    .calc-sticky-sentinel { flex: 0 0 1px; }
+}
+
+// Reports containing several independent tables scroll as a sequence of
+// sections. Do not divide a single flex track until every table reaches zero.
+.tool-page .result--sections {
+    :where(div, section):has(.calc-table-wrap) { flex: 0 0 auto; }
+    .calc-table-wrap.table-responsive { flex: 0 0 auto; max-height: 65dvh; }
+}
+
+// Additional Royal panels remain inside the common right-hand result slot.
+.page-body > .tool-split > .right > .royal-workbench {
+    display: grid;
+    grid-template-columns: minmax(12rem, 0.45fr) minmax(0, 1fr);
+    grid-template-rows: minmax(0, 1fr);
+    gap: var(--spacing-lg);
+
+    .royal-middle-column { display: flex; flex-direction: column; overflow: auto; }
+    .royal-analysis { flex: 1; }
+    .royal-result::after { content: none; }
+}
+
+.tool-page .trades-root { flex: 1; min-height: 0; padding: 0; }
+.tool-page .trades-main { grid-template-columns: minmax(0, 1fr); }
+.tool-page .trades-panel-body { flex: 1; min-height: 0; overflow: auto; }
+
+
+@media (max-width: 991px) {
+    .tool-page-bottom-result { flex: 0 0 auto; overflow: visible; }
+    main.tool-page { flex: 1 0 auto; }
+    main.tool-page > .page-body { flex: 1 0 auto; }
+    .page-body > .tool-split {
+        height: auto;
+        flex: 1 0 auto;
+        grid-template-rows: auto auto;
+        > .left, > .right { height: auto; }
+        > .left { position: static; overflow: visible; }
+        > .right > .result { flex: 1 0 auto; }
+    }
+    .tool-page .result .calc-table-wrap.table-responsive {
+        flex: 0 0 auto;
+        max-height: 70dvh;
+    }
+    .page-body > .tool-split > .right > .royal-workbench {
+        grid-template-columns: minmax(0, 1fr);
+        grid-template-rows: auto;
+    }
+    .tool-page .result :where(div, section):has(.calc-table-wrap) { flex: 1 0 auto; }
+    .tool-page .trades-root { min-height: 40rem; }
+}

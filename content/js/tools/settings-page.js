@@ -1,4 +1,3 @@
-import { initNav } from '../core/nav.js';
 import { initFloatingLabels } from '../components/forms.js';
 import {
     getSettings,
@@ -17,12 +16,11 @@ import {
     CITY_PICKER_ORDERS,
     PLANT_PICKER_STYLES
 } from '../core/settings.js';
-import { initStore } from '../db/store.js';
 import { loadActiveCities } from '../core/cities.js';
 import { priceSideToggleHtml } from '../core/price-side.js';
 import { feeMetaText } from '../core/market-fees.js';
 import { escapeHtml } from '../utils/utils.js';
-import { sessionAdcState } from '../core/pipeline-status.js';
+import { sessionAdcState } from '../core/app-runtime.js';
 import { showToast } from '../components/toast.js';
 import {
     localDataSummary,
@@ -33,7 +31,7 @@ import {
     syncWithHub,
     setLocalDataAutoPush,
     fetchHubDataMeta
-} from '../core/local-data.js';
+} from '../core/app-runtime.js';
 
 const CLIENT_RELEASES = 'https://github.com/ao-data/albiondata-client/releases';
 
@@ -264,14 +262,14 @@ function renderPage(container, cities) {
                             </div>
                         </div>
                         <div class="settings-sides">
-                            <div class="form-side-field">
-                                <span class="form-side-label" id="settingBuySideLabel">Alım</span>
+                            <div class="choice-field form-field">
+                                <div class="form-field-heading"><div class="form-field-label" id="settingBuySideLabel">Alım</div></div>
                                 <div class="segmented-choice" role="radiogroup" aria-labelledby="settingBuySideLabel">
                                     ${priceSideToggleHtml('buy', settings.buyPriceSide)}
                                 </div>
                             </div>
-                            <div class="form-side-field">
-                                <span class="form-side-label" id="settingSellSideLabel">Satış</span>
+                            <div class="choice-field form-field">
+                                <div class="form-field-heading"><div class="form-field-label" id="settingSellSideLabel">Satış</div></div>
                                 <div class="segmented-choice" role="radiogroup" aria-labelledby="settingSellSideLabel">
                                     ${priceSideToggleHtml('sell', settings.sellPriceSide)}
                                 </div>
@@ -852,7 +850,6 @@ function relativeTime(iso) {
 }
 
 async function init() {
-    initNav();
     const container = document.getElementById('settingsPage');
     if (!container) {
         return;
@@ -860,7 +857,6 @@ async function init() {
 
     let cities = [];
     try {
-        await initStore();
         cities = loadActiveCities();
     } catch (error) {
         console.error(error);

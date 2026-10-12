@@ -1,7 +1,97 @@
-import { STRATEGY_SPECS } from './market-strategy-policy.mjs';
+import { STRATEGY_SPECS, strategyCategory, strategyNeedsReference, strategyReferenceConfidence } from './market-strategy-policy.mjs';
+import { salesBuyOpportunity } from './market-sales-reference.mjs';
 import { quotedBookPrice } from './market-primitives.mjs';
 import { purchaseCostFromRates, saleProceedsFromRates } from './market-fees.mjs';
-import { strategyEconomics } from './market-opportunity-quality.mjs';
+import { strategyEconomics, EXECUTION_MODELS } from './market-opportunity-quality.mjs';
+import { ORDER_HISTORY_POLICY } from './market-history-config.mjs';
+
+export const OPPORTUNITY_REASONS = Object.freeze({
+    NO_PRICE: 'NO_PRICE', STALE_PRICE: 'STALE_PRICE', INSUFFICIENT_HISTORY: 'INSUFFICIENT_HISTORY',
+    LOW_INDEPENDENT_OBSERVATIONS: 'LOW_INDEPENDENT_OBSERVATIONS', INVALID_SPREAD: 'INVALID_SPREAD',
+    BELOW_NET_PROFIT: 'BELOW_NET_PROFIT', NORMAL_MARKET_BEHAVIOR: 'NORMAL_MARKET_BEHAVIOR',
+    QUARANTINED: 'QUARANTINED', ACTION_NOT_VALIDATED: 'ACTION_NOT_VALIDATED', VALIDATED_OPPORTUNITY: 'VALIDATED_OPPORTUNITY'
+});
+
+export function opportunityReasonCode(raw) {
+    const code = String(raw).split(':').at(-1), R = OPPORTUNITY_REASONS;
+    if (code === 'missing-price') return R.NO_PRICE;
+    if (code === 'stale-price') return R.STALE_PRICE;
+    if (code === 'missing-reference') return R.INSUFFICIENT_HISTORY;
+    if (code === 'sales-reference-stale') return R.STALE_PRICE;
+    if (code === 'sales-reference-insufficient') return R.INSUFFICIENT_HISTORY;
+    if (code === 'reference-insufficient') return R.LOW_INDEPENDENT_OBSERVATIONS;
+    if (['quarantined', 'extreme-price'].includes(code)) return R.QUARANTINED;
+    if (code === 'non-positive-after-fees') return R.BELOW_NET_PROFIT;
+    if (['movement-below-threshold', 'movement-direction'].includes(code)) return R.NORMAL_MARKET_BEHAVIOR;
+    return R.ACTION_NOT_VALIDATED;
+}
+
+/** Discovery is economic; validation still consumes the existing source/reference gates.
+ * A positive fee-adjusted inversion is a signal regardless of its nominal size.
+ * A positive ordinary maker spread alone supplies no anomaly evidence.
+ */
+export function reviewOpportunityResults(row, policy, feeContext = null) {
+    if (row.validationMode === 'legacy') return row;
+    const R = OPPORTUNITY_REASONS;
+    const assess = strategy => {
+        const inputs = Object.values(strategy.evidence?.inputs || {}).filter(Boolean);
+        let reason = null;
+        if (!(strategy.advantageSilver > 0)) reason = R.BELOW_NET_PROFIT;
+        else if (strategy.id === 'local-make' && row.spreadReview?.classification !== 'unusual') {
+            // Missing paired history cannot manufacture a signal from an ordinary spread.
+            reason = row.spreadReview?.classification === 'normal' ? R.NORMAL_MARKET_BEHAVIOR : R.INSUFFICIENT_HISTORY;
+        } else if (STRATEGY_SPECS[strategy.id]?.group === 'historical') {
+            const side = inputs[0];
+            if (side?.normalRange && side.price >= side.normalRange.low && side.price <= side.normalRange.high) reason = R.NORMAL_MARKET_BEHAVIOR;
+        }
+        const times = inputs.map(side => Date.parse(side.at));
+        if (!reason && times.length > 1 && (!times.every(Number.isFinite)
+            || Math.max(...times) - Math.min(...times) >= ORDER_HISTORY_POLICY.bucketMs)) reason = R.INVALID_SPREAD;
+        if (!reason && inputs.some(side => side.validationStatus === 'quarantined')) reason = R.QUARANTINED;
+        if (!reason && strategy.potential && strategy.reviewable === false) reason = opportunityReasonCode(strategy.evidence.reasons.find(raw => !REVIEWABLE_REASONS.has(String(raw).split(':').at(-1))));
+        return { strategy, missingEvidence: [...new Set((strategy.evidence?.reasons || []).map(opportunityReasonCode))],
+            discovered: ![R.BELOW_NET_PROFIT, R.NORMAL_MARKET_BEHAVIOR].includes(reason)
+                && !(strategy.id === 'local-make' && row.spreadReview?.classification !== 'unusual'),
+            reason: reason || (strategy.potential ? R.ACTION_NOT_VALIDATED : R.VALIDATED_OPPORTUNITY),
+            result: reason ? 'rejected' : strategy.potential ? 'watch' : 'trade' };
+    };
+    const reviews = discoverStrategiesForRow(row, policy, feeContext).map(assess);
+    for (const { strategy, result } of reviews) {
+        strategy.category = strategyCategory(strategy.id);
+        strategy.referenceRequired = strategyNeedsReference(strategy.id);
+        // REST top quotes contain no requested quantity, executable depth or fills.
+        // Source-price validation alone cannot prove an executable transaction.
+        strategy.outcome = result === 'trade' ? 'price-supported' : result;
+        strategy.executionVerified = false;
+        strategy.missingExecutionEvidence = EXECUTION_MODELS[strategy.execution]?.limitations || [];
+        strategy.theoretical = true;
+    }
+    const strategies = reviews.filter(review => review.result === 'trade').map(review => review.strategy);
+    const potentialStrategies = reviews.filter(review => review.result === 'watch').map(review => review.strategy);
+    const primary = strategies.slice().sort((a, b) => b.advantageSilver * b.weight - a.advantageSilver * a.weight)[0] || null;
+    const stage = primary ? 'trade' : potentialStrategies.length ? 'watch' : 'rejected';
+    return { ...row, strategies, potentialStrategies, primary, eligible: Boolean(primary), stage,
+        outcome: primary?.outcome || stage, executionVerified: false,
+        validationStatus: primary ? 'accepted' : potentialStrategies.length ? 'provisional' : row.validationStatus,
+        resultReviews: reviews.map(({ strategy, ...review }) => ({ ...review, outcome: strategy.outcome,
+            missingExecutionEvidence: strategy.missingExecutionEvidence, id: strategy.id, toCity: strategy.toCity || null })),
+        resultReason: primary ? R.VALIDATED_OPPORTUNITY : potentialStrategies.length ? R.ACTION_NOT_VALIDATED
+            : reviews.find(review => review.discovered)?.reason || reviews[0]?.reason || referenceFailure(row),
+        referenceConfidence: primary ? Math.min(...Object.values(primary.evidence?.inputs || {}).filter(Boolean).map(side => strategyReferenceConfidence(primary.id, side))) : 0,
+        executionConfidence: primary ? row.executionConfidence : 0,
+        parts: { ...row.parts, reliability: primary?.reliability || 0 } };
+}
+
+export function referenceFailure(row) {
+    const R = OPPORTUNITY_REASONS;
+    const sides = [row.buy, row.sell].filter(side => side?.price > 0 && Number.isFinite(side.price));
+    if (!sides.length) return R.NO_PRICE;
+    if (sides.some(side => side.validationStatus === 'quarantined')) return R.QUARANTINED;
+    if (sides.every(side => side.stale)) return R.STALE_PRICE;
+    if (sides.every(side => !(side.reference > 0))) return R.INSUFFICIENT_HISTORY;
+    if (sides.every(side => !(side.referenceLevel >= 3))) return R.LOW_INDEPENDENT_OBSERVATIONS;
+    return R.NORMAL_MARKET_BEHAVIOR;
+}
 
 // These reasons indicate missing trust evidence, while the underlying movement or
 // post-fee inversion can still be inspected. Structural, economic and quarantine
@@ -9,8 +99,19 @@ import { strategyEconomics } from './market-opportunity-quality.mjs';
 const REVIEWABLE_REASONS = new Set([
     'unknown-freshness', 'stale-price', 'source-time-unknown', 'incomplete-book',
     'observation-unverified', 'execution-unverified', 'reference-insufficient',
-    'movement-unconfirmed'
+    'movement-unconfirmed', 'sales-reference-insufficient', 'sales-reference-stale'
 ]);
+const REVIEW_REASON_TEXT = Object.freeze({
+    'sales-reference-insufficient': 'Satış geçmişinde yeterli tamamlanmış gün yok.',
+    'sales-reference-stale': 'Satış geçmişi eski.',
+    'reference-insufficient': 'Tarihsel referans güveni yetersiz.',
+    'movement-unconfirmed': 'Fiyat hareketi henüz doğrulanmadı.',
+    'stale-price': 'Fiyat eski.', 'unknown-freshness': 'Fiyat zamanı bilinmiyor.',
+    'source-time-unknown': 'Kaynak gözlem zamanı doğrulanamıyor.',
+    'incomplete-book': 'Emir kapsamı tam değil.', 'observation-unverified': 'Gözlem doğrulanmamış.',
+    'execution-unverified': 'İşlem güveni yetersiz.'
+});
+const reviewExplanations = reasons => [...new Set(reasons.map(reason => REVIEW_REASON_TEXT[String(reason).split(':').at(-1)]).filter(Boolean))];
 
 function reasonsFor(decision) {
     return (decision?.reasons || []).map(reason => String(reason).split(':').at(-1));
@@ -20,7 +121,7 @@ function sideIsQuarantined(side) {
     return side?.validationStatus === 'quarantined' || side?.validationReasons?.includes('quarantined');
 }
 
-function feeResult(id, row, { premium, fees }) {
+export function strategyAdvantage(id, row, { premium, fees }) {
     const cost = (price, setup) => purchaseCostFromRates(price, { setup, setupFeeRate: fees.setupFeeRate });
     const proceeds = (price, setup) => saleProceedsFromRates(price, {
         taxRate: premium ? fees.taxPremiumRate : fees.taxFreeRate,
@@ -28,6 +129,10 @@ function feeResult(id, row, { premium, fees }) {
         setupFeeRate: fees.setupFeeRate
     });
     const { buy, sell } = row;
+    if (id === 'place-buy-order-sales') return salesBuyOpportunity(buy, fees).advantageSilver;
+    if (id === 'local-make') return proceeds(quotedBookPrice(sell.price, 'sell', 'sell'), true)
+        - cost(quotedBookPrice(buy.price, 'buy', 'buy'), true);
+    if (id === 'cross-city-instant') return proceeds(row.destination.price, false) - cost(sell.price, false);
     if (id === 'local-flip') return proceeds(buy.price, false) - cost(sell.price, false);
     if (id === 'instant-sell-to-buy') return proceeds(buy.price, false) - proceeds(buy.reference, false);
     if (id === 'place-sell-order') return proceeds(quotedBookPrice(sell.price, 'sell', 'sell'), true)
@@ -36,6 +141,46 @@ function feeResult(id, row, { premium, fees }) {
     if (id === 'place-buy-order') return cost(quotedBookPrice(buy.reference, 'buy', 'buy'), true)
         - cost(quotedBookPrice(buy.price, 'buy', 'buy'), true);
     return null;
+}
+
+/** Enumerate economic signals before deciding whether their evidence permits an action. */
+function discoverStrategiesForRow(row, policy, feeContext) {
+    // Fees/economics have already been evaluated by the shared strategy builder for
+    // validated strategies. Failed gates use the same formula, independently of trust.
+    if (!feeContext) return [...row.strategies.filter(strategy => strategy.weight > 0), ...(row.potentialStrategies || [])];
+    const found = [];
+    for (const decision of row.decisions || []) {
+        const spec = STRATEGY_SPECS[decision.id];
+        if (!spec) continue;
+        const inputs = decision.inputs;
+        if (spec.inputs.some(key => !(inputs[key]?.price > 0) || !Number.isFinite(inputs[key].price))) continue;
+        if (spec.group === 'historical') {
+            const side = inputs[spec.inputs[0]];
+            if (!(side.reference > 0) || side.direction !== spec.direction || Math.abs(side.deviation) < policy.minDeviation
+                || Math.abs(side.absoluteDelta) < policy.minAbsoluteDelta) continue;
+        }
+        if (spec.group === 'valuation') {
+            const valuation = salesBuyOpportunity(inputs.buy, feeContext.fees);
+            if (!(valuation.advantageSilver >= policy.minAbsoluteDelta) || !(-valuation.deviation >= policy.minDeviation)) continue;
+        }
+        const existing = row.strategies.find(strategy => strategy.id === decision.id && (strategy.toCity || null) === (decision.toCity || null));
+        const advantageSilver = strategyAdvantage(decision.id, inputs, feeContext);
+        if (!(advantageSilver > 0) || !Number.isFinite(advantageSilver)) continue;
+        const reviewable = decision.reasons.length && decision.reasons.every(reason => REVIEWABLE_REASONS.has(String(reason).split(':').at(-1)));
+        const candidate = existing || { ...row.potentialStrategies?.find(strategy => strategy.id === decision.id),
+            id: decision.id, label: spec.label, kind: spec.execution === 'order' && spec.net ? 'unrealized' : spec.net ? 'top-of-book' : 'savings', execution: spec.execution,
+            weight: policy[spec.weightKey],
+            deviation: spec.group === 'valuation' ? salesBuyOpportunity(inputs.buy, feeContext.fees).deviation : undefined,
+            advantageSilver, netSilver: spec.net ? advantageSilver : null,
+            reliability: Math.min(...spec.inputs.map(key => inputs[key].executionConfidence || 0)), evidence: decision,
+            potential: !decision.eligible, reviewable, toCity: decision.toCity, fromCity: row.city, destination: inputs.destination,
+            buyPrice: inputs.sell?.price, sellPrice: inputs.destination?.price, destAgeMs: inputs.destination?.ageMs,
+            note: decision.eligible ? 'Görünen fiyatlar arasında ücret sonrası avantaj var. Derinlik, hacim ve taşıma maliyeti bilinmiyor.'
+                : ['Ekonomik sinyal var; işlem önerisi doğrulanmadı.', ...reviewExplanations(decision.reasons)].join(' ') };
+        if (!candidate.economics) candidate.economics = strategyEconomics(candidate, inputs, feeContext);
+        found.push(candidate);
+    }
+    return found;
 }
 
 function movementSupports(id, row) {
@@ -60,22 +205,14 @@ export function potentialStrategiesForRow(row, { premium = true, fees, weights =
         const spec = STRATEGY_SPECS[id];
         const sides = spec.inputs.map(key => key === 'destination' ? null : row[key]).filter(Boolean);
         if (!sides.length || sides.some(sideIsQuarantined)) continue;
-        const advantageSilver = feeResult(id, row, { premium, fees });
+        const advantageSilver = strategyAdvantage(id, row, { premium, fees });
         if (!Number.isFinite(advantageSilver) || !(advantageSilver > 0)) continue;
         const side = spec.group === 'historical' ? row[spec.inputs[0]] : null;
         const reasons = [...new Set(decision.reasons.map(reason => String(reason).split(':').at(-1)))];
-        const explanations = [];
-        if (reasons.includes('reference-insufficient')) explanations.push('Tarihsel referans güveni yetersiz.');
-        if (reasons.includes('movement-unconfirmed')) explanations.push('Fiyat hareketi henüz doğrulanmadı.');
-        if (reasons.includes('stale-price')) explanations.push('Fiyat eski.');
-        if (reasons.includes('unknown-freshness')) explanations.push('Fiyat zamanı bilinmiyor.');
-        if (reasons.includes('source-time-unknown')) explanations.push('Kaynak gözlem zamanı doğrulanamıyor.');
-        if (reasons.includes('incomplete-book')) explanations.push('Emir kapsamı tam değil.');
-        if (reasons.includes('observation-unverified')) explanations.push('Gözlem doğrulanmamış.');
-        if (reasons.includes('execution-unverified')) explanations.push('İşlem güveni yetersiz.');
+        const explanations = reviewExplanations(reasons);
         if (row.buy?.validationReasons?.includes('source-conflict') || row.sell?.validationReasons?.includes('source-conflict')) explanations.push('Kaynaklar çelişiyor.');
         const candidate = {
-            id, label: spec.group === 'historical' ? id : 'Aynı şehirde anında çevirme',
+            id, label: spec.label,
             kind: id === 'local-flip' || id === 'instant-sell-to-buy' ? 'top-of-book' : id.includes('order') ? 'unrealized' : 'savings',
             execution: spec.execution, weight: row.strategies?.find(strategy => strategy.id === id)?.weight ?? weights[id] ?? 0,
             advantageSilver, netSilver: spec.net ? advantageSilver : null,

@@ -1,9 +1,7 @@
-import { toolPageHtml } from '../components/tool-page.js';
+import { toolPageHtml } from '../core/app-runtime.js';
 import { itemNameHtml } from '../components/item-name.js';
 import { escapeHtml } from '../utils/utils.js';
-import { initNav } from '../core/nav.js';
 import { routeHref } from '../core/routes.js';
-import { initStore } from '../db/store.js';
 import { getSettings, getStandardCombos, getDefaultCity } from '../core/settings.js';
 import { fetchPrices, indexPrices, cityRow } from '../core/market.js';
 import { itemIconHtml } from '../components/item-icon.js';
@@ -413,8 +411,8 @@ function renderPage(container) {
                     <div class="segmented-choice enchant-slots" role="radiogroup" aria-label="Slot">
                         ${renderSlotToggle()}
                     </div>
-                    <div class="form-side-field">
-                        <span class="form-side-label" id="enchantMatSideLabel">Malzeme</span>
+                    <div class="choice-field form-field">
+                        <div class="form-field-heading"><div class="form-field-label" id="enchantMatSideLabel">Malzeme</div></div>
                         <div class="segmented-choice" role="radiogroup" aria-labelledby="enchantMatSideLabel">
                             ${priceSideToggleHtml('mat', state.matSide)}
                         </div>
@@ -496,7 +494,6 @@ async function loadPrices(container, { showLoader = true, source } = {}) {
 }
 
 async function init() {
-    initNav();
     const container = document.querySelector('[data-tool="enchanting"]');
     if (!container) {
         return;
@@ -507,7 +504,6 @@ async function init() {
 
     showPageLoader();
     try {
-        await initStore();
         state.slot = readSavedSlot();
         ensureManualMaps();
         state.cities = loadActiveCities();

@@ -1,0 +1,98 @@
+{
+  "baseline": {
+    "evaluated": 29608,
+    "discovered": 2515,
+    "verified": 57,
+    "watch": 1019,
+    "primary": {
+      "cross-city-instant": 55,
+      "local-flip": 1,
+      "place-sell-order": 1
+    },
+    "ms": 8749.389499999583
+  },
+  "next": {
+    "pipeline": {
+      "examined": 29608,
+      "validPrice": 29608,
+      "newArchiveObservations": null,
+      "sufficientReference": 209,
+      "discovered": 2707,
+      "validated": 105,
+      "executionConfirmed": 0,
+      "priceSupported": 105,
+      "discoveredRejected": 1570,
+      "watch": 1032,
+      "rejected": 28471,
+      "reasons": {
+        "INSUFFICIENT_HISTORY": 7560,
+        "INVALID_SPREAD": 1031,
+        "STALE_PRICE": 13815,
+        "VALIDATED_OPPORTUNITY": 105,
+        "LOW_INDEPENDENT_OBSERVATIONS": 4494,
+        "ACTION_NOT_VALIDATED": 1032,
+        "QUARANTINED": 542,
+        "NORMAL_MARKET_BEHAVIOR": 1029
+      }
+    },
+    "resultCounts": {
+      "trade": 105,
+      "watch": 1032,
+      "rejected": 28471
+    },
+    "primary": {
+      "cross-city-instant": 103,
+      "local-flip": 1,
+      "place-sell-order": 1
+    },
+    "coldMs": 8380.594899997115,
+    "warmMs": 9640.309700004756
+  },
+  "freshEvidence": {
+    "rows": 137,
+    "newSourceEvents": 4,
+    "repeatedSourceEvents": 133,
+    "changedPrices": 3,
+    "invalid": 59
+  },
+  "referenceStates": {
+    "low-independent-observations": 288,
+    "stale": 24996,
+    "insufficient-samples": 9133,
+    "suspicious": 142,
+    "quarantined": 574,
+    "reliable": 220,
+    "no-history": 2672
+  },
+  "referenceCoverage": {
+    "pricedSides": 38025,
+    "independentSourceShortage": 37437,
+    "acceptedEvidenceShortage": 37537,
+    "sufficientCells": 209,
+    "sufficientFreshCells": 197,
+    "failures": {
+      "no-history": 17851,
+      "independent-observations": 37616,
+      "time-span": 31901,
+      "stability": 19231,
+      "stale": 25271,
+      "source-scope": 1210
+    },
+    "partition": {
+      "no-history": 17851,
+      "independent-observations": 19765,
+      "stability": 150,
+      "time-span": 19,
+      "sufficient": 222,
+      "stale": 18
+    }
+  },
+  "outcomeCounts": {
+    "execution-confirmed": 0,
+    "price-supported": 105,
+    "watch": 1032,
+    "rejected": 28471
+  },
+  "removedCells": 0,
+  "prefixSeries": 0
+}

@@ -1,11 +1,9 @@
 import { toggleAllFilter } from '../components/filter-selection.js';
 import { itemNameHtml } from '../components/item-name.js';
 import { bindCalcExplain } from '../utils/calc-explain.js';
-import { toolPageHtml } from '../components/tool-page.js';
+import { toolPageHtml } from '../core/app-runtime.js';
 import { escapeHtml } from '../utils/utils.js';
-import { initNav } from '../core/nav.js';
 import { routeHref } from '../core/routes.js';
-import { initStore } from '../db/store.js';
 import { getBonusFamilyLabel } from '../core/bonus-families.js';
 import { bonusDayIso, bonusWindowLabel } from '../core/bonus-day.js';
 import { defaultCraftBonusRate, normalizeCraftBonusRate, todayCraftBonuses, craftBonusToggleHtml } from '../core/craft-bonus.js';
@@ -897,20 +895,20 @@ function renderPage(container) {
                             { id: '0', label: 'Premium yok' }
                         ], state.premium ? '1' : '0', 'premium')}
                     </div>
-                    <div class="form-side-field">
-                        <span class="form-side-label" id="refiningBonusLabel">Bonus</span>
+                    <div class="choice-field form-field">
+                        <div class="form-field-heading"><div class="form-field-label" id="refiningBonusLabel">Bonus</div></div>
                         <div class="segmented-choice" role="radiogroup" aria-labelledby="refiningBonusLabel">
                             ${craftBonusToggleHtml(state.bonusRate)}
                         </div>
                     </div>
-                    <div class="form-side-field">
-                        <span class="form-side-label" id="refiningRawSideLabel">Ham</span>
+                    <div class="choice-field form-field">
+                        <div class="form-field-heading"><div class="form-field-label" id="refiningRawSideLabel">Ham</div></div>
                         <div class="segmented-choice" role="radiogroup" aria-labelledby="refiningRawSideLabel">
                             ${priceSideToggleHtml('raw', state.rawSide)}
                         </div>
                     </div>
-                    <div class="form-side-field">
-                        <span class="form-side-label" id="refiningItemSideLabel">Ürün</span>
+                    <div class="choice-field form-field">
+                        <div class="form-field-heading"><div class="form-field-label" id="refiningItemSideLabel">Ürün</div></div>
                         <div class="segmented-choice" role="radiogroup" aria-labelledby="refiningItemSideLabel">
                             ${priceSideToggleHtml('item', state.itemSide)}
                         </div>
@@ -1272,7 +1270,6 @@ async function loadPrices(container, { showLoader = true, source, areaLoader = f
 }
 
 async function init() {
-    initNav();
     const container = document.querySelector('[data-tool="refining"]');
     if (!container) {
         return;
@@ -1285,7 +1282,6 @@ async function init() {
 
     showPageLoader();
     try {
-        await initStore();
         state.cities = loadActiveCities();
         const hadPrefs = readPrefs(state.cities);
         applyFamilyCityDefaults(state.cities, { preferSpecialty: !hadPrefs });

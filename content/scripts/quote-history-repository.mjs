@@ -1,19 +1,21 @@
-import { readFileSync, readSync, openSync, writeSync, fsyncSync, closeSync, renameSync, writeFileSync } from 'node:fs';
+import { readFileSync, readSync, openSync, writeSync, fsyncSync, closeSync, renameSync, writeFileSync, truncateSync } from 'node:fs';
 import { normalizeObservation, validateObservationSeries, OBSERVATION_POLICY, observationEvents } from '../js/core/market-observation.mjs';
-import { preserveArchive } from './archive-backup.mjs';
+import { preserveArchive, ARCHIVE_BACKUP_SUFFIX } from './archive-backup.mjs';
+import { mergeSalesHistory, salesHistoryWindow } from '../js/core/sales-history-store.mjs';
 import { OrderPriceHistory } from '../js/core/order-price-history.mjs';
 import { AODP_COLLECTOR_POLICY, AODP_HISTORY_POLICY } from '../js/core/market-history-config.mjs';
 import { priceIndexKey, marketSeriesKey, normalizePriceDate, BOOK_PRICE_FIELDS } from '../js/core/market-primitives.mjs';
 
 // Stream transactions synchronously so large journals never become one V8 string.
-export function* journalLines(path) {
+export function* journalLines(path, { onTail } = {}) {
     let fd;
     try { fd = openSync(path, 'r'); } catch (error) { if (error.code === 'ENOENT') return; throw error; }
     const chunk = Buffer.alloc(64 * 1024);
     let pending = Buffer.alloc(0);
     try {
-        let size;
+        let size, total = 0;
         while ((size = readSync(fd, chunk, 0, chunk.length, null)) > 0) {
+            total += size;
             pending = Buffer.concat([pending, chunk.subarray(0, size)]);
             let start = 0, end;
             while ((end = pending.indexOf(10, start)) >= 0) {
@@ -22,7 +24,15 @@ export function* journalLines(path) {
             }
             pending = Buffer.from(pending.subarray(start));
         }
-        if (pending.length) yield pending.toString('utf8');
+        if (pending.length) {
+            const line = pending.toString('utf8');
+            if (onTail) {
+                try { JSON.parse(line); }
+                catch { onTail({ truncateAt: total - pending.length }); return; }
+                onTail({ needsNewline: true });
+            }
+            yield line;
+        }
     } finally { closeSync(fd); }
 }
 
@@ -50,16 +60,44 @@ export class QuoteHistoryRepository {
             this.anchors = new Map(archive.anchors);
             this.current = new Map(archive.current || []);
             for (const [key, row] of this.anchors) if (!this.validAnchor(row) || key !== salesKey(row.server, row.item_id, row.location, row.quality)) throw new Error('Invalid AODP anchor archive');
+            for (const [key, row] of this.anchors) this.anchors.set(key, mergeSalesHistory(null, row, now));
             for (const [key, observation] of this.current) if (!this.validObservation(observation) || key !== marketSeriesKey(observation)) throw new Error('Invalid AODP current archive');
+            if (archive.salesHistoryVersion !== 1) {
+                // Existing write-once backups contain real days overwritten by old
+                // rolling anchors. Import only their sales events, never quote votes.
+                const backupRaw = read(`${path}${ARCHIVE_BACKUP_SUFFIX}`);
+                if (backupRaw) {
+                    const backup = JSON.parse(backupRaw);
+                    if (backup.kind !== archive.kind || backup.version !== 1 || !Array.isArray(backup.anchors)) throw new Error('Invalid sales migration backup');
+                    for (const [key, row] of backup.anchors) {
+                        if (!this.validAnchor(row) || key !== salesKey(row.server, row.item_id, row.location, row.quality)) throw new Error('Invalid sales migration anchor');
+                        this.apply({ type: 'anchor', row }, now);
+                    }
+                }
+                for (const line of journalLines(`${this.journalPath}${ARCHIVE_BACKUP_SUFFIX}`)) {
+                    const transaction = JSON.parse(line);
+                    if (!Array.isArray(transaction.events)) throw new Error('Invalid sales migration journal');
+                    for (const event of transaction.events) if (event.type === 'anchor') this.apply(event, now);
+                }
+                this.salesMigrationRequired = true;
+            }
         }
-        for (const line of journalLines(this.journalPath)) {
+        for (const line of journalLines(this.journalPath, { onTail: tail => { this.journalTail = tail; } })) {
             const transaction = JSON.parse(line);
             if (!Number.isSafeInteger(transaction.sequence) || !Array.isArray(transaction.events)) throw new Error('Invalid AODP journal');
-            if (transaction.sequence <= this.sequence) continue; // checkpoint committed before journal rotation
+            if (transaction.sequence <= this.sequence) {
+                if (this.salesMigrationRequired) for (const event of transaction.events)
+                    if (event.type === 'anchor') this.apply(event, now);
+                continue; // checkpoint committed before journal rotation
+            }
             if (transaction.sequence !== this.sequence + 1) throw new Error('AODP journal sequence gap');
             const writtenAt = Date.parse(transaction.writtenAt ?? transaction.events[0]?.observation?.fetchedAt ?? transaction.events[0]?.row?.fetchedAt);
             if (Number.isFinite(writtenAt)) this.lastCheckpoint = Math.min(this.lastCheckpoint, writtenAt);
-            for (const event of transaction.events) this.apply(event, now);
+            // Audit rows do not participate in quote replay. Bound once per
+            // transaction rather than copying the full audit ring for every row.
+            this.audits = [...this.audits, ...transaction.events.filter(event => event.type === 'audit')
+                .slice(-OBSERVATION_POLICY.auditLimit).map(event => event.observation)].slice(-OBSERVATION_POLICY.auditLimit);
+            for (const event of transaction.events) if (event.type !== 'audit') this.apply(event, now);
             this.sequence = transaction.sequence;
         }
         this.prune(now);
@@ -74,8 +112,10 @@ export class QuoteHistoryRepository {
             this.history.recordEvidence(event.observation, now);
             this.current.set(marketSeriesKey(event.observation), event.observation);
         }
-        else if (event.type === 'anchor' && this.validAnchor(event.row))
-            this.anchors.set(salesKey(event.row.server, event.row.item_id, event.row.location, event.row.quality), event.row);
+        else if (event.type === 'anchor' && this.validAnchor(event.row)) {
+            const key = salesKey(event.row.server, event.row.item_id, event.row.location, event.row.quality);
+            this.anchors.set(key, mergeSalesHistory(this.anchors.get(key), event.row, now));
+        }
         else throw new Error('Invalid AODP journal event');
     }
     validObservation(row) {
@@ -143,6 +183,16 @@ export class QuoteHistoryRepository {
     }
     flush(now = Date.now()) {
         if (this.writeError) throw this.writeError;
+        if (this.journalTail) {
+            if (this.journalTail.truncateAt != null) {
+                preserveArchive(this.journalPath, '.torn-tail.bak');
+                truncateSync(this.journalPath, this.journalTail.truncateAt);
+            } else if (this.journalTail.needsNewline) {
+                const fd = openSync(this.journalPath, 'a');
+                try { writeSync(fd, '\n'); fsyncSync(fd); } finally { closeSync(fd); }
+            }
+            this.journalTail = null;
+        }
         if (this.pending.length) {
             const sequence = this.sequence + 1;
             const fd = openSync(this.journalPath, 'a');
@@ -155,7 +205,7 @@ export class QuoteHistoryRepository {
             finally { closeSync(fd); }
             this.sequence = sequence; this.pending = [];
         }
-        if (now - this.lastCheckpoint >= this.policy.checkpointMs) this.checkpoint(now);
+        if (this.salesMigrationRequired || now - this.lastCheckpoint >= this.policy.checkpointMs) this.checkpoint(now);
     }
     checkpoint(now = Date.now()) {
         this.prune(now);
@@ -163,24 +213,35 @@ export class QuoteHistoryRepository {
         const fd = openSync(`${this.path}.tmp`, 'w');
         try { writeFileSync(fd, JSON.stringify({ kind: 'albion.tools.aodp-repository', version: 1,
             sequence: this.sequence, checkpointAt: new Date(now).toISOString(), history: this.history.snapshot(now),
-            audits: this.audits, observationVersion: OBSERVATION_POLICY.version, anchors: [...this.anchors], current: [...this.current] })); fsyncSync(fd); }
+            audits: this.audits, observationVersion: OBSERVATION_POLICY.version, salesHistoryVersion: 1, anchors: [...this.anchors], current: [...this.current] })); fsyncSync(fd); }
         finally { closeSync(fd); }
         renameSync(`${this.path}.tmp`, this.path);
         // Old journal remains safe if the process dies before/while rotation: sequence skips it.
-        writeFileSync(`${this.journalPath}.tmp`, '');
+        const journalFd = openSync(`${this.journalPath}.tmp`, 'w');
+        try { fsyncSync(journalFd); } finally { closeSync(journalFd); }
         renameSync(`${this.journalPath}.tmp`, this.journalPath);
         this.lastCheckpoint = now;
+        this.salesMigrationRequired = false;
     }
     prune(now = Date.now()) {
         this.audits = this.audits.filter(point => Date.parse(point.processedAt) >= now - OBSERVATION_POLICY.auditRetentionMs);
         this.history.prune(now);
         for (const [key, row] of this.current) if (now - Date.parse(row.sourceQuoteAt) > this.history.policy.retentionMs) this.current.delete(key);
-        for (const [key, row] of this.anchors) if (now - Date.parse(row.fetchedAt) > this.history.policy.retentionMs) this.anchors.delete(key);
+        for (const [key, row] of this.anchors) {
+            if (now - Date.parse(row.fetchedAt) > this.history.policy.retentionMs) this.anchors.delete(key);
+            else this.anchors.set(key, mergeSalesHistory(null, row, now));
+        }
     }
     snapshot(now = Date.now()) { return this.history.snapshot(now); }
     identities(now = Date.now()) { return this.history.identities(now); }
     seriesRevision(identity) { return this.history.seriesRevision(identity); }
     seriesFor(identity, now = Date.now()) { return this.history.seriesFor(identity, now); }
     anchor(item, city, quality, server) { return this.anchors.get(salesKey(server, item, city, quality)); }
+    salesHistory({ server, items, locations, qualities, days, now = Date.now() }) {
+        return items.flatMap(item => locations.flatMap(city => qualities.map(quality => {
+            const row = this.anchor(item, city, quality, server);
+            return salesHistoryWindow(row ?? { server, item_id: item, location: city, quality, source: 'aodp-sales-history', data: [] }, days, now);
+        })));
+    }
     currentQuote(identity) { return this.current.get(marketSeriesKey(identity)); }
 }

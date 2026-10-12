@@ -1,5 +1,8 @@
 const HOUR_MS = 60 * 60 * 1000;
 export const DAY_MS = 24 * HOUR_MS;
+export const PACKET_HISTORY_ENDPOINT = '/api/v1/market/packet-history';
+export const SALES_HISTORY_ENDPOINT = '/api/v1/market/sales-history';
+export const HISTORY_CACHE_POLICY = Object.freeze({ positiveMs: 30 * 60 * 1000, negativeMs: 5 * 60 * 1000, localMs: 30000 });
 /** Quotes older than this stay visible elsewhere, but are not current opportunities. */
 export const PRICE_STALE_MS = 6 * HOUR_MS;
 /** Independent evidence required for each historical reference level. */

@@ -1,12 +1,30 @@
 import { getServer } from './settings.js';
 import { median } from './market-primitives.mjs';
+import { MARKET_COLLECTION_POLICY, HISTORY_CACHE_POLICY, DAY_MS } from './market-history-config.mjs';
 
 const HISTORY_REQUEST_TIMEOUT_MS = 10000;
 import { priceIndexKey } from './market.js';
 
 const CACHE = new Map();
-const CACHE_TTL_MS = 30 * 60 * 1000;
+const CACHE_TTL_MS = HISTORY_CACHE_POLICY.positiveMs;
+const NEGATIVE_CACHE_TTL_MS = HISTORY_CACHE_POLICY.negativeMs;
+const IN_FLIGHT = new Map();
 const BATCH_SIZE = 24;
+const REQUEST_GAP_MS = Math.ceil(Math.max(
+    60000 / (MARKET_COLLECTION_POLICY.rateLimitPerMinute * MARKET_COLLECTION_POLICY.budgetRatio),
+    300000 / (MARKET_COLLECTION_POLICY.rateLimitPerFiveMin * MARKET_COLLECTION_POLICY.budgetRatio)
+));
+let requestQueue = Promise.resolve();
+let nextRequestAt = 0;
+function scheduledRequest(run) {
+    const job = requestQueue.then(async () => {
+        await new Promise(resolve => setTimeout(resolve, Math.max(0, nextRequestAt - Date.now())));
+        nextRequestAt = Date.now() + REQUEST_GAP_MS;
+        return run();
+    });
+    requestQueue = job.catch(() => {});
+    return job;
+}
 
 function formatApiDate(date) {
     return `${date.getMonth() + 1}-${date.getDate()}-${date.getFullYear()}`;
@@ -43,11 +61,11 @@ function summarizeSeries(points) {
     }
     return {
         meanAvgPrice: mean(prices),
-        meanAvgPrice: mean(prices),
         medianAvgPrice: median(prices),
         avgItemCount: mean(counts) ?? 0,
         cv: coefficientOfVariation(prices),
-        n: prices.length
+        n: prices.length,
+        points: points.map(point => ({ timestamp: point.timestamp, avg_price: point.avg_price, item_count: point.item_count }))
     };
 }
 
@@ -56,7 +74,7 @@ function cacheGet(key) {
     if (!hit) {
         return null;
     }
-    if (Date.now() - hit.at > CACHE_TTL_MS) {
+    if (Date.now() - hit.at > (hit.value?.empty ? NEGATIVE_CACHE_TTL_MS : CACHE_TTL_MS)) {
         CACHE.delete(key);
         return null;
     }
@@ -91,13 +109,15 @@ async function fetchHistoryBatch(host, ids, locations, { date, endDate, timeScal
  * Fetch daily sell-history stats and index by item|city|quality.
  * @returns {Map<string, { medianAvgPrice: number, avgItemCount: number, cv: number, n: number }>}
  */
-export async function fetchHistoryIndex(itemIds, locations, {
+async function loadHistoryIndex(itemIds, locations, {
     days = 14,
     timeScale = 24,
+    force = false,
     qualities = 1
 } = {}) {
     const ids = [...new Set((itemIds || []).filter(Boolean))];
-    const cities = [...new Set((locations || []).filter(Boolean))];
+    const cities = [...new Set((locations || []).filter(Boolean))].sort();
+    const qualityValues = String(qualities).split(',').map(Number).filter(value => Number.isInteger(value) && value > 0);
     const map = new Map();
     if (!ids.length || !cities.length) {
         return map;
@@ -108,18 +128,20 @@ export async function fetchHistoryIndex(itemIds, locations, {
     const date = formatApiDate(start);
     const endDate = formatApiDate(end);
     const host = getServer().host;
-    const cacheBucket = `${host}|${cities.join(',')}|${days}|${timeScale}|${qualities}`;
+    const cacheBucket = `${host}|${cities.join(',')}|${days}|${timeScale}|${qualities}|${Math.floor(Date.now() / DAY_MS)}`;
 
     const needFetch = [];
     for (const id of ids) {
         let complete = true;
         for (const city of cities) {
-            const key = historyKey(id, city);
-            const cached = cacheGet(`${cacheBucket}|${key}`);
-            if (cached) {
-                map.set(key, cached);
-            } else {
-                complete = false;
+            for (const quality of qualityValues) {
+                const key = historyKey(id, city, quality);
+                const cached = force ? null : cacheGet(`${cacheBucket}|${key}`);
+                if (cached) {
+                    if (!cached.empty) map.set(key, cached);
+                } else {
+                    complete = false;
+                }
             }
         }
         if (!complete) {
@@ -135,12 +157,12 @@ export async function fetchHistoryIndex(itemIds, locations, {
         const batch = needFetch.slice(i, i + BATCH_SIZE);
         let rows = [];
         try {
-            rows = await fetchHistoryBatch(host, batch, cities, {
+            rows = await scheduledRequest(() => fetchHistoryBatch(host, batch, cities, {
                 date,
                 endDate,
                 timeScale,
                 qualities
-            });
+            }));
         } catch (error) {
             console.warn(error);
             continue;
@@ -162,9 +184,26 @@ export async function fetchHistoryIndex(itemIds, locations, {
                 cacheSet(`${cacheBucket}|${itemId}|${city}`, summary);
             }
         }
+        for (const id of batch) for (const city of cities) for (const quality of qualityValues) {
+            const key = historyKey(id, city, quality);
+            if (!map.has(key)) cacheSet(`${cacheBucket}|${key}`, { empty: true });
+        }
     }
 
     return map;
+}
+
+export function fetchHistoryIndex(itemIds, locations, options = {}) {
+    const ids = [...new Set((itemIds || []).filter(Boolean))].sort();
+    const cities = [...new Set((locations || []).filter(Boolean))].sort();
+    const normalized = { force: options.force === true, days: options.days ?? 14, timeScale: options.timeScale ?? 24,
+        qualities: String(options.qualities ?? 1).split(',').map(Number).sort((a, b) => a - b).join(',') };
+    const key = JSON.stringify([getServer().host, ids, cities, normalized, Math.floor(Date.now() / DAY_MS)]);
+    if (!IN_FLIGHT.has(key)) {
+        const pending = loadHistoryIndex(ids, cities, normalized).finally(() => IN_FLIGHT.delete(key));
+        IN_FLIGHT.set(key, pending);
+    }
+    return IN_FLIGHT.get(key);
 }
 
 export function historyAt(historyIndex, itemId, city, quality = 1) {

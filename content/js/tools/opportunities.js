@@ -1,22 +1,26 @@
+import { tabsHtml, bindTabs } from '../components/tabs.js';
+import { createOpportunityEvidenceUI } from '../components/opportunity-evidence.js';
 import { assistantAction, candidateIdentity, candidateSnapshot, updateWatch, FEEDBACK_TYPES, feedbackMetrics, rangePosition, ACTION_LABELS, candidatePriority } from '../core/opportunity-assistant.mjs';
 import { readOpportunityJournal, saveOpportunityJournal } from '../core/opportunity-journal.js';
-import { rankOpportunityPresentation, EXECUTION_MODELS, OPPORTUNITY_QUALITY_POLICY } from '../core/market-opportunity-quality.mjs';
+import { rankOpportunityPresentation, EXECUTION_MODELS, EXECUTION_LIMITATION_TEXT, OPPORTUNITY_OUTCOMES, opportunityEmptyText, OPPORTUNITY_QUALITY_POLICY } from '../core/market-opportunity-quality.mjs';
 import { OPPORTUNITY_POLICY } from '../core/market-opportunities.mjs';
+import { strategyReferenceConfidence } from '../core/market-strategy-policy.mjs';
+import { rankCommercialOpportunities, COMMERCIAL_LANES } from '../core/market-opportunity-commerce.mjs';
+import { salesActivityText } from '../core/market-sales-activity.mjs';
+import { opportunityTradePrices, calculateTradeScenario } from '../core/market-trade-scenario.mjs';
 import { SPREAD_CLASSES, SPREAD_REVIEW_CLASSES, opportunityEvidenceClass } from '../core/market-spread-realism.mjs';
+import { fieldAllButtonHtml, fieldHeadingHtml } from '../components/form-field.js';
 import { toggleAllFilter } from '../components/filter-selection.js';
 import { itemNameHtml } from '../components/item-name.js';
-import { toolPageHtml } from '../components/tool-page.js';
+import { toolPageHtml } from '../core/app-runtime.js';
 import { itemIconHtml, itemLabel } from '../components/item-icon.js';
 import { initFloatingLabels } from '../components/forms.js';
-import { cityFieldHtml, bindCityField, setCityFieldValue } from '../components/city-picker.js';
+import { cityFieldHtml, bindCityField } from '../components/city-picker.js';
 import { loadActiveCities } from '../core/cities.js';
 import { showPageLoader, hidePageLoader } from '../components/loader.js';
-import { initNav } from '../core/nav.js';
-import { initStore } from '../db/store.js';
-import { recordCurrentToolVisit } from '../core/usage.js';
 import { getServer, getSettings, localPriceHost } from '../core/settings.js';
 import { bindLivePrices } from '../core/price-live.js';
-import { feeMetaText } from '../core/market-fees.js';
+import { feeMetaText, setupFeeRate, taxPremiumRate, taxFreeRate } from '../core/market-fees.js';
 import { routeHref } from '../core/routes.js';
 import { readStorage, writeStorage, readJsonStorage, writeJsonStorage } from '../core/storage.js';
 import { OBSERVATION_REASON_TEXT } from '../core/market-observation.mjs';
@@ -32,7 +36,7 @@ const SORTS = [
     { id: 'importance', label: 'Önem' }
 ];
 const OPPORTUNITY_STRATEGY_IDS = Object.keys(STRATEGY_SPECS).filter(id =>
-    STRATEGY_SPECS[id].group === 'historical' || id === 'local-flip' || id === 'cross-city-instant');
+    ['historical', 'valuation'].includes(STRATEGY_SPECS[id].group) || id === 'local-flip' || id === 'cross-city-instant');
 const SPREAD_STRATEGY_IDS = ['local-make'];
 const spreadReviewKey = row => row.spreadReview?.classification || 'insufficient';
 const spreadReviewModel = row => SPREAD_REVIEW_CLASSES[spreadReviewKey(row)] || SPREAD_REVIEW_CLASSES.insufficient;
@@ -40,6 +44,8 @@ const spreadViewIds = Object.keys(SPREAD_REVIEW_CLASSES).map(key => `spread:${ke
 const validView = id => isOpportunityFilter(id) || spreadViewIds.includes(id);
 const LIST_MODES = Object.freeze({
     opportunities: { label: 'Fırsatlar', strategyIds: OPPORTUNITY_STRATEGY_IDS },
+    quantity: { label: 'Toplu miktarla değerlendir', strategyIds: OPPORTUNITY_STRATEGY_IDS },
+    watch: { label: 'İzlenecek adaylar', strategyIds: OPPORTUNITY_STRATEGY_IDS },
     spreads: { label: 'Makas Stratejileri', strategyIds: SPREAD_STRATEGY_IDS },
     suspicious: { label: 'Şüpheli', strategyIds: OPPORTUNITY_STRATEGY_IDS }
 });
@@ -60,7 +66,7 @@ const LAYOUT_KEY = 'opp-layout';
 const FILTERS_KEY = 'opp-filters';
 function readLayout() {
     const saved = readStorage(LAYOUT_KEY);
-    return saved === 'cards' ? 'cards' : 'list';
+    return saved === 'list' ? 'list' : 'cards';
 }
 function defaultFilters() {
     return { viewMode: 'opportunities', views: [], excludedViews: [], sort: 'balanced', city: '', tier: '', enchant: '', query: '', minDeviation: '12', minNet: OPPORTUNITY_QUALITY_POLICY.minNet ?? '', minReturn: OPPORTUNITY_QUALITY_POLICY.minReturn ?? '', execution: '', confidence: '', evidence: '', watched: '', action: '' };
@@ -103,7 +109,7 @@ const state = {
     scan: null, error: null, selectedId: '', series: null, seriesError: '',
     journal: readOpportunityJournal() || { watches: {}, feedback: [] },
     layout: readLayout(),
-    filters: readFilters()
+    filters: readFilters(), simulations: {}, detailRequest: 0
 };
 let root;
 
@@ -122,6 +128,8 @@ function sideRangeText(side) {
     return range && position ? `Normal ${formatSilver(range.low)}–${formatSilver(range.high)} · ${{below:'aralık altında',above:'aralık üstünde',inside:'aralık içinde'}[position.position]} ${signedPct(position.deviation)}` : 'Normal aralık için veri yetersiz';
 }
 function referenceText(row) {
+    if (row.outcome) return [OPPORTUNITY_OUTCOMES[row.outcome],
+        row.primary?.missingExecutionEvidence?.map(code => EXECUTION_LIMITATION_TEXT[code]).filter(Boolean).join(' · ')].filter(Boolean).join(' · ');
     return (STRATEGY_SPECS[row.primary?.id]?.inputs || ['buy','sell']).filter(key => key !== 'destination').map(key => {
         return key.toUpperCase()+': '+sideRangeText(row[key]);
     }).join(' · ');
@@ -193,7 +201,7 @@ function rows() {
 function eligibleListRows(mode = state.filters.viewMode) {
     if (mode === 'suspicious') return rows().filter(row => row.validationStatus === 'quarantined');
     const strategyIds = LIST_MODES[mode]?.strategyIds || OPPORTUNITY_STRATEGY_IDS;
-    return rows().filter(row => (row.eligible || (mode === 'opportunities' && row.potential)) && row.strategies?.some(strategy => strategyIds.includes(strategy.id)
+    return rows().filter(row => (mode === 'watch' ? row.potential : row.eligible) && row.strategies?.some(strategy => strategyIds.includes(strategy.id)
         && strategy.weight > 0 && strategy.advantageSilver > 0));
 }
 function listCounts() {
@@ -202,7 +210,11 @@ function listCounts() {
         && strategy.weight > 0 && strategy.advantageSilver > 0)).length;
     const verified = count(OPPORTUNITY_STRATEGY_IDS, row => row.eligible);
     const potential = count(OPPORTUNITY_STRATEGY_IDS, row => row.potential);
-    return { opportunities: verified + potential, verified, potential, suspicious: state.scan?.counts?.suspicious || 0,
+    const groups = rankCommercialOpportunities(rankOpportunityPresentation(eligibleListRows('opportunities'), { calibration: state.scan?.qualityCalibration }), { calibration: state.scan?.qualityCalibration });
+    return { opportunities: groups.length,
+        quantity: groups.filter(row => row.commercialLane === 'commercial').length,
+        watch: rankCommercialOpportunities(eligibleListRows('watch'), { calibration: state.scan?.qualityCalibration }).length,
+        verified, potential, suspicious: state.scan?.counts?.suspicious || 0,
         spreads: count(SPREAD_STRATEGY_IDS, row => row.eligible), suspiciousView: state.scan?.suspiciousCandidates?.length ?? state.scan?.counts?.suspicious ?? 0 };
 }
 // Only presentation metrics are projected; observations and engine decisions remain immutable.
@@ -220,7 +232,7 @@ function selectedStrategyContext(row, strategy) {
     const formedAt = times.length ? new Date(Math.max(...times)).toISOString() : null;
     const recency = formedAt && state.scan?.scannedAt ? fresh(Date.parse(state.scan.scannedAt) - Date.parse(formedAt)) : freshness;
     return { score, recency, formedAt, parts: { ...row.parts, reliability, freshness, anomaly },
-        referenceConfidence: inputs.length ? Math.min(...inputs.map(side => side.referenceConfidence ?? 0)) : 0,
+        referenceConfidence: inputs.length ? Math.min(...inputs.map(side => strategyReferenceConfidence(strategy.id, side))) : 0,
         executionConfidence: inputs.length ? Math.min(...inputs.map(side => side.executionConfidence ?? 0)) : 0 };
 }
 function rankedVisibleRows({ ignoreTypes = false } = {}) {
@@ -238,6 +250,7 @@ function rankedVisibleRows({ ignoreTypes = false } = {}) {
             if (filters.excludedViews.includes(key)) return false;
         }
         if (spec.group === 'historical' && minDeviation > 0 && !spec.inputs.every(key => Math.abs(row[key]?.deviation || 0) >= minDeviation)) return false;
+        if (spec.group === 'valuation' && minDeviation > 0 && !(-strategy.deviation >= minDeviation)) return false;
         if (Number(filters.confidence) > 0 && !(strategy.reliability >= Number(filters.confidence))) return false;
         return !filters.evidence || (filters.viewMode === 'spreads'
             ? spreadReviewKey(row) === filters.evidence
@@ -261,11 +274,14 @@ function rankedVisibleRows({ ignoreTypes = false } = {}) {
         const primary = choices.sort((a, b) => candidatePriority({...row,primary:b}) - candidatePriority({...row,primary:a}) || (b.advantageSilver * b.weight) - (a.advantageSilver * a.weight))[0];
         return primary ? { ...row, primary, presentationStrategies: choices } : null;
     }).filter(Boolean);
-    return rankOpportunityPresentation(selected, { mode: filters.sort, strategyIds, execution: filters.execution,
+    const ranked = rankOpportunityPresentation(selected, { mode: filters.sort, strategyIds, execution: filters.execution,
         strategyFilter: matchesStrategy,
         strategyContext: selectedStrategyContext,
         minNet: filters.minNet === '' ? null : Number(filters.minNet), minReturn: filters.minReturn === '' ? null : Number(filters.minReturn) / 100,
         calibration: state.scan?.qualityCalibration }).filter(row => !filters.action || assistantAction(row).id === filters.action);
+    const commercial = rankCommercialOpportunities(ranked, { mode: filters.viewMode === 'quantity' ? 'quantity' : filters.sort, calibration: state.scan?.qualityCalibration,
+        strategyContext: selectedStrategyContext });
+    return commercial;
 }
 function visibleRows() {
     return rankedVisibleRows().slice(0, state.scan?.listLimit ?? OPPORTUNITY_QUALITY_POLICY.listLimit);
@@ -339,6 +355,7 @@ function anomalyFace(row) {
 const ACTIONS = {
     'instant-buy-from-sell': { label: 'Al', tone: 'is-buy' },
     'place-buy-order': { label: 'Al emri', tone: 'is-order' },
+    'place-buy-order-sales': { label: 'Al emri', tone: 'is-order' },
     'instant-sell-to-buy': { label: 'Sat', tone: 'is-sell' },
     'place-sell-order': { label: 'Sat emri', tone: 'is-order' },
     'local-flip': { label: 'Çevir', tone: 'is-flip' },
@@ -374,6 +391,7 @@ function icon(paths) {
     return `<svg viewBox="0 0 24 24" aria-hidden="true">${paths}</svg>`;
 }
 const ICONS = {
+    search: icon('<circle cx="10.5" cy="10.5" r="6.5" fill="none" stroke="currentColor" stroke-width="1.8"/><path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" d="m15.5 15.5 5 5"/>'),
     cube: icon('<path fill="none" stroke="currentColor" stroke-width="1.8" d="M12 3.5 20 8v8l-8 4.5L4 16V8l8-4.5z"/><path fill="none" stroke="currentColor" stroke-width="1.8" d="M12 12.5 20 8M12 12.5V21M12 12.5 4 8"/>'),
     trend: icon('<path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" d="M4 16.5 9 11l3.5 3.5L20 7"/><path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" d="M14.5 7H20v5.5"/>'),
     trendDown: icon('<path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" d="M4 7.5 9 13l3.5-3.5L20 17"/><path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" d="M14.5 17H20v-5.5"/>'),
@@ -412,79 +430,147 @@ function clockTime(iso) {
     if (Number.isNaN(date.getTime())) return '';
     return date.toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false });
 }
-function statCard(tone, glyph, label, value, note, tooltip) {
-    return `<article class="opp-stat is-${tone}"${tip(tooltip)}><span class="opp-stat-icon">${ICONS[glyph]}</span><span class="opp-stat-copy"><span class="opp-stat-label">${escapeHtml(label)}</span><strong class="opp-stat-value">${value}</strong><span class="opp-stat-note">${escapeHtml(note)}</span></span></article>`;
+let uiService = null;
+let detailTab = 'opportunity';
+let diagnosticsPostTimer = null;
+let diagnosticsPostBody = '';
+let diagnosticsPendingBody = '';
+let diagnosticsPostPromise = Promise.resolve();
+const FILTER_LABELS = { city: 'Şehir', tier: 'Tier', enchant: 'Enchant', query: 'Ürün', minDeviation: 'Sapma', minNet: 'Birim fark', minReturn: 'Getiri', execution: 'İşlem türü', confidence: 'Güven', evidence: 'Kanıt', watched: 'İzleme', action: 'Karar' };
+function filterCaption(key, value) {
+    if (key === 'tier') return 'T'+value;
+    if (key === 'enchant') return '.'+value;
+    if (key === 'execution') return EXECUTION_MODELS[value]?.label || value;
+    if (key === 'action') return ACTION_LABELS[value] || value;
+    if (key === 'watched') return 'İzlenenler';
+    if (key === 'confidence') return value === '0.7' ? 'Yüksek' : 'Orta ve üzeri';
+    if (key === 'evidence') return (state.filters.viewMode === 'spreads' ? SPREAD_REVIEW_CLASSES : SPREAD_CLASSES)[value]?.label || value;
+    return value;
 }
-function boardHtml(scan, list, resultCount, totals) {
-    if (!scan?.funnel) return '';
-    const funnel = scan.funnel;
-    const excluded = scan.excluded || {};
-    const notes = scan.funnelNotes || {};
-    const server = getServer();
-    const dropped = [
-        notes.filtered,
-        `Geçmiş yok ${excluded.noHistory ?? 0}. ${notes.noHistory || ''}`,
-        `Tek gözlem ${excluded.singleObservation ?? 0}. ${notes.singleObservation || ''}`,
-        `Eski fiyat ${excluded.stale ?? 0}. ${notes.stale || ''}`,
-        `Eşik altı ${excluded.belowDeviation ?? 0}. ${notes.belowDeviation || ''}`,
-        `Liste sınırı ${excluded.overLimit ?? 0}. ${notes.overLimit || ''}`
-    ].filter(Boolean).join('\n');
-    const listed = list;
-    const spreadMode = state.filters.viewMode === 'spreads';
-    const counts = { open: 0, risk: 0, waiting: 0 };
-    const positives = [];
-    for (const row of listed) {
-        counts[spreadMode ? ({ unusual: 'open', normal: 'risk', insufficient: 'waiting' }[spreadReviewKey(row)]) : resolveOpportunityCard(row).group] += 1;
-        if ((row.primary?.advantageSilver || 0) > 0) positives.push(row);
+function activeFiltersHtml() {
+    const defaults = defaultFilters();
+    const chips = Object.entries(FILTER_LABELS).filter(([key]) => state.filters[key] !== defaults[key] && state.filters[key] !== '').map(([key, label]) => ({key, value: state.filters[key], label: label+': '+filterCaption(key, state.filters[key])}));
+    for (const key of ['views', 'excludedViews']) for (const value of state.filters[key]) chips.push({key,value,label:(key === 'excludedViews' ? 'Hariç: ' : '')+(value.startsWith('spread:') ? SPREAD_REVIEW_CLASSES[value.slice(7)]?.label : STRATEGY_SPECS[value]?.label || value)});
+    return chips.map(chip => '<button type="button" class="badge filter-selection-button" data-remove-filter="'+chip.key+'" data-value="'+escapeHtml(chip.value)+'" aria-label="'+escapeHtml(chip.label+' filtresini kaldır')+'">'+escapeHtml(chip.label)+' <span aria-hidden="true">×</span></button>').join('');
+}
+function clearFilters() {
+    state.filters = defaultFilters(); saveFilters(); renderFilters(); renderShellFiltersForMode(); renderTable();
+}
+function persistClientScanState(availableCount, shownCount) {
+    const scan = state.scan;
+    if (!scan?.scanId) return;
+    const snapshot = { scanId: scan.scanId, filters: state.filters, layout: state.layout, availableCount, shownCount };
+    const body = JSON.stringify(snapshot);
+    if (body === diagnosticsPostBody) return;
+    diagnosticsPostBody = body;
+    diagnosticsPendingBody = body;
+    clearTimeout(diagnosticsPostTimer);
+    diagnosticsPostTimer = setTimeout(() => {
+        diagnosticsPostTimer = null;
+        diagnosticsPendingBody = '';
+        diagnosticsPostPromise = postClientDiagnostics(body);
+    }, 180);
+}
+function postClientDiagnostics(body) {
+    return fetch(`${localPriceHost()}/api/v1/market/opportunity-diagnostics/client`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, body,
+        signal: AbortSignal.timeout(5000)
+    }).catch(() => {});
+}
+function diagnosticCount(value) { return Number.isFinite(Number(value)) ? formatQuantity(Number(value), { digits: 0 }) : '—'; }
+function scanComparisonText(current, previous, field) {
+    const now = current?.counts?.[field], before = previous?.counts?.[field];
+    if (!Number.isFinite(now) || !Number.isFinite(before)) return diagnosticCount(now);
+    const delta = now - before;
+    return `${diagnosticCount(before)} → ${diagnosticCount(now)} (${delta > 0 ? '+' : ''}${diagnosticCount(delta)})`;
+}
+function renderPersistentScanDiagnostics(data) {
+    const summary = root.querySelector('[data-scan-diagnostics-summary]');
+    const pre = root.querySelector('[data-scan-diagnostics-content]');
+    const scans = data.scans || [];
+    const latest = scans.at(-1), previous = scans.at(-2);
+    const currentClient = latest && (data.clientStates || []).filter(row => row.scanId === latest.scanId).at(-1);
+    const previousClient = previous && (data.clientStates || []).filter(row => row.scanId === previous.scanId).at(-1);
+    const collector = (data.collectorRuns || []).at(-1);
+    const previousCollector = (data.collectorRuns || []).at(-2);
+    const c = collector?.metrics || {};
+    const pc = previousCollector?.metrics || {};
+    const windows = data.collectorWindows || {};
+    const windowMetric = (window, key) => diagnosticCount(windows[window]?.totals?.[key]);
+    const nats = data.nats || {};
+    const reasons = latest?.primaryReasons || {};
+    const reasonText = Object.entries(reasons).map(([key, value]) => `${key}: ${diagnosticCount(value)}`).join(' · ') || '—';
+    const filtersText = currentClient ? JSON.stringify(currentClient.filters) : 'Bu tarama için tarayıcı filtresi kaydı henüz gelmedi.';
+    const when = value => value ? formatRelativeDateTime(value) : '—';
+    summary.innerHTML = `<p><strong>Son tarama:</strong> ${escapeHtml(when(latest?.scannedAt))} · ${escapeHtml(latest?.server || getServer().id)} · snapshot <code>${escapeHtml(latest?.snapshotId?.slice(0, 12) || '—')}</code></p>
+        <p><strong>Ham → gruplu:</strong> fırsat ${escapeHtml(scanComparisonText(latest, previous, 'priceSupported'))} · izleme ${escapeHtml(scanComparisonText(latest, previous, 'watch'))}. Son tarama grubu ${escapeHtml(diagnosticCount(latest?.counts?.groups?.opportunities?.before))} → ${escapeHtml(diagnosticCount(latest?.counts?.groups?.opportunities?.after))}; izleme ${escapeHtml(diagnosticCount(latest?.counts?.groups?.watch?.before))} → ${escapeHtml(diagnosticCount(latest?.counts?.groups?.watch?.after))}. Snapshot ${previous ? (latest.snapshotId === previous.snapshotId ? 'aynı veri kimliği' : 'farklı veri kimliği') : 'önceki karşılaştırma yok'}.</p>
+        <p><strong>Tarama farkı:</strong> incelenen ${escapeHtml(scanComparisonText(latest, previous, 'examined'))} · elenen ${escapeHtml(diagnosticCount(latest?.counts?.rejected))}. Birincil nedenler: ${escapeHtml(reasonText)}.</p>
+        <p><strong>Örtüşen fiyat kanıtı</strong> (${escapeHtml(latest?.priceEvidence?.scope || '—')}): taze &lt;6 sa ${escapeHtml(diagnosticCount(latest?.priceEvidence?.freshUnder6h))} · eski ≥6 sa ${escapeHtml(diagnosticCount(latest?.priceEvidence?.stale6hOrMore))} · eksik ${escapeHtml(diagnosticCount(latest?.priceEvidence?.missingPriceOrTime))} · zaman belirsiz ${escapeHtml(diagnosticCount(latest?.priceEvidence?.unknownOrFutureSourceTime))} · rotada &gt;60 dk fark ${escapeHtml(diagnosticCount(latest?.priceEvidence?.routesWithSourceTimeSkewOver60m))}.</p>
+        <p><strong>Gerçekten gösterilen:</strong> ${escapeHtml(diagnosticCount(currentClient?.shownCount))} / ${escapeHtml(diagnosticCount(currentClient?.availableCount))} sonuç · filtre kaydı ${escapeHtml(when(currentClient?.recordedAt))}${previousClient ? ` · önceki ${escapeHtml(diagnosticCount(previousClient.shownCount))}` : ''}<br><small>Etkin filtreler: ${escapeHtml(filtersText)}</small></p>
+        <p><strong>Son collector turu:</strong> ${escapeHtml(when(collector?.completedAt))} · HTTP gönderilen/başarılı/başarısız ${escapeHtml(diagnosticCount(c.httpRequestsSent))}/${escapeHtml(diagnosticCount(c.httpResponsesSuccess))}/${escapeHtml(diagnosticCount(c.httpResponsesFailure))} · satır ${escapeHtml(diagnosticCount(c.rowsReceived))} · geçerli taraf ${escapeHtml(diagnosticCount(c.validPriceSides))} · yeni kaynak zamanı ${escapeHtml(diagnosticCount(c.newSourceTimestampEvents))} · yinelenen ${escapeHtml(diagnosticCount(c.repeatedEvents))} · 6 sa eski ${escapeHtml(diagnosticCount(c.sourceOlderThan6h))} · yeni saatlik arşiv ${escapeHtml(diagnosticCount(c.newHourlyArchiveRecords))}${previousCollector ? ` · önceki tur: kaynak zamanı ${escapeHtml(diagnosticCount(pc.newSourceTimestampEvents))}, saatlik kayıt ${escapeHtml(diagnosticCount(pc.newHourlyArchiveRecords))}` : ''}.</p>
+        <p><strong>Collector pencereleri (1 sa / 1 gün / 1 hafta):</strong> HTTP ${escapeHtml(windowMetric('hour', 'httpRequestsSent'))}/${escapeHtml(windowMetric('day', 'httpRequestsSent'))}/${escapeHtml(windowMetric('week', 'httpRequestsSent'))} · yeni kaynak zamanı ${escapeHtml(windowMetric('hour', 'newSourceTimestampEvents'))}/${escapeHtml(windowMetric('day', 'newSourceTimestampEvents'))}/${escapeHtml(windowMetric('week', 'newSourceTimestampEvents'))} · saatlik arşiv ${escapeHtml(windowMetric('hour', 'newHourlyArchiveRecords'))}/${escapeHtml(windowMetric('day', 'newHourlyArchiveRecords'))}/${escapeHtml(windowMetric('week', 'newHourlyArchiveRecords'))}.</p>
+        <p><strong>NATS paket telemetrisi:</strong> ${escapeHtml(nats.status || '—')} · mesaj ${escapeHtml(diagnosticCount(nats.messages))} · geçerli emir ${escapeHtml(diagnosticCount(nats.validOrders))} · kapsam içi ${escapeHtml(diagnosticCount(nats.inScope))} · çok emirli hücre ${escapeHtml(diagnosticCount(nats.multiOrderCells))} · güvenilir tam kitap ${escapeHtml(diagnosticCount(nats.reliableBooks))}. Bu akış tek başına tam emir defteri kanıtlamaz.</p>`;
+    pre.textContent = JSON.stringify(data, null, 2);
+}
+async function loadPersistentScanDiagnostics() {
+    const summary = root.querySelector('[data-scan-diagnostics-summary]');
+    const pre = root.querySelector('[data-scan-diagnostics-content]');
+    summary.textContent = 'Tarama ve collector geçmişi yükleniyor…';
+    try {
+        if (diagnosticsPostTimer && diagnosticsPendingBody) {
+            clearTimeout(diagnosticsPostTimer); diagnosticsPostTimer = null;
+            const body = diagnosticsPendingBody; diagnosticsPendingBody = '';
+            diagnosticsPostPromise = postClientDiagnostics(body);
+        }
+        await diagnosticsPostPromise;
+        const response = await fetch(`${localPriceHost()}/api/v1/market/opportunity-diagnostics?server=${encodeURIComponent(getServer().id)}`, { signal: AbortSignal.timeout(7000) });
+        const payload = await response.json();
+        if (!response.ok) throw new Error(payload.error || 'Tanı geçmişi alınamadı.');
+        renderPersistentScanDiagnostics(payload);
+        root.querySelector('[data-scan-diagnostics-download]').onclick = () => {
+            const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+            const link = document.createElement('a'); link.href = URL.createObjectURL(blob);
+            link.download = `opportunity-diagnostics-${getServer().id}.json`; link.click(); URL.revokeObjectURL(link.href);
+        };
+    } catch (error) {
+        summary.textContent = error?.message || 'Tanı geçmişi alınamadı.';
+        pre.textContent = JSON.stringify({ currentScan: state.scan ? { scanId: state.scan.scanId, snapshotId: state.scan.snapshotId,
+            scannedAt: state.scan.scannedAt, filters: state.filters, shownCount: rankedVisibleRows().length } : null, error: summary.textContent }, null, 2);
     }
-    const peak = positives.reduce((best, row) => (row.primary.advantageSilver > (best?.primary.advantageSilver || 0) ? row : best), null);
-    const average = positives.length
-        ? positives.reduce((sum, row) => sum + row.primary.advantageSilver, 0) / positives.length
-        : null;
-    const confirmed = listed.filter((row) => row.review === 'confirmed').length;
-    const rateBase = funnel.referenceable || 0;
-    const when = clockTime(scan.scannedAt);
-    return `<section class="opp-board">
-        <div class="opp-board-top">
-            <div class="opp-summary">
-                ${badge(`${server?.label || scan.server} · ${list.length} / ${resultCount} gösteriliyor`, `Bu görünümdeki filtrelere uyan ${resultCount} kayıt. En fazla ${scan.listLimit || OPPORTUNITY_QUALITY_POLICY.listLimit} kart gösterilir.`)}
-                ${badge(`Hücre ${funnel.cells}`, `${notes.cells || ''}\nGeçmiş ${funnel.withHistory}. ${notes.withHistory || ''}`)}
-                ${badge(`Referans ${funnel.referenceable}`, notes.referenceable)}
-                ${badge(`Taze ${funnel.fresh}`, notes.fresh)}
-                ${badge(`Fırsat ${totals.verified} doğrulanmış / ${totals.potential} potansiyel`, 'Potansiyel kayıtlar anlamlı fiyat hareketi veya ücret sonrası anlık fark gösterir; doğrulama eylemi gerektirir, emir önerisi değildir. Makas stratejileri ayrı sayılır.', 'is-strong')}
-                ${badge(`Makas ${totals.spreads}`, 'Yerel emir kurma makası listesi. Emirlerin dolması bilinmiyor.')}
-                ${scan.counts ? badge(`Şüpheli veri ${scan.counts.suspicious}`, 'Karantinaya alınmış gözlem sayısı; fırsat veya makas sayacına dahil değildir.', 'is-warn') : ''}
-                ${scan.counts ? badge(`Yetersiz veri ${scan.counts.insufficient}`, 'Güven/kanıt koşullarını tamamlamayan hücre sayısı; fırsat veya makas sayacına dahil değildir.') : ''}
-                ${scan.counts?.monitored ? badge(`İzlenen ${scan.counts.monitored}`, 'L3 referansı bulunan fakat henüz uygunluk kapılarını geçmeyen hücreler.') : ''}
-                ${badge(`Tarama dışında ${funnel.filtered}`, `Taranan hücrelerden engine'in sınırlı listelemesine alınmayan toplam. Fırsat ve makas listelerinin toplamı değildir.\n${dropped}`)}
-                ${badge('Derinlik yok', 'Hacim, emir derinliği ve gerçekleşme ihtimali bu arşivde yoktur. Doluluk tahmini üretilmez.')}
-            </div>
-            <div class="opp-updated">
-                <span class="opp-live" aria-hidden="true"></span>
-                <span>Son güncelleme: ${escapeHtml(when || '—')}</span>
-                <button type="button" class="opp-rescan" data-opportunities-rescan aria-label="Taramayı yenile">${ICONS.refresh}</button>
-            </div>
-        </div>
-        <div class="opp-stats">
-            ${statCard('items', 'cube', 'Toplam ürün', formatQuantity(new Set(listed.map((row) => row.itemId)).size, { digits: 0 }), `Taranan: ${formatQuantity(funnel.cells, { digits: 0 })}`, 'Listelenen satırlardaki farklı ürün. Taranan, ürün-şehir-kalite hücresidir.')}
-            ${statCard('gain', 'trend', spreadMode ? 'Olağandışı makas' : 'Değerlendirilebilir', formatQuantity(counts.open, { digits: 0 }), listed.length ? `${formatPct(counts.open / listed.length)} oranında` : '—', 'Uygulanabilir ya da doğrulanmış strateji durumundaki kartlar. Gerçekleşen kâr değildir.')}
-            ${statCard('average', 'scale', 'Ortalama teorik fark', average == null ? '—' : formatSilver(average, { signed: true }), 'Pozitif olanlar', 'Pozitif teorik farkların ortalaması. Emrin dolacağı varsayılmaz.')}
-            ${statCard('peak', 'coins', 'En yüksek fark', peak ? formatSilver(peak.primary.advantageSilver, { signed: true }) : '—', peak ? itemLabel(peak.itemId) : '—', 'Listede görünen en büyük teorik fark. Sıralamayı tek başına belirlemez.')}
-            ${statCard('rate', 'clock', 'Anomali oranı', rateBase ? formatPct(funnel.anomalies / rateBase) : '—', `${formatQuantity(funnel.anomalies, { digits: 0 })} / ${formatQuantity(rateBase, { digits: 0 })} referans`, 'Sapma eşiğini geçen hücrelerin, referansı olan hücrelere oranı.')}
-        </div>
-        <div class="opp-strip-row">
-            <div class="opp-strip">
-                <span class="opp-strip-title">${ICONS.bolt}Hızlı özet</span>
-                <span${tip('Uygulanabilir ya da doğrulanmış strateji.')}><span class="opp-dot is-up"></span>${formatQuantity(counts.open, { digits: 0 })} ${spreadMode ? 'olağandışı makas' : 'fırsat'}</span>
-                <span${tip('Engelli, anomali ya da ücret sonrası kârsız.')}><span class="opp-dot is-down"></span>${formatQuantity(counts.risk, { digits: 0 })} ${spreadMode ? 'normal makas' : 'riskli'}</span>
-                <span${tip('Yetersiz veri, eski veri ya da henüz doğrulanmamış.')}><span class="opp-dot"></span>${formatQuantity(counts.waiting, { digits: 0 })} ${spreadMode ? 'veri yetersiz' : 'beklemede'}</span>
-                <span class="opp-strip-gap"${tip('Pozitif teorik farkların ortalaması.')}>${ICONS.trend}Ortalama fark ${average == null ? '—' : formatSilver(average, { signed: true })}</span>
-                <span${tip('Listedeki en büyük teorik fark.')}>${ICONS.coins}En yüksek ${peak ? formatSilver(peak.primary.advantageSilver, { signed: true }) : '—'}</span>
-                <span${tip('Listedeki doğrulanmış satır payı. Emir doluluk tahmini değildir.')}>${ICONS.clock}Doğrulanan ${listed.length ? formatPct(confirmed / listed.length) : '—'}</span>
-            </div>
-            ${layoutButtons()}
-        </div>
-    </section>`;
+}
+function renderControlBar(resultCount = rankedVisibleRows().length) {
+    const host = root.querySelector('[data-opportunities-controlbar]');
+    if (!host) return;
+    const filters = activeFiltersHtml();
+    host.innerHTML = '<div class="opp-control-row"><div class="opp-views opp-mode-switch" data-list-modes role="group" aria-label="Fırsat listesi">'+listModeChips()+'</div><div class="opp-control-actions"><button type="button" class="btn btn-sm btn-outline-secondary" data-open-filters>Filtreler'+(filters ? ' · aktif' : '')+'</button>'+layoutButtons()+'</div></div><div class="opp-control-row"><div class="opp-system-status" role="status">'+escapeHtml(state.scan ? getServer().label+' · '+resultCount+' sonuç · '+clockTime(state.scan.scannedAt)+' · '+(uiService?.collector?.status === 'repository-error' ? 'Arşiv sorunu' : uiService ? 'Servis bağlı' : 'Tarama hazır') : 'Tarama bekleniyor')+'</div><div class="opp-views" role="group" aria-label="Sıralama"><button type="button" class="btn btn-sm btn-outline-secondary" data-evidence-open-report aria-haspopup="dialog">Performans · 0/0</button><button type="button" class="btn btn-sm btn-outline-secondary" data-scan-diagnostics aria-haspopup="dialog"'+(!state.scan ? ' disabled' : '')+'>Tarama tanısı</button>'+SORTS.map(sort => '<button type="button" class="opp-view'+(sort.id === state.filters.sort ? ' is-active' : '')+'" data-sort="'+sort.id+'" aria-pressed="'+(sort.id === state.filters.sort)+'">'+sort.label+'</button>').join('')+'<button type="button" class="opp-rescan" data-bar-rescan aria-label="Taramayı yenile">'+ICONS.refresh+'</button></div></div>'+(filters ? '<div class="opp-active-filters" aria-label="Aktif filtreler">'+filters+'<button type="button" class="btn btn-sm btn-outline-secondary" data-clear-filters>Tümünü temizle</button></div>' : '');
+    host.querySelector('[data-open-filters]').addEventListener('click', () => root.querySelector('[data-opportunities-filter-dialog]').showModal());
+    host.querySelector('[data-evidence-open-report]')?.addEventListener('click', () => root.querySelector('[data-opportunities-evidence-dialog]').showModal());
+    host.querySelector('[data-scan-diagnostics]')?.addEventListener('click', () => {
+        const scan = state.scan;
+        if (!scan) return;
+        root.querySelector('[data-scan-diagnostics-dialog]').showModal();
+        void loadPersistentScanDiagnostics();
+    });
+    host.querySelector('[data-bar-rescan]').addEventListener('click', () => loadScan());
+    host.querySelector('[data-clear-filters]')?.addEventListener('click', clearFilters);
+    host.querySelectorAll('[data-sort]').forEach(button => button.addEventListener('click', () => { state.filters.sort = button.dataset.sort; saveFilters(); renderTable(); }));
+    host.querySelectorAll('[data-layout]').forEach(button => button.addEventListener('click', () => { state.layout = button.dataset.layout; writeStorage(LAYOUT_KEY, state.layout); renderTable(); }));
+    host.querySelector('[data-list-modes]').addEventListener('click', event => {
+        const button = event.target.closest('[data-list-mode]'); if (!button) return;
+        state.filters.viewMode = button.dataset.listMode; state.filters.views = []; state.filters.excludedViews = []; state.filters.evidence = ''; saveFilters(); renderShellFiltersForMode(); renderFilters(); renderTable();
+    });
+    host.querySelectorAll('[data-remove-filter]').forEach(button => button.addEventListener('click', () => {
+        const key = button.dataset.removeFilter;
+        if (Array.isArray(state.filters[key])) state.filters[key] = state.filters[key].filter(value => value !== button.dataset.value);
+        else state.filters[key] = defaultFilters()[key];
+        saveFilters(); renderFilters(); renderShellFiltersForMode(); renderTable();
+    }));
+    root.querySelector('[data-filter-result-count]').textContent = resultCount+' sonuç';
+    renderChips();
+}
+async function refreshServiceStatus() {
+    try { const response = await fetch(localPriceHost()+'/api/v2/stats/status', { signal: AbortSignal.timeout(5000) }); if (response.ok) uiService = await response.json(); } catch { uiService = null; }
+    renderControlBar();
 }
 
 function advantageCell(row) {
@@ -498,7 +584,8 @@ function citySlug(city) {
     return String(city || '').trim().toLowerCase().replace(/[\s_]+/g, '-');
 }
 function trustOf(row) {
-    const confidence = Math.round((row.parts.reliability || 0) * 100);
+    const evidence = row.opportunityQuality?.evidenceComponents;
+    const confidence = Math.round((evidence?.source ?? row.parts.reliability ?? 0) * 100);
     return { confidence, tone: confidence >= 70 ? 'is-high' : confidence >= 35 ? 'is-mid' : 'is-low' };
 }
 const TRUST_LEVEL = { 'is-high': 3, 'is-mid': 2, 'is-low': 1 };
@@ -507,6 +594,7 @@ const CARD_REASONS = {
     'place-sell-order': { side: 'sell', glyph: 'trend', title: 'Yüksek Sell', note: 'Satış fiyatı referansın üzerinde.', action: { glyph: 'tag', label: 'Satış emri koy' } },
     'instant-buy-from-sell': { side: 'sell', glyph: 'trendDown', title: 'Düşük Sell', note: 'Satış fiyatı referansın altında.', action: { glyph: 'cart', label: 'Hemen al' } },
     'instant-sell-to-buy': { side: 'buy', glyph: 'trend', title: 'Yüksek Buy', note: 'Alış emri referansın üzerinde.', action: { glyph: 'coins', label: 'Buy emrine sat' } },
+    'place-buy-order-sales': { side: 'buy', glyph: 'trendDown', title: 'Düşük Buy · Satış geçmişi', note: 'Alış emri maliyeti satış geçmişinin altında.', action: { glyph: 'tag', label: 'Alış emri koy' } },
     'place-buy-order': { side: 'buy', glyph: 'trendDown', title: 'Düşük Buy', note: 'Alış emirleri referansın altında.', action: { glyph: 'tag', label: 'Alış emri koy' } },
     'local-make': { pair: 'make', glyph: 'swap', title: 'Makas incelemesi', note: 'Pozitif makas tek başına işlem gerekçesi değildir.', action: { glyph: 'swap', label: 'Makası incele' } },
     'local-flip': { pair: 'flip', glyph: 'swap', title: 'Ters makas', note: 'Buy emri, Sell fiyatının üzerinde.', action: { glyph: 'swap', label: 'Al ve hemen sat' } },
@@ -532,6 +620,11 @@ function sidePrices(side) {
     return side?.price ? `${formatSilver(side.price)} / Ref ${side.reference ? formatSilver(side.reference) : 'yok'}` : '';
 }
 function reasonMetric(row, reason, strategy) {
+    if (STRATEGY_SPECS[strategy?.id]?.group === 'valuation') {
+        const reference = strategy.evidence?.inputs?.buy?.salesReference;
+        return { label: 'Satış geçmişine göre', value: signedPct(strategy.deviation),
+            sub: `Emir + setup ${formatSilver(strategy.economics?.capitalSilver)} / Satış medyanı ${formatSilver(reference?.price)} · ${reference?.validDays ?? 0} gün` };
+    }
     if (reason.side) {
         const side = row[reason.side];
         return { label: SIDE_NAME[reason.side], value: signedPct(side?.deviation), sub: sidePrices(side) };
@@ -630,46 +723,40 @@ function trustMark(row) {
     const bars = [[4.5, 14, 6], [10.4, 9.5, 10.5], [16.3, 5, 15]]
         .map(([x, y, h], index) => `<rect x="${x}" y="${y}" width="3.2" height="${h}" fill="currentColor"${index < level ? '' : ' opacity=".25"'}/>`)
         .join('');
-    const text = `Referans güveni %${Math.round((row.referenceConfidence ?? row.parts.reliability ?? 0) * 100)}\nİşlem güveni %${Math.round((row.executionConfidence ?? 0) * 100)}\n${[row.buy, row.sell].flatMap(side => side?.validationReasons || []).map(reason => OBSERVATION_REASON_TEXT[reason] || reason).join(', ')}\nHacim içermez.`;
+    const reference = row.primary?.referenceRequired === false ? 'Bu stratejide tarihsel referans gerekmez.'
+        : `Referans güveni %${Math.round((row.referenceConfidence ?? row.parts.reliability ?? 0) * 100)}`;
+    const text = `${reference}\nKaynak fiyat kanıtı %${trust.confidence}\n${[row.buy, row.sell].flatMap(side => side?.validationReasons || []).map(reason => OBSERVATION_REASON_TEXT[reason] || reason).join(', ')}\nMiktar, dolum veya başarı olasılığı değildir.`;
     return `<span class="opp-mark ${trust.tone}" role="img" aria-label="Güven %${trust.confidence}"${tip(text)}>${icon(bars)}</span>`;
 }
 function cardHtml(row) {
-    const face = cardFace(row);
-    const { card } = face;
-    const strategy = card.decision?.strategy;
-    const tier = itemTier(row.itemId);
-    const enchant = itemEnchant(row.itemId);
-    const tierTip = [`Tier ${tier}`, enchant ? `Enchant ${enchant}` : '', row.quality > 1 ? `Kalite ${row.quality}` : ''].filter(Boolean).join(' · ');
-    const tierBadge = tier ? `<span class="badge opp-card-tier" data-tier="${tier}"${tip(tierTip)}>T${tier}${enchant ? `.${enchant}` : ''}</span>` : '';
-    const net = Number.isFinite(card.facts.net) ? `Ücret sonrası teorik sonuç ${formatSilver(card.facts.net, { signed: true })}. Gerçekleşmiş kâr değildir.` : '';
-    const execution = strategy?.execution || STRATEGY_SPECS[strategy?.id]?.execution;
-    const actionTip = [card.label, EXECUTION_MODELS[execution]?.label, strategy?.label, net, strategy?.note].filter(Boolean).join('\n');
-    const metric = face.metric;
-    const marks = `${statusMark(row, card)}${card.decision?.declined ? '' : orderMark(strategy)}${trustMark(row)}`;
-    face.action = { ...face.action, label: assistantAction(row).label };
-    return `<article class="opp-card is-status-${card.status.toLowerCase()} is-tone-${card.tone}${state.selectedId === row.id ? ' is-selected' : ''}" data-opportunity="${escapeHtml(row.id)}" data-city="${escapeHtml(citySlug(row.city))}" data-trade="${card.trade}" tabindex="0">
-        <header class="opp-card-head">
-            <span class="opp-card-art">${itemIconHtml(row.itemId, { visual: true })}${tierBadge}</span>
-            <div class="opp-card-id"><strong${tip(itemLabel(row.itemId))}>${itemNameHtml(itemLabel(row.itemId))}</strong><span class="opp-card-meta"><span class="opp-card-city" lang="en">${escapeHtml(strategy?.toCity ? `${row.city} → ${strategy.toCity}` : row.city)}${row.quality > 1 ? ` · Q${row.quality}` : ''}</span><span class="opp-card-marks">${marks}</span></span></div>
-        </header>
-        <div class="opp-focus"${tip([card.label, face.note, [metric.label, metric.value, metric.after].filter(Boolean).join(' '), metric.sub, row.patternLabel, row.reviewLabel].filter(Boolean).join('\n'))}>
-            <div class="opp-focus-why"><span class="opp-focus-icon">${ICONS[face.glyph]}</span><span><strong>${escapeHtml(face.title)}</strong>${face.note ? `<small>${escapeHtml([EXECUTION_MODELS[execution]?.label, face.note].filter(Boolean).join(' · '))}</small>` : ''}</span></div>
-            <div class="opp-focus-value"><span class="opp-focus-metric">${metric.label ? `<small>${escapeHtml(metric.label)}</small>` : ''}<strong>${escapeHtml(metric.value)}</strong>${metric.after ? `<small>${escapeHtml(metric.after)}</small>` : ''}</span>${metric.sub ? `<span class="opp-focus-sub">${escapeHtml(metric.sub)}</span>` : ''}</div>
-        </div>
-        <small class="opp-reference">${escapeHtml(referenceText(row))}</small>
-        <div class="opp-card-controls">${watchButton(row)}
-        <button type="button" class="opp-card-go"${face.action.rescan ? ' data-opportunities-rescan' : ''}${tip(actionTip)}>${ICONS[face.action.glyph]}<span>${escapeHtml(face.action.label)}</span>${ICONS.chevron}</button></div>
-    </article>`;
+    const face = cardFace(row), card = face.card;
+    const strategy = card.decision?.strategy || row.primary;
+    const tier = itemTier(row.itemId), enchant = itemEnchant(row.itemId);
+    const net = Number.isFinite(card.facts.net) ? formatSilver(card.facts.net, { signed: true }) : escapeHtml(row.validationStatus === 'quarantined' ? face.metric.value : '—');
+    const evidenceLabel = OPPORTUNITY_OUTCOMES[row.outcome] || card.label;
+    const roi = strategy?.economics?.returnRatio;
+    const valuation = STRATEGY_SPECS[strategy?.id]?.group === 'valuation';
+    const reference = strategy?.evidence?.inputs?.buy?.salesReference;
+    const referenceNote = valuation ? `Satış medyanı ${formatSilver(reference?.price)} · ${reference?.validDays ?? 0} gün` : '';
+    const action = { ...face.action, label: assistantAction(row).label };
+    return '<article class="opp-card is-status-'+card.status.toLowerCase()+' is-tone-'+card.tone+(state.selectedId === row.id ? ' is-selected' : '')+'" data-opportunity="'+escapeHtml(row.id)+'" data-trade="'+card.trade+'" tabindex="0">'+
+        '<header class="opp-card-head"><span class="opp-card-art">'+itemIconHtml(row.itemId, {visual:true})+'</span><div class="opp-card-id"><strong>'+itemNameHtml(itemLabel(row.itemId))+'</strong><span class="opp-card-meta"><span class="badge" data-tier="'+tier+'">T'+tier+(enchant ? '.'+enchant : '')+'</span><span>Q'+row.quality+'</span></span></div></header>'+
+        '<span class="opp-card-city">'+escapeHtml(strategy?.toCity ? row.city+' → '+strategy.toCity : row.city)+'</span>'+
+        '<div class="opp-focus-why"><strong>'+escapeHtml(face.title)+'</strong><small>'+escapeHtml(referenceNote || strategy?.label || face.note || 'Kontrol gerekli')+'</small></div>'+
+        '<div class="opp-focus-value"'+tip('Gerçekleşmiş kâr değildir. '+(strategy?.execution ? EXECUTION_MODELS[strategy.execution]?.label : ''))+'><div><small>'+(valuation ? 'Referansa göre tasarruf / adet' : 'Net teorik fark / adet')+'</small><strong>'+(valuation ? formatSilver(strategy.advantageSilver) : net)+'</strong></div><div><small>'+(valuation ? 'Referansa göre sapma' : 'ROI')+'</small><strong>'+escapeHtml(valuation ? signedPct(strategy.deviation) : Number.isFinite(roi) ? formatPct(roi) : '—')+'</strong></div></div>'+
+        '<div class="opp-card-evidence"><span>'+escapeHtml(evidenceLabel.split(' · ')[0])+(evidenceLabel.includes(' · ') ? '<small>'+escapeHtml(evidenceLabel.split(' · ')[1])+'</small>' : '')+'</span>'+statusMark(row,card)+orderMark(strategy)+trustMark(row)+(row.routeOptions?.length > 1 ? '<small>'+row.routeOptions.length+' kaynak rota</small>' : '')+'</div>'+
+        '<div class="opp-card-controls">'+watchButton(row)+'<button type="button" class="opp-card-go"'+' aria-label="'+escapeHtml('Detayı aç · '+action.label)+'">'+ICONS[action.glyph]+'<span>Detayı aç</span>'+ICONS.chevron+'</button></div></article>';
 }
+
+let evidenceUI = null;
 function renderTable() {
     const host = root.querySelector('[data-opportunities-result]');
     const ranked = rankedVisibleRows();
     const list = ranked.slice(0, state.scan?.listLimit ?? OPPORTUNITY_QUALITY_POLICY.listLimit);
     const totals = listCounts();
     renderChips(ranked, totals);
-    const scan = state.scan;
     const body = state.layout === 'cards'
-        ? `<div class="opp-cards">${list.map(cardHtml).join('') || `<p class="opp-empty">${state.error ? 'Tarama sonucu yok.' : 'Bu filtrelerde kart yok.'}</p>`}</div>`
+        ? `<div class="opp-cards">${list.map(cardHtml).join('') || `<p class="opp-empty">${escapeHtml(opportunityEmptyText(state.scan, totals.verified + totals.potential))}</p>`}</div>`
         : `<div class="calc-table-wrap table-responsive">
             <table class="table table-striped calc-table opp-table">
                 <thead>
@@ -696,7 +783,7 @@ function renderTable() {
                     const label = itemLabel(row.itemId);
                     return `<tr class="opp-row${state.selectedId === row.id ? ' is-selected' : ''}" data-opportunity="${escapeHtml(row.id)}" tabindex="0">
                         <td><span class="opp-identity">${itemIconHtml(row.itemId, { visual: true })}<span class="opp-meta">${tier ? `<span class="badge" data-tier="${tier}">T${tier}</span>` : ''}${enchant ? badge(`@${enchant}`, 'Enchant') : ''}</span><span class="opp-name"><strong>${itemNameHtml(label)}</strong><span class="opp-acts">${actionTags(row)}</span></span></span></td>
-                        <td><span class="opp-city">${escapeHtml(row.city)}${row.quality > 1 ? `<small>Q${row.quality}</small>` : ''}</span></td>
+                        <td><span class="opp-city">${escapeHtml(row.primary?.toCity ? `${row.city} → ${row.primary.toCity}` : row.city)}${row.routeOptions?.length > 1 ? `<small>${row.routeOptions.length} kaynak alternatifi</small>` : ''}${row.quality > 1 ? `<small>Q${row.quality}</small>` : ''}</span></td>
                         ${sideCells(row.buy)}${sideCells(row.sell)}
                         <td><span class="opp-move ${moveTone(row.pattern)}"${tip(row.patternLabel)}>${escapeHtml(PATTERN_BADGE[row.pattern] || row.patternLabel)}</span></td>
                         <td><span class="opp-kind is-${face.tone}"${tip(faceTip)}><span class="opp-kind-icon">${ICONS[face.glyph]}</span><span><strong>${escapeHtml(spread?.label || face.title)}</strong><small>${escapeHtml(spread?.note || face.note)}</small></span></span></td>
@@ -704,11 +791,10 @@ function renderTable() {
                         <td><span class="opp-trust ${trust}"${tip('Referans örnek sayısı, yayılım ve onay. Hacim içermez.')}><span class="opp-trust-track"><span class="opp-trust-fill" style="width:${confidence}%"></span></span></span></td>
                         <td><span class="opp-fit"${tip(status.causes.map((cause) => MISSING_NOTE[cause]).filter(Boolean).join('\n'))}><span class="opp-fit-pill is-tone-${status.tone}">${escapeHtml(assistantAction(row).label)}</span>${watchButton(row)}</span></td>
                     </tr>`;
-                }).join('') || `<tr><td colspan="11" class="opp-empty">${state.error ? 'Tarama sonucu yok.' : 'Bu filtrelerde satır yok.'}</td></tr>`}</tbody>
+                }).join('') || `<tr><td colspan="11" class="opp-empty">${escapeHtml(opportunityEmptyText(state.scan, totals.verified + totals.potential))}</td></tr>`}</tbody>
             </table>
         </div>`;
     host.innerHTML = `${state.error ? `<p class="opp-error" role="alert">${escapeHtml(state.error)}</p>` : ''}
-        ${boardHtml(scan, list, ranked.length, totals)}
         ${body}
         ${state.filters.watched ? `<details class="opp-watch-history"><summary>İzleme geçmişi · ${Object.values(state.journal.watches).filter(w => w.server === getServer().id).length}</summary>${Object.values(state.journal.watches).filter(w => w.server === getServer().id).map(w => `<p>${itemNameHtml(itemLabel(w.itemId))} <button type="button" class="btn btn-sm btn-outline-secondary" data-watch-remove="${escapeHtml(candidateIdentity({itemId:w.itemId,city:w.city,quality:w.quality,primary:{id:w.strategy,toCity:w.toCity}},w.server))}">${w.active === false ? 'İzlemeyi sürdür' : 'İzlemeden çıkar'}</button> · ${escapeHtml(w.city)} · ${w.active === false ? 'İzleme durduruldu · ' : ''}${escapeHtml(w.last.action)} · ${escapeHtml(w.last.statusLabel || w.last.status)} · ${formatRelativeDateTime(new Date(w.last.at).toISOString())} · ${w.last.status === 'ABSENT' ? 'Son bilinen ' : ''}Buy ${formatSilver(w.last.buy)} / Sell ${formatSilver(w.last.sell)}<small>İlk: Buy ${formatSilver(w.first.buy)} / Sell ${formatSilver(w.first.sell)} · referans ${formatSilver(w.first.buyReference)} / ${formatSilver(w.first.sellReference)} · ${formatRelativeDateTime(new Date(w.first.at).toISOString())}</small>${w.changes.map(change => `<small>${formatRelativeDateTime(new Date(change.at).toISOString())} · ${escapeHtml(change.action)} · ${escapeHtml(change.statusLabel || change.status)} · Buy ${formatSilver(change.buy)} / Sell ${formatSilver(change.sell)}</small>`).join('')}</p>`).join('')}</details>` : ''}`;
     host.querySelectorAll('[data-opportunities-rescan]').forEach((button) => button.addEventListener('click', (event) => {
@@ -730,10 +816,13 @@ function renderTable() {
         });
     });
     bindAssistant(host);
+    renderControlBar(ranked.length);
+    evidenceUI?.renderReport();
     bindCalcSticky(root);
     const headRow = host.querySelector('.opp-table thead tr');
     if (headRow) host.querySelector('.opp-table')?.style.setProperty('--opp-subhead-top', `${Math.ceil(headRow.getBoundingClientRect().height)}px`);
     bindOpportunityNameFit(host);
+    persistClientScanState(ranked.length, list.length);
 }
 
 const NAME_MIN_PX = 72;
@@ -808,6 +897,62 @@ function chartSvg(points, reference, label) {
     return `<svg viewBox="0 0 ${width} ${height}" role="img" aria-label="${escapeHtml(label)} fiyat geçmişi">${grid}${ref}${line}<text x="${left}" y="${height - 4}">${escapeHtml(first)}</text><text x="${width - right}" y="${height - 4}" text-anchor="end">${escapeHtml(last)}</text></svg>`;
 }
 
+const SCENARIO_ORDER_CHOICES = Object.freeze([{ value: '0', label: 'Anlık işlem' }, { value: '1', label: 'Emir açma' }]);
+const SCENARIO_FIELDS = Object.freeze([
+    { key: 'quantity', label: 'Miktar', step: '1', min: '1' },
+    { key: 'buyPrice', label: 'Birim alış fiyatı', step: 'any', min: '0' },
+    { key: 'sellPrice', label: 'Birim satış fiyatı', step: 'any', min: '0' },
+    { key: 'fixedCost', label: 'Taşıma / sabit ek gider', step: 'any', min: '0' },
+    { key: 'perUnitCost', label: 'Birim başına ek gider', step: 'any', min: '0' },
+    { key: 'buySetup', label: 'Alış işlemi', choices: SCENARIO_ORDER_CHOICES },
+    { key: 'sellSetup', label: 'Satış işlemi', choices: SCENARIO_ORDER_CHOICES }
+]);
+function scenarioFor(row) {
+    const key = row.groupId || row.id;
+    state.simulations[key] ||= { quantity: '', fixedCost: '0', perUnitCost: '0' };
+    const scenario = { ...opportunityTradePrices(row.primary), ...state.simulations[key] };
+    for (const key of ['buySetup', 'sellSetup']) scenario[key] = scenario[key] === true || scenario[key] === '1';
+    return scenario;
+}
+function scenarioResultHtml(row) {
+    const scenario = calculateTradeScenario({ ...scenarioFor(row), premium: state.scan?.premium ?? getSettings().premium !== false,
+        fees: { setupFeeRate: setupFeeRate(), taxPremiumRate: taxPremiumRate(), taxFreeRate: taxFreeRate() } });
+    const messages = { 'quantity-required': 'Toplamları hesaplamak için miktar girin.', 'invalid-quantity': 'Miktar pozitif tam sayı olmalı.',
+        'prices-required': 'Alış maliyeti ve satış fiyatını girin; tarihsel referans yeniden satış fiyatı olarak kullanılmaz.',
+        'invalid-cost': 'Ek giderleri sıfır veya pozitif sayı olarak girin.', 'fees-required': 'Ücret oranları yüklenemedi.', overflow: 'Girilen senaryo güvenli hesaplama aralığını aşıyor.' };
+    if (scenario.status !== 'calculated') return `<p role="status">${escapeHtml(messages[scenario.status])}</p>`;
+    const values = [['Alış maliyeti (alış emir ücreti dahil)', scenario.purchaseTotal], ['Brüt satış geliri', scenario.salesGross],
+        ['Satış vergisi', scenario.tax], ['Alış emir ücreti', scenario.buySetupFee], ['Satış emir ücreti', scenario.sellSetupFee],
+        ['Satış sonrası net gelir', scenario.salesNet], ['Taşıma ve ek giderler', scenario.extraTotal],
+        ['Gerekli sermaye (önceden ödenen giderlerle)', scenario.capital], ['Toplam teorik net kâr', scenario.net]];
+    const activity = row.primary?.salesActivity;
+    const movementNote = activity?.units !== null && Number.isFinite(activity?.units) && scenario.quantity > activity.units
+        ? `<p>Girilen ${formatQuantity(scenario.quantity, { digits: 0 })} adet, geçmişte bildirilen ${formatQuantity(activity.units, { digits: 0 })} adedi aşıyor. ${activity.reportedDays}/${activity.days} gün bildirilmiş; eksik günler bilinmiyor. Bu karşılaştırma mevcut emir miktarı veya satış süresi değildir.</p>` : '';
+    return `<table class="table table-striped calc-table"><tbody>${values.map(([label, value]) => `<tr><th>${escapeHtml(label)}</th><td class="num">${formatSilver(value, { signed: label === 'Toplam teorik net kâr' })}</td></tr>`).join('')}</tbody></table>
+        <p role="status">${scenario.roi !== null ? `Senaryo ROI: ${formatPct(scenario.roi)}. ` : ''}${scenario.breakEvenQuantity !== null
+            ? `Başabaş miktarı: ${formatQuantity(scenario.breakEvenQuantity, { digits: 0 })}. Bu miktar net sıfır veya üzeri için gerekli; emir miktarının var olduğunu kanıtlamaz.`
+            : scenario.unitMargin <= 0 ? 'Birim marj pozitif değil; miktarı artırmak başabaş sağlamaz.' : 'Sabit ek gider sıfır; ayrı bir başabaş miktarı anlamlı değil.'}</p>${movementNote}`;
+}
+function scenarioHtml(row) {
+    if (!row.primary) return '';
+    const values = scenarioFor(row);
+    return `<section data-opportunity-scenario><h3>İşlem senaryosu</h3><div class="tool-split">
+        <div class="tool-split-controls">${SCENARIO_FIELDS.map((field, index) => `${index === 1 ? '<details data-scenario-options><summary>Fiyatlar, emir ve ek maliyetler</summary>' : ''}<div class="form-floating">${field.choices
+            ? `<select class="form-select" id="opp-scenario-${field.key}" data-scenario-field="${field.key}">${field.choices.map(choice => `<option value="${choice.value}"${String(Number(values[field.key])) === choice.value ? ' selected' : ''}>${escapeHtml(choice.label)}</option>`).join('')}</select>`
+            : `<input class="form-control" type="number" id="opp-scenario-${field.key}" data-scenario-field="${field.key}" min="${field.min}" step="${field.step}" placeholder=" " value="${escapeHtml(values[field.key] ?? '')}">`}<label for="opp-scenario-${field.key}">${escapeHtml(field.label)}</label></div>${index === SCENARIO_FIELDS.length - 1 ? '</details>' : ''}`).join('')}</div>
+        <div class="tool-split-result" data-scenario-result aria-live="polite">${scenarioResultHtml(row)}</div></div>
+        <p>${escapeHtml(feeMetaText(state.scan?.premium ?? getSettings().premium !== false))}. Birim fiyatlar ücretlerden öncedir; seçilen emir işlemlerinin ücreti ayrıca hesaplanır. Ek giderlerde 0, bu giderlerin senaryoya dahil edilmediği anlamına gelir. Alış ve satışın tamamının girilen fiyatlarda gerçekleştiği varsayılır; miktar, dolum, taşıma riski ve satış süresi doğrulanmaz. Sonuç gerçekleşmiş kâr değildir.</p></section>`;
+}
+function bindScenario(sheet, row, groupId) {
+    const host = sheet.querySelector('[data-opportunity-scenario]');
+    if (host) host.querySelectorAll('[data-scenario-field]').forEach(input => input.addEventListener(input.tagName === 'SELECT' ? 'change' : 'input', () => {
+        state.simulations[row.groupId || row.id][input.dataset.scenarioField] = input.value;
+        host.querySelector('[data-scenario-result]').innerHTML = scenarioResultHtml(row);
+    }));
+    sheet.querySelectorAll('[data-opportunity-route]').forEach(button => button.addEventListener('click', () => openDetail(groupId, button.dataset.opportunityRoute)));
+    initFloatingLabels(sheet);
+    bindCalcSticky(sheet);
+}
 function detailHtml(row, series) {
     const strategies = (row.presentationStrategies || row.strategies).filter(strategy => PAGE_STRATEGY_IDS.has(strategy.id) || strategy.id === 'update-orders').map((strategy) => `<tr><td${tip(strategy.note)}>${escapeHtml(strategy.label)}</td><td>${badge(KIND_BADGE[strategy.kind] || KIND_LABEL[strategy.kind] || '—', strategy.note)}</td><td class="num">${strategy.advantageSilver > 0 ? formatSilver(strategy.advantageSilver, { signed: true }) : '—'}</td></tr>`).join('');
     const peers = row.peers.length ? `<table class="opp-peers"><thead><tr><th>Şehir</th><th class="num">Buy</th><th class="num">Sell</th></tr></thead><tbody>${row.peers.map((peer) => `<tr><td>${escapeHtml(peer.city)}</td><td class="num">${formatSilver(peer.buy)}</td><td class="num">${formatSilver(peer.sell)}</td></tr>`).join('')}</tbody></table>` : '';
@@ -817,13 +962,20 @@ function detailHtml(row, series) {
     const trades = `${routeHref('trades')}?${new URLSearchParams({ item: row.itemId, city: row.city })}`;
     const notes = [...row.caveats, ...row.reasons].filter(Boolean).join('\n');
     return `<header class="opp-detail-head">${itemIconHtml(row.itemId, { visual: true })}<div><h2>${itemNameHtml(itemLabel(row.itemId))}</h2><span class="opp-pills">${badge(row.city, row.patternLabel)}${row.quality > 1 ? badge(`Q${row.quality}`, 'Kalite') : ''}${badge(PATTERN_BADGE[row.pattern] || row.patternLabel, row.patternLabel, 'is-strong')}${REVIEW_BADGE[row.review] ? badge(REVIEW_BADGE[row.review], row.reviewLabel, row.review === 'unconfirmed' ? 'is-new' : 'is-up') : ''}${notes ? badge('Notlar', notes) : ''}</span></div></header>
-        <table class="opp-strategies"><thead><tr><th>Strateji</th><th>Tür</th><th class="num">Avantaj</th></tr></thead><tbody>${strategies}</tbody></table>
+        ${tabsHtml({ key: 'opportunity-detail', label: 'Fırsat ayrıntıları', active: detailTab, tabs: [{ key: 'opportunity', label: 'Fırsat', html: `<details><summary>${escapeHtml(row.primary?.label || 'Stratejiler')}</summary><table class="opp-strategies"><thead><tr><th>Strateji</th><th>Tür</th><th class="num">Avantaj</th></tr></thead><tbody>${strategies}</tbody></table></details>
+        ${row.primary?.id === 'place-buy-order-sales' ? `<p>Referans: tamamlanmış günlerin satış fiyatı medyanı · ${formatSilver(row.primary.evidence.inputs.buy.salesReference.price)} · ${row.primary.evidence.inputs.buy.salesReference.validDays} gün · son gün ${escapeHtml(row.primary.evidence.inputs.buy.salesReference.lastObservationAt)}. Bu referans Buy emir geçmişi değildir.</p>` : ''}
+        ${row.primary?.economics ? `<p>Birim sermaye: ${formatSilver(row.primary.economics.capitalSilver)} · ${row.primary.economics.returnRatio !== null ? `Teorik getiri: ${formatPct(row.primary.economics.returnRatio)}` : `Referansa göre avantaj: ${row.primary.economics.referenceAdvantageRatio !== null ? formatPct(row.primary.economics.referenceAdvantageRatio) : 'bilinmiyor'}`}. Gerçekleşmiş kâr değildir.</p>` : ''}
+        ${row.primary?.evidence?.inputs ? `<p>${Object.entries(row.primary.evidence.inputs).filter(([, side]) => side).map(([key, side]) => `${escapeHtml(key)}: ${formatSilver(side.price)} · ${escapeHtml(side.source)} · ${escapeHtml(side.at)}${row.primary.referenceRequired ? STRATEGY_SPECS[row.primary.id]?.group === 'valuation' ? ` · ${side.salesReference.validDays} tamamlanmış satış günü` : ` · L${side.referenceLevel} · ${side.referenceSamples} bağımsız referans örneği` : ' · tarihsel referans gerektirmez'}`).join('<br>')}</p>` : ''}
+        ${row.routeOptions?.length > 1 ? `<details data-route-options><summary>${row.routeOptions.length} alternatif kaynak · hedef likiditesi ortak</summary><div class="opp-actions">${row.routeOptions.map(option => `<button type="button" class="btn btn-sm btn-outline-secondary" data-opportunity-route="${escapeHtml(option.id)}" aria-pressed="${option.id === row.id}">${escapeHtml(option.city)} → ${escapeHtml(option.primary.toCity)} · ${formatSilver(option.primary.advantageSilver, { signed: true })} / adet</button>`).join('')}</div><p>Aynı hedef Buy miktarı paylaşılır; bu rotaların kârı toplanmaz.</p></details>` : ''}
+        <p>${escapeHtml(salesActivityText(row.primary?.salesActivity))}. Bu geçmiş satılan ürün adedidir; işlem sayısı, mevcut emir miktarı veya dolum süresi değildir.</p>
+        ${scenarioHtml(row)}
+        <details class="opp-deep-analysis"><summary>Geçmiş, diğer şehirler ve kişisel notlar</summary>
         <div class="opp-charts">${charts}</div>
         ${peers}
         <p class="opp-reference">${escapeHtml(referenceText(row))}</p>
         ${watchDetailHtml(row)}
         <div class="opp-actions">${Object.entries(FEEDBACK_TYPES).map(([id,label]) => `<button type="button" class="btn btn-sm btn-outline-secondary" data-feedback="${id}">${label}</button>`).join('')}<span role="status" data-feedback-message></span></div>
-        <div class="opp-actions"><a class="btn btn-outline-secondary" href="${escapeHtml(trades)}">Trade Dashboard’da aç</a></div>`;
+        <div class="opp-actions"><a class="btn btn-outline-secondary" href="${escapeHtml(trades)}">Trade Dashboard’da aç</a></div></details>` }, { key: 'control', label: 'Kontrol', html: '<section data-evidence-detail></section>' }, { key: 'trade', label: 'İşlem', html: '<section data-evidence-transaction></section>' }] })}`;
 }
 
 function watchDetailHtml(row) {
@@ -831,9 +983,20 @@ function watchDetailHtml(row) {
     const snapshotText = p => new Date(p.at).toLocaleString('tr-TR')+' · Buy '+formatSilver(p.buy)+' / Sell '+formatSilver(p.sell)+' · '+p.action+' · '+(p.statusLabel || p.status);
     return (watch ? '<details><summary>İzleme · '+escapeHtml(watch.last.action)+' · '+watch.changes.length+' değişim</summary><p>İlk: '+escapeHtml(snapshotText(watch.first))+' · Referans Buy '+formatSilver(watch.first.buyReference)+' / Sell '+formatSilver(watch.first.sellReference)+'</p><p>Son: '+escapeHtml(snapshotText(watch.last))+'</p>'+watch.changes.map(p => '<p>'+escapeHtml(snapshotText(p))+'</p>').join('')+'</details>' : '') + '<small>Kişisel bildirimler: '+metrics.checked+' fiyat kontrolü · doğruluk '+(metrics.accuracy === null ? '—' : formatPct(metrics.accuracy))+' · '+metrics.executed+' gerçekleşen işlem · eylem bildirimlerinde gerçekleşme '+(metrics.executionReportRate === null ? '—' : formatPct(metrics.executionReportRate))+'. Kullanıcı beyanıdır; piyasa doğrulaması veya tahmini başarı olasılığı değildir.</small>';
 }
-async function openDetail(id) {
-    const row = rankedVisibleRows().find((candidate) => candidate.id === id);
-    if (!row) return;
+function bindDetail(sheet, row, id, evidenceContext) {
+    bindAssistant(sheet);
+    bindScenario(sheet, row, id);
+    bindTabs(sheet, tab => { detailTab = tab; });
+    evidenceUI?.mount(sheet.querySelector('[data-evidence-detail]'), row, { ...evidenceContext, tradeHost: sheet.querySelector('[data-evidence-transaction]') });
+}
+async function openDetail(id, routeId = '') {
+    const group = rankedVisibleRows().find((candidate) => candidate.id === id);
+    if (!group) return;
+    const route = group.routeOptions?.find(candidate => candidate.id === routeId);
+    const row = route ? { ...route, routeOptions: group.routeOptions, groupId: group.groupId } : group;
+    if (state.selectedId !== id) detailTab = 'opportunity';
+    const evidenceContext = { server: getServer().id, observedAt: state.scan.scannedAt };
+    const request = ++state.detailRequest;
     state.selectedId = id;
     state.series = null;
     state.seriesError = '';
@@ -841,7 +1004,7 @@ async function openDetail(id) {
     const sheet = root.querySelector('[data-opportunities-sheet]');
     const dialog = root.querySelector('[data-opportunities-dialog]');
     sheet.innerHTML = detailHtml(row, null);
-    bindAssistant(sheet);
+    bindDetail(sheet, row, id, evidenceContext);
     if (!dialog.open) dialog.showModal();
     try {
         const params = new URLSearchParams({
@@ -852,39 +1015,44 @@ async function openDetail(id) {
         });
         if (!response.ok) throw new Error('Grafik alınamadı');
         const payload = await response.json();
-        if (state.selectedId !== id) return;
+        if (state.selectedId !== id || state.detailRequest !== request) return;
         state.series = payload;
         sheet.innerHTML = detailHtml(row, payload);
-        bindAssistant(sheet);
+        bindDetail(sheet, row, id, evidenceContext);
     } catch (error) {
-        if (state.selectedId !== id) return;
+        if (state.selectedId !== id || state.detailRequest !== request) return;
         state.seriesError = error.message || 'Grafik alınamadı';
         sheet.innerHTML = detailHtml(row, null);
-        bindAssistant(sheet);
+        bindDetail(sheet, row, id, evidenceContext);
     }
 }
 
 function renderFilters() {
     const filters = state.filters;
     const field = (name, label, control) => `<div class="form-floating">${control}<label for="opp-${name}">${label}</label></div>`;
-    const badgeChoices = (name, label, values, format) => `<fieldset class="opp-confidence"><legend>${label}</legend><div class="opp-views">${['', ...values.map(String)].map((value) => `<button type="button" class="badge opp-filter-badge${filters[name] === value ? ' is-active' : ''}" data-filter-choice="${name}" data-value="${value}"${name === 'tier' && value ? ` data-tier="${value}"` : ''} aria-pressed="${filters[name] === value}">${value === '' ? 'Tümü' : format(value)}</button>`).join('')}</div></fieldset>`;
-    root.querySelector('[data-opportunities-filters]').innerHTML = `<div class="opp-filters">
-        <div class="opp-city-filter">${cityFieldHtml({ id: 'opp-city', label: 'Şehir', selected: filters.city, cities: loadActiveCities(), className: '', allowAll: true })}<button type="button" class="opp-view${filters.city === '' ? ' is-active' : ''}" data-all-cities aria-pressed="${filters.city === ''}">Tüm şehirler</button></div>
+    const badgeChoices = (name, label, values, format) => {
+        const action = fieldAllButtonHtml({ label, attributes: `data-filter-choice="${name}" data-value=""`, active: filters[name] === '' });
+        return `<div class="choice-field form-field">${fieldHeadingHtml(label, action)}<div class="filter-choice-grid" style="--filter-choice-columns:${name === 'tier' ? 4 : 3}" role="group" aria-label="${escapeHtml(label)}">${values.map(String).map((value) => `<button type="button" class="badge filter-selection-button filter-selection-button--badge${filters[name] === value ? ' is-active' : ''}" data-filter-choice="${name}" data-value="${value}"${name === 'tier' ? ` data-tier="${value}"` : ''} aria-pressed="${filters[name] === value}">${format(value)}</button>`).join('')}</div></div>`;
+    };
+    root.querySelector('[data-opportunities-filters]').innerHTML = `<div class="opp-filters tool-split-controls tool-controls-grid">
+        ${cityFieldHtml({ id: 'opp-city', label: 'Şehir', selected: filters.city, cities: loadActiveCities(), className: '', allowAll: true, showAllButton: true, headingAction: true })}
         <div class="opp-filter-pair">
         ${badgeChoices('tier', 'Tier', [1, 2, 3, 4, 5, 6, 7, 8], (value) => `T${value}`)}
         ${badgeChoices('enchant', 'Enchant', [0, 1, 2, 3, 4], (value) => `.${value}`)}
         </div>
         ${field('query', 'Ürün', `<input class="form-control" id="opp-query" data-filter="query" value="${escapeHtml(filters.query)}" placeholder=" ">`) }
-        <div class="form-range-field"><label for="opp-minDeviation">Minimum sapma <output data-deviation-value>%${escapeHtml(filters.minDeviation)}</output></label><input class="form-range" id="opp-minDeviation" data-filter="minDeviation" type="range" min="12" max="500" step="1" value="${escapeHtml(filters.minDeviation)}"></div>
+        <div class="choice-field form-field form-range-field">${fieldHeadingHtml('Minimum sapma', `<output data-deviation-value>%${escapeHtml(filters.minDeviation)}</output>`, 'id="opp-minDeviation-label"')}<input class="form-range" aria-labelledby="opp-minDeviation-label" data-filter="minDeviation" type="range" min="12" max="500" step="1" value="${escapeHtml(filters.minDeviation)}"></div>
         <div${tip('Ürün başına teorik tasarruf veya satış farkı. Kesin kâr değildir; boş bırakınca filtre kapalı.')}>${field('minNet', 'Minimum fark (gümüş / adet)', `<input class="form-control" id="opp-minNet" data-filter="minNet" type="number" min="0" step="1" value="${escapeHtml(filters.minNet)}" placeholder=" ">`)}</div>
         ${field('minReturn', 'Minimum teorik getiri (%)', `<input class="form-control" id="opp-minReturn" data-filter="minReturn" type="number" min="0" step="0.1" value="${escapeHtml(filters.minReturn)}" placeholder=" ">`)}
-        ${field('execution', 'İşlem türü', `<select class="form-control" id="opp-execution" data-filter="execution"><option value="">Tümü</option>${Object.entries(EXECUTION_MODELS).filter(([value]) => PAGE_EXECUTIONS.has(value)).map(([value, model]) => `<option value="${value}"${filters.execution === value ? ' selected' : ''}>${model.label}</option>`).join('')}</select>`)}
-        ${field('evidence', state.filters.viewMode === 'spreads' ? 'Makas değerlendirmesi' : 'Kanıt düzeyi', `<select class="form-control" id="opp-evidence" data-filter="evidence"><option value="">Tümü</option>${Object.entries(state.filters.viewMode === 'spreads' ? SPREAD_REVIEW_CLASSES : SPREAD_CLASSES).map(([value, model]) => `<option value="${value}"${filters.evidence === value ? ' selected' : ''}>${model.label}</option>`).join('')}<option value="unclassified"${filters.evidence === 'unclassified' ? ' selected' : ''}>${state.filters.viewMode === 'spreads' ? 'Veri yetersiz' : 'Kanıt yetersiz / sınıflanmamış'}</option></select>`)}
+        ${field('execution', 'İşlem türü', `<select class="form-select" id="opp-execution" data-filter="execution"><option value="">Tümü</option>${Object.entries(EXECUTION_MODELS).filter(([value]) => PAGE_EXECUTIONS.has(value)).map(([value, model]) => `<option value="${value}"${filters.execution === value ? ' selected' : ''}>${model.label}</option>`).join('')}</select>`)}
+        ${field('evidence', state.filters.viewMode === 'spreads' ? 'Makas değerlendirmesi' : 'Kanıt düzeyi', `<select class="form-select" id="opp-evidence" data-filter="evidence"><option value="">Tümü</option>${Object.entries(state.filters.viewMode === 'spreads' ? SPREAD_REVIEW_CLASSES : SPREAD_CLASSES).map(([value, model]) => `<option value="${value}"${filters.evidence === value ? ' selected' : ''}>${model.label}</option>`).join('')}<option value="unclassified"${filters.evidence === 'unclassified' ? ' selected' : ''}>${state.filters.viewMode === 'spreads' ? 'Veri yetersiz' : 'Kanıt yetersiz / sınıflanmamış'}</option></select>`)}
         <fieldset class="opp-confidence"><legend>Veri güveni</legend><div class="opp-views">${[['', 'Tümü'], ['0.35', 'Orta ve üzeri'], ['0.7', 'Yüksek']].map(([value, label]) => `<button type="button" class="opp-view${filters.confidence === value ? ' is-active' : ''}" data-confidence="${value}" aria-pressed="${filters.confidence === value}">${label}</button>`).join('')}</div></fieldset>
-        ${field('watched', 'İzleme', `<select class="form-control" id="opp-watched" data-filter="watched"><option value="">Tüm adaylar</option><option value="yes"${filters.watched ? ' selected' : ''}>İzlenen adaylar</option></select>`)}
-        ${field('action', 'Karar', `<select class="form-control" id="opp-action" data-filter="action"><option value="">Tümü</option>${['buy','sell','order','transport','watch'].map(id => `<option value="${id}"${filters.action === id ? ' selected' : ''}>${ACTION_LABELS[id]}</option>`).join('')}</select>`)}
-        <button class="btn btn-primary" type="button" data-opportunities-refresh>Taramayı yenile</button>
-        <button class="btn btn-outline-secondary" type="button" data-opportunities-clear>Temizle</button>
+        ${field('watched', 'İzleme', `<select class="form-select" id="opp-watched" data-filter="watched"><option value="">Tüm adaylar</option><option value="yes"${filters.watched ? ' selected' : ''}>İzlenen adaylar</option></select>`)}
+        ${field('action', 'Karar', `<select class="form-select" id="opp-action" data-filter="action"><option value="">Tümü</option>${['buy','sell','order','transport','watch'].map(id => `<option value="${id}"${filters.action === id ? ' selected' : ''}>${ACTION_LABELS[id]}</option>`).join('')}</select>`)}
+        <div class="form-actions form-actions--inline">
+            <button class="btn btn-primary" type="button" data-opportunities-refresh>Taramayı yenile</button>
+            <button class="btn btn-outline-secondary" type="button" data-opportunities-clear>Temizle</button>
+        </div>
     </div>`;
     initFloatingLabels(root.querySelector('[data-opportunities-filters]'));
     root.querySelectorAll('[data-filter-choice]').forEach((button) => button.addEventListener('click', () => {
@@ -898,18 +1066,10 @@ function renderFilters() {
         });
         renderTable();
     }));
-    const allCities = root.querySelector('[data-all-cities]');
-    const chooseCity = (value) => {
+    bindCityField(root, 'opp-city', (value) => {
         state.filters.city = value;
         saveFilters();
-        allCities.classList.toggle('is-active', value === '');
-        allCities.setAttribute('aria-pressed', String(value === ''));
         renderTable();
-    };
-    bindCityField(root, 'opp-city', chooseCity);
-    allCities.addEventListener('click', () => {
-        setCityFieldValue(root, 'opp-city', '');
-        chooseCity('');
     });
     root.querySelectorAll('[data-confidence]').forEach((button) => button.addEventListener('click', () => {
         state.filters.confidence = toggleAllFilter(state.filters.confidence, button.dataset.confidence, '');
@@ -930,15 +1090,8 @@ function renderFilters() {
             renderTable();
         });
     });
-    root.querySelector('[data-opportunities-refresh]').addEventListener('click', () => loadScan());
-    root.querySelector('[data-opportunities-clear]').addEventListener('click', () => {
-        state.filters = defaultFilters();
-        saveFilters();
-        renderFilters();
-        renderShellFiltersForMode();
-        renderChips();
-        renderTable();
-    });
+    root.querySelector('[data-opportunities-filters] [data-opportunities-refresh]').addEventListener('click', () => loadScan());
+    root.querySelector('[data-opportunities-filters] [data-opportunities-clear]').addEventListener('click', clearFilters);
 }
 
 function viewCounts(list) {
@@ -1038,35 +1191,22 @@ function renderShell() {
     const chips = viewChips();
     const sorts = SORTS.map((sort) => `<button type="button" class="opp-view${state.filters.sort === sort.id ? ' is-active' : ''}" data-sort="${sort.id}" aria-pressed="${state.filters.sort === sort.id}">${sort.label}</button>`).join('');
     root.innerHTML = toolPageHtml({
-        key: 'opportunities',
-        head: `<section class="page-head" data-page-head="opportunities"><h1>Günün Fırsatları <span class="badge" data-app-tooltip="${escapeHtml(`Buy ve Sell, hareketten önceki saatlik gözlemlere göre ayrı izlenir. Görünen fark dolu bir emir değildir.\n${feeMetaText(getSettings().premium !== false)}\nDengeli sıra teorik farkı, yüzdesel getiriyi, güncelliği ve kaynak kanıtını birlikte kullanır. Yakın puanlarda işlem türlerini dengeler. Dolma ve taşıma olasılığı hesaplanmaz.`)}">Bilgi</span></h1></section>`,
-        controls: `<div class="opp-bar"><div class="opp-views opp-mode-switch" data-list-modes role="group" aria-label="Fırsat listesi">${listModeChips()}</div><div class="opp-views opp-types" role="group" aria-label="Strateji türü">${chips}</div><div class="opp-views" role="group" aria-label="Sıralama">${sorts}</div><div data-opportunities-filters></div></div>`,
+        key: 'opportunities', layout: 'stacked',
+        head: `<section class="page-head" data-page-head="opportunities"><h1>Günün Fırsatları <span class="badge" data-app-tooltip="${escapeHtml(`Buy ve Sell hareketleri saatlik emir geçmişine göre izlenir. Düşük Buy ayrıca aynı şehirdeki tamamlanmış günlerin satış medyanıyla karşılaştırılır. Görünen fark dolu bir emir değildir.\n${feeMetaText(getSettings().premium !== false)}\nDengeli sıra birim kazancı ve sermaye verimini birlikte değerlendirir; ROI katkısı sınırlıdır. Güncellik, satış hareketliliği ve fiyat kanıtı ayrı gösterilir. Ortak hedef Buy fiyatı tek rota grubudur. Satış geçmişi emir derinliği veya dolum süresi değildir.`)}">Bilgi</span></h1></section>`,
+        controls: '<div class="opp-bar" data-opportunities-controlbar></div>',
         result: '<div data-opportunities-result></div>',
-        overlays: '<dialog class="app-dialog opp-dialog" data-opportunities-dialog><button type="button" class="app-dialog-close" aria-label="Kapat" data-opportunities-close></button><div class="opp-sheet" data-opportunities-sheet></div></dialog>'
+        overlays: '<dialog class="app-dialog opp-filter-dialog" data-opportunities-filter-dialog><button type="button" class="app-dialog-close" aria-label="Kapat" data-opportunities-filter-close></button><div class="opp-sheet opp-filter-sheet"><header><h2>Filtreler</h2><span data-filter-result-count></span></header><div class="opp-views opp-types" role="group" aria-label="Strateji türü">'+chips+'</div><div data-opportunities-filters></div><button class="btn btn-primary" type="button" data-apply-filters>Sonuçları göster</button></div></dialog><dialog class="app-dialog opp-dialog" aria-label="Tarama tanısı" data-scan-diagnostics-dialog><button type="button" class="app-dialog-close" aria-label="Kapat" data-scan-diagnostics-close></button><div class="opp-sheet opp-diagnostics"><h2>Tarama tanısı</h2><div data-scan-diagnostics-summary></div><button class="btn btn-sm btn-outline-secondary" type="button" data-scan-diagnostics-download>Tanı JSON indir</button><details><summary>Ham tanı kaydı</summary><pre data-scan-diagnostics-content></pre></details></div></dialog><dialog class="app-dialog opp-dialog" aria-label="Gerçek kontrol ve işlem performansı" data-opportunities-evidence-dialog><button type="button" class="app-dialog-close" aria-label="Kapat" data-evidence-report-close></button><div class="opp-sheet opp-performance-sheet"><h2>Gerçek kontrol ve işlem performansı</h2><div data-opportunities-evidence-report></div></div></dialog><dialog class="app-dialog opp-dialog" data-opportunities-dialog><button type="button" class="app-dialog-close" aria-label="Kapat" data-opportunities-close></button><div class="opp-sheet" data-opportunities-sheet></div></dialog>'
     });
     const viewGroup = root.querySelector('.opp-types');
     viewGroup.dataset.appTooltip = 'Ctrl + tıklama ile birden fazla tür seçebilirsiniz. Shift + tıklama türü hariç tutar.';
-    root.querySelector('[data-list-modes]').addEventListener('click', event => {
-        const button = event.target.closest('[data-list-mode]');
-        if (!button || !Object.hasOwn(LIST_MODES, button.dataset.listMode)) return;
-        state.filters.viewMode = button.dataset.listMode;
-        state.filters.views = [];
-        state.filters.excludedViews = [];
-        state.filters.evidence = '';
-        saveFilters();
-        renderShellFiltersForMode();
-        renderFilters();
-        renderTable();
-    });
     bindViewFilters();
-    root.querySelectorAll('[data-sort]').forEach((button) => button.addEventListener('click', () => {
-        state.filters.sort = button.dataset.sort;
-        saveFilters();
-        renderTable();
-    }));
+    root.querySelectorAll('[data-opportunities-filter-close], [data-apply-filters]').forEach(button => button.addEventListener('click', () => root.querySelector('[data-opportunities-filter-dialog]').close()));
+    root.querySelector('[data-opportunities-filter-dialog]').addEventListener('close', () => root.querySelector('[data-open-filters]')?.focus());
     root.querySelector('[data-opportunities-close]').addEventListener('click', () => {
         root.querySelector('[data-opportunities-dialog]').close();
     });
+    root.querySelector('[data-scan-diagnostics-close]').addEventListener('click', () => root.querySelector('[data-scan-diagnostics-dialog]').close());
+    root.querySelector('[data-evidence-report-close]').addEventListener('click', () => root.querySelector('[data-opportunities-evidence-dialog]').close());
 }
 
 function scanFailure(error) {
@@ -1107,6 +1247,7 @@ async function loadScan({ background = false } = {}) {
         renderChips();
         if (!background) renderFilters();
         renderTable();
+        void refreshServiceStatus();
         if (scanPending) {
             scanPending = false;
             void loadScan({ background: true });
@@ -1117,10 +1258,10 @@ async function loadScan({ background = false } = {}) {
 async function main() {
     root = document.querySelector('[data-opportunities]');
     if (!root) return;
-    initNav();
-    await initStore();
-    recordCurrentToolVisit();
     renderShell();
+    const evidenceHost = root.querySelector('[data-opportunities-evidence-report]');
+    evidenceUI = createOpportunityEvidenceUI({ hub: localPriceHost, reportHost: () => evidenceHost });
+    evidenceUI.load();
     bindLivePrices({}, () => loadScan({ background: true }), { packetSourceOnly: false, delayMs: 300 });
     await loadScan();
 }

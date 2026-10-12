@@ -1,12 +1,15 @@
 {
   "tool-controls": {
-    "city-field-label": "choice-field-label", "plant-field-label": "choice-field-label",
+    "choice-field-label": "form-field-label", "island-v2-group-label": "form-field-label",
+    "form-side-field": "choice-field", "form-side-field--stacked": "choice-field", "form-side-label": "form-field-label",
+    "city-all-button": "form-field-all",
+    "city-field-label": "form-field-label", "plant-field-label": "form-field-label",
     "ava-city-field": "tool-form-field", "farming-city-field": "tool-form-field",
     "royal-plan-station-label": "result-section-title", "royal-plan-missing-label": "result-section-title",
     "carleon-toolbar": "tool-form-toolbar", "ava-toolbar": "tool-form-toolbar", "enchant-toolbar": "tool-form-toolbar", "farming-toolbar": "tool-form-toolbar", "pasture-toolbar": "tool-form-toolbar", "royal-toolbar": "tool-form-toolbar",
-    "carleon-side-field": "form-side-field", "ava-side-field": "form-side-field", "enchant-side-field": "form-side-field", "farming-side-field": "form-side-field", "price-side-field": "form-side-field",
-    "price-side-field--stacked": "form-side-field--stacked",
-    "carleon-side-label": "form-side-label", "ava-side-label": "form-side-label", "enchant-side-label": "form-side-label", "farming-side-label": "form-side-label", "price-side-label": "form-side-label",
+    "carleon-side-field": "choice-field", "ava-side-field": "choice-field", "enchant-side-field": "choice-field", "farming-side-field": "choice-field", "price-side-field": "choice-field",
+    "price-side-field--stacked": "choice-field",
+    "carleon-side-label": "form-field-label", "ava-side-label": "form-field-label", "enchant-side-label": "form-field-label", "farming-side-label": "form-field-label", "price-side-label": "form-field-label",
     "carleon-note": "tool-result-note", "ava-note": "tool-result-note", "enchant-note": "tool-result-note", "farming-note": "tool-result-note", "faction-note": "tool-result-note", "enchant-standard-note": "tool-result-note--linked"
   },
   "segmented-choice": {

@@ -1,13 +1,14 @@
-import { qualityCalibration } from './market-opportunity-quality.mjs';
+import { qualityCalibration, OPPORTUNITY_OUTCOMES } from './market-opportunity-quality.mjs';
 import { assessSpreadRealism, assessHistoricalSpread, spreadCalibration } from './market-spread-realism.mjs';
 import { validateObservationSeries, OBSERVATION_POLICY, observationTime, currentObservationRevision, observationExpiry } from './market-observation.mjs';
 import { mergedQuotePoints } from './long-term-price.mjs';
 import { ORDER_HISTORY_POLICY } from './market-history-config.mjs';
+import { salesOpportunityReference } from './market-sales-reference.mjs';
 import { normalizePriceDate, marketSeriesKey } from './market-primitives.mjs';
 import {
     OPPORTUNITY_POLICY, provisionalReference, analyzeMarketCell, assessMarketSide, quoteDisplayPoints, rankMarketOpportunities
 } from './market-opportunities.mjs';
-import { potentialReasonCounts } from './market-opportunity-review.mjs';
+import { potentialReasonCounts, reviewOpportunityResults, referenceFailure } from './market-opportunity-review.mjs';
 
 function cellKey(row) {
     return `${row.server}|${row.itemId}|${row.city}|${row.quality}`;
@@ -91,7 +92,7 @@ export function readMarketBook(packetHistory, repository, identity, now, policy 
 }
 
 function pricedSides(snapshot) {
-    return [snapshot.buy, snapshot.sell].filter((side) => side?.price > 0);
+    return [snapshot.buy, snapshot.sell].filter((side) => side?.price > 0 && Number.isFinite(side.price));
 }
 
 /** One primary reason per cell that produced no row. The buckets partition cells − shown − overLimit. */
@@ -148,7 +149,9 @@ export function scanQuoteBooks({
             }
             return assessMarketSide({ referenceQuote: cached.summary, now, policy });
         };
-        snapshots.push({ ...group, buy: read('buy'), sell: read('sell') });
+        const buy = read('buy');
+        buy.salesReference = salesOpportunityReference(repository?.anchor?.(group.itemId, group.city, group.quality, group.server), { now });
+        snapshots.push({ ...group, buy, sell: read('sell') });
     }
     const byItem = new Map();
     for (const snapshot of snapshots) {
@@ -165,7 +168,6 @@ export function scanQuoteBooks({
     const candidates = [];
     snapshots.forEach((snapshot, index) => {
         if (analyzed[index]) candidates.push(analyzed[index]);
-        if (!analyzed[index] || (policy.validationMode !== 'legacy' && !analyzed[index].eligible)) excluded[exclusionReason(snapshot)] += 1;
     });
     const spreadContext = spreadCalibration(candidates.filter(row => row.eligible && row.strategies.some(strategy => strategy.id === 'local-make')));
     let spreadReviews = cacheOwner && spreadReviewCaches.get(cacheOwner);
@@ -194,6 +196,9 @@ export function scanQuoteBooks({
         row.spreadReview = cachedReview?.result || assessHistoricalSpread(row, history.buy, history.sell);
         if (row.spreadRealism.reasons.length) row.spreadReview = { ...row.spreadReview, classification: 'insufficient', reason: 'current-evidence-inconsistent' };
     }
+    for (let index = 0; index < candidates.length; index++) candidates[index] = reviewOpportunityResults(candidates[index], policy, { premium, fees });
+    const reviewed = new Map(candidates.map(row => [cellKey(row), row]));
+    for (const snapshot of snapshots) if (!reviewed.get(cellKey(snapshot))?.eligible) excluded[exclusionReason(snapshot)] += 1;
     const ranked = rankMarketOpportunities(candidates, { mode: 'balanced', policy });
     const verified = ranked.filter(row => policy.validationMode === 'legacy' || row.eligible);
     const potentialRows = policy.validationMode === 'legacy' ? [] : ranked
@@ -201,7 +206,7 @@ export function scanQuoteBooks({
         .map(row => {
             const potentialStrategies = row.potentialStrategies.slice().sort((a, b) =>
                 (b.advantageSilver * b.weight) - (a.advantageSilver * a.weight) || b.advantageSilver - a.advantageSilver);
-            return { ...row, potential: true, stage: 'potential', primary: potentialStrategies[0], strategies: potentialStrategies };
+            return { ...row, potential: true, stage: 'watch', outcome: 'watch', primary: potentialStrategies[0], strategies: potentialStrategies };
         })
         .sort((a, b) => {
             const missingGates = row => row.primary.evidence?.reasons?.length ?? 0;
@@ -220,6 +225,19 @@ export function scanQuoteBooks({
     const has = (snapshot, test) => test(snapshot.buy) || test(snapshot.sell);
     // Full decision traces stay in explicit audit output; cards read sides and strategy evidence.
     const publicRow = ({ decisions, ...row }) => row;
+    const stageAudit = snapshots.map(snapshot => {
+        const row = reviewed.get(cellKey(snapshot));
+        return { id: cellKey(snapshot), stage: row?.stage || (row?.eligible ? 'trade' : 'rejected'),
+            outcome: row?.outcome || (row?.eligible ? 'price-supported' : 'rejected'),
+            discovered: Boolean(row?.resultReviews?.some(review => review.discovered) || (policy.validationMode === 'legacy' && row)),
+            reason: row?.resultReason || referenceFailure(snapshot) };
+    });
+    const resultCounts = stageAudit.reduce((counts, row) => { counts[row.stage]++; return counts; }, { trade: 0, watch: 0, rejected: 0 });
+    const outcomeCounts = stageAudit.reduce((counts, row) => { counts[row.outcome]++; return counts; },
+        Object.fromEntries(Object.keys(OPPORTUNITY_OUTCOMES).map(key => [key, 0])));
+    const referenceSides = snapshots.flatMap(snapshot => pricedSides(snapshot));
+    const coverageFailures = ['no-history', 'independent-observations', 'time-span', 'stability', 'stale', 'source-scope'];
+    const reasonCounts = stageAudit.reduce((counts, row) => { counts[row.reason] = (counts[row.reason] || 0) + 1; return counts; }, {});
     return {
         server,
         strategyId: policy.strategyId,
@@ -230,6 +248,27 @@ export function scanQuoteBooks({
         listed: listed.length,
         truncated: verified.length > listed.length,
         premium: Boolean(premium),
+        resultCounts,
+        outcomeCounts,
+        referenceCoverage: { pricedSides: referenceSides.length,
+            independentSourceShortage: referenceSides.filter(side => !(side.referenceCoverage?.independentSourceObservations >= OBSERVATION_POLICY.levels[2][0])).length,
+            acceptedEvidenceShortage: referenceSides.filter(side => !(side.referenceCoverage?.acceptedIndependentObservations >= OBSERVATION_POLICY.levels[2][0])).length,
+            sufficientCells: snapshots.filter(snapshot => has(snapshot, side => side?.referenceLevel >= 3)).length,
+            sufficientFreshCells: snapshots.filter(snapshot => has(snapshot, side => side?.referenceLevel >= 3 && !side.stale)).length,
+            failures: Object.fromEntries(coverageFailures.map(failure => [failure,
+                referenceSides.filter(side => side.referenceCoverage?.failures.includes(failure)).length])),
+            partition: referenceSides.reduce((counts, side) => {
+                const key = side.referenceCoverage?.failures[0] || 'sufficient';
+                counts[key] = (counts[key] || 0) + 1; return counts;
+            }, {}) },
+        pipeline: { examined: snapshots.length, validPrice: snapshots.filter(snapshot => has(snapshot, side => side?.price > 0 && Number.isFinite(side.price) && side.validationStatus !== 'rejected')).length,
+            // Scanning is read-only. Collection counts are supplied separately by the service.
+            newArchiveObservations: null,
+            sufficientReference: snapshots.filter(snapshot => has(snapshot, side => side?.referenceLevel >= 3)).length,
+            discovered: stageAudit.filter(row => row.discovered).length, validated: resultCounts.trade,
+            executionConfirmed: outcomeCounts['execution-confirmed'], priceSupported: outcomeCounts['price-supported'],
+            discoveredRejected: stageAudit.filter(row => row.discovered && row.stage === 'rejected').length,
+            watch: resultCounts.watch, rejected: resultCounts.rejected, reasons: reasonCounts },
         funnel: {
             cells: snapshots.length,
             withHistory: snapshots.filter((snapshot) => has(snapshot, (side) => side?.price > 0)).length,
@@ -254,13 +293,13 @@ export function scanQuoteBooks({
             belowDeviation: 'Taze referans var, sapma eşiğini geçmedi ve ücret sonrası çevirme de yok.',
             overLimit: 'Eşiği geçti ama liste sınırından sonra kaldı.'
         },
-        ...(includeEvaluation ? { evaluation: { rows: ranked, snapshots } } : {}),
-        candidateCount: ranked.filter(row => row.anomalies.length || row.primary).length,
+        ...(includeEvaluation ? { evaluation: { rows: ranked, snapshots, stages: stageAudit } } : {}),
+        candidateCount: policy.validationMode === 'legacy' ? ranked.filter(row => row.anomalies.length || row.primary).length : stageAudit.filter(row => row.discovered).length,
         diagnostics: diagnostics.map(publicRow),
         counts: { evaluated: snapshots.length, verified: verified.length, potential: potential.length,
-            monitored: analyzed.filter(row => row && !row.eligible && row.validationStatus !== 'quarantined' && [row.buy, row.sell].some(side => side?.referenceLevel >= 3)).length,
-            suspicious: analyzed.filter(row => row && !row.eligible && row.validationStatus === 'quarantined').length,
-            insufficient: snapshots.filter((snapshot, index) => !analyzed[index]?.eligible && analyzed[index]?.validationStatus !== 'quarantined' && ![snapshot.buy, snapshot.sell].some(side => side?.referenceLevel >= 3)).length },
+            monitored: snapshots.filter(snapshot => { const row = reviewed.get(cellKey(snapshot)); return !row?.eligible && row?.validationStatus !== 'quarantined' && has(snapshot, side => side?.referenceLevel >= 3); }).length,
+            suspicious: candidates.filter(row => !row.eligible && row.validationStatus === 'quarantined').length,
+            insufficient: snapshots.filter(snapshot => { const row = reviewed.get(cellKey(snapshot)); return !row?.eligible && row?.validationStatus !== 'quarantined' && !has(snapshot, side => side?.referenceLevel >= 3); }).length },
         decisionAudit: candidates.reduce((audit, row) => {
             for (const decision of row.decisions || []) {
                 const entry = audit[decision.id] || (audit[decision.id] = { evaluated: 0, eligible: 0, rejected: 0, reasons: {} });

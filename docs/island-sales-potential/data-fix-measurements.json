@@ -1,0 +1,242 @@
+{
+  "sourceCapturedAt": "2026-10-12T00:39:27.071Z",
+  "measuredAt": "2026-10-12T06:50:13.466Z",
+  "inputHashes": [
+    "a23b512d797b26c29adb0e04c9cda4894564fbd783c240ab1a5f9efe8957acdf",
+    "2e28d5150033ca2ffa1c2ba76dc93b9a37fbb807b5b250e00a2c2f3e66082a97"
+  ],
+  "measurement": "Replay of real audited local archive; mocked unavailable external API, not live network traffic",
+  "storedSeries": 1260,
+  "storedVolumeSeries": 944,
+  "periods": [
+    {
+      "days": 7,
+      "totalRoles": 847,
+      "validRoles": 298,
+      "validUnique": 264,
+      "unchangedPriceAndVolume": 298,
+      "sources": {
+        "Yerel": 298,
+        "API": 0,
+        "Karma": 0,
+        "Yetersiz": 549
+      },
+      "localPercent": 35.18299881936245,
+      "remainingApiUnique": 527,
+      "apiGroupInvocations": 7,
+      "coldExternalUrlBatches": 7,
+      "actualExternalNetworkCalls": 0,
+      "eligibleMeasurementsRequestedFromApi": 0
+    },
+    {
+      "days": 14,
+      "totalRoles": 847,
+      "validRoles": 295,
+      "validUnique": 261,
+      "unchangedPriceAndVolume": 295,
+      "sources": {
+        "Yerel": 295,
+        "API": 0,
+        "Karma": 0,
+        "Yetersiz": 552
+      },
+      "localPercent": 34.828807556080285,
+      "remainingApiUnique": 530,
+      "apiGroupInvocations": 7,
+      "coldExternalUrlBatches": 7,
+      "actualExternalNetworkCalls": 0,
+      "eligibleMeasurementsRequestedFromApi": 0
+    },
+    {
+      "days": 28,
+      "totalRoles": 847,
+      "validRoles": 297,
+      "validUnique": 263,
+      "unchangedPriceAndVolume": 297,
+      "sources": {
+        "Yerel": 297,
+        "API": 0,
+        "Karma": 0,
+        "Yetersiz": 550
+      },
+      "localPercent": 35.064935064935064,
+      "remainingApiUnique": 528,
+      "apiGroupInvocations": 7,
+      "coldExternalUrlBatches": 7,
+      "actualExternalNetworkCalls": 0,
+      "eligibleMeasurementsRequestedFromApi": 0
+    },
+    {
+      "days": 60,
+      "totalRoles": 847,
+      "validRoles": 0,
+      "validUnique": 0,
+      "unchangedPriceAndVolume": 0,
+      "sources": {
+        "Yerel": 0,
+        "API": 0,
+        "Karma": 0,
+        "Yetersiz": 847
+      },
+      "localPercent": 0,
+      "remainingApiUnique": 791,
+      "apiGroupInvocations": 7,
+      "coldExternalUrlBatches": 7,
+      "actualExternalNetworkCalls": 0,
+      "eligibleMeasurementsRequestedFromApi": 0
+    },
+    {
+      "days": 90,
+      "totalRoles": 847,
+      "validRoles": 0,
+      "validUnique": 0,
+      "unchangedPriceAndVolume": 0,
+      "sources": {
+        "Yerel": 0,
+        "API": 0,
+        "Karma": 0,
+        "Yetersiz": 847
+      },
+      "localPercent": 0,
+      "remainingApiUnique": 791,
+      "apiGroupInvocations": 7,
+      "coldExternalUrlBatches": 7,
+      "actualExternalNetworkCalls": 0,
+      "eligibleMeasurementsRequestedFromApi": 0
+    }
+  ],
+  "examples": [
+    {
+      "item": "T1_CARROT",
+      "city": "Martlock",
+      "side": "sell",
+      "price": 460,
+      "volume": 3067893,
+      "samples": 27,
+      "source": "Yerel",
+      "priceOrigin": "Yerel AODP",
+      "capacityOrigin": "Yerel AODP"
+    },
+    {
+      "item": "T1_FARM_CARROT_SEED",
+      "city": "Martlock",
+      "side": "buy",
+      "price": 2170,
+      "volume": 51446,
+      "samples": 27,
+      "source": "Yerel",
+      "priceOrigin": "Yerel AODP",
+      "capacityOrigin": "Yerel AODP"
+    },
+    {
+      "item": "T2_BEAN",
+      "city": "Martlock",
+      "side": "sell",
+      "price": 428,
+      "volume": 391426,
+      "samples": 27,
+      "source": "Yerel",
+      "priceOrigin": "Yerel AODP",
+      "capacityOrigin": "Yerel AODP"
+    },
+    {
+      "item": "T2_FARM_BEAN_SEED",
+      "city": "Brecilien",
+      "side": "buy",
+      "price": 2767.1094445746426,
+      "volume": 4267,
+      "samples": 27,
+      "source": "Yerel",
+      "priceOrigin": "Yerel AODP",
+      "capacityOrigin": "Yerel AODP"
+    },
+    {
+      "item": "T2_AGARIC",
+      "city": "Martlock",
+      "side": "sell",
+      "price": 431.5654205019076,
+      "volume": 238251,
+      "samples": 27,
+      "source": "Yerel",
+      "priceOrigin": "Yerel AODP",
+      "capacityOrigin": "Yerel AODP"
+    },
+    {
+      "item": "T3_WHEAT",
+      "city": "Bridgewatch",
+      "side": "sell",
+      "price": 498,
+      "volume": 1179625,
+      "samples": 27,
+      "source": "Yerel",
+      "priceOrigin": "Yerel AODP",
+      "capacityOrigin": "Yerel AODP"
+    },
+    {
+      "item": "T3_FARM_WHEAT_SEED",
+      "city": "Bridgewatch",
+      "side": "buy",
+      "price": 5088,
+      "volume": 24639,
+      "samples": 27,
+      "source": "Yerel",
+      "priceOrigin": "Yerel AODP",
+      "capacityOrigin": "Yerel AODP"
+    },
+    {
+      "item": "T3_COMFREY",
+      "city": "Martlock",
+      "side": "sell",
+      "price": 465,
+      "volume": 318346,
+      "samples": 27,
+      "source": "Yerel",
+      "priceOrigin": "Yerel AODP",
+      "capacityOrigin": "Yerel AODP"
+    },
+    {
+      "item": "T4_TURNIP",
+      "city": "Fort Sterling",
+      "side": "sell",
+      "price": 406,
+      "volume": 3201024,
+      "samples": 27,
+      "source": "Yerel",
+      "priceOrigin": "Yerel AODP",
+      "capacityOrigin": "Yerel AODP"
+    },
+    {
+      "item": "T4_FARM_TURNIP_SEED",
+      "city": "Fort Sterling",
+      "side": "buy",
+      "price": 8429.006201741417,
+      "volume": 24348,
+      "samples": 27,
+      "source": "Yerel",
+      "priceOrigin": "Yerel AODP",
+      "capacityOrigin": "Yerel AODP"
+    },
+    {
+      "item": "T4_BURDOCK",
+      "city": "Martlock",
+      "side": "sell",
+      "price": 495,
+      "volume": 276612,
+      "samples": 27,
+      "source": "Yerel",
+      "priceOrigin": "Yerel AODP",
+      "capacityOrigin": "Yerel AODP"
+    },
+    {
+      "item": "T5_CABBAGE",
+      "city": "Martlock",
+      "side": "sell",
+      "price": 501,
+      "volume": 1332556,
+      "samples": 27,
+      "source": "Yerel",
+      "priceOrigin": "Yerel AODP",
+      "capacityOrigin": "Yerel AODP"
+    }
+  ]
+}

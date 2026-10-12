@@ -1,8 +1,6 @@
 import { itemNameHtml } from '../components/item-name.js';
-import { toolPageHtml } from '../components/tool-page.js';
+import { toolPageHtml } from '../core/app-runtime.js';
 import { escapeHtml } from '../utils/utils.js';
-import { initNav } from '../core/nav.js';
-import { initStore } from '../db/store.js';
 import { getSettings, getDefaultCity } from '../core/settings.js';
 import { fetchPrices, indexPrices, cityRow } from '../core/market.js';
 import { itemIconHtml, itemLabel } from '../components/item-icon.js';
@@ -1257,32 +1255,32 @@ function refreshOutput(container) {
 function sideFieldsHtml() {
     const feedLabel = state.feedMode === 'grow' ? 'Yem tohum' : 'Yem';
     return `
-        <div class="form-side-field">
-            <span class="form-side-label" id="pastureBabySideLabel">Yavru</span>
+        <div class="choice-field form-field">
+            <div class="form-field-heading"><div class="form-field-label" id="pastureBabySideLabel">Yavru</div></div>
             <div class="segmented-choice" role="radiogroup" aria-labelledby="pastureBabySideLabel">
                 ${priceSideToggleHtml('baby', state.babySide)}
             </div>
         </div>
-        <div class="form-side-field">
-            <span class="form-side-label" id="pastureFeedSideLabel">${escapeHtml(feedLabel)}</span>
+        <div class="choice-field form-field">
+            <div class="form-field-heading"><div class="form-field-label" id="pastureFeedSideLabel">${escapeHtml(feedLabel)}</div></div>
             <div class="segmented-choice" role="radiogroup" aria-labelledby="pastureFeedSideLabel">
                 ${priceSideToggleHtml('feed', state.feedSide)}
             </div>
         </div>
-        <div class="form-side-field">
-            <span class="form-side-label" id="pastureGrownSideLabel">Büyümüş</span>
+        <div class="choice-field form-field">
+            <div class="form-field-heading"><div class="form-field-label" id="pastureGrownSideLabel">Büyümüş</div></div>
             <div class="segmented-choice" role="radiogroup" aria-labelledby="pastureGrownSideLabel">
                 ${priceSideToggleHtml('grown', state.grownSide)}
             </div>
         </div>
-        <div class="form-side-field">
-            <span class="form-side-label" id="pastureMeatSideLabel">Et</span>
+        <div class="choice-field form-field">
+            <div class="form-field-heading"><div class="form-field-label" id="pastureMeatSideLabel">Et</div></div>
             <div class="segmented-choice" role="radiogroup" aria-labelledby="pastureMeatSideLabel">
                 ${priceSideToggleHtml('meat', state.meatSide)}
             </div>
         </div>
-        <div class="form-side-field">
-            <span class="form-side-label" id="pastureProductSideLabel">Ürün</span>
+        <div class="choice-field form-field">
+            <div class="form-field-heading"><div class="form-field-label" id="pastureProductSideLabel">Ürün</div></div>
             <div class="segmented-choice" role="radiogroup" aria-labelledby="pastureProductSideLabel">
                 ${priceSideToggleHtml('product', state.productSide)}
             </div>
@@ -1430,7 +1428,6 @@ async function loadPrices(container, { showLoader = true, source } = {}) {
 }
 
 async function init() {
-    initNav();
     const container = document.querySelector('[data-tool="pasture"]');
     if (!container) {
         return;
@@ -1448,7 +1445,6 @@ async function init() {
 
     showPageLoader();
     try {
-        await initStore();
         state.cities = loadActiveCities();
         state.city = readSavedCity(state.cities);
         renderPage(container);

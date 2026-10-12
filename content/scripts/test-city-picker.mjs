@@ -131,3 +131,15 @@ for (const style of ['standard','horizontal','diagonal']) {
     assert.deepEqual(events,[['source','Lymhurst']]);
 }
 console.log('Independent route endpoints and custom destination icons/positions passed.');
+
+// All visual city modes share the caption/action row; dropdowns retain floating labels.
+for (const style of ['buttons', 'crests', 'diagonal', 'standard']) {
+    const html = cityFieldHtml({ id: 'filter-city', label: 'Şehir', selected: '', cities: [market], style, allowAll: true, showAllButton: true });
+    assert.match(html, /class="filter-selection-button form-field-all"[^>]*data-city-all[^>]*aria-pressed="true"/);
+    if (style === 'standard') assert.match(html, /form-floating city-field/);
+    else {
+        assert.match(html, /class="choice-field city-field/);
+        assert.match(html, /<div class="form-field-heading"><div class="form-field-label"[^>]*>[^<]*<\/div><button/);
+    }
+}
+console.log('Shared city choice headings and all-selection actions passed.');

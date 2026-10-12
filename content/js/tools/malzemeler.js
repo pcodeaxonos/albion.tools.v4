@@ -1,8 +1,6 @@
 import { itemNameHtml } from '../components/item-name.js';
-import { toolPageHtml } from '../components/tool-page.js';
+import { toolPageHtml } from '../core/app-runtime.js';
 import { escapeHtml } from '../utils/utils.js';
-import { initNav } from '../core/nav.js';
-import { initStore } from '../db/store.js';
 import { getSettings, getDefaultCity } from '../core/settings.js';
 import { fetchPrices, indexPrices, cityRow } from '../core/market.js';
 import { itemIconHtml, itemLabel } from '../components/item-icon.js';
@@ -427,14 +425,14 @@ function renderPage(container) {
                             { id: '0', label: 'Premium yok' }
                         ], state.premium ? '1' : '0', 'premium')}
                     </div>
-                    <div class="form-side-field">
-                        <span class="form-side-label" id="malzemelerBuySideLabel">Alış</span>
+                    <div class="choice-field form-field">
+                        <div class="form-field-heading"><div class="form-field-label" id="malzemelerBuySideLabel">Alış</div></div>
                         <div class="segmented-choice" role="radiogroup" aria-labelledby="malzemelerBuySideLabel">
                             ${priceSideToggleHtml('buy', state.buySide)}
                         </div>
                     </div>
-                    <div class="form-side-field">
-                        <span class="form-side-label" id="malzemelerSellSideLabel">Satış</span>
+                    <div class="choice-field form-field">
+                        <div class="form-field-heading"><div class="form-field-label" id="malzemelerSellSideLabel">Satış</div></div>
                         <div class="segmented-choice" role="radiogroup" aria-labelledby="malzemelerSellSideLabel">
                             ${priceSideToggleHtml('sell', state.sellSide)}
                         </div>
@@ -739,7 +737,6 @@ async function loadPrices(container, { showLoader = true, source, areaLoader = f
 }
 
 async function init() {
-    initNav();
     const container = document.querySelector('[data-tool="malzemeler"]');
     if (!container) {
         return;
@@ -752,7 +749,6 @@ async function init() {
 
     showPageLoader();
     try {
-        await initStore();
         state.cities = loadActiveCities();
         readPrefs(state.cities);
         applyCityDefaults(state.cities);

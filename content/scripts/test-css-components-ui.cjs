@@ -12,6 +12,7 @@ const tools=[...JSON.parse(fs.readFileSync('data/site-tools.json')),...JSON.pars
  return fs.existsSync(file)&&[...migrated].some(name=>fs.readFileSync(file,'utf8').includes(name));
 });
 (async()=>{
+const {emptyEvidence,OPPORTUNITY_EVIDENCE_API}=await import('../js/core/opportunity-evidence.mjs');
 const browser=await chromium.launch({headless:true,channel:'chrome'});const findings=[];
 try {
 for(const width of [390,1440])for(const tool of tools){
@@ -25,6 +26,7 @@ for(const width of [390,1440])for(const tool of tools){
     const ids=decodeURIComponent(u.pathname.split('/').at(-1)).split(','),cities=(u.searchParams.get('locations')||'Caerleon').split(','),date='2026-10-11T10:00:00Z';
     return route.fulfill({json:ids.flatMap(item_id=>cities.map(city=>({item_id,city,quality:1,sell_price_min:10000,sell_price_min_date:date,buy_price_max:9000,buy_price_max_date:date})))});
    }
+   if(u.pathname===OPPORTUNITY_EVIDENCE_API)return route.fulfill({json:emptyEvidence()});
    if(u.hostname!=='localhost')return route.fulfill({json:[]});
    const file=decodeURIComponent(u.pathname).slice(1).replaceAll('\\','/');
    if(baseline && file==='output/css/site.css')return route.fulfill({body:oldCss,contentType:'text/css'});

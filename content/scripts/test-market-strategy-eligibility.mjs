@@ -11,7 +11,8 @@ const fees = { setupFeeRate: .025, taxPremiumRate: .04, taxFreeRate: .08 };
 const good = { price: 1000, ageMs: 1000, stale: false, sourceTimeKnown: true, coverage: 'reported-top',
     validationStatus: 'accepted', executionConfidence: 1, reference: 800, referenceLevel: 3,
     referenceConfidence: .75, reliability: .75, usable: true, deviation: .25, anomalous: true,
-    confirmed: true, direction: 'up', at: new Date(now - 1000).toISOString() };
+    confirmed: true, direction: 'up', at: new Date(now - 1000).toISOString(),
+    salesReference: { price: 2000, sufficient: true, fresh: true, confidenceScore: 1 } };
 let cases = 0;
 for (const [id, spec] of Object.entries(STRATEGY_SPECS)) {
     const inputs = Object.fromEntries(spec.inputs.map(key => [key, { ...good, direction: spec.direction || 'flat' }]));
@@ -28,11 +29,11 @@ for (const [id, spec] of Object.entries(STRATEGY_SPECS)) {
     check('quarantined', { [first]: { ...inputs[first], validationStatus: 'quarantined', executionConfidence: 0 } }, false, 'quarantined');
     check('partial scope', { [first]: { ...inputs[first], coverage: 'partial' } }, false, 'incomplete-book');
     check('unknown source time', { [first]: { ...inputs[first], sourceTimeKnown: false } }, false, 'source-time-unknown');
-    check('below 12% with mature reference', { [first]: { ...inputs[first], deviation: .06, anomalous: false } }, spec.group === 'orders', spec.group === 'historical' ? 'movement-below-threshold' : null);
+    check('below 12% with mature reference', { [first]: { ...inputs[first], deviation: .06, anomalous: false } }, spec.group !== 'historical', spec.group === 'historical' ? 'movement-below-threshold' : null);
     if (spec.group === 'historical') check('movement not confirmed', { [first]: { ...inputs[first], confirmed: false } }, false, 'movement-unconfirmed');
     const flat = Object.fromEntries(spec.inputs.map(key => [key, { ...inputs[key], referenceLevel: 0,
         reference: null, deviation: .06, anomalous: false, confirmed: false }]));
-    check('below 12%, no history', flat, spec.group === 'orders', spec.group === 'historical' ? 'missing-reference' : null);
+    check('below 12%, no Buy/Sell history', flat, spec.group !== 'historical', spec.group === 'historical' ? 'missing-reference' : null);
     if (spec.inputs.length === 2) check('only one reliable side', { [spec.inputs[1]]: { ...good, executionConfidence: 0 } }, false, 'execution-unverified');
     else check('unrelated quarantined side', { [first === 'buy' ? 'sell' : 'buy']: { ...good, validationStatus: 'quarantined' } }, true);
 }
