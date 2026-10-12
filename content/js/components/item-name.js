@@ -1,8 +1,9 @@
 import { escapeHtml } from '../utils/utils.js';
 import { showToast } from './toast.js';
 
-/** Keep the copied name independent of tier badges, bonuses and other metadata. */
-export function itemNameHtml(name, copyName = name) {
+/** Visible labels stay unchanged; callers can opt into a copy-only prefix. */
+export function itemNameHtml(name, copyName = name, { copyPrefix = '' } = {}) {
+    copyName = [copyPrefix, copyName].filter(Boolean).join(' ');
     return `<span class="item-name-copy" data-copy-item-name="${escapeHtml(copyName)}" role="button" tabindex="0" title="Item adını kopyala" aria-label="${escapeHtml(copyName)} adını kopyala">${escapeHtml(name)}</span>`;
 }
 

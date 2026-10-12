@@ -25,7 +25,14 @@
     }
     h2 { font-size:1.1rem; margin:0 0 .75rem; } h3 { font-size:1rem; margin:0; }
     p { margin:.35rem 0; } small { color:var(--color-text-muted); }
-    .flipper-metrics { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:.75rem; >div { display:flex; align-items:center; gap:.75rem; padding:.8rem; border:1px solid var(--color-border); background:var(--color-surface); } strong { display:block; font-size:1.5rem; } }
+    .flipper-metrics { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:.75rem; >button { display:flex; align-items:center; gap:.75rem; padding:.8rem; border:1px solid var(--color-border); background:var(--color-surface); } strong { display:block; font-size:1.5rem; } }
+    .flipper-metrics > button {
+        min-width:0; color:var(--color-text); font:inherit; text-align:left; cursor:pointer;
+        &:hover { background:var(--color-surface-hover); }
+        &[aria-pressed="true"] { border-color:var(--color-primary); }
+        &:focus-visible { outline:var(--focus-outline-width) solid var(--color-focus-ring); outline-offset:var(--focus-outline-offset); }
+        &:disabled { cursor:default; }
+    }
     .flipper-columns { display:grid; grid-template-columns:minmax(0,1.55fr) minmax(0,1fr); gap:1rem; min-height:0; }
     .flipper-list-panel,
     .flipper-detail,
@@ -49,13 +56,15 @@ small { display:block; } &.is-selected { background:linear-gradient(90deg, color
         min-width:0; position:relative; font-variant-numeric:tabular-nums;
         .flipper-metric-inner { display:flex; flex-direction:column; align-items:center; justify-content:center; gap:.25rem; height:100%; padding:.35rem .15rem; }
         small { display:flex; align-items:center; justify-content:center; gap:.2rem; font-size:.6rem; white-space:nowrap; color:var(--color-text-muted); }
+        .flipper-price-age.is-current { color:var(--color-success); }
+        .flipper-price-volume { font-size:.6rem; font-weight:400; padding:.1em .3em; }
         strong { font-size:.9rem; line-height:1; letter-spacing:-.045em; white-space:nowrap; color:var(--color-text); }
         &--buy::after { content:""; position:absolute; right:0; top:20%; bottom:20%; width:1px; background:linear-gradient(transparent,var(--color-primary) 10%,var(--color-primary) 88%,transparent); opacity:.65; }
         &--net {
             z-index:1; margin:-2px 3px -2px 0; border:1px solid color-mix(in srgb, var(--color-primary) 85%, var(--color-border)); border-radius:12px; transform:skewX(10deg);
             background:linear-gradient(135deg,#2f281e 0%,#1b1d1e 48%,#28221c 100%); box-shadow:0 0 6px color-mix(in srgb, var(--color-primary) 20%, transparent),inset 0 1px 2px color-mix(in srgb, var(--color-primary) 12%, transparent);
             .flipper-metric-inner { transform:skewX(-10deg); }
-            strong { color:#ffbf50; font-size:1rem; }
+            strong { color:#ffbf50; font-size:1.25rem; }
             &.is-uncertain { border-style:dashed; }
         }
     }
@@ -66,7 +75,11 @@ small { display:block; } &.is-selected { background:linear-gradient(90deg, color
         &.is-loss { --roi-color:#e27171; }
     }
     .flipper-item-meta { display:flex; flex-wrap:wrap; align-items:center; gap:.35rem; .badge { font-size:.6rem; } small { font-size:.65rem; } [data-app-tooltip] { cursor:help; } }
-    .flipper-risk-badge { color:#e8b65c; background:rgba(232,182,92,.12); border:1px solid rgba(232,182,92,.4); }
+    .flipper-risk-icon {
+        display:inline-flex; align-items:center; justify-content:center; color:var(--color-warning);
+        svg { width:.9rem; height:.9rem; }
+        &:focus-visible { outline:var(--focus-outline-width) solid var(--color-focus-ring); outline-offset:var(--focus-outline-offset); }
+    }
     .flipper-spike-badge { color:#ff9292; background:rgba(226,113,113,.15); border:1px solid rgba(226,113,113,.55); }
     .flipper-detail-title { display:grid; grid-template-columns:auto minmax(0,1fr); gap:1rem; min-height:90px; >.item-visual { max-block-size:90px; } }
     .flipper-detail-title > div {
@@ -110,7 +123,7 @@ small { display:block; } &.is-selected { background:linear-gradient(90deg, color
         [data-limit-status] { color:var(--color-text-muted); font-size:.8rem; margin:.4rem 0; }
         > .btn { width:100%; }
     }
-    .flipper-profit { color:#4fe0ae; } .flipper-warning { color:#e8b65c; } .is-risk { border-left:2px solid #e27171; }
+    .flipper-profit { color:#4fe0ae; } .flipper-warning { color:#e8b65c; }
     .flipper-note { font-size:.8rem; color:var(--color-text-muted); }
     .flipper-basket .calc-table-wrap { max-height:30dvh; overflow:auto; min-height:0; } td small {display:block;}
     .flipper-empty { padding:1rem; display:flex; align-items:center; gap:.65rem; color:var(--color-text-muted); }
@@ -121,13 +134,10 @@ small { display:block; } &.is-selected { background:linear-gradient(90deg, color
 .flipper-icon { display:inline-flex; width:1.5rem; height:1.5rem; flex:0 0 auto; vertical-align:middle; svg { width:100%; height:100%; } }
 @media(max-width:1450px) { .flipper-page .flipper-columns {grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);} }
 @media(max-width:991px) { .flipper-page { .flipper-columns {grid-template-columns:1fr;} .flipper-metrics {grid-template-columns:repeat(2,minmax(0,1fr));} .flipper-list {max-height:65dvh;} } }
-@media(max-width:520px) { .flipper-page { .page-body {padding:.5rem;} .flipper-opportunity {gap:.4rem;} .flipper-metrics>div {padding:.5rem;gap:.35rem;} } }
+@media(max-width:520px) { .flipper-page { .page-body {padding:.5rem;} .flipper-opportunity {gap:.4rem;} .flipper-metrics>button {padding:.5rem;gap:.35rem;} } }
 // Panels keep their intrinsic height so the basket cannot overlap long details.
 .flipper-page .flipper-columns { flex: 0 0 auto; }
 .flipper-page .flipper-columns { min-height: min-content; }
-
-// Keep both labeled actions readable within the standard narrow control column.
-.flipper-page .flipper-controls .form-actions { grid-template-columns: minmax(0, 1fr); }
 
 @media (min-width: 992px) {
     main.flipper-page { flex: 1 1 0; min-height: 0; }
@@ -145,7 +155,7 @@ small { display:block; } &.is-selected { background:linear-gradient(90deg, color
             min-height: 0;
         }
         .flipper-note { margin: 0; min-height: 0; overflow: auto; }
-        .flipper-metrics { min-height: 0; > div { min-height: 0; } }
+        .flipper-metrics { min-height: 0; > button { min-height: 0; } }
         .flipper-columns { min-height: 0; height: 100%; }
         .flipper-list-panel { display: flex; flex-direction: column; min-height: 0; }
         .flipper-list-panel > .flipper-list-head { flex: 0 0 auto; }

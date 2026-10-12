@@ -30,6 +30,9 @@ await module.link(async (specifier) => {
 await module.evaluate();
 assert.match(module.namespace.itemNameHtml('<Sword>', 'Full "Sword"'), /data-copy-item-name="Full &quot;Sword&quot;"/);
 assert.match(module.namespace.itemNameHtml('<Sword>'), /&lt;Sword>/);
+const prefixed = module.namespace.itemNameHtml('Sword', 'Full Sword', { copyPrefix: '6.2' });
+assert.match(prefixed, /data-copy-item-name="6\.2 Full Sword"/);
+assert.match(prefixed, />Sword<\/span>/);
 module.namespace.initItemNameCopy();
 module.namespace.initItemNameCopy();
 function activate(type, key) {

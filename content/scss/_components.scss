@@ -603,6 +603,14 @@ input[type="month"].form-control {
     grid-auto-columns: minmax(0, 1fr);
 }
 
+.form-actions--compact > .btn {
+    min-width: 0;
+    padding: .5rem .375rem;
+    font-size: var(--font-size-sm);
+    letter-spacing: 0;
+    white-space: normal;
+}
+
 .input-group {
     display: flex;
     align-items: stretch;
@@ -2059,6 +2067,32 @@ $city-on-colors: (
         --color-city-accent: var(--color-city-accent-#{$city});
         --color-on-city: var(--color-on-city-#{$city});
     }
+}
+
+.city-map-node.is-excluded {
+    opacity: .45;
+    outline: 2px dashed var(--color-danger);
+    outline-offset: -2px;
+}
+
+.city-badge {
+    padding: .15em .35em;
+    background-color: var(--color-city);
+    color: var(--color-on-city);
+    border: 1px solid color-mix(in srgb, var(--color-city-accent) 55%, var(--color-border));
+    font-size: .65rem;
+    font-weight: var(--font-weight-semibold);
+    letter-spacing: .025em;
+    line-height: 1.25;
+    white-space: nowrap;
+}
+
+.city-route {
+    display: inline-flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: .25rem;
+    max-width: 100%;
 }
 
 .city-selected {

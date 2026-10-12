@@ -12,3 +12,16 @@ export function latestBookOrders(book) {
     const latest = orders.reduce((value, order) => Number.isFinite(stamp(order)) ? Math.max(value, stamp(order)) : value, -Infinity);
     return Number.isFinite(latest) ? orders.filter(order => stamp(order) === latest) : [];
 }
+
+export const BOOK_NEAR_PRICE_RATIO = .03;
+export function observedBookVolume(book, side) {
+    const orders = latestBookOrders(book).filter(order => Number.isFinite(order.price) && order.price > 0);
+    if (!orders.length) return null;
+    const price = side === 'sell' ? Math.min(...orders.map(order => order.price)) : Math.max(...orders.map(order => order.price));
+    const exact = orders.filter(order => order.price === price);
+    const near = orders.filter(order => side === 'sell' ? order.price <= price * (1 + BOOK_NEAR_PRICE_RATIO) : order.price >= price * (1 - BOOK_NEAR_PRICE_RATIO));
+    const sum = rows => rows.every(order => Number.isSafeInteger(order.observedAmount) && order.observedAmount > 0)
+        && Number.isSafeInteger(rows.reduce((total, order) => total + order.observedAmount, 0))
+        ? rows.reduce((total, order) => total + order.observedAmount, 0) : null;
+    return { price, exact: sum(exact), near: sum(near), nearRatio: BOOK_NEAR_PRICE_RATIO, observedAt: orders[0].seenAt, coverage: 'partial' };
+}

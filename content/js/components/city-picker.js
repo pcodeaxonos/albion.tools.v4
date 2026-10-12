@@ -202,6 +202,31 @@ export function getCityFieldValue(container, id) {
     return input?.value ?? '';
 }
 
+export function getCityFieldSelection(container, id) {
+    const field = container.querySelector(`[data-city-field="${CSS.escape(id)}"]`);
+    return field?.dataset.citySelection ? JSON.parse(field.dataset.citySelection) : { included: getCityFieldValue(container, id) ? [getCityFieldValue(container, id)] : [], excluded: [] };
+}
+
+export function setCityFieldSelection(container, id, selection) {
+    setCityFieldValue(container, id, selection.included[0] || '');
+    const field = container.querySelector(`[data-city-field="${CSS.escape(id)}"]`);
+    field.dataset.citySelection = JSON.stringify(selection);
+    field.querySelector('[data-city-all]')?.setAttribute('aria-pressed', String(!selection.included.length && !selection.excluded.length));
+    field.querySelectorAll('[data-city-value]').forEach(node => {
+        const included = selection.included.includes(node.dataset.cityValue);
+        const excluded = selection.excluded.includes(node.dataset.cityValue);
+        node.classList.toggle('is-selected', included);
+        node.classList.toggle('is-excluded', excluded);
+        node.setAttribute('aria-pressed', String(included));
+        node.setAttribute('aria-label', `${node.dataset.cityValue}${excluded ? ' (hariç tutuldu)' : ''}`);
+    });
+}
+
+export function resolveCityFieldSelection(container, id, values) {
+    const { included, excluded } = getCityFieldSelection(container, id);
+    return values.filter(value => (!included.length || included.includes(value)) && !excluded.includes(value));
+}
+
 // The first city field represents the tool's operating city; secondary market
 // fields must not overwrite it when a page has separate buy / sell selections.
 function syncCityBackground(container) {
@@ -216,6 +241,7 @@ function syncCityBackground(container) {
 
 export function setCityFieldValue(container, id, value) {
     const field = container.querySelector(`[data-city-field="${CSS.escape(id)}"]`);
+    if (field) delete field.dataset.citySelection;
     const input = container.querySelector(`[data-city-field="${CSS.escape(id)}"] [data-city-input]`);
     if (input) {
         input.value = value ?? '';
@@ -234,6 +260,7 @@ export function setCityFieldValue(container, id, value) {
     field.querySelectorAll('.city-map-node').forEach((node) => {
         const pressed = node.dataset.cityValue === value;
         node.classList.toggle('is-selected', pressed);
+        node.classList.remove('is-excluded');
         node.setAttribute('aria-pressed', pressed ? 'true' : 'false');
     });
 }
@@ -312,7 +339,7 @@ function clickedCityValue(field, node) {
 }
 
 /** syncPeers=false keeps route endpoints independent while preserving default operating-city synchronization. */
-export function bindCityField(container, id, onChange, { syncPeers = true } = {}) {
+export function bindCityField(container, id, onChange, { syncPeers = true, multiSelection = false } = {}) {
     const field = container.querySelector(`[data-city-field="${CSS.escape(id)}"]`);
     syncCityBackground(container);
     if (!field || field.dataset.cityBound === 'on') {
@@ -321,7 +348,27 @@ export function bindCityField(container, id, onChange, { syncPeers = true } = {}
     field.dataset.citySyncPeers = String(syncPeers);
     cityChangeHandlers.set(field, onChange);
     field.dataset.cityBound = 'on';
-    field.querySelector('[data-city-all]')?.addEventListener('click', () => changeCityField(container, field, ''));
+    const changeSelection = (value, event = {}) => {
+        if (!multiSelection) { changeCityField(container, field, value); return; }
+        let { included, excluded } = getCityFieldSelection(container, id);
+        if (!value) { included = []; excluded = []; }
+        else if (event.shiftKey) {
+            included = included.filter(city => city !== value);
+            excluded = excluded.includes(value) ? excluded.filter(city => city !== value) : [...excluded, value];
+        } else if (event.ctrlKey || event.metaKey) {
+            excluded = excluded.filter(city => city !== value);
+            included = included.includes(value) ? included.filter(city => city !== value) : [...included, value];
+        } else {
+            excluded = excluded.filter(city => city !== value);
+            included = included.includes(value) ? [] : [value];
+        }
+        setCityFieldSelection(container, id, { included, excluded });
+        onChange?.(getCityFieldValue(container, id));
+    };
+    if (multiSelection) {
+        field.querySelectorAll('[data-city-value]').forEach(node => { node.dataset.appTooltip += '\nCtrl: seçime ekle / çıkar · Shift: hariç tut / geri al'; });
+    }
+    field.querySelector('[data-city-all]')?.addEventListener('click', () => changeSelection(''));
     field.querySelectorAll('button').forEach((node) => { node.disabled = field.dataset.cityDisabled === 'true'; });
 
     if (field.classList.contains('city-field--horizontal')) {
@@ -330,8 +377,8 @@ export function bindCityField(container, id, onChange, { syncPeers = true } = {}
             if (!node || node.disabled || !field.contains(node)) {
                 return;
             }
-            const value = clickedCityValue(field, node);
-            changeCityField(container, field, value);
+            const value = multiSelection ? node.dataset.cityValue : clickedCityValue(field, node);
+            changeSelection(value, event);
         });
         return;
     }
@@ -342,13 +389,13 @@ export function bindCityField(container, id, onChange, { syncPeers = true } = {}
             if (!node || node.disabled || !field.contains(node)) {
                 return;
             }
-            const value = clickedCityValue(field, node);
-            changeCityField(container, field, value);
+            const value = multiSelection ? node.dataset.cityValue : clickedCityValue(field, node);
+            changeSelection(value, event);
         });
         return;
     }
 
     field.querySelector('select')?.addEventListener('change', (event) => {
-        changeCityField(container, field, event.target.value);
+        changeSelection(event.target.value);
     });
 }

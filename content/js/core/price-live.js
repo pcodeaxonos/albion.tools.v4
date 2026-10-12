@@ -79,12 +79,22 @@ export function bindLivePrices(getWatch, reload, { packetSourceOnly = true, dela
         if (!priceUpdateTouches(event.detail, watch || {})) {
             return;
         }
-        latestDetail = event.detail;
+        const pending = latestDetail;
+        latestDetail = { ...event.detail };
+        for (const key of ['items', 'cities']) {
+            const incoming = Array.isArray(event.detail?.[key]) ? event.detail[key] : [];
+            const previous = Array.isArray(pending?.[key]) ? pending[key] : [];
+            // Empty scopes mean every item/city, so keep that meaning across a burst.
+            latestDetail[key] = pending && (!previous.length || !incoming.length)
+                ? [] : [...new Set([...previous, ...incoming])];
+        }
         // A fixed batching window keeps continuous packet traffic from delaying updates forever.
         if (reloadTimer) return;
         reloadTimer = window.setTimeout(() => {
             reloadTimer = 0;
-            reload(latestDetail);
+            const detail = latestDetail;
+            latestDetail = undefined;
+            reload(detail);
         }, delayMs);
     };
     window.addEventListener(PRICES_EVENT, handler);

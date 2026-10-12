@@ -42,10 +42,12 @@ export function evaluateFlip({ item, source, target, sourceReference, targetRefe
     if (bid.price / ask.price >= DECISION_POLICY.anomalyRatio) reasons.push('Şehirler arasında uç fiyat farkı');
     const netSale = saleProceedsFromRates(bid.price, { taxRate, setup: false, setupFeeRate: 0 });
     const cost = ask.price + transport, net = netSale - cost, roi = net / cost;
-    const ageMs = Math.max(now - Date.parse(ask.sourceQuoteAt), now - Date.parse(bid.sourceQuoteAt));
+    const buyAgeMs = now - Date.parse(ask.sourceQuoteAt);
+    const sellAgeMs = now - Date.parse(bid.sourceQuoteAt);
+    const ageMs = Math.max(buyAgeMs, sellAgeMs);
     const safe = !spikes.length && ask.status === STATUS.confirmed && bid.status === STATUS.confirmed && bid.price / ask.price < DECISION_POLICY.anomalyRatio;
     const confidence = safe ? (referenceKnown ? .85 : .55) : .1;
-    return { id: `${item.uniqueName}|${source.city}|${target.city}|${quality}`, itemId: item.uniqueName, source: source.city, target: target.city, quality, buy: ask.price, sell: bid.price, tax: bid.price * taxRate, transport, cost, netSale, net, roi, ageMs, reasons, spikes, safe, confidence,
+    return { id: `${item.uniqueName}|${source.city}|${target.city}|${quality}`, itemId: item.uniqueName, source: source.city, target: target.city, quality, buy: ask.price, sell: bid.price, buyVolume: source.sell_observed_volume?.price === ask.price ? source.sell_observed_volume : null, sellVolume: target.buy_observed_volume?.price === bid.price ? target.buy_observed_volume : null, tax: bid.price * taxRate, transport, cost, netSale, net, roi, ageMs, buyAgeMs, sellAgeMs, reasons, spikes, safe, confidence,
         // Snapshot prices contain no reliable depth. Never infer quantity from timestamps or price counts.
         expiresAt: now + maxAgeMs - ageMs, quantityLimit: null, weight: positive(item.weight) ? item.weight : null,
         score: safe && net > 0 ? confidence * Math.sqrt(net) * Math.log1p(roi) : 0 };

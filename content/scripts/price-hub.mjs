@@ -17,7 +17,7 @@ import { fileURLToPath } from 'node:url';
 import { promisify } from 'node:util';
 import { normalizePriceDate, marketSeriesKey, BOOK_PRICE_FIELDS } from '../js/core/market-primitives.mjs';
 import { ORDER_HISTORY_POLICY, SALES_HISTORY_ENDPOINT, PACKET_HISTORY_ENDPOINT } from '../js/core/market-history-config.mjs';
-import { mergePartialBook, latestBookOrders } from '../js/core/market-book.mjs';
+import { mergePartialBook, latestBookOrders, observedBookVolume } from '../js/core/market-book.mjs';
 import { preserveArchive } from './archive-backup.mjs';
 import { OrderPriceHistory } from '../js/core/order-price-history.mjs';
 import { startQuoteService } from './quote-service.mjs';
@@ -562,6 +562,8 @@ function aggregateRow(itemId, city, quality) {
         book_coverage: { sell: offer?.coverage ?? 'unknown', buy: request?.coverage ?? 'unknown' },
         // Retained IDs are observations; upload protocol cannot prove they remain active.
         active_orders_verified: false,
+        sell_observed_volume: observedBookVolume(offer, 'sell'),
+        buy_observed_volume: observedBookVolume(request, 'buy'),
         sell_price_min: sell.price,
         sell_price_min_date: sell.date,
         sell_price_max: sellMax.price,

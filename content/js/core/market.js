@@ -60,6 +60,7 @@ export function mergePriceRows(gameRows = [], apiRows = []) {
                 prev.sell_price_min = row.sell_price_min;
                 prev.sell_price_min_date = row.sell_price_min_date;
                 prev._sellOrigin = origin;
+                prev.sell_observed_volume = row.sell_observed_volume || null;
             }
         }
 
@@ -73,6 +74,7 @@ export function mergePriceRows(gameRows = [], apiRows = []) {
                 prev.buy_price_max = row.buy_price_max;
                 prev.buy_price_max_date = row.buy_price_max_date;
                 prev._buyOrigin = origin;
+                prev.buy_observed_volume = row.buy_observed_volume || null;
             }
         }
 
@@ -114,10 +116,12 @@ function mergePreferredPriceRows(primaryRows = [], fallbackRows = []) {
         if (!hasSell(current) && hasSell(fallback)) {
             current.sell_price_min = fallback.sell_price_min;
             current.sell_price_min_date = fallback.sell_price_min_date;
+            current.sell_observed_volume = fallback.sell_observed_volume || null;
         }
         if (!hasBuy(current) && hasBuy(fallback)) {
             current.buy_price_max = fallback.buy_price_max;
             current.buy_price_max_date = fallback.buy_price_max_date;
+            current.buy_observed_volume = fallback.buy_observed_volume || null;
         }
         primary.set(key, current);
     }

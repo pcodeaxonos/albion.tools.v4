@@ -1,5 +1,5 @@
 import { normalizeMarketHistoryPacket, parseMarketHistoryBody } from './market-history-packets.mjs';
-import { mergePartialBook, latestBookOrders } from '../js/core/market-book.mjs';
+import { mergePartialBook, latestBookOrders, observedBookVolume } from '../js/core/market-book.mjs';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import vm from 'node:vm';
@@ -110,7 +110,7 @@ class PacketHistory extends OrderPriceHistory {
 }
 const context = vm.createContext({
     normalizeMarketHistoryPacket, parseMarketHistoryBody, PACKET_HISTORY_ENDPOINT,
-    MarketHistoryPackets: class { constructor() { this.rows = []; } history(scope) { return this.rows.filter(row => row.server === scope.server && scope.items.includes(row.item_id) && scope.locations.includes(row.location) && scope.qualities.includes(row.quality)); } status() { return {}; } ingest(row) { this.rows.push(row); return row.data.length; } }, mergePartialBook, latestBookOrders, preserveArchive: () => {}, console, URL, URLSearchParams, Map, Set, Buffer,
+    MarketHistoryPackets: class { constructor() { this.rows = []; } history(scope) { return this.rows.filter(row => row.server === scope.server && scope.items.includes(row.item_id) && scope.locations.includes(row.location) && scope.qualities.includes(row.quality)); } status() { return {}; } ingest(row) { this.rows.push(row); return row.data.length; } }, mergePartialBook, latestBookOrders, observedBookVolume, preserveArchive: () => {}, console, URL, URLSearchParams, Map, Set, Buffer,
     OpportunityEvidenceRepository: class { close() {} }, routeOpportunityEvidence: async () => false,
     OpportunityDiagnosticsRepository: class { constructor() { this.data = { scans: [], collectorRuns: [] }; } },
     startQuoteService: () => ({ repository: { flush() {} }, collector: { state: {}, noteDiscovery() {} } }),
