@@ -15452,6 +15452,14 @@ main:has(.page-head[data-page-head=flipper]) {
   border-top: 1px solid rgba(16, 21, 28, 0.26);
 }
 
+.yield-ref-values.is-return-only {
+  grid-template-columns: 1fr;
+}
+
+.yield-ref-values.is-return-only::before {
+  display: none;
+}
+
 .yield-ref-values b {
   color: #fff;
   font-family: var(--font-family-mono);

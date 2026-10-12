@@ -1039,6 +1039,7 @@ function yieldDocumentIcon() {
 }
 
 function renderAvgCard(plant, islandCity) {
+    const showProduct = state.yieldKind === 'plant';
     const avg = averageFor(plant, islandCity);
     const wikiYield = standardOutput(plant, islandCity);
     const wikiSeed = standardReturn(plant, islandCity);
@@ -1066,15 +1067,15 @@ function renderAvgCard(plant, islandCity) {
                 <div class="yield-avg-card-visual">${iconId
                     ? itemIconHtml(iconId, { size: 96, className: 'item-icon yield-avg-card-icon' })
                     : `<span class="yield-avg-card-icon-fallback">T${plant.tier}</span>`}</div>
-                <h4 class="yield-avg-card-name">${escapeHtml(plant.label)}</h4>
+                <h4 class="yield-avg-card-name">${itemNameHtml(plant.label)}</h4>
             </div>
-            <div class="yield-ref-deltas">
+            <div class="yield-ref-deltas${showProduct ? '' : ' is-single'}">
                 <div class="yield-ref-delta ${deltaTone(seedRelativeDifference)}"${tipAttr('Varsayılan tohum dönüşüne göre yüzde farkı')}><strong data-yield-change="seed-relative">${active ? formatRelativeDifference(avg.avgSeedReturn, wikiSeed) : '—'}</strong><span>${active ? formatDeltaMagnitude(avg.avgSeedReturn - wikiSeed, { digits: 1, asPctPoints: true }) : ''}</span></div>
-                <div class="yield-ref-delta ${deltaTone(yieldRelativeDifference)}"${tipAttr('Varsayılan ürüne göre yüzde farkı')}><strong data-yield-change="product-relative">${active ? formatRelativeDifference(avg.avgPlantYield, wikiYield) : '—'}</strong><span>${active ? formatDeltaMagnitude(avg.avgPlantYield - wikiYield, { digits: 1 }) : ''}</span></div>
+                ${showProduct ? `<div class="yield-ref-delta ${deltaTone(yieldRelativeDifference)}"${tipAttr('Varsayılan ürüne göre yüzde farkı')}><strong data-yield-change="product-relative">${active ? formatRelativeDifference(avg.avgPlantYield, wikiYield) : '—'}</strong><span>${active ? formatDeltaMagnitude(avg.avgPlantYield - wikiYield, { digits: 1 }) : ''}</span></div>` : ''}
             </div>
-            <div class="yield-ref-values" aria-label="${escapeHtml(`${copy.outputShort} ve ${copy.returnShort} gerçek ve varsayılan değerleri`)}">
-                <span class="yield-ref-value is-actual"><b data-yield-change="seed">${active ? formatPct(avg.avgSeedReturn) : '—'}</b><small>Gerçek</small></span><span class="yield-ref-value is-actual"><b data-yield-change="product">${active ? formatQty(avg.avgPlantYield) : '—'}</b><small>Gerçek</small></span>
-                <span class="yield-ref-value is-default"><b>${formatPct(wikiSeed)}</b><small>Vars.</small></span><span class="yield-ref-value is-default"><b>${formatQty(wikiYield)}</b><small>Vars.</small></span>
+            <div class="yield-ref-values${showProduct ? '' : ' is-return-only'}" aria-label="${escapeHtml(`${showProduct ? `${copy.outputShort} ve ` : ''}${copy.returnShort} gerçek ve varsayılan değerleri`)}">
+                <span class="yield-ref-value is-actual"><b data-yield-change="seed">${active ? formatPct(avg.avgSeedReturn) : '—'}</b><small>Gerçek</small></span>${showProduct ? `<span class="yield-ref-value is-actual"><b data-yield-change="product">${active ? formatQty(avg.avgPlantYield) : '—'}</b><small>Gerçek</small></span>` : ''}
+                <span class="yield-ref-value is-default"><b>${formatPct(wikiSeed)}</b><small>Vars.</small></span>${showProduct ? `<span class="yield-ref-value is-default"><b>${formatQty(wikiYield)}</b><small>Vars.</small></span>` : ''}
             </div>
             <footer class="yield-card-footer"><span data-app-tooltip="Ortalamaya giren kayıt sayısı">${yieldDocumentIcon()} <b>n=${active ? avg.n : 0}</b></span>${renderConfidence(active ? avg : null, plant, islandCity)}</footer>
             </div>
