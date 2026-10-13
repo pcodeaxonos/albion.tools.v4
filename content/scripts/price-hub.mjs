@@ -16,7 +16,7 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { promisify } from 'node:util';
 import { normalizePriceDate, marketSeriesKey, BOOK_PRICE_FIELDS } from '../js/core/market-primitives.mjs';
-import { ORDER_HISTORY_POLICY, SALES_HISTORY_ENDPOINT, PACKET_HISTORY_ENDPOINT } from '../js/core/market-history-config.mjs';
+import { ORDER_HISTORY_POLICY, ORDER_HISTORY_ENDPOINT, SALES_HISTORY_ENDPOINT, PACKET_HISTORY_ENDPOINT } from '../js/core/market-history-config.mjs';
 import { mergePartialBook, latestBookOrders, observedBookVolume } from '../js/core/market-book.mjs';
 import { preserveArchive } from './archive-backup.mjs';
 import { OrderPriceHistory } from '../js/core/order-price-history.mjs';
@@ -289,7 +289,7 @@ async function route(req, res, url, path) {
         return;
     }
 
-    if (req.method === 'GET' && path === '/api/v1/market/order-history') {
+    if (req.method === 'GET' && path === ORDER_HISTORY_ENDPOINT) {
         if (orderHistory.prune()) persistOrderHistory();
         const snapshot = orderHistory.snapshot();
         const requestedServer = url.searchParams.get('server');

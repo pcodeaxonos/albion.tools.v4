@@ -100,6 +100,23 @@
 }
 
 .form-field { position: relative; min-width: 0; }
+.form-floating--clearable {
+    --field-clear-size: 1.5rem;
+    > .form-control { padding-inline-end: calc(var(--floating-label-inset) + var(--field-clear-size)); }
+    > .form-field-clear {
+        position: absolute; top: 50%; right: var(--floating-label-inset); z-index: 3;
+        transform: translateY(-50%); display: grid; place-items: center;
+        width: var(--field-clear-size); height: var(--field-clear-size); min-width: 0; min-height: 0;
+        padding: 0; border: 0; background: transparent; color: var(--color-text-muted);
+        &:focus-visible { outline: var(--focus-outline-width) solid var(--color-focus-ring); }
+    }
+}
+.form-field--compact {
+    gap: .1rem;
+    .form-field-heading { height: .8rem; }
+    .form-field-label { font-size: .65rem; }
+    .form-select-sm { min-width: 0; }
+}
 .form-field-heading {
     display: flex; align-items: center; gap: .35rem; min-width: 0;
     height: 1.25rem; margin-bottom: 0;

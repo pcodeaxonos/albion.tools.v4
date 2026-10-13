@@ -70,6 +70,7 @@ export const tables = {
             { name: 'enchantment', type: 'number', label: 'Enchantment' },
             { name: 'itemType', type: 'string', label: 'Item Type' },
             { name: 'isEquipable', type: 'boolean', label: 'Equipable' },
+            { name: 'maxQualityLevel', type: 'number', label: 'Kaynak kalite sınırı' },
             { name: 'shopCategory', type: 'string', label: 'Kategori', match: 'exact', filter: 'shopCategory' },
             { name: 'shopSubCategory', type: 'string', label: 'Alt kategori', match: 'exact', filter: 'shopSubCategory' },
             { name: 'shopSubCategory2', type: 'string', label: 'Alt kategori 2', match: 'exact' },

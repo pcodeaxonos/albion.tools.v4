@@ -1,0 +1,10 @@
+PASS Flipper responsive 1920px
+AssertionError [ERR_ASSERTION]: opportunity list must not overflow horizontally
+    at F:\Web\GitHub\pcodeaxonos\albion.tools.v4\content\scripts\test-flipper-ui.cjs:136:9 {
+  generatedMessage: false,
+  code: 'ERR_ASSERTION',
+  actual: false,
+  expected: true,
+  operator: '==',
+  diff: 'simple'
+}

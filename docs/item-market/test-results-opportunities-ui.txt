@@ -1,0 +1,5 @@
+
+> albion.tools.v4@4.0.0 opportunities:v6:ui:test
+> node content/scripts/test-opportunity-v6-ui.cjs
+
+Chrome V6 redesigned flow: two side cards, lost ACK/reload/dedupe, real fills and identical FIFO, native-dialog dropdown selection, keyboard copy, report filters/export/restart and five viewport sizes passed.

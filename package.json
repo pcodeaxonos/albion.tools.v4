@@ -7,6 +7,9 @@
         "node": ">=22"
     },
     "scripts": {
+        "item-market:test": "node --experimental-vm-modules content/scripts/test-item-market.mjs",
+        "data:item-quality": "node content/scripts/update-item-quality-metadata.mjs",
+        "item-market:ui:test": "node content/scripts/test-item-market-ui.cjs",
         "app:test": "node content/scripts/test-app-startup.mjs",
         "app:ui:test": "node content/scripts/test-app-runtime.cjs",
         "test": "npm run app:test && npm run css:check && npm run decision:test && npm run city:test && npm run tooltip:test && npm run item-name:test && npm run prices:live:test && npm run prices:history:test && npm run prices:collector:test && npm run prices:collection:test && npm run opportunities:test && npm run island:test && npm run island:stability:test && npm run island:forecast:test && npm run laborer:test && npm run routes:test && npm run flipper:test",

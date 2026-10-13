@@ -15,6 +15,7 @@ export function marketSeriesKey({ server, itemId, city, quality, side }) {
 }
 
 export const BOOK_PRICE_FIELDS = Object.freeze({ buy: 'buy_price_max', sell: 'sell_price_min' });
+export const ORDER_PRICE_FIELDS = Object.freeze(['buy_price_min', 'buy_price_max', 'sell_price_min', 'sell_price_max']);
 /** Inverse weighted empirical CDF: quantities, not number of rows, carry weight. */
 export function weightedQuantile(rows, fraction) {
     const sorted = rows.filter(row => Number.isFinite(row.value) && Number.isSafeInteger(row.weight) && row.weight > 0)

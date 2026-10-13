@@ -93,7 +93,7 @@
     gap: var(--spacing-sm);
     min-width: 0;
 
-    .item-icon {
+    > .item-icon {
         width: 2rem;
         height: 2rem;
         flex: 0 0 auto;
@@ -104,7 +104,7 @@
     }
 }
 
-[data-tool="furniture"] .market-item .item-icon {
+[data-tool="furniture"] .market-item > .item-icon {
     width: 4rem;
     height: 4rem;
 }

@@ -123,6 +123,16 @@
     letter-spacing: 0.02em;
 }
 
+// Compact actions containing only a labelled icon, shared across tools.
+.btn.btn-icon-only {
+    min-width: var(--input-height-sm);
+    min-height: var(--input-height-sm);
+    width: var(--input-height-sm);
+    height: var(--input-height-sm);
+    padding: .15rem;
+    flex: 0 0 auto;
+}
+
 // Form
 .form-label {
     display: block;
@@ -999,6 +1009,17 @@ input[type="month"].form-control {
         content: "↓";
         opacity: 1;
         color: var(--color-primary);
+    }
+
+    .table-sort-group {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: .3rem;
+        .table-sort-btn { width: auto; flex: 0 0 auto; }
+        .table-sort-btn[data-sort-direction="none"]::after { content: "↕"; opacity: .35; }
+        .table-sort-btn[data-sort-direction="asc"]::after { content: "↑"; opacity: 1; }
+        .table-sort-btn[data-sort-direction="desc"]::after { content: "↓"; opacity: 1; }
     }
 
     th.num .table-sort-btn,

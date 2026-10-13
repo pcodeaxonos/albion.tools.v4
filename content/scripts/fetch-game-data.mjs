@@ -11,18 +11,14 @@
 
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { spawnSync } from 'node:child_process';
-import { dirname, join } from 'node:path';
+import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import https from 'node:https';
+import { GAME_DATA_SOURCES, GAME_DATA_DIRECTORY, gameItemMaxQuality } from './game-data-source.mjs';
 
-const __dirname = dirname(fileURLToPath(import.meta.url));
-const DATA_DIR = join(__dirname, '..', 'data');
+const DATA_DIR = fileURLToPath(GAME_DATA_DIRECTORY);
 
-const SOURCES = {
-    items: 'https://raw.githubusercontent.com/ao-data/ao-bin-dumps/master/formatted/items.json',
-    world: 'https://raw.githubusercontent.com/ao-data/ao-bin-dumps/master/formatted/world.json',
-    itemsXml: 'https://raw.githubusercontent.com/ao-data/ao-bin-dumps/master/items.json'
-};
+const SOURCES = GAME_DATA_SOURCES;
 
 function fetchJson(url) {
     return new Promise((resolve, reject) => {
@@ -133,6 +129,7 @@ function collectItemMetadata(itemsRoot) {
                 shopSubCategory: node['@shopsubcategory1'] ?? '',
                 shopSubCategory2: node['@shopsubcategory2'] ?? '',
                 tradeable: parseBooleanAttribute(node['@tradable']),
+                maxQualityLevel: gameItemMaxQuality(node),
                 activeFarmFocusCost: node['@activefarmfocuscost'] == null ? null : Number(node['@activefarmfocuscost']),
                 activeFarmMaxCycles: node['@activefarmmaxcycles'] == null ? null : Number(node['@activefarmmaxcycles'])
             };
@@ -183,6 +180,7 @@ function normalizeItems(rawItems, metadataMap) {
             shopSubCategory: metadata.shopSubCategory,
             shopSubCategory2: metadata.shopSubCategory2,
             tradeable: metadata.tradeable,
+            maxQualityLevel: metadata.maxQualityLevel ?? null,
             ...(metadata.activeFarmMaxCycles != null ? { activeFarmFocusCost: metadata.activeFarmFocusCost, activeFarmMaxCycles: metadata.activeFarmMaxCycles } : {})
         };
     });

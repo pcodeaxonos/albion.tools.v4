@@ -148,7 +148,8 @@ $page-head-images: (
     "laborer-contract": (desktop: "laborer-contract-header.png"),
     "opportunities": (desktop: "gunun-firsatlari-header.png"),
     "decision-engine": (desktop: "karar-motoru-header.png"),
-    "flipper": (desktop: "flipper-head-2000x200.png")
+    "flipper": (desktop: "flipper-head-2000x200.png"),
+    "item-market": (desktop: "esya-piyasasi-head-2000x200.png", mobile: "esya-piyasasi-head-mobile-1200x480.webp")
 );
 
 // Explicit assets can reuse the desktop image when no mobile variant is supplied.

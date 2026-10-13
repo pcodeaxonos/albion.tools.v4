@@ -113,7 +113,8 @@ async function loadHistoryIndex(itemIds, locations, {
     days = 14,
     timeScale = 24,
     force = false,
-    qualities = 1
+    qualities = 1,
+    throwOnError = false
 } = {}) {
     const ids = [...new Set((itemIds || []).filter(Boolean))];
     const cities = [...new Set((locations || []).filter(Boolean))].sort();
@@ -164,6 +165,7 @@ async function loadHistoryIndex(itemIds, locations, {
                 qualities
             }));
         } catch (error) {
+            if (throwOnError) throw error;
             console.warn(error);
             continue;
         }
@@ -171,9 +173,9 @@ async function loadHistoryIndex(itemIds, locations, {
         for (const row of rows) {
             const itemId = row.item_id;
             const city = row.location;
-            const quality = Number(row.quality) || 1;
+            const quality = Number(row.quality);
             const summary = summarizeSeries(Array.isArray(row.data) ? row.data : []);
-            if (!itemId || !city || !summary) {
+            if (!batch.includes(itemId) || !cities.includes(city) || row.quality == null || !qualityValues.includes(quality) || !summary) {
                 continue;
             }
             const key = historyKey(itemId, city, quality);
@@ -197,7 +199,7 @@ export function fetchHistoryIndex(itemIds, locations, options = {}) {
     const ids = [...new Set((itemIds || []).filter(Boolean))].sort();
     const cities = [...new Set((locations || []).filter(Boolean))].sort();
     const normalized = { force: options.force === true, days: options.days ?? 14, timeScale: options.timeScale ?? 24,
-        qualities: String(options.qualities ?? 1).split(',').map(Number).sort((a, b) => a - b).join(',') };
+        qualities: String(options.qualities ?? 1).split(',').map(Number).sort((a, b) => a - b).join(','), throwOnError: options.throwOnError === true };
     const key = JSON.stringify([getServer().host, ids, cities, normalized, Math.floor(Date.now() / DAY_MS)]);
     if (!IN_FLIGHT.has(key)) {
         const pending = loadHistoryIndex(ids, cities, normalized).finally(() => IN_FLIGHT.delete(key));

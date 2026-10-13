@@ -1,5 +1,18 @@
 [
   {
+    "id": "item-market",
+    "title": "Eşya Piyasası",
+    "description": "Şehir ve kalite fiyatları, API geçmişi ve şahsi işlemler.",
+    "icon": "📊",
+    "addedAt": "2026-10-13",
+    "frequent": false,
+    "path": "tools/item-market",
+    "navLabel": "Eşya Piyasası",
+    "navGroup": "Piyasa",
+    "navOrder": 42,
+    "navVisible": true
+  },
+  {
     "id": "flipper",
     "title": "Flipper",
     "description": "Şehirler arası ve Black Market arbitrajı; net kâr ve taşıma sepeti.",

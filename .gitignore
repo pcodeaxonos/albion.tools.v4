@@ -48,6 +48,8 @@ content/icons/*
 
 !content/icons/flipper/
 !content/icons/flipper/*.svg
+!content/icons/item-market/
+!content/icons/item-market/*.svg
 
 # Local browser checks and temporary screenshots
 /.tmp/

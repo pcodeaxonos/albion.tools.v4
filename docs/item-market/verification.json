@@ -1,0 +1,48 @@
+{
+  "item": "T4_MAIN_SWORD",
+  "server": "europe",
+  "quality": 1,
+  "functional": "passed",
+  "viewports": [
+    [
+      1920,
+      1080
+    ],
+    [
+      1688,
+      896
+    ],
+    [
+      1440,
+      900
+    ],
+    [
+      1280,
+      720
+    ],
+    [
+      390,
+      844
+    ]
+  ],
+  "heads": {
+    "desktop": [
+      2000,
+      200,
+      "PNG"
+    ],
+    "mobile": [
+      1200,
+      480,
+      "WebP"
+    ]
+  },
+  "liveEvidence": {
+    "personalPoints": 0,
+    "apiPoints": 100,
+    "apiVolumeBars": 100,
+    "status": "",
+    "snapshotPoints": 0,
+    "snapshotVolumeBars": 0
+  }
+}

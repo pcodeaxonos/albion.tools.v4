@@ -1,0 +1,315 @@
+
+> albion.tools.v4@4.0.0 test
+> npm run app:test && npm run css:check && npm run decision:test && npm run city:test && npm run tooltip:test && npm run item-name:test && npm run prices:live:test && npm run prices:history:test && npm run prices:collector:test && npm run prices:collection:test && npm run opportunities:test && npm run island:test && npm run island:stability:test && npm run island:forecast:test && npm run laborer:test && npm run routes:test && npm run flipper:test
+
+
+> albion.tools.v4@4.0.0 app:test
+> node content/scripts/test-app-startup.mjs
+
+PASS critical barriers, menu → status → structure → content, critical failure
+
+> albion.tools.v4@4.0.0 css:check
+> node content/scripts/test-css-architecture.mjs && node content/scripts/check-css-architecture.mjs
+
+CSS architecture scanner tests passed.
+CSS architecture: 42 style files, 316 markup/script files, 3833 compiled rules.
+WARN content\scss\app\_farming-pasture.scss: possible shared component refining-table
+WARN content\scss\app\_flipper.scss: possible shared component flipper-item
+WARN content\scss\app\_flipper.scss: possible shared component flipper-price-cell
+WARN content\scss\app\_flipper.scss: possible shared component flipper-item-meta
+WARN content\scss\app\_flipper.scss: possible shared component flipper-note
+WARN content\scss\app\_house.scss: possible shared component house-mats
+WARN content\scss\app\_house.scss: possible shared component house-mat
+WARN content\scss\app\_house.scss: possible shared component house-mat-text
+WARN content\scss\app\_house.scss: possible shared component house-mat-value
+WARN content\scss\app\_house.scss: possible shared component house-mat-label
+WARN content\scss\app\_house.scss: possible shared component house-mat-meta
+WARN content\scss\app\_island-planner.scss: possible shared component island-planner-chip
+WARN content\scss\app\_island-planner.scss: possible shared component island-planner-chip-icon
+WARN content\scss\app\_island-planner.scss: possible shared component island-planner-table
+WARN content\scss\app\_island-planner.scss: possible shared component island-planner-type
+WARN content\scss\app\_island-planner.scss: possible shared component island-planner-note
+WARN content\scss\app\_laborer-contract.scss: possible shared component laborer-contract-item
+WARN content\scss\app\_trades.scss: possible shared component trades-table
+WARN Identical blocks: .fixed-price-item-filter-row > span / .opp-types .opp-view span
+0 retired-class errors; 21 advisory findings; 190 unused/dynamic candidates.
+WARN Identical blocks: .tool-page .result :where(div, section):has(.calc-table-wrap) / .opp-page .result > [data-opportunities-result]
+WARN 1 further advisory candidates (use --all).
+
+> albion.tools.v4@4.0.0 decision:test
+> node content/scripts/test-decision-engine.mjs && node --experimental-vm-modules content/scripts/test-decision-data.mjs && node --experimental-vm-modules content/scripts/test-decision-history.mjs
+
+OK Complete cheap craft => CRAFT_NOW
+OK Ask acquisition and bid disposal remain separate
+OK Order fees differ from instant fees
+OK Cheap unknown order, urgent => BUY_NOW
+OK Conditional savings remain separate from confirmed recommendation
+OK Unknown fill never becomes guaranteed even when not urgent
+OK Missing ingredient does not block independent instant acquisition
+OK Batch rounding buys full recipe quantities
+OK Owned materials have nonzero disposal opportunity cost
+OK RR credits disposal bids net of tax only in separate conditional net
+OK Non-returnable input receives no RR credit
+OK Focus expense and missing focus economics
+OK Material order scenario uses explicit limit and setup
+OK Loss-making conversion => SELL_NOW, including held opportunity cost
+OK Profitable conversion includes leftover held stock
+OK Anomalous ask is excluded from firm recommendation
+OK Observed timestamp is not replaced by fresh fetch time
+OK 28-day estimator keeps sparse hours absent and admits completed coverage
+OK Mode separation
+OK Invalid inputs and missing rates never produce decisions
+OK Equal and close costs prefer simpler instant path
+OK Unknown transfer expense blocks cross-city craft
+OK Missing batch, station fee, RR, or return bid do not turn into zero
+OK Known base fee and safe quantity bounds cannot be bypassed
+OK Recursive inspection has depth and cycle guards
+OK Recipe metadata preserves inherited enchant identity and explicit unknowns
+OK Real Beef Sandwich metadata matches local BOM with yield 10
+PASS 27 decision-engine fixtures
+PASS quote sides, quality isolation, source timestamps, archive degradation, abort propagation, history server identity, catalog rates
+(node:27468) ExperimentalWarning: VM Modules is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+PASS decision history: real time axis, gaps, invalid/missing points, single observation, no synthetic average/volume
+(node:22284) ExperimentalWarning: VM Modules is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+> albion.tools.v4@4.0.0 city:test
+> node --experimental-vm-modules content/scripts/test-city-picker.mjs
+
+City picker synchronization tests passed.
+Independent route endpoints and custom destination icons/positions passed.
+Shared city choice headings and all-selection actions passed.
+(node:11820) ExperimentalWarning: VM Modules is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+> albion.tools.v4@4.0.0 tooltip:test
+> node --experimental-vm-modules content/scripts/test-tooltips.mjs && node --experimental-vm-modules content/scripts/test-tooltip-metadata.mjs
+
+Tooltips: dynamic controls, focus, Escape, viewport bounds, accessibility and cleanup passed.
+(node:45536) ExperimentalWarning: VM Modules is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+Tooltip metadata: concise history, fallback explanations, missing days and invalid dates passed.
+(node:40612) ExperimentalWarning: VM Modules is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+> albion.tools.v4@4.0.0 item-name:test
+> node --experimental-vm-modules content/scripts/test-item-name.mjs
+
+(node:36900) ExperimentalWarning: VM Modules is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+Item name copy tests passed
+
+> albion.tools.v4@4.0.0 prices:live:test
+> node --experimental-vm-modules content/scripts/test-price-live.mjs
+
+Live prices: source options, batching, independent subscriptions and cleanup passed.
+(node:3148) ExperimentalWarning: VM Modules is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+> albion.tools.v4@4.0.0 prices:history:test
+> node content/scripts/test-market-order-history.mjs && node content/scripts/test-market-history-packets.mjs && node content/scripts/test-sales-history-infrastructure.mjs && node --experimental-vm-modules content/scripts/test-market-history-cache.mjs
+
+ingest 2 kitap · 4 sipariş
+ingest 1 kitap · 1 sipariş
+ingest 2 kitap · 4 sipariş
+ingest 1 kitap · 2 sipariş
+ingest 1 kitap · 1 sipariş
+ingest 2 kitap · 4 sipariş
+Market order history: identity, UTC, dedupe, buckets, retention, restore, estimators, hub ingest, persistence and routes passed.
+Market History packets: wire precision, silver/ticks, POW, dedupe/corrections, persistent restore, resolution/scope isolation and game-before-API passed.
+Sales infrastructure: daily 90-day accumulation, correction, duplicates, retention, journal recovery, filtered readonly access, lossless IDs, independent source priority, unknown quality and shared budget passed.
+History cache: negative TTL, city order, identical in-flight requests, quality/period isolation and failed-request retry passed.
+(node:12460) ExperimentalWarning: VM Modules is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+> albion.tools.v4@4.0.0 prices:collector:test
+> node content/scripts/test-aodp-collector.mjs
+
+PASS URL-aware batches preserve catalog, encoding and 4096-byte limit
+PASS source timestamps dedupe across fetch hours; advancing same-price quotes count
+PASS server/city/quality/side isolation and independent Buy/Sell timestamps
+PASS only minimum sell and maximum buy feed quotes; opposite extrema never substitute
+PASS zero, missing, future, invalid, expired sources are rejected independently
+PASS packet + API same bucket get one representative, provenance survives
+PASS adaptive daily medians: 1, 3, 28 days; completed UTC boundaries
+PASS Sell sales-history anchor, Buy current fallback, quote promotion and no-data
+PASS late-start partial day, bucket coverage, time span and configurable admission
+PASS 429 retry backoff is bounded; failure does not stop scheduler
+SCOPE 180 items × 7 cities × quality 1
+PASS real catalog scope includes seeds, crops, feeds, mount outputs and every recipe input
+AODP collector disabled; repository preserved: Unexpected token 'c', "corrupt" is not valid JSON
+PASS hub service starts automatically once and after restart, without browser/market packets
+12 AODP collector checks passed.
+
+> albion.tools.v4@4.0.0 prices:collection:test
+> node content/scripts/test-market-collection.mjs
+
+Market collection: 9508 catalog items, 180 island items, 61 URL batches, cadence 15 min.
+
+> albion.tools.v4@4.0.0 opportunities:test
+> node content/scripts/test-market-sales-opportunities.mjs && node content/scripts/test-market-opportunities.mjs && node content/scripts/test-opportunity-status.mjs && node content/scripts/test-market-observation.mjs && node content/scripts/test-market-evidence-lifecycle.mjs && node content/scripts/test-market-journal-stream.mjs && node content/scripts/test-market-opportunity-shadow.mjs && node content/scripts/test-market-strategy-eligibility.mjs && node content/scripts/test-market-opportunity-quality.mjs && node content/scripts/test-market-spread-realism.mjs && node --experimental-vm-modules content/scripts/test-opportunity-quality-ui.mjs && node --experimental-vm-modules content/scripts/test-opportunity-assistant.mjs && npm run opportunities:v3:test && npm run opportunities:v4:test && npm run opportunities:v5:test && npm run opportunities:v6:test && npm run opportunities:diagnostics:test
+
+Sales opportunities: persistent low Buy, source isolation, fees, history coverage, freshness and missing data passed.
+Market opportunities: directions, provisional reference, confirmation, fees, ranking and archive scan passed.
+Opportunity status: decision matrix, invariants and engine-row mapping passed.
+PASS duplicate events, equal-price independent times, shared provenance, old source time
+PASS invalid price/time rejection and unknown packet coverage
+PASS partial book preserves absent identities without claiming complete extrema
+PASS Roast Pork extreme is quarantined and never contaminates median or strategies
+PASS weak and sparse histories never become execution references; current is excluded
+PASS confirmed 36.4% Sell rise remains an order candidate; stale unrelated Buy is ignored
+PASS persistent rise and fall transition symmetrically; isolated extreme cannot transition
+PASS 28-day window and corrected live event conflict
+PASS backup, restart, idempotent metadata migration, rollback and corruption fail closed
+PASS 90-day retention, side isolation and cross-hour replay deduplication
+PASS eligible rows precede low-confidence rows in every deterministic ordering
+PASS ineligible records cannot consume first 500 verified slots; counters partition evaluated cells
+12 observation reliability groups passed
+PASS all confidence and mature-regime policy thresholds unchanged
+PASS unknown and partial local evidence cannot shadow credible current; no fixed source ranking
+PASS conflicts are monotonic across retries and source aliases
+PASS confirmed movement joins later references; latest never validates its own baseline
+PASS bootstrap does not anchor to first outlier; mature transitions retain 24/72 thresholds
+PASS cache invalidates on explicit evidence revision and advancing length
+PASS same fetch hour source events recover, dedupe, invalidate scan and survive checkpoint/restart
+PASS audited real bootstrap series now has mature reference using original timestamps
+8 evidence lifecycle groups passed
+Journal stream: chunk boundaries, UTF-8, final line, missing and corrupt files passed.
+Opportunity shadow compaction: standalone and precomputed paths preserve report output and release full traces.
+Strategy eligibility: 76 matrix cases, real route, side isolation, first observations and fee directions passed.
+Opportunity quality: execution, economics, weights, unknown risks, diversity, preserved sort modes, filters, full pool and limit passed.
+Spread realism: arithmetic, premium/free fees, unit ROI, identity isolation, evidence classes and non-mutation passed.
+Historical spread: paired evidence, L3 span/count, normal/unusual, duplicates and quarantine passed.
+Opportunity browser flow: compact cards, execution labels, route cities, net/return, all-pool filters and shared controls passed.
+Multi-strategy regression: primary-make fallback, high Sell/low Buy cards, overlapping totals, type/exclusion/deviation filters and immutability passed.
+Spread review: class counters, filters and non-directive actions passed.
+V4 decision card: unit advantage, capital, honest action and relevant evidence passed.
+V5 panel: blank quantity, input updates, negative scenario, break-even, persisted inputs, shared forms and quantity view passed.
+Sales valuation UI: default list, strategy filter, source label and fee-adjusted discount passed.
+(node:42804) ExperimentalWarning: VM Modules is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+V2: trusted ranges, action safety, evidence ranking, watch transitions, feedback metrics and persistence passed.
+(node:44152) ExperimentalWarning: VM Modules is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+> albion.tools.v4@4.0.0 opportunities:v3:test
+> node content/scripts/test-opportunity-v3.mjs
+
+PASS new product: missing history alone never becomes watch
+PASS stable healthy market has zero opportunities, including ordinary profitable maker spreads
+PASS normal movement below the existing 12 percent floor
+PASS confirmed real historical anomaly survives V3 gates
+PASS artificial extreme is quarantined and cannot supply a trade
+PASS V4: positive tiny nominal arbitrage remains price-supported; no universal floor
+PASS stale prices never become direct recommendations
+PASS mismatched Buy/Sell times cannot certify an inversion
+PASS same source quote repeated across polls earns no reference confidence
+PASS real synchronous post-tax inversion is retained without inventing depth
+PASS fake pre-tax inversion is rejected after fees
+PASS cross-city economic advantage survives, with unknown travel costs
+PASS unconfirmed economic signal goes to watch with missing evidence
+PASS multiple strategies remain one cell; a reliable candidate ranks before watch
+PASS time gap boundary is explicit and uses the existing hourly sampling period
+PASS source-time-unverified cross-city signal is discovered but never certified
+PASS a future source observation cannot influence a historical reference
+17 V3 scenario groups passed; synthetic fixtures never enter a disk archive.
+
+> albion.tools.v4@4.0.0 opportunities:v4:test
+> node content/scripts/test-opportunity-v4.mjs
+
+V4: four outcomes, tiny arbitrage, relevant confidence, honest actions, capital, empty states, coverage and graceful collector drain passed.
+
+> albion.tools.v4@4.0.0 opportunities:v5:test
+> node content/scripts/test-opportunity-v5.mjs
+
+V5: fees, capital, break-even boundaries, missing inputs, overflow, sales units/coverage, bounded ROI, Pareto activity, target grouping, source filters and immutable detection passed.
+
+> albion.tools.v4@4.0.0 opportunities:v6:test
+> node content/scripts/test-opportunity-v6.mjs
+
+V6: independent checks, chronological outcomes, duplicate/conflict, immutable signals, FIFO partial fills, open/cancelled/completed orders, stock/negative P&L, restart, partial recovery, integrity refusal, HTTP and exact V5 invariance passed.
+
+> albion.tools.v4@4.0.0 opportunities:diagnostics:test
+> node content/scripts/test-opportunity-diagnostics.mjs
+
+PASS server scan records and client filters persist separately under a shared scan ID
+PASS collector run totals expose independent HTTP, source-time and archive metrics
+PASS diagnostic records are bounded and expire without altering another store
+PASS server scans share a snapshot identity across time while scan IDs and client filters remain distinct
+PASS successful polls of the same source timestamp are duplicates, not new market events
+PASS advancing source timestamps are counted separately from hourly archive additions
+PASS failed HTTP requests are not counted as successful responses
+PASS partial game packet prices keep receipt time distinct and remain provisional
+PASS NATS order payload exposes price, amount, side and expiry but never a complete book
+9 opportunity diagnostics checks passed.
+
+> albion.tools.v4@4.0.0 island:test
+> node --experimental-vm-modules content/scripts/test-island-economy.mjs && node content/scripts/test-island-placement.mjs && node content/scripts/test-island-sales-potential.mjs && node content/scripts/test-trade-potential-evidence.mjs && node content/scripts/test-potential-price.mjs
+
+PASS daily purchase expense lines reconcile order fees and retain missing prices
+PASS stability considers both return and output, missing fields, zero and invalid inputs
+PASS confidence uses only the matching group and excludes marked outliers
+PASS period-scoped yield averages exclude records outside the supplied period
+PASS nine slots, crop premium/city, focus changes returns only
+PASS observed returns above 100% and observed yields stay intact
+PASS 200% seed and offspring returns remain expected replacement quantities
+PASS mechanical hours survive while economics uses daily collection periods
+PASS chicken market feed uses 9 favourite wheat per animal, no recurring adult cost
+PASS favourite-feed policy ignores cheaper herbs and keeps favourite quantities
+PASS crop vs pasture: internal opportunity value is net sale, transfers cancel
+PASS free eggs retain a separate daily planning cycle and half yield; focus does not change eggs
+PASS partial internal feeding, surplus and selling by order use net opportunity prices
+PASS V1 product ledger works without baby price and retains favourite feed policy
+PASS non-fixed animals retain crop-only choices and compare best.feed.unit correctly
+PASS free meat grows over two planning days while adult products collect daily
+PASS V1 optimizer plot totals equal summed contributions
+PASS V1 chooses the mixed two-plot chain when it beats both alternatives, with no duplicate seed/opportunity cost
+PASS livestock focus fallback survives null nurture metadata; product chains match catalog
+PASS meat/live require replacement inputs; egg production never does
+PASS fixed input/output prices stay separate and internal transfers deduct sales fees
+PASS buy-order replacement setup is applied only to expected missing offspring
+PASS V2 trial placement does not mutate the visible plan or derived totals
+PASS V2 price summary handles missing and stale prices without UI variables
+PASS V2 Focus totals use editable item defaults for watering and nurture
+PASS V2 filling preserves occupied and locked slots; validates marginal total against engine
+PASS V2 existing animal demand changes the best addition
+PASS V2 missing baseline prices stop filling without modifying draft
+catalog 96 candidates, 1 nodes, 25 ms
+PASS V2 catalog-wide 16-slot filling agrees with the complete engine
+PASS V2 candidate screening excludes missing data but keeps and reports stale quotes
+PASS V2 validation rejects a mismatched optimizer economic profile
+PASS V2 catalog price screening catches invalid prices on unplaced candidates
+PASS V2 non-feeding crops contribute zero to market feed totals, not unknown
+PASS V2 pumpkin supplies cow feed when internal use is cheaper, otherwise sells it
+PASS V2 per-unit production cost uses full output and includes internal feed opportunity cost
+PASS V2 Long Term UI and normal quote provider preserve tick, fees, feed and optimizer
+PASS Focus resolver uses latest per-use observation across cities, never averages
+PASS Real catalog focus cycles 1–6 use actual capacity and common planning days
+PASS Focus additive migration is idempotent and preserves manual catalog data
+PASS V2 optimizer accepts default focus and reacts to observed focus through shared economics
+PASS Focus seed imports game metadata once and preserves manual values
+PASS Focus seed fallback is seed-only; manual values survive repeat imports
+(node:48040) ExperimentalWarning: VM Modules is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+PASS V2 full 16-slot focused catalog honors budget and common engine totals
+node:internal/modules/run_main:107
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:
+
+  assert.ok(html.includes('Net kâr / gün'))
+
+    at file:///F:/Web/GitHub/pcodeaxonos/albion.tools.v4/content/scripts/test-island-economy.mjs:648:24
+    at async placementTest (file:///F:/Web/GitHub/pcodeaxonos/albion.tools.v4/content/scripts/test-island-economy.mjs:339:137)
+    at async file:///F:/Web/GitHub/pcodeaxonos/albion.tools.v4/content/scripts/test-island-economy.mjs:629:1 {
+  generatedMessage: true,
+  code: 'ERR_ASSERTION',
+  actual: false,
+  expected: true,
+  operator: '==',
+  diff: 'simple'
+}
+
+Node.js v24.19.0

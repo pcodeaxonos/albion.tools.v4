@@ -45,9 +45,10 @@ export function parseSortDate(text) {
     return null;
 }
 
-function readCellValue(cell, type) {
-    if (cell?.hasAttribute('data-sort-value')) {
-        const raw = cell.dataset.sortValue;
+function readCellValue(cell, type, field = 'value') {
+    const attribute = `data-sort-${field}`;
+    if (cell?.hasAttribute(attribute)) {
+        const raw = cell.getAttribute(attribute);
         if (raw === '') {
             return null;
         }
@@ -72,6 +73,11 @@ function readCellValue(cell, type) {
         return parseSortDate(text);
     }
     return text;
+}
+
+/** Independent measures in one logical table column, without splitting its cells. */
+export function sortHeaderGroupHtml(label, measures) {
+    return `<th aria-sort="none" data-sort-group="${escapeHtml(label)}"><div class="table-sort-group"><span>${escapeHtml(label)}</span>${measures.map(({key,field,label:caption,title=caption,type='number',className=''}) => `<button type="button" class="table-sort-btn ${escapeHtml(className)}" data-sort-key="${escapeHtml(key)}" data-sort="${escapeHtml(type)}" data-sort-field="${escapeHtml(field)}" data-sort-direction="none" aria-label="${escapeHtml(`${label} · ${title} sıralama`)}" data-app-tooltip="${escapeHtml(`${label} · ${title}`)}">${escapeHtml(caption)}</button>`).join('')}</div></th>`;
 }
 
 export function compareSortValues(a, b, type, direction) {
@@ -113,16 +119,21 @@ export function applyHeaderSortState(table, key, direction) {
         if (!th.querySelector('.table-sort-btn')) {
             continue;
         }
+        const active = [...th.querySelectorAll('.table-sort-btn')].find(button => (button.dataset.sortKey ?? th.dataset.sortKey) === key);
+        for (const button of th.querySelectorAll('[data-sort-field]')) {
+            button.dataset.sortDirection = button === active ? direction : 'none';
+        }
+        if (th.dataset.sortGroup) th.setAttribute('aria-label', active ? active.getAttribute('aria-label') : th.dataset.sortGroup);
         th.setAttribute(
             'aria-sort',
-            th.dataset.sortKey === key
+            active
                 ? (direction === 'desc' ? 'descending' : 'ascending')
                 : 'none'
         );
     }
 }
 
-export function sortTableRows(table, index, type, direction) {
+export function sortTableRows(table, index, type, direction, field = 'value') {
     const tbody = table.tBodies[0];
     if (!tbody) {
         return;
@@ -130,8 +141,8 @@ export function sortTableRows(table, index, type, direction) {
 
     const rows = [...tbody.rows];
     rows.sort((left, right) => compareSortValues(
-        readCellValue(left.cells[index], type),
-        readCellValue(right.cells[index], type),
+        readCellValue(left.cells[index], type, field),
+        readCellValue(right.cells[index], type, field),
         type,
         direction
     ));
@@ -140,13 +151,14 @@ export function sortTableRows(table, index, type, direction) {
 
 export function applyTableSort(table, key, direction) {
     const th = [...(table.tHead?.rows[0]?.cells ?? [])]
-        .find((cell) => cell.dataset.sortKey === key);
+        .find((cell) => cell.dataset.sortKey === key || [...cell.querySelectorAll('.table-sort-btn')].some(button => button.dataset.sortKey === key));
     if (!th) {
         return;
     }
 
     applyHeaderSortState(table, key, direction);
-    sortTableRows(table, th.cellIndex, th.dataset.sort || 'text', direction);
+    const button = [...th.querySelectorAll('.table-sort-btn')].find(button => button.dataset.sortKey === key);
+    sortTableRows(table, th.cellIndex, button?.dataset.sort || th.dataset.sort || 'text', direction, button?.dataset.sortField || 'value');
 }
 
 function nextDirection(current, type) {
@@ -175,13 +187,15 @@ export function initTableSort(table, options = {}) {
             return;
         }
 
-        const key = th.dataset.sortKey ?? String(th.cellIndex);
-        const type = th.dataset.sort || 'text';
-        const direction = nextDirection(th.getAttribute('aria-sort') || 'none', type);
+        const button = event.target.closest('.table-sort-btn') || th.querySelector('.table-sort-btn');
+        const key = button.dataset.sortKey ?? th.dataset.sortKey ?? String(th.cellIndex);
+        const type = button.dataset.sort || th.dataset.sort || 'text';
+        const current = button.dataset.sortField ? ({asc:'ascending',desc:'descending'})[button.dataset.sortDirection] : th.getAttribute('aria-sort');
+        const direction = nextDirection(current || 'none', type);
 
         applyHeaderSortState(table, key, direction);
         if (options.sortBody !== false) {
-            sortTableRows(table, th.cellIndex, type, direction);
+            sortTableRows(table, th.cellIndex, type, direction, button.dataset.sortField || 'value');
         }
 
         options.onSort?.({ key, type, direction, index: th.cellIndex });

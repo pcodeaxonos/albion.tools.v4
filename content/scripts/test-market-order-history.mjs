@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import vm from 'node:vm';
 import { OrderPriceHistory } from '../js/core/order-price-history.mjs';
-import { ORDER_HISTORY_POLICY, DAY_MS, SALES_HISTORY_ENDPOINT, PACKET_HISTORY_ENDPOINT } from '../js/core/market-history-config.mjs';
+import { ORDER_HISTORY_POLICY, ORDER_HISTORY_ENDPOINT, DAY_MS, SALES_HISTORY_ENDPOINT, PACKET_HISTORY_ENDPOINT } from '../js/core/market-history-config.mjs';
 import { aodpLongTermReference, orderLongTermReference } from '../js/core/long-term-price.mjs';
 import { normalizePriceDate, marketSeriesKey, BOOK_PRICE_FIELDS, priceIndexKey } from '../js/core/market-primitives.mjs';
 
@@ -109,7 +109,7 @@ class PacketHistory extends OrderPriceHistory {
     prune(at = packetNow) { return super.prune(at); }
 }
 const context = vm.createContext({
-    normalizeMarketHistoryPacket, parseMarketHistoryBody, PACKET_HISTORY_ENDPOINT,
+    normalizeMarketHistoryPacket, parseMarketHistoryBody, PACKET_HISTORY_ENDPOINT, ORDER_HISTORY_ENDPOINT,
     MarketHistoryPackets: class { constructor() { this.rows = []; } history(scope) { return this.rows.filter(row => row.server === scope.server && scope.items.includes(row.item_id) && scope.locations.includes(row.location) && scope.qualities.includes(row.quality)); } status() { return {}; } ingest(row) { this.rows.push(row); return row.data.length; } }, mergePartialBook, latestBookOrders, observedBookVolume, preserveArchive: () => {}, console, URL, URLSearchParams, Map, Set, Buffer,
     OpportunityEvidenceRepository: class { close() {} }, routeOpportunityEvidence: async () => false,
     OpportunityDiagnosticsRepository: class { constructor() { this.data = { scans: [], collectorRuns: [] }; } },

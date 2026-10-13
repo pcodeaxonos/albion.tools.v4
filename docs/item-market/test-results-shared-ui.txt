@@ -1,0 +1,44 @@
+
+> albion.tools.v4@4.0.0 css:ui:test
+> node content/scripts/test-css-components-ui.cjs
+
+item-market 390: component checks passed; copy passed
+flipper 390: component checks passed; copy no visible item
+decision-engine 390: component checks passed; copy no visible item
+laborer-contract 390: component checks passed; copy passed
+island-yields 390: component checks passed; copy no visible item
+farming 390: component checks passed; copy passed
+pasture 390: component checks passed; copy passed
+island-planner 390: component checks passed; copy no visible item
+island-planner-v2 390: component checks passed; copy no visible item
+opportunities 390: component checks passed; copy no visible item
+trades 390: component checks passed; copy no visible item
+malzemeler 390: component checks passed; copy passed
+faction 390: component checks passed; copy passed
+refining 390: component checks passed; copy passed
+furniture 390: component checks passed; copy passed
+house 390: component checks passed; copy passed
+ava-craft 390: component checks passed; copy passed
+carleon-craft 390: component checks passed; copy passed
+royal-craft 390: component checks passed; copy passed
+enchanting 390: component checks passed; copy passed
+item-market 1440: component checks passed; copy passed
+flipper 1440: component checks passed; copy no visible item
+decision-engine 1440: component checks passed; copy no visible item
+laborer-contract 1440: component checks passed; copy passed
+island-yields 1440: component checks passed; copy no visible item
+farming 1440: component checks passed; copy passed
+pasture 1440: component checks passed; copy passed
+island-planner 1440: component checks passed; copy no visible item
+island-planner-v2 1440: component checks passed; copy no visible item
+opportunities 1440: component checks passed; copy no visible item
+trades 1440: component checks passed; copy no visible item
+malzemeler 1440: component checks passed; copy passed
+faction 1440: component checks passed; copy passed
+refining 1440: component checks passed; copy passed
+furniture 1440: component checks passed; copy passed
+house 1440: component checks passed; copy passed
+ava-craft 1440: component checks passed; copy passed
+carleon-craft 1440: component checks passed; copy passed
+royal-craft 1440: component checks passed; copy passed
+enchanting 1440: component checks passed; copy passed

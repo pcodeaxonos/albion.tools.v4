@@ -15,6 +15,7 @@
 // Uygulama stilleri — kendi içinde legacy cascade sırasını korur.
 @use "app";
 @use "app/decision-engine";
+@use "app/item-market";
 
 @import 'app/flipper';
 @import 'app/page-info';

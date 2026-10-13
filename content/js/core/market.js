@@ -1,6 +1,6 @@
 import { getSettings, getServer, localPriceHost } from './settings.js';
 import { isStalePriceDate } from './price-side.js';
-import { priceIndexKey, normalizePriceDate } from './market-primitives.mjs';
+import { priceIndexKey, normalizePriceDate, ORDER_PRICE_FIELDS } from './market-primitives.mjs';
 export { priceIndexKey } from './market-primitives.mjs';
 
 const PRICE_REQUEST_TIMEOUT_MS = 10000;
@@ -79,6 +79,15 @@ export function mergePriceRows(gameRows = [], apiRows = []) {
         }
 
         byKey.set(key, prev);
+        // Preserve the book extrema too, each with its own source timestamp.
+        // Existing executable-side resolution above retains its volume semantics.
+        for (const field of ORDER_PRICE_FIELDS.filter(field => !['buy_price_max', 'sell_price_min'].includes(field))) {
+            if (!(Number(row[field]) > 0)) continue;
+            const at = dateStamp(row[`${field}_date`]), kept = dateStamp(prev[`${field}_date`]);
+            if (!(prev[field] > 0) || at > kept || (at === kept && origin === 'game')) {
+                prev[field] = row[field]; prev[`${field}_date`] = row[`${field}_date`];
+            }
+        }
     };
 
     // Seed with game first so ties prefer game; API then only wins when newer/missing.
@@ -124,6 +133,11 @@ function mergePreferredPriceRows(primaryRows = [], fallbackRows = []) {
             current.buy_observed_volume = fallback.buy_observed_volume || null;
         }
         primary.set(key, current);
+        for (const field of ORDER_PRICE_FIELDS) {
+            if (!(current[field] > 0) && fallback[field] > 0) {
+                current[field] = fallback[field]; current[`${field}_date`] = fallback[`${field}_date`];
+            }
+        }
     }
     return [...primary.values()];
 }
@@ -162,7 +176,7 @@ export async function fetchGamePrices(itemIds, locations, { qualities = '1', sig
     return fetchPricesFromHost(localPriceHost(), [...new Set(itemIds)].sort(), [...new Set(locations)].sort(), String(qualities), { server: getServer().id, signal });
 }
 
-export async function fetchPrices(itemIds, locations = ['Black Market', 'Caerleon'], { source, qualities = '1', signal } = {}) {
+export async function fetchPrices(itemIds, locations = ['Black Market', 'Caerleon'], { source, qualities = '1', signal, strictQuality = false } = {}) {
     const ids = [...new Set(itemIds.filter(Boolean))];
     if (ids.length === 0) {
         return [];
@@ -189,9 +203,11 @@ export async function fetchPrices(itemIds, locations = ['Black Market', 'Caerleo
         throw new Error('Fiyat alınamadı (oyun hub ve AODP)');
     }
 
+    const allowed = qualityParam.split(',').map(Number);
+    const scoped = rows => strictQuality ? rows.filter(r => ids.includes(r.item_id) && locations.includes(r.city) && r.quality != null && allowed.includes(Number(r.quality))) : rows;
     return preferred === 'packets'
-        ? mergePreferredPriceRows(gameRows, apiRows)
-        : mergePreferredPriceRows(apiRows, gameRows);
+        ? mergePreferredPriceRows(scoped(gameRows), scoped(apiRows))
+        : mergePreferredPriceRows(scoped(apiRows), scoped(gameRows));
 }
 
 function priceQuality(row) {

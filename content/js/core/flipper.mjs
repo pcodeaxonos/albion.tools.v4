@@ -49,7 +49,7 @@ export function evaluateFlip({ item, source, target, sourceReference, targetRefe
     const confidence = safe ? (referenceKnown ? .85 : .55) : .1;
     return { id: `${item.uniqueName}|${source.city}|${target.city}|${quality}`, itemId: item.uniqueName, source: source.city, target: target.city, quality, buy: ask.price, sell: bid.price, buyVolume: source.sell_observed_volume?.price === ask.price ? source.sell_observed_volume : null, sellVolume: target.buy_observed_volume?.price === bid.price ? target.buy_observed_volume : null, tax: bid.price * taxRate, transport, cost, netSale, net, roi, ageMs, buyAgeMs, sellAgeMs, reasons, spikes, safe, confidence,
         // Snapshot prices contain no reliable depth. Never infer quantity from timestamps or price counts.
-        expiresAt: now + maxAgeMs - ageMs, quantityLimit: null, weight: positive(item.weight) ? item.weight : null,
+        referenceKnown, expiresAt: now + maxAgeMs - ageMs, quantityLimit: null, weight: positive(item.weight) ? item.weight : null,
         score: safe && net > 0 ? confidence * Math.sqrt(net) * Math.log1p(roi) : 0 };
 }
 /** Exact bounded integer search with Pareto pruning; explicit resource limit fails rather than returning a greedy 'optimum'. */

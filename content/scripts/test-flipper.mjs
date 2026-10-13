@@ -16,6 +16,8 @@ const source={item_id:item.uniqueName,city:'Caerleon',quality:1,sell_price_min:1
 const target={item_id:item.uniqueName,city:'Black Market',quality:1,buy_price_max:150,buy_price_max_date:date,sell_price_min:999};
 const params={item,source,target,taxRate:.04,now,maxAgeMs:1800000};
 const row=evaluateFlip(params);
+assert.equal(row.referenceKnown,false,'historical support is structured metadata, independent of translated warnings');
+assert.equal(evaluateFlip({...params,sourceReference:{source:'quote-history',price:100},targetReference:{source:'quote-history',price:150}}).referenceKnown,true);
 const separateAges=evaluateFlip({...params,target:{...target,buy_price_max_date:new Date(now-120000).toISOString()}});
 assert.equal(separateAges.buyAgeMs,60000);
 assert.equal(separateAges.sellAgeMs,120000);
