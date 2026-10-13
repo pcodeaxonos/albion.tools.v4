@@ -1,3 +1,7 @@
+import { showToast } from '../components/toast.js';
+import { readStorage, writeStorage } from './storage.js';
+import { durableStorage, durableKeys, initDurableStorage, flushDurableWrites, reloadDurableStorage, saveDurableChanges, createDurableBackup, persistenceStatus, PERSISTENCE_EVENT } from './durable-storage.mjs';
+import { DATA_PREFIX, isPersistentKey } from './persistence-config.mjs';
 import { initStore } from '../db/store.js';
 import { hasTodayDailyBonus, todayCraftBonuses } from './craft-bonus.js';
 import { isBonusRedirectReady } from './bonus-day.js';
@@ -223,14 +227,14 @@ function redirectToDailyBonusWhenNeeded() {
     }
 
     const now = Date.now();
-    const lastRedirectAt = Number(localStorage.getItem(DAILY_BONUS_REDIRECT_KEY));
+    const lastRedirectAt = Number(readStorage(DAILY_BONUS_REDIRECT_KEY));
     if (Number.isFinite(lastRedirectAt)
         && lastRedirectAt <= now
         && now - lastRedirectAt < DAILY_BONUS_REDIRECT_COOLDOWN_MS) {
         return;
     }
 
-    localStorage.setItem(DAILY_BONUS_REDIRECT_KEY, String(now));
+    writeStorage(DAILY_BONUS_REDIRECT_KEY, String(now));
     location.replace(`${routeHref('daily-bonus')}?need=today#bonusForm`);
 }
 
@@ -1073,112 +1077,22 @@ export function initTodayBonusChip() {
 }
 
 
-export const LOCAL_DATA_PREFIX = 'albiontools.v4.';
+export const LOCAL_DATA_PREFIX = DATA_PREFIX;
 export const LOCAL_DATA_KIND = 'albion.tools.local-data';
 export const LOCAL_DATA_VERSION = 1;
-
-const CLOCK_KEY = LOCAL_DATA_PREFIX + '_syncClock';
-const HUB_DATA_PATH = '/api/v1/local-data';
-const HUB_META_PATH = '/api/v1/local-data/meta';
-const META_TIMEOUT_MS = 1200;
-const BODY_TIMEOUT_MS = 8000;
-const PUSH_DEBOUNCE_MS = 700;
-
-const originalSetItem = Storage.prototype.setItem;
-const originalRemoveItem = Storage.prototype.removeItem;
-
-let clockInstalled = false;
-let muteClock = false;
-let autoPushEnabled = false;
-let pushTimer = 0;
 let bootPromise = null;
 
-function isTrackedKey(key) {
-    return typeof key === 'string' && key.startsWith(LOCAL_DATA_PREFIX) && key !== CLOCK_KEY;
-}
-
-function wrappedSetItem(key, value) {
-    if (this === localStorage && !muteClock && isTrackedKey(key)) {
-        originalSetItem.call(this, CLOCK_KEY, String(Date.now()));
-        scheduleHubPush();
-    }
-    return originalSetItem.call(this, key, value);
-}
-
-function wrappedRemoveItem(key) {
-    if (this === localStorage && !muteClock && isTrackedKey(key)) {
-        originalSetItem.call(this, CLOCK_KEY, String(Date.now()));
-        scheduleHubPush();
-    }
-    return originalRemoveItem.call(this, key);
-}
-
-export function installLocalDataClock() {
-    if (clockInstalled) {
-        return;
-    }
-    clockInstalled = true;
-    Storage.prototype.setItem = wrappedSetItem;
-    Storage.prototype.removeItem = wrappedRemoveItem;
-}
-
-export function getLocalDataClock() {
-    return Number(localStorage.getItem(CLOCK_KEY) || '0') || 0;
-}
-
-function writeClock(ms) {
-    originalSetItem.call(localStorage, CLOCK_KEY, String(ms));
-}
-
-export function listLocalDataKeys() {
-    const keys = [];
-    for (let i = 0; i < localStorage.length; i += 1) {
-        const key = localStorage.key(i);
-        if (isTrackedKey(key)) {
-            keys.push(key);
-        }
-    }
-    return keys.sort();
-}
-
-export function ensureLocalDataClock() {
-    if (getLocalDataClock() > 0) {
-        return getLocalDataClock();
-    }
-    if (listLocalDataKeys().length === 0) {
-        return 0;
-    }
-    const now = Date.now();
-    writeClock(now);
-    return now;
-}
-
+export function listLocalDataKeys() { return durableKeys(); }
+export function getLocalDataClock() { return Date.now(); }
+export function ensureLocalDataClock() { return getLocalDataClock(); }
+export function installLocalDataClock() {} // Retained API; browser storage is no longer intercepted.
 export function collectLocalData() {
-    const clock = ensureLocalDataClock();
-    const data = {};
-    for (const key of listLocalDataKeys()) {
-        data[key] = localStorage.getItem(key);
-    }
-    return {
-        version: LOCAL_DATA_VERSION,
-        kind: LOCAL_DATA_KIND,
-        exportedAt: new Date(clock || Date.now()).toISOString(),
-        origin: location.origin,
-        data
-    };
+    return { version: LOCAL_DATA_VERSION, kind: LOCAL_DATA_KIND, exportedAt: new Date().toISOString(),
+        origin: location.origin, data: Object.fromEntries(durableKeys().map(key => [key, durableStorage.getItem(key)])) };
 }
-
 export function localDataSummary() {
-    const keys = listLocalDataKeys();
-    let bytes = 0;
-    for (const key of keys) {
-        bytes += key.length + (localStorage.getItem(key)?.length || 0);
-    }
-    return {
-        keys: keys.length,
-        bytes,
-        clock: getLocalDataClock()
-    };
+    const keys = durableKeys();
+    return { keys: keys.length, bytes: keys.reduce((sum, key) => sum + key.length + (durableStorage.getItem(key)?.length || 0), 0), clock: Date.now() };
 }
 
 export function parseLocalDataSnapshot(raw) {
@@ -1195,7 +1109,7 @@ export function parseLocalDataSnapshot(raw) {
 
     const data = {};
     for (const [key, value] of Object.entries(parsed.data)) {
-        if (!isTrackedKey(key) || value == null) {
+        if (!isPersistentKey(key) || value == null) {
             continue;
         }
         data[key] = typeof value === 'string' ? value : JSON.stringify(value);
@@ -1272,7 +1186,7 @@ export function mergeLocalDataMaps(localData = {}, remoteData = {}, localNewer =
     const keys = new Set([...Object.keys(localData), ...Object.keys(remoteData)]);
     const data = {};
     for (const key of keys) {
-        if (!isTrackedKey(key)) {
+        if (!isPersistentKey(key)) {
             continue;
         }
         data[key] = mergeStoredValues(key, localData[key], remoteData[key], localNewer);
@@ -1280,37 +1194,13 @@ export function mergeLocalDataMaps(localData = {}, remoteData = {}, localNewer =
     return data;
 }
 
-export function applyLocalData(snapshot, { replace = true } = {}) {
+export async function applyLocalData(snapshot, { replace = true } = {}) {
     const next = parseLocalDataSnapshot(snapshot);
-    muteClock = true;
-    try {
-        if (replace) {
-            const incoming = new Set(Object.keys(next.data));
-            for (const key of listLocalDataKeys()) {
-                if (!incoming.has(key)) {
-                    originalRemoveItem.call(localStorage, key);
-                }
-            }
-            for (const [key, value] of Object.entries(next.data)) {
-                originalSetItem.call(localStorage, key, value);
-            }
-        } else {
-            const merged = mergeLocalDataMaps(collectLocalData().data, next.data, true);
-            for (const [key, value] of Object.entries(merged)) {
-                originalSetItem.call(localStorage, key, value);
-            }
-            next.data = merged;
-        }
-        const importedAt = Date.parse(next.exportedAt);
-        writeClock(Number.isFinite(importedAt) ? importedAt : Date.now());
-    } catch (error) {
-        if (error?.name === 'QuotaExceededError') {
-            throw new Error('Tarayıcı deposu doldu; yedek uygulanamadı.');
-        }
-        throw error;
-    } finally {
-        muteClock = false;
-    }
+    await createDurableBackup();
+    const data = replace ? next.data : mergeLocalDataMaps(collectLocalData().data, next.data, true);
+    const changes = new Map(Object.entries(data));
+    if (replace) for (const key of durableKeys()) if (!changes.has(key)) changes.set(key, null);
+    await saveDurableChanges(changes);
     return next;
 }
 
@@ -1339,142 +1229,65 @@ export function formatDataBytes(bytes) {
     return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
-async function hubFetch(path, options = {}) {
-    const timeout = options.timeout ?? META_TIMEOUT_MS;
-    const fetchOptions = { ...options };
-    delete fetchOptions.timeout;
-    return fetch(`${localPriceHost()}${path}`, {
-        ...fetchOptions,
-        signal: AbortSignal.timeout(timeout)
-    });
-}
-
 export async function fetchHubDataMeta() {
-    const response = await hubFetch(HUB_META_PATH, { timeout: META_TIMEOUT_MS });
-    if (!response.ok) {
-        throw new Error('Hub meta alınamadı');
-    }
-    return response.json();
+    const summary = localDataSummary();
+    return { empty: !summary.keys, keyCount: summary.keys, exportedAt: new Date().toISOString(), ...persistenceStatus() };
 }
-
-export async function fetchHubDataSnapshot() {
-    const response = await hubFetch(HUB_DATA_PATH, { timeout: BODY_TIMEOUT_MS });
-    if (response.status === 404) {
-        return null;
-    }
-    if (!response.ok) {
-        throw new Error('Hub verisi alınamadı');
-    }
-    return parseLocalDataSnapshot(await response.json());
-}
-
-export async function pushLocalDataToHub(snapshot = collectLocalData()) {
-    const response = await hubFetch(HUB_DATA_PATH, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(snapshot),
-        timeout: BODY_TIMEOUT_MS
-    });
-    if (!response.ok) {
-        throw new Error('Hub’a gönderilemedi');
-    }
-    return response.json();
-}
-
-function hubTime(meta) {
-    if (!meta || meta.empty) {
-        return 0;
-    }
-    const parsed = Date.parse(meta.exportedAt);
-    return Number.isFinite(parsed) ? parsed : 0;
-}
-
+export async function fetchHubDataSnapshot() { await reloadDurableStorage(); return collectLocalData(); }
+export async function pushLocalDataToHub() { await flushDurableWrites(); return fetchHubDataMeta(); }
 export async function syncWithHub(mode = 'auto') {
-    const meta = await fetchHubDataMeta();
-    const localClock = ensureLocalDataClock();
-    const remoteClock = hubTime(meta);
-    const localNewer = localClock >= remoteClock;
-
-    if (mode === 'auto') {
-        const local = collectLocalData();
-        const remote = await fetchHubDataSnapshot();
-        if (!remote && Object.keys(local.data).length === 0) {
-            return { status: 'empty', meta };
-        }
-        const merged = {
-            version: LOCAL_DATA_VERSION,
-            kind: LOCAL_DATA_KIND,
-            exportedAt: new Date(Math.max(localClock, remoteClock, Date.now())).toISOString(),
-            origin: location.origin,
-            data: mergeLocalDataMaps(local.data, remote?.data ?? {}, localNewer)
-        };
-        applyLocalData(merged, { replace: false });
-        await pushLocalDataToHub(merged);
-        return { status: 'merged', meta: { empty: false, exportedAt: merged.exportedAt, origin: merged.origin, keyCount: Object.keys(merged.data).length } };
-    }
-
-    if (mode === 'push') {
-        const snapshot = collectLocalData();
-        if (Object.keys(snapshot.data).length === 0) {
-            return { status: 'empty', meta };
-        }
-        await pushLocalDataToHub(snapshot);
-        return { status: 'pushed', meta: { ...meta, empty: false, exportedAt: snapshot.exportedAt, origin: snapshot.origin, keyCount: Object.keys(snapshot.data).length } };
-    }
-
-    if (mode === 'pull') {
-        const snapshot = await fetchHubDataSnapshot();
-        if (!snapshot) {
-            return { status: 'empty', meta };
-        }
-        applyLocalData(snapshot, { replace: false });
-        return { status: 'pulled', meta: { empty: false, exportedAt: snapshot.exportedAt, origin: snapshot.origin, keyCount: Object.keys(snapshot.data).length }, snapshot };
-    }
-
-    return { status: meta?.empty ? 'empty' : 'in-sync', meta };
+    if (mode === 'push') await flushDurableWrites();
+    else await reloadDurableStorage();
+    return { status: mode === 'push' ? 'pushed' : 'pulled', meta: await fetchHubDataMeta() };
 }
-
-function scheduleHubPush() {
-    if (!autoPushEnabled || muteClock || !getSettings().dataSync) {
-        return;
-    }
-    window.clearTimeout(pushTimer);
-    pushTimer = window.setTimeout(() => {
-        pushTimer = 0;
-        pushLocalDataToHub().catch(() => {});
-    }, PUSH_DEBOUNCE_MS);
-}
-
-export function setLocalDataAutoPush(enabled) {
-    autoPushEnabled = Boolean(enabled);
-}
+export function setLocalDataAutoPush() {} // All permanent writes always go to SQLite.
 
 async function runBootSync() {
-    installLocalDataClock();
-    ensureLocalDataClock();
-    if (!getSettings().dataSync) {
-        autoPushEnabled = false;
-        return { status: 'off' };
-    }
-
+    const legacy = {};
     try {
-        const result = await syncWithHub('auto');
-        autoPushEnabled = true;
-        return result;
-    } catch {
-        autoPushEnabled = true;
-        return { status: 'offline' };
+        for (let index = 0; index < localStorage.length; index++) {
+            const key = localStorage.key(index);
+            if (isPersistentKey(key)) legacy[key] = localStorage.getItem(key);
+        }
+    } catch { /* Browser storage is optional, only consulted for one-time migration. */ }
+    const migration = await initDurableStorage(localPriceHost(), legacy);
+    if (migration) {
+        // Remove old browser records only after the server has archived and acknowledged them.
+        try { for (const key of Object.keys(legacy)) localStorage.removeItem(key); } catch {}
+        if (migration.conflicts?.length) showToast('Eski tarayıcı kayıtlarının farklı sürümleri veritabanında arşivlendi. Aktif kayıtlar sunucudan yüklendi.', { duration: 8000 });
     }
+    window.addEventListener('beforeunload', event => {
+        if (persistenceStatus().pending) { event.preventDefault(); event.returnValue = ''; }
+    });
+    window.addEventListener('online', () => { void flushDurableWrites().catch(() => {}); });
+    document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'hidden') void flushDurableWrites().catch(() => {});
+    });
+    window.addEventListener(PERSISTENCE_EVENT, event => {
+        let notice = document.querySelector('[data-persistence-notice]');
+        const status = event.detail;
+        if (!notice && (status.pending || status.error)) {
+            notice = document.createElement('div');
+            notice.className = 'alert alert-warning app-persistence-notice';
+            notice.dataset.persistenceNotice = '';
+            notice.setAttribute('role', 'status');
+            document.body.append(notice);
+        }
+        if (notice) {
+            notice.hidden = !status.pending && !status.error;
+            notice.textContent = status.error ? `Kaydedilemeyen değişiklik var: ${status.error} ` : 'Değişiklikler veritabanına kaydediliyor…';
+            if (status.error) {
+                const retry = document.createElement('button');
+                retry.type = 'button'; retry.className = 'btn btn-outline-secondary btn-sm'; retry.textContent = 'Tekrar dene';
+                retry.textContent = status.pending ? 'Tekrar dene' : 'Verileri yeniden yükle';
+                retry.addEventListener('click', () => { if (status.pending) void flushDurableWrites().catch(() => {}); else location.reload(); });
+                notice.append(retry);
+            }
+        }
+    });
+    return { status: 'database' };
 }
-
-export function bootLocalDataSync() {
-    if (!bootPromise) {
-        bootPromise = runBootSync();
-    }
-    return bootPromise;
-}
-
-installLocalDataClock();
+export function bootLocalDataSync() { return bootPromise ||= runBootSync(); }
 
 // All page-wide startup work belongs here. Domain services remain reusable modules.
 // Importing this module completes phases 1-4 before a page entry can fill its content.
@@ -1505,4 +1318,12 @@ async function startApp() {
     }
 }
 
-await startApp();
+try { await startApp(); }
+catch (error) {
+    const main = document.querySelector('main');
+    if (main) {
+        main.innerHTML = '<div class="alert alert-danger" role="alert">Veritabanı bağlantısı kurulamadı. Hub servisini çalıştırıp yeniden deneyin. Mevcut kayıtlar değiştirilmedi. <button class="btn btn-outline-secondary" type="button" data-database-retry>Tekrar dene</button></div>';
+        main.querySelector('[data-database-retry]')?.addEventListener('click', () => location.reload());
+    }
+    throw error;
+}

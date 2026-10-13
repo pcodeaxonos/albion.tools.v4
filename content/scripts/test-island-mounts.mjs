@@ -1,3 +1,4 @@
+import { durableStorageVmSource } from './fixtures/durable-storage-vm.mjs';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -21,7 +22,7 @@ const modules = new Map();
 function moduleFor(file) {
     file = path.resolve(file);
     if (modules.has(file)) return modules.get(file);
-    let code = fs.readFileSync(file, 'utf8');
+    let code = file.endsWith('durable-storage.mjs') ? durableStorageVmSource : fs.readFileSync(file, 'utf8');
     if (file.endsWith(`${path.sep}app-runtime.js`)) code = '';
     if (file.endsWith(`${path.sep}island-planner-v2.js`)) code = code.replace(/(?:void )?init\(\)(?:\.catch\([\s\S]*?\n\}\))?;\s*$/, 'export { state, priceSummaryLabel };');
     const module = new vm.SourceTextModule(code, { context, identifier: file });
@@ -36,9 +37,10 @@ async function load(file) {
 const storeModule = await load('content/js/db/store.js');
 await storeModule.evaluate();
 const store = storeModule.namespace;
+const replaceRows = (name, rows) => store.queueStoreTransaction(() => store.replaceAllRows(name, rows));
 const schema = (await load('content/js/db/schema.js')).namespace;
 for (const [name, table] of Object.entries(schema.tables)) {
-    if (table.seedUrl) store.replaceAllRows(name, JSON.parse(fs.readFileSync(table.seedUrl, 'utf8')));
+    if (table.seedUrl) replaceRows(name, JSON.parse(fs.readFileSync(table.seedUrl, 'utf8')));
 }
 const economyModule = await load('content/js/core/island-economy.js');
 await economyModule.evaluate();
@@ -53,7 +55,7 @@ const market = (await load('content/js/core/market.js')).namespace;
 const wheat = economy.listCrops().find((p) => p.key === 'wheat');
 const chicken = economy.listLivestock().find((p) => p.key === 'chicken');
 assert.ok(wheat && chicken, 'real catalog loaded');
-store.replaceAllRows('islandYieldLogs', []);
+replaceRows('islandYieldLogs', []);
 const near = (actual, expected, label) => assert.ok(Math.abs(actual - expected) < 1e-7, `${label}: ${actual} != ${expected}`);
 let checks = 0;
 function test(name, run) { run(); checks++; console.log(`PASS ${name}`); }

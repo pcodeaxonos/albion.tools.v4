@@ -1,3 +1,4 @@
+import { durableStorage as localStorage } from '../core/durable-storage.mjs';
 import { fieldLabel, fieldAllButtonHtml, fieldHeadingHtml } from '../components/form-field.js';
 import { getAll } from '../db/store.js';
 import { cityFieldHtml, bindCityField, setCityFieldValue, getCityFieldSelection, setCityFieldSelection, resolveCityFieldSelection } from '../components/city-picker.js';

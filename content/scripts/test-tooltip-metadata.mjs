@@ -34,7 +34,7 @@ assert.doesNotMatch(label, /bucket|partial-day|raw UTC|sell_price_min|day-89/);
 assert.ok(label.length < 300, 'history size must not expand the tooltip');
 assert.equal(longTermMetadata({ reference }, { compact: true }), 'UV: gerçekleşen satış ortalaması · 27 gün');
 const buy = longTermMetadata({ reference: { source: 'current-buy-fallback', validDays: 0, sourceQuoteAt: 'invalid' } });
-assert.match(buy, /son bilinen alış fiyatı kullanıldı/);
+assert.match(buy, /son bilinen en yüksek Buy Order \(alış emri\) fiyatı kullanıldı/);
 assert.doesNotMatch(buy, /Invalid Date|Son veri:/);
 assert.match(longTermMetadata({ reference: { source: 'quote-history', validDays: 4 } }), /tamamlanmış günlerden/);
 console.log('Tooltip metadata: concise history, fallback explanations, missing days and invalid dates passed.');

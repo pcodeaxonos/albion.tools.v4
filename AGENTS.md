@@ -16,6 +16,14 @@
 - Avoid hard-coded duplicated values, paths, selectors, and route lists. Put repeated or cross-cutting configuration behind a named shared primitive, and generate derived artifacts from it so a small change stays local.
 - Before adding a new exception, check whether the existing system can be extended instead. Prefer a coherent design that minimizes future edits across files.
 
+## Apply changes across shared structures
+
+- Treat screenshots, examples, and named locations as evidence of the requested behavior, not as the entire implementation scope. Unless the user explicitly limits scope, find every analogous use of the same semantic structure and apply the change consistently, including alternate states, dynamic rendering, dialogs, lists, and other tools that consume it.
+- Think about the overall design before fixing a local symptom. Trace the shared component, rendering path, styles, and source data; implement the behavior at the common source so all consumers benefit. Do not stop after fixing only the illustrated instance.
+- Write generic, reusable code driven by semantic data and shared configuration. Do not hard-code particular items, cities, pages, selectors, labels, or special cases merely to satisfy an example. Derive labels, states, and presentation from the actual data rather than guessing from the displayed text.
+- Extend an existing shared primitive before adding local code. Where analogous implementations are duplicated, consolidate the relevant behavior into a common primitive instead of copying the same patch into each location. Preserve domain-specific differences and avoid unrelated refactors.
+- Before completing a change, check the analogous consumers and relevant states for consistent behavior; verify the shared implementation and its integrations, not just the example shown by the user.
+
 ## Tool split layout
 
 Pages with filters/forms plus a result or table use `.tool-split`:

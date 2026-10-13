@@ -3521,6 +3521,15 @@ input[type=month].form-control {
     animation: none;
   }
 }
+.app-persistence-notice {
+  position: fixed;
+  z-index: 1190;
+  left: var(--spacing-md);
+  bottom: var(--spacing-md);
+  width: min(34rem, 100vw - 2 * var(--spacing-md));
+  margin: 0;
+}
+
 .app-toast-host {
   position: fixed;
   z-index: 1200;
@@ -18267,14 +18276,9 @@ main:has(.page-head[data-page-head=item-market]) {
 .island-v2-dependency-popover[data-v2-dependency-list=optimization-prices] header {
   border-bottom-color: color-mix(in srgb, var(--v2-warning-accent) 42%, transparent);
 }
-.island-v2-dependency-popover[data-v2-dependency-list=optimization-prices] .island-v2-warning-source {
-  color: var(--v2-warning-accent);
-}
-.island-v2-dependency-popover[data-v2-dependency-list=optimization-prices] .island-v2-warning-row[data-v2-warning-type=stale-price] {
-  --v2-warning-accent: #e5bb6a;
-}
 
 .island-v2-warning-row {
+  --v2-warning-accent: #ff9ca5;
   display: grid;
   grid-template-columns: 2.5rem minmax(0, 1fr);
   align-items: center;
@@ -18333,10 +18337,33 @@ main:has(.page-head[data-page-head=item-market]) {
   white-space: normal;
 }
 
-.island-v2-warning-head em {
+.island-v2-warning-head .badge {
+  font-size: 0.625rem;
+  text-transform: uppercase;
+  border: 1px solid currentColor;
+  background: color-mix(in srgb, currentColor 10%, transparent);
+}
+
+.island-v2-warning-status {
   flex-shrink: 0;
   color: var(--v2-warning-accent, #e5bb6a);
-  font-style: normal;
+}
+
+.island-v2-warning-source[data-v2-warning-badge=city] {
+  color: #b6a2ff;
+}
+
+.island-v2-warning-source[data-v2-warning-badge=price] {
+  color: #79cfff;
+}
+
+.island-v2-warning-row[data-v2-warning-type=stale-price] {
+  --v2-warning-accent: #e5bb6a;
+}
+
+.island-v2-warning-age {
+  color: #e5bb6a;
+  font-weight: 600;
 }
 
 .island-v2-card.is-uncalculated:not(.is-selected) {
@@ -18457,9 +18484,23 @@ main:has(.page-head[data-page-head=item-market]) {
   color: #541919;
 }
 
+.island-v2-metric[data-v2-metric=focus] strong {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  white-space: nowrap;
+}
+
 .island-v2-focus-summary {
-  display: block;
-  font-size: 0.65rem;
+  min-width: 0;
+  margin-left: auto;
+  padding: 0.1rem 0.3rem;
+  background: var(--summary-accent);
+  color: #f1f6fa;
+  border-radius: 0.3rem;
+  font-size: 0.55rem;
+  line-height: 1.2;
+  white-space: nowrap;
 }
 
 .island-v2-card:has(> .island-v2-focus-source) {

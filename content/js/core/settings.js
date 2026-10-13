@@ -1,3 +1,4 @@
+import { durableStorage as localStorage } from './durable-storage.mjs';
 import { normalizePriceSide } from './price-side.js';
 import { TRADE_HUB_URL } from './trade-config.mjs';
 import {

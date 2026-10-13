@@ -1,9 +1,10 @@
+import { runFormSubmission } from '../components/form-submit.js';
 import { toggleAllFilter } from '../components/filter-selection.js';
 import { itemNameHtml } from '../components/item-name.js';
 import { toolPageHtml } from '../core/app-runtime.js';
 import { escapeHtml } from '../utils/utils.js';
 import { initFloatingLabels } from '../components/forms.js';
-import { getAll, createRow, updateRow, deleteRow, replaceAllRows } from '../db/store.js';
+import { getAll, createRow, updateRow, deleteRow, replaceAllRows, commitStoreTransaction } from '../db/store.js';
 import { showPageLoader, hidePageLoader } from '../components/loader.js';
 import { bindCalcSticky } from '../utils/calc-sticky.js';
 import { bindLogTableRows } from '../components/log-table.js';
@@ -977,7 +978,7 @@ function rowRates(row) {
     };
 }
 
-function markYieldOutliers() {
+async function markYieldOutliers() {
     const groups = new Map();
     const cityRows = getAll(TABLE).filter((row) => row.islandCity === state.islandCity);
     for (const row of cityRows) {
@@ -1004,16 +1005,16 @@ function markYieldOutliers() {
         }
     }
 
-    replaceAllRows(TABLE, getAll(TABLE).map((row) => row.islandCity === state.islandCity
+    await commitStoreTransaction(() => replaceAllRows(TABLE, getAll(TABLE).map((row) => row.islandCity === state.islandCity
         ? { ...row, isOutlier: markedIds.has(String(row.id)) }
-        : row));
+        : row)));
     return markedIds.size;
 }
 
-function clearYieldOutliers() {
-    replaceAllRows(TABLE, getAll(TABLE).map((row) => row.islandCity === state.islandCity
+async function clearYieldOutliers() {
+    await commitStoreTransaction(() => replaceAllRows(TABLE, getAll(TABLE).map((row) => row.islandCity === state.islandCity
         ? { ...row, isOutlier: false }
-        : row));
+        : row)));
 }
 
 function tipAttr(label) {
@@ -1563,13 +1564,13 @@ function bindResult(container) {
         state.filteredItemType = null;
         refreshResult(container);
     });
-    container.querySelector('[data-yield-outliers-mark]')?.addEventListener('click', () => {
-        const count = markYieldOutliers();
+    container.querySelector('[data-yield-outliers-mark]')?.addEventListener('click', async () => {
+        const count = await markYieldOutliers();
         refreshResult(container);
         showToast(count ? `${count} kayıt seçili ada şehri için şüpheli olarak işaretlendi ve ortalamadan çıkarıldı.` : 'Seçili ada şehrinde son üç kayda göre aykırı kayıt bulunmadı.');
     });
-    container.querySelector('[data-yield-outliers-clear]')?.addEventListener('click', () => {
-        clearYieldOutliers();
+    container.querySelector('[data-yield-outliers-clear]')?.addEventListener('click', async () => {
+        await clearYieldOutliers();
         refreshResult(container);
         showToast('Seçili ada şehrindeki şüpheli kayıt işaretleri kaldırıldı; kayıtlar yeniden ortalamaya dahil edildi.');
     });
@@ -1652,6 +1653,7 @@ function confirmYieldEntry(container, warnings, entry, comparisons) {
 }
 
 async function saveEntry(container) {
+    const editingId = state.editingId, yieldKind = state.yieldKind;
     if (container.querySelector('[data-yield-entry-warning]')?.open) return;
     const date = container.querySelector('#yieldDate')?.value;
     const plantKey = selectedItemKey(container);
@@ -1661,12 +1663,12 @@ async function saveEntry(container) {
     const seedsReturned = parseQuantityExpression(returnedInput?.value);
     // Pasture and kennel always grow one animal for each baby put in. Keep the
     // persisted value for existing yield consumers, but derive it from input.
-    const plantsHarvested = state.yieldKind === 'plant'
+    const plantsHarvested = yieldKind === 'plant'
         ? parseQuantityExpression(harvestedInput?.value)
         : seedsPlanted;
     const productInput = container.querySelector('[data-products-harvested]');
     const productsHarvested = productInput?.value.trim() ? parseQuantityExpression(productInput.value) : null;
-    const productOnly = state.yieldKind === 'pasture' && state.animalOutputMode === 'product' && productsHarvested != null;
+    const productOnly = yieldKind === 'pasture' && state.animalOutputMode === 'product' && productsHarvested != null;
     const focusText = container.querySelector('[data-yield-focus-per-use]')?.value.trim() || '';
     const focusPerUse = state.water && !productOnly && focusText !== '' ? Number(focusText) : null;
     if (focusPerUse != null && (!Number.isFinite(focusPerUse) || focusPerUse < 0)) {
@@ -1675,7 +1677,7 @@ async function saveEntry(container) {
     }
 
     if (!date || !plantKey || !state.islandCity) {
-        showToast(`Tarih, ada ve ${state.yieldKind === 'plant' ? 'bitki' : 'hayvan'} zorunlu.`, { kind: 'error' });
+        showToast(`Tarih, ada ve ${yieldKind === 'plant' ? 'bitki' : 'hayvan'} zorunlu.`, { kind: 'error' });
         return;
     }
     if (!(seedsPlanted > 0) || (!productOnly && (!(seedsReturned >= 0) || !(plantsHarvested >= 0)))) {
@@ -1688,7 +1690,7 @@ async function saveEntry(container) {
     }
     const item = itemForKey(plantKey);
     const entry = {
-        id: state.editingId, date, islandCity: state.islandCity, itemKey: plantKey,
+        id: editingId, date, islandCity: state.islandCity, itemKey: plantKey,
         itemType: productOnly ? 'animalProduct' : itemTypeForKind(),
         premium: state.premium, water: state.water, seedsPlanted,
         seedsReturned: productOnly ? 0 : seedsReturned,
@@ -1700,15 +1702,15 @@ async function saveEntry(container) {
         rows: getAll(TABLE), today: todayIso(),
         expectedOutput: productOnly ? productOutput(state.islandCity) : standardOutput(item),
         expectedReturn: standardReturn(item),
-        alternateReturn: state.yieldKind === 'plant' ? standardSeedReturn(item, !state.water) : standardAnimalReturn(item, { focus: !state.water }),
-        alternatePremiumOutput: state.yieldKind === 'plant' ? standardPlantYield(item, state.islandCity, !state.premium) : null,
+        alternateReturn: yieldKind === 'plant' ? standardSeedReturn(item, !state.water) : standardAnimalReturn(item, { focus: !state.water }),
+        alternatePremiumOutput: yieldKind === 'plant' ? standardPlantYield(item, state.islandCity, !state.premium) : null,
         alternateCityOutput: oppositeCity ? (productOnly ? productOutput(oppositeCity) : standardOutput(item, oppositeCity)) : null,
-        modeLabel: state.yieldKind === 'plant' ? 'sulama' : 'odak'
+        modeLabel: yieldKind === 'plant' ? 'sulama' : 'odak'
     };
     options.flaggedMetrics = new Set();
     const warnings = entryWarnings(entry, options);
     const comparisons = [{ entry, ...options }];
-    if (!productOnly && productsHarvested != null && state.yieldKind === 'pasture') {
+    if (!productOnly && productsHarvested != null && yieldKind === 'pasture') {
         const productEntry = { ...entry, itemType: 'animalProduct', seedsReturned: 0, plantsHarvested: productsHarvested };
         const productOptions = {
             ...options, flaggedMetrics: new Set(), expectedOutput: productOutput(state.islandCity),
@@ -1742,48 +1744,31 @@ async function saveEntry(container) {
     if (state.water) {
         fd.set('water', 'on');
     }
-    const editedRow = state.editingId
-        ? getAll(TABLE).find((row) => String(row.id) === String(state.editingId))
+    const editedRow = editingId
+        ? getAll(TABLE).find((row) => String(row.id) === String(editingId))
         : null;
     if (editedRow && isOutlier(editedRow)) {
         fd.set('isOutlier', 'on');
     }
 
     try {
-        // Önceki değer göstergesi devre dışı.
-        // const averageBeforeSave = captureAverage(plantKey);
-        if (state.editingId) {
-            updateRow(TABLE, state.editingId, fd);
-            if (productOnly) {
-                showToast('Ürün kaydı güncellendi.');
-                fillForm(container, null);
-                refreshResult(container);
-                return;
+        await commitStoreTransaction(() => {
+            if (editingId) {
+                updateRow(TABLE, editingId, fd);
+                if (productOnly) return;
+                const linked = getAll(TABLE).find(row => String(row.linkedLogId) === String(editingId));
+                if (productsHarvested != null && yieldKind === 'pasture') {
+                    const productFd = productLogFormData(fd, productsHarvested, editingId);
+                    if (linked) updateRow(TABLE, linked.id, productFd); else createRow(TABLE, productFd);
+                } else if (linked) deleteRow(TABLE, linked.id);
+            } else {
+                const created = createRow(TABLE, fd);
+                if (!productOnly && productsHarvested != null && yieldKind === 'pasture') {
+                    createRow(TABLE, productLogFormData(fd, productsHarvested, created.id));
+                }
             }
-            const linked = getAll(TABLE).find((item) => String(item.linkedLogId) === String(state.editingId));
-            if (productsHarvested != null && state.yieldKind === 'pasture') {
-                const productFd = productLogFormData(fd, productsHarvested, state.editingId);
-                if (linked) updateRow(TABLE, linked.id, productFd);
-                else createRow(TABLE, productFd);
-            } else if (linked) {
-                deleteRow(TABLE, linked.id);
-            }
-            showToast('Güncellendi.');
-        } else {
-            if (productOnly) {
-                createRow(TABLE, fd);
-                showToast('Ürün kaydedildi.');
-                fillForm(container, null);
-                refreshResult(container);
-                return;
-            }
-            const created = createRow(TABLE, fd);
-            if (productsHarvested != null && state.yieldKind === 'pasture') {
-                const productFd = productLogFormData(fd, productsHarvested, created.id);
-                createRow(TABLE, productFd);
-            }
-            showToast('Kaydedildi.');
-        }
+        });
+        showToast(editingId ? 'Güncellendi.' : 'Kaydedildi.');
         fillForm(container, null);
         refreshResult(container);
         // showAverageChange(container, averageBeforeSave, captureAverage(plantKey));
@@ -2009,20 +1994,24 @@ function bindPage(container) {
     });
     container.querySelector('#yieldForm')?.addEventListener('submit', (event) => {
         event.preventDefault();
-        saveEntry(container);
+        void runFormSubmission(event.target, () => saveEntry(container));
     });
     container.querySelector('#yieldCancelEdit')?.addEventListener('click', () => {
         fillForm(container, null);
         refreshResult(container);
     });
-    container.querySelector('#yieldDelete')?.addEventListener('click', () => {
+    container.querySelector('#yieldDelete')?.addEventListener('click', async () => {
         if (!state.editingId) {
             return;
         }
         // const row = getAll(TABLE).find((item) => String(item.id) === String(state.editingId));
         // const averageBeforeDelete = row ? captureAverage(row.plantKey) : null;
-        getAll(TABLE).filter((item) => String(item.linkedLogId) === String(state.editingId)).forEach((item) => deleteRow(TABLE, item.id));
-        deleteRow(TABLE, state.editingId);
+        try {
+            await commitStoreTransaction(() => {
+                getAll(TABLE).filter(item => String(item.linkedLogId) === String(state.editingId)).forEach(item => deleteRow(TABLE, item.id));
+                deleteRow(TABLE, state.editingId);
+            });
+        } catch (error) { showToast(error.message || 'Silinemedi.', { kind: 'error' }); return; }
         showToast('Silindi.');
         fillForm(container, null);
         refreshResult(container);

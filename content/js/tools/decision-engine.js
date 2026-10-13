@@ -1,3 +1,4 @@
+import { durableStorage as localStorage } from '../core/durable-storage.mjs';
 import { itemNameHtml } from '../components/item-name.js';
 import { getSettings, getServer, SETTINGS_STORAGE_KEY } from '../core/settings.js';
 import { bindLivePrices } from '../core/price-live.js';

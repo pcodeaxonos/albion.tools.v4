@@ -1,3 +1,4 @@
+import { durableStorage as localStorage } from './durable-storage.mjs';
 import { currentPageId } from './routes.js';
 import { TOOLS, getFrequentTools as getStaticFrequentTools } from './tools.js';
 

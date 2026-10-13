@@ -4,15 +4,18 @@
     "private": true,
     "description": "Albion Online tools — static HTML, no backend",
     "engines": {
-        "node": ">=22"
+        "node": ">=22.16"
     },
     "scripts": {
+        "data:migrate": "node content/scripts/migrate-user-data.mjs",
+        "data:test": "node content/scripts/test-user-data.mjs && node content/scripts/test-generated-catalogs.mjs",
+        "craft-order:test": "node content/scripts/test-craft-card-order.mjs",
         "item-market:test": "node --experimental-vm-modules content/scripts/test-item-market.mjs",
         "data:item-quality": "node content/scripts/update-item-quality-metadata.mjs",
         "item-market:ui:test": "node content/scripts/test-item-market-ui.cjs",
         "app:test": "node content/scripts/test-app-startup.mjs",
         "app:ui:test": "node content/scripts/test-app-runtime.cjs",
-        "test": "npm run app:test && npm run css:check && npm run decision:test && npm run city:test && npm run tooltip:test && npm run item-name:test && npm run prices:live:test && npm run prices:history:test && npm run prices:collector:test && npm run prices:collection:test && npm run opportunities:test && npm run island:test && npm run island:stability:test && npm run island:forecast:test && npm run laborer:test && npm run routes:test && npm run flipper:test",
+        "test": "npm run data:test && npm run craft-order:test && npm run app:test && npm run css:check && npm run decision:test && npm run city:test && npm run tooltip:test && npm run item-name:test && npm run prices:live:test && npm run prices:history:test && npm run prices:collector:test && npm run prices:collection:test && npm run opportunities:test && npm run island:test && npm run island:stability:test && npm run island:forecast:test && npm run laborer:test && npm run routes:test && npm run flipper:test",
         "css:ui:test": "node content/scripts/test-css-components-ui.cjs",
         "item-name:test": "node --experimental-vm-modules content/scripts/test-item-name.mjs",
         "prices:live:test": "node --experimental-vm-modules content/scripts/test-price-live.mjs",
@@ -33,7 +36,7 @@
         "css:check": "node content/scripts/test-css-architecture.mjs && node content/scripts/check-css-architecture.mjs",
         "css:watch": "node node_modules/sass/sass.js --watch content/scss/main.scss output/css/site.css --no-source-map",
         "data:fetch": "node content/scripts/fetch-game-data.mjs",
-        "island:test": "node --experimental-vm-modules content/scripts/test-island-economy.mjs && node content/scripts/test-island-placement.mjs && node content/scripts/test-island-sales-potential.mjs && node content/scripts/test-trade-potential-evidence.mjs && node content/scripts/test-potential-price.mjs",
+        "island:test": "node --experimental-vm-modules content/scripts/test-island-economy.mjs && node content/scripts/test-island-placement.mjs && node content/scripts/test-island-sales-potential.mjs && node content/scripts/test-trade-potential-evidence.mjs && node content/scripts/test-potential-price.mjs && node --experimental-vm-modules content/scripts/test-potential-price-table.mjs",
         "island:stability:test": "node content/scripts/test-island-yield-stability.mjs",
         "island:forecast:test": "node content/scripts/test-island-yield-forecast.mjs",
         "data:icons": "node content/scripts/fetch-item-icons.mjs",

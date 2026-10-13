@@ -856,10 +856,9 @@
   --v2-warning-heading: var(--v2-warning-accent);
   border-color: color-mix(in srgb, var(--v2-warning-accent) 65%, var(--color-border));
   header { border-bottom-color: color-mix(in srgb, var(--v2-warning-accent) 42%, transparent); }
-  .island-v2-warning-source { color: var(--v2-warning-accent); }
-  .island-v2-warning-row[data-v2-warning-type="stale-price"] { --v2-warning-accent: #e5bb6a; }
 }
 .island-v2-warning-row {
+  --v2-warning-accent: #ff9ca5;
   display: grid;
   grid-template-columns: 2.5rem minmax(0, 1fr);
   align-items: center;
@@ -875,7 +874,17 @@
 .island-v2-warning-icon { display: block; width: 2.5rem; height: 2.5rem; object-fit: contain; }
 .island-v2-warning-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; font-size: var(--font-size-sm); font-weight: 700; }
 .island-v2-warning-source { min-width: 0; color: var(--color-primary); white-space: normal; }
-.island-v2-warning-head em { flex-shrink: 0; color: var(--v2-warning-accent, #e5bb6a); font-style: normal; }
+.island-v2-warning-head .badge {
+  font-size: .625rem;
+  text-transform: uppercase;
+  border: 1px solid currentColor;
+  background: color-mix(in srgb, currentColor 10%, transparent);
+}
+.island-v2-warning-status { flex-shrink: 0; color: var(--v2-warning-accent, #e5bb6a); }
+.island-v2-warning-source[data-v2-warning-badge="city"] { color: #b6a2ff; }
+.island-v2-warning-source[data-v2-warning-badge="price"] { color: #79cfff; }
+.island-v2-warning-row[data-v2-warning-type="stale-price"] { --v2-warning-accent: #e5bb6a; }
+.island-v2-warning-age { color: #e5bb6a; font-weight: 600; }
 .island-v2-card.is-uncalculated:not(.is-selected) {
   border-color: #e5bb6a;
   background: linear-gradient(150deg, rgba(91, 61, 19, .5), rgba(8, 24, 31, .98));
@@ -907,7 +916,23 @@
     &.is-observed { background: #c0ecd6; color: #143e2b; }
     &.is-unknown { background: #efd0d0; color: #541919; }
 }
-.island-v2-focus-summary { display: block; font-size: .65rem; }
+.island-v2-metric[data-v2-metric="focus"] strong {
+    display: flex;
+    align-items: center;
+    gap: .35rem;
+    white-space: nowrap;
+}
+.island-v2-focus-summary {
+    min-width: 0;
+    margin-left: auto;
+    padding: .1rem .3rem;
+    background: var(--summary-accent);
+    color: #f1f6fa;
+    border-radius: .3rem;
+    font-size: .55rem;
+    line-height: 1.2;
+    white-space: nowrap;
+}
 .island-v2-card:has(> .island-v2-focus-source) {
     grid-template-rows: minmax(0, 12fr) minmax(0, 38fr) minmax(0, 18fr) minmax(0, 20fr) minmax(0, 12fr);
 }

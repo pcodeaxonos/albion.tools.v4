@@ -113,6 +113,10 @@ const context = vm.createContext({
     MarketHistoryPackets: class { constructor() { this.rows = []; } history(scope) { return this.rows.filter(row => row.server === scope.server && scope.items.includes(row.item_id) && scope.locations.includes(row.location) && scope.qualities.includes(row.quality)); } status() { return {}; } ingest(row) { this.rows.push(row); return row.data.length; } }, mergePartialBook, latestBookOrders, observedBookVolume, preserveArchive: () => {}, console, URL, URLSearchParams, Map, Set, Buffer,
     OpportunityEvidenceRepository: class { close() {} }, routeOpportunityEvidence: async () => false,
     OpportunityDiagnosticsRepository: class { constructor() { this.data = { scans: [], collectorRuns: [] }; } },
+    openPersistentData: () => ({ repository: { createBackup: () => Promise.resolve(), snapshot: () => ({ entries: [] }) }, craftCardOrders: {}, opportunityEvidence: {} }),
+    CraftCardOrderRepository: class { all() { return {}; } }, routeUserData: async () => false,
+    USER_DATA_FILE: '.albion-tools.sqlite', USER_DATA_BACKUP_DIRECTORY: '.albion-tools-backups', USER_DATA_BACKUP_INTERVAL_MS: 3600000,
+    CRAFT_CARD_ORDER_ENDPOINT: '/api/v1/craft-card-order', LEGACY_CRAFT_CARD_ORDER_KEY: 'albiontools.v4.dailyBonusCardOrder',
     startQuoteService: () => ({ repository: { flush() {} }, collector: { state: {}, noteDiscovery() {} } }),
     locationNamesByIndex: () => new Map(),
     createNatsMarketAdapter: () => ({ start() {}, snapshot: () => ({ status: 'off' }) }),
@@ -129,11 +133,12 @@ const context = vm.createContext({
     }, writeFileSync: diskWrite, renameSync: (from, to) => { files.set(to, files.get(from)); files.delete(from); },
     dirname: () => '/repo/content/scripts', join: (...parts) => parts.join('/'), fileURLToPath: () => '',
     promisify: () => () => {}, execFile: () => {},
-    setInterval: callback => { maintenanceCallbacks.push(callback); return { unref() {} }; },
+    setInterval: (callback, delay) => { maintenanceCallbacks.push({ callback, delay }); return { unref() {} }; },
     clearInterval: () => {}, setTimeout: () => 1,
     createServer: () => ({ on() {}, listen() {} }) });
 const hubSource = readFileSync(new URL('./price-hub.mjs', import.meta.url), 'utf8')
-    .replace(/^import .*;\r?\n/gm, '').replaceAll('import.meta.url', "'file:///repo/content/scripts/price-hub.mjs'");
+    .replace(/^import .*;\r?\n/gm, '').replaceAll('import.meta.url', "'file:///repo/content/scripts/price-hub.mjs'")
+    .replace('await openPersistentData(ROOT)', 'openPersistentData(ROOT)');
 vm.runInContext(hubSource, context);
 const expires = new Date(now + DAY_MS).toISOString();
 context.orders = [
@@ -206,7 +211,7 @@ assert.equal(vm.runInContext('orderHistory.series.size', context), 0, 'Untagged 
 const historyPath = vm.runInContext('HISTORY_PATH', context);
 vm.runInContext('loadOrderHistory()', context);
 packetNow += ORDER_HISTORY_POLICY.retentionMs + DAY_MS;
-maintenanceCallbacks[0]();
+maintenanceCallbacks.filter(timer => timer.delay === ORDER_HISTORY_POLICY.maintenanceMs).at(-1).callback();
 assert.equal(vm.runInContext('orderHistory.series.size', context), 0, 'Idle maintenance must prune history');
 assert.equal(JSON.parse(files.get(historyPath)).series.length, 0, 'Idle pruning must reach disk');
 files.set(historyPath, '{corrupt');

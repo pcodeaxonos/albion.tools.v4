@@ -1,4 +1,5 @@
 /** Tablo tanımları — yeni tablo: buraya + data/*.json seed. İlişkiler id FK ile. */
+import { POTENTIAL_PRICE_TABLE, POTENTIAL_PRICE_DETAIL_TABLE, potentialSnapshotRows, potentialDecisionRows } from '../core/potential-price-snapshot.mjs';
 
 export const TABLE_GROUPS = [
     { id: 'game', label: 'Oyun datası' },
@@ -17,7 +18,61 @@ const COL = {
     active: { name: 'isActive', type: 'boolean', label: 'Aktif' }
 };
 
+const potentialRowSource = project => (storage, read) => {
+    const names = new Map(read('items').map(item => [item.uniqueName, item.localizedName || item.uniqueName]));
+    return project(storage, id => names.get(id) || id);
+};
+const potentialVariationColumns = [
+    { name: 'itemName', type: 'string', format: 'item-name', label: 'Eşya' },
+    { name: 'side', type: 'string', label: 'Yön' },
+    { name: 'city', type: 'string', label: 'Şehir' },
+    { name: 'server', type: 'string', label: 'Sunucu' },
+    { name: 'quality', type: 'number', label: 'Kalite' },
+    { name: 'days', type: 'number', label: 'Satış süresi (gün)' }
+];
+
 export const tables = {
+    [POTENTIAL_PRICE_TABLE]: {
+        displayName: 'Potansiyel Fiyatlar', group: 'user', source: 'user', key: 'id', readOnly: true, storage: 'browser',
+        description: 'Her eşya / sunucu / şehir / kalite / yön / satış süresi için tek karar. Tahmin edilen fiyat, ada planlayıcının kabul ettiği potansiyel fiyattır. Kullanılmayan kayıtların fiyatı boş gösterilir; sabit fiyat seçimi önceliklidir.',
+        rowSource: potentialRowSource(potentialDecisionRows),
+        defaultSort: { column: 'savedAt', direction: 'desc' },
+        columns: [
+            ...potentialVariationColumns,
+            { name: 'price', type: 'number', label: 'Tahmin edilen fiyat' },
+            { name: 'decision', type: 'string', label: 'Fiyat kararı' },
+            { name: 'basis', type: 'string', label: 'Fiyatı belirleyen' },
+            { name: 'status', type: 'string', label: 'Durum' },
+            { name: 'reason', type: 'string', label: 'Karar nedeni' },
+            { name: 'source', type: 'string', label: 'Kaynak' },
+            { name: 'savedAt', type: 'string', label: 'Karar zamanı' },
+            { name: 'detail', type: 'string', format: 'potential-details', label: 'Hesap detayı' },
+            { name: 'itemId', type: 'string', label: 'Eşya kodu' }
+        ]
+    },
+    [POTENTIAL_PRICE_DETAIL_TABLE]: {
+        displayName: 'Potansiyel Fiyatlar Detay', group: 'user', source: 'user', key: 'id', readOnly: true, storage: 'browser',
+        description: 'Potansiyel fiyat kararlarının hesap girdileri ve kayıtlı kanıtları. Süresi dolmuş fiyatlar burada incelenebilir; güncel karar için Potansiyel Fiyatlar tablosunu kullanın.',
+        rowSource: potentialRowSource(potentialSnapshotRows),
+        defaultSort: { column: 'savedAt', direction: 'desc' },
+        columns: [
+            ...potentialVariationColumns,
+            { name: 'price', type: 'number', label: 'Kayıtlı fiyat' },
+            { name: 'status', type: 'string', label: 'Durum' },
+            { name: 'source', type: 'string', label: 'Kaynak' },
+            { name: 'method', type: 'string', label: 'Yöntem' },
+            { name: 'samples', type: 'number', label: 'İşlemli gün' },
+            { name: 'historicalWindows', type: 'number', label: 'Geçmiş dönem' },
+            { name: 'periodPrice', type: 'number', label: 'Dönem fiyatı' },
+            { name: 'recentPrice', type: 'number', label: 'Yakın dönem fiyatı' },
+            { name: 'currentOrder', type: 'number', label: 'Sell emir adayı' },
+            { name: 'latest', type: 'string', label: 'Son işlem günü' },
+            { name: 'savedAt', type: 'string', label: 'Kayıt zamanı' },
+            { name: 'validUntil', type: 'string', label: 'Geçerlilik sonu' },
+            { name: 'reason', type: 'string', label: 'Eksiklik nedeni' },
+            { name: 'itemId', type: 'string', label: 'Eşya kodu' }
+        ]
+    },
     cities: {
         displayName: 'Şehirler',
         group: 'game',
@@ -60,8 +115,8 @@ export const tables = {
         key: 'id',
         autoKey: false,
         seedUrl: './data/items.json',
-        /** Too large for localStorage (~4MB); session memory only */
-        persistSeed: false,
+        seedPolicy: 'generated',
+        seedIdentity: ['uniqueName'],
         columns: [
             COL.id,
             { name: 'uniqueName', type: 'string', label: 'Unique Name' },
@@ -322,8 +377,8 @@ export const tables = {
         key: 'id',
         autoKey: true,
         seedUrl: './data/recipe-materials.json',
-        /** Large curated dump; keep out of localStorage quota */
-        persistSeed: false,
+        seedPolicy: 'generated',
+        seedIdentity: ['outputItemId', 'inputItemId'],
         columns: [
             COL.id,
             { name: 'outputItemId', type: 'ref', refTable: 'items', refLabel: 'localizedName', label: 'Üretilen eşya' },

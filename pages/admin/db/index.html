@@ -38,12 +38,16 @@
                 <div class="container container--db">
                     <div class="db-layout">
                         <aside class="db-sidebar">
-                            <div class="db-sidebar-chrome" data-page-info-head>
+                            <div class="db-sidebar-chrome">
                                 <div class="db-sidebar-top">
                                     <h1 class="db-sidebar-title mb-0">Veritabanı</h1>
                                     <button type="button" class="btn btn-sm btn-outline-secondary" id="resetDb" data-app-tooltip="Seed verisine sıfırla">Sıfırla</button>
                                 </div>
                                 <p class="db-sidebar-lead text-muted">Tablo seç · ekle · düzenle · sil · içe/dışa aktar.</p>
+                                <div class="form-floating">
+                                    <input type="search" class="form-control" data-db-table-search placeholder=" " aria-label="Tablo ara" autocomplete="off">
+                                    <label>Tablo ara</label>
+                                </div>
                             </div>
                             <div class="db-table-list" id="dbTableList"></div>
                             <div class="db-sidebar-form" id="dbSidebarForm" hidden></div>

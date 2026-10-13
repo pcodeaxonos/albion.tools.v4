@@ -7,7 +7,8 @@ export const canonical = evidenceCanonical;
 function sort(value) { return Array.isArray(value) ? value.map(sort) : value && typeof value === 'object' ? Object.fromEntries(Object.keys(value).sort().map(key => [key, sort(value[key])])) : value; }
 const hash = value => createHash('sha256').update(canonical(value)).digest('hex');
 export class OpportunityEvidenceRepository {
-    constructor(path) {
+    constructor(path, { database = null } = {}) {
+        this.database = database;
         this.path = path; this.lockPath = `${path}.lock`; this.state = emptyEvidence(); this.receipts = new Map(); this.chain = ''; this.fd = null; this.failed = false;
         if (existsSync(this.lockPath)) {
             const pid = Number(readFileSync(this.lockPath, 'utf8'));
@@ -20,7 +21,28 @@ export class OpportunityEvidenceRepository {
         const lock = openSync(this.lockPath, 'wx');
         try { writeSync(lock, String(process.pid)); fsyncSync(lock); } finally { closeSync(lock); }
         try {
-            if (existsSync(path)) {
+            if (database) {
+                database.exec('CREATE TABLE IF NOT EXISTS opportunity_evidence_journal (sequence INTEGER PRIMARY KEY, request_id TEXT UNIQUE NOT NULL, record TEXT NOT NULL)');
+                const saved = database.prepare('SELECT record FROM opportunity_evidence_journal ORDER BY sequence').all();
+                if (saved.length) {
+                    for (const row of saved) this.replay(JSON.parse(row.record));
+                } else if (existsSync(path)) {
+                    const bytes = readFileSync(path), lastNewline = bytes.lastIndexOf(10);
+                    const records = bytes.subarray(0, lastNewline + 1).toString('utf8').split('\n').filter(Boolean);
+                    // Verify the entire old journal before importing; retain the original file unchanged.
+                    for (const record of records) this.replay(JSON.parse(record));
+                    if (lastNewline + 1 < bytes.length) {
+                        const backup = `${path}.incomplete-${Date.now()}.bak`; copyFileSync(path, backup);
+                        this.recovery = { backup, discardedBytes: bytes.length - lastNewline - 1 };
+                    }
+                    database.exec('BEGIN IMMEDIATE');
+                    try {
+                        const insert = database.prepare('INSERT INTO opportunity_evidence_journal (request_id, record) VALUES (?, ?)');
+                        for (const record of records) insert.run(JSON.parse(record).requestId, record);
+                        database.exec('COMMIT');
+                    } catch (error) { database.exec('ROLLBACK'); throw error; }
+                }
+            } else if (existsSync(path)) {
                 const bytes = readFileSync(path), lastNewline = bytes.lastIndexOf(10);
                 const complete = bytes.subarray(0, lastNewline + 1).toString('utf8');
                 for (const line of complete.split('\n').filter(Boolean)) this.replay(JSON.parse(line));
@@ -30,7 +52,7 @@ export class OpportunityEvidenceRepository {
                     this.recovery = { backup, discardedBytes: bytes.length - lastNewline - 1 };
                 }
             }
-            this.fd = openSync(path, 'a');
+            if (!database) this.fd = openSync(path, 'a');
         } catch (error) { unlinkSync(this.lockPath); throw new Error(`V6 kayıtları açılamadı: ${error.message}`); }
     }
     replay(record) {
@@ -42,7 +64,7 @@ export class OpportunityEvidenceRepository {
     }
     snapshot() { return JSON.parse(JSON.stringify(this.state)); }
     submit(input) {
-        if (this.failed || this.fd == null) throw Error('V6 kayıt servisi yazıma kapalı.');
+        if (this.failed || (this.fd == null && !this.database)) throw Error('V6 kayıt servisi yazıma kapalı.');
         const requestId = input.requestId;
         if (typeof requestId !== 'string' || !/^[a-zA-Z0-9-]{8,100}$/.test(requestId)) throw Error('Geçerli istek kimliği gerekli.');
         const command = sort(JSON.parse(JSON.stringify(input.command)));
@@ -57,14 +79,18 @@ export class OpportunityEvidenceRepository {
         const next = applyEvidenceCommand(this.state, command, payload);
         const checksum = hash(payload), bytes = Buffer.from(JSON.stringify({ ...payload, checksum }) + '\n');
         try {
+            if (this.database) {
+                this.database.prepare('INSERT INTO opportunity_evidence_journal (request_id, record) VALUES (?, ?)').run(requestId, JSON.stringify({ ...payload, checksum }));
+            } else {
             let offset = 0; while (offset < bytes.length) { const written = writeSync(this.fd, bytes, offset, bytes.length - offset); if (!written) throw Error('Eksik günlük yazımı'); offset += written; }
             fsyncSync(this.fd);
+            }
         } catch (error) { this.failed = true; throw Error(`V6 disk kaydı onaylanamadı; aynı isteği yeniden deneyin: ${error.message}`); }
         this.state = next; this.chain = checksum;
         const result = { requestId, signalId, recordedAt: payload.recordedAt };
         this.receipts.set(requestId, { digest, result }); return result;
     }
-    close() { if (this.fd != null) { closeSync(this.fd); this.fd = null; unlinkSync(this.lockPath); } }
+    close() { if (this.fd != null) { closeSync(this.fd); this.fd = null; } if (existsSync(this.lockPath)) unlinkSync(this.lockPath); }
 }
 export async function routeOpportunityEvidence(req, res, repository, path) {
     if (path !== EVIDENCE_PATH) return false;

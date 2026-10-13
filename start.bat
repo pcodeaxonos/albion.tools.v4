@@ -10,6 +10,16 @@ if "%ROOT:~-1%"=="\" set "ROOT=%ROOT:~0,-1%"
 
 cd /d "%ROOT%"
 
+REM Optional local runtime; keep the selected executable outside version control.
+if not defined ALBION_NODE if exist ".albion-node.path" set /p "ALBION_NODE="<".albion-node.path"
+if defined ALBION_NODE if exist "%ALBION_NODE%" (
+    for %%N in ("%ALBION_NODE%") do set "PATH=%%~dpN;%PATH%"
+)
+
+REM SQLite and verified online backups require Node.js 22.16+.
+node -e "const [major,minor]=process.versions.node.split('.').map(Number); if(major<22 || (major===22 && minor<16)) { console.error('Node.js 22.16+ gerekli. Mevcut: '+process.versions.node); process.exit(1); }"
+if errorlevel 1 exit /b 1
+
 set "ADC=F:\Program Files\Albion Data Client\albiondata-client.exe"
 set "LOGDIR=%ROOT%\logs"
 

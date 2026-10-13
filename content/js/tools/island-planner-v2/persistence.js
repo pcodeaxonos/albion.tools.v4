@@ -1,4 +1,4 @@
-import { getAll, replaceAllRows } from '../../db/store.js';
+import { getAll, replaceAllRows, queueStoreTransaction, commitStoreTransaction } from '../../db/store.js';
 import { getDefaultCity } from '../../core/settings.js';
 import { readJsonStorage, removeStorage } from '../../core/storage.js';
 import { cityKey, parsePlan } from './model.js';
@@ -19,19 +19,27 @@ function legacyCityPlans(key) {
     };
 }
 
-export function writePlanTable(tableName, plans, activeCity = null, hasActive = false) {
+function planTableRows(tableName, plans, activeCity, hasActive) {
     const existing = getAll(tableName);
     const ids = new Map(existing.map((row) => [cityKey(row.city), row.id]));
     let nextId = existing.reduce((max, row) => Math.max(max, Number(row.id) || 0), 0) + 1;
     const now = new Date().toISOString();
 
-    replaceAllRows(tableName, Object.entries(plans).map(([key, plan]) => ({
+    return Object.entries(plans).map(([key, plan]) => ({
         id: ids.get(key) ?? nextId++,
         city: plan.islandCity || key,
         plan: JSON.stringify(plan),
         ...(hasActive ? { active: cityKey(activeCity) === key } : {}),
         updatedAt: now
-    })));
+    }));
+}
+
+export function writePlanTable(tableName, plans, activeCity = null, hasActive = false) {
+    queueStoreTransaction(() => replaceAllRows(tableName, planTableRows(tableName, plans, activeCity, hasActive)));
+}
+
+export async function savePlanTable(tableName, plans, activeCity = null, hasActive = false) {
+    await commitStoreTransaction(() => replaceAllRows(tableName, planTableRows(tableName, plans, activeCity, hasActive)));
 }
 
 export function readPlanTable(tableName, legacyKey, hasActive = false) {

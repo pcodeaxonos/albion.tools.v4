@@ -1,50 +1,60 @@
 import { DAY_MS, PRICE_STALE_MS } from './market-history-config.mjs';
-import { normalizePriceDate, weightedPriceQuantile, median, quotedBookPrice } from './market-primitives.mjs';
+import { normalizePriceDate, weightedPriceQuantile, quantile, quotedBookPrice } from './market-primitives.mjs';
 
 export const SALE_HORIZONS = Object.freeze([{ days: 1, label: '1G' }, { days: 7, label: '1H' },
     { days: 14, label: '2H' }, { days: 21, label: '3H' }, { days: 28, label: '4H' }]);
 export const SALE_HISTORY_DAYS = 90;
+export const SALE_ESTIMATOR = 'completed-window-price-v1';
+export const SALE_ESTIMATE_POLICY = Object.freeze({ minWindows: 3, minCoverage: .7,
+    recentDays: 7, minRecentDays: 3, maxAgeDays: 2, conservativeQuantile: .25 });
 
-// Empirical maximum excursion over historical windows, anchored to today's
-// order price. This is a target, not a calibrated probability of a future fill.
+// Duration defines the period being priced, never an appreciation multiplier.
+// Compare typical prices in independent completed periods, not their peaks.
+// Historical observations cannot identify queue position or time to fill.
 export function saleHorizonTarget(evidence, request, row, horizonDays, now = Date.now()) {
-    const points = evidence?.forecastPoints ?? [];
+    const { forecastPoints = [], ...proof } = evidence ?? {};
+    const end = Math.floor(now / DAY_MS), policy = SALE_ESTIMATE_POLICY;
+    const groups = new Map();
+    for (const point of forecastPoints) {
+        const at = Date.parse(normalizePriceDate(point.timestamp)), day = Math.floor(at / DAY_MS);
+        if (!(day >= end - SALE_HISTORY_DAYS && day < end) || !(Number.isFinite(point.price) && point.price > 0)
+            || !Number.isSafeInteger(point.quantity) || point.quantity <= 0) continue;
+        const list = groups.get(day) ?? [];
+        list.push(point); groups.set(day, list);
+    }
+    const daily = [...groups].map(([day, points]) => ({ day, price: weightedPriceQuantile(points, .5) }))
+        .filter(point => point.price > 0).sort((a, b) => a.day - b.day);
+    const recent = daily.filter(point => point.day >= end - policy.recentDays);
     const date = normalizePriceDate(row?.sell_price_min_date), at = Date.parse(date);
     const current = row?.item_id === request.itemId && row?.city === request.city && Number(row?.quality) === request.quality
         && Number(row.sell_price_min) > 0 && at <= now && now - at <= PRICE_STALE_MS
         ? quotedBookPrice(row.sell_price_min, 'sell', 'sell') : null;
-    const days = new Map();
-    for (const point of points) {
-        const stamp = Date.parse(normalizePriceDate(point.timestamp));
-        if (!(stamp >= now - SALE_HISTORY_DAYS * DAY_MS && stamp <= now) || !(point.price > 0)
-            || !Number.isSafeInteger(point.quantity) || point.quantity <= 0) continue;
-        const day = Math.floor(stamp / DAY_MS), list = days.get(day) ?? [];
-        list.push(point); days.set(day, list);
+    const base = { ...proof, reliable: false, priceReliable: false, price: null, rawPrice: null,
+        estimator: SALE_ESTIMATOR, expires: true, days: horizonDays, setup: true,
+        method: 'Dönem medyanlarının alt çeyreği', samples: daily.length, historicalWindows: 0,
+        transactions: null, quantity: null, selectedAt: null, selectedQuantity: null,
+        currentOrder: current, recentPrice: quantile(recent.map(point => point.price), .5),
+        horizonStart: new Date(now).toISOString(), horizonEnd: new Date(now + horizonDays * DAY_MS).toISOString(),
+        latest: daily.length ? new Date(daily.at(-1).day * DAY_MS).toISOString() : null,
+        evidenceType: 'Tamamlanmış dönemlerin tipik gerçekleşmiş fiyatları',
+        marketMeaning: 'Dönem fiyat tahmini; emir sırası ve derinlik bilinmediğinden satış süresi veya gerçekleşme olasılığı hesaplanmaz.' };
+    const failure = reason => ({ ...base, reason });
+    if (!SALE_HORIZONS.some(period => period.days === horizonDays)) return failure('Desteklenmeyen satış süresi.');
+    if (recent.length < policy.minRecentDays || daily.at(-1)?.day < end - policy.maxAgeDays)
+        return failure('Son 7 günde en az 3 işlemli gün ve son 2 günde işlem kanıtı gerekli.');
+    const windows = [];
+    for (let last = end; last - horizonDays >= end - SALE_HISTORY_DAYS; last -= horizonDays) {
+        const points = daily.filter(point => point.day >= last - horizonDays && point.day < last);
+        if (points.length >= Math.ceil(horizonDays * policy.minCoverage))
+            windows.push(quantile(points.map(point => point.price), .5));
     }
-    const daily = [...days].sort(([a],[b]) => a-b).map(([day, values]) => ({day, price:weightedPriceQuantile(values,.5)}));
-    const baseline = current ?? daily.at(-1)?.price;
-    if (!(baseline > 0)) return { ...evidence, reliable: false, price: null, days: horizonDays, reason: 'Satış hedefi için güncel emir veya işlem fiyatı yok.' };
-    let ratio = 1, windows = 0, supportedDays = 1;
-    for (const period of SALE_HORIZONS.filter(period => period.days > 1 && period.days <= horizonDays)) {
-        const excursions = [];
-        for (const first of daily) {
-            const lastDay = first.day + period.days - 1;
-            if (lastDay >= Math.floor(now / DAY_MS)) continue;
-            const window = daily.filter(point => point.day >= first.day && point.day <= lastDay);
-            if (window.length < Math.ceil(period.days * .7)) continue;
-            excursions.push(Math.max(...window.map(point=>point.price)) / first.price);
-        }
-        if (excursions.length >= 3) { ratio = Math.max(ratio, median(excursions)); windows = excursions.length; supportedDays = period.days; }
-    }
-    const ceiling = Math.max(baseline, ...daily.map(point=>point.price));
-    const price = Math.floor(Math.min(ceiling, baseline * ratio));
-    const { forecastPoints, ...proof } = evidence ?? {};
-    return { ...proof, reliable: true, priceReliable: true, price, rawPrice: price, days: horizonDays, setup: true,
-        method: horizonDays === 1 ? '1 günlük satış hedefi' : horizonDays + ' günlük satış hedefi',
-        source: current ? 'Oyun emri + ' + (proof.source ?? 'geçmiş yok') : proof.source,
-        baseline, historicalCeiling: ceiling, historicalWindows: windows, supportedDays,
-        horizonStart: new Date(now).toISOString(), horizonEnd: new Date(now+horizonDays*DAY_MS).toISOString(),
-        evidenceType: 'Geçmiş dönemlerdeki zirve hareketlerine dayalı satış hedefi',
-        marketMeaning: 'Satış garantisi veya kalibre edilmiş olasılık değildir. Hedef güncel emrin altına indirilmez; geçmişte görülmüş fiyatların üzerine çıkarılmaz.',
-        reason: horizonDays > 1 && supportedDays < horizonDays ? 'Bu süre için yeterli geçmiş pencere yok; daha kısa desteklenen hedef kullanıldı.' : null };
+    base.historicalWindows = windows.length;
+    if (windows.length < policy.minWindows)
+        return failure('Seçilen süre için en az 3 bağımsız, %70 kapsanan geçmiş dönem gerekli.');
+    const periodPrice = quantile(windows, policy.conservativeQuantile);
+    const price = Math.floor(Math.min(periodPrice, base.recentPrice, current ?? Infinity));
+    if (!(Number.isSafeInteger(price) && price > 0)) return failure('Geçerli dönem fiyatı yok.');
+    return { ...base, reliable: true, priceReliable: true, price, rawPrice: price, periodPrice,
+        assessedAt: new Date(now).toISOString(),
+        validUntil: new Date((daily.at(-1).day + policy.maxAgeDays + 1) * DAY_MS).toISOString(), reason: null };
 }

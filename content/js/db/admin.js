@@ -1,3 +1,6 @@
+import { runFormSubmission } from '../components/form-submit.js';
+import { durableStorage as localStorage } from '../core/durable-storage.mjs';
+import { showToast } from '../components/toast.js';
 import { itemNameHtml } from '../components/item-name.js';
 import { escapeHtml } from '../utils/utils.js';
 import {
@@ -11,6 +14,7 @@ import {
     tables
 } from './schema.js';
 import {
+    commitStoreTransaction,
     getAll,
     getRowCount,
     searchRows,
@@ -37,11 +41,13 @@ import {
     yieldToMain
 } from '../components/loader.js';
 import { initTableSort, sortHeaderHtml } from '../utils/table-sort.js';
+import { bindCalcSticky } from '../utils/calc-sticky.js';
 import { renderMatsHtml, renderRecipesHtml } from '../core/app-runtime.js';
 import { parseFamilyVariants, bonusMaterialItemId } from '../core/bonus-cities.js';
 import { itemIconHtml } from '../components/item-icon.js';
 import { getItemUniqueName } from './relations.js';
 import { FIXED_PRICE_TABLE } from '../core/fixed-prices.js';
+import { POTENTIAL_PRICE_DETAIL_TABLE } from '../core/potential-price-snapshot.mjs';
 
 const PAGE_SIZE = 25;
 const CODE_CHAR_LIMIT = 20;
@@ -54,6 +60,8 @@ const state = {
     mode: null,
     editId: null,
     search: '',
+    tableSearch: '',
+    record: null,
     columnFilters: {},
     page: 1,
     sort: null
@@ -72,11 +80,12 @@ async function boot() {
 
 
     renderSidebar();
+    bindTableSearch();
     bindResetButton();
 
     const hash = parseHash();
     if (hash.table && getTable(hash.table)) {
-        await openTable(hash.table, hash.search, { showLoader: false, page: hash.page });
+        await openTable(hash.table, hash.search, { showLoader: false, page: hash.page, record: hash.record });
         if (hash.action === 'edit' && hash.id) {
             await openEditForm(hash.table, hash.id, { showLoader: false });
         } else if (hash.action === 'create') {
@@ -99,6 +108,7 @@ function parseHash() {
         action: parts[1] || null,
         id: parts[2] || null,
         search: params.get('search') ?? '',
+        record: params.get('record'),
         page: parsePage(params.get('page'))
     };
 }
@@ -114,6 +124,7 @@ function setHash(tableName, action, id, search, page) {
     if (id) hash += `/${id}`;
 
     const params = new URLSearchParams();
+    if (state.record) params.set('record', state.record);
     if (search) {
         params.set('search', search);
     }
@@ -136,6 +147,9 @@ function renderSidebar() {
 
     for (const name of names) {
         const table = getTable(name);
+        const term = state.tableSearch.trim().toLocaleLowerCase('tr-TR');
+        const text = [name, table.displayName, TABLE_GROUPS.find(group => group.id === table.group)?.label].join(' ').toLocaleLowerCase('tr-TR');
+        if (term && !text.includes(term)) continue;
         const groupId = table.group || 'game';
         if (!byGroup.has(groupId)) {
             byGroup.set(groupId, []);
@@ -172,13 +186,21 @@ function renderSidebar() {
         `);
     }
 
-    list.innerHTML = sections.join('');
+    list.innerHTML = sections.join('') || '<p class="text-muted" role="status">Eşleşen tablo yok.</p>';
 
     list.querySelectorAll('.db-table-card').forEach((card) => {
         card.addEventListener('click', (event) => {
             event.preventDefault();
             void openTable(card.dataset.tableName);
         });
+    });
+}
+
+function bindTableSearch() {
+    const input = document.querySelector('.db-sidebar [data-db-table-search]');
+    input?.addEventListener('input', () => {
+        state.tableSearch = input.value;
+        renderSidebar();
     });
 }
 
@@ -225,6 +247,7 @@ function syncTableHash() {
 }
 
 async function openTable(tableName, search = '', options = {}) {
+    state.record = options.record ?? null;
     if (!getTable(tableName)) {
         return;
     }
@@ -243,6 +266,7 @@ async function openTable(tableName, search = '', options = {}) {
 }
 
 async function openCreateForm(tableName, options = {}) {
+    if (getTable(tableName)?.readOnly) return;
     state.tableName = tableName;
     state.view = 'table';
     state.mode = 'create';
@@ -253,6 +277,7 @@ async function openCreateForm(tableName, options = {}) {
 }
 
 async function openEditForm(tableName, id, options = {}) {
+    if (getTable(tableName)?.readOnly) return;
     state.tableName = tableName;
     state.view = 'table';
     state.mode = 'edit';
@@ -361,6 +386,7 @@ async function renderContent(options = {}) {
 function getFilteredRows() {
     const table = getTable(state.tableName);
     let rows = searchRows(state.tableName, state.search);
+    if (state.record) rows = rows.filter(row => String(row[table.key]) === state.record);
     rows = applyColumnFilters(rows, table, state.columnFilters);
     return sortRows(rows, table);
 }
@@ -507,17 +533,18 @@ function renderTableView() {
                 ${description}
             </div>
             <div class="db-table-actions">
-                <button type="button" class="btn btn-success" id="btnCreate">+ Yeni</button>
+                ${table.readOnly ? '' : '<button type="button" class="btn btn-success" id="btnCreate">+ Yeni</button>'}
                 <button type="button" class="btn btn-outline-secondary" id="btnExport" data-app-tooltip="JSON indir">Dışa aktar</button>
-                <button type="button" class="btn btn-outline-secondary" id="btnImport" data-app-tooltip="JSON yükle">İçe aktar</button>
+                ${table.readOnly ? '' : `<button type="button" class="btn btn-outline-secondary" id="btnImport" data-app-tooltip="JSON yükle">İçe aktar</button>
                 <button type="button" class="btn btn-outline-secondary" id="btnReseed" data-app-tooltip="Seed dosyasından yenile">Seed’e dön</button>
-                <input type="file" id="importFile" accept="application/json,.json" hidden>
+                <input type="file" id="importFile" accept="application/json,.json" hidden>`}
             </div>
         </div>
     `;
 
     const searchBar = `
         <div class="mb-3 db-search-bar">
+            ${state.record ? `<a href="${routeHref('db')}#${escapeHtml(state.tableName)}">Tüm kayıtları göster</a>` : ''}
             ${state.tableName === 'items' ? renderShopFilterBar() : ''}
             <div class="input-group">
                 <input type="text" class="form-control" name="search" id="dbSearchInput" value="${escapeHtml(state.search)}" placeholder="Ara..." autocomplete="off">
@@ -529,7 +556,7 @@ function renderTableView() {
     const tableHtml = `
         <div class="db-table-panel">
             <div class="table-responsive">
-                <table class="table table-striped db-data-table">
+                <table class="table table-striped db-data-table${table.readOnly ? ' calc-table' : ''}">
                     <thead>
                         <tr>
                             ${columns.map((col) => renderDataHeader(col)).join('')}
@@ -945,18 +972,20 @@ function renderDataRow(table, columns, row) {
     `;
 
     return `
-        <tr class="db-data-row${editingClass}" data-id="${escapeHtml(id)}" tabindex="0">
+        <tr class="db-data-row${editingClass}"${table.readOnly ? '' : ` data-id="${escapeHtml(id)}" tabindex="0"`}>
             ${columns.map((col, index) => {
                 const value = row[col.name];
                 const cellClass = getCellClass(col, value);
                 const classAttr = cellClass ? ` class="${cellClass}"` : '';
-                return `<td${classAttr}>${index === 0 ? deleteBtn : ''}${formatCellValue(value, col, id, row)}</td>`;
+                return `<td${classAttr}>${index === 0 && !table.readOnly ? deleteBtn : ''}${formatCellValue(value, col, id, row)}</td>`;
             }).join('')}
         </tr>
     `;
 }
 
 function formatCellValue(value, column, parentId = null, row = null) {
+    if (column.format === 'potential-details') return `<a href="${routeHref('db')}?search=${encodeURIComponent(row.itemId)}&record=${encodeURIComponent(value)}#${POTENTIAL_PRICE_DETAIL_TABLE}">Detay</a>`;
+    if (column.format === 'item-name') return itemNameHtml(value ?? row?.itemId ?? '—');
     if (column.type === 'refs' && column.junction) {
         const ids = getJunctionChildIds(column, parentId);
         if (column.format === 'materials') {
@@ -1098,17 +1127,21 @@ async function handleDeleteRow(container, id) {
         return;
     }
 
+    const submittedTable = state.tableName;
     showAreaLoader(container, 'Siliniyor…');
     await yieldToMain();
 
     try {
-        deleteRow(state.tableName, id);
+        await commitStoreTransaction(() => deleteRow(submittedTable, id));
+        if (state.tableName !== submittedTable) return;
         if (state.mode === 'edit' && String(state.editId) === String(id)) {
             clearFormState();
             dismissSidebarForm();
         }
         renderSidebar();
         await renderContent({ showLoader: false });
+    } catch (error) {
+        showToast(error.message || 'Silinemedi.', { kind: 'error' });
     } finally {
         hideAreaLoader(container);
     }
@@ -1329,10 +1362,10 @@ async function handleImportFile(container, file) {
 
     try {
         if (mode === 'merge') {
-            const result = mergeImportedRows(state.tableName, rows);
+            const result = await commitStoreTransaction(() => mergeImportedRows(state.tableName, rows));
             alert(`Birleştirildi: ${result.added} yeni, ${result.updated} güncellendi (${result.total} toplam).`);
         } else {
-            replaceAllRows(state.tableName, rows);
+            await commitStoreTransaction(() => replaceAllRows(state.tableName, rows));
             alert(`Değiştirildi: ${rows.length} kayıt.`);
         }
         renderSidebar();
@@ -1345,6 +1378,7 @@ async function handleImportFile(container, file) {
 }
 
 function bindSortEvents(container) {
+    if (getTable(state.tableName)?.readOnly) bindCalcSticky(container);
     const table = container.querySelector('.db-data-table');
     if (!table) {
         return;
@@ -1749,26 +1783,26 @@ function bindFormEvents(root) {
 
     root.querySelector('[data-db-record-form]')?.addEventListener('submit', (event) => {
         event.preventDefault();
-        void handleFormSubmit(document.getElementById('dbContent'), event.target, {
-            createAnother: event.submitter?.hasAttribute('data-create-another')
-        });
+        const createAnother = event.submitter?.hasAttribute('data-create-another');
+        void runFormSubmission(event.target, () => handleFormSubmit(document.getElementById('dbContent'), event.target, { createAnother }));
     });
 }
 
 async function handleFormSubmit(container, form, { createAnother = false } = {}) {
+    const submittedTable = state.tableName, submittedMode = state.mode, submittedId = state.editId;
+    const formData = new FormData(form);
     showAreaLoader(container, 'Kaydediliyor…');
     await yieldToMain();
 
     try {
-        const formData = new FormData(form);
-
-        if (state.mode === 'edit') {
-            updateRow(state.tableName, state.editId, formData);
+        if (submittedMode === 'edit') {
+            await commitStoreTransaction(() => updateRow(submittedTable, submittedId, formData));
         } else {
-            createRow(state.tableName, formData);
+            await commitStoreTransaction(() => createRow(submittedTable, formData));
         }
 
-        if (state.tableName === FIXED_PRICE_TABLE) {
+        if (state.tableName !== submittedTable) { showToast('Kaydedildi.'); return; }
+        if (submittedTable === FIXED_PRICE_TABLE) {
             const role = formData.get('role');
             if (role === 'input' || role === 'output') {
                 saveFixedPriceRole(role);

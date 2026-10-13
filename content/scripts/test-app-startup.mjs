@@ -4,7 +4,7 @@ import vm from 'node:vm';
 
 // Check the real orchestration with delayed critical services, independently of UI details.
 const source = fs.readFileSync('content/js/core/app-runtime.js', 'utf8');
-const startup = source.slice(source.indexOf('async function startApp()'), source.lastIndexOf('await startApp();'));
+const startup = source.slice(source.indexOf('async function startApp()'), source.indexOf('try { await startApp(); }'));
 const events = [];
 let finishSync, finishStore;
 const sync = new Promise(resolve => { finishSync = resolve; });

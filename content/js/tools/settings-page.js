@@ -1,3 +1,4 @@
+import { flushDurableWrites, createDurableBackup, persistenceStatus } from '../core/durable-storage.mjs';
 import { initFloatingLabels } from '../components/forms.js';
 import {
     getSettings,
@@ -326,31 +327,24 @@ function renderPage(container, cities) {
 
                 </form>
 
-                ${settingsSection('settings-veri', 'Veri', 'Yedekleme ve origin’ler arası eşleme. Live Server (:5500) ile yerel sunucu (:3000) ayrı hafızadır.', `
+                ${settingsSection('settings-veri', 'Veri', 'Kalıcı veriler ortak sunucu veritabanında saklanır. Tarayıcı ve site adresi değişse de kayıtlar korunur.', `
                     <div class="settings-subblock">
                         <h3 class="settings-subblock-title">Yedek</h3>
-                        <p class="settings-subblock-lead">Ayarlar, günlük bonuslar, ada çıktı, tool tercihleri ve veritabanı tabloları bu tarayıcı origin’inde saklanır.</p>
+                        <p class="settings-subblock-lead">Ayarlar, günlük bonuslar, ada çıktı, araç tercihleri ve tablolar SQLite veritabanına kaydedilir. Saatlik yedekler otomatik alınır; tam veritabanı yedeği kart sıralamasını ve işlem günlüğünü de içerir.</p>
                         <div class="settings-data-actions">
-                            <button type="button" class="btn btn-outline-primary" id="settingsExportData">Dışa aktar</button>
-                            <button type="button" class="btn btn-outline-secondary" id="settingsImportData">İçe aktar</button>
+                            <button type="button" class="btn btn-outline-primary" id="settingsExportData">JSON dışa aktar</button>
+                            <button type="button" class="btn btn-outline-secondary" id="settingsImportData">JSON içe aktar</button>
                             <input type="file" id="settingsImportFile" accept="application/json,.json" hidden>
                         </div>
                         <p class="settings-data-meta" id="settingsDataMeta">${escapeHtml(localMetaText())}</p>
                     </div>
                     <div class="settings-subblock">
-                        <h3 class="settings-subblock-title">Hub eşleme</h3>
-                        <label class="form-check">
-                            <input class="form-check-input" type="checkbox" id="settingDataSync"
-                                ${settings.dataSync ? 'checked' : ''}>
-                            <span class="form-check-label">
-                                Hub ile otomatik eşle
-                                <span class="settings-fee-meta">start.bat fiyat hub’ını (:3001) açınca 5500 ve 3000 birleşir. Günlük bonuslar silinmez, tarihe göre toplanır.</span>
-                            </span>
-                        </label>
-                        <p class="settings-packet-status" id="settingsDataSyncStatus">Hub kontrol ediliyor…</p>
+                        <h3 class="settings-subblock-title">Veritabanı ve otomatik yedekler</h3>
+                        <p class="settings-packet-status" id="settingsDataSyncStatus">Veritabanı kontrol ediliyor…</p>
+                        <p class="settings-note">Yedek klasörünü farklı diske veya bulutla eşitlenen bir klasöre taşıyarak format ve disk kaybına karşı koruma sağlayabilirsin.</p>
                         <div class="settings-data-actions">
-                            <button type="button" class="btn btn-outline-secondary" id="settingsPullData">Hub’dan al</button>
-                            <button type="button" class="btn btn-outline-secondary" id="settingsPushData">Hub’a gönder</button>
+                            <button type="button" class="btn btn-outline-secondary" id="settingsPullData">Verileri yenile</button>
+                            <button type="button" class="btn btn-outline-secondary" data-database-backup>Şimdi tam yedek al</button>
                         </div>
                     </div>
                 `)}
@@ -383,7 +377,7 @@ function selectedIslandCities(container) {
         .filter(Boolean);
 }
 
-function persist(container) {
+async function persist(container) {
     const premium = Boolean(container.querySelector('#settingPremium')?.checked);
     const priceSource = container.querySelector('#settingPriceSource')?.value;
     const islandCities = selectedIslandCities(container);
@@ -423,6 +417,8 @@ function persist(container) {
         note.textContent = sourceNote(priceSource);
     }
 
+    try { await flushDurableWrites(); }
+    catch (error) { showToast(error.message || 'Kaydedilemedi.', { kind: 'error' }); return; }
     showToast('Kaydedildi.', { duration: 2000 });
     syncHubPolling(container);
 }
@@ -519,9 +515,9 @@ function bindStandardCombos(container) {
 function localMetaText() {
     const summary = localDataSummary();
     if (summary.keys === 0) {
-        return 'Bu origin’de henüz kayıtlı veri yok.';
+        return 'Veritabanında henüz kayıtlı veri yok.';
     }
-    return `Bu origin’de ${summary.keys} anahtar · ${formatDataBytes(summary.bytes)}`;
+    return `Veritabanında ${summary.keys} kayıt grubu · ${formatDataBytes(summary.bytes)}`;
 }
 
 function setDataStatus(message, kind = 'ok') {
@@ -632,8 +628,9 @@ function bindSettingsToc(container) {
 function bindDataSection(container) {
     const fileInput = container.querySelector('#settingsImportFile');
 
-    container.querySelector('#settingsExportData')?.addEventListener('click', () => {
+    container.querySelector('#settingsExportData')?.addEventListener('click', async () => {
         try {
+            await flushDurableWrites();
             downloadLocalData();
             setDataStatus('JSON indirildi.');
         } catch (error) {
@@ -651,46 +648,27 @@ function bindDataSection(container) {
         if (!file) {
             return;
         }
-        if (!window.confirm('Bu dosyadaki veri mevcut tarayıcı verisinin üzerine yazılır. Devam edilsin mi?')) {
+        if (!window.confirm('Bu dosyadaki veri sunucu kayıtlarının üzerine yazılır. Önce tam veritabanı yedeği alınacak. Devam edilsin mi?')) {
             return;
         }
         try {
             const snapshot = parseLocalDataSnapshot(await file.text());
-            applyLocalData(snapshot);
-            if (getSettings().dataSync) {
-                await syncWithHub('push').catch(() => {});
-            }
+            await applyLocalData(snapshot);
             location.reload();
         } catch (error) {
             setDataStatus(error.message || 'İçe aktarılamadı.', 'error');
         }
     });
 
-    container.querySelector('#settingDataSync')?.addEventListener('change', async (event) => {
-        const enabled = Boolean(event.target.checked);
-        saveSettings({ dataSync: enabled });
-        setLocalDataAutoPush(enabled);
-        if (enabled) {
-            try {
-                const result = await syncWithHub('auto');
-                if (result.status === 'pulled' || result.status === 'merged') {
-                    location.reload();
-                    return;
-                }
-                setDataStatus(syncResultText(result));
-            } catch {
-                setDataStatus('Hub kapalı; eşleme bekleniyor.', 'error');
-            }
-        } else {
-            setDataStatus('Otomatik eşleme kapalı.');
-        }
-        refreshDataSyncStatus(container);
+    container.querySelector('[data-database-backup]')?.addEventListener('click', async event => {
+        const button = event.currentTarget;
+        button.disabled = true;
+        try { const status = await createDurableBackup(); setDataStatus(`Tam yedek alındı: ${status.lastBackup.path}`); }
+        catch (error) { setDataStatus(error.message || 'Yedek alınamadı.', 'error'); }
+        finally { button.disabled = false; refreshDataSyncStatus(container); }
     });
 
     container.querySelector('#settingsPullData')?.addEventListener('click', async () => {
-        if (!window.confirm('Hub’daki kayıtlar buradakilerle birleştirilir. Günlük bonuslar silinmez. Devam edilsin mi?')) {
-            return;
-        }
         try {
             const result = await syncWithHub('pull');
             if (result.status === 'pulled' || result.status === 'merged') {
@@ -705,16 +683,7 @@ function bindDataSection(container) {
         }
     });
 
-    container.querySelector('#settingsPushData')?.addEventListener('click', async () => {
-        try {
-            const result = await syncWithHub('push');
-            setDataStatus(syncResultText(result));
-            refreshDataSyncStatus(container);
-        } catch {
-            setDataStatus('Hub kapalı. start.bat çalıştır.', 'error');
-            refreshDataSyncStatus(container);
-        }
-    });
+
 }
 
 function syncResultText(result) {
@@ -743,28 +712,11 @@ async function refreshDataSyncStatus(container) {
         return;
     }
 
-    if (!getSettings().dataSync) {
-        status.classList.remove('is-up', 'is-down');
-        status.textContent = 'Otomatik eşleme kapalı. JSON ile taşıyabilir veya kutuyu açabilirsin.';
-        return;
-    }
-
-    try {
-        const meta = await fetchHubDataMeta();
-        status.classList.remove('is-down');
-        status.classList.add('is-up');
-        if (meta.empty) {
-            status.textContent = 'Hub açık · henüz ortak kayıt yok. Bu origin’den “Hub’a gönder” veya bir tool kullan.';
-            return;
-        }
-        const when = meta.exportedAt ? relativeTime(meta.exportedAt) : '—';
-        const origin = meta.origin ? shortOrigin(meta.origin) : '—';
-        status.textContent = `Hub açık · son kayıt ${when} · ${meta.keyCount ?? 0} anahtar · kaynak ${origin}`;
-    } catch {
-        status.classList.remove('is-up');
-        status.classList.add('is-down');
-        status.textContent = 'Hub kapalı. start.bat çalışınca Live Server ve :3000 otomatik eşlenir.';
-    }
+    const state = persistenceStatus();
+    status.classList.toggle('is-down', Boolean(state.error || state.backupError));
+    status.classList.toggle('is-up', !state.error && !state.backupError);
+    status.textContent = state.error ? `Kayıt hatası: ${state.error}`
+        : `Veritabanı: ${state.database || '—'} · Yedek klasörü: ${state.backupDirectory || '—'} · Son yedek: ${state.lastBackup?.at ? relativeTime(state.lastBackup.at) : '—'}${state.backupError ? ` · Yedek hatası: ${state.backupError}` : ''}`;
 }
 
 function shortOrigin(origin) {

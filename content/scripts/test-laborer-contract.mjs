@@ -1,3 +1,4 @@
+import { durableStorageVmSource } from './fixtures/durable-storage-vm.mjs';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -17,7 +18,7 @@ const context = vm.createContext({ console, URL, URLSearchParams, Date, setTimeo
 const modules = new Map();
 function moduleFor(file) {
     file = path.resolve(file);
-    if (!modules.has(file)) modules.set(file, new vm.SourceTextModule(fs.readFileSync(file, 'utf8'), { context, identifier: file }));
+    if (!modules.has(file)) modules.set(file, new vm.SourceTextModule(file.endsWith('durable-storage.mjs') ? durableStorageVmSource : fs.readFileSync(file, 'utf8'), { context, identifier: file }));
     return modules.get(file);
 }
 async function load(file) {
@@ -27,8 +28,9 @@ async function load(file) {
     return module.namespace;
 }
 const store = await load('content/js/db/store.js');
+const replaceRows = (name, rows) => store.queueStoreTransaction(() => store.replaceAllRows(name, rows));
 const schema = await load('content/js/db/schema.js');
-for (const [name, table] of Object.entries(schema.tables)) if (table.seedUrl) store.replaceAllRows(name, JSON.parse(fs.readFileSync(table.seedUrl, 'utf8')));
+for (const [name, table] of Object.entries(schema.tables)) if (table.seedUrl) replaceRows(name, JSON.parse(fs.readFileSync(table.seedUrl, 'utf8')));
 const economics = await load('content/js/core/laborer/economics.js');
 const planning = await load('content/js/core/laborer/planning.js');
 const prices = await load('content/js/core/laborer/prices.js');

@@ -1,8 +1,9 @@
+import { runFormSubmission } from '../components/form-submit.js';
 import { itemNameHtml } from '../components/item-name.js';
 import { toolPageHtml } from '../core/app-runtime.js';
 import { escapeHtml } from '../utils/utils.js';
 import { initFloatingLabels } from '../components/forms.js';
-import { getAll, createRow, updateRow, deleteRow } from '../db/store.js';
+import { getAll, createRow, updateRow, deleteRow, commitStoreTransaction } from '../db/store.js';
 import { getBonusFamilies, getBonusFamilyByKey, getBonusFamilyLabel } from '../core/bonus-families.js';
 import { addDays, bonusDayIso, bonusWindowLabel } from '../core/bonus-day.js';
 import { bonusCityLabel } from '../core/bonus-cities.js';
@@ -21,7 +22,8 @@ import { quoteFromRow } from '../core/price-side.js';
 import { cityProductionBonus, citySpecialtyProductionBonus } from '../core/catalog.js';
 import { dailyBonusStationPosition, hasDailyBonusStationOrder } from './daily-bonus-station-order.js';
 import { formatIsoDate as formatDate } from '../utils/format.js';
-import { readJsonStorage, writeJsonStorage } from '../core/storage.js';
+import { readJsonStorage, writeJsonStorage, removeStorage } from '../core/storage.js';
+import { CRAFT_CARD_ORDER_ENDPOINT, LEGACY_CRAFT_CARD_ORDER_KEY, validCraftCardOrder, validCraftFamily } from '../core/craft-card-order.mjs';
 import { returnRateFromProductionBonus } from '../core/economy-math.js';
 
 const TABLE = 'dailyBonuses';
@@ -60,7 +62,29 @@ const ANALYSIS_TIERS = [4, 5, 6, 7, 8];
 const ANALYSIS_RECIPE_CACHE_KEY = 'albiontools.v4.dailyBonusRecipeCache';
 const ANALYSIS_PRICE_CACHE_KEY = 'albiontools.v4.dailyBonusPriceCache';
 const ANALYSIS_PRICE_CACHE_MS = 60 * 60 * 1000;
-const ANALYSIS_CARD_ORDER_KEY = 'albiontools.v4.dailyBonusCardOrder';
+let analysisCardOrders = {};
+let analysisCardOrderBusy = false;
+
+async function cardOrderRequest(body) {
+    const response = await fetch(`${localPriceHost()}${CRAFT_CARD_ORDER_ENDPOINT}`, {
+        ...(body ? { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) } : {}),
+        signal: AbortSignal.timeout(8000)
+    });
+    if (!response.ok) throw new Error('Kart sırası veritabanına kaydedilemedi');
+    return response.json();
+}
+
+async function loadAnalysisCardOrders() {
+    analysisCardOrders = await cardOrderRequest();
+    const legacy = readJsonStorage(LEGACY_CRAFT_CARD_ORDER_KEY);
+    for (const [family, order] of Object.entries(legacy || {})) {
+        if (!Object.hasOwn(analysisCardOrders, family) && validCraftFamily(family) && validCraftCardOrder(order)) {
+            const saved = await cardOrderRequest({ family, order, onlyIfMissing: true });
+            analysisCardOrders[family] = saved.order;
+        }
+    }
+    if (legacy) removeStorage(LEGACY_CRAFT_CARD_ORDER_KEY);
+}
 const analysisPendingLoads = new Map();
 let analysisCatalog = null;
 
@@ -115,8 +139,7 @@ function analysisReturnRate(familyKey) {
 }
 
 function readAnalysisCardOrders() {
-    const orders = readJsonStorage(ANALYSIS_CARD_ORDER_KEY);
-    return orders && typeof orders === 'object' ? orders : {};
+    return analysisCardOrders;
 }
 
 function analysisCardOrderKey(familyKey) {
@@ -135,7 +158,7 @@ function orderedAnalysisRows(rows, familyKey) {
     return rows.slice().sort((a, b) => (positions.get(analysisRecipeGroupKey(a.recipe)) ?? Number.MAX_SAFE_INTEGER) - (positions.get(analysisRecipeGroupKey(b.recipe)) ?? Number.MAX_SAFE_INTEGER));
 }
 
-function moveAnalysisCard(familyKey, recipeId, direction) {
+async function moveAnalysisCard(familyKey, recipeId, direction) {
     const target = analysisData(familyKey).rows.find((row) => row.recipe.id === recipeId);
     if (!target) return;
     const rows = orderedAnalysisRows(
@@ -146,9 +169,8 @@ function moveAnalysisCard(familyKey, recipeId, direction) {
     const to = from + direction;
     if (from < 0 || to < 0 || to >= rows.length) return;
     [rows[from], rows[to]] = [rows[to], rows[from]];
-    const orders = readAnalysisCardOrders();
-    orders[analysisCardOrderKey(familyKey)] = rows.map((row) => analysisRecipeGroupKey(row.recipe));
-    writeJsonStorage(ANALYSIS_CARD_ORDER_KEY, orders);
+    const saved = await cardOrderRequest({ family: familyKey, order: rows.map((row) => analysisRecipeGroupKey(row.recipe)) });
+    analysisCardOrders[analysisCardOrderKey(familyKey)] = saved.order;
 }
 
 function formatAnalysisPercent(ratio) {
@@ -180,7 +202,7 @@ function renderAnalysisCard(row, rank, { reorderable = false, isFirst = false, i
                 </div>
             </div>
             <div class="bonus-analysis-material"><div><span>Hammadde Maliyeti</span><strong>${material > 0 ? number(material) : '—'}</strong></div><div><span data-app-tooltip="${escapeHtml(requirements)}">Tarif Hammadde · ${number(totalMaterialQty)}</span><div class="bonus-analysis-resources" aria-label="${escapeHtml(requirements)}">${resourceIcons}</div></div></div>
-            ${reorderable ? `<div class="bonus-analysis-card-order" aria-label="Kart sırası"><button type="button" data-analysis-card-move="up"${isFirst ? ' disabled' : ''} aria-label="Yukarı taşı">↑</button><button type="button" data-analysis-card-move="down"${isLast ? ' disabled' : ''} aria-label="Aşağı taşı">↓</button></div>` : ''}
+            ${reorderable ? `<div class="bonus-analysis-card-order" aria-label="Kart sırası"><button type="button" data-analysis-card-move="up"${isFirst || analysisCardOrderBusy ? ' disabled' : ''} aria-label="Yukarı taşı">↑</button><button type="button" data-analysis-card-move="down"${isLast || analysisCardOrderBusy ? ' disabled' : ''} aria-label="Aşağı taşı">↓</button></div>` : ''}
             </div>
         </article>`;
 }
@@ -559,7 +581,7 @@ function renderBonusAnalysisDialog() {
     const rrTitle = `Malzeme iadesi: %${formatAnalysisPercent(returnRate)}\nŞehir %${cityProductionBonus()} + yerel %${specialtyBonus} + günlük %${dailyBonus} üretim bonusundan hesaplanır.`;
     const analysisNote = activeAnalysis.error
         ? escapeHtml(activeAnalysis.error)
-        : `Hammadde maliyeti, %${cityProductionBonus()} Royal şehir + %${specialtyBonus} yerel şehir + %${dailyBonus} günlük üretim bonusunun RRR'a çevrilmesiyle hesaplanır. Kartlar API tarif sırasıyla gösterilir; Kart Sırasını Düzenle ile kalıcı olarak elle değiştirilebilir ve tercih tüm tierlara uygulanır.`;
+        : `Hammadde maliyeti, %${cityProductionBonus()} Royal şehir + %${specialtyBonus} yerel şehir + %${dailyBonus} günlük üretim bonusunun RRR'a çevrilmesiyle hesaplanır. Kartlar API tarif sırasıyla gösterilir; Kart Sırasını Düzenle ile yapılan değişiklikler veritabanına kaydedilir ve tercih tüm tierlara uygulanır.`;
     const familyGrids = families.map((row) => {
         const data = analysisData(row.familyKey);
         const hidden = row.familyKey === family?.familyKey ? '' : ' hidden';
@@ -601,7 +623,7 @@ async function openBonusAnalysis(container) {
         dialog.id = 'bonusAnalysisDialog';
         dialog.className = 'app-dialog bonus-analysis-dialog';
         container.appendChild(dialog);
-        dialog.addEventListener('click', (event) => {
+        dialog.addEventListener('click', async (event) => {
             if (event.target === dialog || event.target.closest('[data-analysis-close]')) {
                 dialog.close();
                 return;
@@ -617,12 +639,21 @@ async function openBonusAnalysis(container) {
             }
             const moveButton = event.target.closest('[data-analysis-card-move]');
             if (moveButton) {
+                if (analysisCardOrderBusy) return;
                 const card = moveButton.closest('[data-analysis-recipe]');
                 const column = moveButton.closest('[data-analysis-tier]');
                 const grid = moveButton.closest('[data-analysis-family-key]');
                 if (card && column && grid) {
-                    moveAnalysisCard(grid.dataset.analysisFamilyKey, card.dataset.analysisRecipe, moveButton.dataset.analysisCardMove === 'up' ? -1 : 1);
-                    renderAnalysisDialog(dialog);
+                    analysisCardOrderBusy = true;
+                    dialog.querySelectorAll('[data-analysis-card-move]').forEach(button => { button.disabled = true; });
+                    try {
+                        await moveAnalysisCard(grid.dataset.analysisFamilyKey, card.dataset.analysisRecipe, moveButton.dataset.analysisCardMove === 'up' ? -1 : 1);
+                    } catch {
+                        showToast('Kart sırası kaydedilemedi. Hub bağlantısını kontrol edip tekrar deneyin.', { kind: 'error' });
+                    } finally {
+                        analysisCardOrderBusy = false;
+                        renderAnalysisDialog(dialog);
+                    }
                 }
                 return;
             }
@@ -637,6 +668,12 @@ async function openBonusAnalysis(container) {
         });
     }
     if (dialog.open) {
+        return;
+    }
+    try {
+        await loadAnalysisCardOrders();
+    } catch {
+        showToast('Kart sırası veritabanından alınamadı. Hub bağlantısını kontrol edip tekrar deneyin.', { kind: 'error' });
         return;
     }
     const families = todayAnalysisFamilies();
@@ -1121,7 +1158,7 @@ function bindPage(container) {
 
     container.querySelector('#bonusForm')?.addEventListener('submit', (event) => {
         event.preventDefault();
-        saveEntry(container);
+        void runFormSubmission(event.target, () => saveEntry(container));
     });
 
     container.querySelector('#bonusCancelEdit')?.addEventListener('click', () => {
@@ -1131,11 +1168,13 @@ function bindPage(container) {
         promptTodayIfMissing(container);
     });
 
-    container.querySelector('#bonusDelete')?.addEventListener('click', () => {
+    container.querySelector('#bonusDelete')?.addEventListener('click', async () => {
         if (!state.editingId) {
             return;
         }
-        deleteRow(TABLE, state.editingId);
+        const deletingId = state.editingId;
+        try { await commitStoreTransaction(() => deleteRow(TABLE, deletingId)); }
+        catch (error) { showToast(error.message || 'Silinemedi.', { kind: 'error' }); return; }
         showToast('Kayıt silindi.');
         fillForm(container, null);
         refreshLog(container);
@@ -1169,7 +1208,7 @@ function bindLogRows(container) {
     });
 }
 
-function saveEntry(container) {
+async function saveEntry(container) {
     const date = container.querySelector('#bonusDate').value;
     const slot1FamilyKey = container.querySelector('#slot1FamilyKey').value;
     const slot1Rate = container.querySelector('#slot1Rate').value;
@@ -1202,10 +1241,12 @@ function saveEntry(container) {
             showToast('Bu tarihte zaten başka bir kayıt var.', { kind: 'error' });
             return;
         }
-        updateRow(TABLE, targetId, payload);
+        try { await commitStoreTransaction(() => updateRow(TABLE, targetId, payload)); }
+        catch (error) { showToast(error.message || 'Kaydedilemedi.', { kind: 'error' }); return; }
         showToast('Kayıt güncellendi.');
     } else {
-        createRow(TABLE, payload);
+        try { await commitStoreTransaction(() => createRow(TABLE, payload)); }
+        catch (error) { showToast(error.message || 'Kaydedilemedi.', { kind: 'error' }); return; }
         showToast('Kayıt eklendi.');
     }
 

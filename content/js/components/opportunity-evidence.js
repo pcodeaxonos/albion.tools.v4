@@ -8,6 +8,7 @@ import { bindCalcSticky } from '../utils/calc-sticky.js';
 import { escapeHtml } from '../utils/utils.js';
 import { formatSilver } from '../utils/format.js';
 import { readJsonStorage, writeJsonStorage, removeStorage } from '../core/storage.js';
+import { flushDurableWrites } from '../core/durable-storage.mjs';
 
 const API_PATH = OPPORTUNITY_EVIDENCE_API, OUTBOX_KEY = 'opp-evidence-outbox-v1';
 const sideLabel = { buy: 'Alış tarafı', sell: 'Satış tarafı' };
@@ -40,12 +41,14 @@ export function createOpportunityEvidenceUI({ hub, reportHost }) {
         try {
             if (!pending) {
                 pending = { requestId: crypto.randomUUID(), command };
-                if (!writeJsonStorage(OUTBOX_KEY, pending)) { pending = null; throw Error('İstek kimliği tarayıcıya kaydedilemedi; kayıt gönderilmedi.'); }
+                if (!writeJsonStorage(OUTBOX_KEY, pending)) { pending = null; throw Error('İstek kimliği kaydedilemedi; kayıt gönderilmedi.'); }
             } else if (command) throw Error('Önce bekleyen isteği aynı kimlikle yeniden gönderin.');
+            await flushDurableWrites();
             const submittedCommand = pending.command;
             const response = await request({ method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(pending) });
             if (pending.command.type === 'start') selectedTrade = response.requestId;
-            if (!removeStorage(OUTBOX_KEY)) throw Error('Disk kaydı alındı; tarayıcı bekleyen isteği temizleyemedi. Aynı kimlikle yeniden deneyebilirsiniz.');
+            if (!removeStorage(OUTBOX_KEY)) throw Error('Kayıt alındı; bekleyen istek temizlenemedi. Aynı kimlikle yeniden deneyebilirsiniz.');
+            await flushDurableWrites();
             if (submittedCommand.type === 'event') drafts.delete('trade-' + submittedCommand.tradeId);
             if (submittedCommand.type === 'start') { const key = 'check-' + JSON.stringify(detail?.snapshot); const draft = drafts.get(key) || {}; for (const name of ['initialPrice', 'initialQuantity', 'initialTax', 'initialFee', 'initialExtra', 'initialAt']) delete draft[name]; drafts.set(key, draft); }
             pending = null; message = 'Servise kalıcı olarak kaydedildi.'; await load();

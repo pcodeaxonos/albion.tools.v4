@@ -1,3 +1,4 @@
+import { durableStorage as localStorage, flushDurableWrites, saveDurableChanges, beginDurableOperation, endDurableOperation } from '../core/durable-storage.mjs';
 import { getTable, getTableNames, tables } from './schema.js';
 import { FIXED_PRICE_TABLE, LEGACY_FIXED_PRICE_TABLE, fixedPriceKey } from '../core/fixed-prices.js';
 
@@ -53,71 +54,56 @@ const RESEED_TABLES = [
 const DAILY_BONUSES_IMPORT_KEY = STORAGE_PREFIX + 'dailyBonusesImport';
 const DAILY_BONUSES_IMPORT_REV = 1;
 
-/** Session fallback when localStorage is full or persistSeed is false */
-const memoryStore = new Map();
+// Parsed rows are cached by their source string; mutations are staged until SQLite confirms the batch.
+const parsedRows = new Map();
+let stagedRows = null;
+let mutationQueue = Promise.resolve();
 
-function storageKey(tableName) {
-    return STORAGE_PREFIX + tableName;
-}
+function storageKey(tableName) { return STORAGE_PREFIX + tableName; }
 
-function isQuotaError(error) {
-    return error?.name === 'QuotaExceededError'
-        || error?.code === 22
-        || error?.code === 1014
-        || /quota/i.test(String(error?.message || ''));
-}
-
-function persistRows(tableName, rows, { allowMemory = true } = {}) {
-    const table = tables[tableName];
+function persistRows(tableName, rows) {
     const key = storageKey(tableName);
     const json = JSON.stringify(rows);
+    if (stagedRows) stagedRows.set(key, json);
+    else localStorage.setItem(key, json);
+    return 'database';
+}
 
-    if (table?.persistSeed === false) {
-        memoryStore.set(tableName, rows);
+export function commitStoreTransaction(callback) {
+    beginDurableOperation();
+    const job = mutationQueue.then(async () => {
+        await flushDurableWrites();
+        const changes = new Map();
+        stagedRows = changes;
+        let result;
         try {
-            localStorage.removeItem(key);
-        } catch {
-            // ignore
+            result = callback();
+            if (result?.then) throw new Error('Store transaction callback must be synchronous');
+        } finally { stagedRows = null; }
+        await saveDurableChanges(changes);
+        if (typeof window !== 'undefined') {
+            for (const key of changes.keys()) window.dispatchEvent(new CustomEvent('albiontools:db-write', { detail: { tableName: key.slice(STORAGE_PREFIX.length) } }));
         }
-        return 'memory';
-    }
+        return result;
+    });
+    const tracked = job.then(result => { endDurableOperation(); return result; }, error => { endDurableOperation(error); throw error; });
+    mutationQueue = tracked.catch(() => {});
+    return tracked;
+}
 
-    try {
-        localStorage.setItem(key, json);
-        memoryStore.delete(tableName);
-        return 'disk';
-    } catch (error) {
-        if (allowMemory && isQuotaError(error)) {
-            memoryStore.set(tableName, rows);
-            try {
-                localStorage.removeItem(key);
-            } catch {
-                // ignore
-            }
-            console.warn(`[store] localStorage quota — "${tableName}" session memory'de tutuluyor`);
-            return 'memory';
-        }
-        throw error;
-    }
+// Form drafts are coalesced and retried; the shared pending indicator guards navigation until confirmed.
+export function queueStoreTransaction(callback) {
+    const changes = new Map();
+    stagedRows = changes;
+    let result;
+    try { result = callback(); } finally { stagedRows = null; }
+    for (const [key, value] of changes) localStorage.setItem(key, value);
+    return result;
 }
 
 function applySeedRevision() {
-    const current = Number(localStorage.getItem(SEED_REVISION_KEY) || '1');
-    if (current < SEED_REVISION) {
-            // Revisions 39–41 add tool routes; only refresh navigation catalogs.
-            for (const tableName of current >= 38 ? ['siteTools', 'sitePages'] : RESEED_TABLES) {
-            localStorage.removeItem(storageKey(tableName));
-            memoryStore.delete(tableName);
-        }
-        localStorage.setItem(SEED_REVISION_KEY, String(SEED_REVISION));
-    }
-
-    // Oversized catalogs must never sit in localStorage (quota ~5MB).
-    for (const tableName of ['items', 'recipeMaterials']) {
-        if (localStorage.getItem(storageKey(tableName))) {
-            localStorage.removeItem(storageKey(tableName));
-        }
-    }
+    // Never discard saved edits because a catalog revision changed.
+    if (!localStorage.getItem(SEED_REVISION_KEY)) localStorage.setItem(SEED_REVISION_KEY, String(SEED_REVISION));
 }
 
 function migrateFixedPrices() {
@@ -155,7 +141,6 @@ function applyDailyBonusesImport() {
         return;
     }
 
-    localStorage.removeItem(storageKey('dailyBonuses'));
     localStorage.setItem(DAILY_BONUSES_IMPORT_KEY, String(DAILY_BONUSES_IMPORT_REV));
 }
 
@@ -174,13 +159,10 @@ async function fetchSeedRows(table) {
 
 async function seedTableIfEmpty(tableName) {
     const table = tables[tableName];
+    if (table.readOnly) return false;
     const key = storageKey(tableName);
 
-    if (memoryStore.has(tableName)) {
-        return false;
-    }
-
-    if (table?.persistSeed !== false && localStorage.getItem(key)) {
+    if (localStorage.getItem(key)) {
         return false;
     }
 
@@ -198,6 +180,7 @@ export async function initStore() {
     }
     migrateFixedPrices();
     await migrateFarmFocus();
+    await flushDurableWrites();
 }
 
 // Additive migration: preserve every existing row and any manually set value.
@@ -221,18 +204,21 @@ export async function migrateFarmFocus() {
 }
 
 function readRows(tableName) {
-    if (memoryStore.has(tableName)) {
-        return memoryStore.get(tableName);
-    }
-    const raw = localStorage.getItem(storageKey(tableName));
-    return raw ? JSON.parse(raw) : [];
+    const source = getTable(tableName)?.rowSource;
+    if (source) return source(getTable(tableName).storage === 'browser' ? globalThis.localStorage : localStorage, readRows);
+    const key = storageKey(tableName);
+    const raw = stagedRows?.has(key) ? stagedRows.get(key) : localStorage.getItem(key);
+    const cached = parsedRows.get(tableName);
+    if (cached?.raw === raw) return cached.rows;
+    const rows = raw ? JSON.parse(raw) : [];
+    if (!stagedRows?.has(key)) parsedRows.set(tableName, { raw, rows });
+    return rows;
 }
 
 function writeRows(tableName, rows) {
+    if (getTable(tableName)?.readOnly) throw new Error('Bu tablo hesaplanan kayıtların salt okunur görünümüdür');
+    if (!stagedRows) throw new Error('Kalıcı tablo değişiklikleri commitStoreTransaction içinde yapılmalı');
     persistRows(tableName, rows);
-    if (typeof window !== 'undefined') {
-        window.dispatchEvent(new CustomEvent('albiontools:db-write', { detail: { tableName } }));
-    }
 }
 
 export function getRowCount(tableName) {
@@ -403,7 +389,7 @@ export function createRow(tableName, formData) {
     const table = getTable(tableName);
     if (!table) throw new Error('Tablo bulunamadı');
 
-    const rows = getAll(tableName);
+    const rows = getAll(tableName).slice();
     const record = {};
     const junctionColumns = [];
 
@@ -440,7 +426,7 @@ export function updateRow(tableName, id, formData) {
     const table = getTable(tableName);
     if (!table) throw new Error('Tablo bulunamadı');
 
-    const rows = getAll(tableName);
+    const rows = getAll(tableName).slice();
     const index = rows.findIndex((row) => String(row[table.key]) === String(id));
 
     if (index === -1) {
@@ -482,7 +468,8 @@ export function deleteRow(tableName, id) {
 }
 
 export function resetTable(tableName) {
-    localStorage.removeItem(storageKey(tableName));
+    if (!stagedRows) throw new Error('Reset requires a transaction');
+    stagedRows.set(storageKey(tableName), null);
 }
 
 export async function reseedTable(tableName) {
@@ -491,8 +478,8 @@ export async function reseedTable(tableName) {
         throw new Error('Tablo bulunamadı');
     }
 
-    resetTable(tableName);
-    await seedTableIfEmpty(tableName);
+    const rows = await fetchSeedRows(table);
+    await commitStoreTransaction(() => replaceAllRows(tableName, rows));
 }
 
 export function replaceAllRows(tableName, rows) {
@@ -553,11 +540,7 @@ export function tableHasLocalChanges(tableName, seedRows) {
 }
 
 export async function resetAllTables() {
-    for (const tableName of getTableNames()) {
-        if (tables[tableName].userData) {
-            continue;
-        }
-        resetTable(tableName);
-    }
-    await initStore();
+    const seeds = await Promise.all(getTableNames().filter(name => !tables[name].userData && !tables[name].readOnly)
+        .map(async name => [name, await fetchSeedRows(tables[name])]));
+    await commitStoreTransaction(() => { for (const [name, rows] of seeds) replaceAllRows(name, rows); });
 }

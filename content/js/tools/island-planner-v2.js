@@ -1,8 +1,11 @@
-import { SALE_HORIZONS, SALE_HISTORY_DAYS, saleHorizonTarget } from '../core/potential-sale-horizon.mjs';
+import { priceSourceLabel } from '../core/price-source-label.mjs';
+import { queueStoreTransaction } from '../db/store.js';
+import { SALE_HORIZONS, SALE_HISTORY_DAYS, SALE_ESTIMATE_POLICY, saleHorizonTarget } from '../core/potential-sale-horizon.mjs';
+import { routeHref } from '../core/routes.js';
 import { includePotentialOrder } from '../core/potential-order-candidate.mjs';
-import { readPotentialSnapshots, savePotentialSnapshots } from '../core/potential-price-snapshot.mjs';
+import { readPotentialSnapshots, savePotentialSnapshots, POTENTIAL_PRICE_TABLE, potentialPriceDecision } from '../core/potential-price-snapshot.mjs';
 import { fieldHeadingHtml } from '../components/form-field.js';
-import { resolveTradePotential, tradeEvidenceKey, potentialPriceAt, POTENTIAL_PRICE_MODE, POTENTIAL_PRICE_POLICY } from '../core/trade-potential-evidence.mjs';
+import { resolveTradePotential, tradeEvidenceKey, POTENTIAL_PRICE_MODE, POTENTIAL_PRICE_POLICY } from '../core/trade-potential-evidence.mjs';
 import { fetchLocalSalesHistory } from '../core/local-sales-history.js';
 import { fetchCachedTradeSnapshot } from '../core/trade-live.js';
 import { itemNameHtml } from '../components/item-name.js';
@@ -21,7 +24,7 @@ import { getItemLocalizedName, getItemUniqueName } from '../db/relations.js';
 import { itemIconHtml } from '../components/item-icon.js';
 import { cityRow, fetchPrices, fetchGamePrices, indexPrices } from '../core/market.js';
 import { quoteFromRow } from '../core/price-side.js';
-import { fetchLongTermIndex, longTermQuote, longTermMetadata, longTermSourceLabel, LONG_TERM_PRICE_MODE, LONG_TERM_PRICE_LABEL } from '../core/long-term-quotes.js';
+import { fetchLongTermIndex, longTermQuote, longTermMetadata, LONG_TERM_PRICE_MODE, LONG_TERM_PRICE_LABEL } from '../core/long-term-quotes.js';
 import { purchaseCost, saleProceeds, salesTaxRate, setupFeeRate } from '../core/market-fees.js';
 import { butcherQty, cropHours, planCycleHours, planDayHours, plantSlots } from '../core/island-economy.js';
 import { animalCycleHours } from '../core/island/economy-config.js';
@@ -51,7 +54,7 @@ import {
     productionModeUsesFocus,
     typeLabel
 } from './island-planner-v2/items.js';
-import { readPlanTable, writePlanTable } from './island-planner-v2/persistence.js';
+import { readPlanTable, writePlanTable, savePlanTable } from './island-planner-v2/persistence.js';
 
 // Shared left-to-right order for cards, detail KPIs, and ledger columns.
 const FILL_VARIETY_COUNTS = Object.freeze([1, 2, 3, 4, 5]);
@@ -112,13 +115,34 @@ function persistCommitted() {
     state.committedByCity[cityKey(state.draft.islandCity)] = clone(state.committed);
     writePlanTable(V2_COMMITTED_TABLE, state.committedByCity);
 }
+let savingPlan = false;
+async function saveCurrentPlan(button) {
+    if (savingPlan) return;
+    savingPlan = true;
+    button.disabled = true;
+    const saved = clone(state.draft);
+    const key = cityKey(saved.islandCity);
+    try {
+        persistDrafts();
+        const plans = { ...state.committedByCity, [key]: saved };
+        await savePlanTable(V2_COMMITTED_TABLE, plans);
+        state.committedByCity = plans;
+        if (cityKey(state.draft.islandCity) === key) state.committed = saved;
+        render();
+    } catch (error) {
+        showToast(error.message || 'Plan kaydedilemedi.', { kind: 'error' });
+    } finally {
+        savingPlan = false;
+        button.disabled = false;
+    }
+}
 function persistGeometry(slotId, x, y) {
     const group = geometryGroupForCity();
     const rows = getAll(V2_GEOMETRY_TABLE);
     const existing = rows.find((row) => row.geometryGroup === group && row.slot === slotId);
     const nextId = rows.reduce((max, row) => Math.max(max, Number(row.id) || 0), 0) + 1;
     const row = { id: existing?.id ?? nextId, geometryGroup: group, slot: slotId, x: clamp01(x), y: clamp01(y), updatedAt: new Date().toISOString() };
-    replaceAllRows(V2_GEOMETRY_TABLE, existing ? rows.map((entry) => entry.id === existing.id ? row : entry) : [...rows, row]);
+    queueStoreTransaction(() => replaceAllRows(V2_GEOMETRY_TABLE, existing ? rows.map((entry) => entry.id === existing.id ? row : entry) : [...rows, row]));
     state.geometryRows = getAll(V2_GEOMETRY_TABLE);
 }
 function switchIslandCity(nextCity) {
@@ -244,11 +268,13 @@ function priceLookup(itemId, city, side, intent, role = intent === 'buy' ? 'inpu
     }
     const lookup = { itemId: itemId ?? null, city: city ?? null, side, intent, row: null, quote: null, reason: null };
     if (side === POTENTIAL_PRICE_MODE) {
-        const stats = potentialPriceAt(state.potentialPriceIndex, { server: getServer().id, city, itemId, quality: 1, side: intent }, potentialPriceDays());
-        if (stats?.reliable && stats.price > 0 && stats.days === potentialPriceDays()) lookup.quote = {
+        const request = { server: getServer().id, city, itemId, quality: 1, side: intent };
+        const decision = potentialPriceDecision(state.potentialPriceIndex?.get(tradeEvidenceKey(request)), request, potentialPriceDays());
+        const stats = decision.stats;
+        if (decision.price != null) lookup.quote = {
             price: stats.price, book: stats.price, date: stats.latest, stale: false, side, intent, tick: 0, setup: true, potential: stats
         };
-        else lookup.reason = stats?.reason ?? 'Potansiyel fiyat için yeterli gerçekleşmiş işlem kanıtı yok.';
+        else lookup.reason = decision.reason;
         return lookup;
     }
     if (side === LONG_TERM_PRICE_MODE) {
@@ -334,6 +360,7 @@ function missingPriceDiagnostic({ entry, item, lookup, role, blocked }) {
         itemId: lookup.itemId,
         city: lookup.city,
         side: lookup.side,
+        intent: lookup.intent,
         role,
         blocked,
         reason: lookup.reason || 'Bilinmeyen lookup hatası.'
@@ -350,7 +377,7 @@ function formatPriceAge(date) {
 function stalePriceDiagnostic({ entry, item, itemId, city, side, quote, role, usedIn }) {
     return {
         type: 'stale-price', slotId: entry.id, item: getItemLocalizedName(itemId, itemName(item)), itemId, city, side, role,
-        priceSource: quote.reference?.source === 'current-buy-fallback' ? 'Son alış' : longTermSourceLabel(quote), sourceDetail: longTermMetadata(quote), blocked: usedIn, updatedAt: quote.date ?? null, age: formatPriceAge(quote.date),
+        intent: quote.intent, priceSource: priceSourceLabel({ side, intent: quote.intent, reference: quote.reference }), sourceDetail: longTermMetadata(quote), blocked: usedIn, updatedAt: quote.date ?? null, age: formatPriceAge(quote.date),
         reason: `Son fiyat güncellemesi: ${quote.date ? new Date(quote.date).toLocaleString('tr-TR') : 'bilinmiyor'} (${formatPriceAge(quote.date)}).`
     };
 }
@@ -365,8 +392,8 @@ function logMissingPriceDiagnostics(diagnostics) {
         console.warn('[Island Planner V2] Fiyat eksik teşhisi', diagnostics);
     }
 }
-function dependency({ type, entry, item, blocked, reason, itemId = null, city = null, side = null }) {
-    return { type, slotId: entry.id, item: itemName(item), itemId, city, side, blocked, reason };
+function dependency({ type, entry, item, blocked, reason, itemId = null, city = null, side = null, intent = null }) {
+    return { type, slotId: entry.id, item: itemName(item), itemId, city, side, intent, blocked, reason };
 }
 function dependencyTypeLabel(type) {
     return ({
@@ -391,9 +418,9 @@ function dependencyRow(value, { price = false } = {}) {
     const icon = itemId ? itemIconHtml(itemId, { size: 40, className: 'island-v2-warning-icon' }) : '';
     const date = value.updatedAt ? new Date(value.updatedAt) : null;
     const timestamp = date && Number.isFinite(date.getTime()) ? `${date.toLocaleDateString('tr-TR', { day: '2-digit', month: '2-digit', year: '2-digit' })} ${date.toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' })}${value.age ? ` (${value.age})` : ''}` : '';
-    const meta = [itemId, value.blocked, timestamp, !price && (value.slotIds?.join(', ') || value.slotId), !price && value.reason].filter(Boolean).join(' · ');
+    const meta = [itemId, value.blocked, timestamp, !price && (value.slotIds?.join(', ') || value.slotId), !price && value.reason].filter(Boolean).map(part => part === timestamp && value.age ? `${escapeHtml(part.slice(0, -(` (${value.age})`.length)))} <span class="island-v2-warning-age">(${escapeHtml(value.age)})</span>` : escapeHtml(part)).join(' · ');
     const hint = [dependencyTypeLabel(value.type), value.sourceDetail, value.blocked && `Etkilenen: ${value.blocked}`, timestamp && `Son fiyat: ${timestamp}`].filter(Boolean).join('\n');
-    return `<li class="island-v2-warning-row" data-v2-warning-type="${escapeHtml(value.type)}">${icon}<div class="island-v2-warning-content"><div class="island-v2-warning-head"><span class="island-v2-warning-name" data-app-tooltip="${escapeHtml(value.item)}">${itemNameHtml(value.item)}</span>${value.side ? `<span class="island-v2-warning-source">${escapeHtml([value.city && cityName(value.city), value.priceSource || value.side].filter(Boolean).join(' · '))}</span>` : ''}<em>${escapeHtml(dependencyTypeLabel(value.type))}</em></div><small data-app-tooltip="${escapeHtml(hint)}">${escapeHtml(meta)}</small></div></li>`;
+    return `<li class="island-v2-warning-row" data-v2-warning-type="${escapeHtml(value.type)}">${icon}<div class="island-v2-warning-content"><div class="island-v2-warning-head"><span class="island-v2-warning-name" data-app-tooltip="${escapeHtml(value.item)}">${itemNameHtml(value.item)}</span>${[["city", value.city && cityName(value.city)], ["price", value.priceSource || priceSourceLabel(value)]].filter(([, label]) => label).map(([kind, label]) => `<span class="badge island-v2-warning-source" data-v2-warning-badge="${kind}">${escapeHtml(label.toLocaleUpperCase('tr-TR'))}</span>`).join('')}<span class="badge island-v2-warning-status">${escapeHtml(dependencyTypeLabel(value.type).toLocaleUpperCase('tr-TR'))}</span></div><small data-app-tooltip="${escapeHtml(hint)}">${meta}</small></div></li>`;
 }
 function dependencyList(values) {
     const unique = uniqueDependencies(values);
@@ -401,7 +428,7 @@ function dependencyList(values) {
 }
 function uniquePriceDependencies(values) {
     return [...new Map((values ?? []).map((value) => [
-        `${value.type}|${value.itemId || ''}|${value.city || ''}|${value.side || ''}`,
+        `${value.type}|${value.itemId || ''}|${value.city || ''}|${value.side || ''}|${value.intent || ''}`,
         value
     ])).values()];
 }
@@ -420,6 +447,7 @@ function ledgerDependencies(entry, item, ledger) {
             type: missingFeedRule ? 'missing-feed-rule' : 'missing-price', entry, item, itemId,
             city: feed ? state.draft.islandCity : null,
             side: feed ? state.draft.seedSide : null,
+            intent: feed ? 'buy' : null,
             blocked: 'Kâr / Gün',
             reason: `V1 island ledger eksik dependency bildirdi: ${missing}.`
         });
@@ -438,7 +466,7 @@ function priceStateFor(requiredQuotes) {
 }
 function uniquePriceDiagnosticCount(diagnostics) {
     return new Set((diagnostics ?? []).map((value) => {
-        const identity = [value.itemId, value.city, value.side].filter(Boolean).join('|');
+        const identity = [value.itemId, value.city, value.side, value.intent].filter(Boolean).join('|');
         return identity || `${value.type}|${value.reason}`;
     })).size;
 }
@@ -764,7 +792,8 @@ async function fetchPotentialPriceIndex(entries = v2PriceEntries(), refresh = fa
         fetchLocalHistory: (ids, request) => fetchLocalSalesHistory(ids, request, days, { force: refresh }),
         fetchHistory: (ids, request) => fetchLocalSalesHistory(ids, request, days, { external: true, force: refresh }) });
     const forecastRequests = needed.filter(request => request.side === 'sell'
-        && new Set((selected.get(tradeEvidenceKey(request))?.forecastPoints ?? []).map(point => point.timestamp.slice(0,10))).size < SALE_HORIZONS.at(-1).days + 2);
+        && new Set((selected.get(tradeEvidenceKey(request))?.forecastPoints ?? []).map(point => point.timestamp.slice(0,10))).size
+            < Math.ceil(SALE_HISTORY_DAYS * SALE_ESTIMATE_POLICY.minCoverage));
     const forecastGroups = new Map();
     for (const request of forecastRequests) { const key = request.city + '|' + request.quality; if (!forecastGroups.has(key)) forecastGroups.set(key, []); forecastGroups.get(key).push(request); }
     for (const group of forecastGroups.values()) {
@@ -773,7 +802,7 @@ async function fetchPotentialPriceIndex(entries = v2PriceEntries(), refresh = fa
         try { packet = await fetchLocalSalesHistory(ids, group[0], historyDays, {packet:true,force:refresh}); } catch {}
         try { local = await fetchLocalSalesHistory(ids, group[0], historyDays, {force:refresh}); } catch {}
         const localDayCount = request => new Set([...(packet.get(request.itemId)?.points ?? []), ...(local.get(request.itemId)?.points ?? [])].map(point => point.timestamp?.slice(0,10))).size;
-        const apiIds = group.filter(request => localDayCount(request) < SALE_HORIZONS.at(-1).days + 2).map(request=>request.itemId);
+        const apiIds = group.filter(request => localDayCount(request) < Math.ceil(SALE_HISTORY_DAYS * SALE_ESTIMATE_POLICY.minCoverage)).map(request=>request.itemId);
         if (apiIds.length) api = await fetchHistoryIndex(apiIds,[group[0].city],{days:historyDays,timeScale:24,qualities:group[0].quality,force:refresh});
         for (const request of group) {
             const value = selected.get(tradeEvidenceKey(request));
@@ -814,33 +843,17 @@ async function fetchPotentialPriceIndex(entries = v2PriceEntries(), refresh = fa
         savePotentialSnapshots(localStorage, needed, period.days, targets);
         if (period.days === days) for (const [key, value] of targets) selected.set(key, value);
     }
-    for (const [key, value] of selected) if (value.reliable || !saved.has(key)) saved.set(key, value);
+    for (const [key, value] of selected) saved.set(key, value);
     return saved;
 }
 function renderSalesPotentialControls() {
     if (!hasPotentialPrice()) return '';
-    return `<div class="choice-field form-field">${fieldHeadingHtml('Öngörülen satış süresi')}<div class="segmented-choice segmented-choice--dense" role="group" aria-label="Öngörülen satış süresi">`
+    return `<div class="choice-field form-field">${fieldHeadingHtml('Öngörülen satış süresi')}<div class="segmented-choice segmented-choice--dense" role="group" aria-label="Öngörülen satış süresi" data-app-tooltip="Bu süre için ihtiyatlı gerçekleşmiş dönem fiyatı hesaplanır. Daha uzun beklemek fiyatı otomatik artırmaz; satış süresi garanti edilmez.">`
         + SALE_HORIZONS.map(({ days: day, label }) => '<button type="button" class="segmented-choice-button segmented-choice-button--compact ' + (day === potentialPriceDays() ? 'is-active' : '')
             + '" data-v2-potential-days="' + day + '" aria-pressed="' + (day === potentialPriceDays()) + '"' + (state.autoFilling ? ' disabled' : '') + '>' + label + '</button>').join('') + '</div></div>';
 }
-function renderSalesPotentialResult() {
-    if (!hasPotentialPrice()) return '';
-    const values = potentialPriceRequests().map(request => ({ request, stats: potentialPriceAt(state.potentialPriceIndex, request, potentialPriceDays()) }));
-    return '<dialog class="app-dialog" data-v2-potential-dialog aria-label="Potansiyel fiyat kanıtları"><button type="button" class="app-dialog-close" aria-label="Kapat" data-v2-potential-close></button><div class="app-dialog-sheet"><h2>Potansiyel fiyat kanıtları</h2><p>Alışta düşük, satışta yüksek gerçekleşmiş fiyat aranır. Önce şahsi gerçekleşmiş işlemler, ardından oyun Market History paketleri ve yerel arşiv, en son API geçmişi kullanılır. Kaydedilmiş fiyatlar yalnız manuel potansiyel güncellemesinde değiştirilir. Kâr/gün ortak günlük motorla hesaplanır. Geçmiş hacim yalnız fiyat kanıtıdır; satış kapasitesi, pazar payı ve stok sınırı uygulanmaz. Gelecekteki işlem garantisi değildir.</p>'
-        + values.map(({ request, stats }) => '<p>' + itemNameHtml(getItemLocalizedName(request.itemId, request.itemId)) + ': ' + (request.side === 'buy' ? 'TOHUM' : 'HASAT') + ' · ' + escapeHtml(stats?.method ?? 'bilinmiyor')
-            + ' · ' + escapeHtml(request.city) + ' · fiyat ' + (stats?.reliable ? displayValue(stats.price) : 'bilinmiyor')
-            + ' · kaynak ' + escapeHtml(stats?.reliable ? stats.source : 'güvenilir kaynak yok') + ' · satış hedefi ' + potentialPriceDays() + ' gün · geçmiş ' + SALE_HISTORY_DAYS + ' gün'
-            + (stats?.horizonEnd ? ' · hedef sonu ' + escapeHtml(stats.horizonEnd) + ' · geçmiş pencere ' + stats.historicalWindows + ' · başlangıç fiyatı ' + displayValue(stats.baseline) : '')
-            + ' · kullanılan işlem günü ' + (stats?.samples ?? 0) + ' · bağımsız işlem ' + (stats?.transactions ?? 'bilinmiyor') + ' · adet ' + displayValue(stats?.quantity)
-            + ' · ' + (stats?.source === 'Kişisel' ? 'son geçerli işlem ' : 'son geçerli veri günü ') + escapeHtml(stats?.latest ?? 'bilinmiyor') + ' · ' + escapeHtml(stats?.evidenceType ?? '')
-            + (stats?.savedAt ? ' · kaydedildi ' + escapeHtml(stats.savedAt) : '')
-            + (stats?.selectedAt ? ' · seçilen saat ' + escapeHtml(stats.selectedAt) + ' · o saatte işlem adedi ' + displayValue(stats.selectedQuantity) : '')
-            + ' · güvenilirlik ' + (stats?.reliable ? 'uygun' : 'yetersiz') + (stats?.reason ? ' · ' + escapeHtml(stats.reason) : '')
-            + (stats?.marketMeaning ? ' · ' + escapeHtml(stats.marketMeaning) : '') + '</p>').join('') + '</div></dialog>';
-}
 async function autoFillIsland({ clearSlots = false, varietyCount = null } = {}) {
     if (state.autoFilling || state.priceLoading) return;
-    if (hasPotentialPrice()) { clearSlots = false; varietyCount = null; }
     clearTimeout(state.calculationTimer);
     state.calculationTimer = null;
     const previousSlots = clearSlots ? state.draft.slots : null;
@@ -1000,11 +1013,25 @@ function renderCities(label, current, attr, disabled = false) {
         cities: state.cities.filter((city) => V2_CITIES.includes(cityKey(city.marketApiName)))
     });
 }
-function renderOptimizationPriceStatus() {
+function optimizationPriceStatus() {
     const issues = uniquePriceDependencies(state.autoFillPriceDiagnostics)
         .sort((a, b) => Number(a.type === 'stale-price') - Number(b.type === 'stale-price'));
     const pending = !state.optimizationPricesChecked || state.priceLoading || state.autoFilling;
     const problem = issues.length > 0 || Boolean(state.priceError);
+    return { issues, pending, problem };
+}
+function fillButtonClass(tone) {
+    const { pending, problem } = optimizationPriceStatus();
+    return pending || !problem ? tone : 'btn-danger';
+}
+function fillButtonTooltip(description = '') {
+    const { pending, problem } = optimizationPriceStatus();
+    return escapeHtml(!pending && problem
+        ? 'Eksik veya güncel olmayan fiyatlar doldurmayı sınırlayabilir. Ayrıntılar için fiyat uyarısını açın.'
+        : description);
+}
+function renderOptimizationPriceStatus() {
+    const { issues, pending, problem } = optimizationPriceStatus();
     const label = pending ? 'Optimizasyon fiyatları kontrol ediliyor' : problem ? 'Optimizasyonu sınırlayan fiyat sorunları' : 'Optimizasyon fiyatları güncel ve tam';
     const icon = problem ? '<path d="M9 3h11v14M4 7v14h16M3 3l18 18M13 8a3 3 0 0 1 3 3M11 16a3 3 0 0 1-3-3"/>' : pending ? '<path d="M12 3a9 9 0 1 0 9 9M12 7v5l3 2"/>' : '<path d="m4 12 5 5L20 6"/>';
     return `<button class="btn island-v2-optimization-price-status ${pending ? 'is-pending' : problem ? 'has-issues' : 'is-healthy'}" type="button" data-v2-dependency-popover="optimization-prices" data-app-tooltip="${label}" aria-label="${label}"${pending || !problem ? ' disabled' : ''}><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${icon}</svg></button>${problem ? `<div class="island-v2-dependency-popover" data-v2-dependency-list="optimization-prices" popover="auto"><header><span>Otomatik doldur</span><strong>Optimizasyon fiyat sorunları (${issues.length})</strong></header>${state.priceError ? `<p>${escapeHtml(state.priceError)}</p>` : ''}<ul>${priceDependencyList(issues)}</ul></div>` : ''}`;
@@ -1019,9 +1046,9 @@ function renderFocusBudget() {
 }
 function renderFillVariety() {
     const disabled = state.autoFilling || state.priceLoading ? ' disabled' : '';
-    return `<div class="segmented-choice segmented-choice--dense island-v2-fill-variety" role="group" aria-label="Alternatif tür sayısı">${FILL_VARIETY_COUNTS.map(count => `<button type="button" data-v2-fill-variety="${count}" class="segmented-choice-button segmented-choice-button--compact ${count === fillVarietyCount ? 'is-active' : ''}" aria-pressed="${count === fillVarietyCount}"${disabled}>${count}</button>`).join('')}<button class="btn btn-primary" type="button" data-v2-fill-alternatives${hasPotentialPrice() ? ' disabled' : ''} data-app-tooltip="Slotları boşalt ve seçilen sayıda tür arasında dengeli doldur" aria-label="Alternatiflerle doldur"${disabled}><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m4 20 12-12 4 4-12 12M14 10l4 4M5 3v6M2 6h6M18 1v6M15 4h6"/></svg></button></div>`;
+    return `<div class="segmented-choice segmented-choice--dense island-v2-fill-variety" role="group" aria-label="Alternatif tür sayısı">${FILL_VARIETY_COUNTS.map(count => `<button type="button" data-v2-fill-variety="${count}" class="segmented-choice-button segmented-choice-button--compact ${count === fillVarietyCount ? 'is-active' : ''}" aria-pressed="${count === fillVarietyCount}"${disabled}>${count}</button>`).join('')}<button class="btn ${fillButtonClass('btn-primary')}" type="button" data-v2-fill-alternatives data-app-tooltip="${fillButtonTooltip('Slotları boşalt ve seçilen sayıda tür arasında dengeli doldur')}" aria-label="Alternatiflerle doldur"${disabled}><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m4 20 12-12 4 4-12 12M14 10l4 4M5 3v6M2 6h6M18 1v6M15 4h6"/></svg></button></div>`;
 }
-function renderControls() { const d = state.draft; const plots = V2_UNLOCKED_SLOTS_BY_LEVEL?.[d.islandLevel]?.length; return `<aside class="island-v2-controls tool-form-controls tool-split-controls">${renderSegment('PREMIUM', [['1','Premium'],['0','Free']], d.premium ? '1' : '0', 'premium')}${renderSegment('FOCUS', [['1','Focus'],['0','Yok']], d.focus ? '1' : '0', 'focus')}${renderFocusBudget()}${renderCities('ADA ŞEHRİ',d.islandCity,'island-city')}${renderCities('SATIŞ ŞEHRİ',d.sellCity,'sell-city')}${renderSegment('ADA SEVİYESİ',[[2,'L2'],[3,'L3'],[4,'L4'],[5,'L5'],[6,'L6']],d.islandLevel,'level')}<p class="island-v2-price-time">${plots == null ? 'Plot slot eşlemesi: TODO' : `${plots} plot`}</p>${renderPriceSegment('Tohum', d.seedSide, d.seedFixed, 'seed')}${renderPriceSegment('Hasat', d.harvestSide, d.harvestFixed, 'harvest')}${renderSalesPotentialControls()}${hasPotentialPrice() ? '<button type="button" class="btn btn-outline-secondary" data-v2-potential-refresh>Potansiyel Fiyatları Güncelle</button><button type="button" class="btn btn-outline-secondary" data-v2-potential-open aria-haspopup="dialog">Potansiyel fiyat kanıtları</button>' : ''}${!hasPotentialPrice() ? renderSalesVolume() : ''}<div class="island-v2-actions"><button class="btn btn-success" type="button" data-v2-refill${hasPotentialPrice() || state.autoFilling || state.priceLoading ? ' disabled' : ''}>Boşalt ve Doldur</button>${renderFillVariety()}<button class="btn btn-outline-secondary" type="button" data-v2-clear-slots>Slotları Boşalt</button><div class="island-v2-auto-fill-row"><button class="btn btn-primary" type="button" data-v2-auto-fill${state.autoFilling || state.priceLoading ? ' disabled' : ''}>${state.autoFilling ? 'Hesaplanıyor…' : 'Otomatik Doldur'}</button>${renderOptimizationPriceStatus()}</div><button class="btn btn-primary" type="button" data-v2-save>Kaydet</button><button class="btn btn-outline-secondary" type="button" data-v2-revert>Kaydedilmiş Haline Dön</button><button class="btn btn-outline-secondary" type="button" data-v2-prices>Fiyatları Yenile</button><p class="island-v2-price-time">${escapeHtml(priceText())}</p></div></aside>`; }
+function renderControls() { const d = state.draft; const plots = V2_UNLOCKED_SLOTS_BY_LEVEL?.[d.islandLevel]?.length; return `<aside class="island-v2-controls tool-form-controls tool-split-controls">${renderSegment('PREMIUM', [['1','Premium'],['0','Free']], d.premium ? '1' : '0', 'premium')}${renderSegment('FOCUS', [['1','Focus'],['0','Yok']], d.focus ? '1' : '0', 'focus')}${renderFocusBudget()}${renderCities('ADA ŞEHRİ',d.islandCity,'island-city')}${renderCities('SATIŞ ŞEHRİ',d.sellCity,'sell-city')}${renderSegment('ADA SEVİYESİ',[[2,'L2'],[3,'L3'],[4,'L4'],[5,'L5'],[6,'L6']],d.islandLevel,'level')}<p class="island-v2-price-time">${plots == null ? 'Plot slot eşlemesi: TODO' : `${plots} plot`}</p>${renderPriceSegment('Tohum', d.seedSide, d.seedFixed, 'seed')}${renderPriceSegment('Hasat', d.harvestSide, d.harvestFixed, 'harvest')}${renderSalesPotentialControls()}${hasPotentialPrice() ? `<button type="button" class="btn btn-outline-secondary" data-v2-potential-refresh>Potansiyel Fiyatları Güncelle</button><a class="btn btn-outline-secondary" href="${routeHref('db')}#${POTENTIAL_PRICE_TABLE}">Potansiyel Fiyatlar</a>` : ''}${!hasPotentialPrice() ? renderSalesVolume() : ''}<div class="island-v2-actions"><button class="btn ${fillButtonClass('btn-success')}" type="button" data-v2-refill data-app-tooltip="${fillButtonTooltip()}"${state.autoFilling || state.priceLoading ? ' disabled' : ''}>Boşalt ve Doldur</button>${renderFillVariety()}<button class="btn btn-outline-secondary" type="button" data-v2-clear-slots>Slotları Boşalt</button><div class="island-v2-auto-fill-row"><button class="btn ${fillButtonClass('btn-primary')}" type="button" data-v2-auto-fill data-app-tooltip="${fillButtonTooltip()}"${state.autoFilling || state.priceLoading ? ' disabled' : ''}>${state.autoFilling ? 'Hesaplanıyor…' : 'Otomatik Doldur'}</button>${renderOptimizationPriceStatus()}</div><button class="btn btn-primary" type="button" data-v2-save>Kaydet</button><button class="btn btn-outline-secondary" type="button" data-v2-revert>Kaydedilmiş Haline Dön</button><button class="btn btn-outline-secondary" type="button" data-v2-prices>Fiyatları Yenile</button><p class="island-v2-price-time">${escapeHtml(priceText())}</p></div></aside>`; }
 function renderIsland() { const points = geometryForCity(); const d = state.draft; const overlays = points ? `<div class="island-v2-overlay-layer" data-v2-overlay-layer>${d.slots.map((entry) => { const p = points[entry.id]; if (!p) return ''; const item = itemForSlot(entry); const active = entry.id === state.selectedSlotId; const hover = entry.id === state.hoveredSlotId; const debug = OVERLAY_DEBUG && ['R1','R10','R16'].includes(entry.id) ? ' is-debug' : ''; return `<div class="island-v2-slot-anchor${debug}" data-v2-overlay-anchor="${entry.id}" data-v2-x="${p.x}" data-v2-y="${p.y}"><button type="button" draggable="true" class="island-v2-overlay ${item ? 'is-filled' : 'is-empty'} ${active ? 'is-selected' : ''} ${hover ? 'is-hovered' : ''} ${entry.locked ? 'is-protected' : ''}" data-v2-slot="${entry.id}">${item ? itemIconHtml(itemUniqueName(item), { size: 30, className: 'island-v2-overlay-icon' }) : ''}</button><span class="island-v2-overlay-number">${entry.id.slice(1).padStart(2,'0')}</span>${renderSlotLock(entry)}</div>`; }).join('')}</div>` : `<div class="island-v2-unresolved">${state.geometryLoading ? 'Ada haritası yükleniyor…' : cityKey(d.islandCity) === 'brecilien' ? 'Brecilien slot koordinatları yapılandırılmayı bekliyor.' : 'Caerleon slot koordinatları yapılandırılmayı bekliyor.'}</div>`; return `<section class="island-v2-island"><img class="island-v2-island-image" src="${islandImage(d.islandCity)}" alt="${escapeHtml(cityName(d.islandCity))} adası">${renderIslandCityBonuses()}${overlays}${renderToolbar()}${renderIslandPriceAlert()}<div class="island-v2-drop-actions"><div class="island-v2-clear-drop" data-v2-clear-drop>Boşalt</div><div class="island-v2-lock-drop" data-v2-lock-drop>Kilitle / Kilidi Aç</div></div></section>`; }
 function displayValue(value) { return Number.isFinite(value) ? new Intl.NumberFormat('tr-TR', { maximumFractionDigits: 0 }).format(value) : '—'; }
 // Color conveys direction; magnitude formatting never changes the underlying value.
@@ -1208,7 +1235,7 @@ function renderSummaryBreakdown(key) {
 function uniqueDependencies(values) {
     const groups = new Map();
     for (const value of values ?? []) {
-        const key = JSON.stringify([value.type, value.blocked, value.itemId || value.item, value.city, value.side, value.reason]);
+        const key = JSON.stringify([value.type, value.blocked, value.itemId || value.item, value.city, value.side, value.intent, value.reason]);
         if (!groups.has(key)) groups.set(key, { ...value, slotIds: [] });
         const group = groups.get(key);
         for (const id of value.slotIds ?? [value.slotId]) {
@@ -1268,7 +1295,7 @@ function renderIslandPriceAlert() {
 function renderSummary() {
     const summary = state.derived.summary ?? {};
     const dependencies = summary.dependencies ?? {};
-    return `<section class="island-v2-summary"><div class="island-v2-summary-title" data-app-tooltip="Mevcut yerleşimin günlük sonucu. Seçili şehir, Premium, Focus ve fiyat ayarları kullanılır."><strong>05</strong><span class="island-v2-summary-name">Ada Özeti</span><span>${escapeHtml(cityName(state.draft.islandCity))} · Seviye ${state.draft.islandLevel}</span></div>${metric('Net Kâr / Gün', displayMagnitude(summary.net), dependencies.net ?? [], 'net')}${metric('Gelir', displayMagnitude(summary.income), dependencies.income ?? [], 'income')}${metric('Gider', displayMagnitude(summary.expense), dependencies.expense ?? [], 'expense')}${metric('Focus / Gün', `${displayValue(summary.focus)}<small class="island-v2-focus-summary">${focusSourceSummary(state.derived.slots.values())}</small>`, dependencies.focus ?? [], 'focus')}${metric('İçeriden', displayValue(summary.internal), [], 'internal')}${metric('Marketten', displayValue(summary.market), [], 'market')}${metric('Satışa Kalan', displayValue(summary.surplus), [], 'surplus')}${metric('Yem', displayValue(summary.feed), [], 'feed')}</section>`;
+    return `<section class="island-v2-summary"><div class="island-v2-summary-title" data-app-tooltip="Mevcut yerleşimin günlük sonucu. Seçili şehir, Premium, Focus ve fiyat ayarları kullanılır."><strong>05</strong><span class="island-v2-summary-name">Ada Özeti</span><span>${escapeHtml(cityName(state.draft.islandCity))} · Seviye ${state.draft.islandLevel}</span></div>${metric('Net Kâr / Gün', displayMagnitude(summary.net), dependencies.net ?? [], 'net')}${metric('Gelir', displayMagnitude(summary.income), dependencies.income ?? [], 'income')}${metric('Gider', displayMagnitude(summary.expense), dependencies.expense ?? [], 'expense')}${metric('Focus / Gün', `${displayValue(summary.focus)}<small class="island-v2-focus-summary" data-app-tooltip="${escapeHtml(focusSourceSummary(state.derived.slots.values()))}">${[...state.derived.slots.values()].filter(value => value.effectiveFocus).length}</small>`, dependencies.focus ?? [], 'focus')}${metric('İçeriden', displayValue(summary.internal), [], 'internal')}${metric('Marketten', displayValue(summary.market), [], 'market')}${metric('Satışa Kalan', displayValue(summary.surplus), [], 'surplus')}${metric('Yem', displayValue(summary.feed), [], 'feed')}</section>`;
 }
 function syncLayoutGeometry(root) {
     const layout = root.querySelector('.island-v2-layout');
@@ -1371,7 +1398,7 @@ function renderSlotDetail(root) {
         element.classList.toggle('is-hovered', element.dataset.v2Slot === state.hoveredSlotId);
     });
 }
-function render() { const root = document.querySelector('[data-island-planner-v2]'); if (!root) return; const potentialDialogOpen = root.querySelector('[data-v2-potential-dialog]')?.open; root.innerHTML = `<div class="island-v2-page"><section class="page-head" data-page-head="island-planner-v2"><div class="page-head-content"><h1>Ada Planlayıcı V2</h1><p>Adandaki plotları düzenle; üretim, fiyat ve günlük net kârı tek planda takip et.</p></div></section><div class="island-v2-layout page-body">${renderControls()}${renderIsland()}<div class="island-v2-right tool-split-result">${renderCards()}${renderDetail()}</div>${renderSummary()}</div>${renderDragUi()}${renderSalesPotentialResult()}</div>`; syncLayoutGeometry(root); const image = root.querySelector('.island-v2-island-image'); if (image?.complete) syncOverlayGeometry(root); else image?.addEventListener('load', () => syncOverlayGeometry(root), { once: true }); bind(root); if (potentialDialogOpen) root.querySelector('[data-v2-potential-dialog]')?.showModal(); if (state.openDependencyPopover) openDependencyPopover(root, state.openDependencyPopover); }
+function render() { const root = document.querySelector('[data-island-planner-v2]'); if (!root) return; root.innerHTML = `<div class="island-v2-page"><section class="page-head" data-page-head="island-planner-v2"><div class="page-head-content"><h1>Ada Planlayıcı V2</h1><p>Adandaki plotları düzenle; üretim, fiyat ve günlük net kârı tek planda takip et.</p></div></section><div class="island-v2-layout page-body">${renderControls()}${renderIsland()}<div class="island-v2-right tool-split-result">${renderCards()}${renderDetail()}</div>${renderSummary()}</div>${renderDragUi()}</div>`; syncLayoutGeometry(root); const image = root.querySelector('.island-v2-island-image'); if (image?.complete) syncOverlayGeometry(root); else image?.addEventListener('load', () => syncOverlayGeometry(root), { once: true }); bind(root); if (state.openDependencyPopover) openDependencyPopover(root, state.openDependencyPopover); }
 function mutate(mutator, economic = true) { if (economic) { state.autoFillResult = null; state.autoFillPriceDiagnostics = []; state.optimizationPricesChecked = false; } mutator(); if (economic) scheduleEconomicUpdate(); else render(); }
 function isSlotLocked(slotId) { if (slot(slotId)?.locked) return true; const unlocked = V2_UNLOCKED_SLOTS_BY_LEVEL?.[state.draft.islandLevel]; return Array.isArray(unlocked) && !unlocked.includes(slotId); }
 const DRAG_PREVIEW_SIZE_VARS = ['--island-v2-diamond-aspect','--island-v2-diamond-width','--island-v2-diamond-height','--island-v2-inner-width','--island-v2-inner-height','--island-v2-icon-width','--island-v2-icon-height','--island-v2-badge-width','--island-v2-badge-height','--island-v2-badge-font','--island-v2-plus-size','--island-v2-selected-outline'];
@@ -1476,11 +1503,9 @@ function bind(root) {
         root.querySelectorAll('[data-v2-volume-range], [data-v2-volume-number]').forEach(input => { if (input !== event.target) input.value = value; });
     });
 
-    root.addEventListener('click', (event) => {
+    root.addEventListener('click', async (event) => {
         if (state.suppressClick) { state.suppressClick = false; event.preventDefault(); return; }
         const button = event.target.closest('button'); if (!button) return; const d = button.dataset;
-        if ('v2PotentialOpen' in d) { root.querySelector('[data-v2-potential-dialog]')?.showModal(); return; }
-        if ('v2PotentialClose' in d) { root.querySelector('[data-v2-potential-dialog]')?.close(); return; }
         if (d.v2DependencyPopover) {
             const list = root.querySelector(`[data-v2-dependency-list="${d.v2DependencyPopover}"]`);
             if (list?.matches(':popover-open')) { list.hidePopover(); state.openDependencyPopover = null; }
@@ -1511,7 +1536,7 @@ function bind(root) {
         if ('v2FillAlternatives' in d) { void autoFillIsland({ clearSlots: true, varietyCount: fillVarietyCount }); return; }
         if ('v2Refill' in d) { void autoFillIsland({ clearSlots: true }); return; }
         if ('v2AutoFill' in d) { void autoFillIsland(); return; }
-        if ('v2Save' in d) { persistDrafts(); state.committed = clone(state.draft); persistCommitted(); render(); }
+        if ('v2Save' in d) { await saveCurrentPlan(button); }
         if ('v2Revert' in d && state.committed) { state.draft = normalizeDraft(state.committed, state.draft.islandCity); persistDrafts(); scheduleEconomicUpdate(); }
         if ('v2PotentialRefresh' in d) { void loadV2Prices({ refreshPotential: true }); return; }
         if ('v2Prices' in d) { void loadV2Prices(); return; }

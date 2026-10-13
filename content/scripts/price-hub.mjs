@@ -1,3 +1,5 @@
+import { openPersistentData } from './open-persistent-data.mjs';
+import { routeUserData } from './user-data-api.mjs';
 import { MarketHistoryPackets, normalizeMarketHistoryPacket, parseMarketHistoryBody } from './market-history-packets.mjs';
 /**
  * Local market-price hub.
@@ -23,14 +25,16 @@ import { OrderPriceHistory } from '../js/core/order-price-history.mjs';
 import { startQuoteService } from './quote-service.mjs';
 import { locationNamesByIndex } from '../js/core/market-catalog.mjs';
 import { createNatsMarketAdapter } from './aodp-nats-adapter.mjs';
-import { OpportunityEvidenceRepository, routeOpportunityEvidence } from './opportunity-evidence-repository.mjs';
+import { routeOpportunityEvidence } from './opportunity-evidence-repository.mjs';
 import { OpportunityDiagnosticsRepository } from './opportunity-diagnostics-repository.mjs';
+import { CRAFT_CARD_ORDER_ENDPOINT, validCraftCardOrder, validCraftFamily } from '../js/core/craft-card-order.mjs';
+import { USER_DATA_BACKUP_INTERVAL_MS, LEGACY_DATA_KIND as LOCAL_DATA_KIND, LEGACY_DATA_VERSION as LOCAL_DATA_VERSION } from '../js/core/persistence-config.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 // The hub lives in content/scripts; persistent data and game catalogs belong
 // to the repository root.
 const ROOT = join(__dirname, '..', '..');
-const opportunityEvidence = new OpportunityEvidenceRepository(join(ROOT, '.opportunity-evidence.jsonl'));
+const { repository: userData, craftCardOrders, opportunityEvidence } = await openPersistentData(ROOT);
 const opportunityDiagnostics = new OpportunityDiagnosticsRepository(join(ROOT, '.opportunity-diagnostics.json'));
 const configuredServers = JSON.parse(readFileSync(join(ROOT, 'data', 'price-servers.json'), 'utf8')).map(row => row.code);
 const hubConfig = JSON.parse(readFileSync(join(ROOT, 'data', 'price-hub-config.json'), 'utf8'));
@@ -42,12 +46,6 @@ const orderHistory = new OrderPriceHistory({ servers: configuredServers });
 const PORT = Number(process.env.PRICE_HUB_PORT) || 3001;
 const HOST = process.env.PRICE_HUB_HOST || '127.0.0.1';
 const CACHE_PATH = join(ROOT, '.price-hub.json');
-const LOCAL_DATA_PATH = join(ROOT, '.albion-tools-data.json');
-const LOCAL_DATA_KIND = 'albion.tools.local-data';
-const LOCAL_DATA_VERSION = 1;
-const LOCAL_DATA_PREFIX = 'albiontools.v4.';
-const LOCAL_DATA_CLOCK_KEY = LOCAL_DATA_PREFIX + '_syncClock';
-const LOCAL_DATA_MAX_BYTES = 50 * 1024 * 1024;
 const LOCATIONS_PATH = join(ROOT, 'data', 'locations.json');
 const ADC_IMAGE = 'albiondata-client.exe';
 const ADC_PROCESS_TTL_MS = 4000;
@@ -83,13 +81,12 @@ let lastItems = [];
 let lastCities = [];
 let unknownLocations = [];
 let persistTimer = null;
-let localDataSnapshot = null;
 let adcProcessCache = { at: 0, running: null };
 const sseClients = new Set();
 
 loadCache();
 loadOrderHistory();
-loadLocalDataFile();
+setInterval(() => userData.createBackup().catch(error => console.error('Veritabanı yedeği:', error.message)), USER_DATA_BACKUP_INTERVAL_MS).unref();
 const quoteService = startQuoteService({ root: ROOT, server: MARKET_SERVER, packetHistory: orderHistory,
     diagnosticsRepository: opportunityDiagnostics });
 const priceServers = JSON.parse(readFileSync(join(ROOT, 'data', 'price-servers.json'), 'utf8'));
@@ -154,7 +151,7 @@ async function shutdown() {
     try { quoteService.repository?.flush(); }
     catch (error) { console.error('Shutdown aborted; pending journal preserved in memory:', error.message); shuttingDown = false; return; }
     for (const client of sseClients) client.end();
-    server.close(() => { opportunityEvidence.close(); process.exit(0); });
+    server.close(async () => { if (userData.backupPromise) await userData.backupPromise.catch(() => {}); opportunityEvidence.close(); userData.close(); process.exit(0); });
     setTimeout(() => process.exit(0), 5000).unref();
 }
 process.once?.('SIGINT', shutdown);
@@ -310,24 +307,34 @@ async function route(req, res, url, path) {
         return;
     }
 
-    if (req.method === 'GET' && path === '/api/v1/local-data') {
-        if (!localDataSnapshot) {
-            sendJson(res, 404, { error: 'Kayıt yok', empty: true });
-            return;
+    if (await routeUserData(req, res, userData, path, sendJson)) return;
+
+    if (path === CRAFT_CARD_ORDER_ENDPOINT) {
+        if (req.method === 'GET') {
+            sendJson(res, 200, craftCardOrders.all());
+        } else if (req.method === 'PUT') {
+            const body = parseJsonBody(await readBody(req, 128 * 1024));
+            if (!body || !validCraftFamily(body.family) || !validCraftCardOrder(body.order)) {
+                sendJson(res, 400, { error: 'Geçersiz kart sırası' });
+                return;
+            }
+            const order = craftCardOrders.save(body.family, body.order, { onlyIfMissing: body.onlyIfMissing === true });
+            sendJson(res, 200, { order });
+        } else {
+            sendJson(res, 405, { error: 'Desteklenmeyen yöntem' });
         }
-        sendJson(res, 200, localDataSnapshot);
         return;
     }
 
+    if (req.method === 'GET' && path === '/api/v1/local-data') {
+        const snapshot = userData.snapshot();
+        sendJson(res, 200, { kind: LOCAL_DATA_KIND, version: LOCAL_DATA_VERSION,
+            exportedAt: snapshot.updatedAt || new Date().toISOString(), origin: '',
+            data: Object.fromEntries(snapshot.entries.filter(row => row.value !== null).map(row => [row.key, row.value])) }, { compress: true });
+        return;
+    }
     if (req.method === 'PUT' && path === '/api/v1/local-data') {
-        const body = await readBody(req, LOCAL_DATA_MAX_BYTES);
-        const snapshot = parseLocalDataSnapshot(body);
-        if (!snapshot) {
-            sendJson(res, 400, { error: 'Geçersiz veri paketi' });
-            return;
-        }
-        saveLocalDataFile(mergeLocalDataSnapshots(localDataSnapshot, snapshot));
-        sendJson(res, 200, { ok: true, ...localDataMeta() });
+        sendJson(res, 410, { error: 'Kayıtlar SQLite veritabanına taşındı. Sayfayı yenileyin.' });
         return;
     }
 
@@ -928,124 +935,9 @@ function readBody(req, maxBytes = 12 * 1024 * 1024) {
     });
 }
 
-function isTrackedLocalDataKey(key) {
-    return typeof key === 'string' && key.startsWith(LOCAL_DATA_PREFIX) && key !== LOCAL_DATA_CLOCK_KEY;
-}
-
-function parseLocalDataSnapshot(raw) {
-    const parsed = parseJsonBody(raw);
-    if (!parsed || parsed.kind !== LOCAL_DATA_KIND || Number(parsed.version) !== LOCAL_DATA_VERSION) {
-        return null;
-    }
-    if (!parsed.data || typeof parsed.data !== 'object' || Array.isArray(parsed.data)) {
-        return null;
-    }
-
-    const data = {};
-    for (const [key, value] of Object.entries(parsed.data)) {
-        if (!isTrackedLocalDataKey(key) || value == null) {
-            continue;
-        }
-        data[key] = typeof value === 'string' ? value : JSON.stringify(value);
-    }
-
-    return {
-        version: LOCAL_DATA_VERSION,
-        kind: LOCAL_DATA_KIND,
-        exportedAt: parsed.exportedAt || new Date().toISOString(),
-        origin: typeof parsed.origin === 'string' ? parsed.origin : '',
-        data
-    };
-}
-
-function parseMaybeJson(value) {
-    if (typeof value !== 'string') {
-        return value;
-    }
-    try {
-        return JSON.parse(value);
-    } catch {
-        return value;
-    }
-}
-
-function mergeDailyBonusRows(left, right) {
-    const rows = [...(Array.isArray(left) ? left : []), ...(Array.isArray(right) ? right : [])];
-    const byDate = new Map();
-    for (const row of rows) {
-        if (!row || typeof row !== 'object' || !row.date) {
-            continue;
-        }
-        const date = String(row.date);
-        const previous = byDate.get(date);
-        if (!previous) {
-            byDate.set(date, row);
-            continue;
-        }
-        const score = (item) => (item.slot1FamilyKey ? 1 : 0) + (item.slot2FamilyKey ? 1 : 0);
-        byDate.set(date, score(row) >= score(previous) ? { ...previous, ...row } : { ...row, ...previous });
-    }
-    return [...byDate.values()]
-        .sort((a, b) => String(a.date).localeCompare(String(b.date)))
-        .map((row, index) => ({ ...row, id: index + 1 }));
-}
-
-function mergeLocalDataSnapshots(existing, incoming) {
-    if (!existing?.data) {
-        return incoming;
-    }
-
-    const data = { ...existing.data };
-    for (const [key, value] of Object.entries(incoming.data ?? {})) {
-        if (key.endsWith('dailyBonuses')) {
-            data[key] = JSON.stringify(mergeDailyBonusRows(parseMaybeJson(data[key]), parseMaybeJson(value)));
-            continue;
-        }
-        data[key] = value;
-    }
-
-    for (const [key, value] of Object.entries(existing.data)) {
-        if (key.endsWith('dailyBonuses') && incoming.data?.[key] == null) {
-            data[key] = value;
-        }
-    }
-
-    return {
-        ...incoming,
-        data
-    };
-}
-
 function localDataMeta() {
-    if (!localDataSnapshot) {
-        return { empty: true };
-    }
-    return {
-        empty: false,
-        exportedAt: localDataSnapshot.exportedAt ?? null,
-        origin: localDataSnapshot.origin ?? '',
-        keyCount: Object.keys(localDataSnapshot.data ?? {}).length
-    };
-}
-
-function saveLocalDataFile(snapshot) {
-    localDataSnapshot = snapshot;
-    try {
-        writeFileSync(LOCAL_DATA_PATH, JSON.stringify(snapshot));
-    } catch (error) {
-        console.warn('yerel veri yazılamadı:', error.message);
-    }
-}
-
-function loadLocalDataFile() {
-    try {
-        const parsed = parseLocalDataSnapshot(readFileSync(LOCAL_DATA_PATH, 'utf8'));
-        if (parsed) {
-            localDataSnapshot = parsed;
-        }
-    } catch {
-        localDataSnapshot = null;
-    }
+    const snapshot = userData.snapshot();
+    return { empty: snapshot.entries.length === 0, exportedAt: snapshot.updatedAt, origin: '', keyCount: snapshot.entries.filter(row => row.value !== null).length };
 }
 
 function sendJson(res, status, body, { compress = false } = {}) {

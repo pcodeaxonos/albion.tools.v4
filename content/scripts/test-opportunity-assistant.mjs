@@ -1,3 +1,4 @@
+import { durableStorageVmSource } from './fixtures/durable-storage-vm.mjs';
 import assert from 'node:assert/strict';
 import vm from 'node:vm';
 import { readFileSync } from 'node:fs';
@@ -50,7 +51,10 @@ assert.equal(updateWatch(moved,null,now+3000).last.status,'ABSENT');
 assert.equal(feedbackMetrics([{type:'correct'},{type:'changed'},{type:'executed'}]).accuracy,.5);
 const storage=new Map(), context=vm.createContext({localStorage:{getItem:k=>storage.get(k)||null,setItem:(k,v)=>storage.set(k,v)}});
 const storageModule=new vm.SourceTextModule(readFileSync(new URL('../js/core/storage.js',import.meta.url),'utf8'),{context});
-await storageModule.link(()=>{}); await storageModule.evaluate();
+const durableModule = new vm.SourceTextModule(durableStorageVmSource, { context });
+const configModule = new vm.SyntheticModule(['isPersistentKey'], function () { this.setExport('isPersistentKey', () => true); }, { context });
+await durableModule.link(() => {});
+await storageModule.link(specifier => specifier.endsWith('durable-storage.mjs') ? durableModule : configModule); await storageModule.evaluate();
 const journalModule=new vm.SourceTextModule(readFileSync(new URL('../js/core/opportunity-journal.js',import.meta.url),'utf8'),{context});
 await journalModule.link(()=>storageModule); await journalModule.evaluate();
 const {readOpportunityJournal,saveOpportunityJournal}=journalModule.namespace;

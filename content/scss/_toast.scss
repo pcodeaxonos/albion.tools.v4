@@ -4,6 +4,15 @@
 
 @use "variables" as *;
 
+.app-persistence-notice {
+    position: fixed;
+    z-index: 1190;
+    left: var(--spacing-md);
+    bottom: var(--spacing-md);
+    width: min(34rem, calc(100vw - 2 * var(--spacing-md)));
+    margin: 0;
+}
+
 .app-toast-host {
     position: fixed;
     z-index: 1200;

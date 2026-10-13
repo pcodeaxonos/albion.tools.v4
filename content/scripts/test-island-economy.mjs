@@ -1,3 +1,4 @@
+import { durableStorageVmSource } from './fixtures/durable-storage-vm.mjs';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -21,11 +22,11 @@ const modules = new Map();
 function moduleFor(file) {
     file = path.resolve(file);
     if (modules.has(file)) return modules.get(file);
-    let code = fs.readFileSync(file, 'utf8');
+    let code = file.endsWith('durable-storage.mjs') ? durableStorageVmSource : fs.readFileSync(file, 'utf8');
     if (file.endsWith(`${path.sep}app-runtime.js`)) code = '';
     if (file.endsWith(`${path.sep}toast.js`)) code = 'export function showToast(message, options = {}) { testToasts.push({ message, ...options }); }';
     if (file.endsWith(`${path.sep}forms.js`)) code = 'export function initFloatingLabels() {}';
-    if (file.endsWith(`${path.sep}island-planner-v2.js`)) code = code.replace(/(?:void )?init\(\)(?:\.catch\([\s\S]*?\n\}\))?;\s*$/, 'export { state, priceSummaryLabel, renderPriceSegment, priceLookup, fetchPlanPrices, renderDetail, renderSummary, renderControls, autoFillIsland, potentialPriceRequests, v2PriceItemIds, renderSalesPotentialResult };');
+    if (file.endsWith(`${path.sep}island-planner-v2.js`)) code = code.replace(/(?:void )?init\(\)(?:\.catch\([\s\S]*?\n\}\))?;\s*$/, 'export { state, priceSummaryLabel, renderPriceSegment, priceLookup, fetchPlanPrices, renderDetail, renderSummary, renderControls, autoFillIsland, potentialPriceRequests, v2PriceItemIds };');
     const module = new vm.SourceTextModule(code, { context, identifier: file });
     modules.set(file, module);
     return module;
@@ -38,9 +39,10 @@ async function load(file) {
 const storeModule = await load('content/js/db/store.js');
 await storeModule.evaluate();
 const store = storeModule.namespace;
+const replaceRows = (name, rows) => store.queueStoreTransaction(() => store.replaceAllRows(name, rows));
 const schema = (await load('content/js/db/schema.js')).namespace;
 for (const [name, table] of Object.entries(schema.tables)) {
-    if (table.seedUrl) store.replaceAllRows(name, JSON.parse(fs.readFileSync(table.seedUrl, 'utf8')));
+    if (table.seedUrl) replaceRows(name, JSON.parse(fs.readFileSync(table.seedUrl, 'utf8')));
 }
 const economyModule = await load('content/js/core/island-economy.js');
 await economyModule.evaluate();
@@ -55,7 +57,7 @@ const market = (await load('content/js/core/market.js')).namespace;
 const wheat = economy.listCrops().find((p) => p.key === 'wheat');
 const chicken = economy.listLivestock().find((p) => p.key === 'chicken');
 assert.ok(wheat && chicken, 'real catalog loaded');
-store.replaceAllRows('islandYieldLogs', []);
+replaceRows('islandYieldLogs', []);
 const near = (actual, expected, label) => assert.ok(Math.abs(actual - expected) < 1e-7, `${label}: ${actual} != ${expected}`);
 let checks = 0;
 function test(name, run) { if (process.env.ISLAND_TEST_FILTER && !name.includes(process.env.ISLAND_TEST_FILTER)) return; run(); checks++; console.log(`PASS ${name}`); }
@@ -88,7 +90,7 @@ test('stability considers both return and output, missing fields, zero and inval
 test('confidence uses only the matching group and excludes marked outliers', () => {
     const base = { islandCity: 'Martlock', itemKey: 'wheat', itemType: 'plant', premium: true, water: true, seedsPlanted: 10, seedsReturned: 14, plantsHarvested: 100 };
     const included = [base, { ...base, seedsPlanted: 20, plantsHarvested: 200, seedsReturned: 28 }, base];
-    store.replaceAllRows('islandYieldLogs', [...included,
+    replaceRows('islandYieldLogs', [...included,
         ...[true, 'true'].map((isOutlier) => ({ ...base, isOutlier, plantsHarvested: 10000 })),
         ...[{ islandCity: 'Lymhurst' }, { itemKey: 'carrot' }, { itemType: 'animal' }, { premium: false }, { water: false }]
             .map((other) => ({ ...base, ...other, plantsHarvested: 10000 }))
@@ -99,16 +101,16 @@ test('confidence uses only the matching group and excludes marked outliers', () 
     near(avg.avgPlantYield, 10, 'unchanged weighted output');
     near(avg.avgSeedReturn, 56 / 40, 'unchanged weighted return');
     assert.equal(JSON.stringify(avg.confidence), JSON.stringify(stats.yieldStability(included)));
-    store.replaceAllRows('islandYieldLogs', []);
+    replaceRows('islandYieldLogs', []);
 });
 
 test('period-scoped yield averages exclude records outside the supplied period', () => {
     const base = { islandCity: 'Martlock', itemKey: 'wheat', itemType: 'plant', premium: true, water: false, seedsPlanted: 10, seedsReturned: 7 };
     const current = { ...base, plantsHarvested: 90 };
-    store.replaceAllRows('islandYieldLogs', [current, { ...base, plantsHarvested: 200 }]);
+    replaceRows('islandYieldLogs', [current, { ...base, plantsHarvested: 200 }]);
     near(stats.yieldAverage('Martlock', 'wheat', { logRows: [current] }).avgPlantYield, 9, 'selected period only');
     assert.equal(stats.yieldAverage('Martlock', 'wheat', { logRows: [] }), null);
-    store.replaceAllRows('islandYieldLogs', []);
+    replaceRows('islandYieldLogs', []);
 });
 
 test('nine slots, crop premium/city, focus changes returns only', () => {
@@ -119,19 +121,19 @@ test('nine slots, crop premium/city, focus changes returns only', () => {
     near(stats.standardSeedReturn(wheat, true), 1.4, 'water return');
 });
 test('observed returns above 100% and observed yields stay intact', () => {
-    store.replaceAllRows('islandYieldLogs', [{ islandCity: 'Martlock', itemKey: 'wheat', itemType: 'plant', premium: true, water: true, seedsPlanted: 10, seedsReturned: 14, plantsHarvested: 100 }]);
+    replaceRows('islandYieldLogs', [{ islandCity: 'Martlock', itemKey: 'wheat', itemType: 'plant', premium: true, water: true, seedsPlanted: 10, seedsReturned: 14, plantsHarvested: 100 }]);
     near(stats.effectiveSeedReturn(wheat, 'Martlock', { water: true }).rate, 1.4, 'observed return');
     near(stats.effectivePlantYield(wheat, 'Martlock', { water: true }).qty, 10, 'no duplicate city bonus');
-    store.replaceAllRows('islandYieldLogs', []);
+    replaceRows('islandYieldLogs', []);
 });
 test('200% seed and offspring returns remain expected replacement quantities', () => {
-    store.replaceAllRows('islandYieldLogs', [
+    replaceRows('islandYieldLogs', [
         { islandCity: 'Martlock', itemKey: 'wheat', itemType: 'plant', premium: true, water: true, seedsPlanted: 10, seedsReturned: 20, plantsHarvested: 95 },
         { islandCity: 'Martlock', itemKey: 'chicken', itemType: 'animal', premium: true, water: true, seedsPlanted: 10, seedsReturned: 20, plantsHarvested: 10 }
     ]);
     near(stats.effectiveSeedReturn(wheat, 'Martlock', { water: true }).rate, 2, 'seed expected return');
     near(stats.effectiveAnimalReturn(chicken, 'Martlock', { focus: true }).rate, 2, 'offspring expected return');
-    store.replaceAllRows('islandYieldLogs', []);
+    replaceRows('islandYieldLogs', []);
 });
 test('mechanical hours survive while economics uses daily collection periods', () => {
     assert.equal(config.cropHours(), 22);
@@ -250,8 +252,8 @@ test('V1 optimizer plot totals equal summed contributions', () => {
 test('V1 chooses the mixed two-plot chain when it beats both alternatives, with no duplicate seed/opportunity cost', () => {
     const animals = store.getAll('animals'), plants = store.getAll('plants');
     try {
-        store.replaceAllRows('animals', animals.filter((a) => a.key === 'chicken'));
-        store.replaceAllRows('plants', plants.filter((a) => a.key === 'wheat'));
+        replaceRows('animals', animals.filter((a) => a.key === 'chicken'));
+        replaceRows('plants', plants.filter((a) => a.key === 'wheat'));
         const options = ctx({ eggPrice: 70, baby: false });
         const p = economy.optimizeIsland({ ...options, plots: 2 });
         assert.equal(p.mode, 'island-feed');
@@ -261,8 +263,8 @@ test('V1 chooses the mixed two-plot chain when it beats both alternatives, with 
         assert.ok(p.totalDay > 2 * (81 * 96 - 3600) * daily, 'beats two crop plots');
         assert.ok(p.totalDay > 2 * (178.2 * 70 * .96 - 8100) * daily, 'beats two market-fed pastures');
     } finally {
-        store.replaceAllRows('animals', animals);
-        store.replaceAllRows('plants', plants);
+        replaceRows('animals', animals);
+        replaceRows('plants', plants);
     }
 });
 test('livestock focus fallback survives null nurture metadata; product chains match catalog', () => {
@@ -493,9 +495,9 @@ await placementTest('V2 Long Term UI and normal quote provider preserve tick, fe
         dayCoverage: [{ day: '2026-10-07', status: 'partial-day', accepted: false, validBucketCount: 2,
             coverageRatio: 2 / 24, firstObservationAt: '2026-10-07T20:00:00Z',
             lastObservationAt: '2026-10-07T21:00:00Z', reasons: ['insufficient-buckets', 'insufficient-time-span'] }] } };
-    assert.equal(metadata(partialQuote, { compact: true }), 'UV: geçmiş yetersiz, son alış fiyatı');
+    assert.equal(metadata(partialQuote, { compact: true }), 'UV: geçmiş yetersiz, Buy Order fiyatı');
     assert.ok(metadata(partialQuote).includes('1 eksik gün emir ortalamasına alınmadı.'));
-    assert.ok(metadata(partialQuote).includes('Geçmiş veri yetersiz; son bilinen alış fiyatı kullanıldı.'));
+    assert.ok(metadata(partialQuote).includes('Geçmiş veri yetersiz; son bilinen en yüksek Buy Order (alış emri) fiyatı kullanıldı.'));
     assert.ok(!metadata(partialQuote).includes('insufficient-buckets'));
     v2.state.draft.focus = true;
     assert.ok(v2.optimizationEntries().some(entry => entry.focus === true), 'autofill includes focus');
@@ -555,7 +557,7 @@ await placementTest('Focus additive migration is idempotent and preserves manual
         if (i === 1) return { ...row, defaultFocusPerUse: null };
         const { defaultFocusPerUse, maxNurtureCount, ...legacy } = row; return legacy;
     });
-    store.replaceAllRows('plants', changed);
+    replaceRows('plants', changed);
     context.fetch = async url => ({ ok: true, json: async () => JSON.parse(fs.readFileSync(url, 'utf8')) });
     await store.migrateFarmFocus();
     assert.equal(store.getAll('plants')[0].defaultFocusPerUse, 321);
@@ -564,12 +566,12 @@ await placementTest('Focus additive migration is idempotent and preserves manual
     assert.equal(store.getAll('plants')[2].defaultFocusPerUse, 1000);
     const once = JSON.stringify(store.getAll('plants')); await store.migrateFarmFocus();
     assert.equal(JSON.stringify(store.getAll('plants')), once);
-    store.replaceAllRows('plants', original);
+    replaceRows('plants', original);
 });
 await placementTest('V2 optimizer accepts default focus and reacts to observed focus through shared economics', async () => {
     const settings = (await load('content/js/core/settings.js')).namespace;
     settings.saveSettings({ islandFocusBudget: 9000 });
-    store.replaceAllRows('islandYieldLogs', []);
+    replaceRows('islandYieldLogs', []);
     plan([], { focus: true });
     v2.state.draft.slots = [{ id: 'R1' }, { id: 'R2' }];
     const entry = { id: 'trial', item: 'wheat', focus: true };
@@ -577,7 +579,7 @@ await placementTest('V2 optimizer accepts default focus and reacts to observed f
     assert.ok(profile); assert.equal(profile.focusSource, 'default'); assert.equal(profile.focusPerDay, 9000);
     let result = await v2.optimizeDraftPlacement([profile]);
     assert.equal(result.result.entries.length, 1); assert.equal(result.derived.summary.focus, 9000);
-    store.replaceAllRows('islandYieldLogs', [{ id: 1, itemKey: wheat.key, itemType: 'plant', water: true, date: '2026-10-09', focusPerUse: 420 }]);
+    replaceRows('islandYieldLogs', [{ id: 1, itemKey: wheat.key, itemType: 'plant', water: true, date: '2026-10-09', focusPerUse: 420 }]);
     profile = v2.evaluatePlacementCandidates([entry]).candidates[0];
     assert.equal(profile.focusSource, 'observed'); assert.equal(profile.focusPerDay, 3780);
     result = await v2.optimizeDraftPlacement([profile]);
@@ -585,7 +587,7 @@ await placementTest('V2 optimizer accepts default focus and reacts to observed f
     v2.state.draft.slots = [entry]; v2.state.selectedSlotId = entry.id;
     v2.calculateIslandPlan({ update: true });
     assert.ok(v2.renderDetail().includes('ÖLÇÜLEN'));
-    store.replaceAllRows('islandYieldLogs', []); v2.calculateIslandPlan();
+    replaceRows('islandYieldLogs', []); v2.calculateIslandPlan();
     assert.ok(v2.renderDetail().includes('DEFAULT'));
     assert.ok(v2.renderSummary().includes('1 slot default'));
     assert.ok(v2.renderControls().includes('data-v2-focus-budget'));
@@ -764,7 +766,7 @@ await placementTest('Sales potential history transport preserves quality and raw
 });
 
 
-await placementTest('Potential P25/P75 prices use the daily engine without volume limits and preserve occupied/locked slots', async () => {
+await placementTest('Potential conservative sale prices use the daily engine without volume limits and preserve occupied/locked slots', async () => {
     plan(['chicken']); v2.state.draft.islandLevel = 6;
     v2.state.draft.seedSide = 'potential'; v2.state.draft.harvestSide = 'potential'; v2.state.draft.potentialDays = 28;
     v2.state.draft.minSalesVolume = 1000000;
@@ -774,7 +776,7 @@ await placementTest('Potential P25/P75 prices use the daily engine without volum
     const requests = v2.potentialPriceRequests();
     const now = Date.now();
     // Low historical quantities deliberately cannot be treated as production caps.
-    const trades = requests.flatMap(req => Array.from({ length: 5 }, (_, day) => Array.from({ length: 2 }, (_, n) => ({
+    const trades = requests.flatMap(req => Array.from({ length: 90 }, (_, day) => Array.from({ length: 2 }, (_, n) => ({
         sourceId: req.itemId + '-' + req.side + '-' + day + '-' + n, kind: 'instant_' + req.side,
         itemId: req.itemId, locationName: req.city, quality: 1, quantity: 1, unitPriceSilver: prices.get(req.itemId) ?? fixture.other,
         occurredAt: new Date(now - (day + 1) * 86400000).toISOString()
@@ -783,6 +785,7 @@ await placementTest('Potential P25/P75 prices use the daily engine without volum
     context.AbortSignal = { timeout: () => undefined }; context.testToasts = [];
     context.fetch = async url => {
         if (url.includes('/api/v1/trades')) { local++; return { ok: true, json: async () => ({ server: 'europe', scope: 'personal', trades }) }; }
+        if (url.includes('/stats/prices/')) return { ok: true, json: async () => priceRows() };
         external++; throw new Error('Unexpected external request');
     };
     (await load('content/js/core/trade-live.js')).namespace.emitTradeLive({ type: 'initial' });
@@ -791,7 +794,7 @@ await placementTest('Potential P25/P75 prices use the daily engine without volum
     await v2.autoFillIsland({ clearSlots: true });
     assert.equal(local, 1); assert.equal(external, 0);
     assert.equal(v2.state.draft.slots[0], occupied); assert.equal(v2.state.draft.slots[2], locked);
-    assert.ok(v2.state.draft.slots[1].item, 'historical quantity 10 never caps normal production');
+    assert.ok(v2.state.draft.slots[1].item, 'historical quantity never caps normal production');
     assert.equal(v2.state.draft.seedSide, 'potential'); assert.equal(v2.state.draft.harvestSide, 'potential');
     assert.ok(v2.state.autoFillResult.totalNet > v2.state.autoFillResult.baselineNet);
     near(v2.state.derived.summary.net, v2.state.autoFillResult.totalNet, 'optimizer uses net per day');
@@ -804,7 +807,7 @@ await placementTest('Potential P25/P75 prices use the daily engine without volum
     }
     const sameInputs = v2.calculateIslandPlan({ entries: selectedEntries, update: false, inputPrices, salePrices });
     near(expected.summary.net, sameInputs.summary.net, 'same price inputs give same existing engine result');
-    const html = v2.renderSalesPotentialResult(); assert.ok(html.includes('P25')); assert.ok(html.includes('P75')); assert.ok(html.includes('Kişisel'));
+    assert.ok(v2.renderControls().includes('#potentialPrices'));
     assert.ok(!v2.renderControls().includes('data-v2-sales-share'));
 });
 await placementTest('Potential acquisition and harvest selections are independent and unknown prices never fall back silently', async () => {
@@ -837,6 +840,30 @@ await placementTest('Daily mode without Potential performs zero trade/sales-hist
     };
     v2.renderControls(); await v2.autoFillIsland();
     assert.equal(histories, 0);
+});
+
+await placementTest('Potential decision table matches the planner quote and rejects expired evidence', async () => {
+    plan(['wheat']);
+    v2.state.draft.harvestSide = 'potential'; v2.state.draft.potentialDays = 7;
+    v2.state.draft.harvestFixed = false;
+    const request = v2.potentialPriceRequests().find(row => row.itemId === wheat.plantId && row.side === 'sell');
+    assert.ok(request);
+    const snapshots = (await load('content/js/core/potential-price-snapshot.mjs')).namespace;
+    const horizon = (await load('content/js/core/potential-sale-horizon.mjs')).namespace;
+    const evidence = (await load('content/js/core/trade-potential-evidence.mjs')).namespace;
+    const now = Date.now();
+    const index = new Map([[evidence.tradeEvidenceKey(request), { reliable:true, price:123,
+        days:7, estimator:horizon.SALE_ESTIMATOR, expires:true, latest:new Date(now).toISOString(),
+        validUntil:new Date(now+86400000).toISOString() }]]);
+    snapshots.savePotentialSnapshots(context.localStorage,[request],7,index,now);
+    v2.state.potentialPriceIndex = index;
+    const row = store.getAll(snapshots.POTENTIAL_PRICE_TABLE).find(row=>row.itemId===request.itemId && row.days===7);
+    assert.equal(row.price,123);
+    assert.equal(v2.priceLookup(request.itemId,request.city,'potential','sell','output').quote.price,row.price);
+    index.get(evidence.tradeEvidenceKey(request)).validUntil = new Date(now-1).toISOString();
+    snapshots.savePotentialSnapshots(context.localStorage,[request],7,index,now);
+    assert.equal(store.getAll(snapshots.POTENTIAL_PRICE_TABLE).find(row=>row.itemId===request.itemId && row.days===7).price,null);
+    assert.equal(v2.priceLookup(request.itemId,request.city,'potential','sell','output').quote,null);
 });
 
 console.log(`${checks} island economy checks passed.`);
