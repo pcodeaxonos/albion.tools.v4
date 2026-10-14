@@ -20,12 +20,38 @@ function priceResult(rows, request, days, source, reason = null, extra = {}) {
     const price = rawPrice == null ? null : roundHistoricalPrice(rawPrice, request.side);
     const quantity = rows.reduce((sum, row) => sum + row.quantity, 0);
     return { reliable: price != null, priceReliable: price != null, price, rawPrice, source,
+        confidence: price != null ? 'high' : 'none',
         method: request.side === 'buy' ? 'P25' : 'P75', days,
         samples: new Set(rows.map(row => Math.floor(row.at / DAY_MS))).size,
         transactions: source === 'Kişisel' ? rows.length : null,
         quantity: rows.length && Number.isSafeInteger(quantity) ? quantity : null,
         latest: rows.length ? new Date(Math.max(...rows.map(row => row.at))).toISOString() : null,
         setup: true, reason: reason ?? (price == null ? 'Geçerli miktar ağırlıklı fiyat yok' : null), ...extra };
+}
+
+// A sparse history can still describe a directionally useful price, but it is
+// not enough evidence to feed the planner.  Keep it separate from `price` so
+// users can inspect existing executed trades without mistaking it for a usable
+// P25/P75 decision.
+function sparseMarketIndicator(points, request, days, now) {
+    const end = Math.floor(now / DAY_MS) * DAY_MS, start = end - days * DAY_MS;
+    const daily = new Map();
+    for (const point of points ?? []) {
+        const at = Date.parse(normalizePriceDate(point.timestamp)), price = Number(point.avg_price), quantity = Number(point.item_count);
+        if (!(at >= start && at < end) || !(price > 0) || !Number.isSafeInteger(quantity) || quantity <= 0) continue;
+        daily.set(Math.floor(at / DAY_MS), { at, price, quantity });
+    }
+    const rows = [...daily.values()];
+    if (rows.length < Math.min(3, days) || Math.max(...rows.map(row => row.at)) < end - SALES_EVIDENCE_POLICY.maxAgeDays * DAY_MS) return null;
+    const center = median(rows.map(row => row.price));
+    const accepted = rows.filter(row => row.price >= center / SALES_EVIDENCE_POLICY.maxPriceRatio && row.price <= center * SALES_EVIDENCE_POLICY.maxPriceRatio);
+    if (accepted.length < Math.min(3, days)) return null;
+    const rawPrice = weightedPriceQuantile(accepted, request.side === 'buy' ? .25 : .75);
+    const price = rawPrice == null ? null : roundHistoricalPrice(rawPrice, request.side);
+    if (!(price > 0)) return null;
+    return { indicativePrice: price, indicativeSamples: accepted.length,
+        indicativeQuantity: accepted.reduce((sum, row) => sum + row.quantity, 0),
+        indicativeLatest: new Date(Math.max(...accepted.map(row => row.at))).toISOString() };
 }
 
 export function personalPotentialPrice(index, request, days = POTENTIAL_PRICE_POLICY.defaultDays, now = Date.now()) {
@@ -114,11 +140,15 @@ export function marketPotentialPrice(points, request, days, now, source) {
     if (!reason && (rows.length < SALES_EVIDENCE_POLICY.minActiveDays
         || Math.max(...rows.map(row => row.at)) < Math.floor(now / DAY_MS) * DAY_MS - SALES_EVIDENCE_POLICY.maxAgeDays * DAY_MS))
         reason = 'Ayıklama sonrası işlemli gün veya 2 gün tazelik koşulu yetersiz';
-    return priceResult(rows, request, days, source, reason, {
+    const result = priceResult(rows, request, days, source, reason, {
         evidenceType: 'Günlük ortalama fiyat dağılımının dilimi', transactions: null,
         marketMeaning: request.side === 'buy' ? 'Piyasa Sell işlem fiyatı; kişisel alış veya Buy emir gerçekleşmesi kanıtı değildir' : 'Piyasa Sell işlem fiyatı',
         assessedAt: new Date(now).toISOString(), validUntil: new Date((Math.floor(now / DAY_MS) + 1) * DAY_MS).toISOString(),
         coverage: stats.coverage, dispersion: stats.dispersion, rejected: stats.rejected });
+    if (result.reliable) return result;
+    const indicative = sparseMarketIndicator(points, request, days, now);
+    return indicative ? { ...result, ...indicative, confidence: 'low',
+        reason: `${result.reason ?? 'Yetersiz işlem geçmişi'}; yalnız gösterge fiyat üretildi, ada hesabında kullanılmaz.` } : result;
 }
 
 export function potentialPriceAt(index, request, days, now = Date.now()) {

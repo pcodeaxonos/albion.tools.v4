@@ -15,11 +15,12 @@ export function potentialPriceDecision(value, request, days, now = Date.now()) {
     const bounds = request.side === 'sell' ? [
         ['Dönem fiyatı', value?.periodPrice], ['Yakın dönem fiyatı', value?.recentPrice], ['Güncel Sell emri', value?.currentOrder]
     ].filter(([, price]) => Number.isFinite(price) && price > 0 && Math.floor(price) === stats.price).map(([label]) => label) : [];
+    const indicative = !usable && Number.isFinite(value?.indicativePrice) && value.indicativePrice > 0;
     return { price: usable ? stats.price : null, stats,
-        basis: bounds.length ? bounds.join(' · ') : value?.method || '—',
-        decision: usable ? 'Kullanılabilir' : 'Kullanılmaz',
+        basis: bounds.length ? bounds.join(' · ') : indicative ? 'Düşük güven göstergesi' : value?.method || '—',
+        decision: usable ? 'Kullanılabilir' : indicative ? 'İnceleme gerekli' : 'Kullanılmaz',
         reason: legacy ? 'Eski tahmin yöntemi; yeniden güncelleyin.' : expired && value.reliable ? 'Potansiyel fiyat kanıtı eskidi; fiyatları yenileyin.' : usable ? 'Geçerli potansiyel fiyat; sabit fiyat seçilmediyse ada hesabında kullanılır.'
-            : stats.reason || 'Yeterli gerçekleşmiş işlem kanıtı yok.' };
+            : indicative ? `${stats.reason || 'Yetersiz gerçekleşmiş işlem kanıtı'} Gösterge fiyat yalnız inceleme içindir; ada hesabında kullanılmaz.` : stats.reason || 'Yeterli gerçekleşmiş işlem kanıtı yok.' };
 }
 
 export function potentialDecisionRows(storage, itemName = value => value, now = Date.now()) {
@@ -32,6 +33,9 @@ export function potentialDecisionRows(storage, itemName = value => value, now = 
         const request = { server, city, itemId, quality, side };
         const value = saved[row.id];
         const decision = potentialPriceDecision(value, request, side === 'buy' ? value.days : period, now);
+        // This is the one projection used by both the compact table and its
+        // optional detail columns.  Keeping the underlying snapshot fields here
+        // avoids a second, parallel table of the same market variation.
         return [snapshotKey(request, period), { ...row, price: decision.price, decision: decision.decision, basis: decision.basis,
             reason: decision.reason, detail: row.id }];
     })).values()];
@@ -51,7 +55,8 @@ export function potentialSnapshotRows(storage, itemName = value => value, now = 
             const expired = side === 'sell' && value.reliable && !(Date.parse(value.validUntil) > now);
             return [{ id, server, city, itemId, itemName: itemName(itemId), quality,
                 side: side === 'buy' ? 'BUY' : 'SELL', days: side === 'sell' ? value.days : null,
-                price: value.price ?? null, status: legacy ? 'Eski yöntem' : !value.reliable ? 'Yetersiz veri' : expired ? 'Süresi doldu' : 'Geçerli',
+                price: value.price ?? null, indicativePrice: value.indicativePrice ?? null, confidence: value.confidence ?? null,
+                status: legacy ? 'Eski yöntem' : !value.reliable && Number.isFinite(value.indicativePrice) ? 'Düşük güven' : !value.reliable ? 'Yetersiz veri' : expired ? 'Süresi doldu' : 'Geçerli',
                 source: value.source ?? '', method: value.method ?? '', samples: value.samples ?? 0,
                 historicalWindows: value.historicalWindows ?? null, periodPrice: value.periodPrice ?? null,
                 recentPrice: value.recentPrice ?? null, currentOrder: value.currentOrder ?? null,

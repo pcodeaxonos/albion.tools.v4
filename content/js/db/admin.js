@@ -47,7 +47,6 @@ import { parseFamilyVariants, bonusMaterialItemId } from '../core/bonus-cities.j
 import { itemIconHtml } from '../components/item-icon.js';
 import { getItemUniqueName } from './relations.js';
 import { FIXED_PRICE_TABLE } from '../core/fixed-prices.js';
-import { POTENTIAL_PRICE_DETAIL_TABLE } from '../core/potential-price-snapshot.mjs';
 
 const PAGE_SIZE = 25;
 const CODE_CHAR_LIMIT = 20;
@@ -64,7 +63,8 @@ const state = {
     record: null,
     columnFilters: {},
     page: 1,
-    sort: null
+    sort: null,
+    showDetailColumns: false
 };
 
 function debounce(fn, ms) {
@@ -516,7 +516,7 @@ function applyColumnFilters(rows, table, filters) {
 function renderTableView() {
     const table = getTable(state.tableName);
     const { rows, pagination } = getPageRows(getFilteredRows());
-    const columns = getDisplayColumns(table);
+    const columns = getVisibleColumns(table);
     const source = getSourceLabel(table.source);
     const description = table.description
         ? `<p class="db-table-desc text-muted mb-0">${escapeHtml(table.description)}</p>`
@@ -534,6 +534,7 @@ function renderTableView() {
             </div>
             <div class="db-table-actions">
                 ${table.readOnly ? '' : '<button type="button" class="btn btn-success" id="btnCreate">+ Yeni</button>'}
+                ${hasDetailColumns(table) ? `<button type="button" class="btn btn-outline-secondary" id="btnToggleDetails" aria-pressed="${state.showDetailColumns}">${state.showDetailColumns ? 'Detayları gizle' : 'Detayları göster'}</button>` : ''}
                 <button type="button" class="btn btn-outline-secondary" id="btnExport" data-app-tooltip="JSON indir">Dışa aktar</button>
                 ${table.readOnly ? '' : `<button type="button" class="btn btn-outline-secondary" id="btnImport" data-app-tooltip="JSON yükle">İçe aktar</button>
                 <button type="button" class="btn btn-outline-secondary" id="btnReseed" data-app-tooltip="Seed dosyasından yenile">Seed’e dön</button>
@@ -577,6 +578,12 @@ function renderTableView() {
     `;
 
     return header + searchBar + tableHtml;
+}
+
+function hasDetailColumns(table) { return table.columns.some(column => column.detail); }
+function getVisibleColumns(table) {
+    const columns = getDisplayColumns(table);
+    return state.tableName === 'potentialPrices' && !state.showDetailColumns ? columns.filter(column => !column.detail) : columns;
 }
 
 function renderPager(pagination) {
@@ -984,7 +991,6 @@ function renderDataRow(table, columns, row) {
 }
 
 function formatCellValue(value, column, parentId = null, row = null) {
-    if (column.format === 'potential-details') return `<a href="${routeHref('db')}?search=${encodeURIComponent(row.itemId)}&record=${encodeURIComponent(value)}#${POTENTIAL_PRICE_DETAIL_TABLE}">Detay</a>`;
     if (column.format === 'item-name') return itemNameHtml(value ?? row?.itemId ?? '—');
     if (column.type === 'refs' && column.junction) {
         const ids = getJunctionChildIds(column, parentId);
@@ -1066,6 +1072,11 @@ function formatCellValue(value, column, parentId = null, row = null) {
 
     if (column.type === 'number') {
         return escapeHtml(value);
+    }
+
+    if (column.format === 'date-time') {
+        const at = Date.parse(value);
+        if (Number.isFinite(at)) return `<time datetime="${escapeHtml(String(value))}" title="${escapeHtml(String(value))}">${escapeHtml(new Intl.DateTimeFormat('tr-TR', { dateStyle: 'medium', timeStyle: 'short' }).format(at))}</time>`;
     }
 
     if (column.format === 'variants') {
@@ -1162,7 +1173,7 @@ async function refreshTableBody(container, options = {}) {
 
     try {
         const table = getTable(state.tableName);
-        const columns = getDisplayColumns(table);
+        const columns = getVisibleColumns(table);
         const { rows, pagination } = getPageRows(getFilteredRows());
         const tbody = container.querySelector('.db-data-table tbody');
 
@@ -1223,6 +1234,11 @@ function bindTableEvents(container) {
 
     container.querySelector('#btnExport')?.addEventListener('click', () => {
         downloadTableJson(state.tableName);
+    });
+
+    container.querySelector('#btnToggleDetails')?.addEventListener('click', () => {
+        state.showDetailColumns = !state.showDetailColumns;
+        void renderContent({ showLoader: false });
     });
 
     container.querySelector('#btnImport')?.addEventListener('click', () => {

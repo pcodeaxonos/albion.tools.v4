@@ -100,7 +100,9 @@ try {
     const host = `http://127.0.0.1:${server.address().port}`;
     const client = await import('../js/core/durable-storage.mjs?first');
     const stale = await import('../js/core/durable-storage.mjs?second');
-    await client.initDurableStorage(host, { [key]: '[]', 'albiontools.v4.island-planner.prefs': '{"city":"Martlock"}' });
+    const potentialKey = 'albiontools.v4.potential-price-snapshots.v2';
+    const potentialSnapshot = '{"snapshot":{"savedSnapshot":true,"price":100}}';
+    await client.initDurableStorage(host, { [key]: '[]', 'albiontools.v4.island-planner.prefs': '{"city":"Martlock"}', [potentialKey]: potentialSnapshot });
     await stale.initDurableStorage(host);
     assert.notEqual(client.readDurable(key), '[]', 'browser cannot replace existing database records');
     client.writeDurable('albiontools.v4.settings', '{"premium":false}');
@@ -115,6 +117,7 @@ try {
     const clean = await import('../js/core/durable-storage.mjs?clean-browser');
     await clean.initDurableStorage(host);
     assert.equal(clean.readDurable('albiontools.v4.settings'), '{"premium":false}', 'clean browser reads saved data with zero localStorage');
+    assert.equal(clean.readDurable(potentialKey), potentialSnapshot, 'potential snapshots migrate to and reload from SQLite');
     assert.equal(writes.length, 3, 'reads stay in memory; only changed data is sent');
     console.log('PASS migration, restart, atomic conflict protection, retries, clean browser, full SQLite backup/restore, evidence migration');
 } finally {

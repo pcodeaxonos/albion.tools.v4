@@ -17,7 +17,10 @@ const EXTRA_KEYS = new Set(['opp-layout', 'opp-filters', 'opp-evidence-outbox-v1
 export function isPersistentKey(key) {
     return typeof key === 'string' && key.length <= 200
         && (key.startsWith(DATA_PREFIX) || EXTRA_KEYS.has(key))
-        && !TRANSIENT_KEYS.has(key) && !/potential.*snapshot|snapshot.*potential/i.test(key);
+        // Potential-price snapshots are planner input, not a browser cache.  They
+        // must travel through the same SQLite-backed path as fixed prices and
+        // plans so a refresh in one page is visible to the planner everywhere.
+        && !TRANSIENT_KEYS.has(key);
 }
 
 export function tableStorageKey(table) { return DATA_PREFIX + table; }

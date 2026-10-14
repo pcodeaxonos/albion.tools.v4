@@ -54,6 +54,11 @@ assert.equal(marketPotentialPrice(market.slice(0, 19), sell, days, now, 'Yerel A
 assert.equal(marketPotentialPrice(market.map(row => ({ ...row, item_count: null })), sell, days, now, 'API').reliable, false);
 const rejectedFresh = market.map((row, n) => ({ ...row, avg_price: n < 2 ? 10000 : row.avg_price }));
 assert.equal(marketPotentialPrice(rejectedFresh, sell, days, now, 'API').reliable, false, 'discarded fresh anomalies cannot make old prices appear fresh');
+const sparseMarket = market.slice(0, 3);
+const sparse = marketPotentialPrice(sparseMarket, sell, days, now, 'Yerel AODP');
+assert.equal(sparse.reliable, false, 'sparse daily data never becomes a planner price');
+assert.equal(sparse.indicativePrice, 80, 'existing traded daily data still yields a conservative P75 indicator');
+assert.equal(sparse.confidence, 'low');
 
 let localCalls = 0, apiCalls = 0;
 const options = { days, now, priceOnly: true,
@@ -83,8 +88,14 @@ const hourlyResult = await resolveTradePotential([buy],{...options,snapshot:snap
 assert.equal(hourlyResult.get(tradeEvidenceKey(buy)).price,40);
 console.log('Hourly traded extrema, four-unit evidence, zero-volume rejection, outlier rejection and personal/API comparison passed.');
 
-const { readPotentialSnapshots, savePotentialSnapshots } = await import('../js/core/potential-price-snapshot.mjs');
+const { readPotentialSnapshots, savePotentialSnapshots, potentialSnapshotRows } = await import('../js/core/potential-price-snapshot.mjs');
 const stored = new Map(), storage = { getItem:key=>stored.get(key)??null, setItem:(key,value)=>stored.set(key,value) };
+const sparseIndex = new Map([[tradeEvidenceKey(sell), sparse]]);
+savePotentialSnapshots(storage,[sell],days,sparseIndex,now);
+const restoredSparse = potentialSnapshotRows(storage).find(row => row.itemId === sell.itemId && row.side === 'SELL');
+assert.equal(restoredSparse.price,null,'a low-confidence indicator never becomes a persisted planner price');
+assert.equal(restoredSparse.indicativePrice,80);
+assert.equal(readPotentialSnapshots(storage,[sell],days,now).size,0,'planner rejects the persisted low-confidence indicator');
 const first = new Map([[tradeEvidenceKey(buy),marketOpportunityPrice(hourly,buy,days,now)]]);
 savePotentialSnapshots(storage,[buy],days,first,now);
 const restored = readPotentialSnapshots(storage,[buy],days);

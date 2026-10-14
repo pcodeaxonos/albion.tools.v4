@@ -1,5 +1,5 @@
 /** Tablo tanımları — yeni tablo: buraya + data/*.json seed. İlişkiler id FK ile. */
-import { POTENTIAL_PRICE_TABLE, POTENTIAL_PRICE_DETAIL_TABLE, potentialSnapshotRows, potentialDecisionRows } from '../core/potential-price-snapshot.mjs';
+import { POTENTIAL_PRICE_TABLE, potentialDecisionRows } from '../core/potential-price-snapshot.mjs';
 
 export const TABLE_GROUPS = [
     { id: 'game', label: 'Oyun datası' },
@@ -33,8 +33,8 @@ const potentialVariationColumns = [
 
 export const tables = {
     [POTENTIAL_PRICE_TABLE]: {
-        displayName: 'Potansiyel Fiyatlar', group: 'user', source: 'user', key: 'id', readOnly: true, storage: 'browser',
-        description: 'Her eşya / sunucu / şehir / kalite / yön / satış süresi için tek karar. Tahmin edilen fiyat, ada planlayıcının kabul ettiği potansiyel fiyattır. Kullanılmayan kayıtların fiyatı boş gösterilir; sabit fiyat seçimi önceliklidir.',
+        displayName: 'Potansiyel Fiyatlar', group: 'user', source: 'user', key: 'id', readOnly: true,
+        description: 'Her eşya / sunucu / şehir / kalite / yön / satış süresi için SQLite içinde tek karar kaydı. Tahmin edilen fiyat, ada planlayıcının kabul ettiği potansiyel fiyattır; düşük güvenli göstergeler hesapta kullanılmaz.',
         rowSource: potentialRowSource(potentialDecisionRows),
         defaultSort: { column: 'savedAt', direction: 'desc' },
         columns: [
@@ -45,32 +45,18 @@ export const tables = {
             { name: 'status', type: 'string', label: 'Durum' },
             { name: 'reason', type: 'string', label: 'Karar nedeni' },
             { name: 'source', type: 'string', label: 'Kaynak' },
-            { name: 'savedAt', type: 'string', label: 'Karar zamanı' },
-            { name: 'detail', type: 'string', format: 'potential-details', label: 'Hesap detayı' },
-            { name: 'itemId', type: 'string', label: 'Eşya kodu' }
-        ]
-    },
-    [POTENTIAL_PRICE_DETAIL_TABLE]: {
-        displayName: 'Potansiyel Fiyatlar Detay', group: 'user', source: 'user', key: 'id', readOnly: true, storage: 'browser',
-        description: 'Potansiyel fiyat kararlarının hesap girdileri ve kayıtlı kanıtları. Süresi dolmuş fiyatlar burada incelenebilir; güncel karar için Potansiyel Fiyatlar tablosunu kullanın.',
-        rowSource: potentialRowSource(potentialSnapshotRows),
-        defaultSort: { column: 'savedAt', direction: 'desc' },
-        columns: [
-            ...potentialVariationColumns,
-            { name: 'price', type: 'number', label: 'Kayıtlı fiyat' },
-            { name: 'status', type: 'string', label: 'Durum' },
-            { name: 'source', type: 'string', label: 'Kaynak' },
-            { name: 'method', type: 'string', label: 'Yöntem' },
-            { name: 'samples', type: 'number', label: 'İşlemli gün' },
-            { name: 'historicalWindows', type: 'number', label: 'Geçmiş dönem' },
-            { name: 'periodPrice', type: 'number', label: 'Dönem fiyatı' },
-            { name: 'recentPrice', type: 'number', label: 'Yakın dönem fiyatı' },
-            { name: 'currentOrder', type: 'number', label: 'Sell emir adayı' },
-            { name: 'latest', type: 'string', label: 'Son işlem günü' },
-            { name: 'savedAt', type: 'string', label: 'Kayıt zamanı' },
-            { name: 'validUntil', type: 'string', label: 'Geçerlilik sonu' },
-            { name: 'reason', type: 'string', label: 'Eksiklik nedeni' },
-            { name: 'itemId', type: 'string', label: 'Eşya kodu' }
+            { name: 'savedAt', type: 'string', format: 'date-time', label: 'Karar zamanı' },
+            { name: 'method', type: 'string', label: 'Yöntem', detail: true },
+            { name: 'samples', type: 'number', label: 'İşlemli gün', detail: true },
+            { name: 'historicalWindows', type: 'number', label: 'Geçmiş dönem', detail: true },
+            { name: 'periodPrice', type: 'number', label: 'Dönem fiyatı', detail: true },
+            { name: 'recentPrice', type: 'number', label: 'Yakın dönem fiyatı', detail: true },
+            { name: 'currentOrder', type: 'number', label: 'Sell emir adayı', detail: true },
+            { name: 'latest', type: 'string', format: 'date-time', label: 'Son işlem günü', detail: true },
+            { name: 'validUntil', type: 'string', format: 'date-time', label: 'Geçerlilik sonu', detail: true },
+            { name: 'indicativePrice', type: 'number', label: 'Gösterge fiyat', detail: true },
+            { name: 'confidence', type: 'string', label: 'Güven', detail: true },
+            { name: 'itemId', type: 'string', label: 'Eşya kodu', detail: true }
         ]
     },
     cities: {
