@@ -488,9 +488,15 @@ export function getMaterialGroups() {
         }));
 }
 
+function siteCatalogRows(table, accepts) {
+    const stored = getAll(table);
+    const ids = new Set(stored.map(row => row.id));
+    // Newly authored routes must be available even with an older saved catalog.
+    return [...stored, ...SITE_ROUTES.filter(entry => accepts(entry) && !ids.has(entry.id)).map(runtimeRoute)];
+}
+
 export function getSiteTools() {
-    const stored = getAll('siteTools');
-    return (stored.length ? stored : SITE_ROUTES.filter(entry => entry.kind === 'tool').map(runtimeRoute))
+    return siteCatalogRows('siteTools', entry => entry.kind === 'tool')
         .filter((row) => row.navVisible !== false)
         .slice()
         .sort((a, b) => num(a.navOrder) - num(b.navOrder))
@@ -508,8 +514,7 @@ export function getSiteTools() {
 }
 
 export function getSitePages() {
-    const stored = getAll('sitePages');
-    return (stored.length ? stored : SITE_ROUTES.filter(entry => entry.kind !== 'tool').map(runtimeRoute))
+    return siteCatalogRows('sitePages', entry => entry.kind !== 'tool')
         .slice()
         .filter((row) => row.navVisible !== false)
         .sort((a, b) => num(a.navOrder) - num(b.navOrder))

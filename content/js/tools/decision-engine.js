@@ -1,3 +1,4 @@
+import { cityNameHtml } from '../components/city-name.js';
 import { durableStorage as localStorage } from '../core/durable-storage.mjs';
 import { itemNameHtml } from '../components/item-name.js';
 import { getSettings, getServer, SETTINGS_STORAGE_KEY } from '../core/settings.js';
@@ -74,7 +75,7 @@ function craftControls() {
         ${field('rr', info.rr == null ? 'Geri dönüş % (manuel)' : 'Geri dönüş % (ortak bonus motoru; değişiklik manuel)', state.rr || (info.rr == null ? '' : info.rr * 100))}
         <label class="decision-check"><input type="checkbox" data-decision-focus ${state.focus ? 'checked' : ''}> Focus kullan</label>
         ${field('focusPerBatch', 'Focus / batch (manuel)', state.focusPerBatch)}${field('focusSilver', 'Gümüş / focus fırsat maliyeti (manuel)', state.focusSilver)}
-        ${summaryRows([['İstasyon / bonus şehri', info.family ? info.family.vendor + ' · ' + info.family.cityLabel : 'Metadata eksik'], ['Günlük bonus', info.dailyKnown ? 'Kayıt mevcut' : 'Doğrulanmadı', info.dailyKnown ? 'decision-saving' : 'decision-warning'], ['Base focus / batch', money(info.metadata?.baseFocusPerBatch)]])}
+        ${summaryRows([['İstasyon / bonus şehri', info.family ? esc(info.family.vendor) + ' · ' + cityNameHtml(info.family.city) : 'Metadata eksik', '', Boolean(info.family)], ['Günlük bonus', info.dailyKnown ? 'Kayıt mevcut' : 'Doğrulanmadı', info.dailyKnown ? 'decision-saving' : 'decision-warning'], ['Base focus / batch', money(info.metadata?.baseFocusPerBatch)]])}
         ${summaryList(['RR otomatik çözülemiyorsa oyundaki gerçek oranı gir.', 'Focus: uzmanlık sonrası gerçek tüketim ve fırsat bedeli.', 'Journal / yan ürün geliri dahil değil.'], 'decision-warning')}
         ${selected.lines.map(line => `<div class="decision-material"><strong>${itemNameHtml(itemLabel(line.uniqueName))}</strong><small>${formatQuantity(line.qty)} / batch · ${line.appliesRr ? 'RR uygulanır' : 'RR yok'}</small>
             ${state.mode === 'need' ? field(`inventory:${line.uniqueName}`, 'Envanter adedi', state.inventory[line.uniqueName] ?? '', { step: '1' }) : ''}
@@ -86,7 +87,7 @@ function renderShell() {
         controls: `<h2>${icon('search')} Ürün seçimi</h2>${field('query', 'Ürün adı veya kodu ara', state.query, { type: 'search' })}<div data-decision-items class="decision-items"></div>`,
         resultClass: 'decision-result', result: `<div class="decision-strip tool-split-controls"><div data-decision-selected></div><div class="decision-modes" role="group" aria-label="Karar modu">${['need', 'have'].map(mode => `<button type="button" class="btn btn-secondary ${mode === state.mode ? 'is-active' : ''}" data-decision-mode="${mode}" aria-pressed="${mode === state.mode}">${icon(mode)}<span>${mode === 'need' ? 'İhtiyacım var' : 'Elimde var'}<small>${mode === 'need' ? 'Buy / Craft' : 'Sell / Craft Into'}</small></span></button>`).join('')}</div>
         <div class="decision-basic-fields">${field('quantity', 'Miktar', state.quantity, { min: '1', step: '1' })}${select('urgency', 'Hedef zaman', [['now', 'Şimdi'], ['today', 'Bugün'], ['later', 'Acil değil']], state.urgency)}</div>
-        <div class="decision-city-actions">${cityFieldHtml({ id: 'decision-city', label: 'Şehir', selected: state.city, style: 'crests', className: 'tool-form-field city-field--inline' })}<button type="button" class="btn btn-secondary" data-decision-refresh><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M20 7v5h-5M4 17v-5h5M5 8a7 7 0 0 1 12-3l3 3M19 16a7 7 0 0 1-12 3l-3-3"/></svg>Yenile</button></div></div>
+        <div class="decision-city-actions">${cityFieldHtml({ id: 'decision-city', label: 'Şehir', selected: state.city, className: 'tool-form-field city-field--inline' })}<button type="button" class="btn btn-secondary" data-decision-refresh><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M20 7v5h-5M4 17v-5h5M5 8a7 7 0 0 1 12-3l3 3M19 16a7 7 0 0 1-12 3l-3-3"/></svg>Yenile</button></div></div>
         <button type="button" class="decision-settings btn btn-secondary" data-decision-popup="settings">${icon('info')} Hesaplama Ayarları <small>Order · istasyon · RR · focus</small></button>
         <div data-decision-output aria-live="polite"></div>`, overlays: `<dialog class="app-dialog decision-dialog" data-decision-settings-dialog aria-label="Hesaplama ayarları"><button type="button" class="app-dialog-close" aria-label="Kapat" data-decision-close="settings"></button><div class="decision-dialog-sheet"><h2>Hesaplama Ayarları</h2><div class="decision-settings-body tool-split-controls">${field('limitPrice', state.mode === 'need' ? 'Buy Order limit fiyatı (manuel)' : 'Sell Order limit fiyatı (manuel)', state.limitPrice)}<div data-decision-craft-controls>${craftControls()}</div></div></div></dialog><dialog class="app-dialog decision-dialog" data-decision-dialog aria-label="Karar ayrıntıları"><button type="button" class="app-dialog-close" aria-label="Kapat" data-decision-close="info"></button><div class="decision-dialog-sheet" data-decision-dialog-body></div></dialog>` });
     bindCityField(root, 'decision-city', city => { state.city = city; resetCraft(); refreshCraft(); void reload(); });
@@ -110,7 +111,7 @@ function breakdownHtml(option) {
     return `<button type="button" class="decision-row-detail" aria-label="${esc(LABELS[option.id])}: hesap dökümü" data-app-tooltip="Hesap dökümünü aç" data-decision-popup="option:${esc(option.id)}">${icon('info')}</button>`;
 }
 function summaryRows(rows) {
-    return `<dl class="decision-summary-values">${rows.map(([label, value, tone = '']) => `<dt>${esc(label)}</dt><dd class="${tone}">${esc(value)}</dd>`).join('')}</dl>`;
+    return `<dl class="decision-summary-values">${rows.map(([label, value, tone = '', html = false]) => `<dt>${esc(label)}</dt><dd class="${tone}">${html ? value : esc(value)}</dd>`).join('')}</dl>`;
 }
 function summaryList(rows, tone = '') {
     return `<ul class="decision-summary-list ${tone}">${rows.filter(Boolean).map(row => `<li>${icon('info')}<span>${esc(row)}</span></li>`).join('')}</ul>`;

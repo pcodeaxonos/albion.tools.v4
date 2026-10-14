@@ -75,7 +75,7 @@ try {
             assert.equal(diagnosticsRepo.data.scans[0].scanId, first.scanId);
             assert.equal(service.opportunityScan({ requestedServer: 'europe', now: scanNow }).scanId, first.scanId,
                 'cache hit does not create a second completed scan');
-            scanNow += 30_000;
+            scanNow += 31_000;
             const second = service.opportunityScan({ requestedServer: 'europe', now: scanNow });
             assert.notEqual(second.scanId, first.scanId);
             assert.equal(second.snapshotId, first.snapshotId, 'price input identity remains stable while evaluation time advances');
@@ -90,6 +90,13 @@ try {
             assert.notEqual(changedSnapshot.scanId, second.scanId);
             assert.notEqual(changedSnapshot.snapshotId, second.snapshotId, 'advanced market evidence is reported as a different input snapshot');
             assert.equal(diagnosticsRepo.data.scans.at(-1).snapshotId, changedSnapshot.snapshotId);
+            service.invalidateOpportunities();
+            const [asyncFirst, asyncSecond] = await Promise.all([
+                service.opportunityScanAsync({ requestedServer: 'europe', now: scanNow }),
+                service.opportunityScanAsync({ requestedServer: 'europe', now: scanNow + 30_000 })
+            ]);
+            assert.equal(asyncFirst, asyncSecond, 'overlapping HTTP scans reuse one calculation across cache time slots');
+            assert.equal(diagnosticsRepo.data.scans.filter(row => row.scanId === asyncFirst.scanId).length, 1);
         } finally { await service.collector.stop(); }
     });
 

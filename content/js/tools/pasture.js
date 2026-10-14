@@ -1,3 +1,4 @@
+import { cityNameHtml } from '../components/city-name.js';
 import { itemNameHtml } from '../components/item-name.js';
 import { toolPageHtml } from '../core/app-runtime.js';
 import { escapeHtml } from '../utils/utils.js';
@@ -1078,7 +1079,7 @@ function renderOutput() {
             ${renderTable()}
             <section data-page-info>
             <p class="tool-result-note">
-                ${escapeHtml(cityLabel(state.city))} · yavru ${escapeHtml(priceSideHint(state.babySide, 'buy'))}${babySetup ? ` · setup ${formatPct(SETUP_FEE)}` : ''}.
+                ${cityNameHtml(state.city)} · yavru ${escapeHtml(priceSideHint(state.babySide, 'buy'))}${babySetup ? ` · setup ${formatPct(SETUP_FEE)}` : ''}.
                 ${escapeHtml(feedModeNote)}.
                 Satış: büyümüş ${escapeHtml(priceSideHint(state.grownSide, 'sell'))}${grownSetup ? ` · setup ${formatPct(SETUP_FEE)}` : ''},
                 et ${escapeHtml(priceSideHint(state.meatSide, 'sell'))}${meatSetup ? ` · setup ${formatPct(SETUP_FEE)}` : ''},

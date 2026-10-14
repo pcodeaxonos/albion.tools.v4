@@ -1,3 +1,4 @@
+import { cityNameHtml } from '../components/city-name.js';
 import { itemNameHtml } from '../components/item-name.js';
 import { toolPageHtml } from '../core/app-runtime.js';
 import { escapeHtml } from '../utils/utils.js';
@@ -557,7 +558,7 @@ function renderCapeExplain(key, { hovered } = {}) {
                     tax,
                     setup: sellSetup,
                     sell: row.sell,
-                    label: cityLabel(state.city),
+                    city: state.city,
                     icon: outIcon
                 })
             },
@@ -809,7 +810,7 @@ function renderOutput() {
 
             <section data-page-info>
             ${renderBonusNote()}
-            <p class="tool-result-note">${escapeHtml(cityLabel(state.city))} · malzeme ${escapeHtml(matNote)} · satış ${escapeHtml(itemNote)}.
+            <p class="tool-result-note">${cityNameHtml(state.city)} · malzeme ${escapeHtml(matNote)} · satış ${escapeHtml(itemNote)}.
                 Satış/puan net (vergi sonrası). Cape gümüş/puan = (net satış − düz cape maliyeti) / crest puanı.
                 Elle yazılan fiyat API’nin yerine geçer. Kırmızı fiyat API’de yok; mavi 6 saatten eski.${stamp ? ` · ${stamp}` : ''}</p>
             </section>

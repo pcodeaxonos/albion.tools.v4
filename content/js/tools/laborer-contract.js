@@ -1,3 +1,4 @@
+import { cityNameHtml } from '../components/city-name.js';
 import { itemNameHtml } from '../components/item-name.js';
 import { initForms } from '../components/forms.js';
 import { showToast } from '../components/toast.js';
@@ -164,7 +165,7 @@ function priceField(item, intent) {
             <input id="${fieldId}" class="form-control" type="number" min="1" step="1" data-price-item="${esc(item)}" data-price-intent="${intent}" value="${esc(String(value))}" placeholder=" " aria-label="${esc(itemLabel(item))} manuel ${intent === 'buy' ? 'alış' : 'satış'} fiyatı">
             <label for="${fieldId}">Manuel ${intent === 'buy' ? 'alış' : 'satış'} fiyatı</label>
         </div>
-        <small class="laborer-price-meta">${itemNameHtml(itemLabel(item))} · ${esc(price.city)} · ${intent === 'buy' ? price.side === 'buy' ? 'Buy Order' : 'Buy' : price.side === 'sell' ? 'Sell Order' : 'Sell'} · ${manual ? 'Manuel fiyat' : status ? 'Canlı fiyat: Yok' : 'Canlı'} · ${esc(formatDateTime(price.date, { empty: 'Tarih yok' }))}${status ? ` · ${esc(status)}` : ''}</small>
+        <small class="laborer-price-meta">${itemNameHtml(itemLabel(item))} · ${cityNameHtml(price.city)} · ${intent === 'buy' ? price.side === 'buy' ? 'Buy Order' : 'Buy' : price.side === 'sell' ? 'Sell Order' : 'Sell'} · ${manual ? 'Manuel fiyat' : status ? 'Canlı fiyat: Yok' : 'Canlı'} · ${esc(formatDateTime(price.date, { empty: 'Tarih yok' }))}${status ? ` · ${esc(status)}` : ''}</small>
         ${manual ? `<button type="button" class="btn btn-sm btn-secondary" data-price-reset="${esc(item)}" data-price-intent="${intent}">Canlı fiyata dön</button>` : ''}
     </div>`;
 }
@@ -319,7 +320,7 @@ function technicalPanel(selectedRow, mechanicErrors) {
         <section class="laborer-technical-block"><h3>Fiyat / likidite / debug</h3><p class="calc-note">Hacim, seçilen fiyattan satış garantisi değildir. Eski ve eksik fiyatlar net kâra ve öneriye girmez.</p>${metricList([
             ['Fiyat tarihi', esc(formatDateTime(selectedRow?.sale.date, { empty: 'Tarih yok' }))],
             ['Veri kaynağı', esc(getSettings().priceSource)],
-            ['Piyasa', `${esc(state.buyCity)} → ${esc(state.sellCity)}`],
+            ['Piyasa', `${cityNameHtml(state.buyCity)} → ${cityNameHtml(state.sellCity)}`],
             ['Alış / satış', `${state.buySide === 'buy' ? 'Buy Order' : 'Buy'} / ${state.sellSide === 'sell' ? 'Sell Order' : 'Sell'}`],
             ['Likidite', esc(selectedRow?.liquidity.label || 'Hesaplanamıyor')],
             ['Fiyat durumu', selectedRow ? esc(economicPriceStatus(selectedRow)) : '—']

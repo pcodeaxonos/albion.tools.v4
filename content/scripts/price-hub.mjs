@@ -247,7 +247,7 @@ async function route(req, res, url, path) {
             sendJson(res, 200, quoteService.opportunitySeries({ requestedServer, itemId, city, quality: url.searchParams.get('quality') || 1 }));
             return;
         }
-        sendJson(res, 200, quoteService.opportunityScan({ requestedServer, premium: url.searchParams.get('premium') !== '0' }), { compress: /\bgzip\b/.test(req.headers?.['accept-encoding'] || '') });
+        sendJson(res, 200, await quoteService.opportunityScanAsync({ requestedServer, premium: url.searchParams.get('premium') !== '0' }), { compress: /\bgzip\b/.test(req.headers?.['accept-encoding'] || '') });
         return;
     }
     if (req.method === 'GET' && path === '/pow') {

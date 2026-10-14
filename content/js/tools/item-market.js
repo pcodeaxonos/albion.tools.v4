@@ -1,3 +1,4 @@
+import { cityNameHtml } from '../components/city-name.js';
 import { toolPageHtml } from '../core/app-runtime.js';
 import { getAll } from '../db/store.js';
 import { getServer, getSettings } from '../core/settings.js';
@@ -6,8 +7,8 @@ import { loadActiveCities } from '../core/cities.js';
 import { itemLabel, itemIconHtml } from '../components/item-icon.js';
 import { itemNameHtml } from '../components/item-name.js';
 import { initFloatingLabels } from '../components/forms.js';
-import { fieldHeadingHtml } from '../components/form-field.js';
-import { cityColorHex } from '../components/city-picker.js';
+import { fieldHeadingHtml, filterChoiceFieldHtml } from '../components/form-field.js';
+import { cityColorHex, cityFilterFieldHtml, bindCityField, getCityFieldSelection, setCityFieldSelection } from '../components/city-picker.js';
 import { priceVolumeChartHtml, priceSparklineHtml } from '../components/price-volume-chart.js';
 import { bindCalcSticky } from '../utils/calc-sticky.js';
 import { sortHeaderHtml, sortHeaderGroupHtml, initTableSort } from '../utils/table-sort.js';
@@ -25,7 +26,7 @@ import { PRICE_STALE_MS } from '../core/market-history-config.mjs';
 const root = document.querySelector('[data-item-market]');
 const STORAGE = 'albiontools.v4.item-market';
 const saved = readJsonStorage(STORAGE) || {};
-const state = { item:null, quality:1, mode:'buy', view:new URLSearchParams(location.search).get('view')==='watch'?'watch':'market', group:'all', query:'', page:0, days:{api:30,personal:30}, source:'api', city:getSettings().defaultCity, data:null, busy:false, request:0, watches:uniqueWatches(saved.watches), hiddenCities:{api:new Set(),personal:new Set()}, sort:{} };
+const state = { item:null, quality:1, mode:'buy', view:new URLSearchParams(location.search).get('view')==='watch'?'watch':'market', group:'all', query:'', page:0, days:{api:30,personal:30}, source:'api', city:getSettings().defaultCity, data:null, busy:false, request:0, watches:uniqueWatches(saved.watches), chartCitySelections:{api:{included:[],excluded:[]},personal:{included:[],excluded:[]}}, sort:{} };
 const families = itemFamilies(getAll('items')), items = new Map(families.flatMap(f=>f.variants.map(i=>[i.uniqueName,i])));
 const cities = [...loadActiveCities().map(c=>c.marketApiName),BLACK_MARKET];
 const groups = [{key:'all',label:'Tümü'}, {key:'weapon',label:'Silah',treeLabel:'Silahlar',categories:['weapons','offhands']}, {key:'armor',label:'Zırh',treeLabel:'Zırhlar',categories:['head','armors','shoes','capes','bags']}, {key:'tool',label:'Araç',treeLabel:'Araçlar',categories:['gathering','mounts','furniture']}, {key:'consumable',label:'Tüketim',treeLabel:'Tüketim',categories:['consumables','farming']}, {key:'resource',label:'Kaynak',treeLabel:'Kaynaklar',categories:['crafting','artefacts','other']}];
@@ -52,7 +53,7 @@ function updateWatches(next) {
 }
 const scope = () => ({server:getServer().id,itemId:state.item.uniqueName,quality:state.quality});
 const isWatched = () => state.item && state.watches.some(w=>variationKey(w)===variationKey(scope()));
-function choices(values,selected,hook) { return `<div class="segmented-choice segmented-choice--dense" role="group">${values.map(([key,label])=>`<button class="segmented-choice-button segmented-choice-button--compact${String(selected)===String(key)?' is-active':''}" type="button" ${hook}="${esc(key)}" aria-pressed="${String(selected)===String(key)}">${esc(label)}</button>`).join('')}</div>`; }
+function choices(values,selected,hook) { if (values.some(([value]) => value === 'all')) return filterChoiceFieldHtml({ label: 'Kategori', selected, allValue: 'all', options: values.map(([value, label]) => ({ value, label })), attributes: value => `${hook}="${esc(value)}"` }); return `<div class="segmented-choice segmented-choice--dense" role="group">${values.map(([key,label])=>`<button class="segmented-choice-button segmented-choice-button--compact${String(selected)===String(key)?' is-active':''}" type="button" ${hook}="${esc(key)}" aria-pressed="${String(selected)===String(key)}">${esc(label)}</button>`).join('')}</div>`; }
 function shell() {
     const searchControls=`<section class="market-search"><form data-search-form><div class="form-floating form-floating--clearable"><input class="form-control" data-search placeholder="Eşya / item ID" aria-label="Eşya / item ID"><label>Eşya / item ID</label><button class="form-field-clear" data-clear type="button" aria-label="Aramayı temizle">${icon('clear')}</button></div><button class="btn btn-primary btn-icon-only" type="submit" aria-label="Ara">${icon('search')}</button></form>${choices(groups.map(g=>[g.key,g.label]),state.group,'data-group')}<div class="market-tree" data-tree></div><div data-search-results class="market-search-results"></div></section>`;
     const destination=state.view==='watch'?'Eşya Piyasası':'İzleme Listesi';
@@ -97,7 +98,7 @@ function head(label,key,type='number',title='') { return sortHeaderHtml(label,{k
 function cityHtml(city) {
     const row = getAll('cities').find(c=>c.marketApiName===city);
     const file = row?.marketApiName.toLowerCase().replace(/\s/g,'');
-    return `<span class="market-city">${file?`<img src="assets/cities/${esc(file)}.png" width="16" height="16" alt="">`:icon(city===BLACK_MARKET?'black-market':'city-prices')}${esc(city)}</span>`;
+    return `<span class="market-city">${file?`<img src="assets/cities/${esc(file)}.png" width="16" height="16" alt="">`:icon(city===BLACK_MARKET?'black-market':'city-prices')}${cityNameHtml(city)}</span>`;
 }
 function tableBind(host,key) {
     const table=host.querySelector('table'); if (!table) return;
@@ -138,7 +139,7 @@ function renderPrices() {
         return {city,r,daily,periods,latest,sparkline:priceSparklineHtml(historyPoints(points,7))};
     });
     const maxVolume=Math.max(1,...rows.map(r=>r.daily?.quantity||0));
-    host.innerHTML=`<table class="table table-striped calc-table"><thead><tr>${head('Şehir','city','text')}${fields.map(f=>head(labels[f],f,'number',f+' · Her değer kendi tarihini kullanır.')).join('')}${head('Günlük Hacim','volume','number','Son 24 saat, AODP sell-order history item_count toplamı; piyasanın tamamı veya kişisel gerçekleşme değildir.')}${MARKET_PERIODS.map(d=>head(d+' Gün Ort.','avg'+d,'number','AODP sell-order history; pozitif adet ağırlıklı, yalnız mevcut gözlemler.')).join('')}${head('Son Güncelleme','time','number')}</tr></thead><tbody>${rows.map(({city,r,daily,periods,latest,sparkline})=>`<tr data-city-row="${esc(city)}" class="${city===state.city?'is-active':''}"><td data-sort-value="${esc(city)}"><button type="button" data-city="${esc(city)}">${cityHtml(city)}</button></td>${fields.map(f=>priceCell(r,f)).join('')}<td data-sort-value="${daily?.quantity??''}">${daily?`<span class="market-volume">${money(daily.quantity)}<meter min="0" max="${maxVolume}" value="${daily.quantity}" aria-label="${esc(city)} gerçek history adedi"></meter></span>`:'—'}</td>${periods.map((p,i)=>`<td class="market-average" data-sort-value="${p?.price??''}">${i===0?sparkline:''}${money(p?.price)}</td>`).join('')}<td class="market-updated" data-sort-value="${latest??''}" title="${date(latest)}">${latest?formatAge(Date.now()-latest):'—'}</td></tr>`).join('')}</tbody></table>`;
+    host.innerHTML=`<table class="table table-striped calc-table"><thead><tr>${head('Şehir','city','text')}${fields.map(f=>head(labels[f],f,'number',f+' · Her değer kendi tarihini kullanır.')).join('')}${head('Günlük Hacim','volume','number','Son 24 saat, AODP sell-order history item_count toplamı; piyasanın tamamı veya kişisel gerçekleşme değildir.')}${MARKET_PERIODS.map(d=>head(d+' Gün Ort.','avg'+d,'number','AODP sell-order history; pozitif adet ağırlıklı, yalnız mevcut gözlemler.')).join('')}${head('Son Güncelleme','time','number')}</tr></thead><tbody>${rows.map(({city,r,daily,periods,latest,sparkline})=>`<tr data-city-row="${esc(city)}" class="${city===state.city?'is-active':''}"><td data-sort-value="${esc(city)}"><button type="button" data-market-city="${esc(city)}">${cityHtml(city)}</button></td>${fields.map(f=>priceCell(r,f)).join('')}<td data-sort-value="${daily?.quantity??''}">${daily?`<span class="market-volume">${money(daily.quantity)}<meter min="0" max="${maxVolume}" value="${daily.quantity}" aria-label="${esc(city)} gerçek history adedi"></meter></span>`:'—'}</td>${periods.map((p,i)=>`<td class="market-average" data-sort-value="${p?.price??''}">${i===0?sparkline:''}${money(p?.price)}</td>`).join('')}<td class="market-updated" data-sort-value="${latest??''}" title="${date(latest)}">${latest?formatAge(Date.now()-latest):'—'}</td></tr>`).join('')}</tbody></table>`;
     root.querySelector('[data-price-note]').textContent='Alanlar emir yönüdür. Her fiyatın tarihi hücrede; 6 saatten eski veri “Eski”. Hacim yalnız AODP history adedidir. Ortalamalar yalnız mevcut pozitif adetli gözlemlerden hesaplanır.';
     tableBind(host,'city');
 }
@@ -166,16 +167,27 @@ function chartSeries(personal) {
 function renderCharts() {
     for (const personal of [false,true]) {
         const host=root.querySelector(personal?'[data-personal-chart]':'[data-api-chart]');if(!host)continue;
-        const kind=personal?'personal':'api', hidden=state.hiddenCities[kind];
+        const kind=personal?'personal':'api', selection=state.chartCitySelections[kind];
         const days=state.days[kind];
-        const all=chartSeries(personal),series=all.filter(s=>!hidden.has(s.city));
+        const all=chartSeries(personal),series=all.filter(s=>(!selection.included.length||selection.included.includes(s.city))&&!selection.excluded.includes(s.city));
         const controls=personal
             ? '<small>SAT ve V6/FIFO gerçekleşmeleri ayrı seriler; aynı işlem iki kaynakta varsa iki kayıt olarak gösterilir.</small>'
             : `<div class="choice-field form-field form-field--compact">${fieldHeadingHtml('Kaynak')}<select class="form-select form-select-sm" data-history-source aria-label="API geçmiş kaynağı"><option value="api"${state.source==='api'?' selected':''}>AODP sell-order history</option><option value="snapshot"${state.source==='snapshot'?' selected':''}>Yerel Buy MAX / Sell MIN snapshot</option></select></div>`;
-        const legend=[...new Set(all.map(s=>s.city))].map(city=>`<button class="btn btn-sm btn-outline-secondary" type="button" data-chart-kind="${kind}" data-chart-city="${esc(city)}" aria-pressed="${!hidden.has(city)}">${esc(city)}</button>`).join('');
+        const cityValues = [...new Set(all.map(s=>s.city))];
+        const legend = cityValues.length ? cityFilterFieldHtml({ id: `market-chart-${kind}-cities`, label: 'Şehirler', values: cityValues, className: '' }) : '';
         host.innerHTML=`<div class="market-panel-heading"><h2>${personal?'Şahsi Trade Geçmişim':'API Fiyat Geçmişi'}</h2>${choices(MARKET_PERIODS.map(d=>[d,d+' Gün']),days,'data-days')}</div><div class="market-chart-controls">${controls}</div><div class="market-chart"></div><div class="market-chart-legend">${legend}</div>`;
         const plot=host.querySelector('.market-chart');
         plot.innerHTML=priceVolumeChartHtml(series,{days,width:Math.max(300,plot.clientWidth),height:Math.max(52,plot.clientHeight),empty:personal?'Kayıtlı şahsi trade verisi yok':'Seçili kaynakta fiyat geçmişi verisi yok'});
+        if (cityValues.length) {
+            const field = `market-chart-${kind}-cities`;
+            bindCityField(host, field, () => {
+                const selection = getCityFieldSelection(host, field);
+                state.chartCitySelections[kind] = selection;
+                renderCharts();
+            }, { syncPeers: false, multiSelection: true });
+            setCityFieldSelection(host, field, selection);
+            initFloatingLabels(host);
+        }
     }
 }
 function renderWatch() {
@@ -191,7 +203,7 @@ function render() {
 }
 async function selectItem(id,quality=state.quality) {
     const item=items.get(id);if(!item)return;
-    state.item=item;state.quality=supportedQualities(item).includes(Number(quality))?Number(quality):1;state.data=null;state.hiddenCities.api.clear();state.hiddenCities.personal.clear();save();renderSearch();await refresh();
+    state.item=item;state.quality=supportedQualities(item).includes(Number(quality))?Number(quality):1;state.data=null;state.chartCitySelections.api={included:[],excluded:[]};state.chartCitySelections.personal={included:[],excluded:[]};save();renderSearch();await refresh();
 }
 async function refresh(force=false) {
     if(!state.item||state.view==='watch')return;
@@ -214,9 +226,8 @@ function onClick(e) {
     if(b.dataset.page){state.page+=Number(b.dataset.page);renderSearch();}
     if(b.dataset.mode){state.mode=b.dataset.mode;root.querySelectorAll('[data-mode]').forEach(x=>{x.classList.toggle('is-active',x===b);x.setAttribute('aria-pressed',String(x===b));});renderPrices();}
     if(b.hasAttribute('data-refresh')&&!state.busy)refresh(true);
-    if(b.dataset.city){state.city=b.dataset.city;renderSummary();renderPrices();renderQuality();}
+    if(b.dataset.marketCity){state.city=b.dataset.marketCity;renderSummary();renderPrices();renderQuality();}
     if(b.dataset.days){state.days[b.closest('[data-api-chart]')?'api':'personal']=Number(b.dataset.days);renderCharts();}
-    if(b.dataset.chartCity){const hidden=state.hiddenCities[b.dataset.chartKind];hidden.has(b.dataset.chartCity)?hidden.delete(b.dataset.chartCity):hidden.add(b.dataset.chartCity);renderCharts();}
     if(b.hasAttribute('data-watch')){const w=scope(),key=variationKey(w);updateWatches(isWatched()?state.watches.filter(x=>variationKey(x)!==key):uniqueWatches([...state.watches,{...w,addedAt:Date.now()}]));renderSummary();scheduleMarketLayout();}
     if(b.dataset.unwatch){updateWatches(state.watches.filter(w=>variationKey(w)!==b.dataset.unwatch));renderWatch();}
     if(b.hasAttribute('data-quality-toggle')){const table=root.querySelector('[data-quality-table]');table.hidden=!table.hidden;b.setAttribute('aria-expanded',String(!table.hidden));b.textContent=table.hidden?'Aç':'Daralt';scheduleMarketLayout();}
@@ -225,7 +236,7 @@ function onChange(e) {
     const key=e.target.dataset.variant;
     if(key==='quality')selectItem(state.item.uniqueName,Number(e.target.value));
     if(key==='tier'||key==='enchant'){const variants=families.find(f=>f.key===familyKey(state.item)).variants;const tier=key==='tier'?Number(e.target.value):state.item.tier,enchant=key==='enchant'?Number(e.target.value):state.item.enchantment;const item=variants.find(i=>i.tier===tier&&i.enchantment===enchant)||variants.find(i=>i.tier===tier);selectItem(item.uniqueName);}
-    if(e.target.hasAttribute('data-history-source')){state.source=e.target.value;state.hiddenCities.api.clear();renderCharts();}
+    if(e.target.hasAttribute('data-history-source')){state.source=e.target.value;state.chartCitySelections.api={included:[],excluded:[]};renderCharts();}
 }
 await Promise.all(['item-market','search','clear','category-tree','chevron-right','buy-order','sell-order','daily-average','updated-at','watch','unwatch','refresh','city-prices','black-market'].map(async name=>{try{const r=await fetch(name==='black-market'?'content/icons/flipper/black-market.svg':`content/icons/item-market/${name}.svg`);if(r.ok)icons[name]=await r.text();}catch{}}));
 let layoutFrame;

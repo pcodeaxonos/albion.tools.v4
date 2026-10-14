@@ -1,5 +1,18 @@
 [
   {
+    "id": "potential-prices",
+    "title": "Potansiyel Fiyatlar",
+    "description": "Kaydedilmiş piyasa tahminleri; filtrelenebilir liste ve kart görünümü.",
+    "icon": "💰",
+    "addedAt": "2026-10-14",
+    "frequent": false,
+    "path": "pages/tools/potential-prices",
+    "navLabel": "Potansiyel Fiyatlar",
+    "navGroup": "Piyasa",
+    "navOrder": 47,
+    "navVisible": true
+  },
+  {
     "id": "item-market",
     "title": "Eşya Piyasası",
     "description": "Şehir ve kalite fiyatları, API geçmişi ve şahsi işlemler.",

@@ -1112,6 +1112,13 @@ input[type="month"].form-control {
         background-color: color-mix(in srgb, var(--color-secondary) 20%, var(--color-surface));
         color: var(--color-text-muted);
     }
+
+    @each $tone in primary, info, warning {
+        &.bg-#{$tone} {
+            background-color: color-mix(in srgb, var(--color-#{$tone}) 20%, var(--color-surface));
+            color: var(--color-#{$tone});
+        }
+    }
 }
 
 // Alert
@@ -2096,6 +2103,19 @@ $city-on-colors: (
     outline-offset: -2px;
 }
 
+.city-name,
+.city-badge,
+.city-field option[data-city],
+.city-field select[data-city] {
+    text-transform: uppercase;
+}
+
+.city-name,
+.city-field option[data-city],
+.city-field select[data-city] {
+    color: var(--color-city-accent);
+}
+
 .city-badge {
     padding: .15em .35em;
     background-color: var(--color-city);
@@ -2143,6 +2163,8 @@ $city-on-colors: (
     inset: 0;
     margin: auto;
     max-width: calc(100vw - 2rem - var(--app-dialog-close-clearance));
+    // Center the panel and its external close control as one visible group.
+    transform: translateX(calc(var(--app-dialog-close-clearance) / -2));
     max-height: calc(100dvh - 2rem);
     overflow: visible;
     color: var(--color-text);

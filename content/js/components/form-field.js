@@ -6,3 +6,14 @@ export function fieldAllButtonHtml({ label, attributes = '', active = false }) {
 export function fieldHeadingHtml(label, action = '', attributes = '') {
     return `<div class="form-field-heading"><div class="form-field-label" ${attributes} title="${escapeHtml(label)}">${fieldLabel(label)}</div>${action}</div>`;
 }
+
+// Filters with an explicit all value keep that action in the heading.
+// Attributes and optional option content belong to the consuming domain.
+export function filterChoiceFieldHtml({ label, options, selected, allValue, attributes, className = '', after = '', isActive, content = option => escapeHtml(option.shortLabel ?? option.label) }) {
+    const active = isActive ?? (value => String(value) === String(selected));
+    const all = fieldAllButtonHtml({ label, attributes: attributes(allValue), active: active(allValue) });
+    const buttons = options.filter(option => String(option.value) !== String(allValue)).map(option =>
+        `<button type="button" class="segmented-choice-button segmented-choice-button--short${active(option.value) ? ' is-active' : ''}" ${attributes(option.value)} aria-pressed="${active(option.value)}" aria-label="${escapeHtml(option.label)}" title="${escapeHtml(option.label)}">${content(option)}</button>`
+    ).join('');
+    return `<div class="choice-field form-field ${escapeHtml(className)}">${fieldHeadingHtml(label, all)}<div class="segmented-choice segmented-choice--filter" role="group" aria-label="${escapeHtml(label)}">${buttons}</div>${after}</div>`;
+}

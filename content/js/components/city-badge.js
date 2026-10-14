@@ -1,9 +1,8 @@
 import { escapeHtml } from '../utils/utils.js';
+import { cityName, cityNameAttributes } from './city-name.js';
 
 export function cityBadgeHtml(city) {
-    const name = String(city || '').trim();
-    const key = name.toLowerCase().replace(/[\s_]+/g, '-');
-    return `<span class="badge city-badge" data-city="${escapeHtml(key)}">${escapeHtml(name.toLocaleUpperCase('en-US'))}</span>`;
+    return `<span class="badge city-badge" ${cityNameAttributes(city)}>${escapeHtml(cityName(city))}</span>`;
 }
 
 export function cityRouteHtml(source, target) {

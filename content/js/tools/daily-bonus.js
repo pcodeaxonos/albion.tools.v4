@@ -1,3 +1,5 @@
+import { cityNameHtml } from '../components/city-name.js';
+import { filterChoiceFieldHtml } from '../components/form-field.js';
 import { runFormSubmission } from '../components/form-submit.js';
 import { itemNameHtml } from '../components/item-name.js';
 import { toolPageHtml } from '../core/app-runtime.js';
@@ -265,9 +267,7 @@ function toggleAnalysisTier(dialog, button) {
     renderAnalysisDialog(dialog);
 }
 
-function analysisTierButtonHtml(tier, filters) {
-    return `<button type="button" class="${!filters.showAll && filters.tiers.has(tier) ? 'is-active' : ''}" data-tier="${tier}" data-analysis-filter="${tier}">T${tier}</button>`;
-}
+
 
 function todayAnalysisFamilies() {
     const today = findByDate(bonusDayIso());
@@ -599,13 +599,10 @@ function renderBonusAnalysisDialog() {
                         <div class="bonus-analysis-refresh-group"><button type="button" class="btn btn-primary bonus-analysis-refresh" data-analysis-refresh${isLoading ? ' disabled aria-busy="true"' : ''}><img src="content/icons/daily-bonus/ui-icons/refresh.svg" alt="" aria-hidden="true">${isLoading ? 'Yükleniyor…' : 'Fiyatları Yenile'}</button><small>${isLoading ? 'Tarifler ve fiyatlar<br>yükleniyor…' : `Son güncelleme:<br>${updatedLabel}`}</small></div>
                     </header>
                     <section class="bonus-analysis-controls" aria-label="Analiz filtreleri">
-                        <div class="bonus-analysis-select"><span>Bonus grubu</span><div class="bonus-analysis-family-tabs">${familyOptions}</div><small>${escapeHtml(getCityApiName(family?.cityId) || 'Caerleon')}</small></div>
+                        <div class="bonus-analysis-select"><span>Bonus grubu</span><div class="bonus-analysis-family-tabs">${familyOptions}</div><small>${cityNameHtml(getCityApiName(family?.cityId) || 'Caerleon')}</small></div>
                         <div class="bonus-analysis-select"><span>Market</span><strong>Black Market</strong><small>En düşük satış emri −1</small></div>
                         <span class="bonus-analysis-rr-badge" data-app-tooltip="${escapeHtml(rrTitle)}"><i aria-hidden="true">↻</i><span><b>RR %${formatAnalysisPercent(returnRate)}</b><small>Royal %${cityProductionBonus()} + yerel %${specialtyBonus} + günlük %${dailyBonus}</small></span></span>
-                        <div class="bonus-analysis-tiers" role="group" aria-label="Tier seçimi">
-                            ${ANALYSIS_TIERS.map((tier) => analysisTierButtonHtml(tier, tierFilters)).join('')}
-                            <button type="button" class="${tierFilters.showAll ? 'is-active' : ''}" data-analysis-filter="all">Tüm Tierlar</button>
-                        </div>
+                        ${filterChoiceFieldHtml({ label: 'Tier', className: 'bonus-analysis-tiers', allValue: 'all', options: ANALYSIS_TIERS.map(value => ({ value, label: `T${value}` })), isActive: value => value === 'all' ? tierFilters.showAll : !tierFilters.showAll && tierFilters.tiers.has(value), attributes: value => `data-analysis-filter="${value}"` })}
                         <small class="bonus-analysis-tier-hint">Öncelikli tierlar: ${preferredTierText}</small>
                     </section>
                     <div class="bonus-analysis-note"><img src="content/icons/daily-bonus/ui-icons/info.svg" alt="" aria-hidden="true"><span>${analysisNote}</span></div>
@@ -880,7 +877,7 @@ function familyCell(familyKey, highlightKeys) {
     const hit = highlightKeys.includes(familyKey) ? ' is-bonus-hit' : '';
     const city = bonusCityLabel(familyKey);
     const cityHtml = city
-        ? `<span class="bonus-log-city">${escapeHtml(city)}</span>`
+        ? `<span class="bonus-log-city">${cityNameHtml(city)}</span>`
         : '';
     return `<td class="bonus-log-family${hit}" data-family-key="${escapeHtml(familyKey)}"><span class="bonus-log-family-main"><span class="bonus-log-family-name">${escapeHtml(getBonusFamilyLabel(familyKey))}</span></span>${cityHtml}</td>`;
 }

@@ -2,26 +2,30 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import vm from 'node:vm';
 
+let pickerStyle = 'standard';
 const context = vm.createContext({ CSS: { escape: (value) => value } });
 const module = new vm.SourceTextModule(fs.readFileSync('content/js/components/city-picker.js', 'utf8'), { context });
+const cityNameModule = new vm.SourceTextModule(fs.readFileSync('content/js/components/city-name.js', 'utf8'), { context });
 const formFieldModule = new vm.SourceTextModule(fs.readFileSync('content/js/components/form-field.js', 'utf8'), { context });
 const dependencies = {
     '../utils/utils.js': { escapeHtml: (value) => value },
-    '../db/store.js': { getAll: () => [] },
+    '../db/store.js': { getAll: table => table === 'cities' ? JSON.parse(fs.readFileSync('data/cities.json', 'utf8')) : [] },
     '../core/cities.js': { loadActiveCities: () => [], orderCities: (cities) => cities },
-    '../core/settings.js': { getCityPickerStyle: () => 'standard', cityHasIsland: () => true }
+    '../core/settings.js': { getCityPickerStyle: () => pickerStyle, cityHasIsland: () => true }
 };
 const linkDependency = (specifier) => {
+    if (specifier === './city-name.js') return cityNameModule;
     if (specifier === './form-field.js') return formFieldModule;
     const exports = dependencies[specifier];
     return new vm.SyntheticModule(Object.keys(exports), function () {
         for (const [key, value] of Object.entries(exports)) this.setExport(key, value);
     }, { context });
 };
+await cityNameModule.link(linkDependency);
 await formFieldModule.link(linkDependency);
 await module.link(linkDependency);
 await module.evaluate();
-const { bindCityField, setCityFieldValue, cityFieldHtml } = module.namespace;
+const { bindCityField, setCityFieldValue, cityFieldHtml, cityFilterFieldHtml } = module.namespace;
 
 function classes(initial = []) {
     const values = new Set(initial);
@@ -91,11 +95,13 @@ for (const style of ['horizontal', 'diagonal']) {
 }
 assert.match(cityFieldHtml({ id: 'filter', label: 'Şehir', selected: '', allowAll: true }), /<option value="" selected>Tüm şehirler<\/option>/);
 assert.doesNotMatch(cityFieldHtml({ id: 'required', label: 'Şehir', selected: '' }), /Tüm şehirler/);
-// A tool can request real crests without changing the user's global preference.
+// The global preference controls every consumer, even if a caller passes a style.
+pickerStyle = 'crests';
 const crestHtml = cityFieldHtml({ id: 'crest-test', label: 'Şehir', selected: 'Martlock', style: 'crests', cities: [{ name: 'Martlock', displayName: 'Martlock', marketApiName: 'Martlock' }] });
 assert.match(crestHtml, /city-field--crests/);
 assert.match(crestHtml, /assets\/cities\/martlock\.png/);
 assert.match(crestHtml, /aria-pressed="true"/);
+pickerStyle = 'standard';
 assert.match(cityFieldHtml({ id: 'unchanged', label: 'Şehir', selected: '' }), /city-field--standard/);
 
 const root = container(['first', 'second'].map((id) => field(id, 'standard')));
@@ -118,8 +124,11 @@ assert.deepEqual(notified, ['first']);
 console.log('City picker synchronization tests passed.');
 
 const market={name:'Black Market',displayName:'Black Market',marketApiName:'Black Market',mapPosition:{x:46,y:68},iconHtml:'<svg viewBox="0 0 24 24"></svg>'};
-assert.match(cityFieldHtml({id:'target',label:'Nereye',selected:'Black Market',cities:[market],style:'crests'}),/<span class="city-crest"[^>]*><svg/);
-assert.match(cityFieldHtml({id:'target',label:'Nereye',selected:'Black Market',cities:[market],style:'diagonal'}),/--x:46%;--y:68%/);
+pickerStyle = 'crests';
+assert.match(cityFieldHtml({id:'target',label:'Nereye',selected:'Black Market',cities:[market],style:'standard'}),/<span class="city-crest"[^>]*><svg/);
+assert.doesNotMatch(cityFieldHtml({id:'unknown',label:'Şehir',selected:'Unknown',cities:[{marketApiName:'Unknown',displayName:'Unknown'}]}), /assets\/cities\/unknown\.png/);
+pickerStyle = 'diagonal';
+assert.match(cityFieldHtml({id:'target',label:'Nereye',selected:'Black Market',cities:[market],style:'crests'}),/--x:46%;--y:68%/);
 
 for (const style of ['standard','horizontal','diagonal']) {
     const independent=container([field('source',style),field('target',style)]);
@@ -134,7 +143,8 @@ console.log('Independent route endpoints and custom destination icons/positions 
 
 // All visual city modes share the caption/action row; dropdowns retain floating labels.
 for (const style of ['buttons', 'crests', 'diagonal', 'standard']) {
-    const html = cityFieldHtml({ id: 'filter-city', label: 'Şehir', selected: '', cities: [market], style, allowAll: true, showAllButton: true });
+    pickerStyle = style;
+    const html = cityFieldHtml({ id: 'filter-city', label: 'Şehir', selected: '', cities: [market], style: style === 'standard' ? 'crests' : 'standard', allowAll: true, showAllButton: true });
     assert.match(html, /class="filter-selection-button form-field-all"[^>]*data-city-all[^>]*aria-pressed="true"/);
     if (style === 'standard') assert.match(html, /form-floating city-field/);
     else {
@@ -143,3 +153,23 @@ for (const style of ['buttons', 'crests', 'diagonal', 'standard']) {
     }
 }
 console.log('Shared city choice headings and all-selection actions passed.');
+
+const { cityName, cityDataKey, cityNameHtml } = cityNameModule.namespace;
+assert.equal(cityName({ marketApiName: 'Fort Sterling', displayName: 'Yerel ad' }), 'Fort Sterling');
+assert.equal(cityDataKey('FortSterling'), 'fort-sterling');
+assert.equal(cityDataKey('Black Market'), 'black-market');
+assert.match(cityNameHtml('Lymhurst'), /data-city="lymhurst" lang="en">Lymhurst/);
+assert.doesNotMatch(cityNameHtml('Lymhurst'), />LYMHURST/);
+for (const style of ['standard', 'buttons', 'crests', 'diagonal']) {
+    pickerStyle = style;
+    const retained = cityFilterFieldHtml({ id: 'retained-city', label: 'Şehir', selected: 'Martlock', values: [] });
+    assert.match(retained, /Martlock/);
+    assert.match(retained, /data-city-all/);
+    const html = cityFieldHtml({ id: 'english', label: 'Şehir', selected: 'Fort Sterling', cities: [{ marketApiName: 'Fort Sterling', displayName: 'Yerel ad' }] });
+    assert.match(html, /data-city="fort-sterling" lang="en"/);
+    assert.match(html, />Fort Sterling/);
+}
+console.log('English city identities and CSS-owned casing passed in every picker mode.');
+
+assert.equal(cityDataKey('Bridgewatch Market'), 'bridgewatch');
+assert.equal(cityName('Bridgewatch Marketplace'), 'Bridgewatch');

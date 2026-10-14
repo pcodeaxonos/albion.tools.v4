@@ -1,5 +1,10 @@
 import { isYieldOutlier } from './island-yield-stability.mjs';
 
+export function hasYieldHistoryVariation(points, metric) {
+    const values = points.map(point => point[metric]).filter(Number.isFinite);
+    return values.length > 1 && values.some(value => value !== values[0]);
+}
+
 export function yieldHistoryExtent(values) {
     const minimum = Math.min(...values), maximum = Math.max(...values);
     const padding = Math.max((maximum - minimum) * .15, Math.abs(maximum) * .03, .01);

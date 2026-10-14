@@ -603,7 +603,7 @@
 @media (max-width: 650px) { .trades-kpi { grid-template-columns: 1fr 1fr; } }
 
 /* Desktop trade analysis is a contained workspace: long tables scroll in-panel. */
-@media (min-width: 1101px) {
+@media (min-width: 992px) {
     .trades-page { flex: 1; min-height: 0; display: flex; }
     .trades-root { --trades-section-gap: .45rem; flex: 1; min-height: 0; height: 100%; padding-bottom: 0; gap: var(--trades-section-gap); }
     .trades-kpi { gap: 0; }

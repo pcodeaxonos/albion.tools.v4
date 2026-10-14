@@ -1,3 +1,4 @@
+import { cityNameHtml } from '../components/city-name.js';
 import { escapeHtml } from './utils.js';
 import { SETUP_FEE } from '../core/market-fees.js';
 import { itemNameHtml } from '../components/item-name.js';
@@ -84,7 +85,7 @@ function formatKindOf(resultKind) {
     return 'silver';
 }
 
-export function explainStep({ icon, label, copyName, note, formula, result, resultKind = 'silver', resultCap, signed = false }) {
+export function explainStep({ icon, label, city, copyName, note, formula, result, resultKind = 'silver', resultCap, signed = false }) {
     const formulaHtml = Array.isArray(formula) ? explainBits(formula) : (formula ?? '');
     const cap = resultCap ?? TOKEN_CAPS[resultKind] ?? TOKEN_CAPS.silver;
     const out = result === undefined
@@ -101,7 +102,7 @@ export function explainStep({ icon, label, copyName, note, formula, result, resu
             <div class="calc-explain-who">
                 ${icon ?? ''}
                 <div class="calc-explain-who-text">
-                    <span class="calc-explain-label">${copyName ? itemNameHtml(label, copyName) : escapeHtml(label)}</span>
+                    <span class="calc-explain-label">${city ? cityNameHtml(city) : copyName ? itemNameHtml(label, copyName) : escapeHtml(label)}</span>
                     ${note ? `<p class="calc-explain-note">${escapeHtml(note)}</p>` : ''}
                 </div>
             </div>
@@ -120,7 +121,7 @@ export function explainChips(items) {
     }
     return `<div class="calc-explain-chips">${items.map((item) => `
         <span class="calc-explain-chip is-${escapeHtml(item.tone || 'city')}"${item.title ? ` data-app-tooltip="${escapeHtml(item.title)}"` : ''}>
-            <span class="calc-explain-chip-label">${escapeHtml(item.label)}</span>
+            <span class="calc-explain-chip-label">${item.city ? cityNameHtml(item.city) : escapeHtml(item.label)}</span>
             ${item.html ?? explainNum(item.value, {
                 kind: item.kind ?? 'qty',
                 tone: item.tone,
@@ -148,15 +149,16 @@ export function explainFlow(nodes) {
     `).join('')}</ol>`;
 }
 
-export function explainSaleSteps({ price, tax, setup, sell, label, copyName, icon }) {
+export function explainSaleSteps({ price, tax, setup, sell, label, city, note, copyName, icon }) {
     const cut = tax + (setup ? SETUP_FEE : 0);
     const keep = 1 - cut;
     return [
         explainStep({
             icon,
             label: label || 'Satış fiyatı',
+            city,
             copyName,
-            note: 'Piyasada görünen fiyat; henüz vergi düşülmedi',
+            note: note || 'Piyasada görünen fiyat; henüz vergi düşülmedi',
             result: price,
             resultKind: 'price',
             resultCap: 'satış fiyatı'

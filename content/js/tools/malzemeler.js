@@ -1,3 +1,4 @@
+import { cityNameHtml } from '../components/city-name.js';
 import { itemNameHtml } from '../components/item-name.js';
 import { toolPageHtml } from '../core/app-runtime.js';
 import { escapeHtml } from '../utils/utils.js';
@@ -273,10 +274,10 @@ function renderScenario() {
     const buyNote = `${priceSideHint(state.buySide, 'buy')}${placesOrder('buy', state.buySide) ? ` · setup ${formatPct(SETUP_FEE)}` : ''}`;
     const sellNote = `${priceSideHint(state.sellSide, 'sell')}${placesOrder('sell', state.sellSide) ? ` · setup ${formatPct(SETUP_FEE)}` : ''} · vergi ${formatPct(salesTaxRate(state.premium))}`;
     const route = state.buyCity === state.sellCity
-        ? `${cityLabel(state.buyCity)}’ta flip`
-        : `${cityLabel(state.buyCity)}’tan al → ${cityLabel(state.sellCity)}’da sat`;
+        ? `${cityNameHtml(state.buyCity)}’ta flip`
+        : `${cityLabel(state.buyCity)}’tan al → ${cityNameHtml(state.sellCity)}’da sat`;
 
-    return `<p class="tool-result-note">${escapeHtml(route)}. Alış ${escapeHtml(buyNote)}. Satış ${escapeHtml(sellNote)}. ${escapeHtml(feeMetaText(state.premium))}. Elle yazılan fiyat API’nin yerine geçer.</p>`;
+    return `<p class="tool-result-note">${route}. Alış ${escapeHtml(buyNote)}. Satış ${escapeHtml(sellNote)}. ${escapeHtml(feeMetaText(state.premium))}. Elle yazılan fiyat API’nin yerine geçer.</p>`;
 }
 
 function latestQuoteDate(list) {

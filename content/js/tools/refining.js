@@ -1,3 +1,4 @@
+import { cityNameHtml } from '../components/city-name.js';
 import { toggleAllFilter } from '../components/filter-selection.js';
 import { itemNameHtml } from '../components/item-name.js';
 import { bindCalcExplain } from '../utils/calc-explain.js';
@@ -631,7 +632,7 @@ function renderRefiningExplain(key, { hovered } = {}) {
                     tax,
                     setup: sellSetup,
                     sell: row.sell,
-                    label: cityLabel(state.sellCity),
+                    city: state.sellCity,
                     icon: outIcon
                 })
             }
@@ -724,7 +725,7 @@ function renderScenario() {
         ? 'Tam zincir T2’den'
         : 'Alt kademe alış şehrinden (buy yoksa sell kitaptan anında)';
 
-    return `<p class="tool-result-note">Alış ${escapeHtml(cityLabel(state.buyCity))} · işle ${escapeHtml(cityLabel(state.refineCity))} (${escapeHtml(rrDetails())}) · satış ${escapeHtml(cityLabel(state.sellCity))}.
+    return `<p class="tool-result-note">Alış ${cityNameHtml(state.buyCity)} · işle ${cityNameHtml(state.refineCity)} (${escapeHtml(rrDetails())}) · satış ${cityNameHtml(state.sellCity)}.
         Ham ${escapeHtml(rawNote)}. Ürün ${escapeHtml(outNote)}. ${escapeHtml(chainNote)}. Elle yazılan fiyat API’nin yerine geçer.</p>`;
 }
 

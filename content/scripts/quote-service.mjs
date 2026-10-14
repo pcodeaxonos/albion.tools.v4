@@ -8,14 +8,16 @@ import { aodpUrl, urlBatches } from '../js/core/market-request.mjs';
 import { BOOK_PRICE_FIELDS } from '../js/core/market-primitives.mjs';
 import { AODP_COLLECTOR_POLICY, MARKET_COLLECTION_POLICY, PRICE_STALE_MS } from '../js/core/market-history-config.mjs';
 import { selectLongTermReference } from '../js/core/long-term-price.mjs';
-import { shadowEvaluate } from '../js/core/market-opportunity-shadow.mjs';
+import { shadowEvaluationSteps } from '../js/core/market-opportunity-shadow.mjs';
 import { OBSERVATION_POLICY } from '../js/core/market-observation.mjs';
 import { OPPORTUNITY_POLICY } from '../js/core/market-opportunities.mjs';
-import { scanQuoteBooks, seriesForCell } from '../js/core/market-opportunity-scan.mjs';
+import { scanQuoteBookSteps, runScanSteps, runScanStepsAsync, seriesForCell } from '../js/core/market-opportunity-scan.mjs';
 import { QuoteHistoryRepository } from './quote-history-repository.mjs';
 import { createAodpCollector } from './aodp-collector.mjs';
 import { attachOpportunitySales, rankCommercialOpportunities } from '../js/core/market-opportunity-commerce.mjs';
 import { rankOpportunityPresentation } from '../js/core/market-opportunity-quality.mjs';
+
+const OPPORTUNITY_CACHE_TTL_MS = 30_000;
 
 function diagnosticEvidence(rows, now) {
     const seen = new Set(), ages = [];
@@ -47,7 +49,8 @@ function diagnosticEvidence(rows, now) {
 
 function groupedCount(rows, calibration) {
     const presented = rankOpportunityPresentation(rows, { calibration });
-    return { before: rows.length, after: rankCommercialOpportunities(presented, { calibration }).length };
+    // Group totals need strategy selection and liquidity grouping, not Pareto ordering.
+    return { before: rows.length, after: rankCommercialOpportunities(presented, { calibration, includeParetoFronts: false }).length };
 }
 
 function diagnosticScan(payload, { scanId, snapshotId, engine, server, now }) {
@@ -122,22 +125,41 @@ export function startQuoteService({ root, server, packetHistory, collectorOption
     let opportunityCache = null;
     let fees = null;
     let shadowCache = null;
+    let activeScan = null;
+    let activeScanKey = null;
     return { repository, collector,
         invalidateOpportunities() { opportunityCache = null; },
-        opportunityScan({ requestedServer, premium = true, now = Date.now() }) {
+        opportunityScan(options) { return runScanSteps(this.opportunityScanSteps(options)); },
+        async opportunityScanAsync(options) {
+            const key = `${options.requestedServer}|${options.premium !== false && options.premium !== '0'}`;
+            // Share the in-flight result even when a long scan crosses a cache time slot.
+            while (activeScan) {
+                if (activeScanKey === key) return activeScan;
+                await activeScan;
+            }
+            const scan = runScanStepsAsync(this.opportunityScanSteps({ includeShadow: false, ...options }));
+            activeScan = scan;
+            activeScanKey = key;
+            try { return await scan; }
+            finally { if (activeScan === scan) { activeScan = null; activeScanKey = null; } }
+        },
+        *opportunityScanSteps({ requestedServer, premium = true, now = Date.now(), includeShadow = true }) {
+            const started = Date.now();
             if (requestedServer !== server) return { server, opportunities: [], error: 'server-mismatch' };
             const enabled = premium !== false && premium !== '0';
             const validated = process.env.OPPORTUNITIES_VALIDATED === '1'
                 || (process.env.OPPORTUNITIES_VALIDATED !== '0' && read('price-hub-config').opportunitiesValidated === true);
-            const slot = `${requestedServer}|${enabled ? 1 : 0}|${validated ? 1 : 0}|${Math.floor(now / 30000)}`;
-            if (opportunityCache?.slot === slot) return opportunityCache.payload;
+            const slot = `${requestedServer}|${enabled ? 1 : 0}|${validated ? 1 : 0}`;
+            if (opportunityCache?.slot === slot && now >= opportunityCache.evaluatedAt
+                && now - opportunityCache.completedAt < OPPORTUNITY_CACHE_TTL_MS) return opportunityCache.payload;
             fees ??= economyRates(root);
             const inputs = { server, packetHistory, repository, now, premium: enabled, fees };
             // Stage rollout: compare the same inputs first; operator explicitly enables revised output.
-            const refreshShadow = !shadowCache || now - shadowCache.at >= OBSERVATION_POLICY.shadowIntervalMs || shadowCache.premium !== enabled;
-            const payload = scanQuoteBooks({ ...inputs, includeCandidates: true, includeEvaluation: validated && refreshShadow, policy: { ...OPPORTUNITY_POLICY, validationMode: validated ? 'validated' : 'legacy' } });
+            const refreshShadow = includeShadow && (!shadowCache || now - shadowCache.at >= OBSERVATION_POLICY.shadowIntervalMs || shadowCache.premium !== enabled);
+            const payload = yield* scanQuoteBookSteps({ ...inputs, includeCandidates: true, includeEvaluation: refreshShadow, policy: { ...OPPORTUNITY_POLICY, validationMode: validated ? 'validated' : 'legacy' } });
             if (refreshShadow) {
-                const { validated: ignoredOutput, ...summary } = shadowEvaluate({ ...inputs, validatedScan: validated ? payload : undefined });
+                const { validated: ignoredOutput, ...summary } = yield* shadowEvaluationSteps({ ...inputs,
+                    validatedScan: validated ? payload : undefined, legacyScan: validated ? undefined : payload });
                 shadowCache = { at: now, premium: enabled, summary };
             }
             delete payload.evaluation;
@@ -159,9 +181,10 @@ export function startQuoteService({ root, server, packetHistory, collectorOption
             if (collection) payload.collection = { startedAt: collection.fetchedAt ?? null,
                 newArchiveObservations: collection.observations ?? 0, supplementalObservations: collection.supplementalObservations ?? 0,
                 duplicates: collection.duplicates ?? 0, stale: collection.stale ?? 0 };
-            payload.shadow = shadowCache.summary;
+            payload.shadow = shadowCache?.premium === enabled ? shadowCache.summary : null;
             collector.noteOpportunities((payload.opportunities || []).map((row) => row.itemId), now);
-            opportunityCache = { slot, payload };
+            // A long calculation must not expire its own cache before the response arrives.
+            opportunityCache = { slot, payload, evaluatedAt: now, completedAt: now + Date.now() - started };
             return payload;
         },
         opportunitySeries({ requestedServer, itemId, city, quality, now = Date.now() }) {

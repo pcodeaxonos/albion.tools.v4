@@ -1469,6 +1469,18 @@ input[type=month].form-control {
   background-color: color-mix(in srgb, var(--color-secondary) 20%, var(--color-surface));
   color: var(--color-text-muted);
 }
+.badge.bg-primary {
+  background-color: color-mix(in srgb, var(--color-primary) 20%, var(--color-surface));
+  color: var(--color-primary);
+}
+.badge.bg-info {
+  background-color: color-mix(in srgb, var(--color-info) 20%, var(--color-surface));
+  color: var(--color-info);
+}
+.badge.bg-warning {
+  background-color: color-mix(in srgb, var(--color-warning) 20%, var(--color-surface));
+  color: var(--color-warning);
+}
 
 .alert {
   align-self: start;
@@ -2437,6 +2449,19 @@ input[type=month].form-control {
   outline-offset: -2px;
 }
 
+.city-name,
+.city-badge,
+.city-field option[data-city],
+.city-field select[data-city] {
+  text-transform: uppercase;
+}
+
+.city-name,
+.city-field option[data-city],
+.city-field select[data-city] {
+  color: var(--color-city-accent);
+}
+
 .city-badge {
   padding: 0.15em 0.35em;
   background-color: var(--color-city);
@@ -2484,6 +2509,7 @@ input[type=month].form-control {
   inset: 0;
   margin: auto;
   max-width: calc(100vw - 2rem - var(--app-dialog-close-clearance));
+  transform: translateX(calc(var(--app-dialog-close-clearance) / -2));
   max-height: calc(100dvh - 2rem);
   overflow: visible;
   color: var(--color-text);
@@ -6011,6 +6037,68 @@ main:has(.page-head[data-page-head=item-market]) {
   color: var(--color-text-muted);
 }
 
+.view-switch-toolbar {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-xs);
+  margin-block-end: var(--spacing-sm);
+  flex-wrap: wrap;
+}
+.view-switch-toolbar > .result-view-actions {
+  margin-inline-start: auto;
+}
+.view-switch-toolbar > .tool-result-note {
+  margin: 0;
+}
+
+.result-view-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: var(--spacing-xs);
+  min-width: 0;
+}
+
+.sort-switch,
+.view-switch {
+  display: inline-flex;
+  flex: 0 0 auto;
+  gap: 0.25rem;
+}
+
+.view-switch-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.15rem;
+  height: 2.15rem;
+  padding: 0;
+  border: var(--border-width) solid var(--color-border);
+  background: var(--color-surface);
+  color: var(--color-text-muted);
+  cursor: pointer;
+}
+.view-switch-button svg {
+  width: 1rem;
+  height: 1rem;
+}
+.view-switch-button:hover {
+  background: var(--color-surface-hover);
+  color: var(--color-text);
+}
+.view-switch-button.is-active {
+  border-color: var(--color-primary);
+  color: var(--color-text);
+  background: color-mix(in srgb, var(--color-primary) 14%, var(--color-surface));
+}
+.view-switch-button:focus-visible {
+  outline: var(--focus-outline-width) solid var(--color-focus-ring);
+  outline-offset: var(--focus-outline-offset);
+}
+
 .filter-choice-grid {
   display: grid;
   grid-template-columns: repeat(var(--filter-choice-columns, 4), minmax(0, 1fr));
@@ -6063,6 +6151,22 @@ main:has(.page-head[data-page-head=item-market]) {
 
 .segmented-choice-button--short {
   min-width: 4.25rem;
+}
+
+.segmented-choice--filter {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(0, 1fr);
+  width: 100%;
+}
+.segmented-choice--filter > .segmented-choice-button {
+  flex: 1 1 0;
+  min-width: 0;
+  min-height: 2rem;
+  padding: 0.35rem 0.25rem;
+  font-size: var(--font-size-xs);
+  line-height: 1.2;
+  overflow-wrap: anywhere;
 }
 
 .segmented-choice-button--compact {
@@ -9682,7 +9786,7 @@ main:has(.page-head[data-page-head=item-market]) {
   grid-template-columns: 1fr;
 }
 .bonus-analysis-sidebar .bonus-analysis-tiers {
-  flex-wrap: nowrap;
+  min-width: 0;
 }
 .bonus-analysis-sidebar .bonus-analysis-note {
   margin-top: 0.1rem;
@@ -9895,54 +9999,7 @@ main:has(.page-head[data-page-head=item-market]) {
 }
 
 .bonus-analysis-tiers {
-  display: flex;
-  align-items: center;
-  gap: 0.2rem;
   min-width: 0;
-  padding: 0;
-  border: 0;
-  overflow-x: auto;
-  overscroll-behavior-inline: contain;
-  background: transparent;
-}
-
-.bonus-analysis-tiers button {
-  flex: 0 0 auto;
-  min-width: 2.65rem;
-  height: 2.05rem;
-  padding: 0 0.55rem;
-  border: 1px solid transparent;
-  border-radius: 0.18rem;
-  background: transparent;
-  color: #aeb8c8;
-  font: inherit;
-  font-size: 0.72rem;
-  cursor: pointer;
-}
-
-.bonus-analysis-tiers button:last-child {
-  min-width: auto;
-}
-
-.bonus-analysis-tiers button.is-active {
-  color: #fff;
-}
-
-.bonus-analysis-tiers button[data-tier].is-active {
-  border-color: var(--color-item-tier);
-  background: var(--color-item-tier);
-  color: var(--color-on-item-tier, #fff);
-}
-
-.bonus-analysis-tiers button[data-analysis-filter=all].is-active {
-  border-color: #8190a4;
-  background: #354151;
-  color: #f1f5fa;
-}
-
-.bonus-analysis-tiers button:not(.is-active):hover {
-  border-color: #657184;
-  color: #e7edf5;
 }
 
 .bonus-analysis-note {
@@ -13150,7 +13207,7 @@ main:has(.page-head[data-page-head=item-market]) {
   }
 }
 /* Desktop trade analysis is a contained workspace: long tables scroll in-panel. */
-@media (min-width: 1101px) {
+@media (min-width: 992px) {
   .trades-page {
     flex: 1;
     min-height: 0;
@@ -18822,9 +18879,38 @@ main.tool-page > .page-body {
   flex-direction: column;
   flex: 1 1 0;
   min-height: 0;
+  min-width: 0;
   padding-bottom: var(--spacing-sm);
 }
 
+@media (min-width: 992px) {
+  .app-content:has(main.tool-page) {
+    overflow: visible;
+  }
+  main.tool-page > .page-body > .tool-split {
+    height: auto;
+  }
+  main.tool-page > .page-body > .tool-split > .left {
+    overflow: auto;
+    overscroll-behavior: contain;
+  }
+  main.tool-page > .page-body > .tool-split > .left > .summary {
+    flex: 0 0 auto;
+    margin-top: auto;
+  }
+  main.tool-page > .page-body > .tool-split > .right {
+    overflow: auto;
+    overscroll-behavior: contain;
+  }
+  .tool-page .result--sections {
+    overflow: auto;
+    overscroll-behavior: contain;
+  }
+  main.tool-page .tool-page-bottom-result {
+    overflow: auto;
+    overscroll-behavior: contain;
+  }
+}
 .tool-page-top-controls {
   flex: 0 0 auto;
   width: 100%;
@@ -19630,32 +19716,6 @@ main.tool-page > .page-body {
 .opp-rescan:hover {
   color: var(--color-text);
   border-color: var(--color-text-muted);
-}
-
-.opp-layout {
-  display: flex;
-  flex: 0 0 auto;
-  gap: 0.25rem;
-}
-
-.opp-layout-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 2.15rem;
-  padding: 0;
-  border: 1px solid var(--color-border);
-  background: var(--color-surface);
-  color: var(--color-text-muted);
-}
-.opp-layout-btn svg {
-  width: 1rem;
-  height: 1rem;
-}
-.opp-layout-btn.is-active {
-  border-color: var(--color-primary);
-  color: var(--color-text);
-  background: color-mix(in srgb, var(--color-primary) 14%, var(--color-surface));
 }
 
 .opp-page .result > [data-opportunities-result] {
@@ -21537,7 +21597,7 @@ main.tool-page > .page-body {
   padding: 0.25rem 0.35rem;
   min-height: 1.7rem;
 }
-.item-market-page .segmented-choice-button.is-active {
+.item-market-page .segmented-choice:not(.segmented-choice--filter) .segmented-choice-button.is-active {
   color: #171c20;
   background: var(--market-gold);
   border-color: var(--market-gold);
@@ -21597,7 +21657,7 @@ main.tool-page > .page-body {
 .item-market-page .market-search .segmented-choice {
   flex-wrap: wrap;
 }
-.item-market-page .market-search .segmented-choice-button {
+.item-market-page .market-search .segmented-choice:not(.segmented-choice--filter) .segmented-choice-button {
   font-size: 0.65rem;
   padding: 0.2rem 0.3rem;
   flex: 1;
@@ -21796,7 +21856,7 @@ main.tool-page > .page-body {
   font-size: 0.55rem;
   color: var(--market-gold);
 }
-.item-market-page .calc-table td button[data-city] {
+.item-market-page .calc-table td button[data-market-city] {
   display: block;
   border: 0;
   background: transparent;
@@ -21841,11 +21901,14 @@ main.tool-page > .page-body {
   gap: 0.5rem;
   min-height: 11rem;
 }
+.item-market-page .market-charts > .market-panel {
+  overflow: auto;
+}
 .item-market-page .market-charts .market-panel-heading h2 {
   flex: 1;
 }
 .item-market-page .market-chart {
-  min-height: 0;
+  min-height: 4rem;
   flex: 1;
   display: flex;
   align-items: center;
@@ -21870,21 +21933,8 @@ main.tool-page > .page-body {
   font-size: 0.6rem;
 }
 .item-market-page .market-chart-legend {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.15rem;
-  max-height: 2.8rem;
-  overflow: auto;
   flex: 0 0 auto;
-}
-.item-market-page .market-chart-legend .btn {
-  font-size: 0.65rem;
-  padding: 0.05rem 0.2rem;
   min-width: 0;
-  min-height: 1.25rem;
-}
-.item-market-page .market-chart-legend [aria-pressed=false] {
-  opacity: 0.5;
 }
 .item-market-page .market-chart-empty {
   color: var(--color-text-muted);
@@ -22013,6 +22063,153 @@ main.tool-page > .page-body {
   .item-market-page .market-quality h2 {
     max-width: 80%;
   }
+}
+
+[data-tool=potential-prices] :is(td, strong)[data-price-tone=success] {
+  color: var(--color-success);
+}
+[data-tool=potential-prices] :is(td, strong)[data-price-tone=warning] {
+  color: var(--color-warning);
+}
+[data-tool=potential-prices] :is(td, strong)[data-price-tone=secondary] {
+  color: var(--color-text-muted);
+}
+[data-tool=potential-prices] .potential-price-item {
+  display: grid;
+  grid-template-columns: auto minmax(min-content, 1fr);
+  align-items: center;
+  gap: var(--spacing-sm);
+  min-width: min-content;
+}
+[data-tool=potential-prices] .potential-price-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+}
+[data-tool=potential-prices] .potential-price-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 19rem), 1fr));
+  gap: var(--spacing-sm);
+}
+[data-tool=potential-prices] .potential-price-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-lg);
+  min-width: 0;
+  padding: var(--spacing-lg);
+  background: linear-gradient(145deg, color-mix(in srgb, var(--color-info) 5%, var(--color-surface)), var(--color-surface));
+  border: var(--border-width) solid var(--color-border);
+  border-radius: 0.875rem;
+}
+[data-tool=potential-prices] .potential-price-card-heading, [data-tool=potential-prices] .potential-price-card footer, [data-tool=potential-prices] .potential-price-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-sm);
+  font-size: var(--font-size-sm);
+}
+[data-tool=potential-prices] .potential-price-card-heading {
+  color: var(--color-text-muted);
+  font-weight: var(--font-weight-semibold);
+  text-transform: uppercase;
+}
+[data-tool=potential-prices] .potential-price-period {
+  flex-shrink: 0;
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border: var(--border-width) solid color-mix(in srgb, var(--color-primary) 35%, var(--color-border));
+  border-radius: 0.375rem;
+  background: color-mix(in srgb, var(--color-primary) 7%, transparent);
+  color: var(--color-primary);
+  font-size: var(--font-size-lg);
+}
+[data-tool=potential-prices] .potential-price-card-market {
+  display: grid;
+  gap: var(--spacing-sm);
+}
+[data-tool=potential-prices] .potential-price-card h2 {
+  margin: 0;
+  font-size: 2rem;
+  font-weight: var(--font-weight-bold);
+  line-height: 1.1;
+  overflow-wrap: anywhere;
+}
+[data-tool=potential-prices] .potential-price-card .potential-price-item {
+  grid-template-columns: auto minmax(0, 1fr);
+  min-width: 0;
+  align-items: stretch;
+}
+[data-tool=potential-prices] .potential-price-card .potential-price-item > div {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+[data-tool=potential-prices] .potential-price-card p {
+  margin: 0;
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+  font-weight: var(--font-weight-semibold);
+}
+[data-tool=potential-prices] .potential-price-card footer {
+  margin-top: auto;
+  padding-top: var(--spacing-md);
+  border-top: var(--border-width) solid var(--color-border-strong);
+  align-items: end;
+}
+[data-tool=potential-prices] .potential-price-value {
+  display: grid;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+}
+[data-tool=potential-prices] .potential-price-value strong {
+  font-size: 2.25rem;
+  line-height: 1.15;
+  letter-spacing: -0.04em;
+}
+[data-tool=potential-prices] .potential-price-status {
+  color: var(--color-text-muted);
+}
+[data-tool=potential-prices] .potential-price-card[data-price-tone=success] .potential-price-status {
+  color: var(--color-success);
+}
+[data-tool=potential-prices] .potential-price-card[data-price-tone=warning] .potential-price-status {
+  color: var(--color-warning);
+}
+[data-tool=potential-prices] .potential-price-status::before {
+  content: "";
+  display: inline-block;
+  width: 0.45rem;
+  height: 0.45rem;
+  margin-right: var(--spacing-sm);
+  border-radius: 50%;
+  background: currentColor;
+  box-shadow: 0 0 0.5rem currentColor;
+}
+[data-tool=potential-prices] .potential-price-card [data-detail] {
+  padding: 0.625rem var(--spacing-md);
+  border-radius: 0.5rem;
+  font-weight: var(--font-weight-semibold);
+}
+[data-tool=potential-prices] .potential-price-pagination {
+  flex-wrap: wrap;
+}
+[data-tool=potential-prices] .potential-price-pagination {
+  justify-content: center;
+  margin-top: var(--spacing-sm);
+}
+[data-tool=potential-prices] .potential-price-details {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
+  gap: var(--spacing-sm);
+  margin-top: var(--spacing-md);
+  font-size: var(--font-size-sm);
+}
+[data-tool=potential-prices] .potential-price-details dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+[data-tool=potential-prices] .app-dialog-sheet {
+  display: grid;
+  gap: var(--spacing-sm);
 }
 
 .flipper-page {
@@ -22684,24 +22881,12 @@ main.tool-page > .page-body {
   margin: 0;
   white-space: nowrap;
 }
-.flipper-page .flipper-list-head > .flipper-sort {
+.flipper-page .flipper-list-head > .sort-switch {
   flex: 0 1 auto;
   min-width: 0;
   margin-left: auto;
   flex-wrap: nowrap;
   overflow-x: auto;
-}
-.flipper-page .flipper-list-head .flipper-sort > button {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex: 0 0 2rem;
-  padding: 0.25rem;
-  min-height: 2rem;
-}
-.flipper-page .flipper-list-head .flipper-sort .flipper-icon {
-  width: 1.1rem;
-  height: 1.1rem;
 }
 
 .page-info-button {
@@ -22747,7 +22932,6 @@ main.tool-page > .page-body {
 
 .page-info-dialog {
   width: 36rem;
-  transform: translateX(calc(var(--app-dialog-close-clearance) / -2));
   padding: 0;
   border: 1px solid var(--color-border-strong);
   border-radius: 0.75rem;

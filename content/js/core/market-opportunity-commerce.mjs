@@ -72,7 +72,7 @@ function dominates(a, b) {
 /** Economic/non-economic tradeoffs use Pareto layers rather than new score weights.
  * Group only after filters. All underlying opportunities and alternatives survive.
  */
-export function rankCommercialOpportunities(rows, { calibration = qualityCalibration(rows), strategyContext = null, mode = 'balanced' } = {}) {
+export function rankCommercialOpportunities(rows, { calibration = qualityCalibration(rows), strategyContext = null, mode = 'balanced', includeParetoFronts = true } = {}) {
     let selected = rows.map((row, index) => {
         if (!row.eligible || row.potential) return { ...row, commercialOrder: index };
         const choices = (row.presentationStrategies || row.strategies || []).filter(strategy => strategy.weight > 0 && strategy.advantageSilver > 0);
@@ -97,8 +97,13 @@ export function rankCommercialOpportunities(rows, { calibration = qualityCalibra
         .sort((a, b) => a.commercial.nominalSilver - b.commercial.nominalSilver || baseCompare(a, b));
     if (mode !== 'balanced') return selected.sort((a, b) => mode === 'recent' ? (b.recency || 0) - (a.recency || 0) : (b.score || 0) - (a.score || 0));
     const laneOrder = { commercial: 0, reference: 1, watch: 2 };
+    if (!includeParetoFronts) return selected;
     for (const lane of Object.keys(laneOrder)) {
         let remaining = selected.filter(row => row.commercialLane === lane);
+        // Rows without commercial metrics are incomparable to every row.
+        // Assign their first front directly instead of comparing every watch pair.
+        for (const row of remaining) if (!row.commercial) row.commercialFront = 0;
+        remaining = remaining.filter(row => row.commercial);
         let front = 0;
         while (remaining.length) {
             const layer = remaining.filter(row => !remaining.some(other => other !== row && dominates(other, row)));

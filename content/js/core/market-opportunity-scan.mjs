@@ -109,7 +109,30 @@ function exclusionReason(snapshot) {
 
 const assessmentCaches = new WeakMap();
 const spreadReviewCaches = new WeakMap();
-export function scanQuoteBooks({
+// One calculation path for CLI audits and cooperative HTTP scans.
+export function runScanSteps(steps) {
+    let step;
+    do { step = steps.next(); } while (!step.done);
+    return step.value;
+}
+
+export async function runScanStepsAsync(steps) {
+    let step;
+    let deadline = Date.now() + 8;
+    do {
+        step = steps.next();
+        if (!step.done && Date.now() >= deadline) {
+            await new Promise(resolve => setTimeout(resolve, 0));
+            deadline = Date.now() + 8;
+        }
+    } while (!step.done);
+    return step.value;
+}
+
+export function scanQuoteBooks(options) { return runScanSteps(scanQuoteBookSteps(options)); }
+export function scanQuoteBooksAsync(options) { return runScanStepsAsync(scanQuoteBookSteps(options)); }
+
+export function* scanQuoteBookSteps({
     server, packetHistory, repository, now = Date.now(), premium = true, fees,
     policy = OPPORTUNITY_POLICY, includeEvaluation = false, includeCandidates = false
 } = {}) {
@@ -129,6 +152,7 @@ export function scanQuoteBooks({
     if (cacheOwner && !assessments) { assessments = new Map(); assessmentCaches.set(cacheOwner, assessments); }
     const snapshots = [];
     for (const group of groups.values()) {
+        yield;
         const read = (side) => {
             if (!group.sides.has(side)) return assessMarketSide({ now, policy });
             const identity = { ...group, side };
@@ -159,11 +183,15 @@ export function scanQuoteBooks({
         if (!byItem.has(key)) byItem.set(key, []);
         byItem.get(key).push(snapshot);
     }
-    const analyzed = snapshots.map((snapshot) => analyzeMarketCell({
-        ...snapshot,
-        peers: (byItem.get(`${snapshot.itemId}|${snapshot.quality}`) || []).filter((peer) => peer.city !== snapshot.city),
-        premium, fees, now, policy
-    }));
+    const analyzed = [];
+    for (const snapshot of snapshots) {
+        yield;
+        analyzed.push(analyzeMarketCell({
+            ...snapshot,
+            peers: (byItem.get(`${snapshot.itemId}|${snapshot.quality}`) || []).filter((peer) => peer.city !== snapshot.city),
+            premium, fees, now, policy
+        }));
+    }
     const excluded = { noHistory: 0, singleObservation: 0, stale: 0, belowDeviation: 0, suspicious: 0, insufficient: 0, overLimit: 0 };
     const candidates = [];
     snapshots.forEach((snapshot, index) => {
@@ -173,6 +201,7 @@ export function scanQuoteBooks({
     let spreadReviews = cacheOwner && spreadReviewCaches.get(cacheOwner);
     if (cacheOwner && !spreadReviews) { spreadReviews = new Map(); spreadReviewCaches.set(cacheOwner, spreadReviews); }
     for (const row of candidates) if (row.strategies.some(strategy => strategy.id === 'local-make')) {
+        yield;
         const identity = { server: row.server, itemId: row.itemId, city: row.city, quality: row.quality };
         row.spreadRealism = assessSpreadRealism({ row, buyIdentity: identity, sellIdentity: identity, premium, fees, calibration: spreadContext });
         let history = { buy: [], sell: [] };
@@ -196,7 +225,10 @@ export function scanQuoteBooks({
         row.spreadReview = cachedReview?.result || assessHistoricalSpread(row, history.buy, history.sell);
         if (row.spreadRealism.reasons.length) row.spreadReview = { ...row.spreadReview, classification: 'insufficient', reason: 'current-evidence-inconsistent' };
     }
-    for (let index = 0; index < candidates.length; index++) candidates[index] = reviewOpportunityResults(candidates[index], policy, { premium, fees });
+    for (let index = 0; index < candidates.length; index++) {
+        yield;
+        candidates[index] = reviewOpportunityResults(candidates[index], policy, { premium, fees });
+    }
     const reviewed = new Map(candidates.map(row => [cellKey(row), row]));
     for (const snapshot of snapshots) if (!reviewed.get(cellKey(snapshot))?.eligible) excluded[exclusionReason(snapshot)] += 1;
     const ranked = rankMarketOpportunities(candidates, { mode: 'balanced', policy });

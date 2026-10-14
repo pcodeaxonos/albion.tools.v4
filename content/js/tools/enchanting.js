@@ -1,3 +1,4 @@
+import { cityNameHtml } from '../components/city-name.js';
 import { toolPageHtml } from '../core/app-runtime.js';
 import { itemNameHtml } from '../components/item-name.js';
 import { escapeHtml } from '../utils/utils.js';
@@ -212,7 +213,7 @@ function renderSlotToggle() {
 function renderMatStrip() {
     return `
         <div class="enchant-mats" id="enchantMats">
-            <p class="material-price-matrix-note">${escapeHtml(priceSideHint(state.matSide, 'buy'))} · ${escapeHtml(cityLabel(state.city))}</p>
+            <p class="material-price-matrix-note">${escapeHtml(priceSideHint(state.matSide, 'buy'))} · ${cityNameHtml(state.city)}</p>
             <div class="enchant-mats-grid" style="--enchant-mat-cols: ${TIERS.length}">
                 <div class="material-price-matrix-corner" aria-hidden="true"></div>
                 ${TIERS.map((tier) => `<div class="material-price-matrix-heading">T${tier}</div>`).join('')}
@@ -320,7 +321,7 @@ function renderOutput() {
             ${renderMatStrip()}
             ${renderTable()}
             <section data-page-info>
-            <p class="tool-result-note">${slot.qty} ${itemNameHtml('Rune')} / ${itemNameHtml('Soul')} / ${itemNameHtml('Relic')} · ${escapeHtml(cityLabel(state.city))} ${escapeHtml(hint)}${stamp ? ` · ${stamp}` : ''}. Elle yazılan malzeme fiyatı API’nin yerine geçer. Kırmızı fiyat API’de yok; mavi 6 saatten eski.</p>
+            <p class="tool-result-note">${slot.qty} ${itemNameHtml('Rune')} / ${itemNameHtml('Soul')} / ${itemNameHtml('Relic')} · ${cityNameHtml(state.city)} ${escapeHtml(hint)}${stamp ? ` · ${stamp}` : ''}. Elle yazılan malzeme fiyatı API’nin yerine geçer. Kırmızı fiyat API’de yok; mavi 6 saatten eski.</p>
             <p class="tool-result-note tool-result-note--linked">Vurgu: ${escapeHtml(standardHighlightNote())}. 0 → hedef yolları daha koyu. <a href="${routeHref('settings')}">Ayarlardan değiştir</a></p>
             </section>
         </div>

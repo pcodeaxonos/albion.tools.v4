@@ -1,3 +1,4 @@
+import { cityNameHtml } from '../components/city-name.js';
 import { toggleAllFilter } from '../components/filter-selection.js';
 import { itemNameHtml } from '../components/item-name.js';
 import { toolPageHtml } from '../core/app-runtime.js';
@@ -517,7 +518,7 @@ function renderExplain(key, { hovered } = {}) {
                     tax,
                     setup: sellSetup,
                     sell: row.sell,
-                    label: cityLabel(state.city),
+                    city: state.city,
                     icon: itemIcon
                 })
             }
@@ -629,7 +630,7 @@ function renderOutput() {
             <section data-page-info>
             ${renderSummary(list)}
             ${renderBonusNote()}
-            <p class="tool-result-note">Malzeme ve satış ${escapeHtml(cityLabel(state.city))} · ${escapeHtml(matNote)}. Satış ${escapeHtml(itemNote)}. Elle yazılan alış/satış API’nin yerine geçer. Kırmızı fiyat API’de yok; mavi 6 saatten eski.${stamp ? ` ${escapeHtml(stamp)}.` : ''}</p>
+            <p class="tool-result-note">Malzeme ve satış ${cityNameHtml(state.city)} · ${escapeHtml(matNote)}. Satış ${escapeHtml(itemNote)}. Elle yazılan alış/satış API’nin yerine geçer. Kırmızı fiyat API’de yok; mavi 6 saatten eski.${stamp ? ` ${escapeHtml(stamp)}.` : ''}</p>
             </section>
         </div>
     `;

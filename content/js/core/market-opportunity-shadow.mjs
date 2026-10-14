@@ -1,6 +1,6 @@
 import { ANOMALY_STRATEGY } from './opportunity-status.mjs';
 import { OPPORTUNITY_POLICY } from './market-opportunities.mjs';
-import { scanQuoteBooks } from './market-opportunity-scan.mjs';
+import { scanQuoteBookSteps, runScanSteps } from './market-opportunity-scan.mjs';
 import { OBSERVATION_POLICY } from './market-observation.mjs';
 
 /** Keep only fields used by the shadow report, then release the full per-cell traces. */
@@ -27,18 +27,20 @@ function compactEvaluation(scan) {
 }
 
 /** Bounded, serializable comparison. No claim of accuracy without labeled outcomes. */
-export function shadowEvaluate({ validatedScan, ...options }) {
+export function shadowEvaluate(options) { return runScanSteps(shadowEvaluationSteps(options)); }
+
+export function* shadowEvaluationSteps({ validatedScan, legacyScan, ...options }) {
     // quote-service passes the validated payload itself. Compact it before starting
     // the legacy pass so two full per-cell evidence traces are never held together.
     let validated = validatedScan;
     let next = validated ? compactEvaluation(validated) : null;
 
-    const legacy = scanQuoteBooks({ ...options, includeEvaluation: true,
-        policy: { ...OPPORTUNITY_POLICY, validationMode: 'legacy' } });
+    const legacy = legacyScan || (yield* scanQuoteBookSteps({ ...options, includeEvaluation: true,
+        policy: { ...OPPORTUNITY_POLICY, validationMode: 'legacy' } }));
     const old = compactEvaluation(legacy);
 
     if (!next) {
-        validated = scanQuoteBooks({ ...options, includeEvaluation: true, policy: OPPORTUNITY_POLICY });
+        validated = yield* scanQuoteBookSteps({ ...options, includeEvaluation: true, policy: OPPORTUNITY_POLICY });
         next = compactEvaluation(validated);
     }
 

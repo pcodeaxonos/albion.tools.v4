@@ -1,3 +1,4 @@
+import { cityNameHtml } from './city-name.js';
 import { itemNameHtml } from './item-name.js';
 import { escapeHtml } from '../utils/utils.js';
 
@@ -55,5 +56,5 @@ export function tradeHistoryChartHtml(series, { itemName, formatPrice, formatDat
     const lines = series.map(city => `<g data-city="${escapeHtml(city.key)}" class="trades-chart-series"><polyline points="${city.points.map(p => `${x(p)},${y(p.price)}`).join(' ')}"/>${city.points.map(p => `<circle cx="${x(p)}" cy="${y(p.price)}" r="3"><title>${escapeHtml(`${city.label} · ${formatDate(p.time)} · ${formatPrice(p.price)} Silver · ${p.quantity} adet`)}</title></circle>`).join('')}</g>`).join('');
     const dateLabel = time => new Date(time).toLocaleDateString('tr-TR', { day: '2-digit', month: '2-digit', year: '2-digit' });
     const dates = days.length === 1 ? `<text x="${left + plotWidth / 2}" y="${height - 16}" text-anchor="middle">${escapeHtml(dateLabel(first))}</text>` : `<text x="${left}" y="${height - 16}">${escapeHtml(dateLabel(first))}</text><text x="${width - right}" y="${height - 16}" text-anchor="end">${escapeHtml(dateLabel(last))}</text>`;
-    return `${heading}<p class="trades-chart-note">Her nokta bir satış · İşlem günleri eşit aralıklı, gün içi satışlar sırayla</p><svg viewBox="0 0 ${width} ${height}" role="img" aria-label="${escapeHtml(itemName)} için şehirlere göre satış birim fiyatı (Silver) geçmişi">${grid}${lines}${dates}</svg><div class="trades-chart-legend">${series.map(city => `<span data-city="${escapeHtml(city.key)}">${escapeHtml(city.label.toLocaleUpperCase('en-US'))}</span>`).join('')}</div>`;
+    return `${heading}<p class="trades-chart-note">Her nokta bir satış · İşlem günleri eşit aralıklı, gün içi satışlar sırayla</p><svg viewBox="0 0 ${width} ${height}" role="img" aria-label="${escapeHtml(itemName)} için şehirlere göre satış birim fiyatı (Silver) geçmişi">${grid}${lines}${dates}</svg><div class="trades-chart-legend">${series.map(city => `${cityNameHtml(city.key)}`).join('')}</div>`;
 }

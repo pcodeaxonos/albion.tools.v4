@@ -1,3 +1,4 @@
+import { cityName, cityNameHtml, cityNameAttributes, cityDataKey } from './city-name.js';
 import { fieldLabel, fieldAllButtonHtml, fieldHeadingHtml } from './form-field.js';
 import { escapeHtml } from '../utils/utils.js';
 import { getAll } from '../db/store.js';
@@ -74,7 +75,7 @@ function renderStandardOptions(cities, selected, decorate, allowAll = false) {
         const current = city.marketApiName === selected ? ' selected' : '';
         const { hint, attrs } = optionMeta(city, decorate);
         const suffix = hint ? ` · ${hint}` : '';
-        return `<option value="${escapeHtml(city.marketApiName)}"${current}${attrs}>${escapeHtml(city.displayName)}${escapeHtml(suffix)}</option>`;
+        return `<option ${cityNameAttributes(city)} value="${escapeHtml(city.marketApiName)}"${current}${attrs}>${escapeHtml(cityName(city))}${escapeHtml(suffix)}</option>`;
     }).join('');
 }
 
@@ -82,12 +83,31 @@ function orderedCities(cities) {
     return orderCities(cities);
 }
 
+/** Data-backed filters retain their real values and any active value after reload. */
+export function cityFilterFieldHtml({ values = [], selected = '', ...opts }) {
+    const catalog = loadActiveCities();
+    const available = [...new Set([...values, ...(selected ? [selected] : [])])].filter(Boolean);
+    const cities = available.map(value => ({
+        ...catalog.find(city => city.marketApiName === value || cityKey(city) === cityKey({ name: value })),
+        displayName: value, marketApiName: value
+    }));
+    return cityFieldHtml({ ...opts, selected, cities, allowAll: true, showAllButton: true });
+}
+
+function cityCrestHtml(city) {
+    if (city.iconHtml) return `<span class="city-crest" aria-hidden="true">${city.iconHtml}</span>`;
+    const key = cityKey(city);
+    if (Object.hasOwn(FALLBACK_COLORS, key)) return `<img class="city-crest" src="assets/cities/${escapeHtml(key)}.png" alt="" aria-hidden="true">`;
+    // Trade records can contain destinations outside the city catalog.
+    return '<span class="city-crest" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M4 21V8l8-5 8 5v13M2 21h20M8 21v-7h8v7M8 9h8"/></svg></span>';
+}
+
 function renderHorizontalNodes(cities, selected, decorate, crests = false) {
     return cities.map((city) => {
         const color = cityColorHex(city);
         const pressed = city.marketApiName === selected;
         const { muted, hint } = optionMeta(city, decorate);
-        const title = hint ? `${city.displayName} (${hint})` : city.displayName;
+        const title = hint ? `${cityName(city)} (${hint})` : cityName(city);
         return `
             <button type="button"
                 class="city-map-node city-map-node--horizontal${pressed ? ' is-selected' : ''}${muted ? ' is-muted' : ''}"
@@ -97,8 +117,8 @@ function renderHorizontalNodes(cities, selected, decorate, crests = false) {
                 aria-pressed="${pressed ? 'true' : 'false'}"
                 aria-label="${escapeHtml(title)}"
                 data-app-tooltip="${escapeHtml(title)}">
-                ${crests && city.iconHtml ? `<span class="city-crest" aria-hidden="true">${city.iconHtml}</span>` : crests ? `<img class="city-crest" src="assets/cities/${escapeHtml(cityKey(city))}.png" alt="" aria-hidden="true">` : ''}
-                <span class="city-map-tip" aria-hidden="true">${escapeHtml(city.displayName)}</span>
+                ${crests ? cityCrestHtml(city) : ''}
+                <span class="city-map-tip" aria-hidden="true">${cityNameHtml(city)}</span>
             </button>
         `;
     }).join('');
@@ -110,7 +130,7 @@ function renderDiagonalNodes(cities, selected, decorate) {
         const color = cityColorHex(city);
         const pressed = city.marketApiName === selected;
         const { muted, hint } = optionMeta(city, decorate);
-        const title = hint ? `${city.displayName} (${hint})` : city.displayName;
+        const title = hint ? `${cityName(city)} (${hint})` : cityName(city);
         return `
             <button type="button"
                 class="city-map-node${pressed ? ' is-selected' : ''}${muted ? ' is-muted' : ''}"
@@ -119,7 +139,7 @@ function renderDiagonalNodes(cities, selected, decorate) {
                 aria-pressed="${pressed ? 'true' : 'false'}"
                 aria-label="${escapeHtml(title)}"
                 data-app-tooltip="${escapeHtml(title)}">
-                <span class="city-map-tip" aria-hidden="true">${escapeHtml(city.displayName)}</span>
+                <span class="city-map-tip" aria-hidden="true">${cityNameHtml(city)}</span>
             </button>
         `;
     }).join('');
@@ -128,7 +148,7 @@ function renderDiagonalNodes(cities, selected, decorate) {
 function applyDiagonalNodeDecor(node, city, selected, decorate) {
     const pressed = city.marketApiName === selected;
     const { muted, hint } = optionMeta(city, decorate);
-    const title = hint ? `${city.displayName} (${hint})` : city.displayName;
+    const title = hint ? `${cityName(city)} (${hint})` : cityName(city);
     node.classList.toggle('is-selected', pressed);
     node.classList.toggle('is-muted', muted);
     node.setAttribute('aria-pressed', pressed ? 'true' : 'false');
@@ -136,7 +156,7 @@ function applyDiagonalNodeDecor(node, city, selected, decorate) {
     node.dataset.appTooltip = title;
     const tip = node.querySelector('.city-map-tip');
     if (tip) {
-        tip.textContent = city.displayName;
+        tip.innerHTML = cityNameHtml(city);
     }
 }
 
@@ -152,16 +172,16 @@ export function cityFieldHtml(opts) {
         cities = loadActiveCities(),
         className = 'tool-form-field',
         decorate,
-        order,
         disabled = false,
         allowAll = false,
-        showAllButton = false,
-        style = getCityPickerStyle()
+        showAllButton = false
     } = opts;
+    // Appearance is a project preference; consumers only supply domain data/state.
+    const style = getCityPickerStyle();
 
     const allButton = allowAll && showAllButton ? fieldAllButtonHtml({ label, attributes: `data-city-all${disabled ? ' disabled' : ''}`, active: !selected }) : '';
     const heading = fieldHeadingHtml(label, allButton, `id="${escapeHtml(id)}-label"`);
-    const list = orderedCities(Array.isArray(cities) ? cities : loadActiveCities(), order);
+    const list = orderedCities(Array.isArray(cities) ? cities : loadActiveCities());
 
     if (style === 'buttons' || style === 'crests') {
         return `
@@ -189,7 +209,7 @@ export function cityFieldHtml(opts) {
 
     return `
         <div class="form-floating city-field city-field--standard ${escapeHtml(className)} form-field" data-city-field="${escapeHtml(id)}">
-            <select class="form-select is-filled" id="${escapeHtml(id)}" data-city-input data-city-allow-all="${allowAll}"${disabled ? ' disabled' : ''}>
+            <select ${selected ? cityNameAttributes(selected) : ''} class="form-select is-filled" id="${escapeHtml(id)}" data-city-input data-city-allow-all="${allowAll}"${disabled ? ' disabled' : ''}>
                 ${renderStandardOptions(list, selected, decorate, allowAll)}
             </select>
             <label for="${escapeHtml(id)}">${fieldLabel(label)}</label>${allButton}
@@ -245,6 +265,10 @@ export function setCityFieldValue(container, id, value) {
     const input = container.querySelector(`[data-city-field="${CSS.escape(id)}"] [data-city-input]`);
     if (input) {
         input.value = value ?? '';
+        if (input.tagName === 'SELECT') {
+            if (value) { input.dataset.city = cityDataKey(value); input.lang = 'en'; }
+            else { delete input.dataset.city; input.removeAttribute?.('lang'); }
+        }
     }
     syncCityBackground(container);
     const allButton = field?.querySelector('[data-city-all]');
@@ -271,7 +295,7 @@ export function syncCityField(container, id, opts) {
     if (!field) {
         return;
     }
-    const list = orderedCities(Array.isArray(opts.cities) ? opts.cities : loadActiveCities(), opts.order);
+    const list = orderedCities(Array.isArray(opts.cities) ? opts.cities : loadActiveCities());
     const selected = opts.selected;
     const decorate = opts.decorate;
     setCityFieldValue(container, id, selected);

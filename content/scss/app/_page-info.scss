@@ -22,7 +22,6 @@
 [data-page-info-head] { position: relative; padding-right: 4rem; }
 .page-info-dialog {
     width: 36rem;
-    transform: translateX(calc(var(--app-dialog-close-clearance) / -2));
     padding: 0;
     border: 1px solid var(--color-border-strong);
     border-radius: .75rem;

@@ -807,7 +807,7 @@ await placementTest('Potential conservative sale prices use the daily engine wit
     }
     const sameInputs = v2.calculateIslandPlan({ entries: selectedEntries, update: false, inputPrices, salePrices });
     near(expected.summary.net, sameInputs.summary.net, 'same price inputs give same existing engine result');
-    assert.ok(v2.renderControls().includes('#potentialPrices'));
+    assert.ok(v2.renderControls().includes('/pages/tools/potential-prices/'));
     assert.ok(!v2.renderControls().includes('data-v2-sales-share'));
 });
 await placementTest('Potential acquisition and harvest selections are independent and unknown prices never fall back silently', async () => {

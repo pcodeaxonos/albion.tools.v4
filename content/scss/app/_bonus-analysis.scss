@@ -109,9 +109,7 @@
         grid-template-columns: 1fr;
     }
 
-    .bonus-analysis-tiers {
-        flex-wrap: nowrap;
-    }
+    .bonus-analysis-tiers { min-width: 0; }
 
     .bonus-analysis-note {
         margin-top: 0.1rem;
@@ -322,62 +320,7 @@
         color: #edf1f7;
         }
 }
-.bonus-analysis-tiers {
-    display: flex;
-    align-items: center;
-    gap: 0.2rem;
-    min-width: 0;
-    padding: 0;
-    border: 0;
-    overflow-x: auto;
-    overscroll-behavior-inline: contain;
-    background: transparent;
-}
-.bonus-analysis-tiers {
-    button {
-        flex: 0 0 auto;
-        min-width: 2.65rem;
-        height: 2.05rem;
-        padding: 0 0.55rem;
-        border: 1px solid transparent;
-        border-radius: 0.18rem;
-        background: transparent;
-        color: #aeb8c8;
-        font: inherit;
-        font-size: 0.72rem;
-        cursor: pointer;
-        }
-}
-.bonus-analysis-tiers {
-    button:last-child {
-        min-width: auto;
-        }
-}
-.bonus-analysis-tiers {
-    button.is-active {
-        color: #fff;
-        }
-}
-.bonus-analysis-tiers {
-    button[data-tier].is-active {
-        border-color: var(--color-item-tier);
-        background: var(--color-item-tier);
-        color: var(--color-on-item-tier, #fff);
-        }
-}
-.bonus-analysis-tiers {
-    button[data-analysis-filter="all"].is-active {
-        border-color: #8190a4;
-        background: #354151;
-        color: #f1f5fa;
-        }
-}
-.bonus-analysis-tiers {
-    button:not(.is-active):hover {
-        border-color: #657184;
-        color: #e7edf5;
-        }
-}
+.bonus-analysis-tiers { min-width: 0; }
 .bonus-analysis-note {
     padding: 0.5rem 0.7rem;
     border: 1px solid #27496c;

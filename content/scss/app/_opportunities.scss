@@ -140,31 +140,6 @@ $opp-amber: color-mix(in srgb, var(--color-warning) 55%, var(--color-danger));
     &:hover { color: var(--color-text); border-color: var(--color-text-muted); }
 }
 
-.opp-layout {
-    display: flex;
-    flex: 0 0 auto;
-    gap: .25rem;
-}
-
-.opp-layout-btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 2.15rem;
-    padding: 0;
-    border: 1px solid var(--color-border);
-    background: var(--color-surface);
-    color: var(--color-text-muted);
-
-    svg { width: 1rem; height: 1rem; }
-
-    &.is-active {
-        border-color: var(--color-primary);
-        color: var(--color-text);
-        background: color-mix(in srgb, var(--color-primary) 14%, var(--color-surface));
-    }
-}
-
 .opp-page .result > [data-opportunities-result] {
     display: flex;
     flex-direction: column;

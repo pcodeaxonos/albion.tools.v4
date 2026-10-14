@@ -1,3 +1,4 @@
+import { cityNameHtml } from '../components/city-name.js';
 import { itemNameHtml } from '../components/item-name.js';
 import { toolPageHtml } from '../core/app-runtime.js';
 import { escapeHtml } from '../utils/utils.js';
@@ -309,7 +310,7 @@ function renderSummary() {
             <p class="island-planner-total">
                 <strong>${formatSilver(plan.totalDay)}</strong>
                 <span>ham gümüş/gün · ${effectivePlots()} plot · önerilen: ${escapeHtml(rec)}</span>
-                <span class="island-planner-cities">alış ${escapeHtml(cityLabel(state.islandCity))} → satış ${escapeHtml(cityLabel(state.sellCity))}</span>
+                <span class="island-planner-cities">alış ${cityNameHtml(state.islandCity)} → satış ${cityNameHtml(state.sellCity)}</span>
             </p>
             <p class="island-planner-objective" data-page-info>Hedef: ham gümüş/gün = Σ (plot kârı ÷ döngü saati × 24). İstikrar sıralamaz, elemez veya “önerilen”i değiştirmez.</p>
             <p class="island-planner-feed">${escapeHtml(plan.feedNote || '—')}</p>
@@ -349,7 +350,7 @@ function renderCityCompare() {
     }
     const rows = list.map((row) => `
         <tr${row.city === state.islandCity ? ' class="is-active-city"' : ''}>
-            <td>${escapeHtml(cityLabel(row.city))}</td>
+            <td>${cityNameHtml(row.city)}</td>
             <td>
                 ${row.iconId ? itemIconHtml(row.iconId, { className: 'item-icon' }) : ''}
                 ${escapeHtml(row.label)}
@@ -1184,7 +1185,7 @@ function renderOutput() {
                 · maliyet / kâr bir plot · bir döngü
                 · sulama ${state.water ? 'açık' : 'kapalı'} (Ayarlar)
                 · ince pazar eşiği ${state.minVolume || 'yok'} (uyarı; eleme yok)
-                · alış ${escapeHtml(cityLabel(state.islandCity))} · satış ${escapeHtml(cityLabel(state.sellCity))}
+                · alış ${cityNameHtml(state.islandCity)} · satış ${cityNameHtml(state.sellCity)}
                 · <a href="${routeHref('island-yields')}">Ada Çıktı</a> kayıtları varsa yield ortalaması kullanılır
                 ${stamp ? ` · ${escapeHtml(stamp)}` : ''}
             </p>

@@ -1,4 +1,5 @@
 import { escapeHtml } from '../utils/utils.js';
+import { itemVariant } from '../core/item-variant.mjs';
 import { getItemLocalizedName, getItemByUniqueName } from '../db/relations.js';
 
 // Pages now live below `pages/...` and declare the repository root as their
@@ -28,11 +29,10 @@ export function rawStoneId(tier) {
 }
 
 export function itemTierBadgeHtml(uniqueName, { format = 'badge' } = {}) {
-    const tier = String(uniqueName || '').match(/^T([1-8])_/);
+    const { tier, enchant } = itemVariant(uniqueName);
     if (!tier) return '';
-    const enchant = String(uniqueName).match(/@(\d+)$/)?.[1] || '0';
-    if (format === 'text') return `${tier[1]}.${enchant}`;
-    return `<span class="badge" data-tier="${tier[1]}" aria-label="Tier ${tier[1]}, enchant ${enchant}">${tier[1]}.${enchant}</span>`;
+    if (format === 'text') return `${tier}.${enchant}`;
+    return `<span class="badge" data-tier="${tier}" aria-label="Tier ${tier}, enchant ${enchant}">${tier}.${enchant}</span>`;
 }
 
 export function itemIconHtml(uniqueName, { size = DEFAULT_SIZE, className = 'item-icon', visual = false } = {}) {

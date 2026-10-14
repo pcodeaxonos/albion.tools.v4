@@ -1,3 +1,4 @@
+import { cityNameHtml } from './city-name.js';
 import { STRATEGY_SPECS } from '../core/opportunity-status.mjs';
 import { CHECK_RESULTS, TRADE_EVENTS, emptyEvidence, signalSnapshot, verification, tradeAccounting, evidenceReport, freshnessBand, opportunityKey, evidenceCanonical, OPPORTUNITY_EVIDENCE_API } from '../core/opportunity-evidence.mjs';
 import { itemNameHtml } from './item-name.js';
@@ -9,6 +10,7 @@ import { escapeHtml } from '../utils/utils.js';
 import { formatSilver } from '../utils/format.js';
 import { readJsonStorage, writeJsonStorage, removeStorage } from '../core/storage.js';
 import { flushDurableWrites } from '../core/durable-storage.mjs';
+import { cityFilterFieldHtml, bindCityField } from './city-picker.js';
 
 const API_PATH = OPPORTUNITY_EVIDENCE_API, OUTBOX_KEY = 'opp-evidence-outbox-v1';
 const sideLabel = { buy: 'Alış tarafı', sell: 'Satış tarafı' };
@@ -73,7 +75,7 @@ export function createOpportunityEvidenceUI({ hub, reportHost }) {
     function tradeHtml(t, scope = 'detail') {
         const a = tradeAccounting(t), key = 'trade-' + t.id, draft = drafts.get(key) || {}, signal = state.signals[t.signalId];
         return uniqueFields(`<section data-evidence-trade="${escapeHtml(t.id)}"><h4>${itemNameHtml(state.signals[t.signalId].name)} · ${escapeHtml(statusLabel[t.status])}</h4>${summary(t)}
-            <p>Başlangıç sinyali: ${dateText(signal.observedAt)} · ${escapeHtml(signal.city)} → ${escapeHtml(signal.toCity)} · Q${signal.quality} · ${escapeHtml(signal.server)}. Başlangıçta ${t.verificationAtStart.verified}/${t.verificationAtStart.required} taraf olumlu kontrol edildi; sonraki kontroller bu tarihsel durumu değiştirmez.</p>
+            <p>Başlangıç sinyali: ${dateText(signal.observedAt)} · ${cityNameHtml(signal.city)} → ${cityNameHtml(signal.toCity)} · Q${signal.quality} · ${escapeHtml(signal.server)}. Başlangıçta ${t.verificationAtStart.verified}/${t.verificationAtStart.required} taraf olumlu kontrol edildi; sonraki kontroller bu tarihsel durumu değiştirmez.</p>
             ${t.status === 'open' ? `<form data-evidence-event-form><div class="tool-split"><div class="tool-split-controls">
             ${select('eventType', 'Kayıt türü', TRADE_EVENTS, draft.eventType || 'sell')}
             ${select('eventSide', 'Açık emir yönü', sideLabel, draft.eventSide || 'sell')}
@@ -95,7 +97,7 @@ export function createOpportunityEvidenceUI({ hub, reportHost }) {
         const positive = Object.values(v.sides).filter(c => ['correct', 'executable'].includes(c?.result));
         host.innerHTML = `<p data-evidence-progress>${v.verified}/${Object.keys(s.legs).length} taraf olumlu kontrol edildi. ${v.complete ? 'Gerekli taraflar kontrol edildi.' : 'Diğer taraf ayrıca kontrol edilmeli.'}</p>${statusHtml()}<div class="opp-check-grid">${Object.entries(s.legs).map(([side, leg]) => {
             const chosen = draft['result-'+side] || 'correct';
-            return `<form class="opp-check-side tool-split-controls" data-evidence-check-form="${side}"><header><span>${sideLabel[side]}</span><h3>${escapeHtml(leg.city)}</h3><span>Beklenen ${escapeHtml(leg.marketSide)} fiyatı</span><strong>${formatSilver(leg.price)}</strong><small>${escapeHtml(CHECK_RESULTS[v.sides[side]?.result] || 'Henüz kontrol edilmedi')}</small></header>
+            return `<form class="opp-check-side tool-split-controls" data-evidence-check-form="${side}"><header><span>${sideLabel[side]}</span><h3>${cityNameHtml(leg.city)}</h3><span>Beklenen ${escapeHtml(leg.marketSide)} fiyatı</span><strong>${formatSilver(leg.price)}</strong><small>${escapeHtml(CHECK_RESULTS[v.sides[side]?.result] || 'Henüz kontrol edilmedi')}</small></header>
             <div class="filter-choice-grid" style="--filter-choice-columns:2" role="radiogroup" aria-label="${sideLabel[side]} kontrol sonucu">${Object.entries(CHECK_RESULTS).map(([result,label]) => `<button type="button" class="segmented-choice-button segmented-choice-button--compact${result === chosen ? ' is-active' : ''}" role="radio" aria-checked="${result === chosen}" tabindex="${result === chosen ? 0 : -1}" data-evidence-result="${result}">${escapeHtml(label)}</button>`).join('')}</div>
             <details data-check-observations${['changed','quantity'].includes(chosen) ? ' open' : ''}><summary>Gözlenen fiyat, miktar ve tarih</summary><small>Oyun paketinde görülen miktar tek emir ve paket alınma anına aittir; güncel toplam kapasite değildir. Buraya oyunda kontrol ettiğiniz miktarı girin.</small>
             ${input('observedPrice-'+side,'Gözlenen fiyat',draft['observedPrice-'+side] ?? '')}
@@ -178,16 +180,17 @@ export function createOpportunityEvidenceUI({ hub, reportHost }) {
         const report = evidenceReport(state, filters), signals = Object.values(state.signals);
         const isEmpty = state.checks.length === 0 && Object.keys(state.trades).length === 0;
         const options = key => ({ '': 'Tümü', ...Object.fromEntries([...new Set(signals.flatMap(s => key === 'city' ? [s.city, s.toCity] : [key === 'freshness' ? freshnessBand(s) : s[key]]))].sort().map(v => [v, key === 'strategy' ? STRATEGY_SPECS[v]?.label || v : v])) });
+        const cityOptions = Object.keys(options('city')).filter(Boolean);
         const chosen = report.trades.find(t => t.id === selectedTrade);
         const opener = host.ownerDocument.querySelector('[data-evidence-open-report]');
         if (opener) opener.textContent = `Performans · ${report.attempts}/${report.trades.length}`;
         host.innerHTML = `<div class="opp-performance-body">${statusHtml()}
             <div class="opp-control-row">${loaded && isEmpty ? '<p>Henüz kontrol veya işlem kaydı yok. Fırsat detayındaki Kontrol sekmesinden başlayın.</p>' : ''}<div class="opp-actions"><button class="btn btn-sm btn-outline-secondary" data-evidence-refresh type="button">Kayıtları yenile</button><button class="btn btn-sm btn-outline-secondary" data-evidence-export type="button"${!loaded ? ' disabled' : ''}>Kanıtları JSON olarak indir</button></div></div>
-            ${loaded && isEmpty ? '' : loaded ? `<div class="tool-split tool-split--stacked"><div class="tool-split-controls tool-controls-grid">${[['server', 'Sunucu'], ['strategy', 'Fırsat türü'], ['city', 'Şehir / rota'], ['productGroup', 'Ürün grubu'], ['freshness', 'Sinyal anında fiyat güncelliği']].map(([key, label]) => select('filter-' + key, label, options(key), filters[key] || '')).join('')}</div><div class="tool-split-result">
+            ${loaded && isEmpty ? '' : loaded ? `<div class="tool-split tool-split--stacked"><div class="tool-split-controls tool-controls-grid">${[['server', 'Sunucu'], ['strategy', 'Fırsat türü'], ['city', 'Şehir / rota'], ['productGroup', 'Ürün grubu'], ['freshness', 'Sinyal anında fiyat güncelliği']].map(([key, label]) => key === 'city' ? cityFilterFieldHtml({ id: 'evidence-city', label, selected: filters.city || '', values: cityOptions, className: '' }) : select('filter-' + key, label, options(key), filters[key] || '')).join('')}</div><div class="tool-split-result">
             ${table(['Ölçüm', 'Sonuç'], [['Kontrol edilen farklı fırsat', report.checked], ['Kontrol kayıtları (tüm tarihler)', report.attempts], ['Fiyat doğruluğu · doğru / (doğru + değişmiş)', report.accuracy == null ? 'Henüz fiyat kontrolü yok' : `${(report.accuracy * 100).toFixed(1)}% · ${report.correct}/${report.priceChecks} taraf`], ['Fiyat değişmiş taraf', report.changed], ['Miktarı yetersiz taraf', report.insufficient], ['Emir bulunamayan taraf', report.missing], ['İşleme dönüşen farklı fırsat', report.converted], ['Tamamlanan işlem', report.completed], ['Gerçekleşmiş net kâr/zarar', formatSilver(report.realizedNet)], ['Stok / açık alış emrinde bağlı sermaye', formatSilver(report.tiedCapital)]].map(([label, value]) => `<tr><th>${label}</th><td>${value}</td></tr>`))}
             <details><summary>Ölçüm kuralları</summary><p>Fiyat oranı, her fırsat ve tarafın son açık fiyat değerlendirmesini kullanır; miktar kontrolü bu fiyat sonucunu silmez. yalnız “Fiyat doğru” ve “Fiyat değişmiş” paydada bulunur. Kontrol edilmedi / kontrol edilemedi başarısız sayılmaz. Tüm tarihsel kontroller indirilen kanıtlarda korunur. Gruplanmış rotaların ortak hedef miktarı kâr gibi toplanmaz.</p>
             <p>İlk 20–30 gerçek kullanıcı kontrolünün ardından sinyal, güncellik ve miktar sorunları incelenebilir. Otomatik öğrenme veya V5 filtre/sıralama değişikliği uygulanmaz.</p></details></div></div>
-            ${report.trades.length ? table(['Ürün', 'Rota / sunucu', 'Durum', 'Stok', 'Gerçek net', 'Kayıtlar'], report.trades.map(t => { const s = state.signals[t.signalId], a = tradeAccounting(t); return `<tr><td>${itemNameHtml(s.name)}</td><td>${escapeHtml(s.city)} → ${escapeHtml(s.toCity)} · ${escapeHtml(s.server)} · Q${s.quality}</td><td>${escapeHtml(statusLabel[t.status])}</td><td>${a.remaining}</td><td>${formatSilver(a.realizedNet)}</td><td><button type="button" class="btn btn-sm btn-outline-secondary" data-evidence-open-trade="${escapeHtml(t.id)}">İşlemi yönet</button></td></tr>`; })) : '<p>Henüz gerçek işlem kaydı yok.</p>'}
+            ${report.trades.length ? table(['Ürün', 'Rota / sunucu', 'Durum', 'Stok', 'Gerçek net', 'Kayıtlar'], report.trades.map(t => { const s = state.signals[t.signalId], a = tradeAccounting(t); return `<tr><td>${itemNameHtml(s.name)}</td><td>${cityNameHtml(s.city)} → ${cityNameHtml(s.toCity)} · ${escapeHtml(s.server)} · Q${s.quality}</td><td>${escapeHtml(statusLabel[t.status])}</td><td>${a.remaining}</td><td>${formatSilver(a.realizedNet)}</td><td><button type="button" class="btn btn-sm btn-outline-secondary" data-evidence-open-trade="${escapeHtml(t.id)}">İşlemi yönet</button></td></tr>`; })) : '<p>Henüz gerçek işlem kaydı yok.</p>'}
             ${chosen ? tradeHtml(chosen, 'report') : ''}` : '<p>Kalıcı kayıt servisi yüklenmeden sonuç veya başarı oranı gösterilmez.</p>'}</div>`;
         host.querySelector('[data-evidence-refresh]').addEventListener('click', load);
         host.querySelector('[data-evidence-export]').addEventListener('click', () => {
@@ -195,6 +198,7 @@ export function createOpportunityEvidenceUI({ hub, reportHost }) {
             const a = document.createElement('a'); a.href = url; a.download = 'albion-opportunity-evidence.json'; a.hidden = true; document.body.append(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(url), 1000);
         });
         host.querySelectorAll('[data-evidence-field^="filter-"]').forEach(el => el.addEventListener('change', () => { filters[el.dataset.evidenceField.slice(7)] = el.value; renderReport(); }));
+        bindCityField(host, 'evidence-city', value => { filters.city = value; renderReport(); }, { syncPeers: false });
         host.querySelectorAll('[data-evidence-open-trade]').forEach(el => el.addEventListener('click', () => { selectedTrade = el.dataset.evidenceOpenTrade; renderReport(); }));
         bindCommon(host); bindTrades(host);
     }

@@ -1,3 +1,4 @@
+import { cityNameHtml, cityNameAttributes } from '../components/city-name.js';
 import { toggleAllFilter } from '../components/filter-selection.js';
 import { itemNameHtml } from '../components/item-name.js';
 import { bindCalcExplain } from '../utils/calc-explain.js';
@@ -798,7 +799,7 @@ function renderMatStrip() {
     const kinds = stripMatKinds();
     return `
         <div class="royal-mats" id="royalMats">
-            <p class="material-price-matrix-note" id="royalMatsMeta">${escapeHtml(priceSideHint(state.matSide, 'buy'))} · ${escapeHtml(cityLabel(state.buyCity))}${state.sealedSigil ? ' · sealed tüm tier’lar' : ''}</p>
+            <p class="material-price-matrix-note" id="royalMatsMeta">${escapeHtml(priceSideHint(state.matSide, 'buy'))} · ${cityNameHtml(state.buyCity)}${state.sealedSigil ? ' · sealed tüm tier’lar' : ''}</p>
             <div class="royal-mats-grid" style="--royal-mat-cols: ${TIERS.length}">
                 <div class="material-price-matrix-corner" aria-hidden="true"></div>
                 ${TIERS.map((tier) => `<div class="material-price-matrix-heading">T${tier}</div>`).join('')}
@@ -833,7 +834,7 @@ function renderMatStrip() {
 function patchMatStrip(container) {
     const meta = container.querySelector('#royalMatsMeta');
     if (meta) {
-        meta.textContent = `${priceSideHint(state.matSide, 'buy')} · ${cityLabel(state.buyCity)}${state.sealedSigil ? ' · sealed tüm tier’lar' : ''}`;
+        meta.innerHTML = `${escapeHtml(priceSideHint(state.matSide, 'buy'))} · ${cityNameHtml(state.buyCity)}${state.sealedSigil ? ' · sealed tüm tier’lar' : ''}`;
     }
     const mats = [
         sealedMatCard(),
@@ -1002,7 +1003,7 @@ function renderSummary(list) {
             : 'min(SET craft, SET Ex buy)';
     return `
         <p class="tool-result-note">
-            Alış ${escapeHtml(cityLabel(state.buyCity))} · satış ${escapeHtml(cityLabel(state.sellCity))} ·
+            Alış ${cityNameHtml(state.buyCity)} · satış ${cityNameHtml(state.sellCity)} ·
             RR ${escapeHtml(rrPct)}% yalnız set üretiminde (şehir ${cityProductionBonus()}%) ·
             royal craft RR yok · ${escapeHtml(sigilNote)} ·
             maliyet = ${escapeHtml(setPathLabel)} + sigil + enchant ·
@@ -1968,9 +1969,10 @@ function renderRoyalExplain(key, { hovered } = {}) {
                     tax,
                     setup: sellSetup,
                     sell: row.sell,
-                    label: row.sellProxyQuality
-                        ? `${cityLabel(state.sellCity)} · ${row.quality.label} yok → ${row.sellProxyQuality.label} fiyatı (proxy)`
-                        : `${cityLabel(state.sellCity)} · ${row.quality.label}`,
+                    city: state.sellCity,
+                    note: row.sellProxyQuality
+                        ? `${row.quality.label} yok → ${row.sellProxyQuality.label} fiyatı (proxy)`
+                        : row.quality.label,
                     icon: itemIcon
                 })
             }
@@ -2025,8 +2027,8 @@ function renderRoyalAnalysis() {
     return `
         <section class="royal-analysis" aria-label="Craft analizi">
             ${groups.length ? `<ul class="app-warning-dialog-list royal-analysis-list">
-                ${[...cities.entries()].map(([cityKey, city]) => `<li class="royal-analysis-city" data-city="${escapeHtml(String(cityKey).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, ''))}">
-                    <strong>${escapeHtml(city.label)}</strong>
+                ${[...cities.entries()].map(([cityKey, city]) => `<li class="royal-analysis-city" ${cityNameAttributes(cityKey)}>
+                    <strong>${cityNameHtml(cityKey)}</strong>
                     <div class="royal-analysis-groups">${city.groups.map((group) => `<section class="royal-analysis-group">
                         <h3>${escapeHtml(group.label)}</h3>
                         <div class="royal-analysis-items">${group.material ? `<span class="royal-analysis-material" data-app-tooltip="${escapeHtml(group.material.label)}">

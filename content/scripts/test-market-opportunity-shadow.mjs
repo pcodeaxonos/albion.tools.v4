@@ -14,6 +14,10 @@ const withoutTimings = value => {
     return Object.fromEntries(Object.entries(value).filter(([key]) => key !== 'elapsedMs').map(([key, nested]) => [key, withoutTimings(nested)]));
 };
 assert.deepEqual(withoutTimings(actual), withoutTimings(expected));
+const legacy = scanQuoteBooks({ ...options, includeEvaluation: true,
+    policy: { ...OPPORTUNITY_POLICY, validationMode: 'legacy' } });
+assert.deepEqual(withoutTimings(shadowEvaluate({ ...options, legacyScan: legacy })), withoutTimings(expected));
+assert.equal(Object.hasOwn(legacy, 'evaluation'), false, 'precomputed legacy traces are released too');
 assert.equal(Object.hasOwn(validated, 'evaluation'), false, 'full validated traces are released after compaction');
 assert.equal(actual.evaluated, 0);
 assert.equal(actual.oldCandidates, 0);

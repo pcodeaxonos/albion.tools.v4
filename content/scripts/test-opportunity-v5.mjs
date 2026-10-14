@@ -62,6 +62,8 @@ const first = row('first', 100, 50, { itemId: 'same' }), alternative = row('alte
 alternative.primary.evidence.inputs.destination = { ...first.primary.evidence.inputs.destination };
 const original = JSON.stringify([first, alternative]);
 const grouped = rankCommercialOpportunities([alternative, first]);
+assert.equal(rankCommercialOpportunities([alternative, first], { includeParetoFronts: false }).length, grouped.length,
+    'diagnostic group counts do not require Pareto ordering');
 assert.equal(grouped.length, 1); assert.equal(grouped[0].id, 'first'); assert.equal(grouped[0].routeOptions.length, 2);
 assert.equal(grouped[0].primary.netSilver, 50, 'shared target liquidity never sums alternative profit');
 assert.equal(JSON.stringify([first, alternative]), original);
@@ -76,6 +78,15 @@ const unknown = row('unknown', 100, 50);
 assert.equal(rankCommercialOpportunities([more, unknown]).find(candidate => candidate.id === 'unknown').commercialFront, 0, 'unknown sales remain incomparable, not zero');
 assert.equal(rankCommercialOpportunities([tiny, valuable], { mode: 'quantity' })[0].id, 'tiny', 'small unit margins remain available in the quantity view');
 const enriched = attachOpportunitySales([first], () => history, now);
+const watches = Array.from({ length: 20000 }, (_, index) => ({ ...tiny,
+    id: `watch-${index}`, itemId: `T4_WATCH_${index}`, eligible: false, potential: true }));
+const watchStarted = performance.now();
+const rankedWatches = rankCommercialOpportunities(watches);
+const watchMs = Math.round(performance.now() - watchStarted);
+assert.equal(rankedWatches.length, watches.length);
+assert.ok(rankedWatches.every(candidate => candidate.commercialFront === 0), 'incomparable watch rows retain their first front');
+assert.ok(watchMs < 5000, `Watch ranking must avoid quadratic pair comparisons: ${watchMs}ms`);
+console.log(`PASS 20000 incomparable watch rows ranked in ${watchMs}ms`);
 assert.equal(enriched[0].primary.salesActivity.units, 17); assert.equal(first.primary.salesActivity, null);
 assert.equal(JSON.stringify([first, alternative]), original);
 console.log('V5: fees, capital, break-even boundaries, missing inputs, overflow, sales units/coverage, bounded ROI, Pareto activity, target grouping, source filters and immutable detection passed.');

@@ -1,6 +1,6 @@
 // Shared viewport contract for every tool. Outer slots allow outlines, shadows
 // and floating controls to extend beyond their layout bounds. Only inner tables
-// and dedicated panels own scrollports; app-content handles page overflow.
+// and dedicated panels own scrollports; desktop tools fit the viewport.
 main.tool-page {
     flex: 1 1 0;
     display: flex;
@@ -14,8 +14,29 @@ main.tool-page {
         flex-direction: column;
         flex: 1 1 0;
         min-height: 0;
+        min-width: 0;
         padding-bottom: var(--spacing-sm);
     }
+}
+
+@media (min-width: 992px) {
+    // Keep the shell bounded without clipping floating UI or hiding overflow.
+    .app-content:has(main.tool-page) { overflow: visible; }
+
+    main.tool-page > .page-body > .tool-split {
+        height: auto;
+
+        > .left {
+            overflow: auto;
+            overscroll-behavior: contain;
+            > .summary { flex: 0 0 auto; margin-top: auto; }
+        }
+
+        > .right { overflow: auto; overscroll-behavior: contain; }
+    }
+
+    .tool-page .result--sections { overflow: auto; overscroll-behavior: contain; }
+    main.tool-page .tool-page-bottom-result { overflow: auto; overscroll-behavior: contain; }
 }
 
 .tool-page-top-controls {
@@ -65,7 +86,7 @@ main.tool-page {
     }
 
     // Opt-in panels consume spare height without shrinking their content.
-    // Content exceeding the viewport remains reachable through app-content.
+    // Content exceeding the viewport remains reachable through the left panel.
     @media (min-width: 992px) {
         > .left > .tool-split-controls--fill {
             flex: 1 0 auto;

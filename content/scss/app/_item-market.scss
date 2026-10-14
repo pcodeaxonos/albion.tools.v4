@@ -18,7 +18,7 @@
     .market-panel-heading > span { margin-left: auto; font-size: .65rem; white-space: nowrap; }
     .market-panel-heading .segmented-choice { flex: 0 1 auto; }
     .market-panel-heading .segmented-choice-button { font-size: .65rem; padding: .25rem .35rem; min-height: 1.7rem; }
-    .segmented-choice-button.is-active { color: #171c20; background: var(--market-gold); border-color: var(--market-gold); }
+    .segmented-choice:not(.segmented-choice--filter) .segmented-choice-button.is-active { color: #171c20; background: var(--market-gold); border-color: var(--market-gold); }
     .market-icon { display: inline-flex; flex: 0 0 auto; width: 1.2rem; height: 1.2rem; vertical-align: middle; }
     .market-icon svg { width: 100%; height: 100%; }
     .page-head h1 { display: flex; align-items: center; gap: .5rem; }
@@ -31,7 +31,7 @@
     .market-search { display: flex; flex-direction: column; gap: .5rem; height: 100%; min-height: 0; padding: .5rem; border: 1px solid var(--market-border); border-radius: .3rem; background: #06141eee; }
     .market-search form { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: .35rem; align-items: center; }
     .market-search .segmented-choice { flex-wrap: wrap; }
-    .market-search .segmented-choice-button { font-size: .65rem; padding: .2rem .3rem; flex: 1; }
+    .market-search .segmented-choice:not(.segmented-choice--filter) .segmented-choice-button { font-size: .65rem; padding: .2rem .3rem; flex: 1; }
     .market-tree { flex: 0 1 auto; min-height: 0; max-height: 60%; overflow: auto; }
     .market-tree-all { display: flex; align-items: center; gap: .4rem; width: 100%; padding: .45rem .2rem; font-size: .78rem; border-bottom: 1px solid var(--market-border); }
     .market-tree details { border-bottom: 1px solid var(--market-border); }
@@ -73,7 +73,7 @@
     .calc-table td:not(:first-child) { text-align: right; }
     .calc-table tr.is-active td { background: #f1c46218; border-block-color: var(--market-gold); }
     .calc-table td small { font-size: .55rem; color: var(--market-gold); }
-    .calc-table td button[data-city] { display: block; border: 0; background: transparent; color: var(--color-text); padding: 0; }
+    .calc-table td button[data-market-city] { display: block; border: 0; background: transparent; color: var(--color-text); padding: 0; }
     .market-city { display: flex; align-items: center; gap: .35rem; }
     .market-volume { display: flex; align-items: center; justify-content: flex-end; gap: .3rem; }
     .market-volume meter { width: 3.5rem; height: .7rem; }
@@ -81,15 +81,15 @@
     .market-sparkline { display: inline-block; width: 2.5rem; height: 1rem; color: var(--market-gold); vertical-align: middle; margin-right: .3rem; }
     .market-prices > small { flex: 0 0 auto; font-size: .6rem; color: var(--color-text-muted); margin-top: .2rem; }
     .market-charts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .5rem; min-height: 11rem; }
+    // Map-style city controls scroll inside the bounded chart panel.
+    .market-charts > .market-panel { overflow: auto; }
     .market-charts .market-panel-heading h2 { flex: 1; }
-    .market-chart { min-height: 0; flex: 1; display: flex; align-items: center; justify-content: center; position: relative; }
+    .market-chart { min-height: 4rem; flex: 1; display: flex; align-items: center; justify-content: center; position: relative; }
     .market-chart svg { position: absolute; inset: 0; width: 100%; height: 100%; min-height: 0; }
     .market-chart svg text { fill: #aac5d7; font-size: 10px; }
     .market-chart-controls { flex: 0 0 auto; }
     .market-chart-controls small { font-size: .6rem; }
-    .market-chart-legend { display: flex; flex-wrap: wrap; gap: .15rem; max-height: 2.8rem; overflow: auto; flex: 0 0 auto; }
-    .market-chart-legend .btn { font-size: .65rem; padding: .05rem .2rem; min-width: 0; min-height: 1.25rem; }
-    .market-chart-legend [aria-pressed="false"] { opacity: .5; }
+    .market-chart-legend { flex: 0 0 auto; min-width: 0; }
     .market-chart-empty { color: var(--color-text-muted); font-size: .8rem; text-align: center; margin: .5rem; }
     .market-quality .calc-table th, .market-quality .calc-table td { padding: .05rem .3rem; }
     .market-quality .calc-table th { text-transform: none; letter-spacing: normal; }

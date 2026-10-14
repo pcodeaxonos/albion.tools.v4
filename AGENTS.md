@@ -1,5 +1,11 @@
 # Albion Tools project instructions
 
+## Locked design standard
+
+- Before creating or modifying HTML, including dynamically generated markup, first locate and inspect the relevant locked/approved design and its shared components and styles.
+- Prepare the HTML according to that design standard: preserve its composition, layout, geometry, spacing, typography, and interaction patterns, and reuse the existing shared primitives.
+- Apply this requirement to pages, dialogs, lists, alternate states, and dynamic rendering. Do not introduce a different design unless the user explicitly requests a design change.
+
 ## Island planner geometry
 
 - The grid cell allocated to the island image must always have a 1:1 aspect ratio at every breakpoint. The image must fill that square cell without stretching or letterboxing.
@@ -26,6 +32,8 @@
 
 ## Tool split layout
 
+- Locked desktop contract (992px+): tool pages must fit the viewport with no horizontal or vertical page scrollbar. Carry available width/height through the shared shell with `min-width: 0` / `min-height: 0`; long controls, tables, and reports scroll only inside their designated panels. Do not hide overflow or scrollbar tracks to disguise content exceeding the page. Preserve mobile page scrolling and the approved composition. Verify all tool routes at desktop widths and short viewport heights after shared layout changes.
+
 Pages with filters/forms plus a result or table use `.tool-split`:
 
 - Place selection and form controls in `.tool-split-controls`.
@@ -47,6 +55,8 @@ Pages with filters/forms plus a result or table use `.tool-split`:
 - New inputs must follow the existing shared form standard, including field structure, labels, dimensions, spacing, and interaction states.
 - Reuse shared form components and classes (such as `.form-floating` and `.form-control`) instead of introducing a custom appearance for an individual input.
 - Do not add input-specific CSS to bypass the shared standard. Extend the shared form primitive when a reusable capability is needed.
+
+- Filters with an explicit “Tümü” choice use `filterChoiceFieldHtml` from `content/js/components/form-field.js`: uppercase caption, compact top-right “Tümü” action, and joined equal-width `.segmented-choice--filter` cells with the shared gold active state. Keep all-choice actions out of the option row; preserve single/multiple-selection behavior through semantic values. Do not override this component in tool styles. City maps/crests and select controls retain their specialized presentation.
 
 ## Editable log tables
 
@@ -93,3 +103,17 @@ Item and material images that sit in a row, cell, card, or other slot with spare
 
 - Put page-wide startup behavior in `content/js/core/app-runtime.js`; every tool entry imports this module. Do not create separate startup modules or repeat shared initialization in tool entries.
 - Preserve startup order: critical data/sync preparation, menu, appStatus, empty page content structure, then tool-specific content/data. Domain services and reusable input/item components remain separate libraries.
+
+## Locked result sorting and view controls
+
+- Use `sortChoicesHtml` and `viewSwitchToolbarHtml` from `content/js/components/view-switch.js`. Pass sorting as the toolbar's third argument, immediately to the left of list/card buttons, in every view and empty state. Keep sorting out of filter panels and unrelated status bars.
+- Use compact inline SVG buttons with shared `view-switch-button` dimensions, active/focus states, accessible labels and `aria-pressed`. Sorting tooltips use only 1–2 descriptive words; show direction with an arrow when needed. Results without a view switch use the same sorting primitive beside their heading. Preserve domain sorting, missing-value rules and persistence; do not duplicate component markup or tool-specific button styles.
+
+## Locked city presentation
+
+- On tool pages, every city name uses the shared `content/js/components/city-name.js` component and its canonical `[data-city]` identity. Render the English market name with `lang="en"`; uppercase is applied by shared CSS, never JavaScript. Use the shared city color tokens.
+- Reuse `cityNameHtml`, `cityNameAttributes`, `cityBadgeHtml`, and `cityRouteHtml` for text, native options, badges, and routes. Preserve picker geometry and city-specific interactions. Do not duplicate city markup, normalization, uppercase rules, or color styles in tools. Apply to tables, cards, dialogs, notes, empty states, and dynamic updates. Database/admin and other non-tool data views retain their original presentation.
+
+## Tooltip wording
+
+- Keep tooltips concise: use 1–2 descriptive words, never long explanatory sentences. Put detailed explanations in the appropriate help or detail panel. Apply this rule to shared components and all new or modified tooltips.

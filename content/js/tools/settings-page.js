@@ -1,5 +1,6 @@
 import { flushDurableWrites, createDurableBackup, persistenceStatus } from '../core/durable-storage.mjs';
 import { initFloatingLabels } from '../components/forms.js';
+import { cityFieldHtml, bindCityField, getCityFieldValue } from '../components/city-picker.js';
 import {
     getSettings,
     saveSettings,
@@ -49,14 +50,9 @@ function renderServerOptions(selected) {
     }).join('');
 }
 
-function renderDefaultCityOptions(cities, selected) {
-    if (!cities.length) {
-        return `<option value="${escapeHtml(selected || 'Martlock')}">${escapeHtml(selected || 'Martlock')}</option>`;
-    }
-    return cities.map((city) => {
-        const current = city.marketApiName === selected ? ' selected' : '';
-        return `<option value="${escapeHtml(city.marketApiName)}"${current}>${escapeHtml(city.displayName)}</option>`;
-    }).join('');
+function defaultCityFieldHtml(cities, selected) {
+    const available = cities.length ? cities : [{ name: selected, displayName: selected, marketApiName: selected }];
+    return cityFieldHtml({ id: 'setting-default-city', label: 'Varsayılan şehir', selected, cities: available, className: '' });
 }
 
 function renderPriceSourceOptions(selected) {
@@ -195,12 +191,7 @@ function renderPage(container, cities) {
                                 </select>
                                 <label for="settingServer">Sunucu</label>
                             </div>
-                            <div class="form-floating">
-                                <select class="form-select is-filled" id="settingDefaultCity">
-                                    ${renderDefaultCityOptions(cities, settings.defaultCity)}
-                                </select>
-                                <label for="settingDefaultCity">Varsayılan şehir</label>
-                            </div>
+                            <div data-setting-default-city>${defaultCityFieldHtml(cities, settings.defaultCity)}</div>
                             <div class="form-floating">
                                 <select class="form-select is-filled" id="settingCityPickerStyle">
                                     ${CITY_PICKER_STYLES.map((style) => {
@@ -389,7 +380,7 @@ async function persist(container) {
         farmWater: Boolean(container.querySelector('#settingFarmWater')?.checked),
         priceSource,
         server: container.querySelector('#settingServer')?.value,
-        defaultCity: container.querySelector('#settingDefaultCity')?.value,
+        defaultCity: getCityFieldValue(container, 'setting-default-city'),
         cityPickerStyle: container.querySelector('#settingCityPickerStyle')?.value,
         cityPickerOrder: container.querySelector('[data-setting-city-picker-order]')?.value,
         plantPickerStyle: container.querySelector('#settingPlantPickerStyle')?.value,
@@ -419,6 +410,12 @@ async function persist(container) {
 
     try { await flushDurableWrites(); }
     catch (error) { showToast(error.message || 'Kaydedilemedi.', { kind: 'error' }); return; }
+    const cityHost = container.querySelector('[data-setting-default-city]');
+    if (cityHost) {
+        cityHost.innerHTML = defaultCityFieldHtml(loadActiveCities(), getSettings().defaultCity);
+        bindCityField(cityHost, 'setting-default-city', () => persist(container), { syncPeers: false });
+        initFloatingLabels(cityHost);
+    }
     showToast('Kaydedildi.', { duration: 2000 });
     syncHubPolling(container);
 }
@@ -541,7 +538,7 @@ function bindPage(container) {
     container.querySelector('#settingIslandYieldAutoPlots')?.addEventListener('change', () => persist(container));
     container.querySelector('#settingPriceSource')?.addEventListener('change', () => persist(container));
     container.querySelector('#settingServer')?.addEventListener('change', () => persist(container));
-    container.querySelector('#settingDefaultCity')?.addEventListener('change', () => persist(container));
+    bindCityField(container.querySelector('[data-setting-default-city]'), 'setting-default-city', () => persist(container), { syncPeers: false });
     container.querySelector('#settingCityPickerStyle')?.addEventListener('change', () => persist(container));
     container.querySelector('[data-setting-city-picker-order]')?.addEventListener('change', () => persist(container));
     container.querySelector('#settingEnchantPower')?.addEventListener('change', () => persist(container));

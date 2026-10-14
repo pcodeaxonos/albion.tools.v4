@@ -1,3 +1,4 @@
+import { cityNameHtml } from '../components/city-name.js';
 import { itemNameHtml } from '../components/item-name.js';
 import { toolPageHtml } from '../core/app-runtime.js';
 import { escapeHtml } from '../utils/utils.js';
@@ -544,7 +545,7 @@ function renderAvaExplain(key, { hovered } = {}) {
                     tax,
                     setup: sellSetup,
                     sell: row.sell,
-                    label: cityLabel(state.city),
+                    city: state.city,
                     icon: toolIcon
                 })
             }
@@ -652,7 +653,7 @@ function renderOutput() {
             ${renderTable()}
             <section data-page-info>
             ${renderBonusNote()}
-            <p class="tool-result-note">Malzeme şehir ortalaması · ${escapeHtml(matNote)}. Satış ${escapeHtml(cityLabel(state.city))} · ${escapeHtml(itemNote)}. Elle yazılan alış/satış API’nin yerine geçer. Kırmızı fiyat API’de yok; mavi 6 saatten eski.</p>
+            <p class="tool-result-note">Malzeme şehir ortalaması · ${escapeHtml(matNote)}. Satış ${cityNameHtml(state.city)} · ${escapeHtml(itemNote)}. Elle yazılan alış/satış API’nin yerine geçer. Kırmızı fiyat API’de yok; mavi 6 saatten eski.</p>
             </section>
         </div>
     `;

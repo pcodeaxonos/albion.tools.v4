@@ -1,3 +1,4 @@
+import { cityNameHtml, cityDataKey, cityNameAttributes } from '../components/city-name.js';
 import { showToast } from '../components/toast.js';
 import { readStorage, writeStorage } from './storage.js';
 import { durableStorage, durableKeys, initDurableStorage, flushDurableWrites, reloadDurableStorage, saveDurableChanges, createDurableBackup, persistenceStatus, PERSISTENCE_EVENT } from './durable-storage.mjs';
@@ -957,13 +958,7 @@ function emptyCopy(compact) {
     return compact ? 'Bonus yok' : 'Kayıt yok';
 }
 
-function citySlug(city) {
-    return String(city || '')
-        .trim()
-        .toLowerCase()
-        .replace(/[^a-z0-9]+/g, '-')
-        .replace(/^-|-$/g, '');
-}
+
 
 function renderSidebarSlots(bonuses) {
     if (bonuses.length === 0) {
@@ -973,15 +968,15 @@ function renderSidebarSlots(bonuses) {
     return bonuses.map((bonus) => {
         const city = bonus.cityLabel || '—';
         const short = bonus.cityShort || city;
-        const slug = citySlug(bonus.city || bonus.cityLabel);
+        const slug = cityDataKey(bonus.city || bonus.cityLabel);
         const cityAttr = slug ? ` data-city="${escapeHtml(slug)}"` : '';
         const station = bonusStationLine(bonus);
         return `
             <span class="sidebar-today-slot"${cityAttr} data-app-tooltip="${escapeHtml(slotTitle(bonus))}">
                 <span class="sidebar-today-copy">
                     <span class="sidebar-today-city">
-                        <span class="sidebar-today-city-full">${escapeHtml(city)}</span>
-                        <span class="sidebar-today-city-short">${escapeHtml(short)}</span>
+                        <span class="sidebar-today-city-full">${cityNameHtml(bonus.city || city)}</span>
+                        <span class="sidebar-today-city-short city-name" ${cityNameAttributes(bonus.city || city)}>${escapeHtml(short)}</span>
                     </span>
                     <span class="sidebar-today-family">${escapeHtml(bonus.label)} <span class="sidebar-today-rate">+${bonus.rate}%</span></span>
                     ${station ? `<span class="sidebar-today-station">${escapeHtml(station)}</span>` : ''}

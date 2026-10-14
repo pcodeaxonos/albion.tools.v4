@@ -19,7 +19,15 @@ export function beginDurableOperation() { operations++; notify(); }
 export function endDurableOperation(error = null) { operations--; if (error) failure = error; notify(); }
 
 async function request(path = '', options = {}) {
-    const response = await fetch(`${host}${USER_DATA_ENDPOINT}${path}`, { ...options, signal: AbortSignal.timeout(15000) });
+    let response;
+    try {
+        response = await fetch(`${host}${USER_DATA_ENDPOINT}${path}`, { ...options, signal: AbortSignal.timeout(15000) });
+    } catch (error) {
+        if (error?.name === 'TimeoutError' || error?.name === 'AbortError') {
+            throw new Error('Veritabanı servisi zamanında yanıt vermedi. Bekleyen değişiklikleri Tekrar dene ile kaydedebilirsiniz.', { cause: error });
+        }
+        throw error;
+    }
     const body = await response.json();
     if (!response.ok) { const error = new Error(body.error || 'Veritabanına erişilemedi'); error.status = response.status; throw error; }
     return body;

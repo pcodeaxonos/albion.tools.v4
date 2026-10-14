@@ -15,6 +15,7 @@ export const runtimeRoute = ({ source, kind, nav, path, ...entry }) => ({
 });
 
 export const SITE_ROUTES = [
+    tool('potential-prices', 'pages/tools/potential-prices/index.html', 'pages/tools/potential-prices', 'Potansiyel Fiyatlar', 'Kaydedilmiş piyasa tahminleri; filtrelenebilir liste ve kart görünümü.', '💰', '2026-10-14', { label: 'Potansiyel Fiyatlar', group: 'Piyasa', order: 47, visible: true }),
     tool('item-market', 'tools/item-market/index.html', 'tools/item-market', 'Eşya Piyasası', 'Şehir ve kalite fiyatları, API geçmişi ve şahsi işlemler.', '📊', '2026-10-13', { label: 'Eşya Piyasası', group: 'Piyasa', order: 42, visible: true }),
     tool('flipper', 'tools/flipper/index.html', 'tools/flipper', 'Flipper', 'Şehirler arası ve Black Market arbitrajı; net kâr ve taşıma sepeti.', '⚖️', '2026-10-11', { label: 'Flipper', group: 'Piyasa', order: 46, visible: true }),
     tool('decision-engine', 'pages/tools/decision-engine/index.html', 'pages/tools/decision-engine', 'Karar Motoru', 'Gerçek teklifler ve tariflerle alış, satış ve craft yollarını karşılaştırır.', '⚖️', '2026-10-10', { label: 'Karar Motoru', group: 'Piyasa', order: 43, visible: true }),

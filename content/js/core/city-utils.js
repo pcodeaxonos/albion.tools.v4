@@ -5,7 +5,7 @@ export function cityNames(cities) {
 }
 
 export function cityLabel(cities, apiName) {
-    return (cities || []).find((city) => city.marketApiName === apiName)?.displayName ?? apiName;
+    return (cities || []).find((city) => city.marketApiName === apiName)?.marketApiName ?? apiName;
 }
 
 export function resolveCity(cities, preferred) {
