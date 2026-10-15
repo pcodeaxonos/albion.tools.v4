@@ -18,6 +18,9 @@ start.bat_yedek
 
 _tmp_xlsm_report/
 .price-hub.json
+# Local Hub diagnostics and atomic-write temporary file
+/.opportunity-diagnostics.json
+/.opportunity-diagnostics.json.tmp
 .price-order-history.json
 .price-order-history.json.tmp
 .aodp-quote-history.json
