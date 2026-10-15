@@ -5,13 +5,13 @@ import { SALE_HORIZONS } from './potential-sale-horizon.mjs';
 export const POTENTIAL_FILTERS = [
     ['tier', 'Tier'], ['enchant', 'Enchant'],
     ['city', 'Şehir'], ['server', 'Sunucu'], ['side', 'Yön'],
-    ['quality', 'Kalite'], ['days', 'Satış süresi'], ['priceState', 'Fiyat Durumu']
+    ['quality', 'Kalite'], ['days', 'Azami bekleme'], ['priceState', 'Fiyat Durumu']
 ];
 export const POTENTIAL_PRICE_STATES = [
     ['usable', 'Kullanılabilir'], ['warning', 'Uyarıyla kullanılabilir'],
     ['reference', 'Yalnız referans'], ['no-evidence', 'Kanıt yok']
 ];
-// Presentation only: retain the authoritative V2.1 admission decision.
+// Presentation only: retain the shared engine admission decision.
 export function potentialPriceState(row) {
     if (row.plannerUsable) return row.decision === 'Uyarıyla kullanılabilir' ? 'warning' : 'usable';
     return Number.isFinite(row.indicativePrice) && row.indicativePrice > 0 ? 'reference' : 'no-evidence';
@@ -20,7 +20,7 @@ export const potentialPriceStateLabel = row => POTENTIAL_PRICE_STATES.find(([val
 export const potentialFilterValue = (row, key) => String(
     key === 'priceState' ? potentialPriceState(row) : key === 'tier' || key === 'enchant' ? itemVariant(row.itemId)[key] : row[key] ?? '');
 export const POTENTIAL_SORTS = [
-    ['savedAt', 'Karar zamanı'], ['itemName', 'Eşya adı'], ['price', 'Tahmin edilen fiyat'], ['days', 'Satış süresi']
+    ['savedAt', 'Karar zamanı'], ['itemName', 'Eşya adı'], ['price', 'Tahmin edilen fiyat'], ['days', 'Azami bekleme']
 ];
 export const potentialDefaults = () => ({ search: '', itemId: '', sort: 'savedAt', direction: 'desc', view: 'list', page: 1,
     ...Object.fromEntries(POTENTIAL_FILTERS.map(([key]) => [key, ''])) });
@@ -49,8 +49,9 @@ export function filterPotentialRows(rows, filters) {
     return result.sort((a, b) => {
         const value = row => key === 'savedAt' ? (Date.parse(row[key]) || null) : row[key];
         const left = value(a), right = value(b);
-        if (left == null || right == null) return left == null && right == null ? 0 : left == null ? 1 : -1;
-        return direction * (typeof left === 'number' ? left - right : String(left).localeCompare(String(right), 'tr', { numeric: true }))
+        if ((left == null) !== (right == null)) return left == null ? 1 : -1;
+        return (left == null ? 0 : direction * (typeof left === 'number' ? left - right : String(left).localeCompare(String(right), 'tr', { numeric: true })))
+            || (a.days == null ? Infinity : Number(a.days)) - (b.days == null ? Infinity : Number(b.days))
             || String(a.id).localeCompare(String(b.id));
     });
 }

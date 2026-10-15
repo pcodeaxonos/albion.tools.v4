@@ -28,13 +28,13 @@ const potentialVariationColumns = [
     { name: 'city', type: 'string', label: 'Şehir' },
     { name: 'server', type: 'string', label: 'Sunucu' },
     { name: 'quality', type: 'number', label: 'Kalite' },
-    { name: 'days', type: 'number', label: 'Satış süresi (gün)' }
+    { name: 'days', type: 'number', label: 'Azami bekleme (gün)' }
 ];
 
 export const tables = {
     [POTENTIAL_PRICE_TABLE]: {
         displayName: 'Potansiyel Fiyatlar', group: 'user', source: 'user', key: 'id', readOnly: true,
-        description: 'Her eşya / sunucu / şehir / kalite / yön / satış süresi için SQLite içinde tek karar kaydı. Tahmin edilen fiyat, ada planlayıcının kabul ettiği potansiyel fiyattır; düşük güvenli göstergeler hesapta kullanılmaz.',
+        description: 'Her eşya / sunucu / şehir / kalite / yön / azami bekleme için SQLite içinde tek karar kaydı. Tahmin edilen fiyat, ada planlayıcının kabul ettiği potansiyel fiyattır; düşük güvenli göstergeler hesapta kullanılmaz.',
         rowSource: potentialRowSource(potentialDecisionRows),
         defaultSort: { column: 'savedAt', direction: 'desc' },
         columns: [
@@ -48,8 +48,7 @@ export const tables = {
             { name: 'savedAt', type: 'string', format: 'date-time', label: 'Karar zamanı' },
             { name: 'method', type: 'string', label: 'Yöntem', detail: true },
             { name: 'samples', type: 'number', label: 'İşlemli gün', detail: true },
-            { name: 'historicalWindows', type: 'number', label: 'Geçmiş dönem', detail: true },
-            { name: 'periodPrice', type: 'number', label: 'Dönem fiyatı', detail: true },
+            { name: 'historicalWindows', type: 'number', label: 'Geçmiş başlangıç', detail: true },
             { name: 'recentPrice', type: 'number', label: 'Yakın dönem fiyatı', detail: true },
             { name: 'currentOrder', type: 'number', label: 'Sell emir adayı', detail: true },
             { name: 'latest', type: 'string', format: 'date-time', label: 'Son işlem günü', detail: true },

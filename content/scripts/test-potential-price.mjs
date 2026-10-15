@@ -1,156 +1,67 @@
 import assert from 'node:assert/strict';
 import { DAY_MS } from '../js/core/market-history-config.mjs';
-import { SALE_ESTIMATOR } from '../js/core/potential-sale-horizon.mjs';
-import { weightedPriceQuantile, roundHistoricalPrice } from '../js/core/market-primitives.mjs';
-import { personalPotentialPrice, marketPotentialPrice, marketOpportunityPrice, potentialPriceAt, indexTradeEvidence, resolveTradePotential, tradeEvidenceKey } from '../js/core/trade-potential-evidence.mjs';
+import { saleHorizonTarget, SALE_ESTIMATOR, SALE_HORIZONS, mergePotentialHistory, binomialLowerBound } from '../js/core/potential-sale-horizon.mjs';
+import { savePotentialSnapshots, readPotentialSnapshots, potentialPriceDecision, POTENTIAL_SNAPSHOT_KEY } from '../js/core/potential-price-snapshot.mjs';
+import { tradeEvidenceKey } from '../js/core/trade-potential-evidence.mjs';
+const now=Date.parse('2026-10-15T12:00:00Z'), end=Math.floor(now/DAY_MS)*DAY_MS;
+const request={server:'europe',city:'Brecilien',itemId:'T4_MOUNT_HORSE',quality:1,side:'sell'};
+const series=fn=>({forecastPoints:Array.from({length:90},(_,i)=>({timestamp:new Date(end-(90-i)*DAY_MS).toISOString(),price:fn(i),quantity:100,intervalHours:24}))});
+const flat=series(()=>100), calc=(e=flat,r=request,d=7)=>saleHorizonTarget(e,r,null,d,now);
+for (const side of ['buy','sell']) for (const fn of [()=>100,i=>100+i,i=>200-i,i=>100+20*Math.sin(i),i=>i===60?10000:100]) {
+    const results=SALE_HORIZONS.map(({days})=>calc(series(fn),{...request,side},days));
+    assert(results.every(r=>r.price===null && !r.plannerUsable && r.fillEvidence.observedShare===null));
+    const candidates=results.map(r=>r.candidatePrice).filter(p=>p!=null);
+    assert(candidates.every((p,i)=>!i || (side==='sell' ? p>=candidates[i-1] : p<=candidates[i-1])));
+}
+assert.equal(calc().candidatePrice,100);
+assert.equal(calc({forecastPoints:flat.forecastPoints.slice(-3)}).candidatePrice,null);
+assert.equal(calc({...flat,forecastPoints:flat.forecastPoints.map(p=>({...p,intervalHours:1}))}).candidatePrice,null);
+for (const days of [0,1,14,30,90,NaN]) assert.equal(calc(flat,request,days).price,null);
+const at=end-20*DAY_MS;
+assert.deepEqual(saleHorizonTarget(flat,request,null,7,at),saleHorizonTarget({forecastPoints:flat.forecastPoints.filter(p=>Date.parse(p.timestamp)+DAY_MS<=at)},request,null,7,at),'future buckets cannot change past proof');
+const unavailable={forecastPoints:flat.forecastPoints.map(p=>({...p,observedAt:new Date(now+DAY_MS).toISOString()}))};
+assert.equal(calc(unavailable).samples,0);
+const merged=mergePotentialHistory([{source:'a',points:flat.forecastPoints},{source:'b',points:flat.forecastPoints}]);
+assert.equal(merged.length,90);
+assert.equal(calc({forecastPoints:[{timestamp:new Date(end-3600000).toISOString(),price:100,quantity:20,intervalHours:6}]}).samples,0);
+const order={item_id:request.itemId,city:request.city,quality:1,sell_price_min:999,sell_price_min_date:new Date(now).toISOString()};
+assert.equal(saleHorizonTarget({},request,order,7,now).price,null,'quotes never establish fills');
+assert(binomialLowerBound(20,20)<1);
+// A cohort, not a list of successful SAT mails. Outcome coverage includes losses.
+const outcomes=Array.from({length:30},(_,i)=>({...request,orderId:String(i),characterGuid:'c',verified:true,fixedPrice:true,
+    createdAt:new Date(end-(i+30)*DAY_MS).toISOString(),observationEnd:new Date(end-(i+1)*DAY_MS).toISOString(),
+    completedAt:new Date(end-(i+29)*DAY_MS).toISOString(),quantity:10,filledQuantity:10,anchorPrice:100,limitPrice:110,status:'filled'}));
+for (const side of ['buy','sell']) {
+    const req={...request,side}; const calibration={...req,estimator:SALE_ESTIMATOR,heldOut:true,independent:true,days:2,quantity:1,trials:30,successes:30,evaluatedAt:new Date(now).toISOString()}; const rows=outcomes.map(o=>({...o,side,limitPrice:side==='buy'?90:110}));
+    const results=SALE_HORIZONS.map(({days})=>calc({...flat,executionCalibration:calibration,orderOutcomes:rows},req,days));
+    assert(results.every(r=>r.plannerUsable && r.price===(side==='buy'?90:110)));
+    assert.equal(calc({...flat,executionCalibration:calibration,orderOutcomes:rows},{...req,quantity:11}).price,null,'quantity is part of execution proof');
+    assert.equal(calc({...flat,executionCalibration:calibration,orderOutcomes:rows.map(o=>({...o,filledQuantity:1}))},req).price,null,'partial fills are not complete');
+    assert.equal(calc({...flat,executionCalibration:calibration,orderOutcomes:rows.map(o=>({...o,status:'expired',completedAt:null}))},req).price,null);
+    assert.equal(calc({...flat,executionCalibration:calibration,orderOutcomes:rows.map(o=>({...o,quality:2}))},req).price,null);
+    assert.equal(calc({...flat,executionCalibration:calibration,orderOutcomes:rows.map(o=>({...o,observedAt:new Date(now+DAY_MS).toISOString()}))},req).price,null);
+}
+const data=new Map(), storage={getItem:k=>data.get(k),setItem:(k,v)=>data.set(k,v)};
+for (const side of ['buy','sell']) for (const {days} of SALE_HORIZONS) {
+    const req={...request,side}, target=calc(flat,req,days);
+    savePotentialSnapshots(storage,[req],days,new Map([[tradeEvidenceKey(req),target]]),now);
+    assert.equal(readPotentialSnapshots(storage,[req],days,now).get(tradeEvidenceKey(req)).days,days);
+    assert.equal(potentialPriceDecision({...target,savedSnapshot:true},req,days,now).price,null);
+}
+assert.equal(Object.keys(JSON.parse(data.get(POTENTIAL_SNAPSHOT_KEY))).length,6,'BUY and SELL have independent horizons');
+assert.equal(calc({...flat,orderOutcomes:outcomes}).price,null,'training fills cannot calibrate themselves');
+const activeKey=JSON.stringify([tradeEvidenceKey(request),7]);
+const legacyRows=JSON.parse(data.get(POTENTIAL_SNAPSHOT_KEY));
+legacyRows[activeKey]={savedSnapshot:true,estimator:'old',days:7,price:999,reliable:true};
+storage.setItem(POTENTIAL_SNAPSHOT_KEY,JSON.stringify(legacyRows));
+savePotentialSnapshots(storage,[request],7,new Map([[tradeEvidenceKey(request),calc()]]),now);
+assert(Object.entries(JSON.parse(data.get(POTENTIAL_SNAPSHOT_KEY))).some(([key,v])=>JSON.parse(key)[2]==='legacy' && v.price===999),'migration preserves original evidence');
+const usable=calc({...flat,executionCalibration:{...request,estimator:SALE_ESTIMATOR,heldOut:true,independent:true,days:2,quantity:1,trials:30,successes:30,evaluatedAt:new Date(now).toISOString()},orderOutcomes:outcomes});
+assert.equal(potentialPriceDecision({...usable,savedSnapshot:true},request,7,now).price,110);
+assert.equal(potentialPriceDecision({...usable,savedSnapshot:true,estimator:'old'},request,7,now).price,null);
+assert.equal(potentialPriceDecision({...usable,savedSnapshot:true},request,28,now).price,null);
+assert.equal(SALE_ESTIMATOR,'limit-first-passage-v3');
+console.log('Limit model: direction, horizons, censoring, no future leakage, availability, sparse coverage, book isolation, quantity, partial fills, failed orders, migration and Planner admission passed.');
 
-const now = Date.parse('2026-10-12T12:00:00Z'), days = 28;
-const sell = { server: 'europe', city: 'Bridgewatch', itemId: 'T8_PUMPKIN', quality: 1, side: 'sell' }, buy = { ...sell, side: 'buy' };
-const snapshot = trades => ({ server: 'europe', scope: 'personal', trades });
-const trade = (day, n, price, quantity, patch = {}) => ({ sourceId: `${day}-${n}`, kind: 'instant_sell',
-    occurredAt: new Date(now - (day + 1) * DAY_MS).toISOString(), itemId: sell.itemId, locationName: sell.city, quality: 1,
-    unitPriceSilver: price, quantity, ...patch });
-const trades = Array.from({ length: 5 }, (_, day) => [trade(day, 0, 80, 3), trade(day, 1, 100, 4), trade(day, 2, 120, 3)]).flat();
-const evaluate = (rows, request = sell) => personalPotentialPrice(indexTradeEvidence(snapshot(rows)), request, days, now);
-const buys = trades.map(row => ({ ...row, kind: 'instant_buy', sourceId: 'buy-' + row.sourceId }));
-
-assert.equal(weightedPriceQuantile([{ price: 10, quantity: 1 }, { price: 20, quantity: 3 }, { price: 30, quantity: 6 }], .25), 20);
-assert.equal(weightedPriceQuantile([{ price: 10, quantity: 1 }, { price: 20, quantity: 3 }, { price: 30, quantity: 6 }], .75), 30);
-assert.equal(roundHistoricalPrice(12.25, 'buy'), 13); assert.equal(roundHistoricalPrice(12.75, 'sell'), 12);
-assert.equal(evaluate(trades).price, 120); assert.equal(evaluate(buys, buy).price, 80);
-assert.equal(evaluate(trades).transactions, 15); assert.equal(evaluate(trades).quantity, 50); assert.equal(evaluate(trades).samples, 5);
-assert.equal(evaluate([...trades, ...trades]).quantity, 50, 'repeated transactions never increase quantile weight');
-const tied = Array.from({ length: 5 }, (_, day) => [trade(day, 0, 100, 1), trade(day, 1, 100, 1)]).flat();
-assert.equal(evaluate(tied).reliable, true, 'five days and exactly ten executions at one repeated price are sufficient');
-assert.equal(evaluate(tied.slice(0, 9)).reliable, false);
-assert.equal(evaluate(trades.filter(row => !row.sourceId.startsWith('4-'))).reliable, false);
-const spikes = [...trades, trade(0, 'low-spike', 1, 1), trade(1, 'high-spike', 99999, 1)];
-assert.equal(evaluate(spikes).price, 120); assert.equal(evaluate(spikes).rejected, 2);
-const small = Array.from({ length: 5 }, (_, day) => Array.from({ length: 20 }, (_, n) => trade(day, `small-${n}`, 80, 1))).flat();
-const normal = Array.from({ length: 5 }, (_, day) => [trade(day, 'normal-0', 100, 40), trade(day, 'normal-1', 100, 40)]).flat();
-const many = evaluate([...small, ...normal].map(row => ({ ...row, kind: 'instant_buy' })), buy);
-assert.equal(many.price, 100, 'a hundred small fills cannot outvote four hundred units');
-assert.equal(evaluate([...small.map(row => ({ ...row, unitPriceSilver: 300 })), ...normal]).price, 100, 'small anomalous fills do not outvote robust quantity evidence');
-assert.match(evaluate([...tied, trade(0, 'whale', 100, 10000)]).reason, /domine/);
-const oneDay = [...tied, ...Array.from({ length: 20 }, (_, n) => trade(0, `same-day-${n}`, 100, 2))];
-assert.match(evaluate(oneDay).reason, /domine/);
-const dominantTail = [...tied.map(row => ({ ...row, quantity: 35 })), trade(0, 'tail-whale', 80, 150)];
-assert.match(evaluate(dominantTail.map(row => ({ ...row, kind: 'instant_buy' })), buy).reason, /domine/);
-assert.equal(evaluate(trades.map(row => ({ ...row, quality: null }))).price, null);
-assert.equal(evaluate(trades.map(row => ({ ...row, quantity: null }))).price, null);
-assert.equal(evaluate(trades.map(row => ({ ...row, sourceId: null }))).price, null, 'independence requires a stable execution ID');
-assert.equal(evaluate(trades.map(row => ({ ...row, occurredAt: new Date(Date.parse(row.occurredAt) - 8 * DAY_MS).toISOString() }))).reliable, false);
-assert.equal(evaluate(trades.map(row => ({ ...row, occurredAt: new Date(now + DAY_MS).toISOString() }))).reliable, false);
-const recentSeven = trades.map(row => ({ ...row, occurredAt: new Date(Date.parse(row.occurredAt) - 6 * DAY_MS).toISOString() }));
-assert.equal(evaluate(recentSeven).reliable, true, 'latest eligible execution may be exactly seven days old');
-
-const market = Array.from({ length: 28 }, (_, day) => ({ timestamp: new Date(Math.floor(now / DAY_MS) * DAY_MS - (day + 1) * DAY_MS).toISOString(),
-    avg_price: day < 8 ? 80 : (day < 20 ? 100 : 120), item_count: 10 }));
-const m = marketPotentialPrice(market, sell, days, now, 'Yerel AODP');
-assert.equal(m.price, 120); assert.equal(m.transactions, null); assert.equal(m.quantity, 280);
-assert.match(m.evidenceType, /Günlük ortalama/); assert.equal(m.volume, undefined, 'quantile evidence exposes no production capacity');
-assert.equal(marketPotentialPrice(market, buy, days, now, 'API').price, 80);
-assert.match(marketPotentialPrice(market, buy, days, now, 'API').marketMeaning, /Buy emir/);
-assert.equal(marketPotentialPrice(market.slice(0, 19), sell, days, now, 'Yerel AODP').reliable, false, '70% market coverage remains required');
-assert.equal(marketPotentialPrice(market.map(row => ({ ...row, item_count: null })), sell, days, now, 'API').reliable, false);
-const rejectedFresh = market.map((row, n) => ({ ...row, avg_price: n < 2 ? 10000 : row.avg_price }));
-assert.equal(marketPotentialPrice(rejectedFresh, sell, days, now, 'API').reliable, false, 'discarded fresh anomalies cannot make old prices appear fresh');
-const sparseMarket = market.slice(0, 3);
-const sparse = marketPotentialPrice(sparseMarket, sell, days, now, 'Yerel AODP');
-assert.equal(sparse.reliable, false, 'sparse daily data never becomes a planner price');
-assert.equal(sparse.indicativePrice, 80, 'existing traded daily data still yields a conservative P75 indicator');
-assert.equal(sparse.confidence, 'low');
-
-let localCalls = 0, apiCalls = 0;
-const options = { days, now, priceOnly: true,
-    fetchLocalHistory: async ids => { localCalls++; return new Map(ids.map(id => [id, { points: market }])); },
-    fetchHistory: async ids => { apiCalls++; return new Map(ids.map(id => [id, { points: market }])); } };
-let result = await resolveTradePotential([sell, buy], { ...options, snapshot: snapshot([...trades, ...buys]) });
-assert.equal(localCalls, 0); assert.equal(apiCalls, 0);
-assert.equal(result.get(tradeEvidenceKey(buy)).source, 'Kişisel'); assert.equal(result.get(tradeEvidenceKey(sell)).method, 'P75');
-assert.equal(potentialPriceAt(result, sell, 28, now).reliable, true);
-assert.equal(potentialPriceAt(result, sell, 7, now).price, null, 'cached results cannot leak between periods');
-assert.equal(potentialPriceAt(result, sell, 28, now + 8 * DAY_MS).price, null, 'cached evidence cannot outlive its freshness');
-result = await resolveTradePotential([sell], { ...options, snapshot: snapshot([]) });
-assert.equal(localCalls, 1); assert.equal(apiCalls, 0); assert.equal(result.get(tradeEvidenceKey(sell)).source, 'Yerel AODP');
-result = await resolveTradePotential([sell, sell], { ...options, snapshot: snapshot([]), fetchLocalHistory: async () => new Map() });
-assert.equal(apiCalls, 1); assert.equal(result.get(tradeEvidenceKey(sell)).source, 'API');
-result = await resolveTradePotential([sell], { days, now, priceOnly: true, snapshot: snapshot([]), fetchLocalHistory: async () => new Map(), fetchHistory: async () => new Map() });
-assert.equal(result.get(tradeEvidenceKey(sell)).price, null); assert.equal(result.get(tradeEvidenceKey(sell)).reliable, false);
-console.log('Potential prices: weighted P25/P75, precision, 5 days/10 executions/7-day freshness, repeats, spikes, small fills, trade/day/tail dominance, unknown quality/quantity, market evidence semantics, local/API fallback and independent buy/sell passed.');
-
-const hourly = [40503,58565,58565,61000].map((avg_price, i) => ({ timestamp: new Date(now - (i+1)*3600000).toISOString(), avg_price, item_count: i ? 30 : 4 }));
-assert.equal(marketOpportunityPrice(hourly,buy,days,now).price,40503);
-assert.equal(marketOpportunityPrice(hourly,sell,days,now).price,61000);
-assert.equal(marketOpportunityPrice(hourly,buy,days,now).selectedQuantity,4);
-assert.equal(marketOpportunityPrice(hourly.map(row=>({...row,item_count:0})),buy,days,now).reliable,false);
-assert.equal(marketOpportunityPrice([...hourly,{timestamp:new Date(now-1000).toISOString(),avg_price:1,item_count:1}],buy,days,now).price,40503);
-const hourlyResult = await resolveTradePotential([buy],{...options,snapshot:snapshot(buys),fetchHourlyHistory:async()=>new Map([[buy.itemId,{points:hourly.map(row=>({...row,avg_price:40}))}]])});
-assert.equal(hourlyResult.get(tradeEvidenceKey(buy)).price,40);
-console.log('Hourly traded extrema, four-unit evidence, zero-volume rejection, outlier rejection and personal/API comparison passed.');
-
-const { readPotentialSnapshots, savePotentialSnapshots, potentialSnapshotRows } = await import('../js/core/potential-price-snapshot.mjs');
-const stored = new Map(), storage = { getItem:key=>stored.get(key)??null, setItem:(key,value)=>stored.set(key,value) };
-const sparseIndex = new Map([[tradeEvidenceKey(sell), sparse]]);
-savePotentialSnapshots(storage,[sell],days,sparseIndex,now);
-const restoredSparse = potentialSnapshotRows(storage).find(row => row.itemId === sell.itemId && row.side === 'SELL');
-assert.equal(restoredSparse.price,null,'a low-confidence indicator never becomes a persisted planner price');
-assert.equal(restoredSparse.indicativePrice,80);
-assert.equal(readPotentialSnapshots(storage,[sell],days,now).size,0,'planner rejects the persisted low-confidence indicator');
-const first = new Map([[tradeEvidenceKey(buy),{...marketOpportunityPrice(hourly,buy,days,now), estimator:SALE_ESTIMATOR, expires:true}]]);
-savePotentialSnapshots(storage,[buy],days,first,now);
-const restored = readPotentialSnapshots(storage,[buy],days,now);
-assert.equal(potentialPriceAt(restored,buy,days,now+100*DAY_MS).price,null,'saved purchase evidence expires');
-assert.equal(readPotentialSnapshots(storage,[buy],7,now).size,1,'sale horizon changes reuse the saved purchase price');
-assert.equal(readPotentialSnapshots(storage,[sell],7).size,0,'sale targets remain horizon specific');
-assert.equal(readPotentialSnapshots(storage,[{...buy,city:'Brecilien'}],days).size,0,'cities are isolated');
-const personal = await resolveTradePotential([buy],{...options,opportunity:true,snapshot:snapshot(buys),fetchLocalHistory:()=>{throw Error('personal evidence must win')},fetchHourlyHistory:()=>{throw Error('personal evidence must win')}});
-assert.equal(personal.get(tradeEvidenceKey(buy)).source,'Kişisel');
-assert.equal(personal.get(tradeEvidenceKey(buy)).price,80);
-console.log('Persisted snapshots, period/city isolation and personal execution priority passed.');
-
-const { includePotentialOrder } = await import('../js/core/potential-order-candidate.mjs');
-const orderRow = {item_id:sell.itemId,city:sell.city,quality:1,sell_price_min:40105,sell_price_min_date:new Date(now-1000).toISOString(),buy_price_max:40000,buy_price_max_date:new Date(now-1000).toISOString()};
-assert.equal(includePotentialOrder({reliable:true,price:35152},sell,orderRow,days,now).price,40104);
-assert.equal(includePotentialOrder({reliable:true,price:58565},buy,orderRow,days,now).price,40001);
-assert.equal(includePotentialOrder({reliable:true,price:45000},sell,orderRow,days,now).price,45000);
-assert.equal(includePotentialOrder({reliable:true,price:35152},sell,{...orderRow,quality:2},days,now).price,35152);
-assert.equal(includePotentialOrder({reliable:true,price:35152},sell,{...orderRow,sell_price_min_date:new Date(now-24*3600000).toISOString()},days,now).price,35152);
-assert.match(includePotentialOrder(null,sell,orderRow,days,now).evidenceType,/gerçekleşmiş işlem değil/);
-console.log('Live packet buy/sell candidates: favorable bounds, ticks, quality/freshness and unexecuted-order labeling passed.');
-
-const { saleHorizonTarget, SALE_HORIZONS } = await import('../js/core/potential-sale-horizon.mjs');
-assert.deepEqual(SALE_HORIZONS.map(({ days, label }) => [days, label]), [[2, '2 gün'], [7, '7 gün'], [28, '28 gün']]);
-const forecastPoints = Array.from({length:90},(_,i)=>({timestamp:new Date(now-(90-i)*DAY_MS).toISOString(),price:30000+i*300,quantity:20}));
-const forecastEvidence = {reliable:true,price:35152,source:'Oyun Market History',forecastPoints};
-const horizonPrices = SALE_HORIZONS.map(period=>saleHorizonTarget(forecastEvidence,sell,orderRow,period.days,now).price);
-assert(horizonPrices.every(price=>price>0 && Number.isFinite(price)),'durations remain independent of the current competitive order');
-const series = prices => ({ source:'Oyun Market History', forecastPoints:prices.map((price,i)=>({
-    timestamp:new Date(Math.floor(now/DAY_MS)*DAY_MS-(i+1)*DAY_MS).toISOString(),price,quantity:20 })) });
-const flat = series(Array(90).fill(100));
-assert.deepEqual(SALE_HORIZONS.map(period=>saleHorizonTarget(flat,sell,null,period.days,now).price),[100,100,100], 'waiting never invents appreciation');
-for (const days of [1, 14, 21]) assert.equal(saleHorizonTarget(flat,sell,null,days,now).price,null,'retired sale durations are unsupported');
-assert.equal(saleHorizonTarget(series([100,100,100,100,100,100,100,...Array(83).fill(1000)]),sell,null,28,now).recentPrice,100,'recent regime remains explicit independent evidence');
-assert.equal(saleHorizonTarget(series([100,100,100,100,100,100,10000,...Array(83).fill(100)]),sell,null,28,now).price,100,'an isolated peak is not a sale target');
-const recentHigh = series([...Array(7).fill(200),...Array(83).fill(100)]);
-assert.equal(saleHorizonTarget(recentHigh,sell,null,2,now).price,100,'conservative period estimate can stay below recent prices');
-assert.equal(saleHorizonTarget(flat,sell,{...orderRow,sell_price_min:81},7,now).price,100,'live competitive price is a separate signal');
-assert.equal(saleHorizonTarget(flat,sell,{...orderRow,quality:2,sell_price_min:81},7,now).price,100,'wrong quality order is ignored');
-assert.equal(saleHorizonTarget(flat,sell,{...orderRow,sell_price_min_date:new Date(now-DAY_MS).toISOString(),sell_price_min:81},7,now).price,100,'stale order is ignored');
-assert.equal(saleHorizonTarget(series(Array(30).fill(100)),sell,null,28,now).price,null,'one completed month is reference-only');
-assert.equal(saleHorizonTarget({...flat,forecastPoints:flat.forecastPoints.slice(8)},sell,null,7,now).price,null,'stale trades do not support a fresh estimate');
-assert.equal(saleHorizonTarget({...flat,forecastPoints:flat.forecastPoints.map(point=>({...point,quantity:0}))},sell,null,7,now).price,null,'prices without executed quantity are rejected');
-const sparseTarget = saleHorizonTarget({forecastPoints:[]},sell,orderRow,28,now);
-assert.equal(sparseTarget.price,null,'an unexecuted order alone cannot establish a sale estimate');
-assert.equal(sparseTarget.reliable,false);
-const saleIndex = new Map([[tradeEvidenceKey(sell),saleHorizonTarget(flat,sell,null,28,now)]]);
-savePotentialSnapshots(storage,[sell],28,saleIndex,now);
-assert.equal(readPotentialSnapshots(storage,[sell],28,now).size,1);
-assert.equal(readPotentialSnapshots(storage,[sell],28,now+8*DAY_MS).size,0,'saved sale evidence expires');
-assert.equal(potentialPriceAt(saleIndex,sell,28,now+8*DAY_MS).price,null,'an open planner cannot reuse expired saved estimates');
-savePotentialSnapshots(storage,[sell],28,new Map([[tradeEvidenceKey(sell),sparseTarget]]),now);
-assert.equal(readPotentialSnapshots(storage,[sell],28,now).get(tradeEvidenceKey(sell)).price,null,'failed refresh replaces prior optimistic estimate');
-const legacy = {...saleHorizonTarget(flat,sell,null,28,now),estimator:undefined};
-savePotentialSnapshots(storage,[sell],28,new Map([[tradeEvidenceKey(sell),legacy]]),now);
-assert.equal(readPotentialSnapshots(storage,[sell],28,now).size,0,'legacy peak forecasts are never restored');
-console.log('Sale estimates: independent supported-price windows, no appreciation, separate recent regime/order signals, spikes, missing/stale evidence and snapshot migration passed:',horizonPrices);
+const corrupt={getItem:()=>'{',setItem:()=>assert.fail('corrupt data must never be replaced')};
+assert.throws(()=>savePotentialSnapshots(corrupt,[request],7,new Map(),now),/üzerine yazılmadı/);

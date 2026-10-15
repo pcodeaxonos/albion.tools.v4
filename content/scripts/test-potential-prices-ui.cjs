@@ -26,7 +26,7 @@ const { chromium } = require('playwright');
     for (let i = 0; i < 55; i++) {
         const itemId = itemIds[i], days = SALE_HORIZONS[i % SALE_HORIZONS.length].days;
         const key = JSON.stringify([JSON.stringify(['europe', i % 2 ? 'Martlock' : 'Brecilien', itemId, 1, 'sell']), days]);
-        snapshots[key] = { savedSnapshot: true, estimator: SALE_ESTIMATOR, reliable: i % 3 !== 0, price: i % 3 ? 100 + i : null, days,
+        snapshots[key] = { savedSnapshot: true, estimator: SALE_ESTIMATOR, reliable: i % 3 !== 0, plannerUsable: i % 3 !== 0, price: i % 3 ? 100 + i : null, days,
             validUntil: new Date(Date.now() + 86400000).toISOString(), savedAt: new Date(Date.now() - i * 1000).toISOString(), samples: 10,
             source: 'UI fixture', reason: 'Yetersiz veri' };
         if (i === 0) snapshots[key].estimator = 'legacy';
@@ -84,6 +84,17 @@ const { chromium } = require('playwright');
             assert.deepEqual(await page.locator('tbody tr td:nth-child(4)').allTextContents(), Array(count).fill(selectedLabel));
             await page.locator('[data-view-switch] [data-view="cards"]').click();
             assert.deepEqual(await page.locator('.potential-price-status').allTextContents(), Array(count).fill(selectedLabel), 'cards and filters share the canonical classification');
+            if (value === 'reference') {
+                assert.equal(await page.locator('[data-potential-price]').innerText(), '—', 'reference never fills the potential field');
+                assert.equal(await page.locator('[data-historical-reference]').innerText(), 'Ortak referans: 888');
+                for (const width of [992, 390, 320]) {
+                    await page.setViewportSize({ width, height: 700 });
+                    assert(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1));
+                    assert(await page.locator('.potential-price-card').evaluate(el => el.scrollHeight <= el.clientHeight + 1));
+                    await page.locator('.potential-price-card').screenshot({ path: `output/sell-horizons-reference-${width}.png` });
+                }
+                await page.setViewportSize({ width: 1440, height: 1000 });
+            }
             await page.locator('[data-view-switch] [data-view="list"]').click();
         }
         assert.equal(counts.reduce((a, b) => a + b, 0), 55, 'price states partition the records');
@@ -111,13 +122,14 @@ const { chromium } = require('playwright');
         await page.locator('[data-view-switch] [data-view="list"]').click();
         for (const width of [1440, 992, 390, 320]) {
             await page.setViewportSize({ width, height: 700 });
+            if (width < 992) await page.waitForFunction(() => document.querySelector('[data-app-sidebar]').getBoundingClientRect().right <= 1);
             const field = page.locator('.choice-field--long-labels');
             assert(await field.evaluate(el => el.scrollWidth <= el.clientWidth + 1));
             for (const button of await field.locator('button').all()) {
                 assert(await button.evaluate(el => el.scrollWidth <= el.clientWidth + 1 && el.scrollHeight <= el.clientHeight + 1), `label fits ${width}`);
             }
             assert(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1));
-            await page.screenshot({ path: `output/potential-price-state-${width}.png` });
+            await page.screenshot({ path: `output/limit-order-state-${width}.png` });
         }
         await page.setViewportSize({ width: 1440, height: 1000 });
         await page.locator('button[data-filter="tier"][data-value="4"]').click();
@@ -140,7 +152,7 @@ const { chromium } = require('playwright');
         assert(placement.right < 2 && placement.above, 'view switch sits above the table at the right edge');
         for (const [index, status, priceState] of [[0, 'Eski yöntem', 'Kanıt yok'], [3, 'Süresi doldu', 'Kanıt yok'], [6, 'Düşük güven', 'Yalnız referans']]) {
             const row = page.locator('tbody tr').nth(index);
-            assert.equal(await row.locator('td.num').textContent(), status === 'Düşük güven' ? '888 · Referans' : '—', `${status} separates reference from usable price`);
+            assert.equal(await row.locator('td.num').textContent(), status === 'Düşük güven' ? '—Ortak referans: 888' : '—', `${status} separates reference from usable price`);
             assert.equal(await row.locator('td').nth(3).innerText(), priceState, 'one canonical price state per row');
             assert.equal(await row.locator('td').nth(3).locator('.badge').count(), 1);
             await row.locator('[data-detail]').click();
@@ -179,10 +191,10 @@ const { chromium } = require('playwright');
         await page.locator('[data-detail]').first().click();
         assert(await page.locator('[data-price-dialog]').evaluate(el => el.open));
         const detailText = await page.locator('[data-detail-body]').textContent();
-        for (const label of ['Kişisel dolum kaydı', 'Bağımsız kanıt birimi', 'Kişisel toplam miktar', 'Kişisel fiyat aralığı', 'Kişisel son işlem', 'Ölçülen emir süresi', 'Kişisel tahmin etkisi']) assert(detailText.includes(label), label);
-        await page.screenshot({ path: 'output/personal-potential-detail-desktop.png' });
+        for (const label of ['Kişisel dolum kaydı', 'Kişisel toplam miktar', 'Kişisel fiyat aralığı', 'Kişisel son işlem', 'Ölçülen emir süresi', 'Kişisel tahmin etkisi']) assert(detailText.includes(label), label);
+        await page.screenshot({ path: 'output/limit-order-detail-desktop.png' });
         await page.setViewportSize({ width: 390, height: 844 });
-        await page.screenshot({ path: 'output/personal-potential-detail-mobile.png' });
+        await page.screenshot({ path: 'output/limit-order-detail-mobile.png' });
         assert(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1));
         await page.setViewportSize({ width: 1440, height: 1000 });
         await page.locator('[data-detail-close]').click();

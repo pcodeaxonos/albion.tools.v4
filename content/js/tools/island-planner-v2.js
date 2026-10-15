@@ -777,7 +777,7 @@ async function fetchPotentialPriceIndex(entries = v2PriceEntries(), refresh = fa
 
 function renderSalesPotentialControls() {
     if (!hasPotentialPrice()) return '';
-    return `<div class="choice-field form-field">${fieldHeadingHtml('Öngörülen satış süresi')}<div class="segmented-choice segmented-choice--dense" role="group" aria-label="Öngörülen satış süresi" data-app-tooltip="Bu süre için ihtiyatlı gerçekleşmiş dönem fiyatı hesaplanır. Daha uzun beklemek fiyatı otomatik artırmaz; satış süresi garanti edilmez.">`
+    return `<div class="choice-field form-field">${fieldHeadingHtml('Azami emir bekleme')}<div class="segmented-choice segmented-choice--dense" role="group" aria-label="Azami emir bekleme" data-app-tooltip="Bu süre için ihtiyatlı gerçekleşmiş dönem fiyatı hesaplanır. Daha uzun beklemek fiyatı otomatik artırmaz; satış süresi garanti edilmez.">`
         + SALE_HORIZONS.map(({ days: day, label }) => '<button type="button" class="segmented-choice-button segmented-choice-button--compact ' + (day === potentialPriceDays() ? 'is-active' : '')
             + '" data-v2-potential-days="' + day + '" aria-pressed="' + (day === potentialPriceDays()) + '"' + (state.autoFilling ? ' disabled' : '') + '>' + label + '</button>').join('') + '</div></div>';
 }

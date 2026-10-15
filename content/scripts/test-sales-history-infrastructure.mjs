@@ -91,12 +91,12 @@ try {
     result = await resolveTradePotential([request], { priceOnly: false, days: 28, now, snapshot: { server: 'europe', scope: 'personal', trades: personal },
         fetchLocalHistory: async () => new Map([[request.itemId, { points: complete }]]), fetchHistory: async () => { throw new Error('API must not run'); } });
     const mixed = result.get(tradeEvidenceKey(request));
-    assert.equal(mixed.price, 80); assert.equal(mixed.priceOrigin, 'Kişisel SAT');
+    assert.equal(mixed.price, null, 'missing quantity and timing cannot admit a limit price');
     assert.equal(mixed.volume, 28000); assert.equal(mixed.capacityOrigin, 'Yerel AODP');
     assert.equal(mixed.volumeKind, 'market');
     result = await resolveTradePotential([request], { priceOnly: false, days: 28, now, snapshot: { server: 'europe', scope: 'personal', trades: personal.map(p => ({ ...p, quality: null })) },
         fetchLocalHistory: async () => new Map([[request.itemId, { points: complete }]]) });
-    assert.equal(result.get(tradeEvidenceKey(request)).price, 100, 'unknown personal quality cannot match quality 1');
+    assert.equal(result.get(tradeEvidenceKey(request)).price, null, 'unknown quality and averages cannot establish fills');
 
     const collector = createAodpCollector({ host: 'https://example.invalid', server: 'europe', ids: [request.itemId], cities: [request.city], repository: repo,
         now: () => now, sleep: async () => {}, collectionPlan: { allowRequest: () => false }, request: async () => { throw new Error('budget bypass'); } });

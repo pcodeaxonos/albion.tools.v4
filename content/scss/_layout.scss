@@ -224,7 +224,7 @@
 }
 
 .sidebar-today-slot {
-    --slot-city: var(--color-city-accent, var(--color-primary));
+    --slot-city: var(--color-city, var(--color-primary));
     display: flex;
     align-items: flex-start;
     justify-content: space-between;
@@ -247,7 +247,7 @@
     font-size: var(--font-size-sm);
     font-weight: var(--font-weight-semibold);
     line-height: 1.25;
-    color: var(--slot-city);
+    color: var(--color-city-accent);
 }
 
 .sidebar-today-city-short {

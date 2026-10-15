@@ -769,7 +769,7 @@ await placementTest('Sales potential history transport preserves quality and raw
 });
 
 
-await placementTest('Potential conservative sale prices use the daily engine without volume limits and preserve occupied/locked slots', async () => {
+await placementTest('Potential with unknown fill timing preserves occupied/locked slots and rejects invented profit', async () => {
     plan(['chicken']); v2.state.draft.islandLevel = 6;
     v2.state.draft.seedSide = 'potential'; v2.state.draft.harvestSide = 'potential'; v2.state.draft.potentialDays = 28;
     v2.state.draft.minSalesVolume = 1000000;
@@ -811,19 +811,9 @@ await placementTest('Potential conservative sale prices use the daily engine wit
     assert.equal(new Set(requestedHistory).size, requestedHistory.length, 'batching never requests an item twice for different horizons');
     assert.deepEqual(new Set(requestedHistory), new Set(requests.map(req => JSON.stringify([req.city, req.quality, req.itemId]))), 'batched public coverage checks exactly the requested identities');
     assert.equal(v2.state.draft.slots[0], occupied); assert.equal(v2.state.draft.slots[2], locked);
-    assert.ok(v2.state.draft.slots[1].item, 'historical quantity never caps normal production');
+    assert.equal(v2.state.draft.slots[1].item, null, 'successful SAT prices without timing cannot create a profitable placement');
     assert.equal(v2.state.draft.seedSide, 'potential'); assert.equal(v2.state.draft.harvestSide, 'potential');
-    assert.ok(v2.state.autoFillResult.totalNet > v2.state.autoFillResult.baselineNet);
-    near(v2.state.derived.summary.net, v2.state.autoFillResult.totalNet, 'optimizer uses net per day');
-    const expected = v2.calculateIslandPlan({ update: false });
-    const selectedEntries = v2.state.draft.slots;
-    const inputPrices = new Map(), salePrices = new Map();
-    for (const req of requests) {
-        const quote = v2.priceLookup(req.itemId, req.city, 'potential', req.side, req.side === 'buy' ? 'input' : 'output').quote;
-        if (quote) (req.side === 'buy' ? inputPrices : salePrices).set(req.itemId, { reliable: true, price: quote.price, setup: true });
-    }
-    const sameInputs = v2.calculateIslandPlan({ entries: selectedEntries, update: false, inputPrices, salePrices });
-    near(expected.summary.net, sameInputs.summary.net, 'same price inputs give same existing engine result');
+    assert.equal(v2.state.derived.summary.net, null, 'missing limit confidence is not a zero cost or invented profit');
     assert.ok(v2.renderControls().includes('/pages/tools/potential-prices/'));
     assert.ok(!v2.renderControls().includes('data-v2-sales-share'));
 });
@@ -869,17 +859,17 @@ await placementTest('Potential decision table matches the planner quote and reje
     const horizon = (await load('content/js/core/potential-sale-horizon.mjs')).namespace;
     const evidence = (await load('content/js/core/trade-potential-evidence.mjs')).namespace;
     const now = Date.now();
-    const index = new Map([[evidence.tradeEvidenceKey(request), { reliable:true, price:123,
+    const index = new Map([[evidence.tradeEvidenceKey(request), { reliable:true, plannerUsable:true, price:123,
         days:7, estimator:horizon.SALE_ESTIMATOR, expires:true, latest:new Date(now).toISOString(),
         validUntil:new Date(now+86400000).toISOString() }]]);
     snapshots.savePotentialSnapshots(context.localStorage,[request],7,index,now);
     v2.state.potentialPriceIndex = index;
-    const row = store.getAll(snapshots.POTENTIAL_PRICE_TABLE).find(row=>row.itemId===request.itemId && row.days===7);
+    const row = store.getAll(snapshots.POTENTIAL_PRICE_TABLE).find(row=>row.itemId===request.itemId && row.city===request.city && row.side==='SELL' && row.days===7);
     assert.equal(row.price,123);
     assert.equal(v2.priceLookup(request.itemId,request.city,'potential','sell','output').quote.price,row.price);
     index.get(evidence.tradeEvidenceKey(request)).validUntil = new Date(now-1).toISOString();
     snapshots.savePotentialSnapshots(context.localStorage,[request],7,index,now);
-    assert.equal(store.getAll(snapshots.POTENTIAL_PRICE_TABLE).find(row=>row.itemId===request.itemId && row.days===7).price,null);
+    assert.equal(store.getAll(snapshots.POTENTIAL_PRICE_TABLE).find(row=>row.itemId===request.itemId && row.city===request.city && row.side==='SELL' && row.days===7).price,null);
     assert.equal(v2.priceLookup(request.itemId,request.city,'potential','sell','output').quote,null);
 });
 

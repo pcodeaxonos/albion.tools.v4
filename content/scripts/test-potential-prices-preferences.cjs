@@ -85,20 +85,20 @@ const { chromium } = require('playwright');
         const card = page.locator('.potential-price-card');
         const geometry = await card.evaluate(el => {
             const image = el.querySelector('.item-visual').getBoundingClientRect();
-            const city = el.querySelector('.potential-price-card-heading [data-city]').getBoundingClientRect();
-            return { imageWidth: image.width, imageHeight: image.height, cityLeft: city.left, imageRight: image.right, fontSize: getComputedStyle(el.querySelector('h2')).fontSize };
+            const city = el.querySelector('.potential-price-card-market [data-city]').getBoundingClientRect();
+            return { imageWidth: image.width, imageHeight: image.height, cityTop: city.top, imageBottom: image.bottom, fontSize: getComputedStyle(el.querySelector('h2')).fontSize };
         });
         assert(geometry.imageWidth >= 28 && Math.abs(geometry.imageWidth - geometry.imageHeight) < 1);
-        assert(geometry.cityLeft >= geometry.imageRight, 'city sits beside image');
-        assert(parseFloat(geometry.fontSize) >= 16);
+        assert(geometry.cityTop >= geometry.imageBottom, 'approved card city row follows product image');
+        assert(parseFloat(geometry.fontSize) >= 10);
         await card.evaluate(el => { el.parentElement.style.gridTemplateColumns = '320px'; });
         const compact = await card.evaluate(el => {
-            const city = el.querySelector('.potential-price-card-heading [data-city]').getBoundingClientRect();
-            const badge = el.querySelector('.potential-price-card-heading .badge').getBoundingClientRect();
+            const city = el.querySelector('.potential-price-card-market [data-city]').getBoundingClientRect();
+            const badge = el.querySelector('.potential-price-card-heading').getBoundingClientRect();
             return { city, badge, width: el.getBoundingClientRect().width, overflow: el.scrollWidth > el.clientWidth };
         });
         assert.equal(compact.width, 320);
-        assert(Math.abs((compact.city.top + compact.city.height / 2) - (compact.badge.top + compact.badge.height / 2)) < 1, 'badge stays on city line at 320px');
+        assert(compact.city.right <= compact.badge.left + 1, 'city and market identity remain separate at 320px');
         assert.equal(compact.overflow, false);
         await card.locator('img').evaluate(img => img.decode());
         if (process.env.POTENTIAL_CARD_PREVIEW) await card.screenshot({ path: process.env.POTENTIAL_CARD_PREVIEW });

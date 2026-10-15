@@ -1,0 +1,213 @@
+{
+  "at": "2026-10-15T12:47:35.525Z",
+  "results": [
+    {
+      "name": "views",
+      "passed": true,
+      "code": 0,
+      "timedOut": false,
+      "ms": 106,
+      "output": "Potential price filters and null-safe sorting passed.\n"
+    },
+    {
+      "name": "local-history",
+      "passed": true,
+      "code": 0,
+      "timedOut": false,
+      "ms": 94,
+      "output": "Local sales history: packet timescales retained and mismatched server excluded.\n(node:14048) ExperimentalWarning: VM Modules is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+    },
+    {
+      "name": "market-packets",
+      "passed": true,
+      "code": 0,
+      "timedOut": false,
+      "ms": 100,
+      "output": "Market History packets: wire precision, silver/ticks, POW, dedupe/corrections, persistent restore, resolution/scope isolation and game-before-API passed.\n"
+    },
+    {
+      "name": "order-history",
+      "passed": true,
+      "code": 0,
+      "timedOut": false,
+      "ms": 107,
+      "output": "ingest 2 kitap · 4 sipariş\ningest 1 kitap · 1 sipariş\ningest 2 kitap · 4 sipariş\ningest 1 kitap · 2 sipariş\ningest 1 kitap · 1 sipariş\ningest 2 kitap · 4 sipariş\nMarket order history: identity, UTC, dedupe, buckets, retention, restore, estimators, hub ingest, persistence and routes passed.\n"
+    },
+    {
+      "name": "catalogs",
+      "passed": false,
+      "code": 1,
+      "timedOut": false,
+      "ms": 147,
+      "output": "node:fs:1074\r\n  binding.rename(\r\n          ^\r\n\r\nError: EPERM: operation not permitted, rename 'C:\\Users\\Pcodea\\AppData\\Local\\Packages\\sandbox.{bbbf4643-aa7a-4335-8469-f3d8018d8dfb}\\AC\\Temp\\generated-catalog-U0Pmp9\\.albion-tools-backups\\albion-tools-2026-10-15T12-38-40-558Z.sqlite.tmp' -> 'C:\\Users\\Pcodea\\AppData\\Local\\Packages\\sandbox.{bbbf4643-aa7a-4335-8469-f3d8018d8dfb}\\AC\\Temp\\generated-catalog-U0Pmp9\\.albion-tools-backups\\albion-tools-2026-10-15T12-38-40-558Z.sqlite'\r\n    at renameSync (node:fs:1074:11)\r\n    at UserDataRepository.performBackup (file:///F:/Web/GitHub/pcodeaxonos/albion.tools.v4/content/scripts/user-data-repository.mjs:143:13)\r\n    at async refreshGeneratedCatalogs (file:///F:/Web/GitHub/pcodeaxonos/albion.tools.v4/content/scripts/generated-catalogs.mjs:42:5)\r\n    at async file:///F:/Web/GitHub/pcodeaxonos/albion.tools.v4/content/scripts/test-generated-catalogs.mjs:31:5 {\r\n  errno: -4048,\r\n  code: 'EPERM',\r\n  syscall: 'rename',\r\n  path: 'C:\\\\Users\\\\Pcodea\\\\AppData\\\\Local\\\\Packages\\\\sandbox.{bbbf4643-aa7a-4335-8469-f3d8018d8dfb}\\\\AC\\\\Temp\\\\generated-catalog-U0Pmp9\\\\.albion-tools-backups\\\\albion-tools-2026-10-15T12-38-40-558Z.sqlite.tmp',\r\n  dest: 'C:\\\\Users\\\\Pcodea\\\\AppData\\\\Local\\\\Packages\\\\sandbox.{bbbf4643-aa7a-4335-8469-f3d8018d8dfb}\\\\AC\\\\Temp\\\\generated-catalog-U0Pmp9\\\\.albion-tools-backups\\\\albion-tools-2026-10-15T12-38-40-558Z.sqlite'\r\n}\r\n\r\nNode.js v24.19.0\r\n"
+    },
+    {
+      "name": "user-data",
+      "passed": false,
+      "code": 1,
+      "timedOut": false,
+      "ms": 196,
+      "output": "node:fs:1074\r\n  binding.rename(\r\n          ^\r\n\r\nError: EPERM: operation not permitted, rename 'C:\\Users\\Pcodea\\AppData\\Local\\Packages\\sandbox.{bbbf4643-aa7a-4335-8469-f3d8018d8dfb}\\AC\\Temp\\albion-user-data-ygDHuk\\.albion-tools-backups\\albion-tools-2026-10-15T12-38-40-568Z.sqlite.tmp' -> 'C:\\Users\\Pcodea\\AppData\\Local\\Packages\\sandbox.{bbbf4643-aa7a-4335-8469-f3d8018d8dfb}\\AC\\Temp\\albion-user-data-ygDHuk\\.albion-tools-backups\\albion-tools-2026-10-15T12-38-40-568Z.sqlite'\r\n    at renameSync (node:fs:1074:11)\r\n    at UserDataRepository.performBackup (file:///F:/Web/GitHub/pcodeaxonos/albion.tools.v4/content/scripts/user-data-repository.mjs:143:13)\r\n    at async file:///F:/Web/GitHub/pcodeaxonos/albion.tools.v4/content/scripts/test-user-data.mjs:56:20 {\r\n  errno: -4048,\r\n  code: 'EPERM',\r\n  syscall: 'rename',\r\n  path: 'C:\\\\Users\\\\Pcodea\\\\AppData\\\\Local\\\\Packages\\\\sandbox.{bbbf4643-aa7a-4335-8469-f3d8018d8dfb}\\\\AC\\\\Temp\\\\albion-user-data-ygDHuk\\\\.albion-tools-backups\\\\albion-tools-2026-10-15T12-38-40-568Z.sqlite.tmp',\r\n  dest: 'C:\\\\Users\\\\Pcodea\\\\AppData\\\\Local\\\\Packages\\\\sandbox.{bbbf4643-aa7a-4335-8469-f3d8018d8dfb}\\\\AC\\\\Temp\\\\albion-user-data-ygDHuk\\\\.albion-tools-backups\\\\albion-tools-2026-10-15T12-38-40-568Z.sqlite'\r\n}\r\n\r\nNode.js v24.19.0\r\n"
+    },
+    {
+      "name": "island-placement",
+      "passed": true,
+      "code": 0,
+      "timedOut": false,
+      "ms": 272,
+      "output": "77 placement optimizer checks passed.\n"
+    },
+    {
+      "name": "island-sales",
+      "passed": true,
+      "code": 0,
+      "timedOut": false,
+      "ms": 712,
+      "output": "Live AODP fixture T8_MILK {\"reliable\":true,\"volume\":690892,\"price\":364.5,\"historicalPrice\":364.5,\"samples\":28,\"coverage\":1,\"dispersion\":0.07956104252400549,\"latest\":\"2026-10-10T00:00:00.000Z\",\"currentPrice\":null,\"currentRatio\":null,\"rejected\":0}\nLive AODP fixture T8_PUMPKIN {\"reliable\":true,\"volume\":1006473,\"price\":465,\"historicalPrice\":465,\"samples\":27,\"coverage\":0.9642857142857143,\"dispersion\":0.03225806451612903,\"latest\":\"2026-10-09T00:00:00.000Z\",\"currentPrice\":null,\"currentRatio\":null,\"rejected\":0}\nSales potential: evidence, spikes, capacity, shared supply, inventory, costs, exact optimization and live fixtures passed.\n"
+    },
+    {
+      "name": "island-stability",
+      "passed": true,
+      "code": 0,
+      "timedOut": false,
+      "ms": 198,
+      "output": "PASS level 4 survives every realistic next value, including rounded displays\nPASS 2% to 3% rounding crossing alone does not prevent level 4\nPASS low variance stabilizes earlier; high variance needs more data\nPASS marked outliers are shared exclusions; one unmarked extreme does not inflate the envelope\nPASS large next batches have greater weighted impact\nPASS repeating the same distribution improves confidence without fixed count thresholds\nPASS same-day split rows do not manufacture independent history\nPASS diagnostics expose all decision inputs and combine the limiting metric\nPASS only absence of valid data is level 0; one valid record is level 1\nPASS normal variance advances through 2 and 3 rather than accumulating at 1\nPASS tiny rounding changes remain diagnostic without capping confidence\nPASS greater sample quantity supports stability without count thresholds\nPASS successive normal records do not send an established level 3 back to 1\nPASS typical scenarios preserve size/rate pairing and the tail remains separate\nPASS one malformed huge batch cannot define the normal next batch size\nPASS rounded quantity, return and raw direction transitions are diagnostic only\nPASS near-default sign crossings stay neutral inside the existing material reference band\nPASS material positive to negative reversals still block level 4 symmetrically\nPASS an unchanged integer return display cannot override excessive continuous return impact\nPASS 10.00 to 10.01 is allowed at level 4 when economic and deviation impacts are small\nPASS 5% to 6% rounded deviation is allowed when the continuous effect is small\nPASS 5.49% to above 5.51% is a harmless rounding crossing\nPASS a real 5.1% to 6.0% deviation movement remains material\nPASS continuous reference impact still gates level 4 even if relative yield impact passes\nPASS upper relative economic impact exceeding the unchanged half-percent limit prevents level 4\nPASS scaling all quantities gives no extra confidence bonus when rounding floors are inactive\nPASS more history reduces impact exactly once by the analytical leverage ratio\nPASS rounding floor is a propagated next-record uncertainty, not a quantity bonus\n28 stability checks passed\n"
+    },
+    {
+      "name": "island-forecast",
+      "passed": true,
+      "code": 0,
+      "timedOut": false,
+      "ms": 305,
+      "output": "PASS no data, already stable, and insufficient independent history are explicit\nPASS shared evaluator leaves observed confidence diagnostics exactly unchanged\nPASS same-day raw log splitting changes only raw-record conversion, never Q or independent batches\nPASS quantity unit diagnostics remain available without enough history to forecast\nPASS quantity target has first-passing integer Q and matches the analytic upper bound\nPASS large finite counts are retained without a 128-record horizon\nPASS cache and forecasting never mutate observations or their confidence\nPASS exact and near-default means find finite Q through the material-direction predicate\nPASS marked outliers and missing required metric history stay excluded\nPASS forecast ignores raw and deviation rounding boundaries through the shared continuous predicate\nPASS all scenarios keep their finite estimates at a neutral reference\nPASS an exact half-integer deviation boundary has a finite Q target with material direction\nPASS 102.50% return rounding has a finite Q target with both displays possible\nPASS missing older output quantities are not credited to the return metric twice\n14 forecast checks passed\n"
+    },
+    {
+      "name": "viewport",
+      "passed": false,
+      "code": 1,
+      "timedOut": false,
+      "ms": 78137,
+      "output": "1440 trade-journal\n1280 trade-journal\n992 trade-journal\n[]\n[]\n1440 potential-prices\n1280 potential-prices\n[]\n992 potential-prices\n1280 item-market\n1440 item-market\n992 item-market\n1280 flipper\n992 flipper\n1440 flipper\n1280 decision-engine\n992 decision-engine\n1440 decision-engine\n1280 laborer-contract\n1440 laborer-contract\n992 laborer-contract\n1440 daily-bonus\n1280 daily-bonus\n992 daily-bonus\n1440 island-yields\n1280 island-yields\n992 island-yields\n1440 farming\n992 farming\n1280 farming\n1280 pasture\n992 pasture\n1440 pasture\n1440 island-planner\n992 island-planner\n1280 island-planner\n1440 island-planner-v2\n992 island-planner-v2\n1280 island-planner-v2\n992 opportunities\n1440 opportunities\n1280 opportunities\n992 trades\n1440 trades\n1280 trades\n992 malzemeler\n1280 malzemeler\n1440 malzemeler\n1280 faction\n992 faction\n1440 faction\n1280 refining\n992 refining\n1440 refining\n992 furniture\n1280 furniture\n1440 furniture\n992 house\n1280 house\n1440 house\n992 ava-craft\n1440 ava-craft\n1280 ava-craft\n992 carleon-craft\n1440 carleon-craft\n1280 carleon-craft\n1440 royal-craft\n1280 royal-craft\n992 royal-craft\n1440 enchanting\n1280 enchanting\n992 enchanting\n[\n  {\n    \"tool\": \"trade-journal\",\n    \"viewport\": {\n      \"width\": 1440,\n      \"height\": 900\n    },\n    \"overflow\": [\n      {\n        \"tag\": \"tool-page trade-journal-page\",\n        \"x\": 0,\n        \"y\": 96\n      }\n    ]\n  },\n  {\n    \"tool\": \"trade-journal\",\n    \"viewport\": {\n      \"width\": 1280,\n      \"height\": 720\n    },\n    \"overflow\": [\n      {\n        \"tag\": \"tool-page trade-journal-page\",\n        \"x\": 0,\n        \"y\": 96\n      }\n    ]\n  },\n  {\n    \"tool\": \"trade-journal\",\n    \"viewport\": {\n      \"width\": 992,\n      \"height\": 600\n    },\n    \"overflow\": [\n      {\n        \"tag\": \"tool-page trade-journal-page\",\n        \"x\": 0,\n        \"y\": 140\n      }\n    ]\n  }\n]\nAssertionError [ERR_ASSERTION]: Desktop tool outer frames must fit the viewport\n\n3 !== 0\n\n    at F:\\Web\\GitHub\\pcodeaxonos\\albion.tools.v4\\content\\scripts\\test-tool-viewport.cjs:48:9 {\n  generatedMessage: false,\n  code: 'ERR_ASSERTION',\n  actual: 3,\n  expected: 0,\n  operator: 'strictEqual',\n  diff: 'simple'\n}\n"
+    },
+    {
+      "name": "trade-capacity",
+      "passed": true,
+      "code": 0,
+      "timedOut": false,
+      "ms": 94,
+      "output": "Trade potential: local-first buy/sell, selective API, mixed measurement provenance, quality/server/city/direction, stale data, duplicates, personal capacity and acquisition limits passed.\n"
+    },
+    {
+      "name": "SAT",
+      "passed": true,
+      "code": 0,
+      "timedOut": false,
+      "ms": 553,
+      "output": "Trades.json: C:\\Users\\Pcodea\\AppData\\Local\\StatisticsAnalysisTool\\Instances\\0C676F01\\UserData-EUROPE\\Trades.json\nSize: 13733970 bytes\nInstance: 0C676F01\n\n=== Normalize kind distribution ===\nblackmarket_sell_expired: 503\ncrafting: 256\ninstant_buy: 1282\ninstant_sell: 375\nmail_buy: 3463\nmail_buy_expired: 902\nmail_sell: 8782\nmail_sell_expired: 1140\nplayer_in: 306\nplayer_out: 216\n\n=== Checks ===\ninput === normalized: 17225 === 17225\ninstant unit*qty === total: 1657/1657\nmail internalTotal/10000 === total: 14790/14790\nplayer InternalSilver/10000 === total: 13/13\ninstant quantity from InstantBuySellContent: 1657/1657\nwatcher initial event: OK\nwatcher simulateReload added-only: OK\nwatcher duplicate suppression: OK\nSILVER_SCALE: 10000\n\nALL TESTS PASSED\n"
+    },
+    {
+      "name": "history-infrastructure",
+      "passed": true,
+      "code": 0,
+      "timedOut": false,
+      "ms": 765,
+      "output": "Sales infrastructure: daily 90-day accumulation, correction, duplicates, retention, journal recovery, filtered readonly access, lossless IDs, independent source priority, unknown quality and shared budget passed.\n"
+    },
+    {
+      "name": "refresh-ui",
+      "passed": true,
+      "code": 0,
+      "timedOut": false,
+      "ms": 7894,
+      "output": "Potential refresh UI: filtered live history, atomic save failure, all horizons, cards and SQLite reload passed.\n"
+    },
+    {
+      "name": "island-economy",
+      "passed": true,
+      "code": 0,
+      "timedOut": false,
+      "ms": 40425,
+      "output": "y\nPASS non-fixed animals retain crop-only choices and compare best.feed.unit correctly\nPASS free meat grows over two planning days while adult products collect daily\nPASS V1 optimizer plot totals equal summed contributions\nPASS V1 chooses the mixed two-plot chain when it beats both alternatives, with no duplicate seed/opportunity cost\nPASS livestock focus fallback survives null nurture metadata; product chains match catalog\nPASS meat/live require replacement inputs; egg production never does\nPASS fixed input/output prices stay separate and internal transfers deduct sales fees\nPASS buy-order replacement setup is applied only to expected missing offspring\nPASS V2 trial placement does not mutate the visible plan or derived totals\nPASS V2 price summary handles missing and stale prices without UI variables\nPASS V2 Focus totals use editable item defaults for watering and nurture\nPASS V2 filling preserves occupied and locked slots; validates marginal total against engine\nPASS V2 existing animal demand changes the best addition\nPASS V2 missing baseline prices stop filling without modifying draft\ncatalog 96 candidates, 1 nodes, 32 ms\nPASS V2 catalog-wide 16-slot filling agrees with the complete engine\nPASS V2 candidate screening excludes missing data but keeps and reports stale quotes\nPASS V2 validation rejects a mismatched optimizer economic profile\nPASS V2 catalog price screening catches invalid prices on unplaced candidates\nPASS V2 non-feeding crops contribute zero to market feed totals, not unknown\nPASS V2 pumpkin supplies cow feed when internal use is cheaper, otherwise sells it\nPASS V2 per-unit production cost uses full output and includes internal feed opportunity cost\nPASS V2 Long Term UI and normal quote provider preserve tick, fees, feed and optimizer\nPASS Focus resolver uses latest per-use observation across cities, never averages\nPASS Real catalog focus cycles 1–6 use actual capacity and common planning days\nPASS Focus additive migration is idempotent and preserves manual catalog data\nPASS V2 optimizer accepts default focus and reacts to observed focus through shared economics\nPASS Focus seed imports game metadata once and preserves manual values\nPASS Focus seed fallback is seed-only; manual values survive repeat imports\n(node:30636) ExperimentalWarning: VM Modules is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)\nPASS V2 full 16-slot focused catalog honors budget and common engine totals\nLargest production ledger: {\"item\":\"horse-t5\",\"mountItem\":\"T5_MOUNT_ARMORED_HORSE\",\"count\":4}\nPASS V2 production ledger renders every catalog mode and the largest material recipe\nPASS Sales potential uses common feed engine, preserves fixed slots and certifies capacity bounds\nSales catalog search 60 29 2575 ms\nPASS Sales potential full catalog 16-slot search remains usable\nLive fixture placement {\"slots\":4,\"net\":2191931.2800000003,\"gain\":1643948.4600000002,\"salesDays\":7.353276633685149}\nPASS Sales potential live Europe Bridgewatch fixture validates a real placement and excludes missing seed prices\nPASS Sales potential history transport preserves quality and raw transactions and reuses cache\n[Island Planner V2] Fiyat eksik teşhisi [\n  {\n    type: 'missing-price',\n    slotId: 'R1',\n    item: 'Hen Eggs',\n    itemId: 'T3_EGG',\n    city: 'Fort Sterling',\n    side: 'potential',\n    intent: 'sell',\n    role: 'satış',\n    blocked: 'Hasat satış geliri',\n    reason: 'Güncel, tamamlanmış piyasa geçmişi yetersiz. Gösterge fiyat yalnız inceleme içindir; ada hesabında kullanılmaz.'\n  },\n  {\n    type: 'missing-price',\n    slotId: 'R1',\n    item: 'Sheaf of Wheat',\n    itemId: 'T3_WHEAT',\n    city: 'Fort Sterling',\n    side: 'potential',\n    intent: 'buy',\n    role: 'yem',\n    blocked: 'Yem gideri',\n    reason: 'Güncel, tamamlanmış piyasa geçmişi yetersiz. Gösterge fiyat yalnız inceleme içindir; ada hesabında kullanılmaz.'\n  }\n]\n[Island Planner V2] Derived dependency teşhisi [\n  {\n    type: 'missing-price',\n    slotId: 'R1',\n    item: 'Chicken',\n    itemId: 'T3_EGG',\n    city: 'Fort Sterling',\n    side: 'potential',\n    intent: null,\n    blocked: 'Hasat satış geliri',\n    reason: 'Güncel, tamamlanmış piyasa geçmişi yetersiz. Gösterge fiyat yalnız inceleme içindir; ada hesabında kullanılmaz.'\n  },\n  {\n    type: 'missing-price',\n    slotId: 'R1',\n    item: 'Chicken',\n    itemId: 'T3_WHEAT',\n    city: 'Fort Sterling',\n    side: 'potential',\n    intent: null,\n    blocked: 'Yem gideri',\n    reason: 'Güncel, tamamlanmış piyasa geçmişi yetersiz. Gösterge fiyat yalnız inceleme içindir; ada hesabında kullanılmaz.'\n  },\n  {\n    type: 'missing-price',\n    slotId: 'R1',\n    item: 'Chicken',\n    itemId: 'T3_EGG',\n    city: 'Fort Sterling',\n    side: 'potential',\n    intent: null,\n    blocked: 'Hasat satış geliri',\n    reason: 'Güncel, tamamlanmış piyasa geçmişi yetersiz. Gösterge fiyat yalnız inceleme içindir; ada hesabında kullanılmaz.'\n  },\n  {\n    type: 'missing-price',\n    slotId: 'R1',\n    item: 'Chicken',\n    itemId: 'T3_WHEAT',\n    city: 'Fort Sterling',\n    side: 'potential',\n    intent: null,\n    blocked: 'Yem gideri',\n    reason: 'Güncel, tamamlanmış piyasa geçmişi yetersiz. Gösterge fiyat yalnız inceleme içindir; ada hesabında kullanılmaz.'\n  },\n  {\n    type: 'missing-price',\n    slotId: 'R1',\n    item: 'Chicken',\n    itemId: 'T3_EGG',\n    city: 'Fort Sterling',\n    side: 'potential',\n    intent: null,\n    blocked: 'Hasat satış geliri',\n    reason: 'Güncel, tamamlanmış piyasa geçmişi yetersiz. Gösterge fiyat yalnız inceleme içindir; ada hesabında kullanılmaz.'\n  },\n  {\n    type: 'missing-price',\n    slotId: 'R1',\n    item: 'Chicken',\n    itemId: 'T3_WHEAT',\n    city: 'Fort Sterling',\n    side: 'potential',\n    intent: null,\n    blocked: 'Yem gideri',\n    reason: 'Güncel, tamamlanmış piyasa geçmişi yetersiz. Gösterge fiyat yalnız inceleme içindir; ada hesabında kullanılmaz.'\n  },\n  {\n    type: 'missing-price',\n    slotId: 'R1',\n    item: 'Chicken',\n    itemId: 'T3_EGG',\n    city: 'Fort Sterling',\n    side: 'potential',\n    intent: null,\n    blocked: 'Hasat satış geliri',\n    reason: 'Güncel, tamamlanmış piyasa geçmişi yetersiz. Gösterge fiyat yalnız inceleme içindir; ada hesabında kullanılmaz.'\n  },\n  {\n    type: 'missing-price',\n    slotId: 'R1',\n    item: 'Chicken',\n    itemId: 'T3_WHEAT',\n    city: 'Fort Sterling',\n    side: 'potential',\n    intent: null,\n    blocked: 'Yem gideri',\n    reason: 'Güncel, tamamlanmış piyasa geçmişi yetersiz. Gösterge fiyat yalnız inceleme içindir; ada hesabında kullanılmaz.'\n  }\n]\nPASS Potential with unknown fill timing preserves occupied/locked slots and rejects invented profit\nPASS Potential acquisition and harvest selections are independent and unknown prices never fall back silently\nPASS Daily mode without Potential performs zero trade/sales-history/API-history requests\nPASS Potential decision table matches the planner quote and rejects expired evidence\n52 island economy checks passed.\n"
+    },
+    {
+      "name": "preferences-ui",
+      "passed": true,
+      "code": 0,
+      "timedOut": false,
+      "ms": 8049,
+      "output": "Potential price preferences: item, city, sorting, direction, cards/list, reset survive SQLite-backed reload.\n"
+    },
+    {
+      "name": "planner-ui",
+      "passed": true,
+      "code": 0,
+      "timedOut": false,
+      "ms": 7873,
+      "output": "{\"personalRequests\":2,\"marketRequests\":2,\"priceMethodsIndependent\":true,\"selectionChangedSlots\":false,\"desktopAndMobileVerified\":true,\"isolatedApiFixture\":true,\"initialDraftCaptured\":true}\n"
+    },
+    {
+      "name": "personal",
+      "passed": true,
+      "code": 0,
+      "timedOut": false,
+      "ms": 121,
+      "output": "Personal evidence: deduplication, partial-order grouping, character scope, missing quality, identity, duration unknown, all BUY/SELL horizons, Hub adapter and preserved capacity passed.\n"
+    },
+    {
+      "name": "refresh",
+      "passed": true,
+      "code": 0,
+      "timedOut": false,
+      "ms": 264,
+      "output": "Potential refresh: stale dense history, 90-day scope, all horizons, failure preservation, server isolation and bounded negative cache passed.\nPotential batch: checkpoint isolation, continued progress, retry and archive-only API suppression passed.\nPersonal refresh integration: execution metadata, separate market proof, all horizons, saved planner price and grouped partial fills passed.\n(node:39888) ExperimentalWarning: VM Modules is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+    },
+    {
+      "name": "database-view",
+      "passed": true,
+      "code": 0,
+      "timedOut": false,
+      "ms": 189,
+      "output": "Potential price database view: live source, statuses, names/copy, search, export, read-only actions and removed info hook passed.\n(node:42360) ExperimentalWarning: VM Modules is an experimental feature and might change at any time\n(Use `node --trace-warnings ...` to show where the warning was created)\n"
+    },
+    {
+      "name": "limit",
+      "passed": true,
+      "code": 0,
+      "timedOut": false,
+      "ms": 359,
+      "output": "Limit model: direction, horizons, censoring, no future leakage, availability, sparse coverage, book isolation, quantity, partial fills, failed orders, migration and Planner admission passed.\n"
+    },
+    {
+      "name": "css-tests",
+      "passed": true,
+      "code": 0,
+      "timedOut": false,
+      "ms": 130,
+      "output": "CSS architecture scanner tests passed.\n"
+    },
+    {
+      "name": "city-architecture",
+      "passed": true,
+      "code": 0,
+      "timedOut": false,
+      "ms": 546,
+      "output": "City picker architecture: 201 source files, 0 errors.\n"
+    },
+    {
+      "name": "css-check",
+      "passed": true,
+      "code": 0,
+      "timedOut": false,
+      "ms": 1646,
+      "output": "CSS architecture: 47 style files, 374 markup/script files, 4044 compiled rules.\nWARN content\\scss\\app\\_farming-pasture.scss: possible shared component refining-table\nWARN content\\scss\\app\\_flipper.scss: possible shared component flipper-item\nWARN content\\scss\\app\\_flipper.scss: possible shared component flipper-price-cell\nWARN content\\scss\\app\\_flipper.scss: possible shared component flipper-item-meta\nWARN content\\scss\\app\\_flipper.scss: possible shared component flipper-note\nWARN content\\scss\\app\\_house.scss: possible shared component house-mats\nWARN content\\scss\\app\\_house.scss: possible shared component house-mat\nWARN content\\scss\\app\\_house.scss: possible shared component house-mat-text\nWARN content\\scss\\app\\_house.scss: possible shared component house-mat-value\nWARN content\\scss\\app\\_house.scss: possible shared component house-mat-label\nWARN content\\scss\\app\\_house.scss: possible shared component house-mat-meta\nWARN content\\scss\\app\\_island-planner.scss: possible shared component island-planner-chip\nWARN content\\scss\\app\\_island-planner.scss: possible shared component island-planner-chip-icon\nWARN content\\scss\\app\\_island-planner.scss: possible shared component island-planner-table\nWARN content\\scss\\app\\_island-planner.scss: possible shared component island-planner-type\nWARN content\\scss\\app\\_island-planner.scss: possible shared component island-planner-note\nWARN content\\scss\\app\\_laborer-contract.scss: possible shared component laborer-contract-item\nWARN content\\scss\\app\\_trades.scss: possible shared component trades-table\nWARN Identical blocks: .fixed-price-item-filter-row > span / .opp-types .opp-view span\nWARN Identical blocks: .tool-page .result :where(div, section):has(.calc-table-wrap) / .opp-page .result > [data-opportunities-result]\n0 retired-class errors; 21 advisory findings; 194 unused/dynamic candidates.\nWARN 1 further advisory candidates (use --all).\n"
+    },
+    {
+      "name": "potential-ui",
+      "passed": true,
+      "code": 0,
+      "timedOut": false,
+      "ms": 18474,
+      "output": "Potential prices UI: pagination, filters, sorting, list/cards, copy, dialog, empty and responsive states passed (isolated fixtures).\n"
+    }
+  ]
+}

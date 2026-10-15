@@ -41,8 +41,8 @@ try {
     const result = await resolveTradePotential([request], { opportunity: true, days: 28, now,
         snapshot: { server: 'europe', scope: 'personal', trades: [] },
         fetchPacketHistory: async () => new Map([[row.item_id, { points: row.data }]]),
-        fetchHourlyHistory: async () => { assert.fail('API must not override valid game packets'); } });
-    assert.equal(result.get(tradeEvidenceKey(request)).price, 40503);
-    assert.equal(result.get(tradeEvidenceKey(request)).source, 'Oyun Market History');
+        fetchHourlyHistory: async () => new Map() });
+    assert.equal(result.get(tradeEvidenceKey(request)).price, null, 'a packet average cannot establish an order fill');
+    assert.equal(result.get(tradeEvidenceKey(request)).plannerUsable, false);
 } finally { rmSync(path, { force: true }); rmdirSync(folder); }
 console.log('Market History packets: wire precision, silver/ticks, POW, dedupe/corrections, persistent restore, resolution/scope isolation and game-before-API passed.');

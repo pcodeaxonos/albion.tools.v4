@@ -37,7 +37,7 @@ assert(apiCalls > 0, '90 old days must not suppress fresh API history');
 assert(localDays.every(days => days === 90), 'sale duration must never truncate evidence horizon');
 for (const { days } of SALE_HORIZONS) {
     const value = readPotentialSnapshots(storage, [request], days).get(tradeEvidenceKey(request));
-    assert(value?.reliable, `${days}-day forecast recovers from fresh history`);
+    assert(value && !value.reliable && value.price === null, `${days}-day history cannot establish unknown fill probability`);
     assert.equal(value.estimator, SALE_ESTIMATOR);
 }
 const before = storage.getItem(POTENTIAL_SNAPSHOT_KEY);
@@ -87,12 +87,12 @@ personalSnapshot = { server: 'europe', scope: 'personal', trades: Array.from({ l
 await refresh([request], { storage, days: 7, now });
 for (const { days } of SALE_HORIZONS) {
     const value = readPotentialSnapshots(storage, [request], days, now).get(tradeEvidenceKey(request));
-    assert.equal(value.price, 42000); assert.equal(value.personalSummary.independentOrders, 3);
-    assert(value.personalImpact.selected); assert(value.marketEvidence.price < value.price);
+    assert.equal(value.price, null); assert.equal(value.personalSummary.independentOrders, 3);
+    assert.equal(value.personalImpact.selected, false); assert.equal(value.personalSummary.maxPrice, 42000);
 }
 personalSnapshot.trades.forEach(trade => { trade.orderId = 'same-order'; });
 await refresh([request], { storage, days: 7, now });
 const grouped = readPotentialSnapshots(storage, [request], 7, now).get(tradeEvidenceKey(request));
-assert.equal(grouped.personalEvidence.personalSummary.independentOrders, 1);
-assert(grouped.price < 42000, 'refresh preserves order linkage and does not promote partial fills');
+assert.equal(grouped.personalSummary.independentOrders, 1);
+assert.equal(grouped.price, null, 'partial fills cannot create fill probability');
 console.log('Personal refresh integration: execution metadata, separate market proof, all horizons, saved planner price and grouped partial fills passed.');

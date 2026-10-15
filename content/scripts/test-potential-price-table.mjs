@@ -11,7 +11,7 @@ const entries = new Map();
 const storage = { getItem: key => entries.get(key) ?? null, setItem: (key, value) => entries.set(key, value) };
 const request = { server:'europe', city:'Martlock', itemId:'T4_TURNIP', quality:1, side:'sell' };
 const key = days => JSON.stringify([tradeEvidenceKey(request), days]);
-const saved = { savedSnapshot:true, estimator:SALE_ESTIMATOR, reliable:true, price:100, days:7,
+const saved = { savedSnapshot:true, estimator:SALE_ESTIMATOR, reliable:true, plannerUsable:true, price:100, days:7,
     validUntil:new Date(Date.now()+86400000).toISOString(), savedAt:new Date().toISOString(), source:'Oyun Market History' };
 storage.setItem(POTENTIAL_SNAPSHOT_KEY, JSON.stringify({
     [key(7)]:saved, [key(14)]:{...saved, days:14, validUntil:'2020-01-01T00:00:00Z'},
@@ -32,7 +32,7 @@ assert.equal(potentialPriceDecision(saved,request,28).price,null,'duration canno
 assert.equal(potentialPriceDecision({...saved,periodPrice:120,recentPrice:110,currentOrder:100},request,7).basis,'—');
 const variations = [request,{...request,city:'Bridgewatch'},{...request,server:'west'},
     {...request,quality:2},{...request,side:'buy'},{...request,itemId:'T5_CABBAGE'}];
-const variantRows = Object.fromEntries(variations.map(scope=>[JSON.stringify([tradeEvidenceKey(scope),scope.side==='buy'?90:7]),saved]));
+const variantRows = Object.fromEntries(variations.map(scope=>[JSON.stringify([tradeEvidenceKey(scope),7]),saved]));
 const variantStorage = {getItem:()=>JSON.stringify(variantRows)};
 assert.equal(potentialDecisionRows(variantStorage).length,variations.length,'required market variations remain independent');
 assert.equal(storage.getItem(POTENTIAL_SNAPSHOT_KEY),original,'view never modifies the original records');

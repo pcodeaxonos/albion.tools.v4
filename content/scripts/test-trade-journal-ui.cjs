@@ -6,13 +6,13 @@ const { chromium } = require('playwright');
 (async () => {
     const { UserDataRepository } = await import('./user-data-repository.mjs');
     const temp = fs.mkdtempSync(path.join(os.tmpdir(),'trade-journal-test-'));
-    const screenshots = path.resolve(__dirname,'../../output/trade-journal-verification');
+    const screenshots = path.resolve(__dirname,'../../output/trade-journal-board-verification');
     fs.mkdirSync(screenshots,{recursive:true});
     let repository = new UserDataRepository(path.join(temp,'test.sqlite'));
     const { journalDay } = await import('../js/core/trade-journal.mjs');
     const day = journalDay(Date.now());
     const fill = id => ({sourceId:String(id),characterGuid:'test-character',kind:'instant_sell',itemId:'T4_MAIN_SWORD',itemName:'Sword',clusterIndex:'3005',locationName:'Martlock',quality:2,quantity:2,unitPriceSilver:100,totalPriceSilver:200,occurredAt:day+'T10:00:00Z'});
-    let rows = Array.from({length:6},(_,i)=>fill(i)), failedWrite = false, failedSource = false;
+    let rows = Array.from({length:6},(_,i)=>fill(i)), failedWrite = false, failedSource = false, conflictWrite = false;
     const browser = await chromium.launch({channel:'chrome',headless:true});
     const errors = [];
     try {
@@ -30,6 +30,7 @@ const { chromium } = require('playwright');
                 if (url.pathname.includes('/user-data')) {
                     const body = route.request().postDataJSON();
                     if (failedWrite && route.request().method()==='PUT' && body.changes?.some(c=>c.key.includes('tradeJournalRead'))) return route.fulfill({status:503,json:{error:'test write failure'}});
+                    if (conflictWrite && route.request().method()==='PUT' && body.changes?.some(c=>c.key.includes('tradeJournalRead'))) return route.fulfill({status:409,json:{error:'revision conflict'}});
                     const result = route.request().method()==='GET' ? repository.snapshot() : url.pathname.endsWith('/import') ? repository.importLegacy(body.data) : url.pathname.endsWith('/backup') ? repository.status() : repository.write(body.changes);
                     return route.fulfill({json:result});
                 }
@@ -38,7 +39,7 @@ const { chromium } = require('playwright');
                 return route.fulfill({json:{ready:true,server:'europe',items:[],rows:[]}});
             }
             if (url.hostname!=='localhost') return route.abort();
-            const file = path.resolve(__dirname,'../..','.'+url.pathname+(url.pathname.endsWith('/')?'index.html':''));
+            const file = path.resolve(__dirname,'../..','.'+decodeURIComponent(url.pathname)+(url.pathname.endsWith('/')?'index.html':''));
             return fs.existsSync(file) ? route.fulfill({path:file}) : route.fulfill({status:404,body:''});
         });
         const page = await context.newPage();
@@ -49,7 +50,7 @@ const { chromium } = require('playwright');
             const source=window.journalSources.find(s=>s.url.includes('/trades/updates'));
             source.listeners.added({data:JSON.stringify({trades:rows,at:new Date().toISOString()})});
         },rows);
-        await page.getByText('Satış ağırlıklı gün. 6 satış, 1.200 Silver.',{exact:true}).waitFor();
+        await page.waitForFunction(()=>document.querySelectorAll('.journal-kpi strong')[3]?.textContent==='6');
         assert.ok(await page.locator('.sidebar-link').filter({hasText:'Ticaret Günlüğü'}).count());
         const item = page.locator('[data-copy-item-name]').first();
         await item.click(); await item.press('Enter'); await item.press('Space');
@@ -68,7 +69,7 @@ const { chromium } = require('playwright');
         }
         const images = await page.evaluate(async()=>Promise.all(['desktop/trade-journal-head-desktop.png','mobile/trade-journal-head-mobile.webp'].map(async file=>{const image=new Image();image.src='/content/images/page-heads/'+file;await image.decode();return [image.naturalWidth,image.naturalHeight];})));
         assert.deepEqual(images,[[2000,200],[1200,480]]);
-        await page.locator('[data-group]').first().click();
+        await page.locator('[data-open-group]').first().click();
         await page.getByText('0 okunmamış grup',{exact:true}).waitFor();
         await page.locator('[data-close]').click();
         const other = await context.newPage();
@@ -79,8 +80,13 @@ const { chromium } = require('playwright');
         await page.locator('[data-read-day]').click();
         await page.getByText('0 okunmamış grup',{exact:true}).waitFor();
         rows.push(fill(7));
-        await page.locator('[data-refresh]').click();
+        await page.evaluate(row => window.journalSources.find(s=>s.url.includes('/trades/updates')).listeners.added({data:JSON.stringify({trades:[row],at:new Date().toISOString()})}),rows.at(-1));
         await page.getByText('1 okunmamış grup',{exact:true}).waitFor();
+        conflictWrite = true;
+        await page.locator('[data-mark]').first().click();
+        await page.getByText(/Okunma durumu kaydedilemedi/).waitFor();
+        assert.equal(await page.locator('[data-unread]').innerText(),'1 okunmamış grup');
+        conflictWrite = false;
         failedWrite = true;
         await page.locator('[data-mark]').first().click();
         await page.getByText(/Okunma durumu kaydedilemedi/).waitFor();
@@ -111,11 +117,60 @@ const { chromium } = require('playwright');
         assert.ok((await page.locator('dialog[open]').innerText()).includes('Satış: 240.000'));
         await page.locator('[data-close]').click();
         await page.getByText('0 okunmamış grup',{exact:true}).waitFor();
-        assert.equal(await page.locator('[data-story].is-unread').count(),0);
+        assert.equal(await page.locator('.journal-event.is-unread').count(),0);
+        assert.equal(await page.locator('button button, [role="button"] button, button [role="button"]').count(),0,'no nested interactive controls');
+        await page.locator('[data-only-unread]').check();
+        assert.equal(await page.locator('[data-open-group]').count(),0);
+        await page.locator('[data-only-unread]').uncheck();
+        // Hundreds of valid fills, malformed source rows, both directions and many groups.
+        rows = Array.from({length:240},(_,i)=>({...fill(1000+i),quality:i%5+1,clusterIndex:String(3000+i%120),kind:i%2?'instant_buy':'instant_sell'}));
+        rows.push({...fill('bad'),quantity:null}, {...fill('missing'),sourceId:null});
+        await page.locator('[data-refresh]').click();
+        await page.waitForFunction(()=>document.querySelectorAll('[data-group]').length===10);
+        await page.setViewportSize({width:1366,height:600});
+        for(const side of ['sell','buy']) {
+            const lane=page.locator(`.journal-block--${side} .journal-lane-body`);
+            assert.ok(await lane.evaluate(el=>el.scrollHeight<=el.clientHeight+1),'preview has no internal scroll');
+            const expand=page.locator(`[data-expand="${side}"]`);
+            assert.equal(await expand.innerText(),'55 grup daha göster');
+            await expand.click();
+            assert.equal(await lane.locator('[data-group]').count(),60);
+            assert.equal(await expand.getAttribute('aria-expanded'),'true');
+        }
+        await page.locator('[data-refresh]').click(); await page.waitForTimeout(300);
+        assert.equal(await page.locator('[data-group]').count(),120,'refresh preserves expanded panels');
+        for(const side of ['sell','buy']) await page.locator(`[data-expand="${side}"]`).click();
+        assert.equal(await page.locator('[data-group]').count(),10,'both panels collapse to five');
+        // An unread paired story can open both sides even when one is hidden by the filter.
+        rows = Array.from({length:5},(_,i)=>({...fill(5000+i),kind:i<2?'instant_buy':'instant_sell',totalPriceSilver:80000,unitPriceSilver:40000}));
+        await page.locator('[data-refresh]').click();
+        await page.waitForFunction(()=>document.querySelectorAll('[data-group]').length===2);
+        await page.locator('.journal-block--buy [data-mark]').click();
+        await page.getByText('1 okunmamış grup',{exact:true}).waitFor();
+        await page.locator('[data-only-unread]').check();
+        assert.equal(await page.locator('[data-group]').count(),1);
+        await page.locator('[data-story]').press('Space');
+        await page.locator('dialog[open]').waitFor();
+        assert.equal(await page.locator('dialog tbody tr').count(),5);
+        await page.locator('[data-close]').click();
+        await page.getByText('0 okunmamış grup',{exact:true}).waitFor();
+        await page.waitForFunction(()=>document.querySelector('[data-only-unread]')===document.activeElement);
+        await page.locator('[data-only-unread]').uncheck();
+        // Three events exercise layout only; production thresholds remain unchanged.
+        rows = [1,2].map(q=>({...fill(9000+q),quality:q,totalPriceSilver:5000000,unitPriceSilver:2500000}));
+        rows.push(...Array.from({length:5},(_,i)=>({...fill(9100+i),quality:3,totalPriceSilver:400000,unitPriceSilver:200000})));
+        await page.locator('[data-refresh]').click();
+        await page.waitForFunction(()=>document.querySelectorAll('.journal-event').length===3);
+        for(const width of [1920,1366,992,390,320]) {
+            await page.setViewportSize({width,height:844});
+            assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+2));
+            await page.locator('.journal-story').evaluate(el=>el.scrollIntoView({block:'start'}));
+            await page.screenshot({path:path.join(screenshots,'journal-three-events-'+width+'.png')});
+        }
         if (process.env.JOURNAL_REAL_AUDIT === '1') {
             const { findEuropeTradesFile, readTradesFile } = await import('./sat-trades/find-trades-file.mjs');
             const { normalizeTrades, loadLocationDisplayNames } = await import('./sat-trades/normalize.mjs');
-            const { journalGroups, mergeJournalTrades, journalSummary } = await import('../js/core/trade-journal.mjs');
+            const { journalGroups, mergeJournalTrades } = await import('../js/core/trade-journal.mjs');
             const archive = findEuropeTradesFile({localAppData:path.join(os.homedir(),'AppData','Local')});
             rows = normalizeTrades((await readTradesFile(archive.path)).records,loadLocationDisplayNames());
             const latest = rows.map(t=>t.occurredAt).filter(t=>Number.isFinite(Date.parse(t))).sort().at(-1);
@@ -124,8 +179,8 @@ const { chromium } = require('playwright');
             await page.locator('[data-only-unread]').uncheck();
             await page.locator('[data-day]').fill(realDay); await page.locator('[data-day]').dispatchEvent('change');
             await page.locator('[data-refresh]').click();
-            await page.waitForFunction(expected=>document.querySelector('[data-content]')?.textContent.includes(expected),journalSummary(realModel));
-            for(const [width,height] of [[1366,768],[390,844]]) {
+            await page.waitForFunction(expected=>document.querySelector('.journal-kpi strong')?.textContent===expected,realModel.sales.toLocaleString('tr-TR',{maximumFractionDigits:2}));
+            for(const [width,height] of [[320,720],[390,844],[768,900],[992,600],[1366,768],[1920,1080]]) {
                 await page.setViewportSize({width,height});
                 await page.waitForTimeout(250);
                 if(width<768 && await page.evaluate(()=>document.body.classList.contains('app-sidebar-open'))) await page.locator('.sidebar-toggler').click();
@@ -136,6 +191,7 @@ const { chromium } = require('playwright');
             console.log(`REAL ARCHIVE: ${rows.length} records; ${realDay}: ${realModel.count} fills, ${realModel.groups.length} groups, sales=${realModel.sales}, buys=${realModel.buys}`);
         }
         assert.deepEqual(errors,[]);
+        console.log('PASS dense board: 240 fills, 120 groups, five-group preview, expand/collapse retained, native keyboard, partially filtered paired story, dialog focus return');
         console.log('PASS journal UI: six viewports, exact head pixels, menu, group details, SQLite restart, two windows, new fill, failed write, unread filter, source failure, empty state');
         console.log('Screenshots: '+screenshots);
     } finally { await browser.close(); repository.close(); }

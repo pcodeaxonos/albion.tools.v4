@@ -1,0 +1,211 @@
+{
+  "at": "2026-10-15T12:25:24.401Z",
+  "archiveRecords": 17225,
+  "day": "2026-10-15",
+  "fills": 57,
+  "groups": 37,
+  "sales": 4604356,
+  "buys": 2515051,
+  "net": 2089305,
+  "results": [
+    {
+      "width": 320,
+      "height": 720,
+      "overflow": 0,
+      "pageOverflow": 0,
+      "story": {
+        "x": 24,
+        "y": 698.515625,
+        "width": 272,
+        "height": 226.765625
+      },
+      "sell": {
+        "x": 24,
+        "y": 938.078125,
+        "width": 272,
+        "height": 3318.78125
+      },
+      "buy": {
+        "x": 24,
+        "y": 4269.65625,
+        "width": 272,
+        "height": 1420.578125
+      },
+      "metrics": [
+        "Satış toplamı4.604.356 Silver42 satış",
+        "Alış toplamı2.515.051 Silver15 alış",
+        "Net nakit akışı2.089.305 SilverKâr değildir",
+        "Gerçekleşme sayısı57 işlem37 ürün / şehir / kalite grubu"
+      ],
+      "status": "Canlı · Son alım 14:54",
+      "missingIcons": [],
+      "badElements": []
+    },
+    {
+      "width": 390,
+      "height": 844,
+      "overflow": 0,
+      "pageOverflow": 0,
+      "story": {
+        "x": 24,
+        "y": 611.921875,
+        "width": 342,
+        "height": 201.578125
+      },
+      "sell": {
+        "x": 24,
+        "y": 826.296875,
+        "width": 342,
+        "height": 3131.46875
+      },
+      "buy": {
+        "x": 24,
+        "y": 3970.5625,
+        "width": 342,
+        "height": 1389.359375
+      },
+      "metrics": [
+        "Satış toplamı4.604.356 Silver42 satış",
+        "Alış toplamı2.515.051 Silver15 alış",
+        "Net nakit akışı2.089.305 SilverKâr değildir",
+        "Gerçekleşme sayısı57 işlem37 ürün / şehir / kalite grubu"
+      ],
+      "status": "Canlı · Son alım 14:54",
+      "missingIcons": [],
+      "badElements": []
+    },
+    {
+      "width": 768,
+      "height": 900,
+      "overflow": 0,
+      "pageOverflow": 0,
+      "story": {
+        "x": 272,
+        "y": 512.734375,
+        "width": 472,
+        "height": 158.390625
+      },
+      "sell": {
+        "x": 272,
+        "y": 683.921875,
+        "width": 472,
+        "height": 3131.46875
+      },
+      "buy": {
+        "x": 272,
+        "y": 3828.1875,
+        "width": 472,
+        "height": 1389.359375
+      },
+      "metrics": [
+        "Satış toplamı4.604.356 Silver42 satış",
+        "Alış toplamı2.515.051 Silver15 alış",
+        "Net nakit akışı2.089.305 SilverKâr değildir",
+        "Gerçekleşme sayısı57 işlem37 ürün / şehir / kalite grubu"
+      ],
+      "status": "Canlı · Son alım 14:54",
+      "missingIcons": [],
+      "badElements": []
+    },
+    {
+      "width": 992,
+      "height": 600,
+      "overflow": 0,
+      "pageOverflow": 0,
+      "story": {
+        "x": 788.71875,
+        "y": 329.84375,
+        "width": 179.28125,
+        "height": 232.5625
+      },
+      "sell": {
+        "x": 272,
+        "y": 329.84375,
+        "width": 245.5625,
+        "height": 232.5625
+      },
+      "buy": {
+        "x": 530.359375,
+        "y": 329.84375,
+        "width": 245.5625,
+        "height": 232.5625
+      },
+      "metrics": [
+        "Satış toplamı4.604.356 Silver42 satış",
+        "Alış toplamı2.515.051 Silver15 alış",
+        "Net nakit akışı2.089.305 SilverKâr değildir",
+        "Gerçekleşme sayısı57 işlem37 ürün / şehir / kalite grubu"
+      ],
+      "status": "Canlı · Son alım 14:54",
+      "missingIcons": [],
+      "badElements": []
+    },
+    {
+      "width": 1366,
+      "height": 768,
+      "overflow": 0,
+      "pageOverflow": 0,
+      "story": {
+        "x": 1062.71875,
+        "y": 352.34375,
+        "width": 279.265625,
+        "height": 226.765625
+      },
+      "sell": {
+        "x": 272,
+        "y": 352.34375,
+        "width": 382.5625,
+        "height": 378.0625
+      },
+      "buy": {
+        "x": 667.359375,
+        "y": 352.34375,
+        "width": 382.5625,
+        "height": 378.0625
+      },
+      "metrics": [
+        "Satış toplamı4.604.356 Silver42 satış",
+        "Alış toplamı2.515.051 Silver15 alış",
+        "Net nakit akışı2.089.305 SilverKâr değildir",
+        "Gerçekleşme sayısı57 işlem37 ürün / şehir / kalite grubu"
+      ],
+      "status": "Canlı · Son alım 14:54",
+      "missingIcons": [],
+      "badElements": []
+    },
+    {
+      "width": 1920,
+      "height": 1080,
+      "overflow": 0,
+      "pageOverflow": 0,
+      "story": {
+        "x": 1468.578125,
+        "y": 359.171875,
+        "width": 427.40625,
+        "height": 158.390625
+      },
+      "sell": {
+        "x": 272,
+        "y": 359.171875,
+        "width": 585.484375,
+        "height": 683.234375
+      },
+      "buy": {
+        "x": 870.28125,
+        "y": 359.171875,
+        "width": 585.5,
+        "height": 683.234375
+      },
+      "metrics": [
+        "Satış toplamı4.604.356 Silver42 satış",
+        "Alış toplamı2.515.051 Silver15 alış",
+        "Net nakit akışı2.089.305 SilverKâr değildir",
+        "Gerçekleşme sayısı57 işlem37 ürün / şehir / kalite grubu"
+      ],
+      "status": "Canlı · Son alım 14:54",
+      "missingIcons": [],
+      "badElements": []
+    }
+  ],
+  "errors": []
+}

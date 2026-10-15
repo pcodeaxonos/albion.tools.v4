@@ -9,40 +9,14 @@ const apiPoints = trades.map(trade => ({ timestamp: trade.occurredAt, avg_price:
 let calls = [];
 const fetchHistory = async (ids, req) => { calls.push({ ids, city: req.city, quality: req.quality }); return new Map(ids.map(id => [id, { points: apiPoints }])); };
 const resolve = (requests, snapshot) => resolveTradePotential(requests, { priceOnly: false, snapshot, days, now, fetchHistory });
-let result = await resolve([request], snapshot);
-let stats = result.get(tradeEvidenceKey(request));
-assert.equal(calls.length, 0, 'adequate personal executions prevent API requests');
-assert.equal(stats.source, 'Yerel');
-assert.equal(stats.price, 10);
-assert.equal(stats.volume, 700);
-assert.equal(potentialCapacity(stats, 5), 700, 'personal performance is not market-share-scaled');
-const buy = { ...request, side: 'buy' };
-result = await resolve([request, buy], { ...snapshot, trades: [...trades, ...trades.map(trade => ({ ...trade, sourceId: `buy-${trade.sourceId}`, kind: 'mail_buy', unitPriceSilver: 20 }))] });
-assert.equal(calls.length, 0, 'both acquisition and sales can be fully local');
-assert.equal(result.get(tradeEvidenceKey(buy)).price, 20, 'buy and sell prices stay distinct');
-result = await resolve([request], { ...snapshot, trades: trades.map(trade => ({ ...trade, quantity: null })) });
-stats = result.get(tradeEvidenceKey(request));
-assert.equal(stats.source, 'Karma');
-assert.equal(stats.price, 10, 'API cannot overwrite adequate local price');
-assert.equal(stats.volume, 70000, 'API market units alone supply missing capacity');
-assert.equal(potentialCapacity(stats, 10), 7000);
-assert.equal(potentialSource([stats]), 'Karma');
-calls = [];
-const missing = { ...request, itemId: 'T8_MILK' };
-result = await resolve([request, missing, missing], snapshot);
-assert.deepEqual(calls.map(call => call.ids), [['T8_MILK']], 'only missing item fetched, with no duplicate request');
-assert.equal(result.get(tradeEvidenceKey(request)).volume, 700, 'sources never double-count matching executions');
-for (const change of [
-    { server: 'west' }, { scope: 'market' },
-    { trades: trades.map(trade => ({ ...trade, quality: null })) },
-    { trades: trades.map(trade => ({ ...trade, quality: 2 })) },
-    { trades: trades.map(trade => ({ ...trade, locationName: 'Martlock' })) },
-    { trades: trades.map(trade => ({ ...trade, kind: 'mail_sell_expired' })) },
-    { trades: trades.map(trade => ({ ...trade, occurredAt: '2025-01-01T00:00:00Z' })) }
-]) {
-    const result = await resolve([request], { ...snapshot, ...change });
-    assert.equal(result.get(tradeEvidenceKey(request)).source, 'API');
-}
+const result = await resolve([request, request], snapshot);
+const stats = result.get(tradeEvidenceKey(request));
+assert.equal(calls.length,0,'adequate personal capacity needs no duplicate API load');
+assert.equal(stats.price,null,'personal capacity and public averages cannot establish a limit fill');
+assert.equal(stats.volume,700);
+assert.equal(stats.capacityReliable,true);
+assert.equal(potentialCapacity(stats,5),700);
+assert.equal(stats.personalSummary.fills,7);
 const doubled = localTradeEvidence(indexTradeEvidence({ ...snapshot, trades: [...trades, ...trades] }), request, days, now);
 assert.equal(doubled.volume, 700);
 const none = await resolveTradePotential([request], { priceOnly: false, snapshot: { trades: [] }, days, now, fetchHistory: async () => new Map() });

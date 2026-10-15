@@ -4,6 +4,7 @@
     :is(td, strong)[data-price-tone="secondary"] { color: var(--color-text-muted); }
     .potential-price-item { display: grid; grid-template-columns: auto minmax(min-content, 1fr); align-items: center; gap: var(--spacing-sm); min-width: min-content; }
     .potential-price-badges { display: flex; flex-wrap: wrap; gap: .25rem; }
+    [data-historical-reference] { display: block; color: var(--color-text-muted); font-weight: var(--font-weight-normal); letter-spacing: normal; }
     .potential-price-cards { display: grid; align-content: start; align-items: start; grid-template-columns: repeat(auto-fill, minmax(min(100%, 19rem), 1fr)); gap: var(--spacing-sm); }
     // Approved editorial concept 02: product, market, then price/detail.
     .potential-price-card {
@@ -41,7 +42,7 @@
     .potential-price-card[data-price-tone="warning"] .potential-price-status, .potential-price-status[data-status="Süresi doldu"] { color: var(--color-warning); }
     .potential-price-status::before { content: ''; flex: 0 0 7px; width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
     .potential-price-card[data-price-tone="success"] .potential-price-status::before { box-shadow: 0 0 9px currentColor; }
-    .potential-price-card [data-detail] { grid-area: detail; justify-self: end; align-self: end; display: inline-flex; justify-content: center; align-items: center; gap: 6px; min-width: 77px; padding: 10px 11px; background: #242c36; border: var(--border-width) solid #536071; border-radius: var(--spacing-sm); color: var(--color-text); font-size: 11px; font-weight: 800; line-height: 1.25; white-space: nowrap; }
+    .potential-price-card [data-detail] { grid-area: detail; justify-self: end; align-self: end; display: inline-flex; justify-content: center; align-items: center; background: #242c36; border: var(--border-width) solid #536071; border-radius: var(--spacing-sm); color: var(--color-text); font-size: 11px; font-weight: 800; line-height: 1.25; white-space: nowrap; }
     .potential-price-card [data-detail]:hover { background: #34495d; border-color: #83b6d9; }
     @media (max-width: 380px) {
         .potential-price-card { padding: 14px 13px; }

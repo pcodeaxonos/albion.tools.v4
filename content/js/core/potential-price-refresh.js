@@ -56,17 +56,13 @@ export async function refreshPotentialPrices(requests, { storage, days = SALE_HO
     try { if (!archiveOnly) orders = indexPrices(await fetchGamePrices([...new Set(needed.map(request => request.itemId))],
         [...new Set(needed.map(request => request.city))], { qualities: [...new Set(needed.map(request => request.quality))].join(',') })); }
     catch (error) { console.warn('[Potansiyel fiyat] Güncel emirler alınamadı:', error.message); }
-    const purchases = new Map();
     for (const period of SALE_HORIZONS) {
         const targets = new Map(needed.map(request => {
             const key = tradeEvidenceKey(request), proof = evidence.get(key);
-            const target = purchases.get(key) ?? saleHorizonTarget(proof, request, cityRow(orders, request.itemId, request.city, request.quality),
-                request.side === 'buy' ? SALE_HORIZONS.at(-1).days : period.days, now);
-            if (request.side === 'buy') purchases.set(key, target);
+            const target = saleHorizonTarget(proof, request, cityRow(orders, request.itemId, request.city, request.quality),
+                period.days, now);
             return [key, { ...target }];
         }));
-        // Purchase evidence stays independent of the selected harvest horizon.
-        for (const request of needed) if (request.side === 'buy') targets.get(tradeEvidenceKey(request)).days = period.days;
         savePotentialSnapshots(storage, needed, period.days, targets, now);
         if (period.days === days) for (const [key, value] of targets) saved.set(key, value);
     }

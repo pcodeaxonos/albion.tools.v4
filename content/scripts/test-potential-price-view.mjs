@@ -41,6 +41,10 @@ assert.equal(ids({}).length, 4, 'all retains items without tier metadata');
 console.log('Potential price filters and null-safe sorting passed.');
 
 const preferences = { ...potentialDefaults(), itemId: 'T4_BAG@1', city: 'Martlock', tier: '4', enchant: '1', sort: 'price', direction: 'asc', view: 'cards', page: 2 };
+for (const direction of ['asc', 'desc']) {
+    const periods = [2, 28, 7].map((days, index) => ({ id: String(index), days, savedAt: '2026-10-15T10:00:00Z' }));
+    assert.deepEqual(filterPotentialRows(periods, { ...potentialDefaults(), direction }).map(row => row.days), [2, 7, 28], 'equal primary values use ascending sale duration regardless of direction');
+}
 for (const days of ['2', '7', '28']) assert.equal(potentialPreferences({ days }).days, days);
 for (const days of ['1', '14', '21', '60', '90']) assert.equal(potentialPreferences({ days }).days, '');
 assert.deepEqual(filterPotentialRows([2, 7, 28, 1, 14, 21, 60, 90, null].map(days => ({ id: String(days), days })), potentialDefaults()).map(row => row.days), [2, 7, 28, null], 'retired durations stay in storage but are excluded from tool results');

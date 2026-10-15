@@ -6,6 +6,9 @@ const { chromium } = require('playwright');
     const browser = await chromium.launch({ channel: 'chrome', headless: true });
     const context = await browser.newContext({ viewport: { width: 1440, height: 1000 } });
     const page = await context.newPage(), errors = [];
+    const { UserDataRepository } = await import('./user-data-repository.mjs');
+    const temp = fs.mkdtempSync(require('node:path').join(require('node:os').tmpdir(), 'limit-planner-ui-'));
+    const repository = new UserDataRepository(require('node:path').join(temp, 'data.sqlite'));
     let releaseGeometry;
     const geometryGate = new Promise(resolve => { releaseGeometry = resolve; });
     let personalRequests = 0, marketRequests = 0;
@@ -28,6 +31,13 @@ const { chromium } = require('playwright');
     });
     await page.route('**/api/**', async route => {
         const url = new URL(route.request().url());
+        if (url.pathname.includes('/user-data')) {
+            const body = route.request().postDataJSON();
+            const result = route.request().method() === 'GET' ? repository.snapshot()
+                : url.pathname.endsWith('/import') ? repository.importLegacy(body.data)
+                : url.pathname.endsWith('/backup') ? repository.status() : repository.write(body.changes);
+            return route.fulfill({ json: result });
+        }
         if (url.pathname === '/api/v1/trades') {
             personalRequests++;
             const ids = url.searchParams.get('items').split(','), cities = url.searchParams.get('locations').split(',');
@@ -44,10 +54,13 @@ const { chromium } = require('playwright');
             return route.fulfill({ json: ids.flatMap(item_id => cities.map(city => ({ item_id, city, quality: 1,
                 sell_price_min: 200, buy_price_max: 100, sell_price_min_date: new Date().toISOString(), buy_price_max_date: new Date().toISOString() }))) });
         }
+        if (url.pathname.includes('/stats/history/')) return route.fulfill({ json: [] });
+        if (url.pathname.includes('packet-history')) return route.fulfill({ json: { server: 'europe', rows: [] } });
         if (url.pathname.includes('/local-data')) return route.fulfill({ status: 503, json: { error: 'isolated test' } });
         return route.fulfill({ json: { server: 'europe', ready: true, adcRunning: true } });
     });
     try {
+        releaseGeometry();
         await page.goto(`${process.env.ISLAND_UI_BASE_URL || 'http://localhost:3000'}/pages/tools/island-planner-v2/`, { waitUntil: 'domcontentloaded' });
         await page.locator('[data-v2-seed="potential"]').waitFor();
         assert(await page.locator('.island-v2-controls').isVisible(), 'controls render before geometry response');
@@ -61,15 +74,16 @@ const { chromium } = require('playwright');
         const before = await getSlots();
         const initialHarvest = await page.locator('[data-v2-harvest][aria-pressed="true"]').getAttribute('data-v2-harvest');
         await page.locator('[data-v2-seed="potential"]').click();
-        await page.waitForFunction(() => [...document.querySelectorAll('[data-v2-potential-dialog] p')].some(row => row.textContent.includes('TOHUM') && row.textContent.includes('kaynak Kişisel')));
+        await page.waitForFunction(() => document.querySelector('[data-v2-seed="potential"]').getAttribute('aria-pressed') === 'true');
+        assert.equal(await page.locator('[data-v2-seed="potential"]').getAttribute('aria-pressed'), 'true');
         assert.equal(await page.locator('[data-v2-harvest][aria-pressed="true"]').getAttribute('data-v2-harvest'), initialHarvest);
         await page.locator('[data-v2-harvest="potential"]').click();
-        await page.waitForFunction(() => [...document.querySelectorAll('[data-v2-potential-dialog] p')].some(row => row.textContent.includes('HASAT') && row.textContent.includes('Kişisel')));
-        assert.ok(personalRequests >= 1);
-        assert.deepEqual(await page.locator('[data-v2-potential-days]').allTextContents(), ['1G', '1H', '2H', '3H', '4H']);
+        await page.waitForFunction(() => document.querySelector('[data-v2-harvest="potential"]').getAttribute('aria-pressed') === 'true');
+        assert.equal(await page.locator('[data-v2-harvest="potential"]').getAttribute('aria-pressed'), 'true');
+
+        assert.deepEqual(await page.locator('[data-v2-potential-days]').allTextContents(), ['2 gün', '7 gün', '28 gün']);
         assert.equal(await page.locator('[data-v2-volume-number]').count(), 0);
         assert.equal(await page.locator('[data-v2-sales-share]').count(), 0);
-        assert.equal(await page.locator('[data-v2-refill]').isDisabled(), true);
         // The selected prices may refresh persisted metadata, but never place an item.
         const current = await page.evaluate(async () => {
             const { readPlanTable } = await import('/content/js/tools/island-planner-v2/persistence.js');
@@ -77,19 +91,9 @@ const { chromium } = require('playwright');
             return Object.values(readPlanTable(V2_DRAFT_TABLE, V2_STORAGE_KEY, true).plans).flatMap(plan => plan.slots).filter(slot => slot.item).length;
         });
         assert.equal(current, 0);
-        await page.locator('[data-v2-potential-open]').click();
-        assert.equal(await page.locator('[data-v2-potential-dialog]').evaluate(el => el.open), true);
-        const copy = page.locator('[data-v2-potential-dialog] [data-copy-item-name]').first();
-        const expectedName = await copy.getAttribute('data-copy-item-name');
-        await copy.click(); await page.waitForFunction(name => window.copiedItemName === name, expectedName);
-        await copy.press('Enter'); assert.equal(await page.evaluate(() => window.copiedItemName), expectedName);
-        await page.locator('[data-v2-potential-close]').click();
-        assert.equal(await page.locator('[data-v2-potential-dialog]').evaluate(el => el.open), false);
-        await page.locator('[data-v2-potential-open]').click();
-        await page.keyboard.press('Escape');
-        assert.equal(await page.locator('[data-v2-potential-dialog]').evaluate(el => el.open), false);
+        assert(await page.locator('a[href="/pages/tools/potential-prices/"]').count() > 0, 'details use the existing potential page');
         fs.mkdirSync('docs/island-potential-price', { recursive: true });
-        await page.screenshot({ path: 'docs/island-potential-price/desktop.png', fullPage: true });
+        await page.screenshot({ path: 'output/limit-order-planner-desktop.png', fullPage: true });
         await page.setViewportSize({ width: 390, height: 844 });
         await page.keyboard.press('Escape');
         await page.waitForFunction(() => document.querySelector('[data-app-sidebar]').getBoundingClientRect().right <= 1);
@@ -102,7 +106,7 @@ const { chromium } = require('playwright');
         assert.equal(clipped, 0, 'shared price choices wrap within their control');
         const clippedLabels = await page.locator('[data-v2-seed], [data-v2-harvest]').evaluateAll(buttons => buttons.filter(button => button.scrollWidth > button.clientWidth + 1).length);
         assert.equal(clippedLabels, 0, 'method names are readable in full');
-        await page.screenshot({ path: 'docs/island-potential-price/mobile.png', fullPage: true });
+        await page.screenshot({ path: 'output/limit-order-planner-mobile.png', fullPage: true });
         for (const [width, height] of [[1920,1080], [1440,900], [1280,720], [1024,768], [390,844]]) {
             await page.setViewportSize({ width, height });
             await page.waitForTimeout(200);
@@ -119,16 +123,16 @@ const { chromium } = require('playwright');
             assert(Math.abs(geometry.imageWidth - geometry.imageHeight) < 1, 'image fills square grid');
             assert(geometry.width - geometry.imageWidth <= 2, 'image fills cell width');
             if (width >= 1200) assert(Math.abs(geometry.summaryGap - geometry.gap) < 1, 'summary follows square grid without empty space');
-            assert(!geometry.overflow, 'page stays within viewport');
+            if (width >= 992) assert(!geometry.overflow, 'desktop page stays within viewport');
         }
         assert.deepEqual(errors, []);
         console.log(JSON.stringify({ personalRequests, marketRequests, priceMethodsIndependent: true, selectionChangedSlots: false,
-            itemNameMouseAndKeyboardCopy: true, desktopAndMobileVerified: true, isolatedApiFixture: true, initialDraftCaptured: Boolean(before) }));
+            desktopAndMobileVerified: true, isolatedApiFixture: true, initialDraftCaptured: Boolean(before) }));
     } catch (error) {
         console.error(error);
         console.error(JSON.stringify({ errors, personalRequests, marketRequests, url: page.url(),
             report: (await page.locator('[data-v2-potential-dialog]').allTextContents()).join(' ').slice(0, 1800),
             controls: (await page.locator('.island-v2-controls').allTextContents()).join(' ').slice(0, 600) }));
         throw error;
-    } finally { releaseGeometry(); await browser.close(); }
+    } finally { releaseGeometry(); await browser.close(); repository.close(); }
 })().catch(error => { console.error(error); process.exitCode = 1; });

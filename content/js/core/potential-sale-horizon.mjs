@@ -1,15 +1,13 @@
 import { DAY_MS, PRICE_STALE_MS } from './market-history-config.mjs';
-import { personalExecutionSummary, PERSONAL_EXECUTION_POLICY } from './personal-price-evidence.mjs';
-import { normalizePriceDate, median, roundHistoricalPrice, weightedPriceQuantile, BOOK_PRICE_FIELDS, quotedBookPrice } from './market-primitives.mjs';
-
+import { normalizePriceDate, median, roundHistoricalPrice, BOOK_PRICE_FIELDS, quotedBookPrice } from './market-primitives.mjs';
+import { summarizePersonalExecutions } from './personal-price-evidence.mjs';
 export const SALE_HORIZONS = Object.freeze([2, 7, 28].map(days => Object.freeze({ days, label: `${days} gün` })));
 export const SALE_HISTORY_DAYS = 90;
-export const SALE_ESTIMATOR = 'supported-window-price-v2.1-personal';
-export const SALE_ESTIMATE_POLICY = Object.freeze({ minWindows: 3, minDays: 5, minSupportDays: 2,
-    freshDays: 2, maxAgeDays: 7, recentDays: 7, maxPriceRatio: 2, maxDispersion: .35, minExecutions: 10,
-    minWindowCoverage: .5, minSupportShare: .25, supportBand: .05, minSupportQuantityShare: .1,
-    maxSupportDayShare: .75, reviewDeviation: .25, reviewSupportShare: .5, reviewMinDays: 3 });
-
+export const SALE_ESTIMATOR = 'limit-first-passage-v3';
+// Risk requirements, not measured accuracy. A cohort must include failed orders.
+export const LIMIT_ORDER_POLICY = Object.freeze({ reachShare: .7, fillLowerBound: .7,
+    minPaths: 20, minIndependentPaths: 2, minOrderTrials: 20, maxAgeDays: 2,
+    regimeDays: 7, minRegimeDays: 4, maxRegimeDistance: .35, maxOrderDays: 30 });
 // Pick one source per UTC day; overlapping averages are alternative coverage,
 // never independent trades. More observed hours wins, then known item volume.
 export function mergePotentialHistory(sources) {
@@ -27,14 +25,23 @@ export function mergePotentialHistory(sources) {
             const bucketKey = `${day}|${intervalHours}`, rows = buckets.get(bucketKey) ?? new Map();
             const previous = rows.get(at);
             if (!previous || previous.quantity < quantity) rows.set(at, { timestamp: new Date(at).toISOString(), price, quantity, source: point.source ?? source,
+                ...(point.observedAt ? { observedAt: point.observedAt } : {}), ...(point.availableAt ? { availableAt: point.availableAt } : {}),
+                ...(point.fetchedAt ? { fetchedAt: point.fetchedAt } : {}),
                 intervalHours });
             buckets.set(bucketKey, rows);
         }
         for (const [bucketKey, bucket] of buckets) {
             const day = Number(bucketKey.split('|')[0]);
-            const rows = [...bucket.values()], hours = new Set();
+            let previousEnd = -Infinity;
+            const rows = [...bucket.values()].sort((a,b) => Date.parse(a.timestamp)-Date.parse(b.timestamp)).filter(point => {
+                const start = Date.parse(point.timestamp);
+                if (start < previousEnd) return false;
+                previousEnd = start + point.intervalHours*3600000;
+                return true;
+            }), hours = new Set();
             for (const point of rows) for (let hour = 0; hour < Math.min(24, point.intervalHours); hour++)
-                hours.add((Math.floor(Date.parse(point.timestamp) / 3600000) + hour) % 24);
+                if (new Date(Date.parse(point.timestamp)).getUTCHours() + hour < 24)
+                    hours.add(new Date(Date.parse(point.timestamp)).getUTCHours() + hour);
             const candidate = { rows, coverage: hours.size, quantity: rows.reduce((sum, point) => sum + point.quantity, 0) };
             const old = selected.get(day);
             if (!old || candidate.coverage > old.coverage || candidate.coverage === old.coverage && candidate.quantity > old.quantity) selected.set(day, candidate);
@@ -43,148 +50,175 @@ export function mergePotentialHistory(sources) {
     return [...selected.values()].flatMap(value => value.rows);
 }
 
-// Each window contributes a level supported by two different days. Median
-// across disjoint windows rejects an isolated peak without imposing a book cap.
-export function saleHorizonTarget(evidence, request, row, horizonDays, now = Date.now()) {
-    const policy = SALE_ESTIMATE_POLICY, end = Math.floor(now / DAY_MS), grouped = new Map();
-    const supported = SALE_HORIZONS.some(period => period.days === horizonDays);
-    const executions = evidence?.kind === 'executions';
-    const completedPoints = (evidence?.forecastPoints ?? []).filter(point => {
-        const at = Date.parse(normalizePriceDate(point.timestamp));
-        const interval = executions ? 0 : Number(point.intervalHours ?? 24) * 3600000;
-        return at >= (end - SALE_HISTORY_DAYS) * DAY_MS && (executions ? at <= now : at < end * DAY_MS && at + interval <= end * DAY_MS);
+const time = value => Date.parse(normalizePriceDate(value));
+const knownAt = (p, now) => (!p.observedAt || time(p.observedAt) <= now) && (!p.availableAt || time(p.availableAt) <= now)
+    && (!p.fetchedAt || time(p.fetchedAt) <= now);
+const crosses = (side, value, limit) => side === 'sell' ? value >= limit : value <= limit;
+
+export function binomialLowerBound(successes, trials) {
+    if (!trials) return null;
+    const z = 1.96, p = successes / trials, z2 = z*z;
+    return (p + z2/(2*trials) - z*Math.sqrt(p*(1-p)/trials + z2/(4*trials*trials))) / (1+z2/trials);
+}
+
+function dailyMarket(evidence, now) {
+    const end = Math.floor(now/DAY_MS)*DAY_MS;
+    const points = mergePotentialHistory([{ source: evidence?.source ?? 'Piyasa geçmişi',
+        points: (evidence?.kind === 'executions' ? [] : evidence?.forecastPoints ?? []).filter(p => knownAt(p,now)
+            && time(p.timestamp) >= end-SALE_HISTORY_DAYS*DAY_MS
+            && time(p.timestamp)+Number(p.intervalHours ?? 24)*3600000 <= end) }]);
+    const days = new Map();
+    for (const p of points) {
+        const day = Math.floor(time(p.timestamp)/DAY_MS), d = days.get(day) ?? { day, value:0, quantity:0, hours:new Set() };
+        d.value += p.price*p.quantity; d.quantity += p.quantity;
+        const hour=(time(p.timestamp)-day*DAY_MS)/3600000;
+        for (let offset=0;offset<p.intervalHours && hour+offset<24;offset++) d.hours.add(hour+offset);
+        days.set(day,d);
+    }
+    return [...days.values()].map(d => ({ day:d.day, price:d.value/d.quantity, quantity:d.quantity,
+        coverage:Math.min(1,d.hours.size/24) })).sort((a,b) => a.day-b.day);
+}
+
+// Shared origins/denominator and nested path prefixes ensure monotone reach.
+// Unknown days stop the path; neither missing days nor right censoring are hits.
+function marketPaths(daily) {
+    const map = new Map(daily.map(d => [d.day,d])), latest = daily.at(-1);
+    if (!latest) return [];
+    const regime = origin => {
+        const past = daily.filter(d => d.day<=origin.day && d.day>origin.day-LIMIT_ORDER_POLICY.regimeDays && d.coverage===1);
+        return past.length<LIMIT_ORDER_POLICY.minRegimeDays ? null : {
+            trend:Math.log(origin.price/past[0].price)/(origin.day-past[0].day || 1),
+            volatility:median(past.slice(1).map((d,i) => Math.abs(Math.log(d.price/past[i].price)))) ?? 0 };
+    };
+    const current = regime(latest);
+    if (!current) return [];
+    return daily.flatMap(origin => {
+        if (origin.coverage!==1 || !map.has(origin.day+SALE_HORIZONS[0].days)) return [];
+        const state = regime(origin);
+        if (!state || Math.abs(state.trend-current.trend)+Math.abs(state.volatility-current.volatility)>LIMIT_ORDER_POLICY.maxRegimeDistance) return [];
+        const path = [];
+        for (let offset=1; offset<=SALE_HORIZONS.at(-1).days; offset++) {
+            const next = map.get(origin.day+offset);
+            if (!next || next.coverage!==1) break;
+            path.push({offset,ratio:next.price/origin.price,quantity:next.quantity});
+        }
+        return path.length>=SALE_HORIZONS[0].days ? [{origin:origin.day,path}] : [];
     });
-    const points = executions ? [...new Map(completedPoints
-        .filter(point => point.sourceId != null && String(point.sourceId) !== '' && point.price > 0 && Number.isFinite(point.price)
-            && !(typeof point.sourceId === 'number' && !Number.isSafeInteger(point.sourceId))
-            && Number.isSafeInteger(point.quantity) && point.quantity > 0 && Number.isFinite(Date.parse(normalizePriceDate(point.timestamp))))
-        .map(point => [String(point.sourceId), point])).values()]
-        : mergePotentialHistory([{ source: evidence?.source ?? 'Piyasa geçmişi', points: completedPoints }]);
-    for (const point of points) {
-        const day = Math.floor(Date.parse(normalizePriceDate(point.timestamp)) / DAY_MS);
-        if (day < end - SALE_HISTORY_DAYS || (executions ? day > end : day >= end)) continue;
-        const list = grouped.get(day) ?? []; list.push(point); grouped.set(day, list);
-    }
-    const daily = [...grouped].map(([day, rows]) => ({ day,
-        price: executions ? weightedPriceQuantile(rows, request.side === 'buy' ? .25 : .75)
-            : rows.reduce((sum, point) => sum + point.price * point.quantity, 0) / rows.reduce((sum, point) => sum + point.quantity, 0),
-        coverage: executions ? 1 : Math.min(1, rows.reduce((sum, point) => sum + point.intervalHours, 0) / 24),
-        quantity: rows.reduce((sum, point) => sum + point.quantity, 0) })).sort((a, b) => a.day - b.day);
-    const center = median(daily.map(point => point.price));
-    const accepted = daily.filter(point => {
-        const neighbours = daily.filter(other => Math.abs(other.day - point.day) <= policy.recentDays);
-        const localCenter = median(neighbours.map(other => other.price));
-        return point.price >= localCenter / policy.maxPriceRatio && point.price <= localCenter * policy.maxPriceRatio;
-    });
-    const latestDay = accepted.at(-1)?.day, ageDays = latestDay == null ? null : end - latestDay;
-    const freshness = ageDays == null ? 'missing' : ageDays <= policy.freshDays ? 'fresh' : ageDays <= policy.maxAgeDays ? 'delayed' : 'stale';
-    // Do not let anomaly rejection erase evidence of a new price regime.
-    // A single abnormal day cannot satisfy the independent-day review below.
-    const recent = daily.filter(point => point.day > daily.at(-1).day - policy.recentDays);
-    const recentPrice = median(recent.map(point => point.price));
-    const supportFor = (rows, price) => {
-        const support = rows.filter(point => request.side === 'buy' ? point.price <= price * (1 + policy.supportBand)
-            : point.price >= price * (1 - policy.supportBand));
-        const quantity = rows.reduce((sum, point) => sum + point.quantity, 0);
-        const supportQuantity = support.reduce((sum, point) => sum + point.quantity, 0);
-        return { days: support.length, dayShare: rows.length ? support.length / rows.length : 0,
-            quantity: supportQuantity, quantityShare: quantity > 0 ? supportQuantity / quantity : 0,
-            maxDayShare: supportQuantity > 0 ? Math.max(...support.map(point => point.quantity)) / supportQuantity : 1,
-            observations: support.map(point => ({ date: new Date(point.day * DAY_MS).toISOString(), price: point.price, quantity: point.quantity })) };
+}
+
+function assessReach(paths, ratio, side, days) {
+    const hit = paths.filter(({path}) => path.some(p => p.offset<=days && crosses(side,p.ratio,ratio))).length;
+    const complete = paths.filter(({path}) => path.length>=days).length;
+    const independent = []; let last = -Infinity;
+    for (const path of paths) if (path.origin>=last+SALE_HORIZONS.at(-1).days) { independent.push(path); last=path.origin; }
+    const hits = independent.filter(({path}) => path.some(p => p.offset<=days && crosses(side,p.ratio,ratio))).length;
+    return { paths:paths.length, observedHits:hit, observedShare:paths.length ? hit/paths.length : null,
+        completePaths:complete, censoredPaths:paths.length-complete, independentPaths:independent.length,
+        lowerBound:binomialLowerBound(hits,independent.length),
+        supported:paths.length>=LIMIT_ORDER_POLICY.minPaths && independent.length>=LIMIT_ORDER_POLICY.minIndependentPaths
+            && hit/paths.length>=LIMIT_ORDER_POLICY.reachShare,
+        meaning:'Ortalama fiyat seviyesine ulaşma; emir dolumu değildir.' };
+}
+
+// Successful mail fills alone omit failures and cannot supply this denominator.
+function orderTrials(evidence, request, now) {
+    return [...new Map((evidence?.orderOutcomes ?? []).filter(o => o.verified===true && o.fixedPrice===true
+        && o.orderId!=null && o.server===request.server && o.city===request.city && o.itemId===request.itemId
+        && o.quality===request.quality && o.side===request.side && knownAt(o,now)
+        && o.limitPrice>0 && o.anchorPrice>0 && Number.isSafeInteger(o.quantity) && o.quantity>0
+        && time(o.createdAt)>=now-SALE_HISTORY_DAYS*DAY_MS && time(o.createdAt)<=time(o.observationEnd)
+        && time(o.observationEnd)<=now && time(o.observationEnd)-time(o.createdAt)<=LIMIT_ORDER_POLICY.maxOrderDays*DAY_MS
+        && ['filled','expired','cancelled','open'].includes(o.status))
+        .map(o => [JSON.stringify([o.characterGuid,o.orderId]),o])).values()];
+}
+
+function assessFill(trials, ratio, request, days) {
+    const quantity=request.quantity ?? 1;
+    const eligible=trials.filter(o => o.quantity>=quantity && crosses(request.side,o.limitPrice/o.anchorPrice,ratio)
+        && (time(o.observationEnd)-time(o.createdAt)>=days*DAY_MS || o.status==='filled'
+            && time(o.completedAt)>=time(o.createdAt) && time(o.completedAt)<=time(o.observationEnd) && o.filledQuantity>=o.quantity));
+    const hits=eligible.filter(o => o.status==='filled' && o.filledQuantity>=o.quantity
+        && time(o.completedAt)-time(o.createdAt)<=days*DAY_MS).length;
+    const lowerBound=binomialLowerBound(hits,eligible.length);
+    return { trials:eligible.length, fills:hits, censored:trials.length-eligible.length,
+        observedShare:eligible.length ? hits/eligible.length : null, lowerBound,
+        supported:eligible.length>=LIMIT_ORDER_POLICY.minOrderTrials && lowerBound>=LIMIT_ORDER_POLICY.fillLowerBound,
+        quantity, meaning:'Doğrulanmış sabit emir kohortu; kısmi dolum tam gerçekleşme sayılmaz.' };
+}
+
+function calibratedExecution(evidence, request, days, now) {
+    const c=evidence?.executionCalibration;
+    // A separate, held-out evaluation is required. Training cohort success
+    // counts cannot calibrate themselves or silently authorize Planner prices.
+    return c?.estimator===SALE_ESTIMATOR && c.heldOut===true && c.independent===true
+        && c.days===days && c.quantity===(request.quantity ?? 1)
+        && ['server','city','itemId','quality','side'].every(key => c[key]===request[key])
+        && time(c.evaluatedAt)<=now && time(c.evaluatedAt)>=now-SALE_HISTORY_DAYS*DAY_MS
+        && Number.isSafeInteger(c.trials) && Number.isSafeInteger(c.successes)
+        && c.trials>=LIMIT_ORDER_POLICY.minOrderTrials && c.successes>=0 && c.successes<=c.trials
+        && binomialLowerBound(c.successes,c.trials)>=LIMIT_ORDER_POLICY.fillLowerBound;
+}
+
+export function saleHorizonTarget(evidence, request, row, horizonDays, now=Date.now()) {
+    const valid=SALE_HORIZONS.some(p => p.days===horizonDays) && ['buy','sell'].includes(request.side)
+        && Number.isSafeInteger(request.quantity ?? 1) && (request.quantity ?? 1)>0;
+    const daily=dailyMarket(evidence,now), latest=daily.at(-1);
+    const ageDays=latest ? (now-(latest.day+1)*DAY_MS)/DAY_MS : null;
+    const fresh=ageDays!=null && ageDays<=LIMIT_ORDER_POLICY.maxAgeDays;
+    const book=side => {
+        const field=BOOK_PRICE_FIELDS[side], at=time(row?.[field+'_date']);
+        return row?.item_id===request.itemId && row.city===request.city && Number(row.quality)===request.quality
+            && at<=now && now-at<=PRICE_STALE_MS && row[field]>0 ? quotedBookPrice(row[field],side,request.side) : null;
     };
-    const windowEvidence = [];
-    for (let last = latestDay + 1; supported && last - horizonDays >= end - SALE_HISTORY_DAYS; last -= horizonDays) {
-        const rows = accepted.filter(point => point.day >= last - horizonDays && point.day < last);
-        const values = rows.map(point => point.price).sort((a, b) => request.side === 'buy' ? a - b : b - a);
-        // Longer windows need recurring levels, not just two high/low days in a
-        // month. Keep the V2 order-statistic, with rank derived from coverage.
-        const rank = Math.max(policy.minSupportDays, Math.ceil(values.length * policy.minSupportShare));
-        const price = values[rank - 1] ?? null, support = price == null ? null : supportFor(rows, price);
-        const coverage = rows.reduce((sum, point) => sum + point.coverage, 0) / horizonDays;
-        const eligible = coverage >= policy.minWindowCoverage && support?.days >= policy.minSupportDays
-            && support.quantityShare >= policy.minSupportQuantityShare && support.maxDayShare <= policy.maxSupportDayShare;
-        windowEvidence.push({ start: new Date((last - horizonDays) * DAY_MS).toISOString(),
-            end: new Date(last * DAY_MS).toISOString(), observedDays: rows.length, coverage,
-            coverageKind: executions ? 'personal-execution-days' : 'observed-market-hours', rank, price, support, eligible: Boolean(eligible) });
+    const currentOrder=book(request.side), anchor=latest?.price ?? null;
+    const personalPoints=(evidence?.personalForecastPoints ?? (evidence?.kind==='executions' ? evidence.forecastPoints : []) ?? [])
+        .filter(p => knownAt(p,now) && time(p.timestamp)<=now && time(p.timestamp)>=now-SALE_HISTORY_DAYS*DAY_MS);
+    const personalSummary=summarizePersonalExecutions(personalPoints,now);
+    const paths=marketPaths(daily), trials=orderTrials(evidence,request,now), candidates=new Set([1]);
+    const independentCount=paths.reduce((state,p) => p.origin>=state.last+SALE_HORIZONS.at(-1).days
+        ? {last:p.origin,count:state.count+1} : state,{last:-Infinity,count:0}).count;
+    const supportedPaths=paths.length>=LIMIT_ORDER_POLICY.minPaths && independentCount>=LIMIT_ORDER_POLICY.minIndependentPaths;
+    for (const {path} of supportedPaths ? paths : []) for (const {days} of SALE_HORIZONS) {
+        const ratios=path.filter(p => p.offset<=days).map(p => p.ratio);
+        candidates.add(request.side==='sell' ? Math.max(...ratios) : Math.min(...ratios));
     }
-    const windows = windowEvidence.filter(window => window.eligible).map(window => window.price);
-    const periodPrice = median(windows), historicalPrice = roundHistoricalPrice(median(accepted.map(point => point.price)), request.side);
-    const dispersion = center > 0 ? median(accepted.map(point => Math.abs(point.price - center))) / center : null;
-    const personalSummary = executions ? personalExecutionSummary(points, request.side, now, policy, horizonDays) : null;
-    const baseQuality = executions ? personalSummary.repeated && dispersion <= policy.maxDispersion
-        : accepted.length >= policy.minDays && windows.length >= policy.minWindows && dispersion <= policy.maxDispersion;
-    const calculable = supported && historicalPrice > 0;
-    const order = (side, intent) => {
-        const field = BOOK_PRICE_FIELDS[side];
-        const at = Date.parse(normalizePriceDate(row?.[field + '_date']));
-        return row?.item_id === request.itemId && row?.city === request.city && Number(row?.quality) === request.quality
-            && row[field] > 0 && at <= now && now - at <= PRICE_STALE_MS ? quotedBookPrice(row[field], side, intent) : null;
-    };
-    const candidatePrice = roundHistoricalPrice(executions ? personalSummary.candidate : periodPrice, request.side);
-    const currentOrder = order(request.side, request.side);
-    const anchors = { recent: recentPrice, latest: daily.at(-1)?.price, currentOrder };
-    const assessRegime = price => {
-        const regimeSupport = price > 0 ? supportFor(recent, price) : null;
-        const deviations = Object.fromEntries(Object.entries(anchors).filter(([, anchor]) => anchor > 0 && price > 0)
-            .map(([kind, anchor]) => [kind, request.side === 'buy' ? anchor / price - 1 : price / anchor - 1]));
-        const reviewRequired = Object.values(deviations).some(deviation => deviation > policy.reviewDeviation);
-        const requiredDays = reviewRequired ? policy.reviewMinDays : policy.minSupportDays;
-        const requiredShare = reviewRequired ? policy.reviewSupportShare : policy.minSupportShare;
-        const recentConfirmed = regimeSupport?.days >= requiredDays && regimeSupport.dayShare >= requiredShare
-            && regimeSupport.quantityShare >= policy.minSupportQuantityShare && regimeSupport.maxDayShare <= policy.maxSupportDayShare;
-        return { regimeSupport, deviations, reviewRequired, recentConfirmed };
-    };
-    const { regimeSupport, deviations, reviewRequired, recentConfirmed } = assessRegime(candidatePrice);
-    const personalRegimeConfirmed = executions && (!reviewRequired || personalSummary.recentDays >= policy.reviewMinDays
-        && ageDays <= policy.freshDays && Object.values(deviations).every(deviation => deviation <= policy.maxPriceRatio - 1));
-    const quality = baseQuality && (executions ? personalRegimeConfirmed : recentConfirmed);
-    const target = calculable && quality ? candidatePrice : null;
-    const referencePrice = roundHistoricalPrice(recentPrice ?? historicalPrice, request.side);
-    const plannerUsable = calculable && quality && freshness !== 'stale';
-    const rejectionReasons = [!baseQuality ? executions ? `Son ${policy.maxAgeDays} günde en az ${PERSONAL_EXECUTION_POLICY.minIndependent} bağımsız kanıt birimi, ${PERSONAL_EXECUTION_POLICY.minDays} farklı gün ve dengeli fiyat/miktar desteği gerekli; tek emir veya gün desteğin %${PERSONAL_EXECUTION_POLICY.maxUnitShare * 100}’ini aşamaz.` : 'Dönem kapsaması, tekrar veya miktar desteği yetersiz.' : null,
-        !executions && !recentConfirmed ? 'Hedef yakın dönem fiyat rejiminde yeterince tekrarlanmıyor.' : null,
-        executions && !personalRegimeConfirmed ? 'Kişisel aday güncel emir veya son kişisel fiyat rejimiyle çelişiyor; güncel tekrar teyidi yetersiz veya sapma aşırı.' : null,
-        !executions && reviewRequired && !recentConfirmed ? 'Güncel/son gözlemlerden büyük sapma teyit edilemedi.' : null].filter(Boolean);
-    const reason = !calculable ? 'Seçili kimlik ve dönem için fiyat kanıtı yok.' : !quality ? `${rejectionReasons.join(' ')} Yalnız tarihsel referans.`
-        : freshness === 'stale' ? `Geçmiş ${policy.maxAgeDays} günden eski; yalnız gösterge fiyat.` : freshness === 'delayed' ? 'Gecikmeli geçmiş; ada hesabında uyarıyla kullanılabilir.' : null;
-    const result = { reliable: plannerUsable, priceReliable: plannerUsable, plannerUsable, calculable, price: plannerUsable ? target : null,
-        rawPrice: target, indicativePrice: plannerUsable ? null : referencePrice, potentialPrice: target, historicalPrice, referencePrice,
-        candidatePrice, personalSummary, regimeSupport, deviations, reviewRequired, recentConfirmed: Boolean(recentConfirmed), rejectionReasons,
-        estimator: SALE_ESTIMATOR, expires: true, days: horizonDays, setup: true,
-        source: [...new Set(points.map(point => point.source))].join(' · '),
-        confidence: quality ? executions && personalSummary.recentUnits < policy.minExecutions ? 'medium' : 'high' : calculable ? 'low' : 'none', freshness, ageDays, dispersion,
-        method: quality ? executions ? 'Güncel kişisel kanıtın miktar ağırlıklı fiyatı' : 'Tekrarlanan dönem seviyelerinin medyanı' : 'Tarihsel referans',
-        evidenceType: executions ? 'Bağımsız günlerde tekrarlanan kişisel işlem fiyatları' : 'Bağımsız günlerde desteklenen piyasa ortalamaları', samples: accepted.length, historicalWindows: windows.length,
-        supportDays: candidatePrice > 0 ? supportFor(accepted, candidatePrice).days : 0,
-        minSupportDays: policy.minSupportDays, windowPrices: windows,
-        // Full daily provenance belongs in the audit artifact. Keep normal
-        // persisted snapshots compact instead of repeating 90 days per horizon.
-        ...(evidence?.includeWindowEvidence ? { windowEvidence } : {}), periodPrice, recentPrice,
-        trend: recentPrice && historicalPrice ? recentPrice / historicalPrice - 1 : null,
-        currentOrder, instantBuyPrice: order('sell', 'buy'),
-        transactions: executions ? personalSummary.independentUnits : null, quantity: accepted.reduce((sum, point) => sum + point.quantity, 0), rejected: daily.length - accepted.length,
-        latest: latestDay == null ? null : new Date(latestDay * DAY_MS).toISOString(), assessedAt: new Date(now).toISOString(),
-        validUntil: executions && personalSummary.validUntil ? personalSummary.validUntil : latestDay == null ? null : new Date((latestDay + policy.maxAgeDays + 1) * DAY_MS).toISOString(),
-        marketMeaning: executions ? 'Yalnız aynı kimlik ve yöndeki şahsi gerçekleşmeler; genel piyasa kapsamı veya gelecek emir gerçekleşmesi değildir.'
-            : 'Ortalama fiyat kanıtı; tekil işlem fiyatı, emir gerçekleşmesi veya satış olasılığı değildir.',
-        explanation: executions ? `${personalSummary.recentUnits} güncel bağımsız kanıt birimi, ${personalSummary.recentDays} gün; emir bağlantısı olmayan postalar gün başına bir birimdir. ${personalSummary.timingMeaning} Aynı fiyatın farklı ufuklarda kullanılması ölçülmüş satış süresi değildir.`
-            : `${windows.length} kabul edilen ${horizonDays} günlük dönem; en az %${policy.minWindowCoverage * 100} kapsam, %${policy.minSupportShare * 100} tekrarlı gün ve miktar desteği. Yakın rejim teyidi: ${recentConfirmed ? 'var' : 'yok'}. Güncel emir ayrı sinyaldir.`, reason };
-    // Evaluate executions independently, with personal repetition rules. Keep the
-    // public market proof intact; personal fills cannot increase its coverage.
-    if (evidence?.personalForecastPoints?.length) {
-        let personal = saleHorizonTarget({ kind: 'executions', forecastPoints: evidence.personalForecastPoints }, request, row, horizonDays, now);
-        const publicReview = calculable && freshness !== 'stale' && personal.reliable ? assessRegime(personal.price) : null;
-        if (publicReview?.reviewRequired && !publicReview.recentConfirmed && !(personal.personalSummary?.repeated
-            && personal.personalSummary.recentDays >= policy.reviewMinDays && personal.ageDays <= policy.freshDays
-            && Object.values(publicReview.deviations).every(deviation => deviation <= policy.maxPriceRatio - 1))) personal = { ...personal,
-            reliable: false, priceReliable: false, plannerUsable: false, candidatePrice: personal.price,
-            price: null, potentialPrice: null, indicativePrice: personal.referencePrice, confidence: 'low', marketRegimeConflict: true,
-            reason: 'Kişisel adayın genel piyasa rejiminden büyük sapması teyit edilemedi; yalnız ayrı tarihsel referans.' };
-        if (personal.reliable)
-            return { ...personal, personalImpact: { selected: true, marketPrice: result.price, delta: result.price == null ? null : personal.price - result.price }, personalEvidence: personal, marketEvidence: result };
-        if (!result.reliable && personal.calculable)
-            return { ...personal, personalImpact: { selected: false, reason: personal.reason }, personalEvidence: personal, marketEvidence: result };
-        return { ...result, personalImpact: { selected: false, reason: personal.reason }, personalEvidence: personal, marketEvidence: { ...result } };
+    if (anchor>0) {
+        if (currentOrder>0) candidates.add(currentOrder/anchor);
+        for (const p of personalPoints) if (p.price>0) candidates.add(p.price/anchor);
+        for (const o of trials) candidates.add(o.limitPrice/o.anchorPrice);
     }
-    return result;
+    const prices=[...new Set([...candidates].map(r => roundHistoricalPrice(anchor*r,request.side)))].filter(p => p>0)
+        .sort((a,b) => request.side==='sell' ? b-a : a-b);
+    const assessments=valid && fresh && anchor>0 ? prices.map(price => {
+        const ratio=price/anchor, reach=assessReach(paths,ratio,request.side,horizonDays);
+        const fills=SALE_HORIZONS.filter(p => p.days<=horizonDays).map(p => ({...assessFill(trials,ratio,request,p.days),
+            deadlineDays:p.days,calibrated:Boolean(calibratedExecution(evidence,request,p.days,now))}));
+        const fill=fills.find(p => p.supported && p.calibrated) ?? fills.at(-1);
+        return {price,reach,fill,accepted:fill.supported && fill.calibrated};
+    }) : [];
+    const selected=assessments.find(a => a.accepted), reached=assessments.find(a => a.reach.supported);
+    const usable=Boolean(selected), target=selected?.price ?? null;
+    const reference=roundHistoricalPrice(median(daily.map(d => d.price)),request.side);
+    const reason=!valid ? 'Azami bekleme süreleri 2, 7 ve 28 gündür; miktar pozitif tam sayı olmalı.'
+        : !fresh ? 'Güncel, tamamlanmış piyasa geçmişi yetersiz.'
+        : !usable ? 'Doğrulanmış sabit emir kohortu ve bağımsız kalibrasyon yetersiz; dolum güveni ölçülemiyor.' : null;
+    return {estimator:SALE_ESTIMATOR,days:horizonDays,setup:true,expires:true,
+        reliable:usable,priceReliable:usable,plannerUsable:usable,calculable:daily.length>0 || personalSummary.fills>0,
+        price:target,rawPrice:target,potentialPrice:target,candidatePrice:reached?.price ?? null,
+        indicativePrice:usable ? null : reached?.price ?? reference ?? personalSummary.referencePrice,
+        historicalPrice:reference,referencePrice:reference,recentPrice:anchor,currentOrder,instantBuyPrice:book('sell'),
+        quantity:request.quantity ?? 1,samples:daily.length,historicalWindows:paths.length,confidence:usable ? 'medium' : 'low',
+        freshness:fresh ? 'fresh' : latest ? 'stale' : 'missing',ageDays,
+        latest:latest ? new Date((latest.day+1)*DAY_MS).toISOString() : personalSummary.latest,
+        assessedAt:new Date(now).toISOString(),validUntil:latest ? new Date((latest.day+1+LIMIT_ORDER_POLICY.maxAgeDays)*DAY_MS).toISOString() : new Date(now).toISOString(),
+        method:'Sabit limit / ilk ulaşma ve ayrı dolum kanıtı',
+        evidenceType:usable ? 'Doğrulanmış emir kohortu' : reached ? 'Piyasa ortalamasına ulaşma desteği' : 'Tarihsel referans',
+        source:[daily.length ? evidence?.source ?? 'Piyasa geçmişi' : null,personalSummary.fills ? 'Kişisel SAT' : null].filter(Boolean).join(' · '),
+        reachEvidence:reached?.reach ?? null,fillEvidence:selected?.fill ?? {...assessFill(trials,1,request,horizonDays),calibrated:false},
+        personalSummary,personalImpact:{selected:false,reason:'Kişisel dolum fiyatları aday havuzunda; süre ve başarısız emir paydası olmadan kabul edilmez.'},
+        personalEvidence:{price:null,indicativePrice:personalSummary.referencePrice,transactions:personalSummary.fills},
+        marketEvidence:{price:target,indicativePrice:reached?.price ?? reference},
+        ...(evidence?.includeWindowEvidence ? {candidateAssessments:assessments,windowEvidence:paths.map(p => ({origin:new Date(p.origin*DAY_MS).toISOString(),observedDays:p.path.length}))} : {}),
+        reason,marketMeaning:'Ortalama fiyatlar tekil uç fiyat değildir. Fiyata ulaşma emrin dolduğunu göstermez.',
+        explanation:`${paths.length} geçmiş başlangıç; aynı başlangıçların 2/7/28 günlük ilk ulaşması incelenir. Eksik gelecek sansürlüdür. ${personalSummary.fills} kişisel dolum aday kanıtıdır. Merkezi dolum alt güven sınırı ${LIMIT_ORDER_POLICY.fillLowerBound}; ölçülmüş doğruluk değildir. ${reason ?? 'Kohort eşiği karşılandı.'}`};
 }

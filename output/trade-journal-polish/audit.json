@@ -1,0 +1,763 @@
+{
+  "at": "2026-10-15T13:05:01.425Z",
+  "archiveRecords": 17225,
+  "results": [
+    {
+      "day": "2026-10-15",
+      "story": false,
+      "events": 0,
+      "width": 1920,
+      "height": 1080,
+      "overflow": 0,
+      "panels": [
+        {
+          "width": 805.59375,
+          "rows": 5
+        },
+        {
+          "width": 805.609375,
+          "rows": 5
+        }
+      ],
+      "rows": [
+        84,
+        84,
+        84,
+        84,
+        84,
+        84,
+        84,
+        84,
+        84,
+        84
+      ],
+      "scrollports": [
+        {
+          "client": 420,
+          "scroll": 420
+        },
+        {
+          "client": 420,
+          "scroll": 420
+        }
+      ],
+      "bad": [],
+      "missing": []
+    },
+    {
+      "day": "2026-10-15",
+      "story": false,
+      "events": 0,
+      "width": 1366,
+      "height": 768,
+      "overflow": 0,
+      "panels": [
+        {
+          "width": 528.59375,
+          "rows": 5
+        },
+        {
+          "width": 528.609375,
+          "rows": 5
+        }
+      ],
+      "rows": [
+        84,
+        84,
+        84,
+        84,
+        84,
+        84,
+        84,
+        84,
+        84,
+        84
+      ],
+      "scrollports": [
+        {
+          "client": 420,
+          "scroll": 420
+        },
+        {
+          "client": 420,
+          "scroll": 420
+        }
+      ],
+      "bad": [],
+      "missing": []
+    },
+    {
+      "day": "2026-10-15",
+      "story": false,
+      "events": 0,
+      "width": 992,
+      "height": 768,
+      "overflow": 0,
+      "panels": [
+        {
+          "width": 341.59375,
+          "rows": 5
+        },
+        {
+          "width": 341.609375,
+          "rows": 5
+        }
+      ],
+      "rows": [
+        84,
+        84,
+        84,
+        84,
+        84,
+        84,
+        84,
+        84,
+        84,
+        84
+      ],
+      "scrollports": [
+        {
+          "client": 420,
+          "scroll": 420
+        },
+        {
+          "client": 420,
+          "scroll": 420
+        }
+      ],
+      "bad": [],
+      "missing": []
+    },
+    {
+      "day": "2026-10-15",
+      "story": false,
+      "events": 0,
+      "width": 768,
+      "height": 900,
+      "overflow": 0,
+      "panels": [
+        {
+          "width": 472,
+          "rows": 5
+        },
+        {
+          "width": 472,
+          "rows": 5
+        }
+      ],
+      "rows": [
+        84,
+        84,
+        84,
+        84,
+        84,
+        84,
+        84,
+        84,
+        84,
+        84
+      ],
+      "scrollports": [
+        {
+          "client": 420,
+          "scroll": 420
+        },
+        {
+          "client": 420,
+          "scroll": 420
+        }
+      ],
+      "bad": [],
+      "missing": []
+    },
+    {
+      "day": "2026-10-15",
+      "story": false,
+      "events": 0,
+      "width": 390,
+      "height": 844,
+      "overflow": 0,
+      "panels": [
+        {
+          "width": 342,
+          "rows": 5
+        },
+        {
+          "width": 342,
+          "rows": 5
+        }
+      ],
+      "rows": [
+        88,
+        88,
+        88,
+        88,
+        88,
+        88,
+        88,
+        88,
+        88,
+        88
+      ],
+      "scrollports": [
+        {
+          "client": 440,
+          "scroll": 440
+        },
+        {
+          "client": 440,
+          "scroll": 440
+        }
+      ],
+      "bad": [],
+      "missing": []
+    },
+    {
+      "day": "2026-10-15",
+      "story": false,
+      "events": 0,
+      "width": 320,
+      "height": 720,
+      "overflow": 0,
+      "panels": [
+        {
+          "width": 272,
+          "rows": 5
+        },
+        {
+          "width": 272,
+          "rows": 5
+        }
+      ],
+      "rows": [
+        88,
+        88,
+        88,
+        88,
+        88,
+        88,
+        88,
+        88,
+        88,
+        88
+      ],
+      "scrollports": [
+        {
+          "client": 440,
+          "scroll": 440
+        },
+        {
+          "client": 440,
+          "scroll": 440
+        }
+      ],
+      "bad": [],
+      "missing": []
+    },
+    {
+      "day": "2026-10-14",
+      "story": true,
+      "events": 1,
+      "width": 1920,
+      "height": 1080,
+      "overflow": 0,
+      "panels": [
+        {
+          "width": 570.859375,
+          "rows": 5
+        },
+        {
+          "width": 570.859375,
+          "rows": 5
+        }
+      ],
+      "rows": [
+        84,
+        84,
+        84,
+        84,
+        84,
+        84,
+        84,
+        84,
+        84,
+        84
+      ],
+      "scrollports": [
+        {
+          "client": 420,
+          "scroll": 420
+        },
+        {
+          "client": 420,
+          "scroll": 420
+        }
+      ],
+      "bad": [],
+      "missing": []
+    },
+    {
+      "day": "2026-10-14",
+      "story": true,
+      "events": 1,
+      "width": 1366,
+      "height": 768,
+      "overflow": 0,
+      "panels": [
+        {
+          "width": 528.59375,
+          "rows": 5
+        },
+        {
+          "width": 528.609375,
+          "rows": 5
+        }
+      ],
+      "rows": [
+        84,
+        84,
+        84,
+        84,
+        84,
+        84,
+        84,
+        84,
+        84,
+        84
+      ],
+      "scrollports": [
+        {
+          "client": 420,
+          "scroll": 420
+        },
+        {
+          "client": 420,
+          "scroll": 420
+        }
+      ],
+      "bad": [],
+      "missing": []
+    },
+    {
+      "day": "2026-10-14",
+      "story": true,
+      "events": 1,
+      "width": 992,
+      "height": 768,
+      "overflow": 0,
+      "panels": [
+        {
+          "width": 341.59375,
+          "rows": 5
+        },
+        {
+          "width": 341.609375,
+          "rows": 5
+        }
+      ],
+      "rows": [
+        84,
+        84,
+        84,
+        84,
+        84,
+        84,
+        84,
+        84,
+        84,
+        84
+      ],
+      "scrollports": [
+        {
+          "client": 420,
+          "scroll": 420
+        },
+        {
+          "client": 420,
+          "scroll": 420
+        }
+      ],
+      "bad": [],
+      "missing": []
+    },
+    {
+      "day": "2026-10-14",
+      "story": true,
+      "events": 1,
+      "width": 768,
+      "height": 900,
+      "overflow": 0,
+      "panels": [
+        {
+          "width": 472,
+          "rows": 5
+        },
+        {
+          "width": 472,
+          "rows": 5
+        }
+      ],
+      "rows": [
+        84,
+        84,
+        84,
+        84,
+        84,
+        84,
+        84,
+        84,
+        84,
+        84
+      ],
+      "scrollports": [
+        {
+          "client": 420,
+          "scroll": 420
+        },
+        {
+          "client": 420,
+          "scroll": 420
+        }
+      ],
+      "bad": [],
+      "missing": []
+    },
+    {
+      "day": "2026-10-14",
+      "story": true,
+      "events": 1,
+      "width": 390,
+      "height": 844,
+      "overflow": 0,
+      "panels": [
+        {
+          "width": 342,
+          "rows": 5
+        },
+        {
+          "width": 342,
+          "rows": 5
+        }
+      ],
+      "rows": [
+        88,
+        88,
+        88,
+        88,
+        88,
+        88,
+        88,
+        88,
+        88,
+        88
+      ],
+      "scrollports": [
+        {
+          "client": 440,
+          "scroll": 440
+        },
+        {
+          "client": 440,
+          "scroll": 440
+        }
+      ],
+      "bad": [],
+      "missing": []
+    },
+    {
+      "day": "2026-10-14",
+      "story": true,
+      "events": 1,
+      "width": 320,
+      "height": 720,
+      "overflow": 0,
+      "panels": [
+        {
+          "width": 272,
+          "rows": 5
+        },
+        {
+          "width": 272,
+          "rows": 5
+        }
+      ],
+      "rows": [
+        88,
+        88,
+        88,
+        88,
+        88,
+        88,
+        88,
+        88,
+        88,
+        88
+      ],
+      "scrollports": [
+        {
+          "client": 440,
+          "scroll": 440
+        },
+        {
+          "client": 440,
+          "scroll": 440
+        }
+      ],
+      "bad": [],
+      "missing": []
+    },
+    {
+      "day": "2026-09-15",
+      "story": true,
+      "events": 2,
+      "width": 1920,
+      "height": 1080,
+      "overflow": 0,
+      "panels": [
+        {
+          "width": 570.859375,
+          "rows": 5
+        },
+        {
+          "width": 570.859375,
+          "rows": 5
+        }
+      ],
+      "rows": [
+        84,
+        84,
+        84,
+        84,
+        84,
+        84,
+        84,
+        84,
+        84,
+        84
+      ],
+      "scrollports": [
+        {
+          "client": 420,
+          "scroll": 420
+        },
+        {
+          "client": 420,
+          "scroll": 420
+        }
+      ],
+      "bad": [],
+      "missing": []
+    },
+    {
+      "day": "2026-09-15",
+      "story": true,
+      "events": 2,
+      "width": 1366,
+      "height": 768,
+      "overflow": 0,
+      "panels": [
+        {
+          "width": 528.59375,
+          "rows": 5
+        },
+        {
+          "width": 528.609375,
+          "rows": 5
+        }
+      ],
+      "rows": [
+        84,
+        84,
+        84,
+        84,
+        84,
+        84,
+        84,
+        84,
+        84,
+        84
+      ],
+      "scrollports": [
+        {
+          "client": 420,
+          "scroll": 420
+        },
+        {
+          "client": 420,
+          "scroll": 420
+        }
+      ],
+      "bad": [],
+      "missing": []
+    },
+    {
+      "day": "2026-09-15",
+      "story": true,
+      "events": 2,
+      "width": 992,
+      "height": 768,
+      "overflow": 0,
+      "panels": [
+        {
+          "width": 341.59375,
+          "rows": 5
+        },
+        {
+          "width": 341.609375,
+          "rows": 5
+        }
+      ],
+      "rows": [
+        84,
+        84,
+        84,
+        84,
+        84,
+        84,
+        84,
+        84,
+        84,
+        84
+      ],
+      "scrollports": [
+        {
+          "client": 420,
+          "scroll": 420
+        },
+        {
+          "client": 420,
+          "scroll": 420
+        }
+      ],
+      "bad": [],
+      "missing": []
+    },
+    {
+      "day": "2026-09-15",
+      "story": true,
+      "events": 2,
+      "width": 768,
+      "height": 900,
+      "overflow": 0,
+      "panels": [
+        {
+          "width": 472,
+          "rows": 5
+        },
+        {
+          "width": 472,
+          "rows": 5
+        }
+      ],
+      "rows": [
+        84,
+        84,
+        84,
+        84,
+        84,
+        84,
+        84,
+        84,
+        84,
+        84
+      ],
+      "scrollports": [
+        {
+          "client": 420,
+          "scroll": 420
+        },
+        {
+          "client": 420,
+          "scroll": 420
+        }
+      ],
+      "bad": [],
+      "missing": []
+    },
+    {
+      "day": "2026-09-15",
+      "story": true,
+      "events": 2,
+      "width": 390,
+      "height": 844,
+      "overflow": 0,
+      "panels": [
+        {
+          "width": 342,
+          "rows": 5
+        },
+        {
+          "width": 342,
+          "rows": 5
+        }
+      ],
+      "rows": [
+        88,
+        88,
+        88,
+        88,
+        88,
+        88,
+        88,
+        88,
+        88,
+        88
+      ],
+      "scrollports": [
+        {
+          "client": 440,
+          "scroll": 440
+        },
+        {
+          "client": 440,
+          "scroll": 440
+        }
+      ],
+      "bad": [],
+      "missing": []
+    },
+    {
+      "day": "2026-09-15",
+      "story": true,
+      "events": 2,
+      "width": 320,
+      "height": 720,
+      "overflow": 0,
+      "panels": [
+        {
+          "width": 272,
+          "rows": 5
+        },
+        {
+          "width": 272,
+          "rows": 5
+        }
+      ],
+      "rows": [
+        88,
+        88,
+        88,
+        88,
+        88,
+        88,
+        88,
+        88,
+        88,
+        88
+      ],
+      "scrollports": [
+        {
+          "client": 440,
+          "scroll": 440
+        },
+        {
+          "client": 440,
+          "scroll": 440
+        }
+      ],
+      "bad": [],
+      "missing": []
+    }
+  ],
+  "errors": []
+}

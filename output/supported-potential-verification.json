@@ -1,5 +1,5 @@
 {
-  "estimator": "supported-window-price-v2.1-personal",
+  "estimator": "supported-window-price-v2.2-max-wait",
   "source": "Existing output/horse-sales-investigation.json; daily averages, not individual executions",
   "cutoff": {
     "days": 87,
@@ -10,34 +10,34 @@
       "days": 2,
       "old": null,
       "oldV2": 38036,
-      "new": null,
+      "new": 25811,
       "reference": 27143,
-      "candidate": 38036,
-      "plannerUsable": false
+      "candidate": 25811,
+      "plannerUsable": true
     },
     {
       "days": 7,
       "old": null,
       "oldV2": 39317,
-      "new": null,
+      "new": 27230,
       "reference": 27143,
-      "candidate": 39317,
-      "plannerUsable": false
+      "candidate": 27230,
+      "plannerUsable": true
     },
     {
       "days": 28,
       "old": null,
       "oldV2": 42865,
-      "new": null,
+      "new": 27245,
       "reference": 27143,
-      "candidate": 40750,
-      "plannerUsable": false
+      "candidate": 27245,
+      "plannerUsable": true
     }
   ],
   "syntheticHorizons": [
-    100,
-    null,
-    null
+    90,
+    110,
+    110
   ],
   "backtest": [
     {
@@ -45,79 +45,79 @@
       "days": 2,
       "old": 34471,
       "oldV2": 38905,
-      "new": null,
+      "new": 33214,
       "futureAverageMin": 37083,
       "futureAverageMax": 38596,
       "coveredDays": 2,
       "oldLevelObservedInDailyAverages": true,
-      "newLevelObservedInDailyAverages": false
+      "newLevelObservedInDailyAverages": true
     },
     {
       "at": "2026-08-21T00:00:00.000Z",
       "days": 7,
       "old": 34471,
       "oldV2": 39749,
-      "new": null,
+      "new": 35093,
       "futureAverageMin": 37083,
       "futureAverageMax": 38770,
       "coveredDays": 7,
       "oldLevelObservedInDailyAverages": true,
-      "newLevelObservedInDailyAverages": false
+      "newLevelObservedInDailyAverages": true
     },
     {
       "at": "2026-08-21T00:00:00.000Z",
       "days": 28,
       "old": null,
       "oldV2": null,
-      "new": null,
+      "new": 35093,
       "futureAverageMin": 36418,
       "futureAverageMax": 53940,
       "coveredDays": 28,
       "oldLevelObservedInDailyAverages": false,
-      "newLevelObservedInDailyAverages": false
+      "newLevelObservedInDailyAverages": true
     },
     {
       "at": "2026-08-28T00:00:00.000Z",
       "days": 2,
       "old": 37656,
       "oldV2": 38238,
-      "new": 38238,
+      "new": 37162,
       "futureAverageMin": 36418,
       "futureAverageMax": 37529,
       "coveredDays": 2,
       "oldLevelObservedInDailyAverages": false,
-      "newLevelObservedInDailyAverages": false
+      "newLevelObservedInDailyAverages": true
     },
     {
       "at": "2026-08-28T00:00:00.000Z",
       "days": 7,
       "old": 38238,
       "oldV2": 39702,
-      "new": 39702,
+      "new": 38596,
       "futureAverageMin": 36418,
       "futureAverageMax": 38913,
       "coveredDays": 7,
       "oldLevelObservedInDailyAverages": true,
-      "newLevelObservedInDailyAverages": false
+      "newLevelObservedInDailyAverages": true
     },
     {
       "at": "2026-08-28T00:00:00.000Z",
       "days": 28,
       "old": null,
       "oldV2": null,
-      "new": null,
+      "new": 38596,
       "futureAverageMin": 36113,
       "futureAverageMax": 53940,
       "coveredDays": 28,
       "oldLevelObservedInDailyAverages": false,
-      "newLevelObservedInDailyAverages": false
+      "newLevelObservedInDailyAverages": true
     },
     {
       "at": "2026-09-04T00:00:00.000Z",
       "days": 2,
       "old": 37832,
       "oldV2": 38199,
-      "new": 38199,
+      "new": 37529,
       "futureAverageMin": 39217,
       "futureAverageMax": 45183,
       "coveredDays": 2,
@@ -129,7 +129,7 @@
       "days": 7,
       "old": 38159,
       "oldV2": 39655,
-      "new": 39655,
+      "new": 38760,
       "futureAverageMin": 39217,
       "futureAverageMax": 53940,
       "coveredDays": 7,
@@ -141,19 +141,19 @@
       "days": 28,
       "old": null,
       "oldV2": null,
-      "new": null,
+      "new": 38760,
       "futureAverageMin": 33793,
       "futureAverageMax": 53940,
       "coveredDays": 28,
       "oldLevelObservedInDailyAverages": false,
-      "newLevelObservedInDailyAverages": false
+      "newLevelObservedInDailyAverages": true
     },
     {
       "at": "2026-09-11T00:00:00.000Z",
       "days": 2,
       "old": 37987,
       "oldV2": 38369,
-      "new": 38369,
+      "new": 45183,
       "futureAverageMin": 45394,
       "futureAverageMax": 46394,
       "coveredDays": 2,
@@ -165,19 +165,19 @@
       "days": 7,
       "old": 38218,
       "oldV2": 39702,
-      "new": 39702,
+      "new": 52141,
       "futureAverageMin": 38524,
       "futureAverageMax": 46394,
       "coveredDays": 7,
       "oldLevelObservedInDailyAverages": true,
-      "newLevelObservedInDailyAverages": true
+      "newLevelObservedInDailyAverages": false
     },
     {
       "at": "2026-09-11T00:00:00.000Z",
       "days": 28,
       "old": null,
       "oldV2": null,
-      "new": null,
+      "new": 52141,
       "futureAverageMin": 26515,
       "futureAverageMax": 46394,
       "coveredDays": 28,
