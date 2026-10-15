@@ -268,34 +268,32 @@ $opp-amber: color-mix(in srgb, var(--color-warning) 55%, var(--color-danger));
     &:hover { background: color-mix(in srgb, var(--color-text) 20%, var(--color-surface)); }
 }
 
-
 .opp-badge {
-    font-size: .68rem;
-    line-height: 1.25;
-    padding: .12rem .42rem;
+    --badge-font-size: .68rem;
+
     white-space: nowrap;
-    background: color-mix(in srgb, var(--color-secondary) 24%, var(--color-surface));
-    color: var(--color-text-muted);
+    --badge-background: color-mix(in srgb, var(--color-secondary) 24%, var(--color-surface));
+    --badge-color: var(--color-text-muted);
     cursor: help;
 
     &.is-up {
-        background: color-mix(in srgb, var(--color-success) 22%, var(--color-surface));
-        color: var(--color-success);
+        --badge-background: color-mix(in srgb, var(--color-success) 22%, var(--color-surface));
+        --badge-color: var(--color-success);
     }
 
     &.is-down {
-        background: color-mix(in srgb, var(--color-danger) 22%, var(--color-surface));
-        color: var(--color-danger);
+        --badge-background: color-mix(in srgb, var(--color-danger) 22%, var(--color-surface));
+        --badge-color: var(--color-danger);
     }
 
-    &.is-flat { color: var(--color-text-muted); }
+    &.is-flat { --badge-color: var(--color-text-muted); }
 
     &.is-new {
-        background: color-mix(in srgb, var(--color-warning, var(--color-primary)) 24%, var(--color-surface));
-        color: var(--color-warning, var(--color-primary));
+        --badge-background: color-mix(in srgb, var(--color-warning, var(--color-primary)) 24%, var(--color-surface));
+        --badge-color: var(--color-warning, var(--color-primary));
     }
 
-    &.is-strong { color: var(--color-text); }
+    &.is-strong { --badge-color: var(--color-text); }
 }
 
 .opp-table {
@@ -336,7 +334,7 @@ $opp-amber: color-mix(in srgb, var(--color-warning) 55%, var(--color-danger));
             white-space: nowrap;
         }
     }
-    .badge[data-tier] { font-size: .62rem; padding: .05rem .32rem; }
+    .badge[data-tier] { --badge-font-size: .62rem;  }
 }
 
 .opp-meta {
@@ -496,7 +494,6 @@ $opp-amber: color-mix(in srgb, var(--color-warning) 55%, var(--color-danger));
     @include opp-tones;
 }
 
-
 .opp-quote, .opp-advantage {
     display: inline-flex;
     align-items: center;
@@ -537,7 +534,7 @@ $opp-amber: color-mix(in srgb, var(--color-warning) 55%, var(--color-danger));
     h2 { margin: 0; font-size: 1.05rem; }
 }
 
-.opp-sheet .opp-badge { font-size: .75rem; }
+.opp-sheet .opp-badge { --badge-font-size: .75rem; }
 
 .opp-caveat, .opp-reasons {
     margin: 0 0 .6rem;

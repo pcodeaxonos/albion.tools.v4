@@ -1,3 +1,4 @@
+import { changeChoiceSelection, readChoiceSelection, writeChoiceSelection } from '../core/choice-selection.mjs';
 import { cityName, cityNameHtml, cityNameAttributes, cityDataKey } from './city-name.js';
 import { fieldLabel, fieldAllButtonHtml, fieldHeadingHtml } from './form-field.js';
 import { escapeHtml } from '../utils/utils.js';
@@ -374,23 +375,11 @@ export function bindCityField(container, id, onChange, { syncPeers = true, multi
     field.dataset.cityBound = 'on';
     const changeSelection = (value, event = {}) => {
         if (!multiSelection) { changeCityField(container, field, value); return; }
-        let { included, excluded } = getCityFieldSelection(container, id);
-        if (!value) { included = []; excluded = []; }
-        else if (event.shiftKey) {
-            included = included.filter(city => city !== value);
-            excluded = excluded.includes(value) ? excluded.filter(city => city !== value) : [...excluded, value];
-        } else if (event.ctrlKey || event.metaKey) {
-            excluded = excluded.filter(city => city !== value);
-            included = included.includes(value) ? included.filter(city => city !== value) : [...included, value];
-        } else {
-            excluded = excluded.filter(city => city !== value);
-            included = included.includes(value) ? [] : [value];
-        }
-        setCityFieldSelection(container, id, { included, excluded });
+        setCityFieldSelection(container, id, changeChoiceSelection(getCityFieldSelection(container, id), value, event, ''));
         onChange?.(getCityFieldValue(container, id));
     };
     if (multiSelection) {
-        field.querySelectorAll('[data-city-value]').forEach(node => { node.dataset.appTooltip += '\nCtrl: seçime ekle / çıkar · Shift: hariç tut / geri al'; });
+        field.querySelectorAll('[data-city-value]').forEach(node => { node.dataset.appTooltip = node.dataset.cityValue; });
     }
     field.querySelector('[data-city-all]')?.addEventListener('click', () => changeSelection(''));
     field.querySelectorAll('button').forEach((node) => { node.disabled = field.dataset.cityDisabled === 'true'; });
@@ -422,4 +411,11 @@ export function bindCityField(container, id, onChange, { syncPeers = true, multi
     field.querySelector('select')?.addEventListener('change', (event) => {
         changeSelection(event.target.value);
     });
+}
+
+/** Filter cities use the same serialized preference contract as segmented choices. */
+export function bindCityFilter(container, id, selected, onChange) {
+    if (!container.querySelector(`[data-city-field="${CSS.escape(id)}"]`)) return;
+    setCityFieldSelection(container, id, readChoiceSelection(selected, ''));
+    bindCityField(container, id, () => onChange?.(writeChoiceSelection(getCityFieldSelection(container, id), '')), { syncPeers: false, multiSelection: true });
 }

@@ -1453,36 +1453,6 @@ input[type=month].form-control {
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.22);
 }
 
-.badge {
-  display: inline-block;
-  padding: 0.125rem 0.5rem;
-  font-size: var(--font-size-sm);
-  font-weight: var(--font-weight-semibold);
-  line-height: 1.4;
-  text-align: center;
-  border-radius: 0;
-}
-.badge.bg-success {
-  background-color: color-mix(in srgb, var(--color-success) 24%, var(--color-surface));
-  color: var(--color-success);
-}
-.badge.bg-secondary {
-  background-color: color-mix(in srgb, var(--color-secondary) 20%, var(--color-surface));
-  color: var(--color-text-muted);
-}
-.badge.bg-primary {
-  background-color: color-mix(in srgb, var(--color-primary) 20%, var(--color-surface));
-  color: var(--color-primary);
-}
-.badge.bg-info {
-  background-color: color-mix(in srgb, var(--color-info) 20%, var(--color-surface));
-  color: var(--color-info);
-}
-.badge.bg-warning {
-  background-color: color-mix(in srgb, var(--color-warning) 20%, var(--color-surface));
-  color: var(--color-warning);
-}
-
 .alert {
   align-self: start;
   flex: 0 0 auto;
@@ -1642,9 +1612,7 @@ input[type=month].form-control {
   box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--color-primary) 20%, transparent);
 }
 .db-table-card .badge {
-  font-size: 0.65rem;
-  padding: 0.12rem 0.35rem;
-  line-height: 1.2;
+  --badge-font-size: 0.65rem;
 }
 
 .db-table-card-title {
@@ -1668,22 +1636,22 @@ input[type=month].form-control {
 }
 
 .db-source-badge {
-  font-weight: var(--font-weight-medium);
+  --badge-font-weight: var(--font-weight-medium);
 }
 
 .db-source-badge--api {
-  background: color-mix(in srgb, var(--color-info, #5b8def) 18%, transparent);
-  color: var(--color-text);
+  --badge-background: color-mix(in srgb, var(--color-info, #5b8def) 18%, transparent);
+  --badge-color: var(--color-text);
 }
 
 .db-source-badge--curated {
-  background: color-mix(in srgb, var(--color-primary) 16%, transparent);
-  color: var(--color-text);
+  --badge-background: color-mix(in srgb, var(--color-primary) 16%, transparent);
+  --badge-color: var(--color-text);
 }
 
 .db-source-badge--user {
-  background: color-mix(in srgb, var(--color-success, #3d9a6a) 18%, transparent);
-  color: var(--color-text);
+  --badge-background: color-mix(in srgb, var(--color-success, #3d9a6a) 18%, transparent);
+  --badge-color: var(--color-text);
 }
 
 .db-table-header {
@@ -2306,27 +2274,12 @@ input[type=month].form-control {
 
 /* Albion item-tier tokens (T1–T8) for badges / tints. */
 .badge[data-tier] {
-  background-color: var(--color-item-tier);
-  color: var(--color-on-item-tier, var(--color-on-tier));
+  --badge-background: var(--color-item-tier);
+  --badge-color: var(--color-on-item-tier, var(--color-on-tier));
 }
 
 .badge.badge-inline {
-  position: relative;
-  isolation: isolate;
-  display: inline;
-  padding: 0 0.3em;
-  font-size: inherit;
-  line-height: inherit;
-  vertical-align: baseline;
-  background: transparent;
-}
-.badge.badge-inline::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  z-index: -1;
-  background-color: var(--color-item-tier, var(--color-secondary));
-  pointer-events: none;
+  --badge-font-size: inherit;
 }
 
 [data-tier="1"],
@@ -2369,19 +2322,19 @@ input[type=month].form-control {
 /* Text color for content placed on the solid city color. */
 :root {
   --color-city-bridgewatch: #e87800;
-  --color-city-accent-bridgewatch: #e87800;
+  --color-city-accent-bridgewatch: #f2a34f;
   --color-on-city-bridgewatch: #111;
   --color-city-fort-sterling: #fff;
   --color-city-accent-fort-sterling: #fff;
   --color-on-city-fort-sterling: #111;
   --color-city-lymhurst: #6d9600;
-  --color-city-accent-lymhurst: #6d9600;
+  --color-city-accent-lymhurst: #a4c65a;
   --color-on-city-lymhurst: #fff;
   --color-city-martlock: #075caf;
-  --color-city-accent-martlock: #075caf;
+  --color-city-accent-martlock: #72b1ed;
   --color-on-city-martlock: #fff;
   --color-city-thetford: #832aa9;
-  --color-city-accent-thetford: #832aa9;
+  --color-city-accent-thetford: #c28ade;
   --color-on-city-thetford: #fff;
   --color-city-caerleon: #25242b;
   --color-city-accent-caerleon: #b8b6c2;
@@ -2476,14 +2429,13 @@ input[type=month].form-control {
 }
 
 .city-badge {
-  padding: 0.15em 0.35em;
-  background-color: var(--color-city);
-  color: var(--color-on-city);
-  border: 1px solid color-mix(in srgb, var(--color-city-accent) 55%, var(--color-border));
-  font-size: 0.65rem;
-  font-weight: var(--font-weight-semibold);
+  --badge-background: var(--color-city);
+  --badge-color: var(--color-on-city);
+  --badge-border-width: 1px;
+  --badge-border-color: color-mix(in srgb, var(--color-city-accent) 55%, var(--color-border));
+  --badge-font-size: .65rem;
+  --badge-font-weight: var(--font-weight-semibold);
   letter-spacing: 0.025em;
-  line-height: 1.25;
   white-space: nowrap;
 }
 
@@ -3402,6 +3354,51 @@ input[type=month].form-control {
 .form-select option, select.form-control option {
   color: var(--color-text);
   background-color: var(--color-surface);
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  align-self: center;
+  justify-self: start;
+  flex: 0 0 auto;
+  box-sizing: border-box;
+  width: fit-content;
+  min-width: var(--badge-min-width, 0);
+  height: calc(1em * var(--badge-line-height, 1.4) + 2 * var(--badge-padding-block, 0.15em) + 2 * var(--badge-border-width, 0px));
+  min-height: 0;
+  padding: var(--badge-padding-block, 0.15em) var(--badge-padding-inline, 0.55em);
+  font-size: var(--badge-font-size, var(--font-size-sm));
+  font-weight: var(--badge-font-weight, var(--font-weight-semibold));
+  line-height: var(--badge-line-height, 1.4);
+  text-align: center;
+  vertical-align: middle;
+  white-space: nowrap;
+  border: var(--badge-border-width, 0px) var(--badge-border-style, solid) var(--badge-border-color, transparent);
+  border-radius: var(--badge-radius, 0);
+  color: var(--badge-color, inherit);
+  background: var(--badge-background, transparent);
+}
+.badge.bg-success {
+  --badge-background: color-mix(in srgb, var(--color-success) 24%, var(--color-surface));
+  --badge-color: var(--color-success);
+}
+.badge.bg-secondary {
+  --badge-background: color-mix(in srgb, var(--color-secondary) 20%, var(--color-surface));
+  --badge-color: var(--color-text-muted);
+}
+.badge.bg-primary {
+  --badge-background: color-mix(in srgb, var(--color-primary) 20%, var(--color-surface));
+  --badge-color: var(--color-primary);
+}
+.badge.bg-info {
+  --badge-background: color-mix(in srgb, var(--color-info) 20%, var(--color-surface));
+  --badge-color: var(--color-info);
+}
+.badge.bg-warning {
+  --badge-background: color-mix(in srgb, var(--color-warning) 20%, var(--color-surface));
+  --badge-color: var(--color-warning);
 }
 
 :root {
@@ -5553,8 +5550,8 @@ a.tool-card:hover {
 .page-head-content h1 .badge {
   margin-left: 0.45rem;
   vertical-align: middle;
-  color: var(--color-text-muted);
-  font-size: var(--font-size-xs);
+  --badge-color: var(--color-text-muted);
+  --badge-font-size: var(--font-size-xs);
 }
 .page-head-content p {
   min-width: 0;
@@ -6190,6 +6187,12 @@ main:has(.page-head[data-page-head=potential-prices]) {
   color: var(--color-on-accent);
   background-color: var(--color-primary);
 }
+.segmented-choice-button.is-excluded {
+  color: var(--color-danger);
+  background-color: color-mix(in srgb, var(--color-danger) 12%, var(--color-surface));
+  text-decoration: line-through;
+  box-shadow: inset 0 0 0 var(--border-width) var(--color-danger);
+}
 .segmented-choice-button:focus-visible {
   outline: var(--focus-outline-width) solid var(--color-focus-ring);
   outline-offset: var(--focus-outline-offset);
@@ -6214,6 +6217,15 @@ main:has(.page-head[data-page-head=potential-prices]) {
   font-size: var(--font-size-xs);
   line-height: 1.2;
   overflow-wrap: anywhere;
+}
+
+.choice-field--long-labels > .segmented-choice--filter {
+  grid-auto-flow: row;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.choice-field--long-labels > .segmented-choice--filter > .segmented-choice-button {
+  white-space: normal;
+  border: var(--border-width) solid var(--color-border);
 }
 
 .segmented-choice-button--compact {
@@ -9924,15 +9936,13 @@ main:has(.page-head[data-page-head=potential-prices]) {
 }
 
 .bonus-analysis-rr-badge {
-  display: inline-flex;
-  align-items: center;
-  align-self: center;
+  --badge-font-size: .75rem;
+  --badge-line-height: 2.8;
   gap: 0.42rem;
-  min-height: 2.35rem;
-  padding: 0.28rem 0.68rem 0.28rem 0.32rem;
-  border: 1px solid #6550a4;
-  border-radius: 999px;
-  background: linear-gradient(135deg, #312155, #171f42);
+  --badge-border-width: 1px;
+  --badge-border-color: #6550a4;
+  --badge-radius: 999px;
+  --badge-background: linear-gradient(135deg, #312155, #171f42);
   box-shadow: inset 0 1px rgba(255, 255, 255, 0.12), 0 0.25rem 0.7rem rgba(58, 39, 123, 0.28);
   white-space: nowrap;
 }
@@ -13086,11 +13096,11 @@ main:has(.page-head[data-page-head=potential-prices]) {
 
 .trades-table .badge {
   margin-right: 0.45rem;
-  font-size: 0.62rem;
+  --badge-font-size: .62rem;
 }
 
 .trades-suggestions .trades-table-identity > .badge {
-  flex: 0 0 3rem;
+  --badge-min-width: 3rem;
   margin-right: 0;
   text-align: center;
 }
@@ -13625,12 +13635,10 @@ main:has(.page-head[data-page-head=potential-prices]) {
   gap: 0.8rem;
 }
 .trades-suggestions .trades-proposal-table .trades-table-identity > .badge {
-  flex: 0 0 3.25rem;
+  --badge-min-width: 3.25rem;
   margin: 0;
-  padding: 0.35rem 0.4rem;
-  border-radius: 0.3rem;
-  font-size: 0.8rem;
-  line-height: 1.2;
+  --badge-radius: .3rem;
+  --badge-font-size: .8rem;
   letter-spacing: 0.03em;
 }
 .trades-suggestions .trades-proposal-table .trades-side-sell {
@@ -13642,7 +13650,7 @@ main:has(.page-head[data-page-head=potential-prices]) {
   color: #b2e4ff;
 }
 .trades-suggestions .trades-proposal-table .trades-table-item-icon {
-  flex: 0 0 3rem;
+  --badge-min-width: 3rem;
   width: 3rem;
   height: 3rem;
   border: 0;
@@ -15235,8 +15243,8 @@ main:has(.page-head[data-page-head=potential-prices]) {
   --yield-badge-color: var(--color-info);
 }
 .yield-log-badges .yield-log-premium, .yield-log-badges .yield-log-focus {
-  color: var(--yield-badge-color);
-  background-color: color-mix(in srgb, var(--yield-badge-color) 20%, var(--color-surface));
+  --badge-color: var(--yield-badge-color);
+  --badge-background: color-mix(in srgb, var(--yield-badge-color) 20%, var(--color-surface));
 }
 
 .app-entry-summary.yield-entry-summary {
@@ -18442,10 +18450,11 @@ main:has(.page-head[data-page-head=potential-prices]) {
 }
 
 .island-v2-warning-head .badge {
-  font-size: 0.625rem;
+  --badge-font-size: .625rem;
   text-transform: uppercase;
-  border: 1px solid currentColor;
-  background: color-mix(in srgb, currentColor 10%, transparent);
+  --badge-border-width: 1px;
+  --badge-border-color: currentColor;
+  --badge-background: color-mix(in srgb, currentColor 10%, transparent);
 }
 
 .island-v2-warning-status {
@@ -20058,31 +20067,29 @@ main.tool-page > .page-body {
 }
 
 .opp-badge {
-  font-size: 0.68rem;
-  line-height: 1.25;
-  padding: 0.12rem 0.42rem;
+  --badge-font-size: .68rem;
   white-space: nowrap;
-  background: color-mix(in srgb, var(--color-secondary) 24%, var(--color-surface));
-  color: var(--color-text-muted);
+  --badge-background: color-mix(in srgb, var(--color-secondary) 24%, var(--color-surface));
+  --badge-color: var(--color-text-muted);
   cursor: help;
 }
 .opp-badge.is-up {
-  background: color-mix(in srgb, var(--color-success) 22%, var(--color-surface));
-  color: var(--color-success);
+  --badge-background: color-mix(in srgb, var(--color-success) 22%, var(--color-surface));
+  --badge-color: var(--color-success);
 }
 .opp-badge.is-down {
-  background: color-mix(in srgb, var(--color-danger) 22%, var(--color-surface));
-  color: var(--color-danger);
+  --badge-background: color-mix(in srgb, var(--color-danger) 22%, var(--color-surface));
+  --badge-color: var(--color-danger);
 }
 .opp-badge.is-flat {
-  color: var(--color-text-muted);
+  --badge-color: var(--color-text-muted);
 }
 .opp-badge.is-new {
-  background: color-mix(in srgb, var(--color-warning, var(--color-primary)) 24%, var(--color-surface));
-  color: var(--color-warning, var(--color-primary));
+  --badge-background: color-mix(in srgb, var(--color-warning, var(--color-primary)) 24%, var(--color-surface));
+  --badge-color: var(--color-warning, var(--color-primary));
 }
 .opp-badge.is-strong {
-  color: var(--color-text);
+  --badge-color: var(--color-text);
 }
 
 .opp-table {
@@ -20129,8 +20136,7 @@ main.tool-page > .page-body {
   white-space: nowrap;
 }
 .opp-table .badge[data-tier] {
-  font-size: 0.62rem;
-  padding: 0.05rem 0.32rem;
+  --badge-font-size: .62rem;
 }
 
 .opp-meta {
@@ -20420,7 +20426,7 @@ main.tool-page > .page-body {
 }
 
 .opp-sheet .opp-badge {
-  font-size: 0.75rem;
+  --badge-font-size: .75rem;
 }
 
 .opp-caveat, .opp-reasons {
@@ -22168,8 +22174,8 @@ main.tool-page > .page-body {
   height: 257px;
   padding: 17px 18px;
   color: var(--color-text);
-  background: radial-gradient(ellipse 120% 75% at -8% -14%, rgba(101, 173, 206, 0.0705882353), transparent 60%), linear-gradient(133deg, #1d2833, #151a20);
-  border: var(--border-width) solid #374654;
+  background: linear-gradient(133deg, color-mix(in srgb, var(--color-city) 14%, #1d2833), color-mix(in srgb, var(--color-city) 6%, #151a20));
+  border: var(--border-width) solid color-mix(in srgb, var(--color-city-accent) 45%, #374654);
   border-radius: 0.875rem;
   box-shadow: var(--shadow-md);
 }
@@ -22248,7 +22254,7 @@ main.tool-page > .page-body {
 }
 [data-tool=potential-prices] .potential-price-card-market .city-name {
   min-width: 0;
-  color: var(--color-text);
+  color: var(--color-city-accent);
   font-size: 25px;
   font-weight: 950;
   line-height: 1.05;
@@ -22513,6 +22519,11 @@ main.tool-page > .page-body {
   font-size: 0.7rem;
   color: var(--color-text-muted);
 }
+.trade-journal-page .journal-summary {
+  line-height: 1.25;
+  max-height: 2.5em;
+  overflow: auto;
+}
 .trade-journal-page .journal-status {
   color: var(--color-text-muted);
 }
@@ -22551,6 +22562,107 @@ main.tool-page > .page-body {
   }
 }
 
+.app-process-summary {
+  padding: 0.75rem;
+  border: 1px solid color-mix(in srgb, var(--monitor-color) 45%, var(--color-border));
+  background: var(--color-surface);
+  font-size: 0.8rem;
+  --monitor-color: var(--color-info);
+}
+.app-process-summary[data-monitor-phase=scanning], .app-process-summary[data-monitor-phase=checking] {
+  --monitor-color: var(--color-primary);
+}
+.app-process-summary[data-monitor-phase=complete] {
+  --monitor-color: var(--color-success);
+}
+.app-process-summary[data-monitor-phase=partial], .app-process-summary[data-monitor-phase=changed] {
+  --monitor-color: var(--color-warning);
+}
+.app-process-summary[data-monitor-phase=error] {
+  --monitor-color: var(--color-danger);
+}
+.app-process-summary .app-process-summary-state {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 1.25rem;
+}
+.app-process-summary .app-process-summary-state strong {
+  color: var(--monitor-color);
+}
+.app-process-summary .app-process-summary-dot {
+  width: 0.45rem;
+  height: 0.45rem;
+  border-radius: 50%;
+  background: var(--monitor-color);
+  flex: 0 0 auto;
+}
+.app-process-summary [data-monitor-progress] {
+  margin-left: auto;
+  font-variant-numeric: tabular-nums;
+  color: var(--monitor-color);
+}
+.app-process-summary progress {
+  display: block;
+  width: 100%;
+  height: 0.25rem;
+  margin: 0.5rem 0;
+  accent-color: var(--monitor-color);
+}
+.app-process-summary progress {
+  appearance: none;
+  border: 0;
+  background: color-mix(in srgb, var(--monitor-color) 20%, var(--color-surface));
+}
+.app-process-summary progress::-webkit-progress-bar {
+  background: color-mix(in srgb, var(--monitor-color) 20%, var(--color-surface));
+}
+.app-process-summary progress::-webkit-progress-value {
+  background: var(--monitor-color);
+}
+.app-process-summary progress::-moz-progress-bar {
+  background: var(--monitor-color);
+}
+.app-process-summary dl {
+  margin: 0;
+  display: grid;
+  gap: 0.25rem;
+}
+.app-process-summary dl > div {
+  --process-row-color: var(--monitor-color);
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5rem;
+  color: var(--process-row-color);
+}
+.app-process-summary dl > div[data-process-tone=success] {
+  --process-row-color: var(--color-success);
+}
+.app-process-summary dl > div[data-process-tone=danger] {
+  --process-row-color: var(--color-danger);
+}
+.app-process-summary dl > div[data-process-tone=info] {
+  --process-row-color: var(--color-info);
+}
+.app-process-summary dl > div[data-process-tone=warning] {
+  --process-row-color: var(--color-warning);
+}
+.app-process-summary dl dt {
+  color: inherit;
+  font-weight: normal;
+}
+.app-process-summary dl dd {
+  margin: 0;
+  font-variant-numeric: tabular-nums;
+}
+.app-process-summary [data-app-tooltip] {
+  cursor: help;
+}
+.app-process-summary [data-app-tooltip]:focus-visible {
+  outline: 1px solid var(--monitor-color);
+  outline-offset: 2px;
+}
+
 .flipper-page {
   --page-head-image-height: max(5rem, calc(100cqw / 10));
 }
@@ -22572,78 +22684,6 @@ main.tool-page > .page-body {
   flex-direction: column;
   gap: 0.75rem;
   min-height: 0;
-}
-.flipper-page .flipper-monitor {
-  padding: 0.75rem;
-  border: 1px solid var(--color-border);
-  background: var(--color-surface);
-  font-size: 0.8rem;
-  --monitor-color: var(--color-text-muted);
-}
-.flipper-page .flipper-monitor[data-monitor-phase=scanning], .flipper-page .flipper-monitor[data-monitor-phase=checking] {
-  --monitor-color: #e8b65c;
-}
-.flipper-page .flipper-monitor[data-monitor-phase=complete] {
-  --monitor-color: #4fe0ae;
-}
-.flipper-page .flipper-monitor[data-monitor-phase=partial], .flipper-page .flipper-monitor[data-monitor-phase=changed] {
-  --monitor-color: #e8b65c;
-}
-.flipper-page .flipper-monitor[data-monitor-phase=error] {
-  --monitor-color: #e27171;
-}
-.flipper-page .flipper-monitor .flipper-monitor-state {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  min-height: 1.25rem;
-}
-.flipper-page .flipper-monitor .flipper-monitor-state strong {
-  color: var(--monitor-color);
-}
-.flipper-page .flipper-monitor .flipper-monitor-dot {
-  width: 0.45rem;
-  height: 0.45rem;
-  border-radius: 50%;
-  background: var(--monitor-color);
-  flex: 0 0 auto;
-}
-.flipper-page .flipper-monitor [data-monitor-progress] {
-  margin-left: auto;
-  font-variant-numeric: tabular-nums;
-  color: var(--color-text-muted);
-}
-.flipper-page .flipper-monitor progress {
-  display: block;
-  width: 100%;
-  height: 0.25rem;
-  margin: 0.5rem 0;
-  accent-color: var(--monitor-color);
-}
-.flipper-page .flipper-monitor dl {
-  margin: 0;
-  display: grid;
-  gap: 0.25rem;
-}
-.flipper-page .flipper-monitor dl > div {
-  display: flex;
-  justify-content: space-between;
-  gap: 0.5rem;
-}
-.flipper-page .flipper-monitor dl dt {
-  color: var(--color-text-muted);
-  font-weight: normal;
-}
-.flipper-page .flipper-monitor dl dd {
-  margin: 0;
-  font-variant-numeric: tabular-nums;
-}
-.flipper-page .flipper-monitor [data-app-tooltip] {
-  cursor: help;
-}
-.flipper-page .flipper-monitor [data-app-tooltip]:focus-visible {
-  outline: 1px solid var(--monitor-color);
-  outline-offset: 2px;
 }
 .flipper-page h2 {
   font-size: 1.1rem;
@@ -22766,9 +22806,8 @@ main.tool-page > .page-body {
   background: linear-gradient(107deg, #271c1d 0%, #1a1c21 35%, #131e23 59%, #10171b 100%);
 }
 .flipper-page .flipper-row-prices .flipper-roi-badge {
-  font-size: 0.85rem;
-  padding: 0.2rem 0.3rem;
-  border-radius: 7px;
+  --badge-font-size:.85rem;
+  --badge-radius:7px;
 }
 .flipper-page .flipper-price-cell {
   min-width: 0;
@@ -22797,9 +22836,8 @@ main.tool-page > .page-body {
   color: var(--color-success);
 }
 .flipper-page .flipper-price-cell .flipper-price-volume {
-  font-size: 0.6rem;
-  font-weight: 400;
-  padding: 0.1em 0.3em;
+  --badge-font-size:.6rem;
+  --badge-font-weight:400;
 }
 .flipper-page .flipper-price-cell strong {
   font-size: 0.9rem;
@@ -22835,7 +22873,7 @@ main.tool-page > .page-body {
   font-size: 1.25rem;
 }
 .flipper-page .flipper-price-cell--net.is-uncertain {
-  border-style: dashed;
+  --badge-border-style:dashed;
 }
 .flipper-page .flipper-metric-icon {
   width: 0.9rem;
@@ -22844,10 +22882,11 @@ main.tool-page > .page-body {
 }
 .flipper-page .flipper-roi-badge {
   --roi-color:#f6c068;
-  color: var(--roi-color);
-  background: linear-gradient(160deg, #35291e, #28231e);
-  border: 1px solid color-mix(in srgb, var(--color-primary) 55%, var(--color-border));
-  font-weight: var(--font-weight-semibold);
+  --badge-color:var(--roi-color);
+  --badge-background:linear-gradient(160deg,#35291e,#28231e);
+  --badge-border-width:1px;
+  --badge-border-color:color-mix(in srgb, var(--color-primary) 55%, var(--color-border));
+  --badge-font-weight:var(--font-weight-semibold);
   white-space: nowrap;
 }
 .flipper-page .flipper-roi-badge.is-uncertain {
@@ -22863,7 +22902,7 @@ main.tool-page > .page-body {
   gap: 0.35rem;
 }
 .flipper-page .flipper-item-meta .badge {
-  font-size: 0.6rem;
+  --badge-font-size:.6rem;
 }
 .flipper-page .flipper-item-meta small {
   font-size: 0.65rem;
@@ -22886,9 +22925,10 @@ main.tool-page > .page-body {
   outline-offset: var(--focus-outline-offset);
 }
 .flipper-page .flipper-spike-badge {
-  color: #ff9292;
-  background: rgba(226, 113, 113, 0.15);
-  border: 1px solid rgba(226, 113, 113, 0.55);
+  --badge-color:#ff9292;
+  --badge-background:rgba(226,113,113,.15);
+  --badge-border-width: 1px;
+  --badge-border-color: rgba(226,113,113,.55);
 }
 .flipper-page .flipper-detail-title {
   display: grid;
@@ -22938,10 +22978,11 @@ main.tool-page > .page-body {
   white-space: nowrap;
 }
 .flipper-page .flipper-breakdown .badge {
-  color: var(--breakdown-color);
-  background: color-mix(in srgb, var(--breakdown-color) 12%, transparent);
-  border: 1px solid color-mix(in srgb, var(--breakdown-color) 35%, transparent);
-  font-size: 0.7rem;
+  --badge-color:var(--breakdown-color);
+  --badge-background:color-mix(in srgb, var(--breakdown-color) 12%, transparent);
+  --badge-border-width: 1px;
+  --badge-border-color: color-mix(in srgb, var(--breakdown-color) 35%, transparent);
+  --badge-font-size:.7rem;
 }
 .flipper-page .flipper-breakdown > .flipper-breakdown-buy {
   --breakdown-color:#72b7ff;

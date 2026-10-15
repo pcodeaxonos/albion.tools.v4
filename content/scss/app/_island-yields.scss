@@ -13,8 +13,8 @@
   .yield-log-focus { --yield-badge-color: var(--color-info); }
 
   .yield-log-premium, .yield-log-focus {
-    color: var(--yield-badge-color);
-    background-color: color-mix(in srgb, var(--yield-badge-color) 20%, var(--color-surface));
+    --badge-color: var(--yield-badge-color);
+    --badge-background: color-mix(in srgb, var(--yield-badge-color) 20%, var(--color-surface));
   }
 }
 

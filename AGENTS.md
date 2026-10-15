@@ -6,6 +6,22 @@
 - Prepare the HTML according to that design standard: preserve its composition, layout, geometry, spacing, typography, and interaction patterns, and reuse the existing shared primitives.
 - Apply this requirement to pages, dialogs, lists, alternate states, and dynamic rendering. Do not introduce a different design unless the user explicitly requests a design change.
 
+## Locked page summary report
+
+- The approved page summary report is the compact Island Yields entry summary shown in `docs/design/page-summary-report.png`. Use this component as the design standard for page summary reports; change its design only when the user explicitly requests it.
+- Canonical implementation: `renderEntrySummary` in `content/js/tools/island-yields.js`, `.app-entry-summary` in `content/scss/_components.scss`, and the `.yield-entry-summary` / `.yield-entry-slots` / `.yield-entry-slot` rules in `content/scss/app/_island-yields.scss`. Inspect these together before modifying or reusing the report. Extend the shared primitive for other consumers instead of copying tool-specific markup or styles.
+- Preserve the compact caption row (period/date on the left, metric caption on the right), vertically stacked category cards, category heading at top left, current/reference count at top right, and wrapping square slot icons below. Keep the existing spacing, typography, thin colored left border, rounded right corners, and subtle state-colored background.
+- Derive categories, dates, metric labels, counts, icons, and comparison states from actual domain data; the screenshot's category names, date, and slot totals are examples, not constants. Preserve equal, missing, extra, complete, and empty states; missing icons stay muted/grayscale and extra icons retain their outline. Preserve existing icon interactions and accessible labels.
+- Keep the same composition on narrow screens: icons wrap within their card and headings/counts remain readable without horizontal overflow. Preserve shared copyable item names and concise tooltips wherever item names or icon descriptions appear.
+
+## Locked page summary progress/process component
+
+- The approved page summary progress/process component is shown in `docs/design/page-summary-process.png`. Use this reference for compact process/status summaries; change its design only when the user explicitly requests it. The existing Island Yields page summary report remains the standard for category/slot reports.
+- Canonical shared implementation: `processSummaryHtml` in `content/js/components/process-summary.js` and `.app-process-summary` in `content/scss/app/_process-summary.scss`; `monitorHtml` and `updateMonitor` in `content/js/tools/flipper.js` provide the Flipper integration. Inspect the screenshot, rendering, updates, and styles together before modifying or reusing this component. For additional consumers, extract/extend a shared primitive rather than copying tool-specific markup or styles.
+- Preserve the compact bordered panel, subtle background, padding, typography, and spacing. Keep the status dot and bold status label on the left of the top row, the progress count/value aligned right, a thin full-width progress bar beneath it, and stacked metric rows with labels on the left and values aligned right. Preserve this composition on narrow screens without horizontal overflow.
+- Derive status, progress, metric labels, counts, and timestamps from actual domain data. The screenshot's “Hazır”, “Eşleşme”, “Son tarama”, and “Emir adedi” are examples, not shared constants. Keep unavailable values as `—`; do not invent progress, order depth, or successful results.
+- Use shared semantic color tokens: info blue for idle, primary gold for scanning/checking, success green for complete, warning amber for partial/changed, and danger red for error. Apply the state color to the status dot/label, progress value/bar, a subtle panel tint, and border while preserving geometry. Preserve idle, scanning, checking, complete, partial, changed, and error states, accessible status announcements, and the native accessible progress element. Keep tooltips concise and place detailed explanations in the appropriate detail/help panel.
+
 ## Island planner geometry
 
 - The grid cell allocated to the island image must always have a 1:1 aspect ratio at every breakpoint. The image must fill that square cell without stretching or letterboxing.
@@ -124,3 +140,16 @@ Item and material images that sit in a row, cell, card, or other slot with spare
 ## Tooltip wording
 
 - Keep tooltips concise: use 1–2 descriptive words, never long explanatory sentences. Put detailed explanations in the appropriate help or detail panel. Apply this rule to shared components and all new or modified tooltips.
+
+## Locked badge component
+
+- All badges use `.badge` and the canonical geometry in `content/scss/app/_badge.scss`. Reuse this class for new badges; keep domain identity and interactions on modifiers/data attributes.
+- Configure variants through `--badge-*` custom properties: `font-size`, `font-weight`, `padding-block`, `padding-inline`, `line-height`, `min-width`, `color`, `background`, `border-width`, `border-style`, `border-color`, and `radius`. Padding values use `em` so they scale with the badge font.
+- Preserve centered horizontal/vertical content and the font-derived fixed height. Parent flex/grid/table rows must never stretch or shrink a badge. Do not override component geometry in tool styles, inline styles, or pseudo-element substitutes.
+
+## Locked all-choice selection behavior
+
+- Every button/icon filter with a heading “Tümü” action uses the shared include/exclude behavior in `content/js/core/choice-selection.mjs` and `content/js/components/filter-selection.js`. Preserve the approved field composition and geometry.
+- Plain click selects one value, or clears its inclusion when already selected; Ctrl/Meta toggles inclusion; Shift toggles exclusion and removes that value from inclusion. Inclusion and exclusion are disjoint. “Tümü” clears both lists. Empty inclusion means all values except exclusions.
+- Render explicit inclusion with the shared active state and exclusion with the shared `is-excluded` state and an accessible label. Apply the same semantics to actual filtering, dynamic updates, and saved preferences; keep existing scalar preferences compatible. For threshold choices, combine included predicates with OR and subtract excluded predicates.
+- Reuse `changeChoiceSelection` for city and strategy pickers; do not duplicate modifier-key branches in tool code. True single-value domain inputs without an all action retain their existing behavior.

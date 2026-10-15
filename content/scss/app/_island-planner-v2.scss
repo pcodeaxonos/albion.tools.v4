@@ -875,10 +875,10 @@
 .island-v2-warning-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; font-size: var(--font-size-sm); font-weight: 700; }
 .island-v2-warning-source { min-width: 0; color: var(--color-primary); white-space: normal; }
 .island-v2-warning-head .badge {
-  font-size: .625rem;
+  --badge-font-size: .625rem;
   text-transform: uppercase;
-  border: 1px solid currentColor;
-  background: color-mix(in srgb, currentColor 10%, transparent);
+  --badge-border-width: 1px; --badge-border-color: currentColor;
+  --badge-background: color-mix(in srgb, currentColor 10%, transparent);
 }
 .island-v2-warning-status { flex-shrink: 0; color: var(--v2-warning-accent, #e5bb6a); }
 .island-v2-warning-source[data-v2-warning-badge="city"] { color: #b6a2ff; }

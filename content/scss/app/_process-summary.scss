@@ -1,0 +1,40 @@
+.app-process-summary {
+        padding: .75rem;
+        border: 1px solid color-mix(in srgb, var(--monitor-color) 45%, var(--color-border));
+        background: var(--color-surface);
+        font-size: .8rem;
+        --monitor-color: var(--color-info);
+        &[data-monitor-phase="scanning"],
+        &[data-monitor-phase="checking"] { --monitor-color: var(--color-primary); }
+        &[data-monitor-phase="complete"] { --monitor-color: var(--color-success); }
+        &[data-monitor-phase="partial"],
+        &[data-monitor-phase="changed"] { --monitor-color: var(--color-warning); }
+        &[data-monitor-phase="error"] { --monitor-color: var(--color-danger); }
+        .app-process-summary-state { display: flex; align-items: center; gap: .5rem; min-height: 1.25rem; strong { color: var(--monitor-color); } }
+        .app-process-summary-dot { width: .45rem; height: .45rem; border-radius: 50%; background: var(--monitor-color); flex: 0 0 auto; }
+        [data-monitor-progress] { margin-left: auto; font-variant-numeric: tabular-nums; color: var(--monitor-color); }
+        progress { display: block; width: 100%; height: .25rem; margin: .5rem 0; accent-color: var(--monitor-color); }
+        progress { appearance: none; border: 0; background: color-mix(in srgb, var(--monitor-color) 20%, var(--color-surface)); }
+        progress::-webkit-progress-bar { background: color-mix(in srgb, var(--monitor-color) 20%, var(--color-surface)); }
+        progress::-webkit-progress-value { background: var(--monitor-color); }
+        progress::-moz-progress-bar { background: var(--monitor-color); }
+        dl {
+            margin: 0;
+            display: grid;
+            gap: .25rem;
+            > div {
+                --process-row-color: var(--monitor-color);
+                display: flex;
+                justify-content: space-between;
+                gap: .5rem;
+                color: var(--process-row-color);
+                &[data-process-tone="success"] { --process-row-color: var(--color-success); }
+                &[data-process-tone="danger"] { --process-row-color: var(--color-danger); }
+                &[data-process-tone="info"] { --process-row-color: var(--color-info); }
+                &[data-process-tone="warning"] { --process-row-color: var(--color-warning); }
+            }
+            dt { color: inherit; font-weight: normal; }
+            dd { margin: 0; font-variant-numeric: tabular-nums; }
+        }
+        [data-app-tooltip] { cursor: help; &:focus-visible { outline: 1px solid var(--monitor-color); outline-offset: 2px; } }
+    }

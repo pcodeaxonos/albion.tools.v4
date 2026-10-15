@@ -1096,34 +1096,6 @@ input[type="month"].form-control {
     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.22);
 }
 
-// Badge
-.badge {
-    display: inline-block;
-    padding: 0.125rem 0.5rem;
-    font-size: var(--font-size-sm);
-    font-weight: var(--font-weight-semibold);
-    line-height: 1.4;
-    text-align: center;
-    border-radius: 0;
-
-    &.bg-success {
-        background-color: color-mix(in srgb, var(--color-success) 24%, var(--color-surface));
-        color: var(--color-success);
-    }
-
-    &.bg-secondary {
-        background-color: color-mix(in srgb, var(--color-secondary) 20%, var(--color-surface));
-        color: var(--color-text-muted);
-    }
-
-    @each $tone in primary, info, warning {
-        &.bg-#{$tone} {
-            background-color: color-mix(in srgb, var(--color-#{$tone}) 20%, var(--color-surface));
-            color: var(--color-#{$tone});
-        }
-    }
-}
-
 // Alert
 .alert {
     // Alerts are content blocks, not layout tracks. Keep them at their natural
@@ -1291,9 +1263,8 @@ input[type="month"].form-control {
     }
 
     .badge {
-        font-size: 0.65rem;
-        padding: 0.12rem 0.35rem;
-        line-height: 1.2;
+        --badge-font-size: 0.65rem;
+
     }
 }
 
@@ -1318,22 +1289,22 @@ input[type="month"].form-control {
 }
 
 .db-source-badge {
-    font-weight: var(--font-weight-medium);
+    --badge-font-weight: var(--font-weight-medium);
 }
 
 .db-source-badge--api {
-    background: color-mix(in srgb, var(--color-info, #5b8def) 18%, transparent);
-    color: var(--color-text);
+    --badge-background: color-mix(in srgb, var(--color-info, #5b8def) 18%, transparent);
+    --badge-color: var(--color-text);
 }
 
 .db-source-badge--curated {
-    background: color-mix(in srgb, var(--color-primary) 16%, transparent);
-    color: var(--color-text);
+    --badge-background: color-mix(in srgb, var(--color-primary) 16%, transparent);
+    --badge-color: var(--color-text);
 }
 
 .db-source-badge--user {
-    background: color-mix(in srgb, var(--color-success, #3d9a6a) 18%, transparent);
-    color: var(--color-text);
+    --badge-background: color-mix(in srgb, var(--color-success, #3d9a6a) 18%, transparent);
+    --badge-color: var(--color-text);
 }
 
 .db-table-header {
@@ -2016,28 +1987,12 @@ input[type="month"].form-control {
 
 /* Albion item-tier tokens (T1–T8) for badges / tints. */
 .badge[data-tier] {
-    background-color: var(--color-item-tier);
-    color: var(--color-on-item-tier, var(--color-on-tier));
+    --badge-background: var(--color-item-tier);
+    --badge-color: var(--color-on-item-tier, var(--color-on-tier));
 }
 
 .badge.badge-inline {
-    position: relative;
-    isolation: isolate;
-    display: inline;
-    padding: 0 0.3em;
-    font-size: inherit;
-    line-height: inherit;
-    vertical-align: baseline;
-    background: transparent;
-
-    &::before {
-        content: "";
-        position: absolute;
-        inset: 0;
-        z-index: -1;
-        background-color: var(--color-item-tier, var(--color-secondary));
-        pointer-events: none;
-    }
+    --badge-font-size: inherit;
 }
 
 [data-tier="1"],
@@ -2069,6 +2024,10 @@ $city-colors: (
 
 /* Dark city identities need a separate readable accent on dark surfaces. */
 $city-accent-overrides: (
+    "bridgewatch": #f2a34f,
+    "lymhurst": #a4c65a,
+    "martlock": #72b1ed,
+    "thetford": #c28ade,
     "caerleon": #b8b6c2,
     "black-market": #b8b6c2
 );
@@ -2124,14 +2083,12 @@ $city-on-colors: (
 }
 
 .city-badge {
-    padding: .15em .35em;
-    background-color: var(--color-city);
-    color: var(--color-on-city);
-    border: 1px solid color-mix(in srgb, var(--color-city-accent) 55%, var(--color-border));
-    font-size: .65rem;
-    font-weight: var(--font-weight-semibold);
+    --badge-background: var(--color-city);
+    --badge-color: var(--color-on-city);
+    --badge-border-width: 1px; --badge-border-color: color-mix(in srgb, var(--color-city-accent) 55%, var(--color-border));
+    --badge-font-size: .65rem;
+    --badge-font-weight: var(--font-weight-semibold);
     letter-spacing: .025em;
-    line-height: 1.25;
     white-space: nowrap;
 }
 
@@ -2457,7 +2414,6 @@ $city-on-colors: (
     }
 }
 
-
 .city-map {
     container-type: inline-size;
     position: relative;
@@ -2676,9 +2632,6 @@ $city-on-colors: (
 
 /* Plant picker — icon rows (settings: plantPickerStyle) */
 .plant-field--icons { width: 100%; }
-
-
-
 
 .plant-field--island-yield .plant-icon-picker {
     gap: 0.5rem;
@@ -2981,8 +2934,6 @@ $city-on-colors: (
     .form-value-hint { position: absolute; right: .75rem; top: 50%; transform: translateY(-50%); pointer-events: none; user-select: none; }
 }
 .form-value-hint { color: var(--color-text-muted); font-size: var(--font-size-sm); white-space: nowrap; }
-
-
 
 // Shared selection state for tier badges and city all buttons.
 .filter-selection-button {

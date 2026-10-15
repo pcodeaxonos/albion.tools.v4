@@ -1,5 +1,7 @@
 # Potansiyel fiyat v2 — 15 Ekim 2026
 
+> Kişisel SAT bağlantısı ve kabul kurallarının sonraki düzeltmesi: [Kişisel gerçekleşme kanıtı](potential-personal-evidence.md). Kişisel veride aşağıdaki on işlem / üç dönem koşullarının yerini bu değerlendirme alır; genel piyasa kuralları korunur.
+
 > Bu sürümün gerçekçilik denetimi ve V2.1 düzeltmesi: [Kanıt ve fiyat rejimi incelemesi](potential-price-v2-review.md). Aşağıdaki ilk V2 hedefleri güncel Planlayıcı kabulü değildir.
 
 Estimator kimliği `supported-window-price-v2`. Önceki kayıtlar aynı SQLite/storage anahtarında korunur; eski BUY ve SELL estimator kayıtları yeni hesap gibi kabul edilmez. Güncelleme mevcut kayıt yolunu kullanır. TOHUM/HASAT seçimi, ekonomi motoru, Focus ve net kâr hesabı değişmez.

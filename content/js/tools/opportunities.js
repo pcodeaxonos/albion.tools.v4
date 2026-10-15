@@ -13,12 +13,12 @@ import { salesActivityText } from '../core/market-sales-activity.mjs';
 import { opportunityTradePrices, calculateTradeScenario } from '../core/market-trade-scenario.mjs';
 import { SPREAD_CLASSES, SPREAD_REVIEW_CLASSES, opportunityEvidenceClass } from '../core/market-spread-realism.mjs';
 import { filterChoiceFieldHtml, fieldHeadingHtml } from '../components/form-field.js';
-import { toggleAllFilter } from '../components/filter-selection.js';
+import { chooseFilter, updateChoiceButtons, choiceMatches, validChoiceSelection, changeChoiceSelection, readChoiceSelection } from '../components/filter-selection.js';
 import { itemNameHtml } from '../components/item-name.js';
 import { toolPageHtml } from '../core/app-runtime.js';
 import { itemIconHtml, itemLabel } from '../components/item-icon.js';
 import { initFloatingLabels } from '../components/forms.js';
-import { cityFieldHtml, bindCityField } from '../components/city-picker.js';
+import { cityFieldHtml, bindCityFilter } from '../components/city-picker.js';
 import { loadActiveCities } from '../core/cities.js';
 import { showPageLoader, hidePageLoader } from '../components/loader.js';
 import { getServer, getSettings, localPriceHost } from '../core/settings.js';
@@ -92,9 +92,9 @@ function readFilters() {
     const strategyIds = filters.viewMode === 'spreads' ? spreadViewIds : LIST_MODES[filters.viewMode].strategyIds;
     filters.views = filters.views.filter(id => strategyIds.includes(id));
     filters.excludedViews = filters.excludedViews.filter(id => strategyIds.includes(id));
-    if (!['', '1', '2', '3', '4', '5', '6', '7', '8'].includes(filters.tier)) filters.tier = '';
-    if (!['', '0', '1', '2', '3', '4'].includes(filters.enchant)) filters.enchant = '';
-    if (!['', '0.35', '0.7'].includes(filters.confidence)) filters.confidence = '';
+    filters.tier = validChoiceSelection(filters.tier, ['1','2','3','4','5','6','7','8'], '');
+    filters.enchant = validChoiceSelection(filters.enchant, ['0','1','2','3','4'], '');
+    filters.confidence = validChoiceSelection(filters.confidence, ['0.35','0.7'], '');
     const deviation = Number(filters.minDeviation);
     filters.minDeviation = Number.isFinite(deviation) ? String(Math.round(Math.min(500, Math.max(12, deviation)))) : '12';
     if (!Number.isFinite(Number(filters.minNet)) || Number(filters.minNet) < 0) filters.minNet = '';
@@ -254,16 +254,16 @@ function rankedVisibleRows({ ignoreTypes = false } = {}) {
         }
         if (spec.group === 'historical' && minDeviation > 0 && !spec.inputs.every(key => Math.abs(row[key]?.deviation || 0) >= minDeviation)) return false;
         if (spec.group === 'valuation' && minDeviation > 0 && !(-strategy.deviation >= minDeviation)) return false;
-        if (Number(filters.confidence) > 0 && !(strategy.reliability >= Number(filters.confidence))) return false;
+        if (!choiceMatches(filters.confidence, strategy.reliability, '', (option, value) => value >= Number(option))) return false;
         return !filters.evidence || (filters.viewMode === 'spreads'
             ? spreadReviewKey(row) === filters.evidence
             : opportunityEvidenceClass({ ...row, primary: strategy }) === filters.evidence);
     };
     const selected = eligibleListRows().filter((row) => {
         if (filters.watched && !(row.strategies || [row.primary]).some(primary => isWatched({ ...row, primary }))) return false;
-        if (filters.city && row.city !== filters.city) return false;
-        if (filters.tier && String(itemTier(row.itemId) ?? '') !== filters.tier) return false;
-        if (filters.enchant !== '' && String(itemEnchant(row.itemId)) !== filters.enchant) return false;
+        if (!choiceMatches(filters.city, row.city, '')) return false;
+        if (!choiceMatches(filters.tier, itemTier(row.itemId) ?? '', '')) return false;
+        if (!choiceMatches(filters.enchant, itemEnchant(row.itemId), '')) return false;
         if (query && !`${row.itemId} ${itemLabel(row.itemId)}`.toLocaleLowerCase('tr').includes(query)) return false;
         return true;
     }).map(row => {
@@ -434,6 +434,10 @@ let diagnosticsPendingBody = '';
 let diagnosticsPostPromise = Promise.resolve();
 const FILTER_LABELS = { city: 'Şehir', tier: 'Tier', enchant: 'Enchant', query: 'Ürün', minDeviation: 'Sapma', minNet: 'Birim fark', minReturn: 'Getiri', execution: 'İşlem türü', confidence: 'Güven', evidence: 'Kanıt', watched: 'İzleme', action: 'Karar' };
 function filterCaption(key, value) {
+    if (typeof value === 'string' && value.startsWith('{')) {
+        const { included, excluded } = readChoiceSelection(value, '');
+        return [included.map(item => filterCaption(key, item)).join(', '), excluded.length ? `Hariç: ${excluded.map(item => filterCaption(key, item)).join(', ')}` : ''].filter(Boolean).join(' · ');
+    }
     if (key === 'tier') return 'T'+value;
     if (key === 'enchant') return '.'+value;
     if (key === 'execution') return EXECUTION_MODELS[value]?.label || value;
@@ -1046,30 +1050,22 @@ function renderFilters() {
         </div>
     </div>`;
     initFloatingLabels(root.querySelector('[data-opportunities-filters]'));
-    root.querySelectorAll('[data-filter-choice]').forEach((button) => button.addEventListener('click', () => {
+    root.querySelectorAll('[data-filter-choice]').forEach((button) => button.addEventListener('click', (event) => {
         const name = button.dataset.filterChoice;
-        state.filters[name] = toggleAllFilter(state.filters[name], button.dataset.value, '');
+        state.filters[name] = chooseFilter(state.filters[name], button.dataset.value, event, '');
         saveFilters();
-        root.querySelectorAll(`[data-filter-choice="${name}"]`).forEach((option) => {
-            const active = option.dataset.value === state.filters[name];
-            option.classList.toggle('is-active', active);
-            option.setAttribute('aria-pressed', String(active));
-        });
+        updateChoiceButtons(root.querySelectorAll(`[data-filter-choice="${name}"]`), state.filters[name], option => option.dataset.value, '');
         renderTable();
     }));
-    bindCityField(root, 'opp-city', (value) => {
+    bindCityFilter(root, 'opp-city', state.filters.city, (value) => {
         state.filters.city = value;
         saveFilters();
         renderTable();
     });
-    root.querySelectorAll('[data-confidence]').forEach((button) => button.addEventListener('click', () => {
-        state.filters.confidence = toggleAllFilter(state.filters.confidence, button.dataset.confidence, '');
+    root.querySelectorAll('[data-confidence]').forEach((button) => button.addEventListener('click', (event) => {
+        state.filters.confidence = chooseFilter(state.filters.confidence, button.dataset.confidence, event, '');
         saveFilters();
-        root.querySelectorAll('[data-confidence]').forEach((option) => {
-            const active = option.dataset.confidence === state.filters.confidence;
-            option.classList.toggle('is-active', active);
-            option.setAttribute('aria-pressed', String(active));
-        });
+        updateChoiceButtons(root.querySelectorAll('[data-confidence]'), state.filters.confidence, option => option.dataset.confidence, '');
         renderTable();
     }));
     root.querySelectorAll('[data-filter]').forEach((input) => {
@@ -1123,23 +1119,9 @@ function viewChips() {
 function bindViewFilters() {
     root.querySelectorAll('.opp-types [data-view]').forEach((button) => button.addEventListener('click', (event) => {
         const id = button.dataset.view;
-        if (id === 'all') {
-            state.filters.views = [];
-            state.filters.excludedViews = [];
-        } else if (event.shiftKey) {
-            state.filters.views = state.filters.views.filter(selected => selected !== id);
-            state.filters.excludedViews = state.filters.excludedViews.includes(id)
-                ? state.filters.excludedViews.filter(selected => selected !== id)
-                : [...state.filters.excludedViews, id];
-        } else if (event.ctrlKey || event.metaKey) {
-            state.filters.excludedViews = state.filters.excludedViews.filter(selected => selected !== id);
-            state.filters.views = state.filters.views.includes(id)
-                ? state.filters.views.filter(selected => selected !== id)
-                : [...state.filters.views, id];
-        } else {
-            state.filters.excludedViews = state.filters.excludedViews.filter(selected => selected !== id);
-            state.filters.views = state.filters.views.includes(id) ? [] : [id];
-        }
+        const selection = changeChoiceSelection({ included: state.filters.views, excluded: state.filters.excludedViews }, id, event);
+        state.filters.views = selection.included;
+        state.filters.excludedViews = selection.excluded;
         saveFilters();
         renderChips(rankedVisibleRows());
         renderTable();

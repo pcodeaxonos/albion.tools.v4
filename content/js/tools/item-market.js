@@ -1,3 +1,4 @@
+import { chooseFilter, updateChoiceButtons, choiceMatches } from '../components/filter-selection.js';
 import { paginationHtml } from '../components/pagination.js';
 import { cityNameHtml } from '../components/city-name.js';
 import { toolPageHtml } from '../core/app-runtime.js';
@@ -68,7 +69,7 @@ function shell() {
     renderTree(); search(); render();
 }
 function renderTree() {
-    root.querySelector('[data-tree]').innerHTML=`<button class="market-tree-all" type="button" data-group="all">${icon('category-tree')}Tümü</button>`+groups.filter(g=>g.categories&&(state.group==='all'||state.group===g.key)).map(group=>{
+    root.querySelector('[data-tree]').innerHTML=`<button class="market-tree-all" type="button" data-group="all">${icon('category-tree')}Tümü</button>`+groups.filter(g=>g.categories&&choiceMatches(state.group,g.key)).map(group=>{
         const branches=group.categories.map(category=>{
             const subs=[...new Set(families.filter(f=>f.item.shopCategory===category).map(f=>f.item.shopSubCategory).filter(Boolean))];
             return `<details${state.category===category?' open':''}><summary>${esc(categoryNames[category])}</summary><div class="market-tree-branches"><button type="button" data-category="${category}" class="${state.category===category&&!state.subcategory?'is-active':''}">Tümü</button>${subs.map(sub=>`<button type="button" data-category="${category}" data-subcategory="${esc(sub)}" class="${state.category===category&&state.subcategory===sub?'is-active':''}">${icon('chevron-right')}${esc(sub.replace(/_/g,' '))}</button>`).join('')}</div></details>`;
@@ -81,8 +82,8 @@ function search() {
     if (state.view==='watch') renderWatch();
 }
 function renderSearch() {
-    const group = groups.find(g=>g.key===state.group);
-    const list = families.filter(f=>(!group.categories||group.categories.includes(f.item.shopCategory))&&(!state.category||f.item.shopCategory===state.category)&&(!state.subcategory||f.item.shopSubCategory===state.subcategory)&&(!state.query||f.variants.some(i=>normalizeMarketSearch(`${itemLabel(i.uniqueName)} ${i.localizedName} ${i.uniqueName}`).includes(state.query))));
+    const categoryMatches = category => choiceMatches(state.group, category, 'all', (key, value) => groups.find(group => group.key === key)?.categories?.includes(value));
+    const list = families.filter(f=>categoryMatches(f.item.shopCategory)&&(!state.category||f.item.shopCategory===state.category)&&(!state.subcategory||f.item.shopSubCategory===state.subcategory)&&(!state.query||f.variants.some(i=>normalizeMarketSearch(`${itemLabel(i.uniqueName)} ${i.localizedName} ${i.uniqueName}`).includes(state.query))));
     const size=24, page=list.slice(state.page*size,(state.page+1)*size);
     root.querySelector('[data-search-results]').innerHTML = `<small>${list.length} eşya ailesi</small>${list.length>size?paginationHtml(state.page+1,Math.ceil(list.length/size)):''}${page.map(f=>{const item=searchedFamilyItem(f,state.query);return `<div class="market-search-item${state.item&&familyKey(state.item)===f.key?' is-active':''}">${itemIconHtml(item.uniqueName,{size:28})}<div>${itemNameHtml(itemLabel(item.uniqueName))}<button class="btn btn-sm btn-outline-secondary" type="button" data-select-item="${esc(item.uniqueName)}">Detay</button></div></div>`;}).join('')||'<p>Eşya bulunamadı.</p>'}`;
 }
@@ -193,7 +194,7 @@ function renderCharts() {
 }
 function renderWatch() {
     const host=root.querySelector('[data-watch-view]');if(!host)return;
-    const rows=state.watches.filter(w=>w.server===getServer().id&&(!state.query||normalizeMarketSearch(`${itemLabel(w.itemId)} ${w.itemId}`).includes(state.query))&&(!state.group||state.group==='all'||groups.find(g=>g.key===state.group).categories.includes(items.get(w.itemId)?.shopCategory))&&(!state.category||items.get(w.itemId)?.shopCategory===state.category)&&(!state.subcategory||items.get(w.itemId)?.shopSubCategory===state.subcategory));
+    const rows=state.watches.filter(w=>w.server===getServer().id&&(!state.query||normalizeMarketSearch(`${itemLabel(w.itemId)} ${w.itemId}`).includes(state.query))&&choiceMatches(state.group,items.get(w.itemId)?.shopCategory,'all',(key,category)=>groups.find(g=>g.key===key)?.categories?.includes(category))&&(!state.category||items.get(w.itemId)?.shopCategory===state.category)&&(!state.subcategory||items.get(w.itemId)?.shopSubCategory===state.subcategory));
     host.innerHTML=`<div class="market-panel-heading"><h2>İzleme Listesi</h2><small>${esc(getServer().label)} · ${rows.length} varyasyon</small></div><p>Şehir, detay görünümünde seçilir. Liste fiyat taraması başlatmaz.</p><div class="calc-table-wrap table-responsive"><table class="table table-striped calc-table"><thead><tr>${head('Eşya','item','text')}${head('Tier / Enchant','tier')}${head('Kalite','quality')}${head('Eklenme','added')}<th>İşlem</th></tr></thead><tbody>${rows.map(w=>`<tr><td>${itemNameHtml(itemLabel(w.itemId))}</td><td data-sort-value="${(items.get(w.itemId)?.tier||0)*10+(items.get(w.itemId)?.enchantment||0)}">${esc(w.itemId.match(/^T\d+/)?.[0]||'—')}.${items.get(w.itemId)?.enchantment||0}</td><td data-sort-value="${w.quality}">${MARKET_QUALITIES[w.quality-1]}</td><td data-sort-value="${w.addedAt??''}">${date(w.addedAt)}</td><td><a class="btn btn-sm btn-outline-primary" href="${routeHref('item-market')}?item=${encodeURIComponent(w.itemId)}&quality=${w.quality}">Detay</a><button class="btn btn-sm btn-outline-secondary" data-unwatch="${esc(variationKey(w))}">Çıkar</button></td></tr>`).join('')||'<tr><td colspan="5">İzleme kaydı yok.</td></tr>'}</tbody></table></div>`;
     tableBind(host,'watch');
 }
@@ -221,7 +222,7 @@ async function refresh(force=false) {
 function onClick(e) {
     const b=e.target.closest('button');if(!b)return;
     if(b.hasAttribute('data-clear')){const field=root.querySelector('[data-search]');field.value='';field.dispatchEvent(new Event('input',{bubbles:true}));}
-    if(b.dataset.group){state.group=b.dataset.group;state.category='';state.subcategory='';root.querySelectorAll('[data-group]').forEach(x=>{const active=x.dataset.group===state.group;x.classList.toggle('is-active',active);x.setAttribute('aria-pressed',String(active));});renderTree();search();}
+    if(b.dataset.group){state.group=chooseFilter(state.group,b.dataset.group,e);state.category='';state.subcategory='';updateChoiceButtons(root.querySelectorAll('[data-group]'),state.group,x=>x.dataset.group);renderTree();search();}
     if(b.dataset.category){state.category=b.dataset.category;state.subcategory=b.dataset.subcategory||'';renderTree();search();}
     if(b.dataset.selectItem){if(state.view==='watch'){location.href=routeHref('item-market')+'?item='+encodeURIComponent(b.dataset.selectItem);return;}selectItem(b.dataset.selectItem);}
     if(b.hasAttribute('data-pagination-page')&&!b.disabled){state.page=Number(b.dataset.paginationPage)-1;renderSearch();}

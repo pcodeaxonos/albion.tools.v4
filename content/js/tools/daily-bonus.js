@@ -1,3 +1,4 @@
+import { chooseFilter, choiceMatches, writeChoiceSelection } from '../components/filter-selection.js';
 import { cityNameHtml } from '../components/city-name.js';
 import { filterChoiceFieldHtml } from '../components/form-field.js';
 import { runFormSubmission } from '../components/form-submit.js';
@@ -98,8 +99,8 @@ function analysisDefaultTiers() {
 }
 
 function analysisTierFilters() {
-    if (!state.analysis.tierFilters) {
-        state.analysis.tierFilters = { showAll: false, tiers: new Set(analysisDefaultTiers()) };
+    if (state.analysis.tierFilters == null) {
+        state.analysis.tierFilters = writeChoiceSelection({ included: analysisDefaultTiers(), excluded: [] });
     }
     return state.analysis.tierFilters;
 }
@@ -241,33 +242,16 @@ function renderAnalysisDialog(dialog) {
 }
 
 function applyAnalysisTierFilters(dialog) {
-    const { showAll, tiers } = analysisTierFilters();
+    const selection = analysisTierFilters();
     dialog.querySelectorAll('[data-analysis-tier]').forEach((column) => {
-        column.hidden = !showAll && !tiers.has(Number(column.dataset.analysisTier));
+        column.hidden = !choiceMatches(selection, column.dataset.analysisTier);
     });
 }
 
-function toggleAnalysisTier(dialog, button) {
-    const filters = analysisTierFilters();
-    if (button.dataset.analysisFilter === 'all') {
-        filters.showAll = true;
-        filters.tiers.clear();
-    } else {
-        const tier = Number(button.dataset.analysisFilter);
-        if (filters.showAll) {
-            filters.showAll = false;
-            filters.tiers = new Set([tier]);
-        } else if (filters.tiers.size === 1 && filters.tiers.has(tier)) {
-            filters.showAll = true;
-            filters.tiers.clear();
-        } else {
-            filters.tiers.has(tier) ? filters.tiers.delete(tier) : filters.tiers.add(tier);
-        }
-    }
+function toggleAnalysisTier(dialog, button, event) {
+    state.analysis.tierFilters = chooseFilter(analysisTierFilters(), button.dataset.analysisFilter, event);
     renderAnalysisDialog(dialog);
 }
-
-
 
 function todayAnalysisFamilies() {
     const today = findByDate(bonusDayIso());
@@ -570,7 +554,7 @@ function renderBonusAnalysisDialog() {
     const family = getBonusFamilyByKey(state.analysis.familyKey) || families[0];
     const activeAnalysis = analysisData(family?.familyKey);
     const familyOptions = families.map((row) => `<button type="button" class="${row.familyKey === family?.familyKey ? 'is-active' : ''}" data-analysis-family="${escapeHtml(row.familyKey)}">${escapeHtml(row.label)}</button>`).join('');
-    const visibleTierCount = tierFilters.showAll ? ANALYSIS_TIERS.length : tierFilters.tiers.size;
+    const visibleTierCount = ANALYSIS_TIERS.filter(tier => choiceMatches(tierFilters, tier)).length;
     const preferredTierText = defaultTiers.map((tier) => `T${tier}`).join(' · ');
     const updatedLabel = formatTimestamp(activeAnalysis.updatedAt);
     const isLoading = activeAnalysis.loading;
@@ -601,8 +585,8 @@ function renderBonusAnalysisDialog() {
                     <section class="bonus-analysis-controls" aria-label="Analiz filtreleri">
                         <div class="bonus-analysis-select"><span>Bonus grubu</span><div class="bonus-analysis-family-tabs">${familyOptions}</div><small>${cityNameHtml(getCityApiName(family?.cityId) || 'Caerleon')}</small></div>
                         <div class="bonus-analysis-select"><span>Market</span><strong>Black Market</strong><small>En düşük satış emri −1</small></div>
-                        <span class="bonus-analysis-rr-badge" data-app-tooltip="${escapeHtml(rrTitle)}"><i aria-hidden="true">↻</i><span><b>RR %${formatAnalysisPercent(returnRate)}</b><small>Royal %${cityProductionBonus()} + yerel %${specialtyBonus} + günlük %${dailyBonus}</small></span></span>
-                        ${filterChoiceFieldHtml({ label: 'Tier', className: 'bonus-analysis-tiers', allValue: 'all', options: ANALYSIS_TIERS.map(value => ({ value, label: `T${value}` })), isActive: value => value === 'all' ? tierFilters.showAll : !tierFilters.showAll && tierFilters.tiers.has(value), attributes: value => `data-analysis-filter="${value}"` })}
+                        <span class="badge bonus-analysis-rr-badge" data-app-tooltip="${escapeHtml(rrTitle)}"><i aria-hidden="true">↻</i><span><b>RR %${formatAnalysisPercent(returnRate)}</b><small>Royal %${cityProductionBonus()} + yerel %${specialtyBonus} + günlük %${dailyBonus}</small></span></span>
+                        ${filterChoiceFieldHtml({ label: 'Tier', className: 'bonus-analysis-tiers', allValue: 'all', options: ANALYSIS_TIERS.map(value => ({ value, label: `T${value}` })), selected: tierFilters, attributes: value => `data-analysis-filter="${value}"` })}
                         <small class="bonus-analysis-tier-hint">Öncelikli tierlar: ${preferredTierText}</small>
                     </section>
                     <div class="bonus-analysis-note"><img src="content/icons/daily-bonus/ui-icons/info.svg" alt="" aria-hidden="true"><span>${analysisNote}</span></div>
@@ -661,7 +645,7 @@ async function openBonusAnalysis(container) {
                 return;
             }
             const tierButton = event.target.closest('[data-analysis-filter]');
-            if (tierButton) toggleAnalysisTier(dialog, tierButton);
+            if (tierButton) toggleAnalysisTier(dialog, tierButton, event);
         });
     }
     if (dialog.open) {

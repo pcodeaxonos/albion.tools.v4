@@ -1,0 +1,43 @@
+// Badge
+.badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    align-self: center;
+    justify-self: start;
+    flex: 0 0 auto;
+    box-sizing: border-box;
+    width: fit-content;
+    min-width: var(--badge-min-width, 0);
+    height: calc(1em * var(--badge-line-height, 1.4) + 2 * var(--badge-padding-block, .15em) + 2 * var(--badge-border-width, 0px));
+    min-height: 0;
+    padding: var(--badge-padding-block, .15em) var(--badge-padding-inline, .55em);
+    font-size: var(--badge-font-size, var(--font-size-sm));
+    font-weight: var(--badge-font-weight, var(--font-weight-semibold));
+    line-height: var(--badge-line-height, 1.4);
+    text-align: center;
+    vertical-align: middle;
+    white-space: nowrap;
+    border: var(--badge-border-width, 0px) var(--badge-border-style, solid) var(--badge-border-color, transparent);
+    border-radius: var(--badge-radius, 0);
+    color: var(--badge-color, inherit);
+    background: var(--badge-background, transparent);
+
+    &.bg-success {
+        --badge-background: color-mix(in srgb, var(--color-success) 24%, var(--color-surface));
+        --badge-color: var(--color-success);
+    }
+
+    &.bg-secondary {
+        --badge-background: color-mix(in srgb, var(--color-secondary) 20%, var(--color-surface));
+        --badge-color: var(--color-text-muted);
+    }
+
+    @each $tone in primary, info, warning {
+        &.bg-#{$tone} {
+            --badge-background: color-mix(in srgb, var(--color-#{$tone}) 20%, var(--color-surface));
+            --badge-color: var(--color-#{$tone});
+        }
+    }
+}
+

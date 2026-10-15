@@ -1,0 +1,77 @@
+{
+  "before": {
+    "total": 964,
+    "stored": 1684,
+    "legacy": 259,
+    "current": 705,
+    "usable": 473,
+    "reference": 481,
+    "noEvidence": 10,
+    "estimators": {
+      "completed-window-price-v1": 540,
+      "supported-window-price-v2.1": 705,
+      "supported-window-price-v2": 259,
+      "missing": 180
+    },
+    "reasons": {
+      "Hedef yakın dönem fiyat rejiminde yeterince tekrarlanmıyor. Yalnız tarihsel referans. Gösterge fiyat yalnız inceleme içindir; ada hesabında kullanılmaz.": 118,
+      "Hedef yakın dönem fiyat rejiminde yeterince tekrarlanmıyor. Güncel/son gözlemlerden büyük sapma teyit edilemedi. Yalnız tarihsel referans. Gösterge fiyat yalnız inceleme içindir; ada hesabında kullanılmaz.": 60,
+      "Dönem kapsaması, tekrar veya miktar desteği yetersiz. Yalnız tarihsel referans. Gösterge fiyat yalnız inceleme içindir; ada hesabında kullanılmaz.": 21,
+      "Dönem kapsaması, tekrar veya miktar desteği yetersiz. Hedef yakın dönem fiyat rejiminde yeterince tekrarlanmıyor. Yalnız tarihsel referans. Gösterge fiyat yalnız inceleme içindir; ada hesabında kullanılmaz.": 12,
+      "Dönem kapsaması, tekrar veya miktar desteği yetersiz. Hedef yakın dönem fiyat rejiminde yeterince tekrarlanmıyor. Güncel/son gözlemlerden büyük sapma teyit edilemedi. Yalnız tarihsel referans. Gösterge fiyat yalnız inceleme içindir; ada hesabında kullanılmaz.": 11,
+      "Seçili kimlik ve dönem için fiyat kanıtı yok.": 10,
+      "Eski tahmin yöntemi; yeniden güncelleyin.": 259
+    }
+  },
+  "after": {
+    "total": 964,
+    "stored": 1684,
+    "legacy": 0,
+    "current": 964,
+    "usable": 475,
+    "reference": 462,
+    "noEvidence": 27,
+    "estimators": {
+      "completed-window-price-v1": 540,
+      "supported-window-price-v2.1": 964,
+      "missing": 180
+    },
+    "reasons": {
+      "Geçmiş 7 günden eski; yalnız gösterge fiyat. Gösterge fiyat yalnız inceleme içindir; ada hesabında kullanılmaz.": 57,
+      "Dönem kapsaması, tekrar veya miktar desteği yetersiz. Hedef yakın dönem fiyat rejiminde yeterince tekrarlanmıyor. Yalnız tarihsel referans. Gösterge fiyat yalnız inceleme içindir; ada hesabında kullanılmaz.": 75,
+      "Hedef yakın dönem fiyat rejiminde yeterince tekrarlanmıyor. Yalnız tarihsel referans. Gösterge fiyat yalnız inceleme içindir; ada hesabında kullanılmaz.": 130,
+      "Dönem kapsaması, tekrar veya miktar desteği yetersiz. Yalnız tarihsel referans. Gösterge fiyat yalnız inceleme içindir; ada hesabında kullanılmaz.": 100,
+      "Dönem kapsaması, tekrar veya miktar desteği yetersiz. Hedef yakın dönem fiyat rejiminde yeterince tekrarlanmıyor. Güncel/son gözlemlerden büyük sapma teyit edilemedi. Yalnız tarihsel referans. Gösterge fiyat yalnız inceleme içindir; ada hesabında kullanılmaz.": 35,
+      "Hedef yakın dönem fiyat rejiminde yeterince tekrarlanmıyor. Güncel/son gözlemlerden büyük sapma teyit edilemedi. Yalnız tarihsel referans. Gösterge fiyat yalnız inceleme içindir; ada hesabında kullanılmaz.": 65,
+      "Seçili kimlik ve dönem için fiyat kanıtı yok.": 27
+    }
+  },
+  "reopened": {
+    "total": 964,
+    "stored": 1684,
+    "legacy": 0,
+    "current": 964,
+    "usable": 475,
+    "reference": 462,
+    "noEvidence": 27,
+    "estimators": {
+      "completed-window-price-v1": 540,
+      "supported-window-price-v2.1": 964,
+      "missing": 180
+    },
+    "reasons": {
+      "Geçmiş 7 günden eski; yalnız gösterge fiyat. Gösterge fiyat yalnız inceleme içindir; ada hesabında kullanılmaz.": 57,
+      "Dönem kapsaması, tekrar veya miktar desteği yetersiz. Hedef yakın dönem fiyat rejiminde yeterince tekrarlanmıyor. Yalnız tarihsel referans. Gösterge fiyat yalnız inceleme içindir; ada hesabında kullanılmaz.": 75,
+      "Hedef yakın dönem fiyat rejiminde yeterince tekrarlanmıyor. Yalnız tarihsel referans. Gösterge fiyat yalnız inceleme içindir; ada hesabında kullanılmaz.": 130,
+      "Dönem kapsaması, tekrar veya miktar desteği yetersiz. Yalnız tarihsel referans. Gösterge fiyat yalnız inceleme içindir; ada hesabında kullanılmaz.": 100,
+      "Dönem kapsaması, tekrar veya miktar desteği yetersiz. Hedef yakın dönem fiyat rejiminde yeterince tekrarlanmıyor. Güncel/son gözlemlerden büyük sapma teyit edilemedi. Yalnız tarihsel referans. Gösterge fiyat yalnız inceleme içindir; ada hesabında kullanılmaz.": 35,
+      "Hedef yakın dönem fiyat rejiminde yeterince tekrarlanmıyor. Güncel/son gözlemlerden büyük sapma teyit edilemedi. Yalnız tarihsel referans. Gösterge fiyat yalnız inceleme içindir; ada hesabında kullanılmaz.": 65,
+      "Seçili kimlik ve dönem için fiyat kanıtı yok.": 27
+    }
+  },
+  "migrated": 259,
+  "progress": "İşlenen 259 / 259 · Başarılı 259 · Hata 0 · Kalan 0 · Tekrar denenecek 0",
+  "alert": [],
+  "errors": [],
+  "externalRequests": 0
+}

@@ -8,7 +8,7 @@ import { fetchHistoryIndex, historyAt } from './market-history.js';
 import { cityRow, fetchGamePrices, indexPrices } from './market.js';
 import { DAY_MS } from './market-history-config.mjs';
 
-export async function refreshPotentialPrices(requests, { storage, days = SALE_HORIZONS[0].days, refresh = true, now = Date.now() } = {}) {
+export async function refreshPotentialPrices(requests, { storage, days = SALE_HORIZONS[0].days, refresh = true, archiveOnly = false, now = Date.now() } = {}) {
     if (requests.some(request => request.server !== getServer().id)) throw new Error('Tahminleri yenilemek için kayıtların sunucusunu seçin.');
     requests = [...new Map(requests.map(request => [tradeEvidenceKey(request), request])).values()];
     const saved = readPotentialSnapshots(storage, requests, days, now);
@@ -31,7 +31,7 @@ export async function refreshPotentialPrices(requests, { storage, days = SALE_HO
             { source: 'Yerel AODP', points: local.get(id)?.points ?? [] }];
         // Local sources are always inspected together. A single daily API batch
         // fills gaps; do not repeat hourly and external requests for each horizon.
-        const apiIds = ids.filter(id => {
+        const apiIds = archiveOnly ? [] : ids.filter(id => {
             const merged = mergePotentialHistory(sources(id));
             const end = Math.floor(now / DAY_MS) * DAY_MS, coverage = new Map();
             for (const point of merged) if (Date.parse(point.timestamp) >= end - SALE_HISTORY_DAYS * DAY_MS
@@ -47,18 +47,23 @@ export async function refreshPotentialPrices(requests, { storage, days = SALE_HO
             forecastPoints: mergePotentialHistory([...sources(entry.itemId), { source: 'AODP',
                 points: historyAt(api, entry.itemId, entry.city, entry.quality)?.points ?? [] }]),
             personalForecastPoints: (personal.get(tradeEvidenceKey({ ...entry, city: tradeCityKey(entry.city) })) ?? [])
-                .map(trade => ({ sourceId: trade.sourceId, timestamp: trade.occurredAt, price: Number(trade.unitPriceSilver),
+                .map(trade => ({ sourceId: trade.sourceId, orderId: trade.orderId, kind: trade.kind, characterGuid: trade.characterGuid,
+                    orderCreatedAt: trade.orderCreatedAt, orderCompletedAt: trade.orderCompletedAt,
+                    timestamp: trade.occurredAt, price: Number(trade.unitPriceSilver),
                     quantity: Number(trade.quantity), source: 'Kişisel' })) });
     }
     let orders = new Map();
-    try { orders = indexPrices(await fetchGamePrices([...new Set(needed.map(request => request.itemId))],
+    try { if (!archiveOnly) orders = indexPrices(await fetchGamePrices([...new Set(needed.map(request => request.itemId))],
         [...new Set(needed.map(request => request.city))], { qualities: [...new Set(needed.map(request => request.quality))].join(',') })); }
     catch (error) { console.warn('[Potansiyel fiyat] Güncel emirler alınamadı:', error.message); }
+    const purchases = new Map();
     for (const period of SALE_HORIZONS) {
         const targets = new Map(needed.map(request => {
             const key = tradeEvidenceKey(request), proof = evidence.get(key);
-            return [key, saleHorizonTarget(proof, request, cityRow(orders, request.itemId, request.city, request.quality),
-                request.side === 'buy' ? SALE_HORIZONS.at(-1).days : period.days, now)];
+            const target = purchases.get(key) ?? saleHorizonTarget(proof, request, cityRow(orders, request.itemId, request.city, request.quality),
+                request.side === 'buy' ? SALE_HORIZONS.at(-1).days : period.days, now);
+            if (request.side === 'buy') purchases.set(key, target);
+            return [key, { ...target }];
         }));
         // Purchase evidence stays independent of the selected harvest horizon.
         for (const request of needed) if (request.side === 'buy') targets.get(tradeEvidenceKey(request)).days = period.days;
@@ -66,4 +71,32 @@ export async function refreshPotentialPrices(requests, { storage, days = SALE_HO
         if (period.days === days) for (const [key, value] of targets) saved.set(key, value);
     }
     return saved;
+}
+
+// Freeze the complete filtered selection before statuses change. Checkpoint each
+// market independently, so a failed transport/write leaves that market intact.
+export async function refreshPotentialPriceBatch(rows, { storage, commit, onProgress = () => {}, ...options } = {}) {
+    const groups = new Map();
+    for (const row of rows) {
+        const key = JSON.stringify([row.server, row.city, row.quality]);
+        const group = groups.get(key) ?? []; group.push(row); groups.set(key, group);
+    }
+    const progress = { total: rows.length, completed: 0, success: 0, errors: 0, remaining: rows.length, failures: [] };
+    onProgress({ ...progress });
+    for (const group of groups.values()) {
+        const changes = new Map();
+        const staged = { getItem: key => changes.get(key) ?? storage.getItem(key), setItem: (key, value) => changes.set(key, value) };
+        try {
+            await refreshPotentialPrices(group.map(row => ({ ...row, side: row.side.toLowerCase() })), { ...options, storage: staged });
+            await commit(changes);
+            progress.success += group.length;
+        } catch (error) {
+            progress.errors += group.length;
+            progress.failures.push({ server: group[0].server, city: group[0].city, count: group.length, reason: error.message });
+        }
+        progress.completed += group.length;
+        progress.remaining = progress.total - progress.completed;
+        onProgress({ ...progress, failures: [...progress.failures] });
+    }
+    return progress;
 }

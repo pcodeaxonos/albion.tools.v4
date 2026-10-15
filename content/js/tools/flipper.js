@@ -1,3 +1,5 @@
+import { chooseFilter, updateChoiceButtons, choiceMatches, validChoiceSelection, readChoiceSelection } from '../components/filter-selection.js';
+import { processSummaryHtml } from '../components/process-summary.js';
 import { sortChoicesHtml } from '../components/view-switch.js';
 import { durableStorage as localStorage } from '../core/durable-storage.mjs';
 import { fieldLabel, fieldHeadingHtml, filterChoiceFieldHtml } from '../components/form-field.js';
@@ -29,7 +31,7 @@ const roiBadgeHtml = row => {
     return `<span class="badge flipper-roi-badge is-${level}${row.safe ? '' : ' is-uncertain'}" data-app-tooltip="${esc(`Net kâr / toplam alış maliyeti. ${row.safe ? 'Görünen fiyatlara göre hesaplanır; gerçekleşen kazanç değildir.' : 'Riskli fiyat: bu oran doğrulanmış kazanç değildir.'}`)}">%${Math.round(row.roi * 100).toLocaleString('tr-TR')}</span>`;
 };
 const opportunityPricesHtml = row => {
-    const ageLimit = num('age') ? num('age') * 60000 : PRICE_STALE_MS;
+    const ageLimit = selectedAgeLimit() || PRICE_STALE_MS;
     const currentAge = age => Number.isFinite(age) && age >= 0 && age <= ageLimit;
     const volumeHtml = kind => {
         const volume = kind === 'buy' ? row.buyVolume : row.sellVolume;
@@ -58,9 +60,15 @@ const choiceFieldHtml = (key, label, options) => {
 const CITY_FIELDS = { source: 'flipper-source', target: 'flipper-target' };
 const field = key => root.querySelector(`[data-filter="${key}"]`);
 const num = key => numericInputValue(field(key));
+
+const selectedQualities = () => QUALITIES.filter(([value]) => value && choiceMatches(field('quality').value, value, 0)).map(([value]) => value).join(',');
+const selectedAgeLimit = () => {
+    const { included } = readChoiceSelection(field('age').value, 0);
+    return included.length ? Math.max(...included.map(Number)) * 60000 : undefined;
+};
 const PREFERENCES_KEY = 'albiontools.v4.flipper.preferences';
 function savePreferences() {
-    const filters = Object.fromEntries([...root.querySelectorAll('[data-filter]')].map(input => [input.dataset.filter, numericInputValue(input)]));
+    const filters = Object.fromEntries([...root.querySelectorAll('[data-filter]')].map(input => [input.dataset.filter, FILTER_CHOICES[input.dataset.filter]?.some(([id]) => id === 0) ? input.value : numericInputValue(input)]));
     try { localStorage.setItem(PREFERENCES_KEY, JSON.stringify({ filters, source: getCityFieldSelection(root, CITY_FIELDS.source), target: getCityFieldSelection(root, CITY_FIELDS.target), sort: state.sort })); } catch { /* Storage may be unavailable; controls remain usable. */ }
 }
 function restorePreferences() {
@@ -69,7 +77,13 @@ function restorePreferences() {
         if (!saved || typeof saved !== 'object') return;
         for (const [key, value] of Object.entries(saved.filters || {})) {
             const input = field(key);
-            if (!input || !Number.isFinite(value) || value < 0) continue;
+            if (!input) continue;
+            if (FILTER_CHOICES[key]?.some(([id]) => id === 0)) {
+                input.value = validChoiceSelection(value, FILTER_CHOICES[key].filter(([id]) => id).map(([id]) => id), 0);
+                updateChoiceButtons(root.querySelectorAll(`[data-choice-filter="${key}"]`), input.value, button => button.dataset.choiceValue, 0);
+                continue;
+            }
+            if (!Number.isFinite(value) || value < 0) continue;
             const choices = FILTER_CHOICES[key];
             if (choices && !choices.some(([id]) => id === value)) continue;
             if (key === 'budget' && !Number.isSafeInteger(value)) continue;
@@ -88,11 +102,11 @@ function restorePreferences() {
     } catch { /* Ignore damaged or inaccessible preferences. */ }
 }
 function monitorHtml() {
-    return `<section class="flipper-monitor" data-status data-monitor-phase="idle" aria-label="Tarama izleme">
-        <div class="flipper-monitor-state" tabindex="0" data-monitor-state data-app-tooltip="Güncel teklifleri almak için Tara düğmesini kullanın. Örnek ve tarihsel fiyatlar anlık teklif yerine kullanılmaz."><span class="flipper-monitor-dot" aria-hidden="true"></span><strong data-monitor-label role="status">Hazır</strong><span data-monitor-progress>—</span></div>
-        <progress data-monitor-bar max="1" value="0" aria-label="Tarama ilerlemesi"></progress>
-        <dl><div tabindex="0" data-app-tooltip="Seçilen şehirler arasında aynı eşya kimliği, enchant ve kalitede eşleşen fiyat çiftleri. Pozitif veya güvenilir fırsat sayısı değildir."><dt>Eşleşme</dt><dd data-monitor-count>—</dd></div><div tabindex="0" data-app-tooltip="Son tamamlanan taramanın zamanı. Her teklifin kendi gözlem yaşı ayrıca değerlendirilir."><dt>Son tarama</dt><dd data-monitor-time>—</dd></div><div tabindex="0" data-app-tooltip="API gerçek emir derinliğini sağlamaz. Uygulanabilir adedi oyunda doğrulayın; kesin toplam kâr hesaplanmaz."><dt>Emir adedi</dt><dd>—</dd></div></dl>
-    </section>`;
+    return processSummaryHtml({ label: 'Tarama izleme', attributes: 'data-status',
+        stateAttributes: 'tabindex="0" data-monitor-state data-app-tooltip="Tarama durumu"',
+        metrics: [{ label: 'Eşleşme', valueAttributes: 'data-monitor-count' },
+            { label: 'Son tarama', valueAttributes: 'data-monitor-time', attributes: 'tabindex="0" data-app-tooltip="Tarama zamanı"' },
+            { label: 'Emir adedi', attributes: 'tabindex="0" data-app-tooltip="Emir derinliği" aria-description="API gerçek emir derinliğini sağlamaz. Uygulanabilir adedi oyunda doğrulayın; kesin toplam kâr hesaplanmaz."' }] });
 }
 function updateMonitor(phase, { done = 0, total = 0, message = '' } = {}) {
     state.phase = phase;
@@ -101,13 +115,13 @@ function updateMonitor(phase, { done = 0, total = 0, message = '' } = {}) {
     const labels = { idle: 'Hazır', scanning: 'Taranıyor', checking: 'Kontrol ediliyor', complete: 'Tamamlandı', partial: 'Eksik tarama', changed: 'Yeniden tara', error: 'Tarama hatası' };
     const tips = { idle: 'Güncel teklifleri almak için Tara düğmesini kullanın. Örnek ve tarihsel fiyatlar anlık teklif yerine kullanılmaz.', scanning: 'Anlık alış ve satış teklifleri alınıyor.', checking: 'Fiyatlar alındı; tarihsel referans ve uç fiyat kontrolü sürüyor.', complete: 'Tarama tamamlandı. Fiyatlar emir miktarını veya satışın gerçekleşeceğini garanti etmez.', partial: 'Bazı fiyatlar veya tarihsel kontrol eksik. Liste tam piyasa kapsamı sağlamayabilir.', changed: 'Seçim veya canlı fiyat değişti. Yeniden tarayın ve emir limitlerini doğrulayın.', error: 'Fiyatlar alınamadı. Yeniden taramayı deneyin.' };
     root.querySelector('[data-monitor-label]').textContent = labels[phase];
-    root.querySelector('[data-monitor-state]').dataset.appTooltip = message || tips[phase];
+    root.querySelector('[data-monitor-state]').setAttribute('aria-description', message || tips[phase]);
     root.querySelector('[data-monitor-progress]').textContent = total ? `${done}/${total}` : ['complete','partial'].includes(phase) ? '100%' : '—';
     root.querySelector('[data-monitor-bar]').value = ['complete','partial','checking'].includes(phase) ? 1 : total ? done / total : 0;
     root.querySelector('[data-monitor-count]').textContent = state.scan ? money(state.rows.length) : '—';
     const time = root.querySelector('[data-monitor-time]');
     time.textContent = state.scan ? new Date(state.scan.fetchedAt).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' }) : '—';
-    time.parentElement.dataset.appTooltip = state.scan ? `Son tamamlanan tarama: ${new Date(state.scan.fetchedAt).toLocaleString('tr-TR')}. Tekliflerin gözlem yaşı ayrıca değerlendirilir.` : 'Henüz tamamlanan tarama yok.';
+    time.parentElement.setAttribute('aria-description', state.scan ? `Son tamamlanan tarama: ${new Date(state.scan.fetchedAt).toLocaleString('tr-TR')}. Tekliflerin gözlem yaşı ayrıca değerlendirilir.` : 'Henüz tamamlanan tarama yok.');
 }
 function layout() {
     const targets = [...cities, { name: BLACK_MARKET, displayName: BLACK_MARKET, marketApiName: BLACK_MARKET, mapPosition: { x: 46, y: 68 }, iconHtml: icons['black-market'] }];
@@ -130,7 +144,7 @@ function filtersChanged(key) {
     state.basket=null; root.querySelector('[data-basket]').textContent='Filtreler değişti; sepeti yeniden hesaplayın.'; render();
 }
 let metricFilter = 'all';
-function filteredRows() { return state.rows.filter(row => (num('risk') === 1 || row.safe) && row.net > 0 && row.roi * 100 >= num('roi') && row.cost <= num('budget') && (!row.weight || row.weight <= num('capacity'))); }
+function filteredRows() { return state.rows.filter(row => (num('risk') === 1 || row.safe) && choiceMatches(field('quality').value, row.quality, 0) && choiceMatches(field('age').value, Math.max(row.buyAgeMs ?? 0, row.sellAgeMs ?? 0), 0, (option, age) => age <= Number(option) * 60000) && row.net > 0 && row.roi * 100 >= num('roi') && row.cost <= num('budget') && (!row.weight || row.weight <= num('capacity'))); }
 function visibleRows() {
     const rows = filteredRows();
     const safe = rows.filter(row => row.safe);
@@ -239,7 +253,8 @@ async function scan() {
         const sources = resolveCityFieldSelection(root, CITY_FIELDS.source, cities.map(city => city.marketApiName)).filter(city => destinations.some(destination => destination !== city));
         if (!sources.length) throw new Error('Kaynak ve hedef farklı şehirler olmalı');
         const catalog = destinations.length === 1 && destinations[0] === BLACK_MARKET ? items.filter(item=>item.isEquipable) : items;
-        state.scan = await scanFlips({items:catalog,sources,targets:destinations,quality:num('quality') === 0 ? QUALITIES.filter(([value]) => value).map(([value]) => value).join(',') : field('quality').value,fees:decisionFees(),transport:num('transport'),maxAgeMs:num('age') === 0 ? undefined : num('age')*60000,signal:controller.signal,onProgress:(done,total)=>{ updateMonitor(done === total ? 'checking' : 'scanning', {done,total}); if (done === total) render(); }});
+        if (!selectedQualities()) { updateMonitor('complete', { done: 0, total: 0 }); return; }
+        state.scan = await scanFlips({items:catalog,sources,targets:destinations,quality:selectedQualities(),fees:decisionFees(),transport:num('transport'),maxAgeMs:selectedAgeLimit() || undefined,signal:controller.signal,onProgress:(done,total)=>{ updateMonitor(done === total ? 'checking' : 'scanning', {done,total}); if (done === total) render(); }});
         state.rows = state.scan.rows;
         updateMonitor(state.scan.failed || state.scan.historyError ? 'partial' : 'complete', { message: [state.scan.reused ? 'Son 10 dakika içinde taranan veri seti kullanıldı.' : '', state.scan.failed ? `${state.scan.failed} istek grubu başarısız; tarama eksik.` : '', state.scan.historyError].filter(Boolean).join(' ') }); render();
     } catch(error) { if (!controller.signal.aborted) updateMonitor('error', {message:error.message}); }
@@ -278,7 +293,7 @@ async function refreshLivePrices(detail) {
             const changed = new Set(liveQueue); liveQueue.clear();
             const existing = state.rows.filter(row => changed.has(row.itemId));
             if (!existing.length) continue;
-            const result = await scanFlips({ reuseRecent:false, items:items.filter(item => changed.has(item.uniqueName)), sources:[...new Set(existing.map(row => row.source))], targets:[...new Set(existing.map(row => row.target))], quality:[...new Set(existing.map(row => row.quality))].join(','), fees:decisionFees(), transport:num('transport'), maxAgeMs:num('age') ? num('age')*60000 : undefined, signal:controller.signal });
+            const result = await scanFlips({ reuseRecent:false, items:items.filter(item => changed.has(item.uniqueName)), sources:[...new Set(existing.map(row => row.source))], targets:[...new Set(existing.map(row => row.target))], quality:[...new Set(existing.map(row => row.quality))].join(','), fees:decisionFees(), transport:num('transport'), maxAgeMs:selectedAgeLimit() || undefined, signal:controller.signal });
             controller.signal.throwIfAborted();
             if (result.failed) throw new Error('Canlı fiyat güncellemesi eksik; önceki fiyatlar korundu.');
             const updates = new Map(result.rows.map(row => [row.id, row]));
@@ -327,14 +342,11 @@ async function main() {
         const sort = event.target.closest('[data-flipper-sort]');
         if (sort) { state.sort = sort.dataset.flipperSort; savePreferences(); render(); return; }
         const choice = event.target.closest('[data-choice-filter]');
-        if (choice && field(choice.dataset.choiceFilter).value !== choice.dataset.choiceValue) {
+        if (choice) {
             const key = choice.dataset.choiceFilter;
-            field(key).value = choice.dataset.choiceValue;
-            root.querySelectorAll(`[data-choice-filter="${key}"]`).forEach(button => {
-                const active = button === choice;
-                button.classList.toggle('is-active', active);
-                button.setAttribute('aria-pressed', String(active));
-            });
+            field(key).value = FILTER_CHOICES[key].some(([id]) => id === 0)
+                ? chooseFilter(field(key).value, choice.dataset.choiceValue, event, 0) : choice.dataset.choiceValue;
+            updateChoiceButtons(root.querySelectorAll(`[data-choice-filter="${key}"]`), field(key).value, button => button.dataset.choiceValue, 0);
             filtersChanged(key);
         }
         if(event.target.closest('[data-scan]')) scan();

@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { journalDay, shiftJournalDay, mergeJournalTrades, journalGroups, journalHighlights } from '../js/core/trade-journal.mjs';
+import { journalDay, shiftJournalDay, mergeJournalTrades, journalGroups, journalHighlights, JOURNAL_STORY_RULES as R, journalSummary } from '../js/core/trade-journal.mjs';
 const fill = (id, changes = {}) => ({ sourceId: String(id), characterGuid: 'character-a', itemId: 'T4_MAIN_SWORD@1', itemName: 'Sword', clusterIndex: '3005', locationName: 'Martlock', quality: 2, kind: 'instant_sell', occurredAt: '2026-10-14T22:00:00Z', quantity: 2, unitPriceSilver: 100, totalPriceSilver: 200, ...changes });
 const day = '2026-10-15';
 assert.equal(journalDay('2026-10-14T20:59:59Z'),'2026-10-14');
@@ -26,8 +26,47 @@ assert.equal(journalGroups(late,day).count,4);
 const invalid = journalGroups(mergeJournalTrades(new Map(),[fill(null,{sourceId:null}),fill(2,{quantity:null}),fill(3,{totalPriceSilver:null}),fill(4,{quality:0}),fill(5,{kind:'mail_sell_expired'}),fill(6,{occurredAt:null})],true),day);
 assert.equal(invalid.count,0); assert.equal(invalid.skipped,5); assert.equal(invalid.excluded,1);
 assert.equal(journalHighlights(journalGroups(mergeJournalTrades(new Map(),[fill(1)],true),day),()=>true).length,0);
-assert.ok(journalHighlights(model,()=>true).every(e=>!e.reason.includes('iptal')));
+assert.equal(journalHighlights(model).length,0);
 const many = journalGroups(mergeJournalTrades(new Map(),Array.from({length:100},(_,i)=>fill(i)),true),day);
 assert.equal(many.groups.length,1); assert.equal(many.groups[0].quantity,200); assert.equal(many.groups[0].average,100);
 assert.equal(journalHighlights(many,()=>true).length,1);
 console.log('PASS journal: totals, sides, variants, partial fills, deduplication, versions, late fills, Istanbul boundaries, missing data, conservative highlights');
+
+const group = (id, total, fills, side = 'sell') => ({id:id+side, itemId:id, cityId:'city', character:'a', quality:2, side, total, trades:Array(fills).fill({}), quantity:fills, last:1});
+const story = (groups, count, volume) => ({groups, count, sales:volume, buys:0});
+const category = (m,c) => journalHighlights(m).some(e=>e.category===c);
+for (const delta of [-1,0,1]) {
+    assert.equal(category(story([group('a',R.large.total+delta,1)],R.minimumDayFills,R.large.total*2),'large'),delta>=0);
+    assert.equal(category(story([group('a',R.large.absoluteTotal+delta,1)],1,R.large.absoluteTotal+delta),'large'),delta>=0);
+    assert.equal(category(story([group('a',R.large.total,1)],R.minimumDayFills+delta,R.large.total*2),'large'),delta>=0);
+    assert.equal(category(story([group('a',R.large.total,1)],R.minimumDayFills,R.large.total/R.large.share+delta),'large'),delta<=0);
+    assert.equal(category(story([group('a',100,R.repeated.fills+delta)],10,1000),'repeated'),delta>=0);
+    assert.equal(category(story([group('a',100,6)],6/R.repeated.fillShare+delta,1000),'repeated'),delta<=0);
+    assert.equal(category(story([group('a',100,6)],10,100/R.repeated.share+delta),'repeated'),delta<=0);
+    const pair = [group('a',R.paired.total/2,1,'buy'),group('a',R.paired.total/2+delta,3)];
+    assert.equal(category(story(pair,10,R.paired.total/R.paired.share),'paired'),delta>=0);
+    assert.equal(category(story([group('a',R.paired.total/2,1,'buy'),group('a',R.paired.total/2,R.paired.fills-1+delta)],10,R.paired.total/R.paired.share),'paired'),delta>=0);
+    assert.equal(category(story([group('a',R.paired.total/2,1,'buy'),group('a',R.paired.total/2,3)],10,R.paired.total/R.paired.share+delta),'paired'),delta<=0);
+    const summary = journalSummary({groups:[group('a',0,1),group('b',0,1,'buy')],count:2,sales:R.dominantShare*100+delta,buys:(1-R.dominantShare)*100-delta});
+    assert.equal(summary.startsWith('Satış ağırlıklı'),delta>=0);
+}
+assert.equal(journalHighlights(story([group('a',R.paired.total,2,'buy'),group('a',R.paired.total,2)],4,R.paired.total*2)).length,0);
+const selection = story([group('a',R.large.absoluteTotal,6),group('a',R.large.absoluteTotal,6,'buy'),group('b',R.large.absoluteTotal,6),group('c',R.large.absoluteTotal,6),group('d',100,6)],30,R.large.absoluteTotal*4+100);
+const selected = journalHighlights(selection);
+assert.ok(selected.length<=R.maxEvents);
+assert.equal(new Set(selected.map(e=>e.id)).size,selected.length);
+assert.ok(selected.filter(e=>e.category==='large').length<=R.maxPerCategory);
+assert.deepEqual(journalHighlights({...selection,groups:[...selection.groups].reverse()}).map(e=>[e.id,e.category,e.group.side]),selected.map(e=>[e.id,e.category,e.group.side]));
+assert.equal(journalSummary({count:0}), 'Bugün gerçekleşmiş alış veya satış bulunmuyor.');
+assert.ok(!journalSummary(many).includes('alış'));
+console.log('PASS story: threshold boundaries, low activity, caps, base deduplication, deterministic order, summary');
+
+const pairGroups = [group('pair',R.paired.total/2,2,'buy'),group('pair',R.paired.total/2,2)];
+assert.equal(journalHighlights(story(pairGroups,5,R.paired.total))[0].category,'paired');
+assert.equal(journalHighlights(story([pairGroups[0],{...pairGroups[1],quality:null}],5,R.paired.total)).length,0);
+assert.equal(journalHighlights(story([group('a',R.large.total,5),group('a',R.paired.total,2,'buy')],7,R.large.total+R.paired.total))[0].category,'large');
+const ordered = journalHighlights(story([group('b',R.large.absoluteTotal,5),group('a',R.large.absoluteTotal+1,5)],10,R.large.absoluteTotal*2+1));
+assert.equal(ordered[0].group.itemId,'a');
+const lateStory = journalGroups(mergeJournalTrades(new Map(),[fill(1,{totalPriceSilver:R.large.absoluteTotal})],true),day);
+assert.equal(journalHighlights(lateStory).length,1);
+assert.equal(journalHighlights(invalid).length,0);

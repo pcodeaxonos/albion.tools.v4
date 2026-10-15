@@ -17,6 +17,7 @@
     .journal-identity { display: flex; flex-direction: column; min-width: 0; overflow-wrap: anywhere; }
     .journal-amount { display: flex; flex-direction: column; text-align: right; overflow-wrap: anywhere; }
     .journal-content small, .journal-content footer { font-size: .7rem; color: var(--color-text-muted); }
+    .journal-summary { line-height: 1.25; max-height: 2.5em; overflow: auto; }
     .journal-status { color: var(--color-text-muted); }
     .journal-detail { padding: 1.25rem; max-height: 80dvh; overflow: auto; }
     .journal-detail .calc-table-wrap { overflow: auto; }

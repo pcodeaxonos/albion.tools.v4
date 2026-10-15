@@ -19,8 +19,8 @@
         height: 257px;
         padding: 17px 18px;
         color: var(--color-text);
-        background: radial-gradient(ellipse 120% 75% at -8% -14%, #65adce12, transparent 60%), linear-gradient(133deg, #1d2833, #151a20);
-        border: var(--border-width) solid #374654;
+        background: linear-gradient(133deg, color-mix(in srgb, var(--color-city) 14%, #1d2833), color-mix(in srgb, var(--color-city) 6%, #151a20));
+        border: var(--border-width) solid color-mix(in srgb, var(--color-city-accent) 45%, #374654);
         border-radius: .875rem;
         box-shadow: var(--shadow-md);
     }
@@ -32,7 +32,7 @@
     .potential-price-card p { margin: 0; color: var(--gallery-muted); font-size: 10.5px; font-weight: var(--font-weight-bold); letter-spacing: .12px; }
     .potential-price-period { grid-area: age; justify-self: end; align-self: start; padding: 5px 7px; color: var(--color-warning); border: var(--border-width) solid #75572c; border-radius: 7px; background: #332a1d77; font-size: var(--font-size-xs); font-weight: var(--font-weight-semibold); line-height: 1.25; letter-spacing: .3px; white-space: nowrap; }
     .potential-price-card-market { grid-area: market; display: flex; align-items: end; justify-content: space-between; min-width: 0; gap: var(--spacing-sm); padding-bottom: 10px; border-bottom: var(--border-width) solid var(--gallery-line); }
-    .potential-price-card-market .city-name { min-width: 0; color: var(--color-text); font-size: 25px; font-weight: 950; line-height: 1.05; letter-spacing: -1px; overflow-wrap: anywhere; }
+    .potential-price-card-market .city-name { min-width: 0; color: var(--color-city-accent); font-size: 25px; font-weight: 950; line-height: 1.05; letter-spacing: -1px; overflow-wrap: anywhere; }
     .potential-price-card-heading { display: flex; flex-wrap: wrap; justify-content: end; gap: .25rem; max-width: 5.5rem; flex-shrink: 0; margin-bottom: 3px; color: var(--gallery-muted); font-size: 9px; font-weight: 850; letter-spacing: .6px; text-transform: uppercase; }
     .potential-price-value { grid-area: stats; display: flex; flex-direction: column; justify-content: end; align-items: start; min-width: 0; color: var(--gallery-muted); font-size: 10px; font-weight: 800; letter-spacing: .35px; }
     .potential-price-value strong { max-width: 100%; margin-top: 2px; color: var(--color-text-muted); font-size: 37px; font-weight: 920; overflow-wrap: anywhere; font-variant-numeric: tabular-nums; line-height: 1.05; letter-spacing: -1.2px; }

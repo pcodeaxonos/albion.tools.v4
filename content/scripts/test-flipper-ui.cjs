@@ -24,14 +24,21 @@ const {chromium}=require('playwright');
  assert.equal(await page.locator('[data-status]').getAttribute('data-monitor-phase'),'idle');
  assert.match(await page.locator('[data-list]').innerText(),/Henüz tarama yapılmadı/);
  assert.deepEqual(await page.locator('[data-metrics] strong').allTextContents(),['—','—','—','—']);
- await page.locator('.flipper-monitor dl > div').last().focus();
+ await page.locator('.app-process-summary dl > div').last().focus();
  await page.getByRole('tooltip').waitFor({state:'visible'});
- assert.match(await page.getByRole('tooltip').innerText(),/emir derinliğini sağlamaz/);
+ assert.match(await page.getByRole('tooltip').innerText(),/Emir derinliği/);
  await page.keyboard.press('Escape');
  assert.equal(await page.locator('select[data-filter="age"]').count(),0);
- await page.locator('[data-choice-filter="age"][data-choice-value="60"]').click();assert.equal(await page.locator('[data-filter="age"]').inputValue(),'60');
+ await page.locator('[data-choice-filter="age"][data-choice-value="60"]').click();assert.equal(await page.locator('[data-filter="age"]').inputValue(),'0');
  await page.locator('[data-choice-filter="age"][data-choice-value="360"]').press('Enter');assert.equal(await page.locator('[data-filter="age"]').inputValue(),'360');
  assert.deepEqual(await page.locator('.segmented-choice [data-choice-filter="age"]').allTextContents(),['1S','6S','12S','1G']);
+ await page.locator('[data-choice-filter="quality"][data-choice-value="2"]').click({modifiers:['Control']});
+ assert.equal(await page.locator('[data-choice-filter="quality"].is-active').count(),2);
+ await page.locator('[data-choice-filter="quality"][data-choice-value="1"]').click({modifiers:['Shift']});
+ assert.match(await page.locator('[data-choice-filter="quality"][data-choice-value="1"]').getAttribute('class'),/is-excluded/);
+ await page.locator('[data-choice-filter="quality"][data-choice-value="0"]').click();
+ await page.locator('[data-choice-filter="quality"][data-choice-value="1"]').click();
+
  for(const value of [720,1440,60]) {await page.locator(`[data-choice-filter="age"][data-choice-value="${value}"]`).click();assert.equal(await page.locator('[data-filter="age"]').inputValue(),String(value));}
  assert.equal(await page.locator('[data-choice-filter="age"][aria-pressed="true"]').count(),1);
  assert.deepEqual(await page.locator('[data-choice-filter="risk"]').allTextContents(),['Göster','Gösterme']);

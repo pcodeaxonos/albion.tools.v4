@@ -8,7 +8,7 @@ Mevcut `trade-live.js` üzerinden SAT Trade Hub REST snapshot, status ve SSE kul
 
 Gün sınırı açıkça Europe/Istanbul'dur; mevcut ayarlarda kullanıcı saat dilimi alanı yoktur. Gruplar gün, karakter, item kimliği (tier/enchant dahil), kaynak konumu, kalite ve yön ile ayrılır. Eksik kalite ayrı ve bilinmeyen olarak gösterilir. Kimliksiz veya geçersiz gerçekleşmeler atlanır, arşiv geneli teşhisi gösterilir. Tekilleştirme karakter ve SAT sourceId ile yapılır; benzer fiyat/saat üzerinden birleştirme yapılmaz.
 
-Özetler vergi öncesi gerçekleşmiş tutarlar ve toplam/adet ağırlıklı ortalamadır; kâr değildir. Öne çıkanlar aynı ürün/şehir/kalite/karakterde iki yön, en az 5 fill veya en az 5 fill içeren günde cironun en az %25'ini oluşturan gruptur. Açıklama ayrıntıda görünür. Bu eşikler sayfaya ait deterministik önem kurallarıdır; piyasa avantajı iddiası taşımaz. İlk 3 olay ve yön başına ilk 5 grup açılır. Grafik veya envanter eşleştirmesi yoktur.
+Özetler vergi öncesi gerçekleşmiş tutarlar ve toplam/adet ağırlıklı ortalamadır; kâr değildir. Günün Hikâyesi eşikleri ve sınırları `JOURNAL_STORY_RULES` içinde tutulur. Büyük hacim, çift yön ve yoğun tekrar sırasıyla değerlendirilir; hacim payı, tutar, fill sayısı, son zaman ve kimlik sıralamayı kararlı tutar. En fazla üç olay, kategori başına iki olay ve temel grup başına tek olay seçilir. 1–4 fill günlerinde yalnız mutlak büyük hacim eşiği geçerlidir. Özet olaylardan bağımsızdır. Çift yön kartı iki kaynak grubunun detayını açar ve mevcut okunma durumlarını kullanır. Geç gelen fill günün hikâyesini yeniden hesaplatır. Grafik veya envanter eşleştirmesi yoktur.
 
 ## Okunma durumu
 

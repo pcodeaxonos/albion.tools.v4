@@ -1,5 +1,20 @@
 import assert from 'node:assert/strict';
-import { potentialDefaults, potentialPreferences, filterPotentialRows, potentialFilterValue } from '../js/core/potential-price-view.mjs';
+import { POTENTIAL_PRICE_STATES, potentialPriceState, potentialDefaults, potentialPreferences, filterPotentialRows, potentialFilterValue } from '../js/core/potential-price-view.mjs';
+const decisions = [
+    { id: 'usable', plannerUsable: true, decision: 'Kullanılabilir', indicativePrice: 100 },
+    { id: 'warning', plannerUsable: true, decision: 'Uyarıyla kullanılabilir', freshness: 'delayed' },
+    { id: 'reference', plannerUsable: false, decision: 'İnceleme gerekli', indicativePrice: 100, confidence: 'low', reviewRequired: true },
+    { id: 'no-evidence', plannerUsable: false, decision: 'Kullanılmaz', indicativePrice: null, status: 'Süresi doldu' }
+];
+const original = structuredClone(decisions);
+for (const [priceState] of POTENTIAL_PRICE_STATES) {
+    assert.deepEqual(filterPotentialRows(decisions, { ...potentialDefaults(), priceState }).map(row => row.id), [priceState]);
+}
+assert.deepEqual(decisions.map(potentialPriceState), POTENTIAL_PRICE_STATES.map(([value]) => value));
+assert.deepEqual(decisions, original, 'classification leaves decision details unchanged');
+assert.equal(potentialPreferences({ priceState: 'reference' }).priceState, 'reference');
+assert.equal(potentialPreferences({ priceState: 'invalid' }).priceState, '');
+assert.deepEqual(potentialPreferences({ decision: 'Kullanılmaz', status: 'Düşük güven' }), potentialDefaults(), 'retired overlapping preferences cannot invisibly filter records');
 const rows = [{ id: '1', itemName: 'Carrots', itemId: 'T4_CARROT', city: 'Brecilien', price: 100 },
     { id: '2', itemName: 'Turnips', itemId: 'T4_TURNIP', city: 'Martlock', price: null },
     { id: '3', itemName: 'Carrots', itemId: 'T4_CARROT', city: 'Martlock', price: 50 }];

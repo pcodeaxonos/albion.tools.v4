@@ -10,7 +10,7 @@ export function potentialTradeSnapshot(snapshot, { server, items, locations, qua
         return ['mail_buy', 'instant_buy', 'mail_sell', 'instant_sell'].includes(trade.kind)
             && trade.quality != null && qualitySet.has(Number(trade.quality)) && ids.has(trade.itemId)
             && cities.has(tradeCityKey(trade.locationName)) && at >= start && at <= end;
-    }).map(({ sourceId, kind, itemId, quality, locationName, occurredAt, quantity, unitPriceSilver }) =>
-        ({ sourceId, kind, itemId, quality, locationName, occurredAt, quantity, unitPriceSilver })) : [];
+    }).map(({ sourceId, kind, itemId, quality, locationName, occurredAt, quantity, unitPriceSilver, orderId, characterGuid, orderCreatedAt, orderCompletedAt }) =>
+        ({ sourceId, kind, itemId, quality, locationName, occurredAt, quantity, unitPriceSilver, orderId, characterGuid, orderCreatedAt, orderCompletedAt })) : [];
     return { server: snapshot.server, scope: snapshot.scope, filtered: true, at: snapshot.at, count: selected.length, trades: selected };
 }

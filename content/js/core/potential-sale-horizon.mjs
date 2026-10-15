@@ -1,9 +1,10 @@
 import { DAY_MS, PRICE_STALE_MS } from './market-history-config.mjs';
+import { personalExecutionSummary, PERSONAL_EXECUTION_POLICY } from './personal-price-evidence.mjs';
 import { normalizePriceDate, median, roundHistoricalPrice, weightedPriceQuantile, BOOK_PRICE_FIELDS, quotedBookPrice } from './market-primitives.mjs';
 
 export const SALE_HORIZONS = Object.freeze([2, 7, 28].map(days => Object.freeze({ days, label: `${days} gün` })));
 export const SALE_HISTORY_DAYS = 90;
-export const SALE_ESTIMATOR = 'supported-window-price-v2.1';
+export const SALE_ESTIMATOR = 'supported-window-price-v2.1-personal';
 export const SALE_ESTIMATE_POLICY = Object.freeze({ minWindows: 3, minDays: 5, minSupportDays: 2,
     freshDays: 2, maxAgeDays: 7, recentDays: 7, maxPriceRatio: 2, maxDispersion: .35, minExecutions: 10,
     minWindowCoverage: .5, minSupportShare: .25, supportBand: .05, minSupportQuantityShare: .1,
@@ -51,16 +52,17 @@ export function saleHorizonTarget(evidence, request, row, horizonDays, now = Dat
     const completedPoints = (evidence?.forecastPoints ?? []).filter(point => {
         const at = Date.parse(normalizePriceDate(point.timestamp));
         const interval = executions ? 0 : Number(point.intervalHours ?? 24) * 3600000;
-        return at >= (end - SALE_HISTORY_DAYS) * DAY_MS && at < end * DAY_MS && at + interval <= end * DAY_MS;
+        return at >= (end - SALE_HISTORY_DAYS) * DAY_MS && (executions ? at <= now : at < end * DAY_MS && at + interval <= end * DAY_MS);
     });
     const points = executions ? [...new Map(completedPoints
         .filter(point => point.sourceId != null && String(point.sourceId) !== '' && point.price > 0 && Number.isFinite(point.price)
+            && !(typeof point.sourceId === 'number' && !Number.isSafeInteger(point.sourceId))
             && Number.isSafeInteger(point.quantity) && point.quantity > 0 && Number.isFinite(Date.parse(normalizePriceDate(point.timestamp))))
         .map(point => [String(point.sourceId), point])).values()]
         : mergePotentialHistory([{ source: evidence?.source ?? 'Piyasa geçmişi', points: completedPoints }]);
     for (const point of points) {
         const day = Math.floor(Date.parse(normalizePriceDate(point.timestamp)) / DAY_MS);
-        if (day < end - SALE_HISTORY_DAYS || day >= end) continue;
+        if (day < end - SALE_HISTORY_DAYS || (executions ? day > end : day >= end)) continue;
         const list = grouped.get(day) ?? []; list.push(point); grouped.set(day, list);
     }
     const daily = [...grouped].map(([day, rows]) => ({ day,
@@ -108,9 +110,9 @@ export function saleHorizonTarget(evidence, request, row, horizonDays, now = Dat
     const windows = windowEvidence.filter(window => window.eligible).map(window => window.price);
     const periodPrice = median(windows), historicalPrice = roundHistoricalPrice(median(accepted.map(point => point.price)), request.side);
     const dispersion = center > 0 ? median(accepted.map(point => Math.abs(point.price - center))) / center : null;
-    const executionCount = accepted.reduce((sum, point) => sum + grouped.get(point.day).length, 0);
-    const baseQuality = accepted.length >= policy.minDays && windows.length >= policy.minWindows && dispersion <= policy.maxDispersion
-        && (!executions || executionCount >= policy.minExecutions);
+    const personalSummary = executions ? personalExecutionSummary(points, request.side, now, policy, horizonDays) : null;
+    const baseQuality = executions ? personalSummary.repeated && dispersion <= policy.maxDispersion
+        : accepted.length >= policy.minDays && windows.length >= policy.minWindows && dispersion <= policy.maxDispersion;
     const calculable = supported && historicalPrice > 0;
     const order = (side, intent) => {
         const field = BOOK_PRICE_FIELDS[side];
@@ -118,7 +120,7 @@ export function saleHorizonTarget(evidence, request, row, horizonDays, now = Dat
         return row?.item_id === request.itemId && row?.city === request.city && Number(row?.quality) === request.quality
             && row[field] > 0 && at <= now && now - at <= PRICE_STALE_MS ? quotedBookPrice(row[field], side, intent) : null;
     };
-    const candidatePrice = roundHistoricalPrice(periodPrice, request.side);
+    const candidatePrice = roundHistoricalPrice(executions ? personalSummary.candidate : periodPrice, request.side);
     const currentOrder = order(request.side, request.side);
     const anchors = { recent: recentPrice, latest: daily.at(-1)?.price, currentOrder };
     const assessRegime = price => {
@@ -133,22 +135,25 @@ export function saleHorizonTarget(evidence, request, row, horizonDays, now = Dat
         return { regimeSupport, deviations, reviewRequired, recentConfirmed };
     };
     const { regimeSupport, deviations, reviewRequired, recentConfirmed } = assessRegime(candidatePrice);
-    const quality = baseQuality && recentConfirmed;
+    const personalRegimeConfirmed = executions && (!reviewRequired || personalSummary.recentDays >= policy.reviewMinDays
+        && ageDays <= policy.freshDays && Object.values(deviations).every(deviation => deviation <= policy.maxPriceRatio - 1));
+    const quality = baseQuality && (executions ? personalRegimeConfirmed : recentConfirmed);
     const target = calculable && quality ? candidatePrice : null;
     const referencePrice = roundHistoricalPrice(recentPrice ?? historicalPrice, request.side);
     const plannerUsable = calculable && quality && freshness !== 'stale';
-    const rejectionReasons = [!baseQuality ? 'Dönem kapsaması, tekrar veya miktar desteği yetersiz.' : null,
-        !recentConfirmed ? 'Hedef yakın dönem fiyat rejiminde yeterince tekrarlanmıyor.' : null,
-        reviewRequired && !recentConfirmed ? 'Güncel/son gözlemlerden büyük sapma teyit edilemedi.' : null].filter(Boolean);
+    const rejectionReasons = [!baseQuality ? executions ? `Son ${policy.maxAgeDays} günde en az ${PERSONAL_EXECUTION_POLICY.minIndependent} bağımsız kanıt birimi, ${PERSONAL_EXECUTION_POLICY.minDays} farklı gün ve dengeli fiyat/miktar desteği gerekli; tek emir veya gün desteğin %${PERSONAL_EXECUTION_POLICY.maxUnitShare * 100}’ini aşamaz.` : 'Dönem kapsaması, tekrar veya miktar desteği yetersiz.' : null,
+        !executions && !recentConfirmed ? 'Hedef yakın dönem fiyat rejiminde yeterince tekrarlanmıyor.' : null,
+        executions && !personalRegimeConfirmed ? 'Kişisel aday güncel emir veya son kişisel fiyat rejimiyle çelişiyor; güncel tekrar teyidi yetersiz veya sapma aşırı.' : null,
+        !executions && reviewRequired && !recentConfirmed ? 'Güncel/son gözlemlerden büyük sapma teyit edilemedi.' : null].filter(Boolean);
     const reason = !calculable ? 'Seçili kimlik ve dönem için fiyat kanıtı yok.' : !quality ? `${rejectionReasons.join(' ')} Yalnız tarihsel referans.`
         : freshness === 'stale' ? `Geçmiş ${policy.maxAgeDays} günden eski; yalnız gösterge fiyat.` : freshness === 'delayed' ? 'Gecikmeli geçmiş; ada hesabında uyarıyla kullanılabilir.' : null;
     const result = { reliable: plannerUsable, priceReliable: plannerUsable, plannerUsable, calculable, price: plannerUsable ? target : null,
         rawPrice: target, indicativePrice: plannerUsable ? null : referencePrice, potentialPrice: target, historicalPrice, referencePrice,
-        candidatePrice, regimeSupport, deviations, reviewRequired, recentConfirmed: Boolean(recentConfirmed), rejectionReasons,
+        candidatePrice, personalSummary, regimeSupport, deviations, reviewRequired, recentConfirmed: Boolean(recentConfirmed), rejectionReasons,
         estimator: SALE_ESTIMATOR, expires: true, days: horizonDays, setup: true,
         source: [...new Set(points.map(point => point.source))].join(' · '),
-        confidence: quality ? 'high' : calculable ? 'low' : 'none', freshness, ageDays, dispersion,
-        method: quality ? 'Tekrarlanan dönem seviyelerinin medyanı' : 'Tarihsel referans',
+        confidence: quality ? executions && personalSummary.recentUnits < policy.minExecutions ? 'medium' : 'high' : calculable ? 'low' : 'none', freshness, ageDays, dispersion,
+        method: quality ? executions ? 'Güncel kişisel kanıtın miktar ağırlıklı fiyatı' : 'Tekrarlanan dönem seviyelerinin medyanı' : 'Tarihsel referans',
         evidenceType: executions ? 'Bağımsız günlerde tekrarlanan kişisel işlem fiyatları' : 'Bağımsız günlerde desteklenen piyasa ortalamaları', samples: accepted.length, historicalWindows: windows.length,
         supportDays: candidatePrice > 0 ? supportFor(accepted, candidatePrice).days : 0,
         minSupportDays: policy.minSupportDays, windowPrices: windows,
@@ -157,24 +162,29 @@ export function saleHorizonTarget(evidence, request, row, horizonDays, now = Dat
         ...(evidence?.includeWindowEvidence ? { windowEvidence } : {}), periodPrice, recentPrice,
         trend: recentPrice && historicalPrice ? recentPrice / historicalPrice - 1 : null,
         currentOrder, instantBuyPrice: order('sell', 'buy'),
-        transactions: executions ? executionCount : null, quantity: accepted.reduce((sum, point) => sum + point.quantity, 0), rejected: daily.length - accepted.length,
+        transactions: executions ? personalSummary.independentUnits : null, quantity: accepted.reduce((sum, point) => sum + point.quantity, 0), rejected: daily.length - accepted.length,
         latest: latestDay == null ? null : new Date(latestDay * DAY_MS).toISOString(), assessedAt: new Date(now).toISOString(),
-        validUntil: latestDay == null ? null : new Date((latestDay + policy.maxAgeDays + 1) * DAY_MS).toISOString(),
+        validUntil: executions && personalSummary.validUntil ? personalSummary.validUntil : latestDay == null ? null : new Date((latestDay + policy.maxAgeDays + 1) * DAY_MS).toISOString(),
         marketMeaning: executions ? 'Yalnız aynı kimlik ve yöndeki şahsi gerçekleşmeler; genel piyasa kapsamı veya gelecek emir gerçekleşmesi değildir.'
             : 'Ortalama fiyat kanıtı; tekil işlem fiyatı, emir gerçekleşmesi veya satış olasılığı değildir.',
-        explanation: `${windows.length} kabul edilen ${horizonDays} günlük dönem; en az %${policy.minWindowCoverage * 100} kapsam, %${policy.minSupportShare * 100} tekrarlı gün ve miktar desteği. Yakın rejim teyidi: ${recentConfirmed ? 'var' : 'yok'}. Güncel emir ayrı sinyaldir.`, reason };
-    // Evaluate executions independently, with the same horizon rules. Keep the
+        explanation: executions ? `${personalSummary.recentUnits} güncel bağımsız kanıt birimi, ${personalSummary.recentDays} gün; emir bağlantısı olmayan postalar gün başına bir birimdir. ${personalSummary.timingMeaning} Aynı fiyatın farklı ufuklarda kullanılması ölçülmüş satış süresi değildir.`
+            : `${windows.length} kabul edilen ${horizonDays} günlük dönem; en az %${policy.minWindowCoverage * 100} kapsam, %${policy.minSupportShare * 100} tekrarlı gün ve miktar desteği. Yakın rejim teyidi: ${recentConfirmed ? 'var' : 'yok'}. Güncel emir ayrı sinyaldir.`, reason };
+    // Evaluate executions independently, with personal repetition rules. Keep the
     // public market proof intact; personal fills cannot increase its coverage.
     if (evidence?.personalForecastPoints?.length) {
         let personal = saleHorizonTarget({ kind: 'executions', forecastPoints: evidence.personalForecastPoints }, request, row, horizonDays, now);
-        const publicReview = calculable && personal.reliable ? assessRegime(personal.price) : null;
-        if (publicReview?.reviewRequired && !publicReview.recentConfirmed) personal = { ...personal,
+        const publicReview = calculable && freshness !== 'stale' && personal.reliable ? assessRegime(personal.price) : null;
+        if (publicReview?.reviewRequired && !publicReview.recentConfirmed && !(personal.personalSummary?.repeated
+            && personal.personalSummary.recentDays >= policy.reviewMinDays && personal.ageDays <= policy.freshDays
+            && Object.values(publicReview.deviations).every(deviation => deviation <= policy.maxPriceRatio - 1))) personal = { ...personal,
             reliable: false, priceReliable: false, plannerUsable: false, candidatePrice: personal.price,
             price: null, potentialPrice: null, indicativePrice: personal.referencePrice, confidence: 'low', marketRegimeConflict: true,
             reason: 'Kişisel adayın genel piyasa rejiminden büyük sapması teyit edilemedi; yalnız ayrı tarihsel referans.' };
-        if (personal.reliable && (!result.reliable || (request.side === 'buy' ? personal.price < result.price : personal.price > result.price)))
-            return { ...personal, personalEvidence: personal, marketEvidence: result };
-        return { ...result, personalEvidence: personal };
+        if (personal.reliable)
+            return { ...personal, personalImpact: { selected: true, marketPrice: result.price, delta: result.price == null ? null : personal.price - result.price }, personalEvidence: personal, marketEvidence: result };
+        if (!result.reliable && personal.calculable)
+            return { ...personal, personalImpact: { selected: false, reason: personal.reason }, personalEvidence: personal, marketEvidence: result };
+        return { ...result, personalImpact: { selected: false, reason: personal.reason }, personalEvidence: personal, marketEvidence: { ...result } };
     }
     return result;
 }

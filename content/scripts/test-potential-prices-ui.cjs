@@ -30,8 +30,13 @@ const { chromium } = require('playwright');
             validUntil: new Date(Date.now() + 86400000).toISOString(), savedAt: new Date(Date.now() - i * 1000).toISOString(), samples: 10,
             source: 'UI fixture', reason: 'Yetersiz veri' };
         if (i === 0) snapshots[key].estimator = 'legacy';
+        if (i === 1) Object.assign(snapshots[key], { personalSummary: { fills: 5, independentUnits: 3, independentOrders: 0,
+            unlinkedFills: 5, quantity: 1539, minPrice: 425, maxPrice: 449, latest: '2026-10-15T04:17:14Z',
+            recentQuantity: 1039, durationSamples: 0, timingMeaning: 'Emir başlangıç/tamamlanma zamanı yok' },
+            personalImpact: { selected: true, marketPrice: 100, delta: 1 } });
         if (i === 3) Object.assign(snapshots[key], { reliable: true, price: 999, validUntil: '2020-01-01T00:00:00Z' });
         if (i === 6) snapshots[key].indicativePrice = 888;
+        if (i === 2) snapshots[key].freshness = 'delayed';
     }
     entries.set('albiontools.v4.potential-price-snapshots.v2', JSON.stringify(snapshots));
     await page.addInitScript(() => {
@@ -67,6 +72,54 @@ const { chromium } = require('playwright');
         }
         assert.equal(await page.locator('.sidebar-link[href="/pages/tools/potential-prices/"]').count(), 1, 'older saved catalog includes new routes');
         assert.equal(await page.locator('tbody tr').count(), 50);
+        assert.equal(await page.locator('button[data-filter="decision"], button[data-filter="status"]').count(), 0);
+        const counts = [];
+        for (const value of ['usable', 'warning', 'reference', 'no-evidence']) {
+            await page.locator(`button[data-filter="priceState"][data-value="${value}"]`).click();
+            const count = await page.locator('tbody tr').count();
+            counts.push(count);
+            assert(count > 0, value);
+            assert((await page.locator('.view-switch-toolbar .tool-result-note').innerText()).startsWith(`${count} / 55`));
+            const selectedLabel = await page.locator(`button[data-filter="priceState"][data-value="${value}"]`).innerText();
+            assert.deepEqual(await page.locator('tbody tr td:nth-child(4)').allTextContents(), Array(count).fill(selectedLabel));
+            await page.locator('[data-view-switch] [data-view="cards"]').click();
+            assert.deepEqual(await page.locator('.potential-price-status').allTextContents(), Array(count).fill(selectedLabel), 'cards and filters share the canonical classification');
+            await page.locator('[data-view-switch] [data-view="list"]').click();
+        }
+        assert.equal(counts.reduce((a, b) => a + b, 0), 55, 'price states partition the records');
+        await page.locator('button[data-filter="priceState"][data-value=""]').click();
+        assert.equal(await page.locator('tbody tr').count(), 50, 'all restores unfiltered pagination');
+        const priceStateButton = value => page.locator(`button[data-filter="priceState"][data-value="${value}"]`);
+        await priceStateButton('usable').click();
+        await priceStateButton('warning').click({ modifiers: ['Control'] });
+        assert.equal(await page.locator('button[data-filter="priceState"].is-active').count(), 2);
+        assert.equal(await page.locator('tbody tr').count(), counts[0] + counts[1]);
+        await priceStateButton('usable').click({ modifiers: ['Shift'] });
+        assert.equal(await priceStateButton('usable').getAttribute('aria-pressed'), 'false');
+        assert.match(await priceStateButton('usable').getAttribute('class'), /is-excluded/);
+        assert.equal(await page.locator('tbody tr').count(), counts[1]);
+        await priceStateButton('').click();
+        await priceStateButton('reference').focus();
+        await page.keyboard.down('Shift'); await page.keyboard.press('Enter'); await page.keyboard.up('Shift');
+        assert.match(await priceStateButton('reference').getAttribute('aria-label'), /hariç/);
+        assert.equal(await page.locator('tbody tr').count(), Math.min(50, 55 - counts[2]));
+        await page.locator('[data-view-switch] [data-view="cards"]').click();
+        assert.match(await priceStateButton('reference').getAttribute('class'), /is-excluded/);
+        assert.match(await priceStateButton('reference').evaluate(node => getComputedStyle(node).textDecorationLine), /line-through/);
+        await page.screenshot({ path: 'output/choice-selection.png' });
+        await priceStateButton('').click();
+        await page.locator('[data-view-switch] [data-view="list"]').click();
+        for (const width of [1440, 992, 390, 320]) {
+            await page.setViewportSize({ width, height: 700 });
+            const field = page.locator('.choice-field--long-labels');
+            assert(await field.evaluate(el => el.scrollWidth <= el.clientWidth + 1));
+            for (const button of await field.locator('button').all()) {
+                assert(await button.evaluate(el => el.scrollWidth <= el.clientWidth + 1 && el.scrollHeight <= el.clientHeight + 1), `label fits ${width}`);
+            }
+            assert(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1));
+            await page.screenshot({ path: `output/potential-price-state-${width}.png` });
+        }
+        await page.setViewportSize({ width: 1440, height: 1000 });
         await page.locator('button[data-filter="tier"][data-value="4"]').click();
         await page.locator('button[data-filter="enchant"][data-value="1"]').click();
         assert.equal(await page.locator('tbody tr').count(), 1, 'tier and enchant filters combine');
@@ -85,9 +138,14 @@ const { chromium } = require('playwright');
             return { right: Math.abs(toolbar.right - control.right), above: control.bottom <= table.top + 1 };
         });
         assert(placement.right < 2 && placement.above, 'view switch sits above the table at the right edge');
-        for (const status of ['Eski yöntem', 'Süresi doldu', 'Düşük güven']) {
-            const row = page.locator('tbody tr').filter({ hasText: status });
-            assert.equal(await row.locator('td.num').textContent(), '—', `${status} has no usable price`);
+        for (const [index, status, priceState] of [[0, 'Eski yöntem', 'Kanıt yok'], [3, 'Süresi doldu', 'Kanıt yok'], [6, 'Düşük güven', 'Yalnız referans']]) {
+            const row = page.locator('tbody tr').nth(index);
+            assert.equal(await row.locator('td.num').textContent(), status === 'Düşük güven' ? '888 · Referans' : '—', `${status} separates reference from usable price`);
+            assert.equal(await row.locator('td').nth(3).innerText(), priceState, 'one canonical price state per row');
+            assert.equal(await row.locator('td').nth(3).locator('.badge').count(), 1);
+            await row.locator('[data-detail]').click();
+            assert((await page.locator('[data-detail-body]').innerText()).includes(status), 'evidence diagnostics remain available in details');
+            await page.locator('[data-detail-close]').click();
         }
         const visual = page.locator('tbody .item-visual').first();
         await visual.locator('img').evaluate(img => img.decode());
@@ -99,7 +157,7 @@ const { chromium } = require('playwright');
         await cityField.locator('select').selectOption('Martlock');
         assert.equal(await cityField.locator('[data-city-input]').inputValue(), 'Martlock');
         assert.equal(await page.locator('tbody tr').count(), 27);
-        await page.locator('button[data-filter="decision"][data-value="Kullanılabilir"]').click();
+        await page.locator('button[data-filter="priceState"][data-value="usable"]').click();
         assert(await page.locator('tbody tr').count() < 27);
         await page.locator('[data-view-switch] [data-view="cards"]').click();
         assert(await page.locator('.potential-price-card').count() > 0);
@@ -120,6 +178,13 @@ const { chromium } = require('playwright');
         assert.equal(await page.evaluate(() => window.copied), "Adept's Bag");
         await page.locator('[data-detail]').first().click();
         assert(await page.locator('[data-price-dialog]').evaluate(el => el.open));
+        const detailText = await page.locator('[data-detail-body]').textContent();
+        for (const label of ['Kişisel dolum kaydı', 'Bağımsız kanıt birimi', 'Kişisel toplam miktar', 'Kişisel fiyat aralığı', 'Kişisel son işlem', 'Ölçülen emir süresi', 'Kişisel tahmin etkisi']) assert(detailText.includes(label), label);
+        await page.screenshot({ path: 'output/personal-potential-detail-desktop.png' });
+        await page.setViewportSize({ width: 390, height: 844 });
+        await page.screenshot({ path: 'output/personal-potential-detail-mobile.png' });
+        assert(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1));
+        await page.setViewportSize({ width: 1440, height: 1000 });
         await page.locator('[data-detail-close]').click();
         await page.locator('[data-reset]').click();
         await page.locator('[data-view-switch] [data-view="list"]').click();
@@ -175,6 +240,18 @@ const { chromium } = require('playwright');
             else await cityField.locator('[data-city-value="Martlock"]').click();
             await page.waitForFunction(() => document.querySelectorAll('tbody tr').length === 27);
             assert.equal(await page.locator('tbody tr').count(), 27, style + ': filters real rows');
+            if (style !== 'standard') {
+                await cityField.locator('[data-city-value="Brecilien"]').click({ modifiers: ['Control'] });
+                assert.equal(await cityField.locator('[data-city-value][aria-pressed="true"]').count(), 2);
+                assert.equal(await page.locator('tbody tr').count(), 50);
+                await cityField.locator('[data-city-value="Martlock"]').click({ modifiers: ['Shift'] });
+                assert.equal(await page.locator('tbody tr').count(), 28);
+                assert.match(await cityField.locator('[data-city-value="Martlock"]').getAttribute('aria-label'), /hariç/);
+                await priceStateButton('').click();
+                assert.match(await cityField.locator('[data-city-value="Martlock"]').getAttribute('class'), /is-excluded/);
+                assert.equal(await page.locator('tbody tr').count(), 28, 'city exclusions survive full control re-render');
+            }
+
             await cityField.locator('[data-city-all]').click();
             assert.equal(await page.locator('tbody tr').count(), 50, style + ': all cities resets filtering');
         }

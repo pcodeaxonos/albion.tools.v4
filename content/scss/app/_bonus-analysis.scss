@@ -195,15 +195,13 @@
     background: #1a2029;
 }
 .bonus-analysis-rr-badge {
-    display: inline-flex;
-    align-items: center;
-    align-self: center;
+    --badge-font-size: .75rem;
+    --badge-line-height: 2.8;
     gap: 0.42rem;
-    min-height: 2.35rem;
-    padding: 0.28rem 0.68rem 0.28rem 0.32rem;
-    border: 1px solid #6550a4;
-    border-radius: 999px;
-    background: linear-gradient(135deg, #312155, #171f42);
+    --badge-border-width: 1px;
+    --badge-border-color: #6550a4;
+    --badge-radius: 999px;
+    --badge-background: linear-gradient(135deg, #312155, #171f42);
     box-shadow: inset 0 1px rgba(255, 255, 255, 0.12), 0 0.25rem 0.7rem rgba(58, 39, 123, 0.28);
     white-space: nowrap;
 

@@ -1,0 +1,87 @@
+{
+  "integrity": {
+    "integrity_check": "ok"
+  },
+  "missing": [
+    {
+      "itemId": "T6_FARM_OX_GROWN",
+      "city": "Fort Sterling",
+      "server": "europe",
+      "side": "SELL",
+      "days": 2,
+      "reason": "Seçili kimlik ve dönem için fiyat kanıtı yok."
+    },
+    {
+      "itemId": "T6_FARM_OX_GROWN",
+      "city": "Fort Sterling",
+      "server": "europe",
+      "side": "SELL",
+      "days": 28,
+      "reason": "Seçili kimlik ve dönem için fiyat kanıtı yok."
+    },
+    {
+      "itemId": "T6_FARM_OX_GROWN",
+      "city": "Fort Sterling",
+      "server": "europe",
+      "side": "SELL",
+      "days": 7,
+      "reason": "Seçili kimlik ve dönem için fiyat kanıtı yok."
+    },
+    {
+      "itemId": "T7_FARM_HORSE_GROWN",
+      "city": "Fort Sterling",
+      "server": "europe",
+      "side": "SELL",
+      "days": 2,
+      "reason": "Seçili kimlik ve dönem için fiyat kanıtı yok."
+    },
+    {
+      "itemId": "T7_FARM_HORSE_GROWN",
+      "city": "Fort Sterling",
+      "server": "europe",
+      "side": "SELL",
+      "days": 28,
+      "reason": "Seçili kimlik ve dönem için fiyat kanıtı yok."
+    },
+    {
+      "itemId": "T7_FARM_HORSE_GROWN",
+      "city": "Fort Sterling",
+      "server": "europe",
+      "side": "SELL",
+      "days": 7,
+      "reason": "Seçili kimlik ve dönem için fiyat kanıtı yok."
+    },
+    {
+      "itemId": "T7_FARM_OX_BABY",
+      "city": "Fort Sterling",
+      "server": "europe",
+      "side": "BUY",
+      "days": null,
+      "reason": "Seçili kimlik ve dönem için fiyat kanıtı yok."
+    },
+    {
+      "itemId": "T8_FARM_HORSE_GROWN",
+      "city": "Fort Sterling",
+      "server": "europe",
+      "side": "SELL",
+      "days": 2,
+      "reason": "Seçili kimlik ve dönem için fiyat kanıtı yok."
+    },
+    {
+      "itemId": "T8_FARM_HORSE_GROWN",
+      "city": "Fort Sterling",
+      "server": "europe",
+      "side": "SELL",
+      "days": 28,
+      "reason": "Seçili kimlik ve dönem için fiyat kanıtı yok."
+    },
+    {
+      "itemId": "T8_FARM_HORSE_GROWN",
+      "city": "Fort Sterling",
+      "server": "europe",
+      "side": "SELL",
+      "days": 7,
+      "reason": "Seçili kimlik ve dönem için fiyat kanıtı yok."
+    }
+  ]
+}

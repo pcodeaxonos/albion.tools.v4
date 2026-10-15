@@ -11,11 +11,12 @@ const now = Date.now(), end = Math.floor(now / DAY_MS) * DAY_MS;
 const request = { server: 'europe', city: 'Brecilien', itemId: 'T4_MOUNT_HORSE', quality: 1, side: 'sell' };
 const points = last => Array.from({ length: 90 }, (_, i) => ({ timestamp: new Date(end - (i + last) * DAY_MS).toISOString(), avg_price: 30000 + i, item_count: 100 }));
 let apiCalls = 0, failApi = false, localStart = 4; const localDays = [], values = new Map();
+let personalSnapshot = { trades: [] };
 const storage = { getItem: key => values.get(key) ?? null, setItem: (key, value) => values.set(key, value) };
 const context = vm.createContext({ console, Date, Map, Set });
 const adapters = {
     './settings.js': { getServer: () => ({ id: 'europe' }) },
-    './trade-live.js': { fetchCachedTradeSnapshot: async () => ({ trades: [] }) },
+    './trade-live.js': { fetchCachedTradeSnapshot: async () => personalSnapshot },
     './local-sales-history.js': { fetchLocalSalesHistory: async (ids, req, days) => { localDays.push(days); return new Map(ids.map(id => [id, { points: points(localStart) }])); } },
     './market-history.js': {
         fetchHistoryIndex: async (ids, cities, options) => { apiCalls++; if (failApi) throw Error('API unavailable'); assert.equal(options.days, 90); return new Map(ids.map(id => [id, { points: points(1) }])); },
@@ -53,3 +54,45 @@ savePotentialSnapshots(storage, [request], 7, failed, now);
 assert.equal(readPotentialSnapshots(storage, [request], 7, now + 1).size, 1, 'recent negative cache avoids request storms');
 assert.equal(readPotentialSnapshots(storage, [request], 7, now + HISTORY_CACHE_POLICY.negativeMs + 1).size, 0, 'failed estimates are retried after bounded negative cache');
 console.log('Potential refresh: stale dense history, 90-day scope, all horizons, failure preservation, server isolation and bounded negative cache passed.');
+
+// A failed SQLite checkpoint must not publish its staged estimates. Other
+// markets continue, and the identical selection can safely be retried.
+const batch = module.namespace.refreshPotentialPriceBatch;
+const selection = [{ ...request, side: 'SELL' }, { ...request, city: 'Martlock', side: 'SELL' }];
+const checkpoints = [], progress = [];
+let rejectCity = true;
+const commit = async changes => {
+    if (rejectCity) { rejectCity = false; throw Error('checkpoint unavailable'); }
+    for (const [key, value] of changes) storage.setItem(key, value);
+    checkpoints.push(changes);
+};
+const callsBeforeArchive = apiCalls;
+const beforePartial = JSON.parse(storage.getItem(POTENTIAL_SNAPSHOT_KEY));
+const partial = await batch(selection, { storage, archiveOnly: true, commit, onProgress: value => progress.push(value) });
+assert.equal(partial.total, 2); assert.equal(partial.success, 1); assert.equal(partial.errors, 1); assert.equal(partial.remaining, 0);
+assert.equal(partial.failures[0].reason, 'checkpoint unavailable');
+assert.equal(checkpoints.length, 1); assert.equal(progress.length, 3);
+const afterPartial = JSON.parse(storage.getItem(POTENTIAL_SNAPSHOT_KEY));
+for (const [key, value] of Object.entries(beforePartial)) {
+    if (JSON.parse(key)[0] === tradeEvidenceKey(request)) assert.deepEqual(afterPartial[key], value, 'failed checkpoint preserves every existing horizon');
+}
+const retried = await batch(selection.slice(0, 1), { storage, archiveOnly: true, commit });
+assert.equal(retried.success, 1); assert.equal(retried.errors, 0);
+assert.equal(apiCalls, callsBeforeArchive, 'archive migration must never call external history');
+console.log('Potential batch: checkpoint isolation, continued progress, retry and archive-only API suppression passed.');
+
+personalSnapshot = { server: 'europe', scope: 'personal', trades: Array.from({ length: 3 }, (_, i) => ({
+    sourceId: `fill-${i}`, orderId: `order-${i}`, kind: 'mail_sell', itemId: request.itemId, locationName: request.city,
+    quality: 1, occurredAt: new Date(now - (i + 1) * DAY_MS).toISOString(), unitPriceSilver: 42000, quantity: 100 })) };
+await refresh([request], { storage, days: 7, now });
+for (const { days } of SALE_HORIZONS) {
+    const value = readPotentialSnapshots(storage, [request], days, now).get(tradeEvidenceKey(request));
+    assert.equal(value.price, 42000); assert.equal(value.personalSummary.independentOrders, 3);
+    assert(value.personalImpact.selected); assert(value.marketEvidence.price < value.price);
+}
+personalSnapshot.trades.forEach(trade => { trade.orderId = 'same-order'; });
+await refresh([request], { storage, days: 7, now });
+const grouped = readPotentialSnapshots(storage, [request], 7, now).get(tradeEvidenceKey(request));
+assert.equal(grouped.personalEvidence.personalSummary.independentOrders, 1);
+assert(grouped.price < 42000, 'refresh preserves order linkage and does not promote partial fills');
+console.log('Personal refresh integration: execution metadata, separate market proof, all horizons, saved planner price and grouped partial fills passed.');

@@ -1,5 +1,5 @@
 {
-  "estimator": "supported-window-price-v2.1",
+  "estimator": "supported-window-price-v2.1-personal",
   "source": "Existing output/horse-sales-investigation.json; daily averages, not individual executions",
   "cutoff": {
     "days": 87,

@@ -26,6 +26,16 @@ async function init(context){await context.addInitScript(()=>{localStorage.setIt
  await page.goto(origin+'/tools/item-market/?item=T4_MAIN_SWORD');
  await page.waitForFunction(()=>!document.querySelector('[data-market-status]')?.textContent.includes('alınıyor'));
  await page.locator('[data-variant="tier"]').waitFor();
+ const categoryButtons=page.locator('.segmented-choice--filter [data-group]');
+ const categoryValues=await categoryButtons.evaluateAll(nodes=>nodes.map(node=>node.dataset.group));
+ await categoryButtons.nth(0).click();
+ await categoryButtons.nth(1).click({modifiers:['Control']});
+ assert.equal(await page.locator('.segmented-choice--filter [data-group].is-active').count(),2);
+ await categoryButtons.nth(0).click({modifiers:['Shift']});
+ assert.match(await categoryButtons.nth(0).getAttribute('class'),/is-excluded/);
+ assert.deepEqual(await page.locator('[data-tree-group]').evaluateAll(nodes=>nodes.map(node=>node.dataset.treeGroup)),[categoryValues[1]]);
+ await page.locator('.form-field-heading [data-group="all"]').click();
+
  await page.locator('[data-city-table] tbody tr').first().waitFor();
  const legacySort=await page.evaluate(async()=>{
   const api=await import(new URL('content/js/utils/table-sort.js',document.baseURI).href);

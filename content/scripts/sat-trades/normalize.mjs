@@ -14,6 +14,9 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 // This module lives at content/scripts/sat-trades; shared game data is at the
 // repository-level data directory.
 const DEFAULT_LOCATIONS_PATH = path.join(__dirname, '..', '..', '..', 'data', 'locations.json');
+// Resolve absent quality only when the canonical catalog proves there is one.
+const singleQualityItems = new Set(JSON.parse(fs.readFileSync(path.join(__dirname, '../../../data/items.json'), 'utf8'))
+    .filter(item => item.maxQualityLevel === 1).map(item => item.uniqueName));
 
 /**
  * @param {string} [locationsPath]
@@ -107,6 +110,8 @@ function normalizeMail(raw, base) {
         ...base,
         kind: kind ?? 'mail_unknown',
         itemId: mail.UniqueItemName != null ? String(mail.UniqueItemName) : null,
+        quality: singleQualityItems.has(mail.UniqueItemName) ? 1 : null,
+        qualityOrigin: singleQualityItems.has(mail.UniqueItemName) ? 'catalog-single-quality' : null,
         itemName: csvItemName(raw.CsvOutput),
         quantity: mail.UsedQuantity != null ? Number(mail.UsedQuantity) : null,
         unitPriceSilver,
@@ -147,6 +152,7 @@ function normalizeInstant(raw, base, kind) {
         counterparty,
         characterGuid: raw.Guid != null ? String(raw.Guid) : null,
         orderAmount: auction.Amount != null ? Number(auction.Amount) : null,
+        orderId: auction.Id != null ? String(auction.Id) : null,
         orderTotalSilver: internalToSilver(auction.TotalPriceSilver),
         quality: auction.QualityLevel != null ? Number(auction.QualityLevel) : null
     });

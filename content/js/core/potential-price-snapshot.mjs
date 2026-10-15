@@ -19,7 +19,7 @@ export function potentialPriceDecision(value, request, days, now = Date.now()) {
         basis: bounds.length ? bounds.join(' · ') : indicative ? value?.freshness === 'stale' ? 'Eski tarihsel gösterge' : 'Tarihsel referans' : value?.method || '—',
         decision: usable ? value.freshness === 'delayed' ? 'Uyarıyla kullanılabilir' : 'Kullanılabilir' : indicative ? 'İnceleme gerekli' : 'Kullanılmaz',
         reason: legacy ? 'Eski tahmin yöntemi; yeniden güncelleyin.' : expired && value.reliable ? 'Potansiyel fiyat kanıtı eskidi; fiyatları yenileyin.' : usable ? `${value.reason ?? ''} Geçerli potansiyel fiyat; sabit fiyat seçilmediyse ada hesabında kullanılır.`
-            : indicative ? `${stats.reason || 'Yetersiz gerçekleşmiş işlem kanıtı'} Gösterge fiyat yalnız inceleme içindir; ada hesabında kullanılmaz.` : stats.reason || 'Yeterli gerçekleşmiş işlem kanıtı yok.' };
+            : indicative ? `${value.reason || stats.reason || 'Yetersiz gerçekleşmiş işlem kanıtı'} Gösterge fiyat yalnız inceleme içindir; ada hesabında kullanılmaz.` : value?.reason || stats.reason || 'Yeterli gerçekleşmiş işlem kanıtı yok.' };
 }
 
 export function potentialDecisionRows(storage, itemName = value => value, now = Date.now()) {
@@ -61,7 +61,7 @@ export function potentialSnapshotRows(storage, itemName = value => value, now = 
                 referencePrice: value.referencePrice ?? null, candidatePrice: value.candidatePrice ?? null,
                 regimeSupport: value.regimeSupport ?? null, deviations: value.deviations ?? null, reviewRequired: value.reviewRequired ?? false,
                 potentialPrice: value.potentialPrice ?? null, instantBuyPrice: value.instantBuyPrice ?? null,
-                marketEvidence: value.marketEvidence ?? null, trend: value.trend ?? null,
+                marketEvidence: value.marketEvidence ?? null, personalSummary: value.personalSummary ?? null, personalImpact: value.personalImpact ?? null, trend: value.trend ?? null,
                 recentPrice: value.recentPrice ?? null, currentOrder: value.currentOrder ?? null,
                 latest: value.latest ?? '', savedAt: value.savedAt ?? '', validUntil: value.validUntil ?? '', reason: value.reason ?? '' }];
         } catch { return []; }

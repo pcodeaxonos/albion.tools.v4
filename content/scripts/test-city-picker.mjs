@@ -13,7 +13,10 @@ const dependencies = {
     '../core/cities.js': { loadActiveCities: () => [], orderCities: (cities) => cities },
     '../core/settings.js': { getCityPickerStyle: () => pickerStyle, cityHasIsland: () => true }
 };
+const choiceModule = new vm.SourceTextModule(fs.readFileSync('content/js/core/choice-selection.mjs', 'utf8'), { context });
+await choiceModule.link(() => {});
 const linkDependency = (specifier) => {
+    if (specifier === '../core/choice-selection.mjs') return choiceModule;
     if (specifier === './city-name.js') return cityNameModule;
     if (specifier === './form-field.js') return formFieldModule;
     const exports = dependencies[specifier];

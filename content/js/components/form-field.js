@@ -1,3 +1,4 @@
+import { choiceState } from '../core/choice-selection.mjs';
 import { escapeHtml } from '../utils/utils.js';
 export const fieldLabel = label => escapeHtml(String(label).toLocaleUpperCase('tr-TR'));
 export function fieldAllButtonHtml({ label, attributes = '', active = false }) {
@@ -10,10 +11,11 @@ export function fieldHeadingHtml(label, action = '', attributes = '') {
 // Filters with an explicit all value keep that action in the heading.
 // Attributes and optional option content belong to the consuming domain.
 export function filterChoiceFieldHtml({ label, options, selected, allValue, attributes, className = '', after = '', isActive, content = option => escapeHtml(option.shortLabel ?? option.label) }) {
-    const active = isActive ?? (value => String(value) === String(selected));
+    const active = isActive ?? (value => choiceState(selected, value, allValue).active);
+    const excluded = value => choiceState(selected, value, allValue).excluded;
     const all = fieldAllButtonHtml({ label, attributes: attributes(allValue), active: active(allValue) });
     const buttons = options.filter(option => String(option.value) !== String(allValue)).map(option =>
-        `<button type="button" class="segmented-choice-button segmented-choice-button--short${active(option.value) ? ' is-active' : ''}" ${attributes(option.value)} aria-pressed="${active(option.value)}" aria-label="${escapeHtml(option.label)}" title="${escapeHtml(option.label)}">${content(option)}</button>`
+        `<button type="button" class="segmented-choice-button segmented-choice-button--short${active(option.value) ? ' is-active' : ''}${excluded(option.value) ? ' is-excluded' : ''}" data-choice-label="${escapeHtml(option.label)}" ${attributes(option.value)} aria-pressed="${active(option.value)}" aria-label="${escapeHtml(option.label)}${excluded(option.value) ? ' (hariç tutuldu)' : ''}" title="${escapeHtml(option.label)}">${content(option)}</button>`
     ).join('');
     return `<div class="choice-field form-field ${escapeHtml(className)}">${fieldHeadingHtml(label, all)}<div class="segmented-choice segmented-choice--filter" role="group" aria-label="${escapeHtml(label)}">${buttons}</div>${after}</div>`;
 }

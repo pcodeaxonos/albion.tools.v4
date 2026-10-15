@@ -4,25 +4,6 @@
     .page-body { padding: .75rem 1rem; }
     .flipper-controls { display: flex; flex-direction: column; gap: var(--spacing-md); }
     .flipper-results { display:flex; flex-direction:column; gap:.75rem; min-height:0; }
-    .flipper-monitor {
-        padding: .75rem;
-        border: 1px solid var(--color-border);
-        background: var(--color-surface);
-        font-size: .8rem;
-        --monitor-color: var(--color-text-muted);
-        &[data-monitor-phase="scanning"],
-        &[data-monitor-phase="checking"] { --monitor-color: #e8b65c; }
-        &[data-monitor-phase="complete"] { --monitor-color: #4fe0ae; }
-        &[data-monitor-phase="partial"],
-        &[data-monitor-phase="changed"] { --monitor-color: #e8b65c; }
-        &[data-monitor-phase="error"] { --monitor-color: #e27171; }
-        .flipper-monitor-state { display: flex; align-items: center; gap: .5rem; min-height: 1.25rem; strong { color: var(--monitor-color); } }
-        .flipper-monitor-dot { width: .45rem; height: .45rem; border-radius: 50%; background: var(--monitor-color); flex: 0 0 auto; }
-        [data-monitor-progress] { margin-left: auto; font-variant-numeric: tabular-nums; color: var(--color-text-muted); }
-        progress { display: block; width: 100%; height: .25rem; margin: .5rem 0; accent-color: var(--monitor-color); }
-        dl { margin: 0; display: grid; gap: .25rem; > div { display: flex; justify-content: space-between; gap: .5rem; } dt { color: var(--color-text-muted); font-weight: normal; } dd { margin: 0; font-variant-numeric: tabular-nums; } }
-        [data-app-tooltip] { cursor: help; &:focus-visible { outline: 1px solid var(--monitor-color); outline-offset: 2px; } }
-    }
     h2 { font-size:1.1rem; margin:0 0 .75rem; } h3 { font-size:1rem; margin:0; }
     p { margin:.35rem 0; } small { color:var(--color-text-muted); }
     .flipper-metrics { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:.75rem; >button { display:flex; align-items:center; gap:.75rem; padding:.8rem; border:1px solid var(--color-border); background:var(--color-surface); } strong { display:block; font-size:1.5rem; } }
@@ -50,14 +31,14 @@ small { display:block; } &.is-selected { background:linear-gradient(90deg, color
     .flipper-row-prices {
         display:grid; grid-template-columns:25% 24% 33% 18%; min-width:0; min-height:54px; margin:2px 0;
         border:1px solid color-mix(in srgb, var(--color-primary) 70%, var(--color-border)); border-radius:16px; background:linear-gradient(107deg,#271c1d 0%,#1a1c21 35%,#131e23 59%,#10171b 100%);
-        .flipper-roi-badge { font-size:.85rem; padding:.2rem .3rem; border-radius:7px; }
+        .flipper-roi-badge { --badge-font-size:.85rem;  --badge-radius:7px; }
     }
     .flipper-price-cell {
         min-width:0; position:relative; font-variant-numeric:tabular-nums;
         .flipper-metric-inner { display:flex; flex-direction:column; align-items:center; justify-content:center; gap:.25rem; height:100%; padding:.35rem .15rem; }
         small { display:flex; align-items:center; justify-content:center; gap:.2rem; font-size:.6rem; white-space:nowrap; color:var(--color-text-muted); }
         .flipper-price-age.is-current { color:var(--color-success); }
-        .flipper-price-volume { font-size:.6rem; font-weight:400; padding:.1em .3em; }
+        .flipper-price-volume { --badge-font-size:.6rem; --badge-font-weight:400; }
         strong { font-size:.9rem; line-height:1; letter-spacing:-.045em; white-space:nowrap; color:var(--color-text); }
         &--buy::after { content:""; position:absolute; right:0; top:20%; bottom:20%; width:1px; background:linear-gradient(transparent,var(--color-primary) 10%,var(--color-primary) 88%,transparent); opacity:.65; }
         &--net {
@@ -65,22 +46,22 @@ small { display:block; } &.is-selected { background:linear-gradient(90deg, color
             background:linear-gradient(135deg,#2f281e 0%,#1b1d1e 48%,#28221c 100%); box-shadow:0 0 6px color-mix(in srgb, var(--color-primary) 20%, transparent),inset 0 1px 2px color-mix(in srgb, var(--color-primary) 12%, transparent);
             .flipper-metric-inner { transform:skewX(-10deg); }
             strong { color:#ffbf50; font-size:1.25rem; }
-            &.is-uncertain { border-style:dashed; }
+            &.is-uncertain { --badge-border-style:dashed; }
         }
     }
     .flipper-metric-icon { width:.9rem; height:.9rem; flex:none; }
     .flipper-roi-badge {
-        --roi-color:#f6c068; color:var(--roi-color); background:linear-gradient(160deg,#35291e,#28231e); border:1px solid color-mix(in srgb, var(--color-primary) 55%, var(--color-border)); font-weight:var(--font-weight-semibold); white-space:nowrap;
+        --roi-color:#f6c068; --badge-color:var(--roi-color); --badge-background:linear-gradient(160deg,#35291e,#28231e); --badge-border-width:1px; --badge-border-color:color-mix(in srgb, var(--color-primary) 55%, var(--color-border)); --badge-font-weight:var(--font-weight-semibold); white-space:nowrap;
         &.is-uncertain { border-style:dashed; }
         &.is-loss { --roi-color:#e27171; }
     }
-    .flipper-item-meta { display:flex; flex-wrap:wrap; align-items:center; gap:.35rem; .badge { font-size:.6rem; } small { font-size:.65rem; } [data-app-tooltip] { cursor:help; } }
+    .flipper-item-meta { display:flex; flex-wrap:wrap; align-items:center; gap:.35rem; .badge { --badge-font-size:.6rem; } small { font-size:.65rem; } [data-app-tooltip] { cursor:help; } }
     .flipper-risk-icon {
         display:inline-flex; align-items:center; justify-content:center; color:var(--color-warning);
         svg { width:.9rem; height:.9rem; }
         &:focus-visible { outline:var(--focus-outline-width) solid var(--color-focus-ring); outline-offset:var(--focus-outline-offset); }
     }
-    .flipper-spike-badge { color:#ff9292; background:rgba(226,113,113,.15); border:1px solid rgba(226,113,113,.55); }
+    .flipper-spike-badge { --badge-color:#ff9292; --badge-background:rgba(226,113,113,.15); --badge-border-width: 1px; --badge-border-color: rgba(226,113,113,.55); }
     .flipper-detail-title { display:grid; grid-template-columns:auto minmax(0,1fr); gap:1rem; min-height:90px; >.item-visual { max-block-size:90px; } }
     .flipper-detail-title > div {
         display: flex;
@@ -95,7 +76,7 @@ small { display:block; } &.is-selected { background:linear-gradient(90deg, color
         > div { --breakdown-color: var(--color-text-muted); }
         dt { display:flex; flex-wrap:wrap; align-items:center; gap:.4rem; }
         dd { color:var(--breakdown-color); font-weight:var(--font-weight-semibold); font-variant-numeric:tabular-nums; white-space:nowrap; }
-        .badge { color:var(--breakdown-color); background:color-mix(in srgb, var(--breakdown-color) 12%, transparent); border:1px solid color-mix(in srgb, var(--breakdown-color) 35%, transparent); font-size:.7rem; }
+        .badge { --badge-color:var(--breakdown-color); --badge-background:color-mix(in srgb, var(--breakdown-color) 12%, transparent); --badge-border-width: 1px; --badge-border-color: color-mix(in srgb, var(--breakdown-color) 35%, transparent); --badge-font-size:.7rem; }
         > .flipper-breakdown-buy { --breakdown-color:#72b7ff; }
         > .flipper-breakdown-sale { --breakdown-color:#7dd6de; }
         > .flipper-breakdown-expense { --breakdown-color:#e27171; }

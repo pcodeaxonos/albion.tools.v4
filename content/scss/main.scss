@@ -7,6 +7,7 @@
 @use "reset";
 @use "base";
 @use "components";
+@use "app/badge";
 @use "loader";
 @use "toast";
 @use "tooltip";
@@ -20,5 +21,6 @@
 @use "app/pagination";
 @use "app/trade-journal";
 
+@import 'app/process-summary';
 @import 'app/flipper';
 @import 'app/page-info';
