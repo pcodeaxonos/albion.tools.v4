@@ -109,6 +109,13 @@ Item and material images that sit in a row, cell, card, or other slot with spare
 - Use `sortChoicesHtml` and `viewSwitchToolbarHtml` from `content/js/components/view-switch.js`. Pass sorting as the toolbar's third argument, immediately to the left of list/card buttons, in every view and empty state. Keep sorting out of filter panels and unrelated status bars.
 - Use compact inline SVG buttons with shared `view-switch-button` dimensions, active/focus states, accessible labels and `aria-pressed`. Sorting tooltips use only 1–2 descriptive words; show direction with an arrow when needed. Results without a view switch use the same sorting primitive beside their heading. Preserve domain sorting, missing-value rules and persistence; do not duplicate component markup or tool-specific button styles.
 
+## Locked pagination
+
+- Use `paginationHtml` and `paginationPages` from `content/js/components/pagination.js` and the shared styles in `content/scss/app/_pagination.scss`. Do not duplicate pagination markup, page-window logic, or tool-specific button styles.
+- Preserve the approved compact numbered pagination: inline SVG previous/next arrows, first/last pages, current-page neighbors, non-interactive ellipsis gaps, and the shared active, focus, and disabled states. Every button must remain square (1:1), including when available width shrinks. Keep accessible labels, `aria-current="page"`, and one-based `data-pagination-page` targets.
+- Place pagination above its associated table, list, or cards and center it horizontally within the full result area. With a result toolbar, pass pagination as the fourth argument of `viewSwitchToolbarHtml`: record count stays on the left, pagination in the center, and sorting/view controls on the right. On narrow screens, pagination occupies a centered row above results without horizontal overflow. Preserve this placement across views, empty states, and dynamic updates, including admin lists.
+- Treat this composition and geometry as locked; change them only when the user explicitly requests a design change.
+
 ## Locked city presentation
 
 - On tool pages, every city name uses the shared `content/js/components/city-name.js` component and its canonical `[data-city]` identity. Render the English market name with `lang="en"`; uppercase is applied by shared CSS, never JavaScript. Use the shared city color tokens.

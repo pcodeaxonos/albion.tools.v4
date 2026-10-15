@@ -1,5 +1,18 @@
 [
   {
+    "id": "trade-journal",
+    "title": "Ticaret Günlüğü",
+    "description": "Gerçekleşmiş kişisel işlemlerin günlük ürün özeti ve kalıcı okunma durumu.",
+    "icon": "📖",
+    "addedAt": "2026-10-15",
+    "frequent": false,
+    "path": "pages/tools/trade-journal",
+    "navLabel": "Ticaret Günlüğü",
+    "navGroup": "Piyasa",
+    "navOrder": 45.5,
+    "navVisible": true
+  },
+  {
     "id": "potential-prices",
     "title": "Potansiyel Fiyatlar",
     "description": "Kaydedilmiş piyasa tahminleri; filtrelenebilir liste ve kart görünümü.",

@@ -4,26 +4,50 @@
     :is(td, strong)[data-price-tone="secondary"] { color: var(--color-text-muted); }
     .potential-price-item { display: grid; grid-template-columns: auto minmax(min-content, 1fr); align-items: center; gap: var(--spacing-sm); min-width: min-content; }
     .potential-price-badges { display: flex; flex-wrap: wrap; gap: .25rem; }
-    .potential-price-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 19rem), 1fr)); gap: var(--spacing-sm); }
-    .potential-price-card { display: flex; flex-direction: column; gap: var(--spacing-lg); min-width: 0; padding: var(--spacing-lg); background: linear-gradient(145deg, color-mix(in srgb, var(--color-info) 5%, var(--color-surface)), var(--color-surface)); border: var(--border-width) solid var(--color-border); border-radius: .875rem; }
-    .potential-price-card-heading, .potential-price-card footer, .potential-price-pagination { display: flex; align-items: center; justify-content: space-between; gap: var(--spacing-sm); font-size: var(--font-size-sm); }
-    .potential-price-card-heading { color: var(--color-text-muted); font-weight: var(--font-weight-semibold); text-transform: uppercase; }
-    .potential-price-period { flex-shrink: 0; padding: var(--spacing-xs) var(--spacing-sm); border: var(--border-width) solid color-mix(in srgb, var(--color-primary) 35%, var(--color-border)); border-radius: .375rem; background: color-mix(in srgb, var(--color-primary) 7%, transparent); color: var(--color-primary); font-size: var(--font-size-lg); }
-    .potential-price-card-market { display: grid; gap: var(--spacing-sm); }
-    .potential-price-card h2 { margin: 0; font-size: 2rem; font-weight: var(--font-weight-bold); line-height: 1.1; overflow-wrap: anywhere; }
-    .potential-price-card .potential-price-item { grid-template-columns: auto minmax(0, 1fr); min-width: 0; align-items: stretch; }
-    .potential-price-card .potential-price-item > div { min-width: 0; overflow-wrap: anywhere; }
-    .potential-price-card p { margin: 0; font-size: var(--font-size-sm); color: var(--color-text-muted); font-weight: var(--font-weight-semibold); }
-    .potential-price-card footer { margin-top: auto; padding-top: var(--spacing-md); border-top: var(--border-width) solid var(--color-border-strong); align-items: end; }
-    .potential-price-value { display: grid; color: var(--color-text-muted); font-size: var(--font-size-sm); font-weight: var(--font-weight-semibold); }
-    .potential-price-value strong { font-size: 2.25rem; line-height: 1.15; letter-spacing: -.04em; }
-    .potential-price-status { color: var(--color-text-muted); }
-    .potential-price-card[data-price-tone="success"] .potential-price-status { color: var(--color-success); }
-    .potential-price-card[data-price-tone="warning"] .potential-price-status { color: var(--color-warning); }
-    .potential-price-status::before { content: ''; display: inline-block; width: .45rem; height: .45rem; margin-right: var(--spacing-sm); border-radius: 50%; background: currentColor; box-shadow: 0 0 .5rem currentColor; }
-    .potential-price-card [data-detail] { padding: .625rem var(--spacing-md); border-radius: .5rem; font-weight: var(--font-weight-semibold); }
-    .potential-price-pagination { flex-wrap: wrap; }
-    .potential-price-pagination { justify-content: center; margin-top: var(--spacing-sm); }
+    .potential-price-cards { display: grid; align-content: start; align-items: start; grid-template-columns: repeat(auto-fill, minmax(min(100%, 19rem), 1fr)); gap: var(--spacing-sm); }
+    // Approved editorial concept 02: product, market, then price/detail.
+    .potential-price-card {
+        --gallery-muted: #92a9c3;
+        --gallery-mint: #42dfa7;
+        --gallery-line: #445462;
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        grid-template-rows: 67px 56px minmax(0, 1fr);
+        grid-template-areas: "product age" "market market" "stats detail";
+        column-gap: 12px;
+        min-width: 0;
+        height: 257px;
+        padding: 17px 18px;
+        color: var(--color-text);
+        background: radial-gradient(ellipse 120% 75% at -8% -14%, #65adce12, transparent 60%), linear-gradient(133deg, #1d2833, #151a20);
+        border: var(--border-width) solid #374654;
+        border-radius: .875rem;
+        box-shadow: var(--shadow-md);
+    }
+    .potential-price-card .potential-price-item { grid-area: product; grid-template-columns: auto minmax(0, 1fr); height: 49px; min-width: 0; align-self: start; align-items: stretch; gap: 11px; }
+    .potential-price-card .item-visual { width: 49px; height: 49px; border: var(--border-width) solid #52616e; border-radius: 9px; background: #29333b; box-shadow: var(--shadow-sm); }
+    .potential-price-card .potential-price-item > div { display: flex; flex-direction: column; justify-content: center; gap: 6px; min-width: 0; }
+    .potential-price-card h2 { margin: 0; min-width: 0; font-size: var(--font-size-xs); line-height: 1.3; }
+    .potential-price-card .item-name-copy { /* Bound the two-line title to the approved product row; copying retains the full name. */ display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: clip; max-width: 100%; font-size: inherit; font-weight: 780; line-height: inherit; overflow-wrap: anywhere; }
+    .potential-price-card p { margin: 0; color: var(--gallery-muted); font-size: 10.5px; font-weight: var(--font-weight-bold); letter-spacing: .12px; }
+    .potential-price-period { grid-area: age; justify-self: end; align-self: start; padding: 5px 7px; color: var(--color-warning); border: var(--border-width) solid #75572c; border-radius: 7px; background: #332a1d77; font-size: var(--font-size-xs); font-weight: var(--font-weight-semibold); line-height: 1.25; letter-spacing: .3px; white-space: nowrap; }
+    .potential-price-card-market { grid-area: market; display: flex; align-items: end; justify-content: space-between; min-width: 0; gap: var(--spacing-sm); padding-bottom: 10px; border-bottom: var(--border-width) solid var(--gallery-line); }
+    .potential-price-card-market .city-name { min-width: 0; color: var(--color-text); font-size: 25px; font-weight: 950; line-height: 1.05; letter-spacing: -1px; overflow-wrap: anywhere; }
+    .potential-price-card-heading { display: flex; flex-wrap: wrap; justify-content: end; gap: .25rem; max-width: 5.5rem; flex-shrink: 0; margin-bottom: 3px; color: var(--gallery-muted); font-size: 9px; font-weight: 850; letter-spacing: .6px; text-transform: uppercase; }
+    .potential-price-value { grid-area: stats; display: flex; flex-direction: column; justify-content: end; align-items: start; min-width: 0; color: var(--gallery-muted); font-size: 10px; font-weight: 800; letter-spacing: .35px; }
+    .potential-price-value strong { max-width: 100%; margin-top: 2px; color: var(--color-text-muted); font-size: 37px; font-weight: 920; overflow-wrap: anywhere; font-variant-numeric: tabular-nums; line-height: 1.05; letter-spacing: -1.2px; }
+    .potential-price-status { display: inline-flex; align-items: center; gap: 6px; margin-top: 2px; color: var(--color-text-muted); font-size: 10.5px; font-weight: 770; letter-spacing: normal; }
+    .potential-price-card[data-price-tone="success"] :is(.potential-price-status, .potential-price-value strong) { color: var(--gallery-mint); }
+    .potential-price-card[data-price-tone="warning"] .potential-price-status, .potential-price-status[data-status="Süresi doldu"] { color: var(--color-warning); }
+    .potential-price-status::before { content: ''; flex: 0 0 7px; width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+    .potential-price-card[data-price-tone="success"] .potential-price-status::before { box-shadow: 0 0 9px currentColor; }
+    .potential-price-card [data-detail] { grid-area: detail; justify-self: end; align-self: end; display: inline-flex; justify-content: center; align-items: center; gap: 6px; min-width: 77px; padding: 10px 11px; background: #242c36; border: var(--border-width) solid #536071; border-radius: var(--spacing-sm); color: var(--color-text); font-size: 11px; font-weight: 800; line-height: 1.25; white-space: nowrap; }
+    .potential-price-card [data-detail]:hover { background: #34495d; border-color: #83b6d9; }
+    @media (max-width: 380px) {
+        .potential-price-card { padding: 14px 13px; }
+        .potential-price-card-market .city-name { font-size: 21px; }
+        .potential-price-value strong { font-size: 29px; }
+    }
     .potential-price-details { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 2fr); gap: var(--spacing-sm); margin-top: var(--spacing-md); font-size: var(--font-size-sm); }
     .potential-price-details dd { margin: 0; overflow-wrap: anywhere; }
     .app-dialog-sheet { display: grid; gap: var(--spacing-sm); }

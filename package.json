@@ -7,6 +7,8 @@
         "node": ">=22.16"
     },
     "scripts": {
+        "trade-journal:test": "node content/scripts/test-trade-journal.mjs",
+        "trade-journal:ui:test": "node content/scripts/test-trade-journal-ui.cjs",
         "data:migrate": "node content/scripts/migrate-user-data.mjs",
         "data:test": "node content/scripts/test-user-data.mjs && node content/scripts/test-generated-catalogs.mjs",
         "craft-order:test": "node content/scripts/test-craft-card-order.mjs",
@@ -41,6 +43,7 @@
         "data:fetch": "node content/scripts/fetch-game-data.mjs",
         "island:test": "node --experimental-vm-modules content/scripts/test-island-economy.mjs && node content/scripts/test-island-placement.mjs && node content/scripts/test-island-sales-potential.mjs && node content/scripts/test-trade-potential-evidence.mjs && node content/scripts/test-potential-price.mjs && node --experimental-vm-modules content/scripts/test-potential-price-table.mjs",
         "island:stability:test": "node content/scripts/test-island-yield-stability.mjs",
+        "potential:refresh:test": "node --experimental-vm-modules content/scripts/test-potential-price-refresh.mjs && node content/scripts/test-potential-price-refresh-ui.cjs",
         "island:forecast:test": "node content/scripts/test-island-yield-forecast.mjs",
         "data:icons": "node content/scripts/fetch-item-icons.mjs",
         "data:farm": "node content/scripts/build-farm-catalog.mjs",

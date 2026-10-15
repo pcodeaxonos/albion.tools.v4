@@ -129,6 +129,7 @@ main:has(.page-head) {
 }
 
 $page-head-images: (
+    "trade-journal": (desktop: "trade-journal-head-desktop.png", mobile: "trade-journal-head-mobile.webp"),
     "daily-bonus": "01-gunluk-bonus",
     "island-yields": "02-ada-cikti",
     "farming": "03-farming",
@@ -149,7 +150,8 @@ $page-head-images: (
     "opportunities": (desktop: "gunun-firsatlari-header.png"),
     "decision-engine": (desktop: "karar-motoru-header.png"),
     "flipper": (desktop: "flipper-head-2000x200.png"),
-    "item-market": (desktop: "esya-piyasasi-head-2000x200.png", mobile: "esya-piyasasi-head-mobile-1200x480.webp")
+    "item-market": (desktop: "esya-piyasasi-head-2000x200.png", mobile: "esya-piyasasi-head-mobile-1200x480.webp"),
+    "potential-prices": (desktop: "potansiyel-fiyatlar-head-2000x200.png", mobile: "potansiyel-fiyatlar-head-mobile-1200x480.webp")
 );
 
 // Explicit assets can reuse the desktop image when no mobile variant is supplied.

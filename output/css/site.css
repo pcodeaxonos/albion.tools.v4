@@ -749,7 +749,8 @@ input[type=month].form-control {
   transition: var(--float-tag-motion);
 }
 .form-floating:has(.form-control:focus) > label, .form-floating:has(.form-control:not(:placeholder-shown)) > label, .form-floating:has(.form-control.is-filled) > label, .form-floating:has(.form-control:disabled) > label, .form-floating:has(.autocomplete.is-filled) > label, .form-floating:has(.autocomplete.is-open) > label, .form-floating:has(.form-select:not(.autocomplete-native)) > label {
-  transform: translateY(calc(-50% - var(--input-height) / 2)) scale(var(--floating-label-scale));
+  transform-origin: left top;
+  transform: translateY(calc(var(--input-height) / -2)) scale(var(--floating-label-scale));
   font-weight: var(--font-weight-bold);
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -2191,19 +2192,31 @@ input[type=month].form-control {
 }
 
 .db-pager {
-  display: flex;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
   flex-wrap: wrap;
   flex-shrink: 0;
   align-items: center;
   justify-content: space-between;
   gap: var(--spacing-sm);
-  margin-top: var(--spacing-md);
-  padding-top: var(--spacing-md);
-  border-top: var(--border-width) solid var(--color-border);
+  margin-bottom: var(--spacing-sm);
+}
+.db-pager > .pagination {
+  grid-column: 2;
+  margin: 0;
+}
+.db-pager > .db-pager-status {
+  justify-self: end;
 }
 @media (max-width: 576px) {
   .db-pager {
-    justify-content: center;
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .db-pager > .pagination {
+    grid-column: 1;
+  }
+  .db-pager > .db-pager-status {
+    justify-self: center;
   }
 }
 
@@ -4730,16 +4743,12 @@ a.tool-card:hover {
 }
 
 .calc-toolbar {
-  --calc-float-label-room: calc(var(--floating-label-float-size) / 2 + 0.5rem);
   position: sticky;
   top: var(--chrome-top);
   z-index: 12;
   overflow: visible;
   background-color: transparent;
   transition: background-color var(--transition-normal), border-color var(--transition-normal), box-shadow var(--transition-normal);
-}
-.calc-toolbar:has(.form-floating) {
-  padding-top: var(--calc-float-label-room);
 }
 .calc-toolbar::before {
   content: "";
@@ -5637,6 +5646,10 @@ main:has(.page-head)::before {
     max-width: 40vw;
   }
 }
+main:has(.page-head[data-page-head=trade-journal]) {
+  --page-head-image: url("../../content/images/page-heads/desktop/trade-journal-head-desktop.png");
+}
+
 main:has(.page-head[data-page-head=daily-bonus]) {
   --page-head-image: url("../../content/images/page-heads/desktop/01-gunluk-bonus.webp");
 }
@@ -5721,7 +5734,14 @@ main:has(.page-head[data-page-head=item-market]) {
   --page-head-image: url("../../content/images/page-heads/desktop/esya-piyasasi-head-2000x200.png");
 }
 
+main:has(.page-head[data-page-head=potential-prices]) {
+  --page-head-image: url("../../content/images/page-heads/desktop/potansiyel-fiyatlar-head-2000x200.png");
+}
+
 @media (max-width: 768px) {
+  main:has(.page-head[data-page-head=trade-journal]) {
+    --page-head-image: url("../../content/images/page-heads/mobile/trade-journal-head-mobile.webp");
+  }
   main:has(.page-head[data-page-head=daily-bonus]) {
     --page-head-image: url("../../content/images/page-heads/mobile/01-gunluk-bonus.webp");
   }
@@ -5784,6 +5804,9 @@ main:has(.page-head[data-page-head=item-market]) {
   }
   main:has(.page-head[data-page-head=item-market]) {
     --page-head-image: url("../../content/images/page-heads/mobile/esya-piyasasi-head-mobile-1200x480.webp");
+  }
+  main:has(.page-head[data-page-head=potential-prices]) {
+    --page-head-image: url("../../content/images/page-heads/mobile/potansiyel-fiyatlar-head-mobile-1200x480.webp");
   }
 }
 .bonus-toolbar {
@@ -6062,6 +6085,27 @@ main:has(.page-head[data-page-head=item-market]) {
   min-width: 0;
 }
 
+.view-switch-toolbar--paginated {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+}
+.view-switch-toolbar--paginated > .pagination {
+  margin: 0;
+}
+.view-switch-toolbar--paginated > .result-view-actions {
+  margin-inline-start: 0;
+  justify-self: end;
+}
+@media (max-width: 991px) {
+  .view-switch-toolbar--paginated {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+  .view-switch-toolbar--paginated > .pagination {
+    grid-row: 2;
+    grid-column: 1/-1;
+  }
+}
+
 .sort-switch,
 .view-switch {
   display: inline-flex;
@@ -6093,6 +6137,9 @@ main:has(.page-head[data-page-head=item-market]) {
   border-color: var(--color-primary);
   color: var(--color-text);
   background: color-mix(in srgb, var(--color-primary) 14%, var(--color-surface));
+}
+.view-switch-button.view-switch-button--direction {
+  border-color: #54c7ec;
 }
 .view-switch-button:focus-visible {
   outline: var(--focus-outline-width) solid var(--color-focus-ring);
@@ -18997,6 +19044,21 @@ main.tool-page > .page-body {
   flex: 0 0 1px;
 }
 
+@media (min-width: 992px) {
+  .page-body > .tool-split > .right:has(.view-switch-toolbar) {
+    overflow: visible;
+  }
+  .tool-page .result .view-switch-toolbar ~ * {
+    flex-shrink: 0;
+  }
+  .tool-page .result .view-switch-toolbar + * {
+    flex: 1 1 0;
+    min-width: 0;
+    min-height: 0;
+    overflow: auto;
+    overscroll-behavior: contain;
+  }
+}
 .tool-page .result--sections :where(div, section):has(.calc-table-wrap) {
   flex: 0 0 auto;
 }
@@ -22088,113 +22150,208 @@ main.tool-page > .page-body {
 }
 [data-tool=potential-prices] .potential-price-cards {
   display: grid;
+  align-content: start;
+  align-items: start;
   grid-template-columns: repeat(auto-fill, minmax(min(100%, 19rem), 1fr));
   gap: var(--spacing-sm);
 }
 [data-tool=potential-prices] .potential-price-card {
+  --gallery-muted: #92a9c3;
+  --gallery-mint: #42dfa7;
+  --gallery-line: #445462;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-rows: 67px 56px minmax(0, 1fr);
+  grid-template-areas: "product age" "market market" "stats detail";
+  column-gap: 12px;
+  min-width: 0;
+  height: 257px;
+  padding: 17px 18px;
+  color: var(--color-text);
+  background: radial-gradient(ellipse 120% 75% at -8% -14%, rgba(101, 173, 206, 0.0705882353), transparent 60%), linear-gradient(133deg, #1d2833, #151a20);
+  border: var(--border-width) solid #374654;
+  border-radius: 0.875rem;
+  box-shadow: var(--shadow-md);
+}
+[data-tool=potential-prices] .potential-price-card .potential-price-item {
+  grid-area: product;
+  grid-template-columns: auto minmax(0, 1fr);
+  height: 49px;
+  min-width: 0;
+  align-self: start;
+  align-items: stretch;
+  gap: 11px;
+}
+[data-tool=potential-prices] .potential-price-card .item-visual {
+  width: 49px;
+  height: 49px;
+  border: var(--border-width) solid #52616e;
+  border-radius: 9px;
+  background: #29333b;
+  box-shadow: var(--shadow-sm);
+}
+[data-tool=potential-prices] .potential-price-card .potential-price-item > div {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-lg);
+  justify-content: center;
+  gap: 6px;
   min-width: 0;
-  padding: var(--spacing-lg);
-  background: linear-gradient(145deg, color-mix(in srgb, var(--color-info) 5%, var(--color-surface)), var(--color-surface));
-  border: var(--border-width) solid var(--color-border);
-  border-radius: 0.875rem;
-}
-[data-tool=potential-prices] .potential-price-card-heading, [data-tool=potential-prices] .potential-price-card footer, [data-tool=potential-prices] .potential-price-pagination {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--spacing-sm);
-  font-size: var(--font-size-sm);
-}
-[data-tool=potential-prices] .potential-price-card-heading {
-  color: var(--color-text-muted);
-  font-weight: var(--font-weight-semibold);
-  text-transform: uppercase;
-}
-[data-tool=potential-prices] .potential-price-period {
-  flex-shrink: 0;
-  padding: var(--spacing-xs) var(--spacing-sm);
-  border: var(--border-width) solid color-mix(in srgb, var(--color-primary) 35%, var(--color-border));
-  border-radius: 0.375rem;
-  background: color-mix(in srgb, var(--color-primary) 7%, transparent);
-  color: var(--color-primary);
-  font-size: var(--font-size-lg);
-}
-[data-tool=potential-prices] .potential-price-card-market {
-  display: grid;
-  gap: var(--spacing-sm);
 }
 [data-tool=potential-prices] .potential-price-card h2 {
   margin: 0;
-  font-size: 2rem;
-  font-weight: var(--font-weight-bold);
-  line-height: 1.1;
-  overflow-wrap: anywhere;
-}
-[data-tool=potential-prices] .potential-price-card .potential-price-item {
-  grid-template-columns: auto minmax(0, 1fr);
   min-width: 0;
-  align-items: stretch;
+  font-size: var(--font-size-xs);
+  line-height: 1.3;
 }
-[data-tool=potential-prices] .potential-price-card .potential-price-item > div {
-  min-width: 0;
+[data-tool=potential-prices] .potential-price-card .item-name-copy { /* Bound the two-line title to the approved product row; copying retains the full name. */
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: clip;
+  max-width: 100%;
+  font-size: inherit;
+  font-weight: 780;
+  line-height: inherit;
   overflow-wrap: anywhere;
 }
 [data-tool=potential-prices] .potential-price-card p {
   margin: 0;
-  font-size: var(--font-size-sm);
-  color: var(--color-text-muted);
-  font-weight: var(--font-weight-semibold);
+  color: var(--gallery-muted);
+  font-size: 10.5px;
+  font-weight: var(--font-weight-bold);
+  letter-spacing: 0.12px;
 }
-[data-tool=potential-prices] .potential-price-card footer {
-  margin-top: auto;
-  padding-top: var(--spacing-md);
-  border-top: var(--border-width) solid var(--color-border-strong);
+[data-tool=potential-prices] .potential-price-period {
+  grid-area: age;
+  justify-self: end;
+  align-self: start;
+  padding: 5px 7px;
+  color: var(--color-warning);
+  border: var(--border-width) solid #75572c;
+  border-radius: 7px;
+  background: rgba(51, 42, 29, 0.4666666667);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  line-height: 1.25;
+  letter-spacing: 0.3px;
+  white-space: nowrap;
+}
+[data-tool=potential-prices] .potential-price-card-market {
+  grid-area: market;
+  display: flex;
   align-items: end;
+  justify-content: space-between;
+  min-width: 0;
+  gap: var(--spacing-sm);
+  padding-bottom: 10px;
+  border-bottom: var(--border-width) solid var(--gallery-line);
+}
+[data-tool=potential-prices] .potential-price-card-market .city-name {
+  min-width: 0;
+  color: var(--color-text);
+  font-size: 25px;
+  font-weight: 950;
+  line-height: 1.05;
+  letter-spacing: -1px;
+  overflow-wrap: anywhere;
+}
+[data-tool=potential-prices] .potential-price-card-heading {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: end;
+  gap: 0.25rem;
+  max-width: 5.5rem;
+  flex-shrink: 0;
+  margin-bottom: 3px;
+  color: var(--gallery-muted);
+  font-size: 9px;
+  font-weight: 850;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
 }
 [data-tool=potential-prices] .potential-price-value {
-  display: grid;
-  color: var(--color-text-muted);
-  font-size: var(--font-size-sm);
-  font-weight: var(--font-weight-semibold);
+  grid-area: stats;
+  display: flex;
+  flex-direction: column;
+  justify-content: end;
+  align-items: start;
+  min-width: 0;
+  color: var(--gallery-muted);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.35px;
 }
 [data-tool=potential-prices] .potential-price-value strong {
-  font-size: 2.25rem;
-  line-height: 1.15;
-  letter-spacing: -0.04em;
+  max-width: 100%;
+  margin-top: 2px;
+  color: var(--color-text-muted);
+  font-size: 37px;
+  font-weight: 920;
+  overflow-wrap: anywhere;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.05;
+  letter-spacing: -1.2px;
 }
 [data-tool=potential-prices] .potential-price-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 2px;
   color: var(--color-text-muted);
+  font-size: 10.5px;
+  font-weight: 770;
+  letter-spacing: normal;
 }
-[data-tool=potential-prices] .potential-price-card[data-price-tone=success] .potential-price-status {
-  color: var(--color-success);
+[data-tool=potential-prices] .potential-price-card[data-price-tone=success] :is(.potential-price-status, .potential-price-value strong) {
+  color: var(--gallery-mint);
 }
-[data-tool=potential-prices] .potential-price-card[data-price-tone=warning] .potential-price-status {
+[data-tool=potential-prices] .potential-price-card[data-price-tone=warning] .potential-price-status, [data-tool=potential-prices] .potential-price-status[data-status="Süresi doldu"] {
   color: var(--color-warning);
 }
 [data-tool=potential-prices] .potential-price-status::before {
   content: "";
-  display: inline-block;
-  width: 0.45rem;
-  height: 0.45rem;
-  margin-right: var(--spacing-sm);
+  flex: 0 0 7px;
+  width: 7px;
+  height: 7px;
   border-radius: 50%;
   background: currentColor;
-  box-shadow: 0 0 0.5rem currentColor;
+}
+[data-tool=potential-prices] .potential-price-card[data-price-tone=success] .potential-price-status::before {
+  box-shadow: 0 0 9px currentColor;
 }
 [data-tool=potential-prices] .potential-price-card [data-detail] {
-  padding: 0.625rem var(--spacing-md);
-  border-radius: 0.5rem;
-  font-weight: var(--font-weight-semibold);
-}
-[data-tool=potential-prices] .potential-price-pagination {
-  flex-wrap: wrap;
-}
-[data-tool=potential-prices] .potential-price-pagination {
+  grid-area: detail;
+  justify-self: end;
+  align-self: end;
+  display: inline-flex;
   justify-content: center;
-  margin-top: var(--spacing-sm);
+  align-items: center;
+  gap: 6px;
+  min-width: 77px;
+  padding: 10px 11px;
+  background: #242c36;
+  border: var(--border-width) solid #536071;
+  border-radius: var(--spacing-sm);
+  color: var(--color-text);
+  font-size: 11px;
+  font-weight: 800;
+  line-height: 1.25;
+  white-space: nowrap;
+}
+[data-tool=potential-prices] .potential-price-card [data-detail]:hover {
+  background: #34495d;
+  border-color: #83b6d9;
+}
+@media (max-width: 380px) {
+  [data-tool=potential-prices] .potential-price-card {
+    padding: 14px 13px;
+  }
+  [data-tool=potential-prices] .potential-price-card-market .city-name {
+    font-size: 21px;
+  }
+  [data-tool=potential-prices] .potential-price-value strong {
+    font-size: 29px;
+  }
 }
 [data-tool=potential-prices] .potential-price-details {
   display: grid;
@@ -22210,6 +22367,188 @@ main.tool-page > .page-body {
 [data-tool=potential-prices] .app-dialog-sheet {
   display: grid;
   gap: var(--spacing-sm);
+}
+
+.pagination {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(0, 2.15rem);
+  flex: 0 0 auto;
+  justify-content: center;
+  align-items: center;
+  gap: 0.25rem;
+  margin-block: var(--spacing-sm);
+}
+
+.pagination-button,
+.pagination-gap {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+  width: 100%;
+  aspect-ratio: 1;
+  padding: 0;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  font-variant-numeric: tabular-nums;
+}
+
+.pagination-button {
+  border: var(--border-width) solid var(--color-border);
+  background: var(--color-surface);
+  color: var(--color-text-muted);
+  cursor: pointer;
+}
+.pagination-button svg {
+  width: 1rem;
+  height: 1rem;
+}
+.pagination-button:hover:not(:disabled) {
+  background: var(--color-surface-hover);
+  color: var(--color-text);
+}
+.pagination-button.is-active {
+  border-color: var(--color-primary);
+  background: color-mix(in srgb, var(--color-primary) 14%, var(--color-surface));
+  color: var(--color-text);
+}
+.pagination-button:focus-visible {
+  outline: var(--focus-outline-width) solid var(--color-focus-ring);
+  outline-offset: var(--focus-outline-offset);
+}
+.pagination-button:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.pagination-gap {
+  color: var(--color-text-muted);
+}
+
+.trade-journal-page {
+  --page-head-image-height: max(5rem, calc(100cqw / 10));
+}
+.trade-journal-page .journal-navigation {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+.trade-journal-page .journal-navigation .form-floating {
+  flex: 0 1 10rem;
+  min-width: 8rem;
+}
+.trade-journal-page .journal-navigation .form-check {
+  margin: 0;
+}
+.trade-journal-page .journal-content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+  min-width: 0;
+}
+.trade-journal-page .journal-content h2 {
+  font-size: 1rem;
+  margin: 0 0 0.35rem;
+}
+.trade-journal-page .journal-content p {
+  margin: 0;
+  font-size: 0.8rem;
+}
+.trade-journal-page .journal-metrics {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--spacing-sm);
+}
+.trade-journal-page .journal-metrics > div {
+  display: flex;
+  flex-direction: column;
+  border-bottom: 1px solid var(--color-border);
+  padding: 0.3rem 0;
+}
+.trade-journal-page .journal-metrics strong {
+  font-size: clamp(0.85rem, 1.5vw, 1.2rem);
+  overflow-wrap: anywhere;
+}
+.trade-journal-page .journal-flows {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--spacing-sm);
+}
+.trade-journal-page .journal-block {
+  min-width: 0;
+}
+.trade-journal-page .journal-group {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) minmax(0, auto) auto;
+  gap: 0.45rem;
+  align-items: center;
+  padding: 0.4rem;
+  margin-bottom: 0.3rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+}
+.trade-journal-page .journal-group.is-unread {
+  border-inline-start: 3px solid var(--color-primary);
+}
+.trade-journal-page .journal-group:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 1px;
+}
+.trade-journal-page .journal-identity {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.trade-journal-page .journal-amount {
+  display: flex;
+  flex-direction: column;
+  text-align: right;
+  overflow-wrap: anywhere;
+}
+.trade-journal-page .journal-content small, .trade-journal-page .journal-content footer {
+  font-size: 0.7rem;
+  color: var(--color-text-muted);
+}
+.trade-journal-page .journal-status {
+  color: var(--color-text-muted);
+}
+.trade-journal-page .journal-detail {
+  padding: 1.25rem;
+  max-height: 80dvh;
+  overflow: auto;
+}
+.trade-journal-page .journal-detail .calc-table-wrap {
+  overflow: auto;
+}
+@media (max-width: 991px) {
+  .trade-journal-page .journal-flows {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+@media (max-width: 768px) {
+  .trade-journal-page {
+    --page-head-image-height: max(8rem, calc(100cqw * .4));
+  }
+}
+@media (max-width: 480px) {
+  .trade-journal-page .journal-metrics {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .trade-journal-page .journal-group {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+  .trade-journal-page .journal-amount {
+    grid-column: 2;
+    text-align: left;
+  }
+  .trade-journal-page .journal-group > button {
+    grid-column: 1;
+    grid-row: 2;
+  }
 }
 
 .flipper-page {

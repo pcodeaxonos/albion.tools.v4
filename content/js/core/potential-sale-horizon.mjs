@@ -1,8 +1,7 @@
 import { DAY_MS, PRICE_STALE_MS } from './market-history-config.mjs';
 import { normalizePriceDate, weightedPriceQuantile, quantile, quotedBookPrice } from './market-primitives.mjs';
 
-export const SALE_HORIZONS = Object.freeze([{ days: 1, label: '1G' }, { days: 7, label: '1H' },
-    { days: 14, label: '2H' }, { days: 21, label: '3H' }, { days: 28, label: '4H' }]);
+export const SALE_HORIZONS = Object.freeze([2, 7, 28].map(days => Object.freeze({ days, label: `${days} gün` })));
 export const SALE_HISTORY_DAYS = 90;
 export const SALE_ESTIMATOR = 'completed-window-price-v1';
 export const SALE_ESTIMATE_POLICY = Object.freeze({ minWindows: 3, minCoverage: .7,

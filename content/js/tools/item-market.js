@@ -1,3 +1,4 @@
+import { paginationHtml } from '../components/pagination.js';
 import { cityNameHtml } from '../components/city-name.js';
 import { toolPageHtml } from '../core/app-runtime.js';
 import { getAll } from '../db/store.js';
@@ -83,7 +84,7 @@ function renderSearch() {
     const group = groups.find(g=>g.key===state.group);
     const list = families.filter(f=>(!group.categories||group.categories.includes(f.item.shopCategory))&&(!state.category||f.item.shopCategory===state.category)&&(!state.subcategory||f.item.shopSubCategory===state.subcategory)&&(!state.query||f.variants.some(i=>normalizeMarketSearch(`${itemLabel(i.uniqueName)} ${i.localizedName} ${i.uniqueName}`).includes(state.query))));
     const size=24, page=list.slice(state.page*size,(state.page+1)*size);
-    root.querySelector('[data-search-results]').innerHTML = `<small>${list.length} eşya ailesi</small>${page.map(f=>{const item=searchedFamilyItem(f,state.query);return `<div class="market-search-item${state.item&&familyKey(state.item)===f.key?' is-active':''}">${itemIconHtml(item.uniqueName,{size:28})}<div>${itemNameHtml(itemLabel(item.uniqueName))}<button class="btn btn-sm btn-outline-secondary" type="button" data-select-item="${esc(item.uniqueName)}">Detay</button></div></div>`;}).join('')||'<p>Eşya bulunamadı.</p>'}${list.length>size?`<div class="form-actions"><button class="btn btn-sm btn-outline-secondary" data-page="-1"${state.page===0?' disabled':''}>Önceki</button><span>${state.page+1}/${Math.ceil(list.length/size)}</span><button class="btn btn-sm btn-outline-secondary" data-page="1"${(state.page+1)*size>=list.length?' disabled':''}>Sonraki</button></div>`:''}`;
+    root.querySelector('[data-search-results]').innerHTML = `<small>${list.length} eşya ailesi</small>${list.length>size?paginationHtml(state.page+1,Math.ceil(list.length/size)):''}${page.map(f=>{const item=searchedFamilyItem(f,state.query);return `<div class="market-search-item${state.item&&familyKey(state.item)===f.key?' is-active':''}">${itemIconHtml(item.uniqueName,{size:28})}<div>${itemNameHtml(itemLabel(item.uniqueName))}<button class="btn btn-sm btn-outline-secondary" type="button" data-select-item="${esc(item.uniqueName)}">Detay</button></div></div>`;}).join('')||'<p>Eşya bulunamadı.</p>'}`;
 }
 function value(row,field) { return orderValue(row,field); }
 function priceCell(row,field) {
@@ -223,7 +224,7 @@ function onClick(e) {
     if(b.dataset.group){state.group=b.dataset.group;state.category='';state.subcategory='';root.querySelectorAll('[data-group]').forEach(x=>{const active=x.dataset.group===state.group;x.classList.toggle('is-active',active);x.setAttribute('aria-pressed',String(active));});renderTree();search();}
     if(b.dataset.category){state.category=b.dataset.category;state.subcategory=b.dataset.subcategory||'';renderTree();search();}
     if(b.dataset.selectItem){if(state.view==='watch'){location.href=routeHref('item-market')+'?item='+encodeURIComponent(b.dataset.selectItem);return;}selectItem(b.dataset.selectItem);}
-    if(b.dataset.page){state.page+=Number(b.dataset.page);renderSearch();}
+    if(b.hasAttribute('data-pagination-page')&&!b.disabled){state.page=Number(b.dataset.paginationPage)-1;renderSearch();}
     if(b.dataset.mode){state.mode=b.dataset.mode;root.querySelectorAll('[data-mode]').forEach(x=>{x.classList.toggle('is-active',x===b);x.setAttribute('aria-pressed',String(x===b));});renderPrices();}
     if(b.hasAttribute('data-refresh')&&!state.busy)refresh(true);
     if(b.dataset.marketCity){state.city=b.dataset.marketCity;renderSummary();renderPrices();renderQuality();}

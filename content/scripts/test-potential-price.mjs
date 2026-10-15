@@ -119,6 +119,7 @@ assert.match(includePotentialOrder(null,sell,orderRow,days,now).evidenceType,/ge
 console.log('Live packet buy/sell candidates: favorable bounds, ticks, quality/freshness and unexecuted-order labeling passed.');
 
 const { saleHorizonTarget, SALE_HORIZONS } = await import('../js/core/potential-sale-horizon.mjs');
+assert.deepEqual(SALE_HORIZONS.map(({ days, label }) => [days, label]), [[2, '2 gün'], [7, '7 gün'], [28, '28 gün']]);
 const forecastPoints = Array.from({length:90},(_,i)=>({timestamp:new Date(now-(90-i)*DAY_MS).toISOString(),price:30000+i*300,quantity:20}));
 const forecastEvidence = {reliable:true,price:35152,source:'Oyun Market History',forecastPoints};
 const horizonPrices = SALE_HORIZONS.map(period=>saleHorizonTarget(forecastEvidence,sell,orderRow,period.days,now).price);
@@ -126,11 +127,12 @@ assert(horizonPrices.every(price=>price>0 && price<=40104),'all durations are bo
 const series = prices => ({ source:'Oyun Market History', forecastPoints:prices.map((price,i)=>({
     timestamp:new Date(Math.floor(now/DAY_MS)*DAY_MS-(i+1)*DAY_MS).toISOString(),price,quantity:20 })) });
 const flat = series(Array(90).fill(100));
-assert.deepEqual(SALE_HORIZONS.map(period=>saleHorizonTarget(flat,sell,null,period.days,now).price),[100,100,100,100,100], 'waiting never invents appreciation');
+assert.deepEqual(SALE_HORIZONS.map(period=>saleHorizonTarget(flat,sell,null,period.days,now).price),[100,100,100], 'waiting never invents appreciation');
+for (const days of [1, 14, 21]) assert.equal(saleHorizonTarget(flat,sell,null,days,now).price,null,'retired sale durations are unsupported');
 assert.equal(saleHorizonTarget(series([100,100,100,100,100,100,100,...Array(83).fill(1000)]),sell,null,28,now).price,100,'old high-price regime cannot inflate a recent low-price regime');
 assert.equal(saleHorizonTarget(series([100,100,100,100,100,100,10000,...Array(83).fill(100)]),sell,null,28,now).price,100,'an isolated peak is not a sale target');
 const recentHigh = series([...Array(7).fill(200),...Array(83).fill(100)]);
-assert.equal(saleHorizonTarget(recentHigh,sell,null,1,now).price,100,'conservative period estimate can stay below recent prices');
+assert.equal(saleHorizonTarget(recentHigh,sell,null,2,now).price,100,'conservative period estimate can stay below recent prices');
 assert.equal(saleHorizonTarget(flat,sell,{...orderRow,sell_price_min:81},7,now).price,80,'live competitive price caps the estimate');
 assert.equal(saleHorizonTarget(flat,sell,{...orderRow,quality:2,sell_price_min:81},7,now).price,100,'wrong quality order is ignored');
 assert.equal(saleHorizonTarget(flat,sell,{...orderRow,sell_price_min_date:new Date(now-DAY_MS).toISOString(),sell_price_min:81},7,now).price,100,'stale order is ignored');

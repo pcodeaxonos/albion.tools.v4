@@ -338,7 +338,10 @@ input[type="month"].form-control {
     &:has(.autocomplete.is-filled) > label,
     &:has(.autocomplete.is-open) > label,
     &:has(.form-select:not(.autocomplete-native)) > label {
-        transform: translateY(calc(-50% - (var(--input-height) / 2))) scale(var(--floating-label-scale));
+        // Keep the floated tag inside the field so any ancestor scrollport
+        // can clip normally without requiring extra layout space.
+        transform-origin: left top;
+        transform: translateY(calc(var(--input-height) / -2)) scale(var(--floating-label-scale));
         font-weight: var(--font-weight-bold);
         letter-spacing: 0.08em;
         text-transform: uppercase;
@@ -1904,18 +1907,22 @@ input[type="month"].form-control {
 }
 
 .db-pager {
-    display: flex;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
     flex-wrap: wrap;
     flex-shrink: 0;
     align-items: center;
     justify-content: space-between;
     gap: var(--spacing-sm);
-    margin-top: var(--spacing-md);
-    padding-top: var(--spacing-md);
-    border-top: var(--border-width) solid var(--color-border);
+    margin-bottom: var(--spacing-sm);
+
+    > .pagination { grid-column: 2; margin: 0; }
+    > .db-pager-status { justify-self: end; }
 
     @media (max-width: 576px) {
-        justify-content: center;
+        grid-template-columns: minmax(0, 1fr);
+        > .pagination { grid-column: 1; }
+        > .db-pager-status { justify-self: center; }
     }
 }
 

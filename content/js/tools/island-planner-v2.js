@@ -1,14 +1,12 @@
 import { cityNameHtml } from '../components/city-name.js';
 import { priceSourceLabel } from '../core/price-source-label.mjs';
 import { queueStoreTransaction } from '../db/store.js';
-import { SALE_HORIZONS, SALE_HISTORY_DAYS, SALE_ESTIMATE_POLICY, saleHorizonTarget } from '../core/potential-sale-horizon.mjs';
+import { SALE_HORIZONS } from '../core/potential-sale-horizon.mjs';
 import { routeHref } from '../core/routes.js';
-import { includePotentialOrder } from '../core/potential-order-candidate.mjs';
-import { readPotentialSnapshots, savePotentialSnapshots, potentialPriceDecision } from '../core/potential-price-snapshot.mjs';
+import { refreshPotentialPrices } from '../core/potential-price-refresh.js';
+import { potentialPriceDecision } from '../core/potential-price-snapshot.mjs';
 import { fieldHeadingHtml } from '../components/form-field.js';
-import { resolveTradePotential, tradeEvidenceKey, POTENTIAL_PRICE_MODE, POTENTIAL_PRICE_POLICY } from '../core/trade-potential-evidence.mjs';
-import { fetchLocalSalesHistory } from '../core/local-sales-history.js';
-import { fetchCachedTradeSnapshot } from '../core/trade-live.js';
+import { tradeEvidenceKey, POTENTIAL_PRICE_MODE, POTENTIAL_PRICE_POLICY } from '../core/trade-potential-evidence.mjs';
 import { itemNameHtml } from '../components/item-name.js';
 import { focusRequirement, focusSourceLabel, focusSourceSummary } from '../core/island/focus.js';
 import { allocateInternalFeed } from '../core/island/placement-model.js';
@@ -774,79 +772,9 @@ function potentialPriceRequests(entries = v2PriceEntries()) {
     return [...new Map(requests.map(request => [tradeEvidenceKey(request), request])).values()];
 }
 async function fetchPotentialPriceIndex(entries = v2PriceEntries(), refresh = false) {
-    const requests = potentialPriceRequests(entries), days = potentialPriceDays(), historyDays = SALE_HISTORY_DAYS;
-    if (!requests.length) return new Map();
-    const saved = readPotentialSnapshots(localStorage, requests, days);
-    const needed = refresh ? requests : requests.filter(request => !saved.has(tradeEvidenceKey(request)));
-    if (!needed.length) return saved;
-    let snapshot;
-    try { snapshot = await fetchCachedTradeSnapshot({ server: getServer().id, days: historyDays,
-        items: [...new Set(requests.map(row => row.itemId))].sort(),
-        locations: [...new Set(requests.map(row => row.city))].sort(), qualities: [...new Set(requests.map(row => row.quality))].sort() }, { force: refresh }); }
-    catch (error) { snapshot = { trades: [], error: error.message }; }
-    const selected = await resolveTradePotential(needed, { snapshot, days: historyDays, opportunity: true, priceOnly: true,
-        fetchHourlyHistory: async (ids, request) => {
-            const index = await fetchHistoryIndex(ids, [request.city], { days: historyDays, timeScale: 1, qualities: request.quality, force: refresh });
-            return new Map(ids.map(id => [id, { points: historyAt(index, id, request.city, request.quality)?.points ?? [] }]));
-        },
-        fetchPacketHistory: (ids, request) => fetchLocalSalesHistory(ids, request, historyDays, { packet: true, force: refresh }),
-        fetchLocalHistory: (ids, request) => fetchLocalSalesHistory(ids, request, days, { force: refresh }),
-        fetchHistory: (ids, request) => fetchLocalSalesHistory(ids, request, days, { external: true, force: refresh }) });
-    const forecastRequests = needed.filter(request => request.side === 'sell'
-        && new Set((selected.get(tradeEvidenceKey(request))?.forecastPoints ?? []).map(point => point.timestamp.slice(0,10))).size
-            < Math.ceil(SALE_HISTORY_DAYS * SALE_ESTIMATE_POLICY.minCoverage));
-    const forecastGroups = new Map();
-    for (const request of forecastRequests) { const key = request.city + '|' + request.quality; if (!forecastGroups.has(key)) forecastGroups.set(key, []); forecastGroups.get(key).push(request); }
-    for (const group of forecastGroups.values()) {
-        const ids = group.map(request => request.itemId);
-        let packet = new Map(), local = new Map(), api = null;
-        try { packet = await fetchLocalSalesHistory(ids, group[0], historyDays, {packet:true,force:refresh}); } catch {}
-        try { local = await fetchLocalSalesHistory(ids, group[0], historyDays, {force:refresh}); } catch {}
-        const localDayCount = request => new Set([...(packet.get(request.itemId)?.points ?? []), ...(local.get(request.itemId)?.points ?? [])].map(point => point.timestamp?.slice(0,10))).size;
-        const apiIds = group.filter(request => localDayCount(request) < Math.ceil(SALE_HISTORY_DAYS * SALE_ESTIMATE_POLICY.minCoverage)).map(request=>request.itemId);
-        if (apiIds.length) api = await fetchHistoryIndex(apiIds,[group[0].city],{days:historyDays,timeScale:24,qualities:group[0].quality,force:refresh});
-        for (const request of group) {
-            const value = selected.get(tradeEvidenceKey(request));
-            const daily = new Map();
-            // Fine/local/personal evidence overrides external daily averages.
-            for (const points of [historyAt(api,request.itemId,request.city,request.quality)?.points ?? [], local.get(request.itemId)?.points ?? [], packet.get(request.itemId)?.points ?? [], value?.forecastPoints ?? []]) {
-                const grouped = new Map();
-                for (const point of points) { const key = point.timestamp?.slice(0,10); if (!key) continue; if (!grouped.has(key)) grouped.set(key,[]); grouped.get(key).push({timestamp:point.timestamp,price:point.price ?? Number(point.avg_price),quantity:point.quantity ?? Number(point.item_count)}); }
-                for (const [day, list] of grouped) daily.set(day,list);
-            }
-            if (value) selected.set(tradeEvidenceKey(request),{...value,forecastPoints:[...daily.values()].flat(),forecastSource:'Şahsi/oyun/yerel öncelikli, eksik günlerde API geçmişi'});
-        }
-    }
-    const horizonEvidence = new Map(selected);
-    let currentOrders = new Map();
-    try {
-        const rows = await fetchGamePrices([...new Set(needed.map(request => request.itemId))], [...new Set(needed.map(request => request.city))]);
-        const index = indexPrices(rows);
-        currentOrders = index;
-        for (const request of needed) {
-            const key = tradeEvidenceKey(request);
-            const evidence = selected.get(key);
-            const row = cityRow(index, request.itemId, request.city);
-            selected.set(key, request.side === 'sell' ? saleHorizonTarget(evidence, request, row, days) : { ...includePotentialOrder(evidence, request, row, historyDays), days });
-        }
-    } catch (error) {
-        console.warn('[Island Planner V2] Güncel oyun emirleri alınamadı; geçmiş kanıtı korunuyor.', error.message);
-        for (const request of needed) { const key = tradeEvidenceKey(request), evidence = selected.get(key); selected.set(key, request.side === 'sell' ? saleHorizonTarget(evidence, request, null, days) : { ...evidence, days }); }
-    }
-    // Freeze every sale horizon from the same evidence and order-book snapshot.
-    for (const period of SALE_HORIZONS) {
-        const targets = new Map(needed.map(request => {
-            const key = tradeEvidenceKey(request);
-            const value = request.side === 'sell' ? saleHorizonTarget(horizonEvidence.get(key), request, cityRow(currentOrders, request.itemId, request.city), period.days)
-                : { ...selected.get(key), days: period.days };
-            return [key, value];
-        }));
-        savePotentialSnapshots(localStorage, needed, period.days, targets);
-        if (period.days === days) for (const [key, value] of targets) selected.set(key, value);
-    }
-    for (const [key, value] of selected) saved.set(key, value);
-    return saved;
+    return refreshPotentialPrices(potentialPriceRequests(entries), { storage: localStorage, days: potentialPriceDays(), refresh });
 }
+
 function renderSalesPotentialControls() {
     if (!hasPotentialPrice()) return '';
     return `<div class="choice-field form-field">${fieldHeadingHtml('Öngörülen satış süresi')}<div class="segmented-choice segmented-choice--dense" role="group" aria-label="Öngörülen satış süresi" data-app-tooltip="Bu süre için ihtiyatlı gerçekleşmiş dönem fiyatı hesaplanır. Daha uzun beklemek fiyatı otomatik artırmaz; satış süresi garanti edilmez.">`

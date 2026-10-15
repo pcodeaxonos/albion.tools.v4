@@ -31,8 +31,8 @@ export function bindViewSwitch(root, onChange) {
 }
 
 // Shared placement immediately above the associated list or cards.
-export function viewSwitchToolbarHtml(value, content = '', sorting = '') {
-    return `<div class="view-switch-toolbar">${content}<div class="result-view-actions">${sorting}${viewSwitchHtml(value)}</div></div>`;
+export function viewSwitchToolbarHtml(value, content = '', sorting = '', pagination = '') {
+    return `<div class="view-switch-toolbar${pagination ? ' view-switch-toolbar--paginated' : ''}">${content}${pagination}<div class="result-view-actions">${sorting}${viewSwitchHtml(value)}</div></div>`;
 }
 
 const SORT_ICONS = {
@@ -48,8 +48,10 @@ const SORT_ICONS = {
 };
 
 export function sortChoicesHtml(options, selected, attributes = value => `data-sort="${escapeHtml(value)}"`) {
-    return `<div class="sort-switch" role="group" aria-label="Sıralama">${options.map(({ id, label, tooltip = label, icon = 'value' }) => {
+    const directionToggle = options.length === 2 && options.every(option => option.icon === 'asc' || option.icon === 'desc');
+    const choices = directionToggle ? [options.find(option => option.id === selected) || options[0]] : options;
+    return `<div class="sort-switch" role="group" aria-label="Sıralama">${choices.map(({ id, label, tooltip = label, icon = 'value' }) => {
         const explanation = label;
-        return `<button type="button" class="view-switch-button${id === selected ? ' is-active' : ''}" ${attributes(id)} aria-pressed="${id === selected}" aria-label="${escapeHtml(explanation)}" data-app-tooltip="${escapeHtml(tooltip)}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">${SORT_ICONS[icon] || SORT_ICONS.value}</svg></button>`;
+        return `<button type="button" class="view-switch-button${icon === 'asc' || icon === 'desc' ? ' view-switch-button--direction' : ''}${id === selected ? ' is-active' : ''}" ${attributes(directionToggle ? options.find(option => option.id !== id).id : id)} aria-pressed="${id === selected}" aria-label="${escapeHtml(explanation)}" data-app-tooltip="${escapeHtml(tooltip)}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">${SORT_ICONS[icon] || SORT_ICONS.value}</svg></button>`;
     }).join('')}</div>`;
 }

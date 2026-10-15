@@ -1,3 +1,4 @@
+import { paginationHtml } from '../components/pagination.js';
 import { runFormSubmission } from '../components/form-submit.js';
 import { durableStorage as localStorage } from '../core/durable-storage.mjs';
 import { showToast } from '../components/toast.js';
@@ -556,6 +557,7 @@ function renderTableView() {
 
     const tableHtml = `
         <div class="db-table-panel">
+            ${renderPager(pagination)}
             <div class="table-responsive">
                 <table class="table table-striped db-data-table${table.readOnly ? ' calc-table' : ''}">
                     <thead>
@@ -573,7 +575,6 @@ function renderTableView() {
                     </tbody>
                 </table>
             </div>
-            ${renderPager(pagination)}
         </div>
     `;
 
@@ -593,19 +594,7 @@ function renderPager(pagination) {
 
     const { page, totalPages, start, end, total } = pagination;
     const from = start + 1;
-    const prevDisabled = page <= 1 ? ' disabled' : '';
-    const nextDisabled = page >= totalPages ? ' disabled' : '';
-
-    return `
-        <nav class="db-pager" aria-label="Sayfalama">
-            <button type="button" class="btn btn-sm btn-outline-secondary" id="btnPrevPage"${prevDisabled}>Önceki</button>
-            <div class="db-pager-status">
-                <span>Sayfa <span class="db-pager-page">${page}</span> / ${totalPages}</span>
-                <span class="text-muted">${from}–${end} / ${total}</span>
-            </div>
-            <button type="button" class="btn btn-sm btn-outline-secondary" id="btnNextPage"${nextDisabled}>Sonraki</button>
-        </nav>
-    `;
+    return `<div class="db-pager">${paginationHtml(page, totalPages)}<div class="db-pager-status"><span class="text-muted">${from}–${end} / ${total}</span></div></div>`;
 }
 
 function formatShopLabel(slug) {
@@ -1212,7 +1201,7 @@ function syncPager(container, pagination) {
     }
 
     if (panel) {
-        panel.insertAdjacentHTML('beforeend', html);
+        panel.insertAdjacentHTML('afterbegin', html);
     } else {
         container.insertAdjacentHTML('beforeend', html);
     }
@@ -1416,15 +1405,9 @@ function bindPagerEvents(container) {
 
     container.dataset.pagerBound = 'true';
     container.addEventListener('click', (event) => {
-        const prev = event.target.closest('#btnPrevPage');
-        if (prev && !prev.disabled) {
-            void goToPage(container, state.page - 1);
-            return;
-        }
-
-        const next = event.target.closest('#btnNextPage');
-        if (next && !next.disabled) {
-            void goToPage(container, state.page + 1);
+        const button = event.target.closest('button[data-pagination-page]');
+        if (button && container.contains(button) && !button.disabled) {
+            void goToPage(container, Number(button.dataset.paginationPage));
         }
     });
 }

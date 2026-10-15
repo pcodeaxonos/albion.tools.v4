@@ -33,6 +33,11 @@ const { chromium } = require('playwright');
  await page.goto('http://localhost/'+tool.source,{waitUntil:'domcontentloaded'});
  await page.waitForFunction(()=>document.querySelector('main')?.textContent.trim().length>100,{},{timeout:10000}).catch(async e=>{throw new Error(tool.id+': '+await page.locator('body').innerText());});
  await page.waitForTimeout(250);
+ const clippedLabels=await page.evaluate(()=>[...document.querySelectorAll('main.tool-page .form-floating > label')].filter(label=>{
+ const field=label.parentElement.getBoundingClientRect(),rect=label.getBoundingClientRect();
+ return rect.height>0 && (rect.top<field.top-1 || rect.bottom>field.bottom+1);
+ }).map(label=>label.textContent.trim()));
+ assert.deepEqual(clippedLabels,[],`${tool.id}: floating labels must fit inside their fields`);
  const overflow=await page.evaluate(()=>[document.documentElement,document.body,document.querySelector('.app-content'),document.querySelector('main')].filter(Boolean).map(el=>({tag:el.className||el.tagName,x:el.scrollWidth-el.clientWidth,y:el.scrollHeight-el.clientHeight})).filter(el=>el.x>2||el.y>2));
  if(overflow.length) { failures.push({tool:tool.id,viewport,overflow}); console.log(await page.evaluate(()=>[...document.querySelectorAll('main *')].filter(el=>el.getBoundingClientRect().bottom>innerHeight).slice(0,20).map(el=>({c:el.className,h:el.clientHeight,s:el.scrollHeight,b:el.getBoundingClientRect().bottom})))); }
  await context.close();

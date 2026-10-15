@@ -55,6 +55,23 @@ const { chromium } = require('playwright');
                             return view.previousElementSibling.matches('.sort-switch')
                                 && view.previousElementSibling.getBoundingClientRect().right <= view.getBoundingClientRect().left;
                         }), `${id}: sorting sits immediately left of views at ${width}`);
+                        if (width >= 992) {
+                            assert(await page.locator('.view-switch-toolbar').evaluate(toolbar => {
+                                const collection = toolbar.nextElementSibling;
+                                const probe = document.createElement('div');
+                                probe.style.cssText = 'height:2000px;width:2000px;flex:none;grid-column:1/-1';
+                                collection.append(probe);
+                                const before = toolbar.getBoundingClientRect();
+                                collection.scrollTop = 500;
+                                collection.scrollLeft = 200;
+                                const after = toolbar.getBoundingClientRect();
+                                const passed = collection.scrollTop > 0 && collection.scrollLeft > 0
+                                    && before.top === after.top && before.left === after.left
+                                    && collection.closest('.right').scrollHeight <= collection.closest('.right').clientHeight + 2;
+                                probe.remove();
+                                return passed;
+                            }), `${id}: ${view} scrolls independently of result controls at ${width}`);
+                        }
                     }
                 }
                 assert.deepEqual(errors, [], `${id}: no browser errors`);

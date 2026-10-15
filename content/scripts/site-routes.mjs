@@ -15,6 +15,7 @@ export const runtimeRoute = ({ source, kind, nav, path, ...entry }) => ({
 });
 
 export const SITE_ROUTES = [
+    tool('trade-journal', 'pages/tools/trade-journal/index.html', 'pages/tools/trade-journal', 'Ticaret Günlüğü', 'Gerçekleşmiş kişisel işlemlerin günlük ürün özeti ve kalıcı okunma durumu.', '📖', '2026-10-15', { label: 'Ticaret Günlüğü', group: 'Piyasa', order: 45.5, visible: true }),
     tool('potential-prices', 'pages/tools/potential-prices/index.html', 'pages/tools/potential-prices', 'Potansiyel Fiyatlar', 'Kaydedilmiş piyasa tahminleri; filtrelenebilir liste ve kart görünümü.', '💰', '2026-10-14', { label: 'Potansiyel Fiyatlar', group: 'Piyasa', order: 47, visible: true }),
     tool('item-market', 'tools/item-market/index.html', 'tools/item-market', 'Eşya Piyasası', 'Şehir ve kalite fiyatları, API geçmişi ve şahsi işlemler.', '📊', '2026-10-13', { label: 'Eşya Piyasası', group: 'Piyasa', order: 42, visible: true }),
     tool('flipper', 'tools/flipper/index.html', 'tools/flipper', 'Flipper', 'Şehirler arası ve Black Market arbitrajı; net kâr ve taşıma sepeti.', '⚖️', '2026-10-11', { label: 'Flipper', group: 'Piyasa', order: 46, visible: true }),

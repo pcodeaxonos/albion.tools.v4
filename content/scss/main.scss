@@ -17,6 +17,8 @@
 @use "app/decision-engine";
 @use "app/item-market";
 @use "app/potential-prices";
+@use "app/pagination";
+@use "app/trade-journal";
 
 @import 'app/flipper';
 @import 'app/page-info';

@@ -1,4 +1,5 @@
 import { tradeEvidenceKey, potentialPriceAt } from './trade-potential-evidence.mjs';
+import { HISTORY_CACHE_POLICY } from './market-history-config.mjs';
 import { SALE_HISTORY_DAYS, SALE_ESTIMATOR } from './potential-sale-horizon.mjs';
 
 export const POTENTIAL_SNAPSHOT_KEY = 'albiontools.v4.potential-price-snapshots.v2';
@@ -72,7 +73,8 @@ export function readPotentialSnapshots(storage, requests, days, now = Date.now()
         const value = rows[snapshotKey(request, days)];
         const validSale = value?.estimator === SALE_ESTIMATOR && value.days === days
             && (!value.reliable || Date.parse(value.validUntil) > now);
-        return value?.savedSnapshot && (request.side === 'buy' || validSale) && (!value.reliable || value.price > 0)
+        const freshFailure = value?.reliable || (Date.parse(value?.savedAt) <= now && now - Date.parse(value?.savedAt) < HISTORY_CACHE_POLICY.negativeMs);
+        return value?.savedSnapshot && freshFailure && (request.side === 'buy' || validSale) && (!value.reliable || value.price > 0)
             ? [[tradeEvidenceKey(request), request.side === 'buy' ? { ...value, days } : value]] : [];
     }));
 }

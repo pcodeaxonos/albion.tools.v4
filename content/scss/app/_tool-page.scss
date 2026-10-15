@@ -132,6 +132,26 @@ main.tool-page {
     .calc-sticky-sentinel { flex: 0 0 1px; }
 }
 
+// View controls belong to the fixed result chrome; only their following
+// table/card collection owns scrolling, including horizontal table overflow.
+@media (min-width: 992px) {
+    .page-body > .tool-split > .right:has(.view-switch-toolbar) {
+        overflow: visible;
+    }
+
+    .tool-page .result .view-switch-toolbar ~ * {
+        flex-shrink: 0;
+    }
+
+    .tool-page .result .view-switch-toolbar + * {
+        flex: 1 1 0;
+        min-width: 0;
+        min-height: 0;
+        overflow: auto;
+        overscroll-behavior: contain;
+    }
+}
+
 // Reports containing several independent tables scroll as a sequence of
 // sections. Do not divide a single flex track until every table reaches zero.
 .tool-page .result--sections {

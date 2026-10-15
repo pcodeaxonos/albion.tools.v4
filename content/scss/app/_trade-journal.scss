@@ -1,0 +1,31 @@
+.trade-journal-page {
+    --page-head-image-height: max(5rem, calc(100cqw / 10));
+    .journal-navigation { display: flex; flex-wrap: wrap; align-items: center; gap: var(--spacing-sm); }
+    .journal-navigation .form-floating { flex: 0 1 10rem; min-width: 8rem; }
+    .journal-navigation .form-check { margin: 0; }
+    .journal-content { display: flex; flex-direction: column; gap: var(--spacing-sm); min-width: 0; }
+    .journal-content h2 { font-size: 1rem; margin: 0 0 .35rem; }
+    .journal-content p { margin: 0; font-size: .8rem; }
+    .journal-metrics { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: var(--spacing-sm); }
+    .journal-metrics > div { display: flex; flex-direction: column; border-bottom: 1px solid var(--color-border); padding: .3rem 0; }
+    .journal-metrics strong { font-size: clamp(.85rem, 1.5vw, 1.2rem); overflow-wrap: anywhere; }
+    .journal-flows { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: var(--spacing-sm); }
+    .journal-block { min-width: 0; }
+    .journal-group { display: grid; grid-template-columns: auto minmax(0, 1fr) minmax(0, auto) auto; gap: .45rem; align-items: center; padding: .4rem; margin-bottom: .3rem; border: 1px solid var(--color-border); border-radius: var(--radius-sm); cursor: pointer; }
+    .journal-group.is-unread { border-inline-start: 3px solid var(--color-primary); }
+    .journal-group:focus-visible { outline: 2px solid var(--color-primary); outline-offset: 1px; }
+    .journal-identity { display: flex; flex-direction: column; min-width: 0; overflow-wrap: anywhere; }
+    .journal-amount { display: flex; flex-direction: column; text-align: right; overflow-wrap: anywhere; }
+    .journal-content small, .journal-content footer { font-size: .7rem; color: var(--color-text-muted); }
+    .journal-status { color: var(--color-text-muted); }
+    .journal-detail { padding: 1.25rem; max-height: 80dvh; overflow: auto; }
+    .journal-detail .calc-table-wrap { overflow: auto; }
+    @media (max-width: 991px) { .journal-flows { grid-template-columns: minmax(0,1fr); } }
+    @media (max-width: 768px) { --page-head-image-height: max(8rem, calc(100cqw * .4)); }
+    @media (max-width: 480px) {
+        .journal-metrics { grid-template-columns: minmax(0,1fr); }
+        .journal-group { grid-template-columns: auto minmax(0,1fr); }
+        .journal-amount { grid-column: 2; text-align: left; }
+        .journal-group > button { grid-column: 1; grid-row: 2; }
+    }
+}

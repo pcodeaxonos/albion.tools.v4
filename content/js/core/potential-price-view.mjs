@@ -1,4 +1,5 @@
 import { itemVariant } from './item-variant.mjs';
+import { SALE_HORIZONS } from './potential-sale-horizon.mjs';
 
 export const POTENTIAL_FILTERS = [
     ['tier', 'Tier'], ['enchant', 'Enchant'],
@@ -10,11 +11,26 @@ export const potentialFilterValue = (row, key) => String(
 export const POTENTIAL_SORTS = [
     ['savedAt', 'Karar zamanı'], ['itemName', 'Eşya adı'], ['price', 'Tahmin edilen fiyat'], ['days', 'Satış süresi']
 ];
-export const potentialDefaults = () => ({ search: '', sort: 'savedAt', direction: 'desc', view: 'list', page: 1,
+export const potentialDefaults = () => ({ search: '', itemId: '', sort: 'savedAt', direction: 'desc', view: 'list', page: 1,
     ...Object.fromEntries(POTENTIAL_FILTERS.map(([key]) => [key, ''])) });
+export function potentialPreferences(saved) {
+    const state = potentialDefaults();
+    if (!saved || typeof saved !== 'object' || Array.isArray(saved)) return state;
+    for (const key of ['search', 'itemId', ...POTENTIAL_FILTERS.map(([key]) => key)]) {
+        if (typeof saved[key] === 'string') state[key] = saved[key];
+    }
+    if (POTENTIAL_SORTS.some(([key]) => key === saved.sort)) state.sort = saved.sort;
+    if (['asc', 'desc'].includes(saved.direction)) state.direction = saved.direction;
+    if (['list', 'cards'].includes(saved.view)) state.view = saved.view;
+    if (Number.isSafeInteger(saved.page) && saved.page > 0) state.page = saved.page;
+    if (!SALE_HORIZONS.some(period => String(period.days) === state.days)) state.days = '';
+    return state;
+}
 export function filterPotentialRows(rows, filters) {
     const search = String(filters.search || '').trim().toLocaleLowerCase('tr-TR');
-    const result = rows.filter(row => POTENTIAL_FILTERS.every(([key]) => !filters[key] || potentialFilterValue(row, key) === filters[key])
+    const result = rows.filter(row => (row.days == null || SALE_HORIZONS.some(period => period.days === Number(row.days)))
+        && POTENTIAL_FILTERS.every(([key]) => !filters[key] || potentialFilterValue(row, key) === filters[key])
+        && (!filters.itemId || row.itemId === filters.itemId)
         && (!search || [row.itemName, row.itemId].some(value => String(value || '').toLocaleLowerCase('tr-TR').includes(search))));
     const key = POTENTIAL_SORTS.some(([key]) => key === filters.sort) ? filters.sort : 'savedAt';
     const direction = filters.direction === 'asc' ? 1 : -1;
