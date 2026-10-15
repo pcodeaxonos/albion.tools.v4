@@ -42,4 +42,4 @@ export function filterPotentialRows(rows, filters) {
             || String(a.id).localeCompare(String(b.id));
     });
 }
-export const potentialTone = row => row.price > 0 ? 'success' : row.decision === 'İnceleme gerekli' ? 'warning' : 'secondary';
+export const potentialTone = row => row.freshness === 'delayed' || row.decision === 'İnceleme gerekli' ? 'warning' : row.price > 0 ? 'success' : 'secondary';

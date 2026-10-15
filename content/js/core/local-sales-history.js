@@ -20,7 +20,10 @@ export async function fetchLocalSalesHistory(items, request, days, { external = 
             const payload = await response.json();
             if (payload.server !== request.server) throw new Error('Yerel satış arşivi server uyuşmazlığı');
             for (const row of payload.rows ?? []) if (ids.includes(row.item_id) && row.server === request.server
-                && row.location === request.city && row.quality === request.quality) result.set(row.item_id, { points: row.data });
+                && row.location === request.city && row.quality === request.quality) {
+                const previous = result.get(row.item_id)?.points ?? [];
+                result.set(row.item_id, { points: [...previous, ...(row.data ?? [])] });
+            }
         }
         const ttl = external ? ([...result.values()].some(row => row.points?.length) ? HISTORY_CACHE_POLICY.positiveMs : HISTORY_CACHE_POLICY.negativeMs) : HISTORY_CACHE_POLICY.localMs;
         cache.set(key, { value: result, expires: Date.now() + ttl });

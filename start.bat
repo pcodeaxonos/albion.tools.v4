@@ -27,91 +27,16 @@ if not exist "%LOGDIR%" mkdir "%LOGDIR%"
 
 
 REM ============================================================
-REM WEB SERVER :3000
+REM Start all services and wait for HTTP readiness before opening the app.
 REM ============================================================
-
-netstat -ano | findstr /C:":3000" | findstr "LISTENING" >nul 2>&1
-
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File "%ROOT%\content\scripts\start-services.ps1"
 if errorlevel 1 (
-    powershell.exe -NoProfile -WindowStyle Hidden -Command "Start-Process -FilePath $env:ComSpec -ArgumentList '/d','/c','npm run serve' -WorkingDirectory '%ROOT%' -WindowStyle Hidden -RedirectStandardOutput '%LOGDIR%\serve.log' -RedirectStandardError '%LOGDIR%\serve-error.log'"
+    echo Hub baslatilamadi. logs klasorundeki hata dosyalarini kontrol edin.
+    pause
+    exit /b 1
 )
 
-
-REM ============================================================
-REM PRICE SERVER :3001
-REM ============================================================
-
-netstat -ano | findstr /C:":3001" | findstr "LISTENING" >nul 2>&1
-
-if errorlevel 1 (
-    powershell.exe -NoProfile -WindowStyle Hidden -Command "Start-Process -FilePath $env:ComSpec -ArgumentList '/d','/c','npm run prices' -WorkingDirectory '%ROOT%' -WindowStyle Hidden -RedirectStandardOutput '%LOGDIR%\prices.log' -RedirectStandardError '%LOGDIR%\prices-error.log'"
-)
-
-
-REM ============================================================
-REM TRADE HUB (shared configuration)
-REM ============================================================
-
-for /f "delims=" %%P in ('node --input-type=module -e "import { TRADE_HUB_PORT } from './content/js/core/trade-config.mjs'; console.log(process.env.TRADE_HUB_PORT || TRADE_HUB_PORT)"') do set "TRADE_HUB_PORT=%%P"
-
-netstat -ano | findstr /C:":%TRADE_HUB_PORT% " | findstr "LISTENING" >nul 2>&1
-
-if errorlevel 1 (
-    powershell.exe -NoProfile -WindowStyle Hidden -Command "Start-Process -FilePath $env:ComSpec -ArgumentList '/d','/c','npm run trades' -WorkingDirectory '%ROOT%' -WindowStyle Hidden -RedirectStandardOutput '%LOGDIR%\trades.log' -RedirectStandardError '%LOGDIR%\trades-error.log'"
-)
-
-
-REM ============================================================
-REM 3000 PORTUNU BEKLE
-REM ============================================================
-
-set /a WAIT3000=0
-
-:WAIT3000
-
-netstat -ano | findstr /C:":3000" | findstr "LISTENING" >nul 2>&1
-
-if not errorlevel 1 goto OPENBROWSER
-
-set /a WAIT3000+=1
-
-if %WAIT3000% GEQ 30 goto OPENBROWSER
-
-timeout /t 1 /nobreak >nul
-goto WAIT3000
-
-
-REM ============================================================
-REM BROWSER
-REM
-REM ADC'DEN ONCE ACILIR.
-REM ADC TARAFINDA HATA OLSA BILE BURAYA ULASILMIS OLUR.
-REM ============================================================
-
-:OPENBROWSER
-
-start "" "C:\Program Files\Google\Chrome\Application\chrome_proxy.exe"  --profile-directory="Profile 1" --app-id=hbblfifohofgngfbjbiimbbcimepbdcb
-
-
-REM ============================================================
-REM 3001 PORTUNU BEKLE
-REM ============================================================
-
-set /a WAIT3001=0
-
-:WAIT3001
-
-netstat -ano | findstr /C:":3001" | findstr "LISTENING" >nul 2>&1
-
-if not errorlevel 1 goto CHECKADC
-
-set /a WAIT3001+=1
-
-if %WAIT3001% GEQ 30 goto CHECKADC
-
-timeout /t 1 /nobreak >nul
-goto WAIT3001
-
+start "" "C:\Program Files\Google\Chrome\Application\chrome_proxy.exe" --profile-directory="Profile 1" --app-id=hbblfifohofgngfbjbiimbbcimepbdcb
 
 REM ============================================================
 REM ADC CALISIYOR MU?

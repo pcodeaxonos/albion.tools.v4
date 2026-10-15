@@ -271,7 +271,7 @@ function priceLookup(itemId, city, side, intent, role = intent === 'buy' ? 'inpu
         const decision = potentialPriceDecision(state.potentialPriceIndex?.get(tradeEvidenceKey(request)), request, potentialPriceDays());
         const stats = decision.stats;
         if (decision.price != null) lookup.quote = {
-            price: stats.price, book: stats.price, date: stats.latest, stale: false, side, intent, tick: 0, setup: true, potential: stats
+            price: stats.price, book: stats.price, date: stats.latest, stale: stats.freshness === 'delayed', side, intent, tick: 0, setup: true, potential: stats
         };
         else lookup.reason = decision.reason;
         return lookup;

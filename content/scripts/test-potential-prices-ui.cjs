@@ -16,12 +16,17 @@ const { chromium } = require('playwright');
         repository.write([{ key, value, revision }]);
     } };
     entries.set('albiontools.v4.siteTools', JSON.stringify(JSON.parse(fs.readFileSync('data/site-tools.json', 'utf8')).filter(row => row.id !== 'potential-prices')));
-    const { SALE_ESTIMATOR } = await import('../js/core/potential-sale-horizon.mjs');
+    const { SALE_ESTIMATOR, SALE_HORIZONS } = await import('../js/core/potential-sale-horizon.mjs');
+    const fixtureItems = JSON.parse(fs.readFileSync('data/items.json', 'utf8'))
+        .filter(row => /^T[1-8]_/.test(row.uniqueName) && !row.uniqueName.includes('@') && row.uniqueName !== 'T1_CARROT'
+            && fs.existsSync(path.join('content/icons', `${row.uniqueName}.png`))).slice(0, 53).map(row => row.uniqueName);
+    const itemIds = ['T1_CARROT', 'T4_BAG@1', ...fixtureItems];
+    assert.equal(itemIds.length, 55);
     const snapshots = {};
     for (let i = 0; i < 55; i++) {
-        const itemId = i === 1 ? 'T4_BAG@1' : 'T1_CARROT';
-        const key = JSON.stringify([JSON.stringify(['europe', i % 2 ? 'Martlock' : 'Brecilien', itemId, 1, 'sell']), i + 1]);
-        snapshots[key] = { savedSnapshot: true, estimator: SALE_ESTIMATOR, reliable: i % 3 !== 0, price: i % 3 ? 100 + i : null, days: i + 1,
+        const itemId = itemIds[i], days = SALE_HORIZONS[i % SALE_HORIZONS.length].days;
+        const key = JSON.stringify([JSON.stringify(['europe', i % 2 ? 'Martlock' : 'Brecilien', itemId, 1, 'sell']), days]);
+        snapshots[key] = { savedSnapshot: true, estimator: SALE_ESTIMATOR, reliable: i % 3 !== 0, price: i % 3 ? 100 + i : null, days,
             validUntil: new Date(Date.now() + 86400000).toISOString(), savedAt: new Date(Date.now() - i * 1000).toISOString(), samples: 10,
             source: 'UI fixture', reason: 'Yetersiz veri' };
         if (i === 0) snapshots[key].estimator = 'legacy';
@@ -89,7 +94,7 @@ const { chromium } = require('playwright');
         const dimensions = await visual.boundingBox();
         assert(Math.abs(dimensions.width - dimensions.height) < 1, 'item visual stays square');
         if (process.env.POTENTIAL_PRICE_SCREENSHOT) await page.screenshot({ path: process.env.POTENTIAL_PRICE_SCREENSHOT.replace('.png', '-list.png') });
-        await page.locator('[data-page="1"]').click();
+        await page.locator('[data-pagination-page="2"]').first().click();
         assert.equal(await page.locator('tbody tr').count(), 5);
         await cityField.locator('select').selectOption('Martlock');
         assert.equal(await cityField.locator('[data-city-input]').inputValue(), 'Martlock');
@@ -124,7 +129,7 @@ const { chromium } = require('playwright');
         assert(Number(prices[0]) <= Number(prices[1]));
         await page.locator('[data-filter="search"]').fill('no-such-item');
         assert.equal(await page.locator('tbody tr').count(), 0);
-        assert.equal(await page.locator('[data-filter="search"]').evaluate(el => el.labels[0]?.textContent), 'Eşya ara');
+        assert.equal(await page.locator('[data-filter="search"]').evaluate(el => el.labels[0]?.textContent), 'Eşya adı / item ID');
         await page.locator('[data-reset]').click();
         for (const width of [1440, 992, 768, 390]) {
             await page.setViewportSize({ width, height: 900 });
@@ -162,10 +167,13 @@ const { chromium } = require('playwright');
             entries.set('albiontools.v4.settings', JSON.stringify({ cityPickerStyle: style, cityPickerOrder: 'alphabetical', dataSync: false }));
             await page.reload();
             await cityField.waitFor();
+            await page.locator('[data-view-switch] [data-view="list"]').click();
+            await page.locator('tbody tr').first().waitFor();
             const className = style === 'buttons' ? 'horizontal' : style;
             assert((await cityField.getAttribute('class')).includes(`city-field--${className}`), style);
             if (style === 'standard') await cityField.locator('select').selectOption('Martlock');
             else await cityField.locator('[data-city-value="Martlock"]').click();
+            await page.waitForFunction(() => document.querySelectorAll('tbody tr').length === 27);
             assert.equal(await page.locator('tbody tr').count(), 27, style + ': filters real rows');
             await cityField.locator('[data-city-all]').click();
             assert.equal(await page.locator('tbody tr').count(), 50, style + ': all cities resets filtering');

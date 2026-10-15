@@ -29,7 +29,7 @@ assert.equal(decisions[0].price,potentialPriceDecision(saved,request,7).price,'t
 const legacy = {...saved,estimator:'old-peak-model'};
 assert.equal(potentialPriceDecision(legacy,request,7).price,null);
 assert.equal(potentialPriceDecision(saved,request,28).price,null,'duration cannot leak across decisions');
-assert.equal(potentialPriceDecision({...saved,periodPrice:120,recentPrice:110,currentOrder:100},request,7).basis,'Güncel Sell emri');
+assert.equal(potentialPriceDecision({...saved,periodPrice:120,recentPrice:110,currentOrder:100},request,7).basis,'—');
 const variations = [request,{...request,city:'Bridgewatch'},{...request,server:'west'},
     {...request,quality:2},{...request,side:'buy'},{...request,itemId:'T5_CABBAGE'}];
 const variantRows = Object.fromEntries(variations.map(scope=>[JSON.stringify([tradeEvidenceKey(scope),scope.side==='buy'?90:7]),saved]));

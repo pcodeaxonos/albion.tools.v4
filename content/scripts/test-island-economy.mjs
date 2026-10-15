@@ -647,7 +647,10 @@ await placementTest('V2 production ledger renders every catalog mode and the lar
                 assert.equal((html.match(/<th scope="row">/g) ?? []).length, purchases.length + 1, item.key);
                 if (purchases.some(line => line.unitPrice == null)) assert.ok(html.includes('<td>—</td>'), item.key);
                 if (Number.isFinite(value.expense)) near(purchases.reduce((sum, line) => sum + line.total, 0), value.expense, item.key);
-                assert.ok(html.includes('Net kâr / gün'));
+                const netRow = html.match(/<tfoot>(.*?)<\/tfoot>/s)?.[1];
+                assert.ok(netRow?.includes('Net kâr/zarar'), 'daily ledger retains its net profit/loss footer');
+                const renderedNet = netRow?.match(/<td[^>]*>(.*?)<\/td>/s)?.[1];
+                assert.equal(renderedNet, Number.isFinite(value.net) ? new Intl.NumberFormat('tr-TR', { maximumFractionDigits: 0 }).format(Math.abs(value.net)) : '—', 'net footer matches the daily economy result');
                 if (!largest || purchases.length > largest.count) largest = { item: item.key, mountItem, count: purchases.length };
             }
         }
@@ -781,18 +784,32 @@ await placementTest('Potential conservative sale prices use the daily engine wit
         itemId: req.itemId, locationName: req.city, quality: 1, quantity: 1, unitPriceSilver: prices.get(req.itemId) ?? fixture.other,
         occurredAt: new Date(now - (day + 1) * 86400000).toISOString()
     }))).flat());
-    let local = 0, external = 0;
+    let local = 0, external = 0, marketArchives = 0;
+    const requestedHistory = [];
     context.AbortSignal = { timeout: () => undefined }; context.testToasts = [];
     context.fetch = async url => {
         if (url.includes('/api/v1/trades')) { local++; return { ok: true, json: async () => ({ server: 'europe', scope: 'personal', trades }) }; }
         if (url.includes('/stats/prices/')) return { ok: true, json: async () => priceRows() };
+        if (url.includes('/api/v1/market/')) { marketArchives++; return { ok: true, json: async () => ({ server: 'europe', rows: [] }) }; }
+        if (url.includes('/stats/history/')) {
+            external++;
+            const historyUrl = new URL(url);
+            assert.equal(historyUrl.searchParams.get('time-scale'), '24');
+            for (const id of historyUrl.pathname.split('/').at(-1).replace(/\.json$/, '').split(',').map(decodeURIComponent))
+                requestedHistory.push(JSON.stringify([historyUrl.searchParams.get('locations'), Number(historyUrl.searchParams.get('qualities')), id]));
+            return { ok: true, json: async () => [] };
+        }
         external++; throw new Error('Unexpected external request');
     };
     (await load('content/js/core/trade-live.js')).namespace.emitTradeLive({ type: 'initial' });
     v2.renderControls(); assert.equal(local, 0);
     assert.ok(v2.renderPriceSegment('Tohum', 'potential', false, 'seed').includes('data-v2-seed="potential"'));
-    await v2.autoFillIsland({ clearSlots: true });
-    assert.equal(local, 1); assert.equal(external, 0);
+    await v2.autoFillIsland();
+    const sourceGroups = new Set(requests.map(req => JSON.stringify([req.server, req.city, req.quality]))).size;
+    assert.equal(local, 1); assert.equal(marketArchives, sourceGroups * 2, 'personal evidence does not replace public archives');
+    assert.ok(external >= sourceGroups);
+    assert.equal(new Set(requestedHistory).size, requestedHistory.length, 'batching never requests an item twice for different horizons');
+    assert.deepEqual(new Set(requestedHistory), new Set(requests.map(req => JSON.stringify([req.city, req.quality, req.itemId]))), 'batched public coverage checks exactly the requested identities');
     assert.equal(v2.state.draft.slots[0], occupied); assert.equal(v2.state.draft.slots[2], locked);
     assert.ok(v2.state.draft.slots[1].item, 'historical quantity never caps normal production');
     assert.equal(v2.state.draft.seedSide, 'potential'); assert.equal(v2.state.draft.harvestSide, 'potential');

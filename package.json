@@ -44,6 +44,7 @@
         "island:test": "node --experimental-vm-modules content/scripts/test-island-economy.mjs && node content/scripts/test-island-placement.mjs && node content/scripts/test-island-sales-potential.mjs && node content/scripts/test-trade-potential-evidence.mjs && node content/scripts/test-potential-price.mjs && node --experimental-vm-modules content/scripts/test-potential-price-table.mjs",
         "island:stability:test": "node content/scripts/test-island-yield-stability.mjs",
         "potential:refresh:test": "node --experimental-vm-modules content/scripts/test-potential-price-refresh.mjs && node content/scripts/test-potential-price-refresh-ui.cjs",
+        "potential:supported:test": "node content/scripts/test-supported-potential.mjs && node content/scripts/audit-potential-price-v2.mjs && node --experimental-vm-modules content/scripts/test-local-sales-history.mjs && node content/scripts/test-potential-price.mjs && node --experimental-vm-modules content/scripts/test-potential-price-table.mjs && node --experimental-vm-modules content/scripts/test-potential-price-refresh.mjs && node content/scripts/test-potential-price-refresh-ui.cjs && node content/scripts/test-potential-prices-ui.cjs",
         "island:forecast:test": "node content/scripts/test-island-yield-forecast.mjs",
         "data:icons": "node content/scripts/fetch-item-icons.mjs",
         "data:farm": "node content/scripts/build-farm-catalog.mjs",

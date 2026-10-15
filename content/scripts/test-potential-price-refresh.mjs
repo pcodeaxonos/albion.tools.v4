@@ -10,13 +10,13 @@ import { SALE_ESTIMATOR, SALE_HORIZONS } from '../js/core/potential-sale-horizon
 const now = Date.now(), end = Math.floor(now / DAY_MS) * DAY_MS;
 const request = { server: 'europe', city: 'Brecilien', itemId: 'T4_MOUNT_HORSE', quality: 1, side: 'sell' };
 const points = last => Array.from({ length: 90 }, (_, i) => ({ timestamp: new Date(end - (i + last) * DAY_MS).toISOString(), avg_price: 30000 + i, item_count: 100 }));
-let apiCalls = 0, failApi = false; const localDays = [], values = new Map();
+let apiCalls = 0, failApi = false, localStart = 4; const localDays = [], values = new Map();
 const storage = { getItem: key => values.get(key) ?? null, setItem: (key, value) => values.set(key, value) };
 const context = vm.createContext({ console, Date, Map, Set });
 const adapters = {
     './settings.js': { getServer: () => ({ id: 'europe' }) },
     './trade-live.js': { fetchCachedTradeSnapshot: async () => ({ trades: [] }) },
-    './local-sales-history.js': { fetchLocalSalesHistory: async (ids, req, days) => { localDays.push(days); return new Map(ids.map(id => [id, { points: points(4) }])); } },
+    './local-sales-history.js': { fetchLocalSalesHistory: async (ids, req, days) => { localDays.push(days); return new Map(ids.map(id => [id, { points: points(localStart) }])); } },
     './market-history.js': {
         fetchHistoryIndex: async (ids, cities, options) => { apiCalls++; if (failApi) throw Error('API unavailable'); assert.equal(options.days, 90); return new Map(ids.map(id => [id, { points: points(1) }])); },
         historyAt: (index, id) => index?.get(id)
@@ -43,6 +43,10 @@ const before = storage.getItem(POTENTIAL_SNAPSHOT_KEY);
 failApi = true;
 await assert.rejects(refresh([request], { storage, days: 7 }), /API unavailable/);
 assert.equal(storage.getItem(POTENTIAL_SNAPSHOT_KEY), before, 'transport failure cannot overwrite saved decisions');
+localStart = 1;
+const previousApiCalls = apiCalls;
+await refresh([request], { storage, days: 7 });
+assert.equal(apiCalls, previousApiCalls, 'complete 90-day local coverage needs no redundant API request');
 await assert.rejects(refresh([{ ...request, server: 'west' }], { storage }), /sunucusunu/);
 const failed = new Map([[tradeEvidenceKey(request), { savedSnapshot: true, estimator: SALE_ESTIMATOR, days: 7, reliable: false, price: null }]]);
 savePotentialSnapshots(storage, [request], 7, failed, now);

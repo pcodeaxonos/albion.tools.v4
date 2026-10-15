@@ -1,5 +1,7 @@
 # Ada Planlayıcı V2 — Potansiyel fiyat yöntemi
 
+> Güncel algoritma ve doğrulama: [Potansiyel fiyat v2](potential-price-v2.md). Aşağıdaki metin önceki sürümün tarihsel kaydıdır.
+
 12 Ekim 2026. Bu belge, önceki satış kapasitesi/stock modu yerine uygulanan güncel P25/P75 fiyat kurallarını açıklar. Yerel repository, 90 günlük birikim, filtreli Node erişimi ve ortak API bütçesi korunmuştur.
 
 ## Davranış

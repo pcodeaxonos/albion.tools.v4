@@ -153,7 +153,8 @@ export function marketPotentialPrice(points, request, days, now, source) {
 
 export function potentialPriceAt(index, request, days, now = Date.now()) {
     const stats = index?.get(tradeEvidenceKey(request));
-    if (stats?.days === days && ((stats.savedSnapshot && !stats.expires) || !stats.validUntil || Date.parse(stats.validUntil) > now)) return stats;
+    if (stats?.days === days && ((stats.savedSnapshot && !stats.expires) || !stats.validUntil || Date.parse(stats.validUntil) > now))
+        return stats.plannerUsable === false ? { ...stats, reliable: false, priceReliable: false, price: null } : stats;
     return { reliable: false, price: null, days, method: request.side === 'buy' ? 'P25' : 'P75',
         reason: stats?.days === days ? 'Potansiyel fiyat kanıtı eskidi; fiyatları yenileyin.' : 'Seçili dönem için güvenilir Potansiyel fiyat kanıtı yok.' };
 }
