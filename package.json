@@ -10,7 +10,7 @@
         "trade-journal:test": "node content/scripts/test-trade-journal.mjs",
         "trade-journal:ui:test": "node content/scripts/test-trade-journal-ui.cjs",
         "data:migrate": "node content/scripts/migrate-user-data.mjs",
-        "data:test": "node content/scripts/test-user-data.mjs && node content/scripts/test-generated-catalogs.mjs",
+        "data:test": "node content/scripts/test-durable-storage.mjs && node content/scripts/test-user-data.mjs && node content/scripts/test-generated-catalogs.mjs",
         "craft-order:test": "node content/scripts/test-craft-card-order.mjs",
         "item-market:test": "node --experimental-vm-modules content/scripts/test-item-market.mjs",
         "data:item-quality": "node content/scripts/update-item-quality-metadata.mjs",

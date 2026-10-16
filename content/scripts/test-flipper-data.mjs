@@ -18,8 +18,12 @@ const dependencies={
  './market-primitives.mjs':{marketSeriesKey},'./market-request.mjs':{aodpUrl,urlBatches},
  './settings.js':{getSettings:()=>({priceSource:'packets'}),localPriceHost:()=> 'http://localhost:3001',getServer:()=>({id:server,host:'https://example.test'})},'./flipper.mjs':{evaluateFlip}
 };
-let clockOffset=0;
-class TestDate extends Date { static now() { return Date.now()+clockOffset; } }
+let clockOffset=0, dateReads=0;
+const clockStart=Date.now();
+class TestDate extends Date {
+ constructor(...args) { super(...(args.length ? args : [TestDate.now()+dateReads++])); }
+ static now() { return clockStart+clockOffset; }
+}
 const context=vm.createContext({URLSearchParams,Date:TestDate});
 const module=new vm.SourceTextModule(fs.readFileSync('content/js/core/flipper-data.js','utf8'),{context});
 await module.link(specifier=>{const values=dependencies[specifier];assert.ok(values,specifier);return new vm.SyntheticModule(Object.keys(values),function(){for(const [key,value]of Object.entries(values))this.setExport(key,value);},{context});});

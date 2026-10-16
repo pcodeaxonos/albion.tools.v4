@@ -1,4 +1,4 @@
-import { cityNameHtml, cityDataKey } from '../components/city-name.js';
+import { cityNameHtml, cityDataKey, cityRecord } from '../components/city-name.js';
 import { filterChoiceFieldHtml } from '../components/form-field.js';
 import { showToast } from '../components/toast.js';
 import { chooseFilter, choiceMatches, writeChoiceSelection, readChoiceSelection } from '../components/filter-selection.js';
@@ -27,7 +27,7 @@ const state={all:[],filtered:[],byId:new Map(),cities:[],live:false,lastEventAt:
 const analysisSorts = new WeakMap();
 const kindLabel=(k)=>KIND_META[k]?.label||k||'Unknown', kindSide=(k)=>KIND_META[k]?.side||'other', kindClass=(k)=>`trades-kind-${kindSide(k)}`;
 const cityKey=(city)=>String(city??'').toLocaleLowerCase('en-US').replace(/[^a-z0-9]/g,'');
-function tradeCity(city){const key=cityKey(city),match=state.cities.find(candidate=>[candidate.name,candidate.displayName,candidate.marketApiName].map(cityKey).some(candidateKey=>candidateKey&&(key===candidateKey||key.startsWith(candidateKey)||candidateKey.startsWith(key))));return match??{marketApiName:key.replace(/market(?:place)?$/,'')};}
+function tradeCity(city){return cityRecord(city)??{marketApiName:String(city??'')};}
 const tradeCitySlug=city=>cityDataKey(tradeCity(city));
 const cityDot=(city)=>{const color=cityKey(city).includes('blackmarket')?'#000000':cityColorHex(tradeCity(city));return`<span class="trades-city-dot" style="--trades-city-color:${escapeHtml(color)}" aria-hidden="true"></span>`;};
 const formatInt=(v)=>Number.isFinite(Number(v))?Math.round(Number(v)).toLocaleString('tr-TR'):'—', formatSilver=formatInt;

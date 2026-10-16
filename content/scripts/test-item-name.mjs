@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import vm from 'node:vm';
+import { cityPresentationModules } from './fixtures/city-presentation-vm.mjs';
 
 const listeners = new Map(), copied = [], toasts = [];
 let removed = false, restored = false;
@@ -59,8 +60,10 @@ assert.equal(field.value, 'Elder Sword');
 assert.ok(removed && restored, 'fallback cleans up and restores focus');
 
 const explain = new vm.SourceTextModule(fs.readFileSync('content/js/utils/calc-explain.js', 'utf8'), { context });
+const cities = await cityPresentationModules(context, text => String(text).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;'));
 await explain.link(async (specifier) => {
     if (specifier.includes('item-name')) return module;
+    if (specifier.includes('city-name')) return cities.name;
     const exports = specifier.includes('market-fees') ? { SETUP_FEE: 0.025 }
         : { escapeHtml: text => String(text).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;') };
     return new vm.SyntheticModule(Object.keys(exports), function () {

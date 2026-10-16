@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { readFileSync, writeFileSync } from 'node:fs';
 import vm from 'node:vm';
+import { cityPresentationModules } from './fixtures/city-presentation-vm.mjs';
 import { fileURLToPath } from 'node:url';
 import { analyzeMarketCell, assessMarketSide } from '../js/core/market-opportunities.mjs';
 import { qualityCalibration } from '../js/core/market-opportunity-quality.mjs';
@@ -14,6 +15,7 @@ const file = new URL('../js/tools/opportunities.js', import.meta.url);
 const source = readFileSync(process.env.OPPORTUNITY_UI_SOURCE || file, 'utf8');
 const context = vm.createContext({ console, document: { querySelector: () => null } });
 const htmlEscape = value => String(value ?? '').replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;').replaceAll('"', '&quot;');
+const cities = await cityPresentationModules(context, htmlEscape);
 let savedFilters = null;
 const stubs = { readStorage: () => null, readJsonStorage: () => savedFilters, itemLabel: value => value,
     escapeHtml: htmlEscape, itemNameHtml: htmlEscape, itemIconHtml: () => '<span class="item-visual"></span>',
@@ -23,7 +25,9 @@ const stubs = { readStorage: () => null, readJsonStorage: () => savedFilters, it
     loadActiveCities: () => [], cityFieldHtml: () => '', getServer: () => ({ id: 'europe' }), getSettings: () => ({ premium: true }) };
 const browser = new vm.SourceTextModule(source + '\nexport { state, visibleRows, rankedVisibleRows, listCounts, cardHtml, renderFilters, readFilters, actionTags, defaultFilters, viewCounts, scenarioHtml, scenarioResultHtml, bindScenario }; export function setRoot(value) { root = value; }', { context, identifier: fileURLToPath(file) });
 await browser.link(async specifier => {
-    if (specifier.endsWith('.mjs')) {
+    if (specifier.endsWith('/city-name.js')) return cities.name;
+    if (specifier.endsWith('/city-badge.js')) return cities.badge;
+    if (specifier.endsWith('.mjs') || specifier.endsWith('/filter-selection.js')) {
         const module = await import(new URL(specifier, file));
         return new vm.SyntheticModule(Object.keys(module), function () { for (const [key, value] of Object.entries(module)) this.setExport(key, value); }, { context });
     }
@@ -87,7 +91,7 @@ for (const [row, model, action] of [[transport, 'Taşıma', 'Şehirler arası ta
     assert.ok(html.includes('Gerçekleşmiş kâr değildir'));
     assert.ok(!html.includes('Dolma olasılığı'));
 }
-assert.ok(cardHtml(transport).includes('Lymhurst → Brecilien'));
+assert.match(cardHtml(transport), /data-city="lymhurst" lang="en">Lymhurst<\/span><span aria-hidden="true">→<\/span><span[^>]*data-city="brecilien" lang="en">Brecilien<\/span>/);
 const pool = Array.from({ length: 600 }, (_, index) => ({ ...local, id: `row-${index}`, itemId: `T4_${index}` }));
 pool.push({ ...instant, id: 'instant-outside-first-500', itemId: 'T4_RARE' });
 pool.push({ ...transport, id: 'transport-only' });

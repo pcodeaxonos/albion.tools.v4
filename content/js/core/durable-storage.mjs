@@ -89,7 +89,8 @@ export function writeDurable(key, value) {
 
 export async function flushDurableWrites() {
     clearTimeout(timer); timer = null;
-    if (active) await active;
+    // Another waiting caller can start the next batch before this one resumes.
+    while (active) await active;
     if (!pending.size) return;
     const sent = new Map(pending);
     const changes = [...sent].map(([key, value]) => tableWriteChange(key, value, confirmed.get(key) ?? null, revisions.get(key) ?? 0));

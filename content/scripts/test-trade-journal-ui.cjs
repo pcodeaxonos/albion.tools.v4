@@ -113,8 +113,13 @@ const { chromium } = require('playwright');
         await page.locator('[data-story]').press('Enter');
         await page.locator('dialog[open]').waitFor();
         assert.equal(await page.locator('dialog tbody tr').count(),5);
-        assert.ok((await page.locator('dialog[open]').innerText()).includes('Alış: 160.000'));
-        assert.ok((await page.locator('dialog[open]').innerText()).includes('Satış: 240.000'));
+        assert.ok((await page.locator('dialog .journal-kpi--buy').innerText()).includes('160.000'));
+        assert.ok((await page.locator('dialog .journal-kpi--sell').innerText()).includes('240.000'));
+        for(const width of [1366,390,320]) {
+            await page.setViewportSize({width,height:720});
+            assert.ok(await page.locator('.journal-detail').evaluate(el=>el.scrollWidth<=el.clientWidth+1));
+            await page.screenshot({path:path.join(screenshots,`journal-dialog-${width}.png`)});
+        }
         await page.locator('[data-close]').click();
         await page.getByText('0 okunmamış grup',{exact:true}).waitFor();
         assert.equal(await page.locator('.journal-event.is-unread').count(),0);
@@ -126,21 +131,23 @@ const { chromium } = require('playwright');
         rows = Array.from({length:240},(_,i)=>({...fill(1000+i),quality:i%5+1,clusterIndex:String(3000+i%120),kind:i%2?'instant_buy':'instant_sell'}));
         rows.push({...fill('bad'),quantity:null}, {...fill('missing'),sourceId:null});
         await page.locator('[data-refresh]').click();
-        await page.waitForFunction(()=>document.querySelectorAll('[data-group]').length===10);
-        await page.setViewportSize({width:1366,height:600});
-        for(const side of ['sell','buy']) {
-            const lane=page.locator(`.journal-block--${side} .journal-lane-body`);
-            assert.ok(await lane.evaluate(el=>el.scrollHeight<=el.clientHeight+1),'preview has no internal scroll');
-            const expand=page.locator(`[data-expand="${side}"]`);
-            assert.equal(await expand.innerText(),'55 grup daha göster');
-            await expand.click();
-            assert.equal(await lane.locator('[data-group]').count(),60);
-            assert.equal(await expand.getAttribute('aria-expanded'),'true');
+        await page.waitForFunction(()=>document.querySelectorAll('[data-group]').length===120);
+        assert.equal(await page.locator('[data-expand]').count(),0);
+        for (const [width,height] of [[1920,1080],[1366,600],[992,600],[992,480]]) {
+            await page.setViewportSize({width,height});
+            for(const side of ['sell','buy']) {
+                const lane=page.locator(`.journal-block--${side} .journal-lane-body`);
+                assert.equal(await lane.locator('[data-group]').count(),60);
+                assert.ok(await lane.evaluate(el=>el.clientHeight>0 && el.scrollHeight>el.clientHeight),JSON.stringify(await lane.evaluate(el=>({width:innerWidth,height:innerHeight,h:el.clientHeight,sh:el.scrollHeight,parents:[el.parentElement,el.parentElement.parentElement,el.closest(".journal-content")].map(e=>({c:e.className,h:e.clientHeight,sh:e.scrollHeight}))}))));
+                await lane.evaluate(el=>el.scrollTop=el.scrollHeight);
+                assert.ok(await lane.evaluate(el=>el.scrollTop>0),'all groups reachable by scrolling');
+            }
+            assert.ok(await page.evaluate(()=>document.documentElement.scrollHeight<=innerHeight+2),'no page scroll');
+            assert.ok(await page.locator('.app-content').evaluate(el=>el.scrollHeight<=el.clientHeight+2),'no shell scroll');
+            await page.screenshot({path:path.join(screenshots,`journal-full-${width}-${height}.png`)});
         }
         await page.locator('[data-refresh]').click(); await page.waitForTimeout(300);
-        assert.equal(await page.locator('[data-group]').count(),120,'refresh preserves expanded panels');
-        for(const side of ['sell','buy']) await page.locator(`[data-expand="${side}"]`).click();
-        assert.equal(await page.locator('[data-group]').count(),10,'both panels collapse to five');
+        assert.equal(await page.locator('[data-group]').count(),120,'refresh keeps all groups');
         // An unread paired story can open both sides even when one is hidden by the filter.
         rows = Array.from({length:5},(_,i)=>({...fill(5000+i),kind:i<2?'instant_buy':'instant_sell',totalPriceSilver:80000,unitPriceSilver:40000}));
         await page.locator('[data-refresh]').click();
@@ -191,7 +198,7 @@ const { chromium } = require('playwright');
             console.log(`REAL ARCHIVE: ${rows.length} records; ${realDay}: ${realModel.count} fills, ${realModel.groups.length} groups, sales=${realModel.sales}, buys=${realModel.buys}`);
         }
         assert.deepEqual(errors,[]);
-        console.log('PASS dense board: 240 fills, 120 groups, five-group preview, expand/collapse retained, native keyboard, partially filtered paired story, dialog focus return');
+        console.log('PASS dense board: 240 fills, 120 groups, all groups visible, independent scrolling, no desktop page scroll, native keyboard, partially filtered paired story, dialog focus return');
         console.log('PASS journal UI: six viewports, exact head pixels, menu, group details, SQLite restart, two windows, new fill, failed write, unread filter, source failure, empty state');
         console.log('Screenshots: '+screenshots);
     } finally { await browser.close(); repository.close(); }

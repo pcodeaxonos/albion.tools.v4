@@ -15,8 +15,6 @@ const number = value => Number(value).toLocaleString('tr-TR', { maximumFractionD
 const time = value => new Date(value).toLocaleTimeString('tr-TR', { timeZone: JOURNAL_ZONE, hour: '2-digit', minute: '2-digit' });
 let day = journalDay(Date.now()), records = new Map(), model = null, scope = null, loaded = false, error = '', readError = '', live = false, received = null;
 let generation = 0, busy = false, onlyUnread = false, revision = 0, syncing = false;
-const PREVIEW_GROUPS = 5;
-const expanded = new Set();
 const metricIcon = kind => `<svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.7"><path d="${kind === 'sell' ? 'M5 16 16 5M6 5h10v10' : kind === 'buy' ? 'M18 6 7 17M7 7v10h10' : kind === 'count' ? 'M5 6h14M5 12h14M5 18h14' : 'M4 8h16m-4-4 4 4-4 4M20 16H4m4-4-4 4 4 4'}"/></svg>`;
 const channel = typeof BroadcastChannel === 'function' ? new BroadcastChannel('albiontools-trade-journal') : null;
 
@@ -39,7 +37,7 @@ function eventCard(event) {
 }
 function render() {
     const scroll = [...content.querySelectorAll('.journal-lane-body, .journal-story')].map(el => el.scrollTop);
-    const focusHook = ['data-open-group','data-mark','data-story','data-story-panel','data-expand'].find(key => document.activeElement?.hasAttribute(key));
+    const focusHook = ['data-open-group','data-mark','data-story','data-story-panel'].find(key => document.activeElement?.hasAttribute(key));
     const focusValue = focusHook && document.activeElement.getAttribute(focusHook);
     const healthOpen = content.querySelector('.journal-footer details')?.open;
     const count = readCount();
@@ -51,8 +49,7 @@ function render() {
     const sideCount = side => model.groups.filter(g => g.side === side).reduce((sum,g) => sum + g.trades.length, 0);
     const block = (side, label) => {
         const all = model.groups.filter(g => g.side === side), groups = all.filter(g => !onlyUnread || journalIsUnread(g));
-        const open = expanded.has(side), visible = open ? groups : groups.slice(0, PREVIEW_GROUPS);
-        return `<section class="journal-block journal-block--${side}" aria-label="${label}"><header class="journal-lane-head"><h2>${metricIcon(side)}${label}</h2><span>${sideCount(side)} işlem · ${all.length} grup</span></header><div class="journal-lane-body">${visible.map(card).join('') || `<p class="journal-empty">${onlyUnread ? 'Okunmamış grup yok.' : 'Bu gün gerçekleşmiş işlem yok.'}</p>`}</div>${groups.length > PREVIEW_GROUPS ? `<button type="button" class="journal-expand" data-expand="${side}" aria-expanded="${open}">${open ? 'Daha az göster' : `${groups.length - visible.length} grup daha göster`}</button>` : ''}</section>`;
+        return `<section class="journal-block journal-block--${side}" aria-label="${label}"><header class="journal-lane-head"><h2>${metricIcon(side)}${label}</h2><span>${sideCount(side)} işlem · ${all.length} grup</span></header><div class="journal-lane-body">${groups.map(card).join('') || `<p class="journal-empty">${onlyUnread ? 'Okunmamış grup yok.' : 'Bu gün gerçekleşmiş işlem yok.'}</p>`}</div></section>`;
     };
     const kpis = [
         ['Satış toplamı', model.sales, 'Silver', `${sideCount('sell')} satış`, 'sell'],
@@ -88,8 +85,8 @@ function openGroup(group, story = null) {
     const detailTrades = groups.flatMap(g => g.trades).sort((a,b) => Date.parse(b.occurredAt) - Date.parse(a.occurredAt));
     root.querySelector('[data-journal-dialog]')?.remove();
     const returnFocus = document.activeElement?.dataset.openGroup ?? String(model.groups.indexOf(group));
-    const host = document.createElement('dialog'); host.className = 'app-dialog'; host.dataset.journalDialog = '';
-    host.innerHTML = `<button type="button" class="app-dialog-close" aria-label="Kapat" data-close></button><div class="app-dialog-sheet journal-detail"><h2>${itemNameHtml(itemLabel(group.itemId,group.name))}</h2><p>${cityNameHtml(group.city)} · ${groups.length > 1 ? 'Alış ve satış' : group.side === 'sell' ? 'Satış' : 'Alış'} · ${group.quality == null ? 'Kalite bilinmiyor' : `Q${group.quality}`} · ${detailTrades.length} gerçekleşmiş işlem</p><p>${groups.map(g => `${g.side === 'buy' ? 'Alış' : 'Satış'}: ${number(g.total)} Silver / ${number(g.quantity)} adet = ${number(g.average)} ağırlıklı ortalama`).join(' · ')}. İşlemler envanter kârı için eşleştirilmez.</p><div class="calc-table-wrap"><table class="table table-striped calc-table"><thead><tr><th>Yön</th><th>Saat (${JOURNAL_ZONE})</th><th>Adet</th><th>Birim Silver</th><th>Toplam Silver</th></tr></thead><tbody>${detailTrades.map(t => `<tr><td>${t.kind.endsWith('buy') ? 'Alış' : 'Satış'}</td><td>${time(t.occurredAt)}</td><td>${number(t.quantity)}</td><td>${number(t.unitPriceSilver)}</td><td>${number(t.totalPriceSilver)}</td></tr>`).join('')}</tbody></table></div><a href="${routeHref('trades')}?item=${encodeURIComponent(group.itemId)}&city=${encodeURIComponent(group.city)}">Trade Dashboard'da incele</a></div>`;
+    const host = document.createElement('dialog'); host.className = 'app-dialog'; host.dataset.journalDialog = ''; host.setAttribute('aria-label', 'İşlem ayrıntıları');
+    host.innerHTML = `<button type="button" class="app-dialog-close" aria-label="Kapat" data-close></button><div class="app-dialog-sheet journal-detail"><header class="journal-detail-head"><h2>${itemNameHtml(itemLabel(group.itemId,group.name))}</h2><p>${cityNameHtml(group.city)} · ${groups.length > 1 ? 'Alış ve satış' : group.side === 'sell' ? 'Satış' : 'Alış'} · ${group.quality == null ? 'Kalite bilinmiyor' : `Q${group.quality}`} · ${detailTrades.length} gerçekleşmiş işlem</p></header><div class="journal-detail-totals">${groups.map(g => `<section class="journal-kpi journal-kpi--${g.side}"><h3>${g.side === 'buy' ? 'Alış' : 'Satış'}</h3><dl><div><dt>Toplam Silver</dt><dd>${number(g.total)}</dd></div><div><dt>Adet</dt><dd>${number(g.quantity)}</dd></div><div><dt>Ort. birim Silver</dt><dd>${number(g.average)}</dd></div></dl></section>`).join('')}</div><div class="calc-table-wrap"><table class="table table-striped calc-table"><thead><tr><th>Yön</th><th>Saat</th><th>Adet</th><th>Birim Silver</th><th>Toplam Silver</th></tr></thead><tbody>${detailTrades.map(t => `<tr><td>${t.kind.endsWith('buy') ? 'Alış' : 'Satış'}</td><td>${time(t.occurredAt)}</td><td>${number(t.quantity)}</td><td>${number(t.unitPriceSilver)}</td><td>${number(t.totalPriceSilver)}</td></tr>`).join('')}</tbody></table></div><footer class="journal-detail-footer"><p>Tutarlar vergi öncesidir; işlemler envanter kârı için eşleştirilmez.<br>Saat dilimi: ${JOURNAL_ZONE}</p><a href="${routeHref('trades')}?item=${encodeURIComponent(group.itemId)}&city=${encodeURIComponent(group.city)}">Trade Dashboard'da incele →</a></footer></div>`;
     root.append(host); host.querySelector('[data-close]').onclick = () => host.close(); host.addEventListener('close', () => (root.querySelector(`[data-open-group="${returnFocus}"]`) || root.querySelector('.journal-story') || root.querySelector('[data-only-unread]'))?.focus({ preventScroll: true }));
     host.showModal(); bindCalcSticky(host);
     const highlight = story || journalHighlights(model).find(e => e.groups.includes(group));
@@ -128,8 +125,6 @@ async function syncRead() {
 }
 root.addEventListener('click', event => {
     if (event.target.closest('[data-copy-item-name]')) return;
-    const expand = event.target.closest('[data-expand]');
-    if (expand) { const side = expand.dataset.expand; expanded.has(side) ? expanded.delete(side) : expanded.add(side); render(); return; }
     const markButton = event.target.closest('[data-mark]');
     if (markButton) { const group = model.groups[Number(markButton.dataset.mark)]; void mark([group], journalIsUnread(group)); return; }
     const story = event.target.closest('[data-story]');
@@ -141,7 +136,7 @@ root.addEventListener('click', event => {
     if (event.target.closest('[data-refresh]')) void refresh();
     if (event.target.closest('[data-read-day]')) void mark(model.groups,true);
 });
-function selectDay(value) { if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return; day = value; expanded.clear(); root.querySelector('[data-day]').value = day; void recompute(); }
+function selectDay(value) { if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return; day = value; root.querySelector('[data-day]').value = day; void recompute(); }
 root.querySelector('[data-day]').onchange = event => selectDay(event.target.value);
 root.querySelector('[data-only-unread]').onchange = event => { onlyUnread = event.target.checked; render(); };
 bindTradeLive(detail => {

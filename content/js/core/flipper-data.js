@@ -35,9 +35,10 @@ export async function scanFlips({ items, sources, target, targets = target ? [ta
     } else historyError = 'Ortak arşiv normal kaliteyi izliyor; bu kalite için tarihsel kontrol yok.';
     if (getServer().id !== server.id) throw new Error('Sunucu değişti; yeniden tarayın');
     signal.throwIfAborted();
+    const fetchedAt = cached?.fetchedAt || new Date().toISOString();
     if (!cached && !failed && reuseRecent) {
         if (scanDataCache.size >= 8) scanDataCache.delete(scanDataCache.keys().next().value);
-        scanDataCache.set(cacheKey, { prices, references, historyError, at: Date.now(), fetchedAt: new Date().toISOString() });
+        scanDataCache.set(cacheKey, { prices, references, historyError, at: Date.now(), fetchedAt });
     }
     if (!reuseRecent) {
         // Fresh packet observations replace matching records in every retained scan.
@@ -53,5 +54,5 @@ export async function scanFlips({ items, sources, target, targets = target ? [ta
         const dest = destinationIndex.get(`${source.item_id}|${source.quality}|${city}`);
         return dest && evaluateFlip({ item: catalog.get(source.item_id), source, target: dest, sourceReference: reference(source,'sell'), targetReference: reference(dest,'buy'), taxRate: fees.taxRate, transport, maxAgeMs });
     })).filter(Boolean).sort((a,b) => b.score-a.score);
-    return { rows, failed, historyError, fetchedAt: cached?.fetchedAt || new Date().toISOString(), server: server.id, reused: Boolean(cached) };
+    return { rows, failed, historyError, fetchedAt, server: server.id, reused: Boolean(cached) };
 }

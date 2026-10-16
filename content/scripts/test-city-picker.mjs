@@ -176,3 +176,24 @@ console.log('English city identities and CSS-owned casing passed in every picker
 
 assert.equal(cityDataKey('Bridgewatch Market'), 'bridgewatch');
 assert.equal(cityName('Bridgewatch Marketplace'), 'Bridgewatch');
+
+const cities = JSON.parse(fs.readFileSync('data/cities.json', 'utf8'));
+const locations = JSON.parse(fs.readFileSync('data/locations.json', 'utf8'));
+const facilities = locations.filter(row => /(?:Portal|Market|Bank)$|^Bank of /i.test(row.displayName));
+for (const location of facilities) {
+    const parentName = location.displayName.replace(/^Bank of /, '').replace(/ (?:Portal|Market|Bank)$/, '');
+    const parent = cities.find(city => city.marketApiName === parentName);
+    if (!parent) continue;
+    for (const name of [location.displayName, location.displayName.toUpperCase().replaceAll(' ', '_')]) {
+        assert.equal(cityName(name), parent.marketApiName, name);
+        assert.equal(cityDataKey(name), cityDataKey(parent), name);
+        assert.match(cityNameHtml(name), new RegExp(`data-city="${cityDataKey(parent)}" lang="en"`));
+    }
+}
+assert.equal(cityDataKey('Thetford Portal'), 'thetford');
+assert.equal(cityDataKey('Fort Sterling Portal'), 'fort-sterling');
+for (const name of ['Black Market', "Antiquarian's Den", 'The Underway', 'Thetford Wilderness', 'Unknown Portal', 'Bank of Unknown', '']) {
+    assert.equal(cityName(name), name);
+}
+assert.equal(cityNameModule.namespace.cityRecord('Thet'), undefined);
+console.log('Catalog market, portal and bank city identities passed; unrelated locations remain distinct.');
